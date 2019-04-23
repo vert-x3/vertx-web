@@ -14,15 +14,15 @@ features like:
 * unified error handling
 * form submissions
 
-The web client does not deprecate the Vert.x Core {@link io.vertx.core.http.HttpClient}, indeed it is based on
+The Web Client does not deprecate the Vert.x Core {@link io.vertx.core.http.HttpClient}, indeed it is based on
 this client and inherits its configuration and great features like pooling, HTTP/2 support, pipelining support, etc...
 The {@link io.vertx.core.http.HttpClient} should be used when fine grained control over the HTTP
 requests/responses is necessary.
 
-The web client does not provide a WebSocket API, the Vert.x Core {@link io.vertx.core.http.HttpClient} should
+The Web Client does not provide a WebSocket API, the Vert.x Core {@link io.vertx.core.http.HttpClient} should
 be used. It also does not handle cookies at the moment.
 
-== Using the web client
+== Using the Web Client
 
 To use Vert.x Web Client, add the following dependency to the _dependencies_ section of your build descriptor:
 
@@ -51,7 +51,7 @@ dependencies {
 Vert.x Web Client uses the API from Vert.x core, so it's well worth getting familiar with the basic concepts of using
 {@link io.vertx.core.http.HttpClient} using Vert.x core, if you're not already.
 
-== Creating a web client
+== Creating a Web Client
 
 You create an {@link io.vertx.ext.web.client.WebClient} instance with default options as follows
 
@@ -123,7 +123,7 @@ Use {@link io.vertx.ext.web.client.HttpRequest#sendBuffer} to send a buffer body
 
 Sending a single buffer is useful but often you don't want to load fully the content in memory because
 it may be too large or you want to handle many concurrent requests and want to use just the minimum
-for each request. For this purpose the web client can send `ReadStream<Buffer>` (e.g a
+for each request. For this purpose the Web Client can send `ReadStream<Buffer>` (e.g a
 {@link io.vertx.core.file.AsyncFile} is a ReadStream<Buffer>`) with the {@link io.vertx.ext.web.client.HttpRequest#sendStream} method
 
 [source,$lang]
@@ -131,7 +131,7 @@ for each request. For this purpose the web client can send `ReadStream<Buffer>` 
 {@link examples.WebClientExamples#sendStreamChunked(io.vertx.ext.web.client.WebClient, io.vertx.core.streams.ReadStream)}
 ----
 
-The web client takes care of setting up the transfer pump for you. Since the length of the stream is not know
+The Web Client takes care of setting up the transfer pump for you. Since the length of the stream is not know
 the request will use chunked transfer encoding .
 
 When you know the size of the stream, you shall specify before using the `content-length` header
@@ -267,7 +267,7 @@ handler.
 
 == Handling http responses
 
-When the web client sends a request you always deal with a single async result {@link io.vertx.ext.web.client.HttpResponse}.
+When the Web Client sends a request you always deal with a single async result {@link io.vertx.ext.web.client.HttpResponse}.
 
 On a success result the callback happens after the response has been received
 
@@ -288,7 +288,7 @@ to pipe the response to a write stream
 
 === Decoding responses
 
-By default the web client provides an http response body as a `Buffer` and does not apply
+By default the Web Client provides an http response body as a `Buffer` and does not apply
 any decoding.
 
 Custom response body decoding can be achieved using {@link io.vertx.ext.web.codec.BodyCodec}:
@@ -461,7 +461,7 @@ The client will follow at most `16` requests redirections, it can be changed in 
 
 == Using HTTPS
 
-Vert.x web client can be configured to use HTTPS in exactly the same way as the Vert.x {@link io.vertx.core.http.HttpClient}.
+Vert.x Web Client can be configured to use HTTPS in exactly the same way as the Vert.x {@link io.vertx.core.http.HttpClient}.
 
 You can specify the behavior per request
 
