@@ -12,8 +12,40 @@
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
+|[[graphiQLOptions]]`@graphiQLOptions`|`link:dataobjects.html#GraphiQLOptions[GraphiQLOptions]`|+++
+Configure the GraphiQL development tool.
++++
 |[[requestBatchingEnabled]]`@requestBatchingEnabled`|`Boolean`|+++
 Whether request batching should be enabled. Defaults to <code>false</code>.
++++
+|===
+
+[[GraphiQLOptions]]
+== GraphiQLOptions
+
+++++
+ Embedded GraphiQL user interface options.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[enabled]]`@enabled`|`Boolean`|+++
+Whether the GraphiQL development tool should be enabled. Defaults to <code>false</code>.
++++
+|[[graphQLUri]]`@graphQLUri`|`String`|+++
+Set the GraphQL endpoint URI. Defaults to the path used to get the GraphiQL user interface.
++++
+|[[headers]]`@headers`|`String`|+++
+A fixed set of HTTP headers to add to GraphiQL requests. Defaults to <code>null</code>.
++++
+|[[query]]`@query`|`String`|+++
+Initial value of the query area in the GraphiQL user interface. Defaults to <code>null</code>.
++++
+|[[variables]]`@variables`|`Json object`|+++
+Initial value of the variables area in the GraphiQL user interface. Defaults to <code>null</code>.
 +++
 |===
 
