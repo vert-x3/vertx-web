@@ -32,8 +32,6 @@ import java.text.DateFormat;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -266,7 +264,7 @@ public class StaticHandlerTest extends WebTestBase {
 
   private void testSkipCompression(StaticHandler staticHandler, List<String> uris, List<String> expectedContentEncodings) throws Exception {
     server.close();
-    server = vertx.createHttpServer(getHttpServerOptions().setCompressionSupported(true));
+    server = vertx.createHttpServer(getHttpServerOptions().setPort(0).setCompressionSupported(true));
     router = Router.router(vertx);
     router.route().handler(staticHandler);
 
@@ -277,7 +275,7 @@ public class StaticHandlerTest extends WebTestBase {
     List<String> contentEncodings = Collections.synchronizedList(new ArrayList<>());
     for (String uri : uris) {
       CountDownLatch responseReceived = new CountDownLatch(1);
-      client.get(uri, onSuccess(resp -> {
+      client.get(server.actualPort(), getHttpClientOptions().getDefaultHost(), uri, onSuccess(resp -> {
         assertEquals(200, resp.statusCode());
         contentEncodings.add(resp.getHeader(HttpHeaders.CONTENT_ENCODING));
         responseReceived.countDown();
