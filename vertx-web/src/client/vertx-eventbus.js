@@ -112,7 +112,9 @@
 
     this.onunhandled = function (json) {
       try {
-        if (json.event) {
+        if (json.type === 'err')
+          self.onerror(json);
+        else if (json.event) {
           console.warn('No handler found for event: %o. Message: %O', json.event, json);
         } else {
           console.warn('No handler found for message: ', json);
@@ -166,11 +168,6 @@
             failureType: ex.toString(),
             message: e.data
           };
-        }
-
-        if (json.type === 'err') {
-          self.onerror(json);
-          return;
         }
 
         // define a reply function on the message itself
