@@ -15,11 +15,6 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.VertxException;
@@ -31,8 +26,16 @@ import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.cache.CacheManager;
+import io.vertx.ext.web.client.cache.CacheOptions;
 import io.vertx.ext.web.client.impl.predicate.PredicateInterceptor;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -41,21 +44,31 @@ public class WebClientBase implements WebClientInternal {
 
   final HttpClient client;
   final WebClientOptions options;
-  private final List<Handler<HttpContext<?>>> interceptors;
-
-  public WebClientBase(HttpClient client, WebClientOptions options) {
-    this.client = client;
-    this.options = new WebClientOptions(options);
-    this.interceptors = new CopyOnWriteArrayList<>();
-
-    // Add base interceptor
-    addInterceptor(new PredicateInterceptor());
-  }
+  final List<Handler<HttpContext<?>>> interceptors;
+  private final CacheManager cacheManager;
 
   WebClientBase(WebClientBase webClient) {
-    this.client = webClient.client;
-    this.options = new WebClientOptions(webClient.options);
-    this.interceptors = new CopyOnWriteArrayList<>(webClient.interceptors);
+    this(webClient.client, new WebClientOptions(webClient.options));
+  }
+
+  public WebClientBase(HttpClient client, WebClientOptions options) {
+    this(client, options, new CacheManagerImpl(options.getCacheOptions() == null ? new CacheOptions() : options.getCacheOptions()));
+  }
+
+  public WebClientBase(HttpClient client, WebClientOptions options, CacheManager cacheManager) {
+    this.client = client;
+    this.options = new WebClientOptions(options);
+    this.cacheManager = cacheManager;
+    this.interceptors = new CopyOnWriteArrayList<>();
+    // Add base interceptor
+    addInterceptor(new PredicateInterceptor());
+    addCacheInterceptor();
+  }
+
+
+  private void addCacheInterceptor() {
+    CacheInterceptor cacheInterceptor = new CacheInterceptor(this.cacheManager, this.options.getCacheOptions());
+    this.addInterceptor(cacheInterceptor);
   }
 
   @Override
@@ -245,5 +258,10 @@ public class WebClientBase implements WebClientInternal {
   @Override
   public void close() {
     client.close();
+  }
+
+  @Override
+  public CacheManager cache() {
+    return this.cacheManager;
   }
 }

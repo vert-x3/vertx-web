@@ -24,6 +24,8 @@ import io.vertx.core.http.HttpVersion;
 import io.vertx.core.impl.launcher.commands.VersionCommand;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.*;
+import io.vertx.core.net.*;
+import io.vertx.ext.web.client.cache.CacheOptions;
 
 import java.util.List;
 import java.util.Set;
@@ -53,6 +55,7 @@ public class WebClientOptions extends HttpClientOptions {
   private boolean userAgentEnabled = DEFAULT_USER_AGENT_ENABLED;
   private String userAgent = DEFAULT_USER_AGENT;
   private boolean followRedirects = DEFAULT_FOLLOW_REDIRECTS;
+  private CacheOptions cacheOptions;
 
   public WebClientOptions() {
   }
@@ -90,6 +93,7 @@ public class WebClientOptions extends HttpClientOptions {
     this.userAgentEnabled = other.userAgentEnabled;
     this.userAgent = other.userAgent;
     this.followRedirects = other.followRedirects;
+    this.cacheOptions = new CacheOptions(other.getCacheOptions());
   }
 
   /**
@@ -496,5 +500,14 @@ public class WebClientOptions extends HttpClientOptions {
       userAgent += "/" + version;
     }
     return userAgent;
+  }
+
+  public WebClientOptions setCacheOptions(CacheOptions cacheOptions) {
+    this.cacheOptions = cacheOptions;
+    return this;
+  }
+
+  public CacheOptions getCacheOptions() {
+    return cacheOptions;
   }
 }

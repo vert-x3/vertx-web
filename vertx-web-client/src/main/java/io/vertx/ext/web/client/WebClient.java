@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientImpl;
+import io.vertx.ext.web.client.cache.CacheManager;
 import io.vertx.ext.web.client.impl.WebClientBase;
 
 /**
@@ -41,7 +42,6 @@ import io.vertx.ext.web.client.impl.WebClientBase;
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-@VertxGen
 public interface WebClient {
 
   /**
@@ -64,6 +64,17 @@ public interface WebClient {
    */
   static WebClient create(Vertx vertx, WebClientOptions options) {
     return new WebClientBase(vertx.createHttpClient(options), options);
+  }
+
+  /**
+   * Create a web client with custom cache manager
+   * @param vertx         the vertx instance
+   * @param options       Web Client options
+   * @param cacheManager  custom CacheManager
+   * @return  new instance of web client
+   */
+  static WebClient create(Vertx vertx, WebClientOptions options, CacheManager cacheManager) {
+    return new WebClientBase(vertx.createHttpClient(options), options, cacheManager);
   }
 
   /**
@@ -332,4 +343,10 @@ public interface WebClient {
    * Clients should always be closed after use.
    */
   void close();
+
+  /**
+   * Exposes the cache manager to allow flushing it on demand
+   * @return cache manager abstraction
+   */
+  CacheManager cache();
 }
