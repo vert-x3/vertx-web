@@ -202,6 +202,14 @@ public class CORSHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testRealRequestCredentialsWildcard() throws Exception {
+    Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
+    router.route().handler(CorsHandler.create("*").allowedMethods(allowedMethods).allowCredentials(true));
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "vertx.io"), resp -> checkHeaders(resp, "vertx.io", null, null, null, "true", null), 200, "OK", null);
+  }
+
+  @Test
   public void testChaining() throws Exception {
     CorsHandler cors = CorsHandler.create("*");
     assertNotNull(cors);
@@ -214,16 +222,6 @@ public class CORSHandlerTest extends WebTestBase {
     assertSame(cors, cors.exposedHeader("X-wibble"));
     assertSame(cors, cors.exposedHeader("X-blah"));
     assertSame(cors, cors.exposedHeaders(new HashSet<>()));
-  }
-
-  @Test
-  public void testUnsecureCorsShouldNotBeAllowed() throws Exception {
-    try {
-      CorsHandler.create("*").allowCredentials(true);
-      fail("Should not be allowed!");
-    } catch (IllegalStateException e) {
-      // OK
-    }
   }
 
   private void checkHeaders(HttpClientResponse resp, String accessControlAllowOrigin,

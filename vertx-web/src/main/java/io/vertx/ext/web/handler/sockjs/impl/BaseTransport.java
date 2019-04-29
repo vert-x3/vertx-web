@@ -41,16 +41,16 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.impl.StringEscapeUtils;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.impl.CorsHandlerImpl;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.handler.sockjs.Transport;
-import io.vertx.ext.web.impl.Utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -155,20 +155,22 @@ class BaseTransport {
   }
 
   static void setCORS(RoutingContext rc) {
-    HttpServerRequest req = rc.request();
-    String origin = req.headers().get("origin");
-    if (origin == null) {
-      origin = "*";
-    }
-    Utils.addToMapIfAbsent(req.response().headers(), "Access-Control-Allow-Origin", origin);
-    if ("*".equals(origin)) {
-      Utils.addToMapIfAbsent(req.response().headers(), "Access-Control-Allow-Credentials", "false");
-    } else {
-      Utils.addToMapIfAbsent(req.response().headers(), "Access-Control-Allow-Credentials", "true");
-    }
-    String hdr = req.headers().get("Access-Control-Request-Headers");
-    if (hdr != null) {
-      Utils.addToMapIfAbsent(req.response().headers(), "Access-Control-Allow-Headers", hdr);
+    if (rc.get(CorsHandlerImpl.CORS_HANDLED_FLAG) == null || !((boolean)rc.get(CorsHandlerImpl.CORS_HANDLED_FLAG))) {
+      HttpServerRequest req = rc.request();
+      String origin = req.getHeader(ORIGIN);
+      if (origin == null) {
+        origin = "*";
+      }
+      req.response().headers().set(ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+      if ("*".equals(origin)) {
+        req.response().headers().set(ACCESS_CONTROL_ALLOW_CREDENTIALS, "false");
+      } else {
+        req.response().headers().set(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+      }
+      String hdr = req.headers().get(ACCESS_CONTROL_REQUEST_HEADERS);
+      if (hdr != null) {
+        req.response().headers().set(ACCESS_CONTROL_ALLOW_HEADERS, hdr);
+      }
     }
   }
 
