@@ -117,7 +117,7 @@ public class DigestAuthHandlerImpl extends AuthorizationAuthHandler implements D
 
         // check for nonce counter (prevent replay attack
         if (authInfo.containsKey("qop")) {
-          int nc = Integer.parseInt(authInfo.getString("nc"));
+          int nc = Integer.parseInt(authInfo.getString("nc"), 16);
           final Nonce n = nonces.get(nonce);
           if (nc <= n.count) {
             handler.handle(Future.failedFuture(UNAUTHORIZED));
