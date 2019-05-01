@@ -841,6 +841,19 @@ public class StaticHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/not-existing-file.html", 200, "OK", "Howdy!");
   }
 
+  @Test
+  public void testWriteResponseWhenAlreadyClosed() throws Exception {
+    router.clear();
+    router
+      .route()
+      .handler(rc -> {
+        rc.next();
+        rc.response().end("OtherResponse");
+      })
+      .handler(stat);
+    testRequest(HttpMethod.GET, "/index.html", 200, "OK", "OtherResponse");
+  }
+
 
   // TODO
   // 1.Test all the params including invalid values
