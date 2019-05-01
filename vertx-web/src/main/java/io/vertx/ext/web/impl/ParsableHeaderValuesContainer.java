@@ -1,12 +1,12 @@
 package io.vertx.ext.web.impl;
 
-import java.util.Collection;
-import java.util.List;
-
 import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.ParsedHeaderValue;
 import io.vertx.ext.web.ParsedHeaderValues;
+
+import java.util.Collection;
+import java.util.List;
 
 public class ParsableHeaderValuesContainer implements ParsedHeaderValues {
 
@@ -48,11 +48,14 @@ public class ParsableHeaderValuesContainer implements ParsedHeaderValues {
   }
 
   @Override
-  public <T extends ParsedHeaderValue> T findBestUserAcceptedIn(List<T> userAccepted, Collection<T> in) {
-    for (T acceptableType: userAccepted) {
-      T acceptedType = acceptableType.findMatchedBy(in);
-      if(acceptedType != null){
-        return acceptedType;
+  public MIMEHeader findBestUserAcceptedIn(List<MIMEHeader> userAccepted, Collection<MIMEHeader> in) {
+    for (MIMEHeader acceptableType: userAccepted) {
+      MIMEHeader acceptedType = acceptableType.findMatchedBy(in);
+      if (acceptedType != null) {
+        if ("*".equals(acceptedType.subComponent()) || "*".equals(acceptedType.component()))
+          return acceptableType;
+        else
+          return acceptedType;
       }
     }
     return null;

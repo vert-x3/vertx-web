@@ -1089,6 +1089,33 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testProducesSubtypeWildcardAcceptTextPlain() throws Exception {
+    router.route().produces("text/*").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/plain", 200, "text/plain");
+  }
+
+  @Test
+  public void testProducesComponentWildcardAcceptTextPlain() throws Exception {
+    router.route().produces("*/plain").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/plain", 200, "text/plain");
+  }
+
+  @Test
+  public void testProducesAllWildcard() throws Exception {
+    router.route().produces("*/*").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/plain", 200, "text/plain");
+  }
+
+  @Test
   public void testProducesTopLevelTypeWildcard() throws Exception {
     router.route().produces("application/json").handler(rc -> {
       rc.response().setStatusMessage(rc.getAcceptableContentType());

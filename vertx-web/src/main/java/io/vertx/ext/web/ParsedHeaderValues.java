@@ -1,10 +1,10 @@
 package io.vertx.ext.web;
 
-import java.util.Collection;
-import java.util.List;
-
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * A container with the request's headers that are meaningful enough to be parsed
@@ -54,5 +54,5 @@ public interface ParsedHeaderValues {
    * @return The first header that matched, otherwise empty if none matched
    */
   @GenIgnore
-  <T extends ParsedHeaderValue> T findBestUserAcceptedIn(List<T> accepted, Collection<T> in);
+  MIMEHeader findBestUserAcceptedIn(List<MIMEHeader> accepted, Collection<MIMEHeader> in);
 }
