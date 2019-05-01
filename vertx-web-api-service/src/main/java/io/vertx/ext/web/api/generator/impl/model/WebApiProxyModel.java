@@ -55,7 +55,10 @@ public class WebApiProxyModel extends ProxyModel {
       }
       ParamInfo shouldBeHandler = mParams.get(mParams.size() - 1);
       if (baseInfo.getKind() != MethodKind.HANDLER || shouldBeHandler == null) {
-        TypeInfo shouldBeOperationResult = ((ParameterizedTypeInfo) ((ParameterizedTypeInfo) shouldBeHandler.getType()).getArg(0)).getArg(0);
+        if (shouldBeHandler == null)
+        	throw new GenException(this.modelElt, "Method " + methodName + "should to have a last parameter of type Handler<AsyncResult<io.vertx.ext.web.api.OperationResponse>> not null ...");
+        
+    	TypeInfo shouldBeOperationResult = ((ParameterizedTypeInfo) ((ParameterizedTypeInfo) shouldBeHandler.getType()).getArg(0)).getArg(0);
         if (!OperationResponse.class.getName().equals(shouldBeOperationResult.getName()))
           throw new GenException(this.modelElt, "Method " + methodName + "should last parameter should be an handler of type Handler<AsyncResult<io.vertx.ext.web.api.OperationResponse>>");
       }

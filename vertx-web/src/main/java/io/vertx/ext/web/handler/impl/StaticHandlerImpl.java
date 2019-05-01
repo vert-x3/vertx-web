@@ -327,7 +327,7 @@ public class StaticHandlerImpl implements StaticHandler {
     HttpServerRequest request = context.request();
 
     Long offset = null;
-    Long end = null;
+    long end = 0;
     MultiMap headers = null;
 
     if (rangeSupport) {
