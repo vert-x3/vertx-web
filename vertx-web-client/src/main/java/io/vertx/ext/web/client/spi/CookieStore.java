@@ -40,7 +40,7 @@ public interface CookieStore {
    * @param path the path we are calling
    * @return the matched cookies
    */
-  Iterable<Cookie> get(boolean ssl, String domain, String path);
+  Iterable<Cookie> get(Boolean ssl, String domain, String path);
   
   /**
    * Add a cookie to this {@code CookieStore}.

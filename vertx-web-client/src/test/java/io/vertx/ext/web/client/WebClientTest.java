@@ -12,6 +12,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
@@ -1176,6 +1177,19 @@ public class WebClientTest extends HttpTestBase {
     });
     startServer();
     HttpRequest<Buffer> req = client.get("/test").virtualHost("another-host");
+    req.send(onSuccess(resp -> testComplete()));
+    await();
+  }
+
+  @Test
+  public void testSocketAddress() throws Exception {
+    server.requestHandler(req -> {
+      assertEquals("another-host:8080", req.host());
+      req.response().end();
+    });
+    startServer();
+    SocketAddress addr = SocketAddress.inetSocketAddress(8080, "localhost");
+    HttpRequest<Buffer> req = client.request(HttpMethod.GET, addr, 8080, "another-host", "/test");
     req.send(onSuccess(resp -> testComplete()));
     await();
   }
