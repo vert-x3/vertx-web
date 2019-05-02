@@ -24,6 +24,7 @@ import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
@@ -43,6 +44,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   final WebClientInternal client;
   final WebClientOptions options;
+  SocketAddress serverAddress;
   MultiMap params;
   HttpMethod method;
   String protocol;
@@ -54,15 +56,15 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   long timeout = -1;
   BodyCodec<T> codec;
   boolean followRedirects;
-  boolean ssl;
+  Boolean ssl;
   public List<ResponsePredicate> expectations;
 
-  HttpRequestImpl(WebClientInternal client, HttpMethod method, boolean ssl, int port, String host, String uri, BodyCodec<T>
+  HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, Boolean ssl, int port, String host, String uri, BodyCodec<T>
           codec, WebClientOptions options) {
-    this(client, method, null, ssl, port, host, uri, codec, options);
+    this(client, method, serverAddress, null, ssl, port, host, uri, codec, options);
   }
 
-  HttpRequestImpl(WebClientInternal client, HttpMethod method, String protocol, boolean ssl, int port, String host, String
+  HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, String protocol, Boolean ssl, int port, String host, String
           uri, BodyCodec<T> codec, WebClientOptions options) {
     this.client = client;
     this.method = method;
@@ -72,6 +74,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.host = host;
     this.uri = uri;
     this.ssl = ssl;
+    this.serverAddress = serverAddress;
     this.followRedirects = options.isFollowRedirects();
     this.options = options;
     if (options.isUserAgentEnabled()) {
@@ -81,6 +84,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   private HttpRequestImpl(HttpRequestImpl<T> other) {
     this.client = other.client;
+    this.serverAddress = other.serverAddress;
     this.options = other.options;
     this.method = other.method;
     this.protocol = other.protocol;
@@ -164,7 +168,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
-  public HttpRequest<T> ssl(boolean value) {
+  public HttpRequest<T> ssl(Boolean value) {
     ssl = value;
     return this;
   }

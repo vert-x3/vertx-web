@@ -28,6 +28,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientImpl;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -178,27 +179,52 @@ public class WebClientBase implements WebClientInternal {
     return requestAbs(HttpMethod.HEAD, absoluteURI);
   }
 
-
   public HttpRequest<Buffer> request(HttpMethod method, String requestURI) {
-    return new HttpRequestImpl<>(this, method, options.isSsl(), options.getDefaultPort(), options.getDefaultHost(),
-            requestURI, BodyCodecImpl.BUFFER, options);
+    return request(method, (SocketAddress) null, requestURI);
+  }
+
+  @Override
+  public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, String requestURI) {
+    return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), options.getDefaultPort(), options.getDefaultHost(),
+      requestURI, BodyCodecImpl.BUFFER, options);
   }
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, RequestOptions requestOptions) {
-    return new HttpRequestImpl<>(this, method, requestOptions.isSsl(), requestOptions.getPort(),
-            requestOptions.getHost(), requestOptions.getURI(), BodyCodecImpl.BUFFER, options);
+    return request(method, null, requestOptions);
+  }
+
+  @Override
+  public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, RequestOptions requestOptions) {
+    return new HttpRequestImpl<>(this, method, serverAddress, requestOptions.isSsl(), requestOptions.getPort(),
+      requestOptions.getHost(), requestOptions.getURI(), BodyCodecImpl.BUFFER, options);
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, String host, String requestURI) {
-    return new HttpRequestImpl<>(this, method, options.isSsl(), options.getDefaultPort(), host, requestURI, BodyCodecImpl.BUFFER, options);
+    return request(method, null, host, requestURI);
+  }
+
+  @Override
+  public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, String host, String requestURI) {
+    return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), options.getDefaultPort(), host, requestURI, BodyCodecImpl.BUFFER, options);
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, int port, String host, String requestURI) {
-    return new HttpRequestImpl<>(this, method, options.isSsl(), port, host, requestURI, BodyCodecImpl.BUFFER, options);
+    return request(method, null, port, host, requestURI);
   }
 
+  @Override
+  public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, int port, String host, String requestURI) {
+    return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), port, host, requestURI, BodyCodecImpl.BUFFER, options);
+  }
+
+  @Override
   public HttpRequest<Buffer> requestAbs(HttpMethod method, String surl) {
+    return requestAbs(method, null, surl);
+  }
+
+  @Override
+  public HttpRequest<Buffer> requestAbs(HttpMethod method, SocketAddress serverAddress, String surl) {
     // Note - parsing a URL this way is slower than specifying host, port and relativeURI
     URL url;
     try {
@@ -226,7 +252,7 @@ public class WebClientBase implements WebClientInternal {
         }
       }
     }
-    return new HttpRequestImpl<>(this, method, protocol, ssl, port, url.getHost(), url.getFile(),
+    return new HttpRequestImpl<>(this, method, serverAddress, protocol, ssl, port, url.getHost(), url.getFile(),
             BodyCodecImpl.BUFFER, options);
   }
 

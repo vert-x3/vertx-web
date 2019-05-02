@@ -297,8 +297,8 @@ public class HttpContext<T> {
     }
     int port = request.port;
     String host = request.host;
-    if (request.ssl != request.options.isSsl()) {
-      req = client.request(request.method, new RequestOptions().setSsl(request.ssl).setHost(host).setPort
+    if (request.ssl != null && request.ssl != request.options.isSsl()) {
+      req = client.request(request.method, request.serverAddress, new RequestOptions().setSsl(request.ssl).setHost(host).setPort
         (port)
         .setURI
           (requestURI));
@@ -307,13 +307,13 @@ public class HttpContext<T> {
         // we have to create an abs url again to parse it in HttpClient
         try {
           URI uri = new URI(request.protocol, null, host, port, requestURI, null, null);
-          req = client.requestAbs(request.method, uri.toString());
+          req = client.requestAbs(request.method, request.serverAddress, uri.toString());
         } catch (URISyntaxException ex) {
           fail(ex);
           return;
         }
       } else {
-        req = client.request(request.method, port, host, requestURI);
+        req = client.request(request.method, request.serverAddress, port, host, requestURI);
       }
     }
     if (request.virtualHost != null) {

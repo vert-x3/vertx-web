@@ -517,3 +517,15 @@ to send different headers to different hosts, you have to add them manually to e
 ifeval::["$lang" == "java"]
 include::override/rxjava2.adoc[]
 endif::[]
+
+== Domain sockets
+
+Since 3.7.1 the Web Client supports domain sockets, e.g you can interact with the https://docs.docker.com/engine/reference/commandline/dockerd/[local Docker daemon].
+
+To achieve this, the {@link io.vertx.core.Vertx} instance must be created using a native transport, you can read
+the Vert.x core documentation that explains it clearly.
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#testSocketAddress}
+----

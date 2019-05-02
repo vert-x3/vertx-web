@@ -186,7 +186,7 @@ public interface HttpRequest<T> {
   HttpRequest<T> bearerTokenAuthentication(String bearerToken);
 
   @Fluent
-  HttpRequest<T> ssl(boolean value);
+  HttpRequest<T> ssl(Boolean value);
 
   /**
    * Configures the amount of time in milliseconds after which if the request does not return any data within the timeout

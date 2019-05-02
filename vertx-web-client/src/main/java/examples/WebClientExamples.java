@@ -25,10 +25,10 @@ import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.core.parsetools.JsonParser;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
-import io.vertx.docgen.Source;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
@@ -39,8 +39,6 @@ import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -630,6 +628,30 @@ public class WebClientExamples {
           HttpResponse<Buffer> response = ar.result();
 
           System.out.println("Received response with status code" + response.statusCode());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void testSocketAddress(WebClient client) {
+
+    // Creates the unix domain socket address to access the Docker API
+    SocketAddress serverAddress = SocketAddress.domainSocketAddress("/var/run/docker.sock");
+
+    // We still need to specify host and port so the request HTTP header will be localhost:8080
+    // otherwise it will be a malformed HTTP request
+    // the actual value does not matter much for this example
+    client
+      .request(HttpMethod.GET, serverAddress, 8080, "localhost", "/images/json")
+      .expect(ResponsePredicate.SC_ACCEPTED)
+      .as(BodyCodec.jsonObject())
+      .send(ar -> {
+        if (ar.succeeded()) {
+          // Obtain response
+          HttpResponse<JsonObject> response = ar.result();
+
+          System.out.println("Current Docker images" + response.body());
         } else {
           System.out.println("Something went wrong " + ar.cause().getMessage());
         }
