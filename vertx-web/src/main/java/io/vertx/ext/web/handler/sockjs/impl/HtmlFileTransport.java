@@ -32,6 +32,7 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -129,7 +130,8 @@ class HtmlFileTransport extends BaseTransport {
       addCloseHandler(rc.response(), session);
     }
 
-    public void sendFrame(String body) {
+    @Override
+    public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
       if (log.isTraceEnabled()) log.trace("HtmlFile, sending frame");
       if (!headersWritten) {
         String htmlFile = HTML_FILE_TEMPLATE.replace("{{ callback }}", callback);
@@ -145,7 +147,7 @@ class HtmlFileTransport extends BaseTransport {
         body +
         "\");\n</script>\r\n";
       Buffer buff = buffer(sb);
-      rc.response().write(buff);
+      rc.response().write(buff, handler);
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {
         if (log.isTraceEnabled()) log.trace("More than maxBytes sent so closing connection");

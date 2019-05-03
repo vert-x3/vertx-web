@@ -32,6 +32,7 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -82,7 +83,8 @@ class EventSourceTransport extends BaseTransport {
       addCloseHandler(rc.response(), session);
     }
 
-    public void sendFrame(String body) {
+    @Override
+    public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
       if (log.isTraceEnabled()) log.trace("EventSource, sending frame");
       if (!headersWritten) {
         // event stream data is always UTF8
@@ -98,7 +100,7 @@ class EventSourceTransport extends BaseTransport {
         body +
         "\r\n\r\n";
       Buffer buff = buffer(sb);
-      rc.response().write(buff);
+      rc.response().write(buff, handler);
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {
         if (log.isTraceEnabled()) log.trace("More than maxBytes sent so closing connection");

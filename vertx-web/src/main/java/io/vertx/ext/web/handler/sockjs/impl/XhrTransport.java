@@ -34,6 +34,7 @@ package io.vertx.ext.web.handler.sockjs.impl;
 
 import static io.vertx.core.buffer.Buffer.buffer;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -156,7 +157,7 @@ class XhrTransport extends BaseTransport {
       super(rc, session);
     }
 
-    public void sendFrame(String body) {
+    final void beforeSend() {
       if (log.isTraceEnabled()) log.trace("XHR sending frame");
       if (!headersWritten) {
         HttpServerResponse resp = rc.response();
@@ -183,9 +184,10 @@ class XhrTransport extends BaseTransport {
       addCloseHandler(rc.response(), session);
     }
 
-    public void sendFrame(String body) {
-      super.sendFrame(body);
-      rc.response().write(body + "\n");
+    @Override
+    public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
+      super.beforeSend();
+      rc.response().write(body + "\n", handler);
       close();
     }
 
@@ -215,15 +217,16 @@ class XhrTransport extends BaseTransport {
       addCloseHandler(rc.response(), session);
     }
 
-    public void sendFrame(String body) {
+    @Override
+    public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
       boolean hr = headersWritten;
-      super.sendFrame(body);
+      super.beforeSend();
       if (!hr) {
         rc.response().write(H_BLOCK);
       }
       String sbody = body + "\n";
       Buffer buff = buffer(sbody);
-      rc.response().write(buff);
+      rc.response().write(buff, handler);
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {
         close();
