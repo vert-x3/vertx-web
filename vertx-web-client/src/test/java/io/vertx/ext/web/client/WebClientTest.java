@@ -1556,4 +1556,13 @@ public class WebClientTest extends HttpTestBase {
     });
     await();
   }
+
+  @Test
+  public void testDontModifyRequestURIQueryParams() throws Exception {
+    testRequest(
+      client -> client.get("/remote-server?jREJBBB5x2AaiSSDO0/OskoCztDZBAAAAAADV1A4"),
+      req -> assertEquals("/remote-server?jREJBBB5x2AaiSSDO0/OskoCztDZBAAAAAADV1A4", req.uri())
+    );
+  }
+
 }
