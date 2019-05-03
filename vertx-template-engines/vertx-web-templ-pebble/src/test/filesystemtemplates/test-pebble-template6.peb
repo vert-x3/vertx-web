@@ -1,0 +1,11 @@
+Hello {{foo}} and {{bar}}
+Request path is {{context.path}}
+Java HashMap foo {{hashmap.foo}}
+JsonArray size {{array.size}}
+{%for el in array%}
+{{el.bar}}
+{%endfor%}
+ArrayList size {{arraylist.size}}
+{%for el in arraylist%}
+{{el}}
+{%endfor%}
