@@ -87,6 +87,13 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
       }
 
       @Override
+      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
+        buffer.appendBuffer(data);
+        handler.handle(Future.succeededFuture());
+        return this;
+      }
+
+      @Override
       public WriteStream<Buffer> write(Buffer data) {
         buffer.appendBuffer(data);
         return this;
@@ -94,6 +101,11 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
 
       @Override
       public void end() {
+        end((Handler<AsyncResult<Void>>) null);
+      }
+
+      @Override
+      public void end(Handler<AsyncResult<Void>> handler) {
         if (!state.isComplete()) {
           T result;
           if (buffer.length() > 0) {
@@ -101,12 +113,18 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
               result = decoder.apply(buffer);
             } catch (Throwable t) {
               state.fail(t);
+              if (handler != null) {
+                handler.handle(Future.failedFuture(t));
+              }
               return;
             }
           } else {
             result = null;
           }
           state.complete(result);
+          if (handler != null) {
+            handler.handle(Future.succeededFuture());
+          }
         }
       }
 
