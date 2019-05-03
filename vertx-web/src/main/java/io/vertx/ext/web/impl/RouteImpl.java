@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.impl;
 
-import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
@@ -304,15 +303,6 @@ public class RouteImpl implements Route {
       } else {
         return false;
       }
-    }
-
-    // Check if query params are already parsed
-    if (context.queryParams().size() == 0) {
-      // Decode query parameters and put inside context.queryParams
-      Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
-
-      for (Map.Entry<String, List<String>> entry : decodedParams.entrySet())
-        context.queryParams().add(entry.getKey(), entry.getValue());
     }
 
     if (!consumes.isEmpty()) {

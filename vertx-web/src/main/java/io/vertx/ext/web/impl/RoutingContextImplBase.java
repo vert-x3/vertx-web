@@ -23,6 +23,7 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.impl.HttpStatusException;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -91,15 +92,7 @@ public abstract class RoutingContextImplBase implements RoutingContext {
           return true;
         }
       } catch (Throwable t) {
-        if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);
-        if (!failed) {
-          if (log.isTraceEnabled()) log.trace("Failing the routing");
-          fail(t);
-        } else {
-          // Failure in handling failure!
-          if (log.isTraceEnabled()) log.trace("Failure in handling failure");
-          unhandledFailure(-1, t, currentRoute.router());
-        }
+        handleInHandlerRuntimeFailure(currentRoute, failed, t);
         return true;
       }
     }
@@ -123,15 +116,7 @@ public abstract class RoutingContextImplBase implements RoutingContext {
               continue;
             }
           } catch (Throwable t) {
-            if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);
-            if (!failed) {
-              if (log.isTraceEnabled()) log.trace("Failing the routing");
-              fail(t);
-            } else {
-              // Failure in handling failure!
-              if (log.isTraceEnabled()) log.trace("Failure in handling failure");
-              unhandledFailure(-1, t, route.router());
-            }
+            handleInHandlerRuntimeFailure(route, failed, t);
           }
           return true;
         }
@@ -146,9 +131,25 @@ public abstract class RoutingContextImplBase implements RoutingContext {
     return false;
   }
 
+  private void handleInHandlerRuntimeFailure(RouteImpl route, boolean failed, Throwable t) {
+    if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);
+    if (!failed) {
+      if (log.isTraceEnabled()) log.trace("Failing the routing");
+      fail(t);
+    } else {
+      // Failure in handling failure!
+      if (log.isTraceEnabled()) log.trace("Failure in handling failure");
+      unhandledFailure(-1, t, route.router());
+    }
+  }
+
 
   protected void unhandledFailure(int statusCode, Throwable failure, RouterImpl router) {
-    int code = statusCode != -1 ? statusCode : 500;
+    int code = statusCode != -1 ?
+      statusCode :
+      (failure instanceof HttpStatusException) ?
+        ((HttpStatusException) failure).getStatusCode() :
+        500;
     Handler<RoutingContext> errorHandler = router.getErrorHandlerByStatusCode(code);
     if (errorHandler != null) {
       try {
