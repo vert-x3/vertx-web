@@ -16,11 +16,7 @@
 
 package io.vertx.ext.web;
 
-import io.vertx.codegen.annotations.CacheReturn;
-import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.codegen.annotations.Nullable;
-import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.codegen.annotations.*;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -501,14 +497,16 @@ public interface RoutingContext {
   String pathParam(String name);
 
   /**
-   * Returns a map of all query parameters inside the <a href="https://en.wikipedia.org/wiki/Query_string">query string</a>
+   * Returns a map of all query parameters inside the <a href="https://en.wikipedia.org/wiki/Query_string">query string</a><br/>
+   * The query parameters are lazily decoded: the decoding happens on the first time this method is called. If the query string is invalid
+   * it fails the context
    *
    * @return the multimap of query parameters
    */
   MultiMap queryParams();
 
   /**
-   * Gets the value of a single query parameter
+   * Gets the value of a single query parameter. For more info {@link RoutingContext#queryParams()}
    *
    * @param name The name of query parameter
    * @return The list of all parameters matching the parameter name. It returns an empty list if no query parameter with {@code name} was found

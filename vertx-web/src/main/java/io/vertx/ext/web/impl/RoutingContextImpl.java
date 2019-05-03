@@ -17,6 +17,7 @@
 package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -29,19 +30,11 @@ import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.Cookie;
-import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Locale;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.Session;
+import io.vertx.ext.web.*;
+import io.vertx.ext.web.handler.impl.HttpStatusException;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -432,8 +425,18 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   private MultiMap getQueryParams() {
+    // Check if query params are already parsed
     if (queryParams == null) {
-      queryParams = MultiMap.caseInsensitiveMultiMap();
+      try {
+        queryParams = MultiMap.caseInsensitiveMultiMap();
+
+        // Decode query parameters and put inside context.queryParams
+        Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
+        for (Map.Entry<String, List<String>> entry : decodedParams.entrySet())
+          queryParams.add(entry.getKey(), entry.getValue());
+      } catch (IllegalArgumentException e) {
+        throw new HttpStatusException(400, "Error while decoding query params", e);
+      }
     }
     return queryParams;
   }
