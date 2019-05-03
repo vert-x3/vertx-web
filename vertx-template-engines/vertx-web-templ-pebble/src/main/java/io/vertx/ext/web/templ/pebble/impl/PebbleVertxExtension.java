@@ -34,7 +34,6 @@ public class PebbleVertxExtension extends AbstractExtension {
 
     List<AttributeResolver> attributeResolvers = new ArrayList<>();
     attributeResolvers.add(new PebbleVertxAttributeResolver());
-    attributeResolvers.add(new DefaultAttributeResolver());
     return attributeResolvers;
   }
 
