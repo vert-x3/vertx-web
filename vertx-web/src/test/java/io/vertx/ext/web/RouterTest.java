@@ -19,9 +19,7 @@ package io.vertx.ext.web;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.*;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -2398,5 +2396,22 @@ public class RouterTest extends WebTestBase {
     });
 
     testRequest(HttpMethod.GET, "/path", 410, "Gone");
+  }
+
+  @Test
+  public void testErrorHandlingResponseClosed() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path", h -> { });
+    router.route().handler(rc -> {
+      req.connection().close();
+      rc.response().closeHandler(v -> rc.next());
+    });
+    router.route("/path").handler(rc -> rc.response().write(""));
+    router.errorHandler(500, rc -> {
+      assertEquals(1, latch.getCount());
+      latch.countDown();
+    });
+    req.end();
+    latch.await();
   }
 }
