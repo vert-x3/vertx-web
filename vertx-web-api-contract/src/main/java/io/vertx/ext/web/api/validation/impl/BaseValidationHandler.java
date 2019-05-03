@@ -3,6 +3,7 @@ package io.vertx.ext.web.api.validation.impl;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.CaseInsensitiveHeaders;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameter;
@@ -64,7 +65,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
         customValidator.validate(routingContext);
       }
 
-      String contentType = routingContext.request().getHeader("Content-Type");
+      String contentType = routingContext.request().getHeader(HttpHeaders.CONTENT_TYPE);
       if (contentType != null && contentType.length() != 0) {
         boolean isMultipart = contentType.contains("multipart/form-data");
 
