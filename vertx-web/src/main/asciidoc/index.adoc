@@ -293,7 +293,7 @@ Captures are denoted in regular expressions with capture groups (i.e. surroundin
 Using int index param names might be troublesome in some cases.
 It's possible to use named capture groups in the regex path.
 
-* [source,$lang]
+[source,$lang]
 ----
 {@link examples.WebExamples#example6_2}
 ----
