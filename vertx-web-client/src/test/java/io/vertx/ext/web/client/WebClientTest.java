@@ -135,6 +135,17 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testPutHeaders() throws Exception {
+    MultiMap headers = MultiMap.caseInsensitiveMultiMap();
+    headers.add("foo","bar");
+    headers.add("ping","pong");
+    testRequest(client -> client.get("somehost", "somepath").putHeaders(headers), req -> {
+      assertEquals("bar", req.headers().get("foo"));
+      assertEquals("pong", req.headers().get("ping"));
+    });
+  }
+
+  @Test
   public void testUserAgentHeaderRemoved() throws Exception {
     testRequest(client -> {
       HttpRequest<Buffer> request = client.get("somehost", "somepath");
