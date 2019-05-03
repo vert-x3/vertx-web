@@ -288,9 +288,9 @@ public class HttpContext<T> {
   private void handlePrepareRequest() {
     HttpClientRequest req;
     String requestURI;
-    if (request.queryParams() != null && request.queryParams().size() > 0) {
+    if (request.params != null && request.params.size() > 0) {
       QueryStringEncoder enc = new QueryStringEncoder(request.uri);
-      request.queryParams().forEach(param -> enc.addParam(param.getKey(), param.getValue()));
+      request.params.forEach(param -> enc.addParam(param.getKey(), param.getValue()));
       requestURI = enc.toString();
     } else {
       requestURI = request.uri;
