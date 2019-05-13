@@ -121,6 +121,16 @@ public class WebClientExamples {
     request.uri("/some-uri?param1=param1_value&param2=param2_value");
   }
 
+  public void pathTemplate(WebClient client) {
+    PathTemplate template = PathTemplate.parse("/users/:username");
+
+    HttpRequest<Buffer> request = client.get(
+      template, PathParameters.create().param("username", "slinkydeveloper")
+    );
+
+    // This will render to "/users/slinkydeveloper"
+  }
+
   public void multiGet(WebClient client) {
     HttpRequest<Buffer> get = client
       .get(8080, "myserver.mycompany.com", "/some-uri");

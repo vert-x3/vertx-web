@@ -112,6 +112,13 @@ Setting a request URI discards existing query parameters
 {@link examples.WebClientExamples#simpleGetOverwritePreviousParams(io.vertx.ext.web.client.WebClient)}
 ----
 
+You can also use {@link io.vertx.ext.web.client.PathTemplate} to define path templates following the same syntax of Vert.x Web
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#pathTemplate(io.vertx.ext.web.client.WebClient)}
+----
+
 === Writing request bodies
 
 When you need to make a request with a body, you use the same API and call then `sendXXX` methods
