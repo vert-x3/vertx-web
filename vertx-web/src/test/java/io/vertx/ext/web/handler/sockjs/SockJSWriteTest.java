@@ -37,13 +37,13 @@ public class SockJSWriteTest extends SockJSTestBase {
       }));
     };
     startServers();
-    client.websocket("/test/websocket", ws -> {
+    client.webSocket("/test/websocket", onSuccess(ws -> {
       ws.handler(buffer -> {
         if (buffer.toString().equals(expected)) {
           complete();
         }
       });
-    });
+    }));
     await();
   }
 
@@ -58,7 +58,7 @@ public class SockJSWriteTest extends SockJSTestBase {
       });
     };
     startServers();
-    client.websocket("/test/websocket", WebSocketBase::close);
+    client.webSocket("/test/websocket", onSuccess(WebSocketBase::close));
     await();
   }
 
@@ -72,13 +72,13 @@ public class SockJSWriteTest extends SockJSTestBase {
       }));
     };
     startServers();
-    client.websocket("/test/400/8ne8e94a/websocket", ws -> {
+    client.webSocket("/test/400/8ne8e94a/websocket", onSuccess(ws -> {
       ws.handler(buffer -> {
         if (buffer.toString().equals("a[\"" + expected + "\"]")) {
           complete();
         }
       });
-    });
+    }));
     await();
   }
 
@@ -93,7 +93,7 @@ public class SockJSWriteTest extends SockJSTestBase {
       });
     };
     startServers();
-    client.websocket("/test/400/8ne8e94a/websocket", WebSocketBase::close);
+    client.webSocket("/test/400/8ne8e94a/websocket", onSuccess(WebSocketBase::close));
     await();
   }
 

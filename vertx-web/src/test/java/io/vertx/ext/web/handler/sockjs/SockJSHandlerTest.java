@@ -20,6 +20,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.WebSocket;
+import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.http.WebSocketFrame;
 import io.vertx.core.http.impl.FrameType;
 import io.vertx.core.http.impl.ws.WebSocketFrameImpl;
@@ -96,7 +97,7 @@ public class SockJSHandlerTest extends WebTestBase {
   @Test
   public void testSendWebsocketContinuationFrames() {
     // Use raw websocket transport
-    client.websocket("/echo/websocket", ws -> {
+    client.webSocket("/echo/websocket", onSuccess(ws -> {
 
       int size = 65535;
 
@@ -115,7 +116,7 @@ public class SockJSHandlerTest extends WebTestBase {
         }
       });
 
-    });
+    }));
 
     await();
   }
@@ -312,7 +313,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
     AtomicReference<WebSocket> openedWebSocketReference = new AtomicReference<>();
     CountDownLatch openSocketCountDown = new CountDownLatch(1);
-    client.websocket(requestURI, ws -> {
+    client.webSocket(requestURI, onSuccess(ws -> {
       openedWebSocketReference.set(ws);
       ws.handler(replyBuffer -> {
         log.debug("Client received " + replyBuffer);
@@ -325,7 +326,7 @@ public class SockJSHandlerTest extends WebTestBase {
       });
       ws.endHandler(v -> testComplete());
       ws.exceptionHandler(this::fail);
-    });
+    }));
 
     openSocketCountDown.await(5, TimeUnit.SECONDS);
     return openedWebSocketReference.get();
@@ -341,12 +342,12 @@ public class SockJSHandlerTest extends WebTestBase {
 
     AtomicReference<WebSocket> openedWebSocketReference = new AtomicReference<>();
     CountDownLatch openSocketCountDown = new CountDownLatch(1);
-    client.websocket(requestURI, ws -> {
+    client.webSocket(requestURI, onSuccess(ws -> {
       openedWebSocketReference.set(ws);
       openSocketCountDown.countDown();
       ws.endHandler(v -> testComplete());
       ws.exceptionHandler(this::fail);
-    });
+    }));
 
     openSocketCountDown.await(5, TimeUnit.SECONDS);
     return openedWebSocketReference.get();
@@ -373,10 +374,13 @@ public class SockJSHandlerTest extends WebTestBase {
     headers.add("cookie", "JSESSIONID=wibble");
     headers.add("cookie", "flibble=floob");
 
-    client.websocket("/cookiesremoved/websocket", headers, ws -> {
+    client.webSocket(new WebSocketConnectOptions()
+      .setPort(8080)
+      .setURI("/cookiesremoved/websocket")
+      .setHeaders(headers), onSuccess(ws -> {
       String frame = "foo";
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(frame, true));
-    });
+    }));
 
     await();
   }
@@ -388,13 +392,13 @@ public class SockJSHandlerTest extends WebTestBase {
       .bridge(new BridgeOptions().setPingTimeout(1))
     );
 
-    client.websocket("/ws-timeout/websocket", ws -> ws.frameHandler(frame -> {
+    client.webSocket("/ws-timeout/websocket", onSuccess(ws -> ws.frameHandler(frame -> {
       if (frame.isClose()) {
         assertEquals(1001, frame.closeStatusCode());
         assertEquals("Session expired", frame.closeReason());
         testComplete();
       }
-    }));
+    })));
     await();
   }
 
@@ -407,7 +411,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
     vertx.eventBus().consumer("SockJSHandlerTest.testInvalidMessageCode", msg -> msg.reply(new JsonObject()));
 
-    client.websocket("/ws-timeout/websocket", ws -> {
+    client.webSocket("/ws-timeout/websocket", onSuccess(ws -> {
       ws.writeFinalBinaryFrame(Buffer.buffer("durp!"));
 
       ws.frameHandler(frame -> {
@@ -420,7 +424,7 @@ public class SockJSHandlerTest extends WebTestBase {
           ws.close();
         }
       });
-    });
+    }));
     await();
   }
 }

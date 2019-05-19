@@ -82,14 +82,14 @@ public class SockJSSessionTest extends SockJSTestBase {
       };
     };
     startServers();
-    client.websocket("/test/400/8ne8e94a/websocket", ws -> ws.handler(msg -> {
+    client.webSocket("/test/400/8ne8e94a/websocket", onSuccess(ws -> ws.handler(msg -> {
       clientReceived.addAndGet(msg.length());
       ws.writeTextMessage("\"hello\"");
       if (shallStop.getAsBoolean()) {
         ws.handler(null);
         complete();
       }
-    }));
+    })));
     await();
   }
 
@@ -102,11 +102,11 @@ public class SockJSSessionTest extends SockJSTestBase {
       });
     };
     startServers();
-    client.websocket("/test/400/8ne8e94a/websocket", ws -> {
+    client.webSocket("/test/400/8ne8e94a/websocket", onSuccess(ws -> {
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame("[\"Hello", false));
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(Buffer.buffer(" World\"]"), true));
       ws.close();
-    });
+    }));
     await();
   }
 }

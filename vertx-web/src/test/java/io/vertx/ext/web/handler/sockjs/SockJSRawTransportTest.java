@@ -52,7 +52,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
       });
     };
     startServers();
-    client.websocket("/test/websocket", ws -> {
+    client.webSocket("/test/websocket", onSuccess(ws -> {
       ws.frameHandler(frame -> {
         if (frame.isClose()) {
           //
@@ -67,7 +67,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
           ws.end();
         }
       });
-    });
+    }));
     await();
   }
 }
