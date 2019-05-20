@@ -81,16 +81,20 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
 
       @Override
       public void end(Handler<AsyncResult<Void>> handler) {
-        stream.end(ar -> {
-          if (ar.succeeded()) {
-            fut.tryComplete();
-          } else {
-            fut.tryFail(ar.cause());
-          }
-          if (handler != null) {
-            handler.handle(ar);
-          }
-        });
+        if (close) {
+          stream.end(ar -> {
+            if (ar.succeeded()) {
+              fut.tryComplete();
+            } else {
+              fut.tryFail(ar.cause());
+            }
+            if (handler != null) {
+              handler.handle(ar);
+            }
+          });
+        } else {
+          fut.tryComplete();
+        }
       }
 
       @Override
