@@ -223,7 +223,7 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
   public void testFormMultipartParamWithIncludedTypes() throws Exception {
     HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create().addFormParam("parameter",
       ParameterType.INT, true);
-    router.route().handler(BodyHandler.create());
+    router.route().handler(BodyHandler.create(tempFolder.getRoot().getAbsolutePath()));
     router.post("/testFormParam").handler(validationHandler);
     router.post("/testFormParam").handler(routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");

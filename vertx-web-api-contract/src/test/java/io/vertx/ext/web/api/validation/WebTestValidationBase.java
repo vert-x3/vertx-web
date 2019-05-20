@@ -3,9 +3,11 @@ package io.vertx.ext.web.api.validation;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.ApiWebTestBase;
+import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.handler.BodyHandler;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -18,6 +20,8 @@ public class WebTestValidationBase extends ApiWebTestBase {
 
   static Map<ParameterType, List<String>> sampleValuesSuccess;
   static Map<ParameterType, List<String>> sampleValuesFailure;
+
+  @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
 
   static {
     sampleValuesSuccess = new HashMap<>();
@@ -65,7 +69,7 @@ public class WebTestValidationBase extends ApiWebTestBase {
 
   public void loadHandlers(String path, HttpMethod method, boolean expectFail, ValidationHandler validationHandler,
                            Handler<RoutingContext> handler) {
-    router.route(method, path).handler(BodyHandler.create())
+    router.route(method, path).handler(BodyHandler.create(tempFolder.getRoot().getAbsolutePath()))
       .handler(validationHandler)
       .handler(handler)
       .failureHandler(generateFailureHandler(expectFail));
@@ -73,7 +77,7 @@ public class WebTestValidationBase extends ApiWebTestBase {
 
   public void loadHandlers(String path, HttpMethod method, boolean expectFail, ValidationHandler validationHandler,
                            Handler<RoutingContext> handler, Handler<RoutingContext> failureHandler) {
-    router.route(method, path).handler(BodyHandler.create())
+    router.route(method, path).handler(BodyHandler.create(tempFolder.getRoot().getAbsolutePath()))
       .handler(validationHandler)
       .handler(handler)
       .failureHandler(failureHandler);

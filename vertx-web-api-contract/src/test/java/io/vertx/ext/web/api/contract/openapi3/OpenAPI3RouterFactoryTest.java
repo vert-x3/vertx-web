@@ -18,7 +18,9 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.multipart.MultipartForm;
 import org.apache.http.HttpStatus;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -40,6 +42,8 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
   private OpenAPI3RouterFactory routerFactory;
   private HttpServer fileServer;
   private HttpServer securedFileServer;
+
+  @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
 
   private Handler<RoutingContext> generateFailureHandler(boolean expected) {
     return routingContext -> {
@@ -760,6 +764,7 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
+        routerFactory.setBodyHandler(BodyHandler.create(tempFolder.getRoot().getAbsolutePath()));
 
         routerFactory.addHandlerByOperationId("consumesTest", routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
@@ -934,6 +939,7 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
       openAPI3RouterFactoryAsyncResult -> {
         if (openAPI3RouterFactoryAsyncResult.succeeded()) {
           routerFactory = openAPI3RouterFactoryAsyncResult.result();
+          routerFactory.setBodyHandler(BodyHandler.create(tempFolder.getRoot().getAbsolutePath()));
           routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
           routerFactory.addHandlerByOperationId("testMultipartMultiple", (ctx) -> {
             RequestParameters params = ctx.get("parsedParameters");
@@ -981,6 +987,7 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
         if (openAPI3RouterFactoryAsyncResult.succeeded()) {
           routerFactory = openAPI3RouterFactoryAsyncResult.result();
           routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
+          routerFactory.setBodyHandler(BodyHandler.create(tempFolder.getRoot().getAbsolutePath()));
           routerFactory.addHandlerByOperationId("testMultipartWildcard", (ctx) -> {
             RequestParameters params = ctx.get("parsedParameters");
             ctx.response().setStatusCode(200).setStatusMessage(params.formParameter("type").getString()).end();
