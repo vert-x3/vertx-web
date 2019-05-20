@@ -191,7 +191,7 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public Set<HttpMethod> getHttpMethods() {
+  public Set<HttpMethod> methods() {
     return this.methods;
   }
 

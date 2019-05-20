@@ -188,7 +188,7 @@ public interface Route {
   /**
    * @return the http methods accepted by this route
    */
-  Set<HttpMethod> getHttpMethods();
+  Set<HttpMethod> methods();
 
   /**
    * When you add a new route with a regular expression, you can add named capture groups for parameters. <br/>
