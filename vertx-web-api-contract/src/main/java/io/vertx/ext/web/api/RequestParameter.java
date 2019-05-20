@@ -1,5 +1,6 @@
 package io.vertx.ext.web.api;
 
+import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.json.JsonArray;
@@ -198,6 +199,13 @@ public interface RequestParameter {
    * @return
    */
   boolean isEmpty();
+
+  /**
+   * Converts deeply this RequestParameter in a Json representation
+   *
+   * @return
+   */
+  @CacheReturn Object toJson();
 
   /**
    * Merge this request parameter with another one. Note: the parameter passed by argument has the priority

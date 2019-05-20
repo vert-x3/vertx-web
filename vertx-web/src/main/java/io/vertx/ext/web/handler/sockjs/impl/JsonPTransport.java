@@ -32,24 +32,30 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
-import io.vertx.ext.web.impl.Utils;
+
+import java.util.regex.Pattern;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 class JsonPTransport extends BaseTransport {
 
   private static final Logger log = LoggerFactory.getLogger(JsonPTransport.class);
+
+  private static final Pattern CALLBACK_VALIDATION = Pattern.compile("[^a-zA-Z0-9-_.]");
 
   JsonPTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options,
                  Handler<SockJSSocket> sockHandler) {
@@ -67,6 +73,13 @@ class JsonPTransport extends BaseTransport {
           rc.response().end("\"callback\" parameter required\n");
           return;
         }
+      }
+
+      // avoid SWF exploit
+      if (callback.length() > 32 || CALLBACK_VALIDATION.matcher(callback).find()) {
+        rc.response().setStatusCode(500);
+        rc.response().end("invalid \"callback\" parameter\n");
+        return;
       }
 
       HttpServerRequest req = rc.request();
@@ -113,7 +126,7 @@ class JsonPTransport extends BaseTransport {
       }
 
       if (urlEncoded) {
-        body = Utils.urlDecode(body, true).substring(2);
+        body = URIDecoder.decodeURIComponent(body, true).substring(2);
       }
 
       if (!session.handleMessages(body)) {
@@ -140,13 +153,16 @@ class JsonPTransport extends BaseTransport {
       addCloseHandler(rc.response(), session);
     }
 
-
-    public void sendFrame(String body) {
-
+    @Override
+    public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
       if (log.isTraceEnabled()) log.trace("JsonP, sending frame");
 
       if (!headersWritten) {
-        rc.response().setChunked(true).putHeader("Content-Type", "application/javascript; charset=UTF-8");
+        rc.response()
+          .setChunked(true)
+          // protect against SWF JSONP exploit
+          .putHeader("X-Content-Type-Options", "nosniff")
+          .putHeader("Content-Type", "application/javascript; charset=UTF-8");
         setNoCacheHeaders(rc);
         setJSESSIONID(options, rc);
         headersWritten = true;
@@ -154,13 +170,14 @@ class JsonPTransport extends BaseTransport {
 
       body = escapeForJavaScript(body);
 
-      String sb = callback + "(\"" +
+      // prepend comment to avoid SWF exploit https://github.com/sockjs/sockjs-node/issues/163
+      String sb = "/**/" + callback + "(\"" +
         body +
         "\");\r\n";
 
       //End the response and close the HTTP connection
 
-      rc.response().write(sb);
+      rc.response().write(sb, handler);
       close();
     }
 

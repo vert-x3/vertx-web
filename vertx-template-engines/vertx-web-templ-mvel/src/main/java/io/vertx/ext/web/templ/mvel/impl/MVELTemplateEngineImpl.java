@@ -19,11 +19,9 @@ package io.vertx.ext.web.templ.mvel.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.impl.VertxInternal;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.impl.Utils;
-import io.vertx.ext.web.templ.CachingTemplateEngine;
+import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import org.mvel2.integration.impl.ImmutableDefaultFactory;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
@@ -32,7 +30,7 @@ import org.mvel2.util.StringAppender;
 
 import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
 
-import java.util.HashMap;
+import java.nio.charset.Charset;
 import java.util.Map;
 
 /**
@@ -40,8 +38,11 @@ import java.util.Map;
  */
 public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTemplate> implements MVELTemplateEngine {
 
-  public MVELTemplateEngineImpl() {
+  private final Vertx vertx;
+
+  public MVELTemplateEngineImpl(Vertx vertx) {
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
+    this.vertx = vertx;
   }
 
   @Override
@@ -57,30 +58,42 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
   }
 
   @Override
-  public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
-      templateFileName = templateDirectory + templateFileName;
-      CompiledTemplate template = isCachingEnabled() ? cache.get(templateFileName) : null;
+      int idx = templateFile.lastIndexOf('/');
+      String prefix = "";
+      if (idx != -1) {
+        prefix = templateFile.substring(0, idx);
+      }
+
+      CompiledTemplate template = isCachingEnabled() ? cache.get(templateFile) : null;
       if (template == null) {
         // real compile
-        String loc = adjustLocation(templateFileName);
-        String templateText = Utils.readFileToString(context.vertx(), loc);
-        if (templateText == null) {
-          throw new IllegalArgumentException("Cannot find template " + loc);
+        String loc = adjustLocation(templateFile);
+
+        String templ = null;
+
+        if (vertx.fileSystem().existsBlocking(loc)) {
+          templ = vertx.fileSystem()
+            .readFileBlocking(loc)
+            .toString(Charset.defaultCharset());
         }
-        template = TemplateCompiler.compileTemplate(templateText);
+
+        if (templ == null) {
+          handler.handle(Future.failedFuture("Cannot find template " + loc));
+          return;
+        }
+
+        template = TemplateCompiler.compileTemplate(templ);
         if (isCachingEnabled()) {
-          cache.put(templateFileName, template);
+          cache.put(templateFile, template);
         }
       }
-      Map<String, RoutingContext> variables = new HashMap<>(1);
-      variables.put("context", context);
-      final VertxInternal vertxInternal = (VertxInternal) context.vertx();
-      String directoryName = vertxInternal.resolveFile(templateFileName).getParent();
+
       handler.handle(Future.succeededFuture(
         Buffer.buffer(
-          (String) new TemplateRuntime(template.getTemplate(), null, template.getRoot(), directoryName)
-            .execute(new StringAppender(), variables, new ImmutableDefaultFactory())
+          (String) new TemplateRuntime(template.getTemplate(), null, template.getRoot(), prefix)
+            .execute(new StringAppender(), context, new ImmutableDefaultFactory())
         )
       ));
     } catch (Exception ex) {

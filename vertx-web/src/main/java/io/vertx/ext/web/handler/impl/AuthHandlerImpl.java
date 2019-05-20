@@ -22,11 +22,11 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.AuthHandler;
-import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.User;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -166,7 +166,11 @@ public abstract class AuthHandlerImpl implements AuthHandler {
               .putHeader("WWW-Authenticate", header);
           }
           // to allow further processing if needed
-          processException(ctx, new HttpStatusException(401));
+          if (authN.cause() instanceof HttpStatusException) {
+            processException(ctx, authN.cause());
+          } else {
+            processException(ctx, new HttpStatusException(401, authN.cause()));
+          }
         }
       });
     });
@@ -196,10 +200,10 @@ public abstract class AuthHandlerImpl implements AuthHandler {
               ctx.response()
                 .putHeader("WWW-Authenticate", header);
             }
-            ctx.fail(401);
+            ctx.fail(401, exception);
             return;
           default:
-            ctx.fail(statusCode);
+            ctx.fail(statusCode, exception);
             return;
         }
       }

@@ -17,20 +17,20 @@ package io.vertx.ext.web.templ.freemarker.impl;
 
 import freemarker.cache.TemplateLoader;
 import io.vertx.core.Vertx;
-import io.vertx.ext.web.impl.Utils;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.charset.Charset;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 class FreeMarkerTemplateLoader implements TemplateLoader {
 
-  private transient Vertx vertx;
+  private final Vertx vertx;
 
-  void setVertx(Vertx vertx) {
+  FreeMarkerTemplateLoader(Vertx vertx) {
     this.vertx = vertx;
   }
 
@@ -39,7 +39,9 @@ class FreeMarkerTemplateLoader implements TemplateLoader {
     try {
       // check if exists on file system
       if (vertx.fileSystem().existsBlocking(name)) {
-        String templ = Utils.readFileToString(vertx, name);
+        String templ = vertx.fileSystem()
+          .readFileBlocking(name)
+          .toString(Charset.defaultCharset());
         return new StringTemplateSource(name, templ, System.currentTimeMillis());
       } else {
         return null;
@@ -52,12 +54,12 @@ class FreeMarkerTemplateLoader implements TemplateLoader {
 
   @Override
   public long getLastModified(Object templateSource) {
-    return ((StringTemplateSource)templateSource).lastModified;
+    return ((StringTemplateSource) templateSource).lastModified;
   }
 
   @Override
   public Reader getReader(Object templateSource, String encoding) throws IOException {
-    return new StringReader(((StringTemplateSource)templateSource).source);
+    return new StringReader(((StringTemplateSource) templateSource).source);
   }
 
   @Override
@@ -71,13 +73,13 @@ class FreeMarkerTemplateLoader implements TemplateLoader {
     private final long lastModified;
 
     StringTemplateSource(String name, String source, long lastModified) {
-      if(name == null) {
+      if (name == null) {
         throw new IllegalArgumentException("name == null");
       }
-      if(source == null) {
+      if (source == null) {
         throw new IllegalArgumentException("source == null");
       }
-      if(lastModified < -1L) {
+      if (lastModified < -1L) {
         throw new IllegalArgumentException("lastModified < -1L");
       }
       this.name = name;

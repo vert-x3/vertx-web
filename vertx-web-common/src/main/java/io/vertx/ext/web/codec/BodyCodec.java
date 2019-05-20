@@ -22,8 +22,10 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.parsetools.JsonParser;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
+import io.vertx.ext.web.codec.impl.JsonStreamBodyCodec;
 import io.vertx.ext.web.codec.impl.StreamingBodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
 
@@ -121,6 +123,17 @@ public interface BodyCodec<T> {
    */
   static BodyCodec<Void> pipe(WriteStream<Buffer> stream, boolean close) {
 	return new StreamingBodyCodec(stream, close);
+  }
+
+  /**
+   * A body codec that parse the response as a JSON stream.
+   *
+   * @param parser the non-null JSON parser to emits the JSON object. The parser must be configured for the stream. Not
+   *               e that you need to keep a reference on the parser to retrieved the JSON events.
+   * @return the body codec for a write stream
+   */
+  static BodyCodec<Void> jsonStream(JsonParser parser) {
+    return new JsonStreamBodyCodec(parser);
   }
 
   /**

@@ -1,20 +1,25 @@
 package examples;
 
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.parser.core.models.AuthorizationValue;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
-import io.vertx.ext.web.Router;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
-import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.api.validation.ValidationException;
+import io.vertx.ext.web.handler.JWTAuthHandler;
+
+import java.util.Collections;
+import java.util.List;
 
 public class OpenAPI3Examples {
 
@@ -45,15 +50,25 @@ public class OpenAPI3Examples {
       });
   }
 
-  public void mountOptions(AsyncResult<OpenAPI3RouterFactory> ar) {
-    OpenAPI3RouterFactory routerFactory = ar.result();
-    // Create and mount options to router factory
-    RouterFactoryOptions options =
-      new RouterFactoryOptions()
-      .setMountNotImplementedHandler(true)
-      .setMountValidationFailureHandler(false);
-
-    routerFactory.setOptions(options);
+  public void constructRouterFactoryFromUrlWithAuthenticationHeader(Vertx vertx) {
+    AuthorizationValue authorizationValue = new AuthorizationValue()
+      .type("header")
+      .keyName("Authorization")
+      .value("Bearer xx.yy.zz");
+    List<JsonObject> authorizations = Collections.singletonList(JsonObject.mapFrom(authorizationValue));
+    OpenAPI3RouterFactory.create(
+      vertx,
+      "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml",
+      authorizations,
+      ar -> {
+        if (ar.succeeded()) {
+          // Spec loaded with success
+          OpenAPI3RouterFactory routerFactory = ar.result();
+        } else {
+          // Something went wrong during router factory initialization
+          Throwable exception = ar.cause();
+        }
+      });
   }
 
   public void addRoute(Vertx vertx, OpenAPI3RouterFactory routerFactory) {
@@ -74,6 +89,24 @@ public class OpenAPI3Examples {
 
   public void addJWT(OpenAPI3RouterFactory routerFactory, JWTAuth jwtAuthProvider) {
     routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider));
+  }
+
+  public void addOperationModelKey(OpenAPI3RouterFactory routerFactory, RouterFactoryOptions options) {
+    // Configure the operation model key and set options in router factory
+    options.setOperationModelKey("operationPOJO");
+    routerFactory.setOptions(options);
+
+    // Add an handler that uses the operation model
+    routerFactory.addHandlerByOperationId("listPets", routingContext -> {
+      io.swagger.v3.oas.models.Operation operation = routingContext.get("operationPOJO");
+
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        // Write the response with operation id "listPets"
+        .end(operation.getOperationId());
+    });
   }
 
   public void generateRouter(Vertx vertx, OpenAPI3RouterFactory routerFactory) {
@@ -111,20 +144,9 @@ public class OpenAPI3Examples {
               (ValidationException) failure).type().name()).end();
         });
 
-        // Add an handler with a combination of HttpMethod and path
-        routerFactory.addHandler(HttpMethod.POST, "/pets", routingContext -> {
-          // Extract request body and use it
-          RequestParameters params = routingContext.get("parsedParameters");
-          JsonObject pet = params.body().getJsonObject();
-          routingContext.response().putHeader("content-type", "application/json; charset=utf-8").end(pet
-            .encodePrettily());
-        });
-
         // Add a security handler
-        routerFactory.addSecurityHandler("api_key", routingContext -> {
-          // Handle security here
-          routingContext.next();
-        });
+        // Handle security here
+        routerFactory.addSecurityHandler("api_key", RoutingContext::next);
 
         // Now you have to generate the router
         Router router = routerFactory.getRouter();

@@ -16,8 +16,8 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.CSRFHandler;
@@ -106,9 +106,9 @@ public class CSRFHandlerImpl implements CSRFHandler {
     return saltPlusToken + "." + signature;
   }
 
-  private boolean validateToken(String header) {
-
-    if (header == null) {
+  private boolean validateToken(String header, Cookie cookie) {
+    // both the header and the cookie must be present, not null and equal
+    if (header == null || cookie == null || !header.equals(cookie.getValue())) {
       return false;
     }
 
@@ -117,8 +117,11 @@ public class CSRFHandlerImpl implements CSRFHandler {
       return false;
     }
 
-    String saltPlusToken = tokens[0] + "." + tokens[1];
-    String signature = BASE64.encodeToString(mac.doFinal(saltPlusToken.getBytes()));
+    byte[] saltPlusToken = (tokens[0] + "." + tokens[1]).getBytes();
+    synchronized (mac) {
+      saltPlusToken = mac.doFinal(saltPlusToken);
+    }
+    String signature = BASE64.encodeToString(saltPlusToken);
 
     if(!signature.equals(tokens[2])) {
       return false;
@@ -168,7 +171,8 @@ public class CSRFHandlerImpl implements CSRFHandler {
       case DELETE:
       case PATCH:
         final String header = ctx.request().getHeader(headerName);
-        if (validateToken(header == null ? ctx.request().getFormAttribute(headerName) : header)) {
+        final Cookie cookie = ctx.getCookie(cookieName);
+        if (validateToken(header == null ? ctx.request().getFormAttribute(headerName) : header, cookie)) {
           ctx.next();
         } else {
           forbidden(ctx);

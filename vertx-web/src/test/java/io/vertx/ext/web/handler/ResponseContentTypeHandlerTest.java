@@ -47,20 +47,20 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
   @Test
   public void testNoMatch() {
     testRoute.handler(rc -> rc.response().end());
-    client.get(testRoute.getPath(), resp -> {
+    client.get(testRoute.getPath(), onSuccess(resp -> {
       assertNull(contentType(resp));
       testComplete();
-    }).putHeader(HttpHeaders.ACCEPT, "application/json").end();
+    })).putHeader(HttpHeaders.ACCEPT, "application/json").end();
     await();
   }
 
   @Test
   public void testExistingHeader() {
     testRoute.produces("application/json").handler(rc -> rc.response().putHeader(CONTENT_TYPE, "text/plain").end());
-    client.get(testRoute.getPath(), resp -> {
+    client.get(testRoute.getPath(), onSuccess(resp -> {
       assertEquals("text/plain", contentType(resp));
       testComplete();
-    }).putHeader(HttpHeaders.ACCEPT, "application/json").end();
+    })).putHeader(HttpHeaders.ACCEPT, "application/json").end();
     await();
   }
 
@@ -68,14 +68,14 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
   public void testFixedContent() {
     Buffer buffer = new JsonObject().put("toto", "titi").toBuffer();
     testRoute.produces("application/json").handler(rc -> rc.response().end(buffer));
-    client.get(testRoute.getPath(), resp -> {
+    client.get(testRoute.getPath(), onSuccess(resp -> {
       assertEquals("application/json", contentType(resp));
       assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
       resp.bodyHandler(buf -> {
         assertEquals(buffer, buf);
         testComplete();
       });
-    }).putHeader(HttpHeaders.ACCEPT, "application/json").end();
+    })).putHeader(HttpHeaders.ACCEPT, "application/json").end();
     await();
   }
 
@@ -83,25 +83,25 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
   public void testChunkedContent() {
     Buffer buffer = new JsonObject().put("toto", "titi").toBuffer();
     testRoute.produces("application/json").handler(rc -> rc.response().setChunked(true).end(buffer));
-    client.get(testRoute.getPath(), resp -> {
+    client.get(testRoute.getPath(), onSuccess(resp -> {
       assertEquals("application/json", contentType(resp));
       assertNull(contentLength(resp));
       resp.bodyHandler(buf -> {
         assertEquals(buffer, buf);
         testComplete();
       });
-    }).putHeader(HttpHeaders.ACCEPT, "application/json").end();
+    })).putHeader(HttpHeaders.ACCEPT, "application/json").end();
     await();
   }
 
   @Test
   public void testNoContent() {
     testRoute.produces("application/json").handler(rc -> rc.response().end());
-    client.get(testRoute.getPath(), resp -> {
+    client.get(testRoute.getPath(), onSuccess(resp -> {
       assertNull(contentType(resp));
       assertEquals(Integer.valueOf(0), contentLength(resp));
       testComplete();
-    }).putHeader(HttpHeaders.ACCEPT, "application/json").end();
+    })).putHeader(HttpHeaders.ACCEPT, "application/json").end();
     await();
   }
 
@@ -115,14 +115,14 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       rc.put(ResponseContentTypeHandler.DEFAULT_DISABLE_FLAG, true);
       rc.response().end(buffer);
     });
-    client.get(testRoute.getPath(), resp -> {
+    client.get(testRoute.getPath(), onSuccess(resp -> {
       assertNull(contentType(resp));
       assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
       resp.bodyHandler(buf -> {
         assertEquals(buffer, buf);
         testComplete();
       });
-    }).putHeader(HttpHeaders.ACCEPT, "application/json").end();
+    })).putHeader(HttpHeaders.ACCEPT, "application/json").end();
     await();
   }
 

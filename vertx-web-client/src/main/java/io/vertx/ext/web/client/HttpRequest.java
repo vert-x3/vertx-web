@@ -25,10 +25,12 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.ext.web.client.predicate.ResponsePredicate;
+import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 
-import java.util.List;
+import java.util.function.Function;
 
 /**
  * A client-side HTTP request.
@@ -127,6 +129,15 @@ public interface HttpRequest<T> {
   HttpRequest<T> uri(String value);
 
   /**
+   * Configure the request to add multiple HTTP headers .
+   *
+   * @param headers The HTTP headers
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> putHeaders(MultiMap headers);
+
+  /**
    * Configure the request to add a new HTTP header.
    *
    * @param name the header name
@@ -142,8 +153,49 @@ public interface HttpRequest<T> {
   @CacheReturn
   MultiMap headers();
 
+  /**
+   * Configure the request to perform basic access authentication.
+   * <p>
+   * In basic HTTP authentication, a request contains a header field of the form 'Authorization: Basic &#60;credentials&#62;',
+   * where credentials is the base64 encoding of id and password joined by a colon.
+   * </p>
+   *
+   * @param id the id
+   * @param password the password
+   * @return a reference to this, so the API can be used fluently
+   */
   @Fluent
-  HttpRequest<T> ssl(boolean value);
+  HttpRequest<T> basicAuthentication(String id, String password);
+
+  /**
+   * Configure the request to perform basic access authentication.
+   * <p>
+   * In basic HTTP authentication, a request contains a header field of the form 'Authorization: Basic &#60;credentials&#62;',
+   * where credentials is the base64 encoding of id and password joined by a colon.
+   * </p>
+   *
+   * @param id the id
+   * @param password the password
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> basicAuthentication(Buffer id, Buffer password);
+
+  /**
+   * Configure the request to perform bearer token authentication.
+   * <p>
+   * In OAuth 2.0, a request contains a header field of the form 'Authorization: Bearer &#60;bearerToken&#62;',
+   * where bearerToken is the bearer token issued by an authorization server to access protected resources.
+   * </p>
+   *
+   * @param bearerToken the bearer token
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> bearerTokenAuthentication(String bearerToken);
+
+  @Fluent
+  HttpRequest<T> ssl(Boolean value);
 
   /**
    * Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
@@ -185,6 +237,30 @@ public interface HttpRequest<T> {
    */
   @Fluent
   HttpRequest<T> followRedirects(boolean value);
+
+  /**
+   * Add an expectation that the response is valid according to the provided {@code predicate}.
+   * <p>
+   * Multiple predicates can be added.
+   *
+   * @param predicate the predicate
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  default HttpRequest<T> expect(Function<HttpResponse<Void>, ResponsePredicateResult> predicate) {
+    return expect(predicate::apply);
+  }
+
+  /**
+   * Add an expectation that the response is valid according to the provided {@code predicate}.
+   * <p>
+   * Multiple predicates can be added.
+   *
+   * @param predicate the predicate
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> expect(ResponsePredicate predicate);
 
   /**
    * Return the current query parameters.

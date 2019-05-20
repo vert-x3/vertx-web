@@ -32,12 +32,15 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.impl.ConnectionBase;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
@@ -45,6 +48,7 @@ import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 class WebSocketTransport extends BaseTransport {
 
@@ -104,24 +108,27 @@ class WebSocketTransport extends BaseTransport {
       });
     }
 
-  private void handleMessages(String msgs) {
-    if (!session.isClosed()) {
-      if (msgs.equals("")) {
-        //Ignore empty frames
-      } else if ((msgs.startsWith("[\"") && msgs.endsWith("\"]")) ||
-             (msgs.startsWith("\"") && msgs.endsWith("\""))) {
-        session.handleMessages(msgs);
-      } else {
-        //Invalid JSON - we close the connection
-        close();
+    private void handleMessages(String msgs) {
+      if (!session.isClosed()) {
+        if (msgs.equals("") || msgs.equals("[]")) {
+          //Ignore empty frames
+        } else if ((msgs.startsWith("[\"") && msgs.endsWith("\"]")) ||
+               (msgs.startsWith("\"") && msgs.endsWith("\""))) {
+          session.handleMessages(msgs);
+        } else {
+          //Invalid JSON - we close the connection
+          close();
+        }
       }
     }
-  }
 
-    public void sendFrame(final String body) {
+    @Override
+    public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
       if (log.isTraceEnabled()) log.trace("WS, sending frame");
       if (!closed) {
-        ws.writeTextMessage(body);
+        ws.writeTextMessage(body, handler);
+      } else {
+        handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION));
       }
     }
 
@@ -136,7 +143,9 @@ class WebSocketTransport extends BaseTransport {
     public void sessionClosed() {
       session.writeClosed(this);
       closed = true;
-      ws.close();
+      // Asynchronously close the websocket to fix a bug in the SockJS TCK
+      // due to the WebSocket client that skip some frames (bug)
+      session.context().runOnContext(v -> ws.close());
     }
 
   }

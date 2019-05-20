@@ -19,15 +19,21 @@ package io.vertx.ext.web;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -1084,6 +1090,33 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testProducesSubtypeWildcardAcceptTextPlain() throws Exception {
+    router.route().produces("text/*").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/plain", 200, "text/plain");
+  }
+
+  @Test
+  public void testProducesComponentWildcardAcceptTextPlain() throws Exception {
+    router.route().produces("*/plain").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/plain", 200, "text/plain");
+  }
+
+  @Test
+  public void testProducesAllWildcard() throws Exception {
+    router.route().produces("*/*").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/plain", 200, "text/plain");
+  }
+
+  @Test
   public void testProducesTopLevelTypeWildcard() throws Exception {
     router.route().produces("application/json").handler(rc -> {
       rc.response().setStatusMessage(rc.getAcceptableContentType());
@@ -1827,9 +1860,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testBadURL() throws Exception {
-    router.route().handler(rc -> {
-      rc.response().end();
-    });
+    router.route().handler(rc -> rc.response().end());
 
     testRequest(HttpMethod.GET, "/%7B%channel%%7D", 200, "OK");
   }
@@ -2096,10 +2127,7 @@ public class RouterTest extends WebTestBase {
         Thread.sleep((int) (1 + Math.random() * 10));
         testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
         future.complete();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-        future.fail(e);
-      } catch (IOException e) {
+      } catch (InterruptedException | IOException e) {
         e.printStackTrace();
         future.fail(e);
       }
@@ -2110,10 +2138,7 @@ public class RouterTest extends WebTestBase {
         Thread.sleep((int) (1 + Math.random() * 10));
         testSyncRequest("GET", "/fail", 400, "ERROR", "fhandler1fhandler2fhandler3");
         future.complete();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-        future.fail(e);
-      } catch (IOException e) {
+      } catch (InterruptedException | IOException e) {
         e.printStackTrace();
         future.fail(e);
       }
@@ -2154,13 +2179,11 @@ public class RouterTest extends WebTestBase {
 
     Route route1 = router.getWithRegex("\\/(?<p0>[a-z]{2})");
     route1.setRegexGroupsNames(groupNames);
-    route1.handler(routingContext -> {
-      routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.pathParam("hello"))
-        .end();
-    });
+    route1.handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("hello"))
+      .end());
     testRequest(HttpMethod.GET, "/hi", 200, "hi");
 
   }
@@ -2173,13 +2196,11 @@ public class RouterTest extends WebTestBase {
 
     Route route = router.getWithRegex("\\/([a-z]{2})([a-z]{2})");
     route.setRegexGroupsNames(groupNames);
-    route.handler(routingContext -> {
-      routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.pathParam("FirstParam") + "-" + routingContext.pathParam("SecondParam"))
-        .end();
-    });
+    route.handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("FirstParam") + "-" + routingContext.pathParam("SecondParam"))
+      .end());
     testRequest(HttpMethod.GET, "/aabb", 200, "aa-bb");
   }
 
@@ -2191,13 +2212,11 @@ public class RouterTest extends WebTestBase {
 
     Route route1 = router.getWithRegex("\\/(?<p1>[a-z]{2})(?<p0>[a-z]{2})");
     route1.setRegexGroupsNames(groupNames);
-    route1.handler(routingContext -> {
-      routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
-        .end();
-    });
+    route1.handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+      .end());
     testRequest(HttpMethod.GET, "/bbaa", 200, "aa-bb");
 
   }
@@ -2210,38 +2229,32 @@ public class RouterTest extends WebTestBase {
 
     Route route1 = router.getWithRegex("\\/(?<p1>[a-z]{2}(?<p0>[a-z]{2}))");
     route1.setRegexGroupsNames(groupNames);
-    route1.handler(routingContext -> {
-      routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
-        .end();
-    });
+    route1.handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+      .end());
     testRequest(HttpMethod.GET, "/bbaa", 200, "aa-bbaa");
 
   }
 
   @Test
   public void testRegexGroupsNames() throws Exception {
-    router.getWithRegex("\\/(?<firstParam>[a-z]{2})(?<secondParam>[a-z]{2})").handler(routingContext -> {
-      routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
-        .end();
-    });
+    router.getWithRegex("\\/(?<firstParam>[a-z]{2})(?<secondParam>[a-z]{2})").handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+      .end());
     testRequest(HttpMethod.GET, "/aabb", 200, "aa-bb");
   }
 
   @Test
   public void testRegexGroupsNamesWithNestedGroups() throws Exception {
-    router.getWithRegex("\\/(?<secondParam>[a-z]{2}(?<firstParam>[a-z]{2}))").handler(routingContext -> {
-      routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
-        .end();
-    });
+    router.getWithRegex("\\/(?<secondParam>[a-z]{2}(?<firstParam>[a-z]{2}))").handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+      .end());
     testRequest(HttpMethod.GET, "/bbaa", 200, "aa-bbaa");
   }
 
@@ -2297,8 +2310,145 @@ public class RouterTest extends WebTestBase {
   public void testDecodingError() throws Exception {
     String BAD_PARAM = "~!@\\||$%^&*()_=-%22;;%27%22:%3C%3E/?]}{";
 
-    router.route().handler(rc -> rc.next());
+    router.route().handler(rc -> {
+      rc.queryParams(); // Trigger decoding
+      rc.next();
+    });
     router.route("/path").handler(rc -> rc.response().setStatusCode(500).end());
     testRequest(HttpMethod.GET, "/path?q=" + BAD_PARAM, 400, "Bad Request");
+  }
+
+  @Test
+  public void testRoutePathNoSlashBegin() throws Exception {
+    String path = "?test=something";
+    router.route().handler(rc -> rc.response().end());
+    testRequest(HttpMethod.GET, path, 400, "Bad Request");
+  }
+
+  @Test
+  public void testMultipleHandlersWithFailuresDeadlock() throws Exception {
+    AtomicBoolean first = new AtomicBoolean(true);
+    CountDownLatch firstHandlerLatch = new CountDownLatch(1);
+    CountDownLatch secondHandlerLatch = new CountDownLatch(1);
+
+    router.get("/path").handler(event -> {
+      if (!first.compareAndSet(true, false)) {
+        // Second run, block until the second handler runs
+        try {
+          firstHandlerLatch.countDown();
+          awaitLatch(secondHandlerLatch);
+
+          // Add a small delay so the exception handler happens first
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+          // ignore
+        }
+
+        event.next();
+      } else {
+        vertx.executeBlocking(future -> {
+          event.next();
+          future.complete();
+        }, asyncResult -> {});
+      }
+    });
+
+    router.get("/path").handler(event -> {
+      try {
+        awaitLatch(firstHandlerLatch);
+      } catch (InterruptedException e) {
+        // ignore
+      }
+      secondHandlerLatch.countDown();
+      event.fail(new NullPointerException());
+    });
+
+    CountDownLatch latch = new CountDownLatch(2);
+    for (int i = 0; i < 2; i++) {
+      vertx.executeBlocking(future -> {
+        HttpServerRequest request = mock(HttpServerRequest.class);
+        HttpServerResponse response = mock(HttpServerResponse.class);
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.rawMethod()).thenReturn("GET");
+        when(request.uri()).thenReturn("http://localhost/path");
+        when(request.absoluteURI()).thenReturn("http://localhost/path");
+        when(request.host()).thenReturn("localhost");
+        when(request.path()).thenReturn("/path");
+        when(request.response()).thenReturn(response);
+        when(response.ended()).thenReturn(true);
+        router.handle(request);
+        future.complete();
+      }, asyncResult -> {
+        assertFalse(asyncResult.failed());
+        assertNull(asyncResult.cause());
+        latch.countDown();
+      });
+    }
+    awaitLatch(latch);
+  }
+
+  @Test
+  public void testCustom404ErrorHandler() throws Exception {
+    // Default 404 handler
+    testRequest(HttpMethod.GET, "/blah", 404, "Not Found", "<html><body><h1>Resource not found</h1></body></html>");
+    router.errorHandler(404, routingContext -> routingContext
+      .response()
+      .setStatusMessage("Not Found")
+      .setStatusCode(404)
+      .end("Not Found custom error")
+    );
+    testRequest(HttpMethod.GET, "/blah", 404, "Not Found", "Not Found custom error");
+  }
+
+  @Test
+  public void testDecodingErrorCustomHandler() throws Exception {
+    String BAD_PARAM = "~!@\\||$%^&*()_=-%22;;%27%22:%3C%3E/?]}{";
+
+    router.errorHandler(400, context -> context.response().setStatusCode(500).setStatusMessage("Dumb").end());
+
+    router.route().handler(rc -> {
+      rc.queryParams(); // Trigger decoding
+      rc.next();
+    }).handler(rc -> {
+      rc.response().setStatusCode(500).end();
+    });
+    testRequest(HttpMethod.GET, "/path?q=" + BAD_PARAM, 500,"Dumb");
+  }
+
+  @Test
+  public void testCustomErrorHandler() throws Exception {
+
+    router.route("/path").handler(rc -> rc.fail(410));
+    router.errorHandler(410, context -> context.response().setStatusCode(500).setStatusMessage("Dumb").end());
+
+    testRequest(HttpMethod.GET, "/path", 500, "Dumb");
+  }
+
+  @Test
+  public void testErrorInCustomErrorHandler() throws Exception {
+
+    router.route("/path").handler(rc -> rc.fail(410));
+    router.errorHandler(410, rc -> {
+      throw new RuntimeException();
+    });
+
+    testRequest(HttpMethod.GET, "/path", 410, "Gone");
+  }
+
+  @Test
+  public void testErrorHandlingResponseClosed() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path", h -> { });
+    router.route().handler(rc -> {
+      req.connection().close();
+      rc.response().closeHandler(v -> rc.next());
+    });
+    router.route("/path").handler(rc -> rc.response().write(""));
+    router.errorHandler(500, rc -> {
+      assertEquals(1, latch.getCount());
+      latch.countDown();
+    });
+    req.end();
+    latch.await();
   }
 }

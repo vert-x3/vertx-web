@@ -34,14 +34,15 @@ package io.vertx.ext.web.handler.sockjs.impl;
 
 import static io.vertx.core.buffer.Buffer.buffer;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpVersion;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -50,6 +51,7 @@ import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 class XhrTransport extends BaseTransport {
 
@@ -155,7 +157,7 @@ class XhrTransport extends BaseTransport {
       super(rc, session);
     }
 
-    public void sendFrame(String body) {
+    final void beforeSend() {
       if (log.isTraceEnabled()) log.trace("XHR sending frame");
       if (!headersWritten) {
         HttpServerResponse resp = rc.response();
@@ -164,9 +166,9 @@ class XhrTransport extends BaseTransport {
         setCORS(rc);
         if (rc.request().version() != HttpVersion.HTTP_1_0) {
           resp.setChunked(true);
-        } else {
-          resp.putHeader("Content-Length", "0");
         }
+        // NOTE that this is streaming!!!
+        // Client are not expecting to see Content-Length as we don't know it's value
         headersWritten = true;
       }
     }
@@ -182,9 +184,10 @@ class XhrTransport extends BaseTransport {
       addCloseHandler(rc.response(), session);
     }
 
-    public void sendFrame(String body) {
-      super.sendFrame(body);
-      rc.response().write(body + "\n");
+    @Override
+    public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
+      super.beforeSend();
+      rc.response().write(body + "\n", handler);
       close();
     }
 
@@ -214,15 +217,16 @@ class XhrTransport extends BaseTransport {
       addCloseHandler(rc.response(), session);
     }
 
-    public void sendFrame(String body) {
+    @Override
+    public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
       boolean hr = headersWritten;
-      super.sendFrame(body);
+      super.beforeSend();
       if (!hr) {
         rc.response().write(H_BLOCK);
       }
       String sbody = body + "\n";
       Buffer buff = buffer(sbody);
-      rc.response().write(buff);
+      rc.response().write(buff, handler);
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {
         close();

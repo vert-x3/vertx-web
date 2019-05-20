@@ -29,7 +29,7 @@ import java.util.Set;
 /**
  * Base interface for auth handlers.
  * <p>
- * An auth handler allows your application to provide authentication/authorisation support.
+ * An auth handler allows your application to provide authentication/authorization support.
  * <p>
  * Auth handler requires a {@link SessionHandler} to be on the routing chain before it.
  *

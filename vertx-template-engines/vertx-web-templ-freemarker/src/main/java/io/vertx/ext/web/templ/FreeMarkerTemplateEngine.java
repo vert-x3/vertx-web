@@ -16,6 +16,13 @@
 
 package io.vertx.ext.web.templ;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
+
 /**
  * A template engine that uses the FreeMarker library.
  *
@@ -29,7 +36,25 @@ public interface FreeMarkerTemplateEngine extends io.vertx.ext.web.templ.freemar
    *
    * @return  the engine
    */
-  static io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine create() {
-    return io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine.create();
+  static io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine create(Vertx vertx) {
+    return io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine.create(vertx);
+  }
+
+  /**
+   * Render the template. Template engines that support partials/fragments should extract the template base path from
+   * the template filename up to the last file separator.
+   *
+   * Some engines support localization, for these engines, there is a predefined key "lang" to specify the language to
+   * be used in the localization, the format should follow the standard locale formats e.g.: "en-gb", "pt-br", "en".
+   *
+   * @param context  the routing context
+   * @param templateFileName  the template file name to use
+   * @param handler  the handler that will be called with a result containing the buffer or a failure.
+   */
+  @Deprecated
+  default void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    // restore the deprecated "context" top level key
+    context.put("context", context.data());
+    render(context.data(), templateFileName, handler);
   }
 }

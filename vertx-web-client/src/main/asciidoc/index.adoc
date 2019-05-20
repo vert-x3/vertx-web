@@ -14,15 +14,15 @@ features like:
 * unified error handling
 * form submissions
 
-The web client does not deprecate the Vert.x Core {@link io.vertx.core.http.HttpClient}, indeed it is based on
+The Web Client does not deprecate the Vert.x Core {@link io.vertx.core.http.HttpClient}, indeed it is based on
 this client and inherits its configuration and great features like pooling, HTTP/2 support, pipelining support, etc...
 The {@link io.vertx.core.http.HttpClient} should be used when fine grained control over the HTTP
 requests/responses is necessary.
 
-The web client does not provide a WebSocket API, the Vert.x Core {@link io.vertx.core.http.HttpClient} should
+The Web Client does not provide a WebSocket API, the Vert.x Core {@link io.vertx.core.http.HttpClient} should
 be used. It also does not handle cookies at the moment.
 
-== Using the web client
+== Using the Web Client
 
 To use Vert.x Web Client, add the following dependency to the _dependencies_ section of your build descriptor:
 
@@ -51,7 +51,7 @@ dependencies {
 Vert.x Web Client uses the API from Vert.x core, so it's well worth getting familiar with the basic concepts of using
 {@link io.vertx.core.http.HttpClient} using Vert.x core, if you're not already.
 
-== Creating a web client
+== Creating a Web Client
 
 You create an {@link io.vertx.ext.web.client.WebClient} instance with default options as follows
 
@@ -75,6 +75,9 @@ If your already have an HTTP Client in your application you can also reuse it
 ----
 {@link examples.WebClientExamples#wrap(io.vertx.core.http.HttpClient)}
 ----
+
+IMPORTANT: In most cases, a Web Client should be created once on application startup and then reused.
+Otherwise you lose a lot of benefits such as connection pooling and may leak resources if instances are not closed properly.
 
 == Making requests
 
@@ -123,7 +126,7 @@ Use {@link io.vertx.ext.web.client.HttpRequest#sendBuffer} to send a buffer body
 
 Sending a single buffer is useful but often you don't want to load fully the content in memory because
 it may be too large or you want to handle many concurrent requests and want to use just the minimum
-for each request. For this purpose the web client can send `ReadStream<Buffer>` (e.g a
+for each request. For this purpose the Web Client can send `ReadStream<Buffer>` (e.g a
 {@link io.vertx.core.file.AsyncFile} is a ReadStream<Buffer>`) with the {@link io.vertx.ext.web.client.HttpRequest#sendStream} method
 
 [source,$lang]
@@ -131,7 +134,7 @@ for each request. For this purpose the web client can send `ReadStream<Buffer>` 
 {@link examples.WebClientExamples#sendStreamChunked(io.vertx.ext.web.client.WebClient, io.vertx.core.streams.ReadStream)}
 ----
 
-The web client takes care of setting up the transfer pump for you. Since the length of the stream is not know
+The Web Client takes care of setting up the transfer pump for you. Since the length of the stream is not know
 the request will use chunked transfer encoding .
 
 When you know the size of the stream, you shall specify before using the `content-length` header
@@ -210,6 +213,31 @@ You can also write headers using putHeader
 {@link examples.WebClientExamples#sendHeaders2(io.vertx.ext.web.client.WebClient)}
 ----
 
+=== Configure the request to add authentication.
+
+Authentication can be performed manually by setting the correct headers, or, using our predefined methods
+(We strongly suggest having HTTPS enabled, especially for authenticated requests):
+
+In basic HTTP authentication, a request contains a header field of the form `Authorization: Basic <credentials>`,
+where credentials is the base64 encoding of id and password joined by a colon.
+
+You can configure the request to add basic access authentication as follows:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#addBasicAccessAuthentication(io.vertx.ext.web.client.WebClient)}
+----
+
+In OAuth 2.0, a request contains a header field of the form `Authorization: Bearer <bearerToken>`,
+where bearerToken is the bearer token issued by an authorization server to access protected resources.
+
+You can configure the request to add bearer token authentication as follows:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#addBearerTokenAuthentication(io.vertx.ext.web.client.WebClient)}
+----
+
 === Reusing requests
 
 The {@link io.vertx.ext.web.client.HttpRequest#send(io.vertx.core.Handler)} method can be called multiple times
@@ -242,7 +270,7 @@ handler.
 
 == Handling http responses
 
-When the web client sends a request you always deal with a single async result {@link io.vertx.ext.web.client.HttpResponse}.
+When the Web Client sends a request you always deal with a single async result {@link io.vertx.ext.web.client.HttpResponse}.
 
 On a success result the callback happens after the response has been received
 
@@ -251,12 +279,19 @@ On a success result the callback happens after the response has been received
 {@link examples.WebClientExamples#receiveResponse(io.vertx.ext.web.client.WebClient)}
 ----
 
-WARNING: responses are fully buffered, use {@link io.vertx.ext.web.codec.BodyCodec#pipe(io.vertx.core.streams.WriteStream)}
+[CAUTION]
+====
+By default, a Vert.x Web Client request ends with an error only if something wrong happens at the network level.
+In other words, a `404 Not Found` response, or a response with the wrong content type, are *not* considered as failures.
+Use <<response-predicates, response predicates>> if you want the Web Client to perform sanity checks automatically.
+====
+
+WARNING: Responses are fully buffered, use {@link io.vertx.ext.web.codec.BodyCodec#pipe(io.vertx.core.streams.WriteStream)}
 to pipe the response to a write stream
 
 === Decoding responses
 
-By default the web client provides an http response body as a {@code Buffer} and does not apply
+By default the Web Client provides an http response body as a `Buffer` and does not apply
 any decoding.
 
 Custom response body decoding can be achieved using {@link io.vertx.ext.web.codec.BodyCodec}:
@@ -292,6 +327,15 @@ and signals the success or the failure of the operation in the async result resp
 {@link examples.WebClientExamples#receiveResponseAsWriteStream(io.vertx.ext.web.client.WebClient, io.vertx.core.streams.WriteStream)}
 ----
 
+It becomes frequent to see API returning a stream of JSON objects. For example, the Twitter API can provides a feed of
+tweets. To handle this use case you can use {@link io.vertx.ext.web.codec.BodyCodec#jsonStream(io.vertx.core.parsetools.JsonParser)}.
+You pass a JSON parser that emits the read JSON streams from the HTTP response:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#receiveResponseAsJsonStream(io.vertx.ext.web.client.WebClient)}
+----
+
 Finally if you are not interested at all by the response content, the {@link io.vertx.ext.web.codec.BodyCodec#none()}
 simply discards the entire response body
 
@@ -300,7 +344,7 @@ simply discards the entire response body
 {@link examples.WebClientExamples#receiveResponseAndDiscard(io.vertx.ext.web.client.WebClient)}
 ----
 
-When you don't know in advance the content type of the http response, you can still use the {@code bodyAsXXX()} methods
+When you don't know in advance the content type of the http response, you can still use the `bodyAsXXX()` methods
 that decode the response to a specific type
 
 [source,$lang]
@@ -309,6 +353,98 @@ that decode the response to a specific type
 ----
 
 WARNING: this is only valid for the response decoded as a buffer.
+
+[[response-predicates]]
+=== Response predicates
+
+By default, a Vert.x Web Client request ends with an error only if something wrong happens at the network level.
+
+In other words, you must perform sanity checks manually after the response is received:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#manualSanityChecks(io.vertx.ext.web.client.WebClient)}
+----
+
+You can trade flexibility for clarity and conciseness using _response predicates_.
+
+{@link io.vertx.ext.web.client.predicate.ResponsePredicate Response predicates} can fail a request when the response does
+not match a criteria.
+
+The Web Client comes with a set of out of the box predicates ready to use:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#usingPredefinedPredicates(io.vertx.ext.web.client.WebClient)}
+----
+
+You can also create custom predicates when existing predicates don't fit your needs:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#usingPredicates(io.vertx.ext.web.client.WebClient)}
+----
+
+TIP: Response predicates are evaluated _before_ the response body is received. Therefore you can't inspect the response body
+in a predicate test function.
+
+==== Predefined predicates
+
+As a convenience, the Web Client ships a few predicates for common uses cases .
+
+For status codes, e.g {@link io.vertx.ext.web.client.predicate.ResponsePredicate#SC_SUCCESS} to verify that the
+response has a `2xx` code, you can also create a custom one:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#usingSpecificStatus(io.vertx.ext.web.client.WebClient)}
+----
+
+For content types, e.g {@link io.vertx.ext.web.client.predicate.ResponsePredicate#JSON} to verify that the
+response body contains JSON data, you can also create a custom one:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#usingSpecificContentType(io.vertx.ext.web.client.WebClient)}
+----
+
+Please refer to the {@link io.vertx.ext.web.client.predicate.ResponsePredicate} documentation for a full list of predefined predicates.
+
+ifeval::["$lang" == "java"]
+==== Creating custom failures
+
+By default, response predicates (including the predefined ones) use a default error converter which discards
+the body and conveys a simple message. You can customize the exception class by changing the error converter:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#predicateCustomError()}
+----
+
+Many web APIs provide details in error responses.
+For example, the https://developer.marvel.com/docs[Marvel API] uses this JSON object format:
+
+[source,javascript]
+----
+{
+  "code": "InvalidCredentials",
+  "message": "The passed API key is invalid."
+}
+----
+
+To avoid losing this information, it is possible to wait for the response body to be fully received before the error
+converter is called:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#predicateCustomErrorWithBody()}
+----
+
+WARNING: creating exception in Java can have a performance cost when it captures a stack trace, so you might want
+         to create exceptions that do not capture the stack trace. By default exceptions are reported using the
+         an exception that does not capture the stack trace.
+
+endif::[]
 
 === Handling 30x redirections
 
@@ -328,7 +464,7 @@ The client will follow at most `16` requests redirections, it can be changed in 
 
 == Using HTTPS
 
-Vert.x web client can be configured to use HTTPS in exactly the same way as the Vert.x {@link io.vertx.core.http.HttpClient}.
+Vert.x Web Client can be configured to use HTTPS in exactly the same way as the Vert.x {@link io.vertx.core.http.HttpClient}.
 
 You can specify the behavior per request
 
@@ -344,6 +480,52 @@ Or using create methods with absolute URI argument
 {@link examples.WebClientExamples#testAbsRequestSSL(io.vertx.ext.web.client.WebClient)}
 ----
 
-ifdef::java[]
-include::override/rxjava.adoc[]
+== Sessions management
+
+Vert.x web offers a web session management facility; to use it, you create a
+{@link io.vertx.ext.web.client.WebClientSession} for every user (session) and use it instead of the
+{@link io.vertx.ext.web.client.WebClient}.
+
+=== Creating a WebSession
+
+You create a {@link io.vertx.ext.web.client.WebClientSession} instance as follows
+
+[source,$lang]
+----
+{@link examples.WebClientSessionExamples#create}
+----
+
+=== Making requests
+
+Once created, a {@link io.vertx.ext.web.client.WebClientSession} can be used instead of a
+{@link io.vertx.ext.web.client.WebClient} to do HTTP(s) requests and automatically manage any cookies received from the server(s)
+you are calling.
+
+=== Setting session level headers
+
+You can set any session level headers to be added to every request as follows:
+
+[source,$lang]
+----
+{@link examples.WebClientSessionExamples#setHeaders}
+----
+
+The headers will then be added to every request; notice that these headers will be sent to all hosts; if you need
+to send different headers to different hosts, you have to add them manually to every single request and not to the
+{@link io.vertx.ext.web.client.WebClientSession}.
+
+ifeval::["$lang" == "java"]
+include::override/rxjava2.adoc[]
 endif::[]
+
+== Domain sockets
+
+Since 3.7.1 the Web Client supports domain sockets, e.g you can interact with the https://docs.docker.com/engine/reference/commandline/dockerd/[local Docker daemon].
+
+To achieve this, the {@link io.vertx.core.Vertx} instance must be created using a native transport, you can read
+the Vert.x core documentation that explains it clearly.
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#testSocketAddress}
+----

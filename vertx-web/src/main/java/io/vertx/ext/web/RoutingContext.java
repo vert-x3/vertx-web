@@ -16,11 +16,7 @@
 
 package io.vertx.ext.web;
 
-import io.vertx.codegen.annotations.CacheReturn;
-import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.codegen.annotations.Nullable;
-import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.codegen.annotations.*;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -51,6 +47,8 @@ import java.util.Set;
  * <p>
  * The context also provides access to the {@link Session}, cookies and body for the request, given the correct handlers
  * in the application.
+ * <p>
+ * If you use the internal error handler
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -83,21 +81,35 @@ public interface RoutingContext {
    * Fail the context with the specified status code.
    * <p>
    * This will cause the router to route the context to any matching failure handlers for the request. If no failure handlers
-   * match a default failure response will be sent.
+   * match It will trigger the error handler matching the status code. You can define such error handler with
+   * {@link Router#errorHandler(int, Handler)}. If no error handler is not defined, It will send a default failure response with provided status code.
    *
    * @param statusCode  the HTTP status code
    */
   void fail(int statusCode);
 
   /**
-   * Fail the context with the specified throwable.
+   * Fail the context with the specified throwable and 500 status code.
    * <p>
    * This will cause the router to route the context to any matching failure handlers for the request. If no failure handlers
-   * match a default failure response with status code 500 will be sent.
+   * match It will trigger the error handler matching the status code. You can define such error handler with
+   * {@link Router#errorHandler(int, Handler)}. If no error handler is not defined, It will send a default failure response with 500 status code.
    *
    * @param throwable  a throwable representing the failure
    */
   void fail(Throwable throwable);
+
+  /**
+   * Fail the context with the specified throwable and the specified the status code.
+   * <p>
+   * This will cause the router to route the context to any matching failure handlers for the request. If no failure handlers
+   * match It will trigger the error handler matching the status code. You can define such error handler with
+   * {@link Router#errorHandler(int, Handler)}. If no error handler is not defined, It will send a default failure response with provided status code.
+   *
+   * @param statusCode the HTTP status code
+   * @param throwable a throwable representing the failure
+   */
+  void fail(int statusCode, Throwable throwable);
 
   /**
    * Put some arbitrary data in the context. This will be available in any handlers that receive the context.
@@ -132,7 +144,7 @@ public interface RoutingContext {
   /**
    * @return all the context data as a map
    */
-  @GenIgnore
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   Map<String, Object> data();
 
   /**
@@ -485,14 +497,16 @@ public interface RoutingContext {
   String pathParam(String name);
 
   /**
-   * Returns a map of all query parameters inside the <a href="https://en.wikipedia.org/wiki/Query_string">query string</a>
+   * Returns a map of all query parameters inside the <a href="https://en.wikipedia.org/wiki/Query_string">query string</a><br/>
+   * The query parameters are lazily decoded: the decoding happens on the first time this method is called. If the query string is invalid
+   * it fails the context
    *
    * @return the multimap of query parameters
    */
   MultiMap queryParams();
 
   /**
-   * Gets the value of a single query parameter
+   * Gets the value of a single query parameter. For more info {@link RoutingContext#queryParams()}
    *
    * @param query The name of query parameter
    * @return The list of all elements inside query parameter

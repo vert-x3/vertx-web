@@ -20,7 +20,8 @@ import de.neuland.jade4j.JadeConfiguration;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.templ.TemplateEngine;
+import io.vertx.core.Vertx;
+import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.jade.impl.JadeTemplateEngineImpl;
 
 /**
@@ -39,6 +40,7 @@ public interface JadeTemplateEngine extends TemplateEngine {
   /**
    * Default template extension
    */
+  @Deprecated
   String DEFAULT_TEMPLATE_EXTENSION = "jade";
 
   /**
@@ -46,17 +48,22 @@ public interface JadeTemplateEngine extends TemplateEngine {
    *
    * @return  the engine
    */
-  static JadeTemplateEngine create() {
-    return new JadeTemplateEngineImpl();
+  static JadeTemplateEngine create(Vertx vertx) {
+    return new JadeTemplateEngineImpl(vertx);
   }
 
   /**
+   * @deprecated as a user you should use filename with extensions on the render method instead of relying
+   * on this method to suffix your filenames. Using this method is quite an opinionated API and has the side
+   * effect that you cannot use files without extensions as templates.
+   *
    * Set the extension for the engine
    *
    * @param extension  the extension
    * @return a reference to this for fluency
    */
   @Fluent
+  @Deprecated
   JadeTemplateEngine setExtension(String extension);
 
   /**

@@ -23,6 +23,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.shiro.ShiroAuth;
+import io.vertx.ext.auth.shiro.ShiroAuthOptions;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -49,7 +50,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   public void setUp() throws Exception {
     super.setUp();
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    authProvider  = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    authProvider  = ShiroAuth.create(vertx, new ShiroAuthOptions().setType(ShiroAuthRealmType.PROPERTIES).setConfig(authConfig));
     usernameParam = FormLoginHandler.DEFAULT_USERNAME_PARAM;
     passwordParam = FormLoginHandler.DEFAULT_PASSWORD_PARAM;
   }
@@ -157,8 +158,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     router.route().handler(BodyHandler.create());
     router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
-    router.route().handler(SessionHandler.create(store));
-    router.route().handler(UserSessionHandler.create(authProvider));
+    router.route().handler(SessionHandler.create(store).setAuthProvider(authProvider));
     AuthHandler authHandler = RedirectAuthHandler.create(authProvider);
 
     router.route("/protected/*").handler(authHandler);
@@ -247,8 +247,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     router.route().handler(BodyHandler.create());
     router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
-    router.route().handler(SessionHandler.create(store));
-    router.route().handler(UserSessionHandler.create(authProvider));
+    router.route().handler(SessionHandler.create(store).setAuthProvider(authProvider));
     AuthHandler authHandler = RedirectAuthHandler.create(authProvider);
     if (authorities != null) {
       authHandler.addAuthorities(authorities);

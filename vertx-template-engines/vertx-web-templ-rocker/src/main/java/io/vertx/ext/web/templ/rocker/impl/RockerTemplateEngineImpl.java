@@ -22,9 +22,10 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.templ.CachingTemplateEngine;
+import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.templ.rocker.RockerTemplateEngine;
+
+import java.util.Map;
 
 /**
  * @author <a href="mailto:xianguang.zhou@outlook.com">Xianguang Zhou</a>
@@ -48,15 +49,18 @@ public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implem
   }
 
   @Override
-  public void render(RoutingContext context, String templateDirectory, String templateFileName,
-      Handler<AsyncResult<Buffer>> handler) {
+  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
-      templateFileName = templateDirectory + templateFileName;
-      String templatePath = adjustLocation(templateFileName);
+      String templatePath = adjustLocation(templateFile);
 
       BindableRockerModel model = Rocker.template(templatePath);
-      model.bind("context", context);
-      model.bind(context.data());
+      // we need to exclude some keys as rocker requires explicit knowledge on the binded keys
+      context.forEach((k, v) -> {
+        // all keys starting with __ are considered private and will not be exposed
+        if (!k.startsWith("__")) {
+          model.bind(k, v);
+        }
+      });
 
       VertxBufferOutput output = model.render(VertxBufferOutput.FACTORY);
 

@@ -16,10 +16,10 @@
 
 package io.vertx.ext.web.templ.handlebars.impl;
 
-import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Map;
 
-import io.vertx.ext.web.templ.CachingTemplateEngine;
-import org.apache.commons.lang3.ArrayUtils;
+import io.vertx.ext.web.common.template.CachingTemplateEngine;
 
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Handlebars;
@@ -29,8 +29,6 @@ import com.github.jknack.handlebars.io.TemplateLoader;
 import com.github.jknack.handlebars.io.TemplateSource;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 
 /**
@@ -40,16 +38,21 @@ import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template> implements HandlebarsTemplateEngine {
 
   private final Handlebars handlebars;
-  private final Loader loader = new Loader();
-  private final ValueResolver[] DEFAULT_VERTX_RESOLVERS = {
-    JsonArrayValueResolver.INSTANCE,
-    JsonObjectValueResolver.INSTANCE
-  };
+  private final Loader loader;
 
-  private ValueResolver[] resolvers = ArrayUtils.addAll(DEFAULT_VERTX_RESOLVERS, ValueResolver.VALUE_RESOLVERS);
+  private ValueResolver[] resolvers;
 
-  public HandlebarsTemplateEngineImpl() {
+  public HandlebarsTemplateEngineImpl(Vertx vertx) {
     super(HandlebarsTemplateEngine.DEFAULT_TEMPLATE_EXTENSION, HandlebarsTemplateEngine.DEFAULT_MAX_CACHE_SIZE);
+    loader = new Loader(vertx);
+    // custom resolvers
+    resolvers = new ValueResolver[ValueResolver.VALUE_RESOLVERS.length + 2];
+    // custom resolvers for vertx json types
+    resolvers[0] = JsonArrayValueResolver.INSTANCE;
+    resolvers[1] = JsonObjectValueResolver.INSTANCE;
+    // default resolvers
+    System.arraycopy(ValueResolver.VALUE_RESOLVERS, 0, resolvers, 2, ValueResolver.VALUE_RESOLVERS.length);
+    // create the engine
     handlebars = new Handlebars(loader);
   }
 
@@ -66,23 +69,27 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
-  public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
-      String baseTemplateFileName = templateFileName;
-      templateFileName = templateDirectory + templateFileName;
-      Template template = isCachingEnabled() ? cache.get(templateFileName) : null;
+      int idx = templateFile.lastIndexOf('/');
+      String prefix = "";
+      String basename = templateFile;
+      if (idx != -1) {
+        prefix = templateFile.substring(0, idx);
+        basename = templateFile.substring(idx + 1);
+      }
+      Template template = isCachingEnabled() ? cache.get(templateFile) : null;
       if (template == null) {
         synchronized (this) {
-          loader.setPrefix(templateDirectory);
-          loader.setVertx(context.vertx());
+          loader.setPrefix(prefix);
           // Strip leading slash from Utils##normalizePath
-          template = handlebars.compile(baseTemplateFileName.substring(1));
+          template = handlebars.compile(basename);
           if (isCachingEnabled()) {
-            cache.put(templateFileName, template);
+            cache.put(templateFile, template);
           }
         }
       }
-      Context engineContext = Context.newBuilder(context.data()).resolver(getResolvers()).build();
+      Context engineContext = Context.newBuilder(context).resolver(getResolvers()).build();
       handler.handle(Future.succeededFuture(Buffer.buffer(template.apply(engineContext))));
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
@@ -106,17 +113,25 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   private class Loader implements TemplateLoader {
-    private Vertx vertx;
+    private final Vertx vertx;
     private String templateDirectory;
+    private Charset charset = Charset.defaultCharset();
 
-    void setVertx(Vertx vertx) {
+    Loader(Vertx vertx) {
       this.vertx = vertx;
     }
 
     @Override
-    public TemplateSource sourceAt(String location) throws IOException {
-      String loc = resolve(location);
-      String templ = Utils.readFileToString(vertx, loc);
+    public TemplateSource sourceAt(String location) {
+      final String loc = resolve(location);
+      final Buffer templ;
+
+      if (vertx.fileSystem().existsBlocking(loc)) {
+        templ = vertx.fileSystem()
+          .readFileBlocking(loc);
+      } else {
+        templ = null;
+      }
 
       if (templ == null) {
         throw new IllegalArgumentException("Cannot find resource " + loc);
@@ -126,9 +141,8 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
 
       return new TemplateSource() {
         @Override
-        public String content() throws IOException {
-          // load from the file system
-          return templ;
+        public String content(Charset charset) {
+          return templ.toString(charset);
         }
 
         @Override
@@ -166,6 +180,16 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
     @Override
     public void setSuffix(String suffix) {
       extension = suffix;
+    }
+
+    @Override
+    public void setCharset(Charset charset) {
+      this.charset = charset;
+    }
+
+    @Override
+    public Charset getCharset() {
+      return charset;
     }
   }
 }

@@ -19,6 +19,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.file.AsyncFile;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
@@ -53,9 +54,7 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
 
       @Override
       public void handle(Throwable cause) {
-        if (!fut.isComplete()) {
-          fut.fail(cause);
-        }
+        fut.tryFail(cause);
       }
 
       @Override
@@ -65,19 +64,33 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
       }
 
       @Override
-      public WriteStream<Buffer> write(Buffer data) {
-        stream.write(data);
+      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
+        stream.write(data, handler);
         return this;
       }
 
       @Override
+      public WriteStream<Buffer> write(Buffer data) {
+        return write(data, null);
+      }
+
+      @Override
       public void end() {
-        if (close) {
-          stream.end();
-        }
-        if (!fut.isComplete()) {
-          fut.complete();
-        }
+        end((Handler<AsyncResult<Void>>) null);
+      }
+
+      @Override
+      public void end(Handler<AsyncResult<Void>> handler) {
+        stream.end(ar -> {
+          if (ar.succeeded()) {
+            fut.tryComplete();
+          } else {
+            fut.tryFail(ar.cause());
+          }
+          if (handler != null) {
+            handler.handle(ar);
+          }
+        });
       }
 
       @Override

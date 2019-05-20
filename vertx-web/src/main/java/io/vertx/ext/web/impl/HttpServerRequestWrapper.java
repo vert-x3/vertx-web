@@ -55,6 +55,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
+  public HttpServerRequest fetch(long amount) {
+    return delegate.fetch(amount);
+  }
+
+  @Override
   public HttpServerRequest endHandler(Handler<Void> handler) {
     return delegate.endHandler(handler);
   }
@@ -233,7 +238,19 @@ class HttpServerRequestWrapper implements HttpServerRequest {
     return delegate.isEnded();
   }
 
+  @Override
   public boolean isSSL() {
     return delegate.isSSL();
+  }
+
+  @Override
+  public HttpServerRequest streamPriorityHandler(Handler<StreamPriority> handler) {
+    delegate.streamPriorityHandler(handler);
+    return this;
+  }
+
+  @Override
+  public StreamPriority streamPriority() {
+    return delegate.streamPriority();
   }
 }

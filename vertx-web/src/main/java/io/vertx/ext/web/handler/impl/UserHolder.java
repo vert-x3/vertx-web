@@ -46,9 +46,9 @@ public class UserHolder implements ClusterSerializable {
   public void writeToBuffer(Buffer buffer) {
     // try to get the user from the context otherwise fall back to any cached version
     User user = context != null ? context.user() : this.user;
-    if (user != null && user instanceof ClusterSerializable) {
+    if (user instanceof ClusterSerializable) {
       buffer.appendByte((byte)1);
-      String className = user.getClass().getCanonicalName();
+      String className = user.getClass().getName();
       if (className == null) {
         throw new IllegalStateException("Cannot serialize " + user.getClass().getName());
       }
@@ -72,8 +72,11 @@ public class UserHolder implements ClusterSerializable {
       pos += len;
       String className = new String(bytes, StandardCharsets.UTF_8);
       try {
-        Class clazz = Utils.getClassLoader().loadClass(className);
-        ClusterSerializable obj = (ClusterSerializable) clazz.newInstance();
+        Class<?> clazz = Utils.getClassLoader().loadClass(className);
+        if (!ClusterSerializable.class.isAssignableFrom(clazz)) {
+          throw new ClassCastException(className + " is not ClusterSerializable");
+        }
+        ClusterSerializable obj = (ClusterSerializable) clazz.getDeclaredConstructor().newInstance();
         pos = obj.readFromBuffer(pos, buffer);
         user = (User) obj;
       } catch (Exception e) {

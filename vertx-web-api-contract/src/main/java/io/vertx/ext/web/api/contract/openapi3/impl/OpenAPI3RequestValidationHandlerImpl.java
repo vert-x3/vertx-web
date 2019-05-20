@@ -5,6 +5,7 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
+import io.swagger.v3.parser.ResolverCache;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameter;
@@ -20,6 +21,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static io.swagger.v3.parser.util.RefUtils.computeRefFormat;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -72,13 +75,15 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
 
   List<Parameter> resolvedParameters;
   OpenAPI spec;
+  ResolverCache refsCache;
 
   /* --- Initialization functions --- */
 
-  public OpenAPI3RequestValidationHandlerImpl(Operation pathSpec, List<Parameter> resolvedParameters, OpenAPI spec) {
+  public OpenAPI3RequestValidationHandlerImpl(Operation pathSpec, List<Parameter> resolvedParameters, OpenAPI spec, ResolverCache refsCache) {
     super(pathSpec);
     this.resolvedParameters = resolvedParameters;
     this.spec = spec;
+    this.refsCache = refsCache;
     parseOperationSpec();
   }
 
@@ -87,10 +92,17 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     // Extract from path spec parameters description
     if (resolvedParameters!=null) {
       for (Parameter opParameter : resolvedParameters) {
+        if (opParameter.get$ref() != null)
+          opParameter = refsCache.loadRef(opParameter.get$ref(), computeRefFormat(opParameter.get$ref()), Parameter.class);
         this.parseParameter(opParameter);
       }
     }
-    this.parseRequestBody(this.pathSpec.getRequestBody());
+    RequestBody body = this.pathSpec.getRequestBody();
+    if (body != null) {
+      if (body.get$ref() != null)
+        body = refsCache.loadRef(body.get$ref(), computeRefFormat(body.get$ref()), RequestBody.class);
+      this.parseRequestBody(body);
+    }
   }
 
   /* --- Type parsing functions --- */
@@ -103,8 +115,10 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       return ParameterType.GENERIC_STRING.validationMethod();
     }
     if (parseEnum && schema.getEnum() != null && schema.getEnum().size() != 0) {
-      return ParameterTypeValidator.createEnumTypeValidatorWithInnerValidator(new ArrayList(schema.getEnum()), this
-        .resolveInnerSchemaPrimitiveTypeValidator(schema, false));
+      return ParameterTypeValidator.createEnumTypeValidatorWithInnerValidator(
+        new ArrayList(schema.getEnum()),
+        this.resolveInnerSchemaPrimitiveTypeValidator(schema, false)
+      );
     }
     switch (schema.getType()) {
       case "integer":
@@ -158,6 +172,9 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
             break;
           case "email":
             regex = RegularExpressions.EMAIL;
+            break;
+          case "uuid":
+            regex = RegularExpressions.UUID;
             break;
           default:
             throw new SpecFeatureNotSupportedException("format " + schema.getFormat() + " not supported");
@@ -283,18 +300,33 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       if ("query".equals(parameter.getIn())) {
         this.addQueryParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
           .createValidationRuleWithCustomTypeValidator(entry.getKey(), new ExpandedObjectFieldValidator(this
-            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), entry.getValue().isRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.QUERY));
+            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), !entry.getValue().isRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.QUERY));
       } else if ("cookie".equals(parameter.getIn())) {
         this.addCookieParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
           .createValidationRuleWithCustomTypeValidator(entry.getKey(), new ExpandedObjectFieldValidator(this
-            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), entry.getValue().isRequired(), false, ParameterLocation.COOKIE));
+            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), !entry.getValue().isRequired(), false, ParameterLocation.COOKIE));
       } else if ("path".equals(parameter.getIn())) {
         this.addPathParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
           .createValidationRuleWithCustomTypeValidator(entry.getKey(), new ExpandedObjectFieldValidator(this
-            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), entry.getValue().isRequired(), false, ParameterLocation.PATH));
+            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), !entry.getValue().isRequired(), false, ParameterLocation.PATH));
       } else {
         throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields " +
           "" + "not supported for parameter " + parameter.getName());
+      }
+    }
+    if (parameter.getSchema().getAdditionalProperties() instanceof Schema) {
+      if ("query".equals(parameter.getIn())) {
+        this.setQueryAdditionalPropertyHandler(
+          this.resolveInnerSchemaPrimitiveTypeValidator((Schema)parameter.getSchema().getAdditionalProperties(), true),
+          parameter.getName()
+        );
+      } else if ("cookie".equals(parameter.getIn())) {
+        this.setCookieAdditionalPropertyHandler(
+          this.resolveInnerSchemaPrimitiveTypeValidator((Schema)parameter.getSchema().getAdditionalProperties(), true),
+          parameter.getName()
+        );
+      } else {
+        throw new SpecFeatureNotSupportedException("additionalProperties with exploded object fields not supports in path parameter " + parameter.getName());
       }
     }
   }
@@ -303,17 +335,20 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     ObjectTypeValidator objectTypeValidator = ObjectTypeValidator.ObjectTypeValidatorFactory
       .createObjectTypeValidator(ContainerSerializationStyle.simple_exploded_object, false);
     this.resolveObjectTypeFields(objectTypeValidator, parameter.getSchema());
-    if (parameter.getIn().equals("path")) {
-      this.addPathParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-        .createValidationRuleWithCustomTypeValidator(parameter.getName(), objectTypeValidator, !OpenApi3Utils
-          .isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.PATH));
-    } else if (parameter.getIn().equals("header")) {
-      this.addHeaderParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-        .createValidationRuleWithCustomTypeValidator(parameter.getName(), objectTypeValidator, !OpenApi3Utils
-          .isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.HEADER));
-    } else {
-      throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields "
-        + "not supported for parameter " + parameter.getName());
+    switch (parameter.getIn()) {
+      case "path":
+        this.addPathParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
+          .createValidationRuleWithCustomTypeValidator(parameter.getName(), objectTypeValidator, !OpenApi3Utils
+            .isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.PATH));
+        break;
+      case "header":
+        this.addHeaderParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
+          .createValidationRuleWithCustomTypeValidator(parameter.getName(), objectTypeValidator, !OpenApi3Utils
+            .isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.HEADER));
+        break;
+      default:
+        throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields "
+          + "not supported for parameter " + parameter.getName());
     }
   }
 
@@ -323,7 +358,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       if (parameter.getIn().equals("query")) {
         this.addQueryParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
           .createValidationRuleWithCustomTypeValidator(parameter.getName() + "[" + entry.getKey() + "]", new ExpandedObjectFieldValidator(this
-            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), entry.getValue().isRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.QUERY));
+            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), !entry.getValue().isRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.QUERY));
       } else {
         throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields " +
           "" + "not supported for parameter " + parameter.getName());
@@ -415,40 +450,25 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     return this.resolveInnerSchemaPrimitiveTypeValidator(schema, true);
   }
 
-  /* This function resolves default content types of multipart parameters */
-  private String resolveDefaultContentTypeRegex(Schema schema) {
-    if (OpenApi3Utils.isSchemaObjectOrAllOfType(schema))
-      return "\\Qapplication/json\\E|.*\\/.*\\+json"; // Regex for json content type
-
-    if (schema.getType() != null) {
-      if (schema.getType().equals("string") && schema.getFormat() != null && (schema.getFormat().equals
-        ("binary") || schema.getFormat().equals("base64")))
-        return Pattern.quote("application/octet-stream");
-      else if (schema.getType().equals("array"))
-        return this.resolveDefaultContentTypeRegex(((ArraySchema) schema).getItems());
-      else return Pattern.quote("text/plain");
-    }
-
-    throw new SpecFeatureNotSupportedException("Unable to find default content type for multipart parameter. Use " +
-      "encoding field");
-  }
-
   /* This function handle all multimaps parameters */
   private void handleMultimapParameter(String parameterName, String contentTypeRegex, Schema schema, Schema multipartObjectSchema) {
-    Pattern contentTypePattern = Pattern.compile(contentTypeRegex);
-    if (contentTypePattern.matcher("application/json").matches()) {
-      this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-        .createValidationRuleWithCustomTypeValidator(parameterName, JsonTypeValidator.JsonTypeValidatorFactory
-          .createJsonTypeValidator(OpenApi3Utils.generateSanitizedJsonSchemaNode(schema, this.spec)), !OpenApi3Utils.isRequiredParam
-          (multipartObjectSchema, parameterName), false, ParameterLocation.BODY_FORM));
-    } else if (contentTypePattern.matcher("text/plain").matches()) {
-      this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
+    if (contentTypeRegex == null) {
+      if (OpenApi3Utils.isSchemaObjectOrAllOfType(schema) || (OpenApi3Utils.isSchemaArray(schema) && OpenApi3Utils.isSchemaObjectOrAllOfType(((ArraySchema) schema).getItems()))) {
+        this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
+          .createValidationRuleWithCustomTypeValidator(parameterName, JsonTypeValidator.JsonTypeValidatorFactory
+            .createJsonTypeValidator(OpenApi3Utils.generateSanitizedJsonSchemaNode(schema, this.spec)), !OpenApi3Utils.isRequiredParam
+            (multipartObjectSchema, parameterName), false, ParameterLocation.BODY_FORM));
+      } else if (schema.getType().equals("string") && ("binary".equals(schema.getFormat()) || "base64".equals(schema.getFormat()))) {
+        this.addCustomValidator(new MultipartCustomValidator(Pattern.compile(Pattern.quote("application/octet-stream")), parameterName, !OpenApi3Utils.isRequiredParam(multipartObjectSchema, parameterName)));
+      } else {
+        this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
           .createValidationRuleWithCustomTypeValidator(parameterName,
-              this.resolveSchemaTypeValidatorFormEncoded(schema),
-              !OpenApi3Utils.isRequiredParam(multipartObjectSchema, parameterName), false,
-              ParameterLocation.BODY_FORM));
+            this.resolveSchemaTypeValidatorFormEncoded(schema),
+            !OpenApi3Utils.isRequiredParam(multipartObjectSchema, parameterName), false,
+            ParameterLocation.BODY_FORM));
+      }
     } else {
-      this.addCustomValidator(new MultipartCustomValidator(contentTypePattern, parameterName, !OpenApi3Utils.isRequiredParam(multipartObjectSchema, parameterName)));
+      this.addCustomValidator(new MultipartCustomValidator(Pattern.compile(contentTypeRegex), parameterName, !OpenApi3Utils.isRequiredParam(multipartObjectSchema, parameterName)));
     }
   }
 
@@ -472,11 +492,13 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
           mediaType.getValue().getSchema().getType().equals("object")) {
           for (Map.Entry<String, ? extends Schema> multipartProperty : ((Map<String, Schema>) mediaType.getValue().getSchema().getProperties())
             .entrySet()) {
-            Encoding encodingProperty = mediaType.getValue().getEncoding().get(multipartProperty.getKey());
-            String contentTypeRegex;
+            Encoding encodingProperty = null;
+            if (mediaType.getValue().getEncoding() != null)
+              encodingProperty = mediaType.getValue().getEncoding().get(multipartProperty.getKey());
+            String contentTypeRegex = null;
             if (encodingProperty != null && encodingProperty.getContentType() != null)
               contentTypeRegex = OpenApi3Utils.resolveContentTypeRegex(encodingProperty.getContentType());
-            else contentTypeRegex = this.resolveDefaultContentTypeRegex(multipartProperty.getValue());
+
             handleMultimapParameter(multipartProperty.getKey(), contentTypeRegex, multipartProperty.getValue(),
               mediaType.getValue().getSchema());
           }

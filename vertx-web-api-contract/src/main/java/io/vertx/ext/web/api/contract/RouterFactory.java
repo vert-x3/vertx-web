@@ -4,8 +4,13 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
+
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * Main interface for Design Driven Router factory
@@ -25,33 +30,7 @@ public interface RouterFactory<Specification> {
   RouterFactory addSecurityHandler(String securitySchemaName, Handler<RoutingContext> handler);
 
   /**
-   * Add an handler to a path with a method. If combination path/method is not available in
-   * specification, it will throw a {@link RouterFactoryException}. Deprecated in favour of
-   * operation id
-   *
-   * @param method
-   * @param path
-   * @param handler
-   * @return
-   */
-  @Fluent @Deprecated
-  RouterFactory addHandler(HttpMethod method, String path, Handler<RoutingContext> handler);
-
-  /**
-   * Add a failure handler to a path with a method. If combination path/method is not available in
-   * specification, it will throw a {@link RouterFactoryException}. Deprecated in favour of
-   * operation id
-   *
-   * @param method
-   * @param path
-   * @param failureHandler
-   * @return
-   */
-  @Fluent @Deprecated
-  RouterFactory addFailureHandler(HttpMethod method, String path, Handler<RoutingContext> failureHandler);
-
-  /**
-   * Override options
+   * Set options of router factory. For more info {@link RouterFactoryOptions}
    *
    * @param options
    * @return
@@ -67,36 +46,6 @@ public interface RouterFactory<Specification> {
   RouterFactoryOptions getOptions();
 
   /**
-   * Deprecated. Instantiate {@link RouterFactoryOptions}
-   * and load it using {@link RouterFactory#setOptions(RouterFactoryOptions)}
-   *
-   * @param handler
-   * @return
-   */
-  @Fluent @Deprecated
-  RouterFactory setValidationFailureHandler(Handler<RoutingContext> handler);
-
-  /**
-   * Deprecated. Instantiate {@link RouterFactoryOptions}
-   * and load it using {@link RouterFactory#setOptions(RouterFactoryOptions)}
-   *
-   * @param enable
-   * @return
-   */
-  @Fluent @Deprecated
-  RouterFactory enableValidationFailureHandler(boolean enable);
-
-  /**
-   * Deprecated. Instantiate {@link RouterFactoryOptions}
-   * and load it using {@link RouterFactory#setOptions(RouterFactoryOptions)}
-   *
-   * @param enable
-   * @return
-   */
-  @Fluent @Deprecated
-  RouterFactory mountOperationsWithoutHandlers(boolean enable);
-
-  /**
    * Construct a new router based on spec. It will fail if you are trying to mount a spec with security schemes
    * without assigned handlers<br/>
    * <b>Note:</b> Router is constructed in this function, so it will be respected the path definition ordering.
@@ -105,4 +54,60 @@ public interface RouterFactory<Specification> {
    */
   Router getRouter();
 
+  /**
+   * @deprecated Router Factory won't manage the validation errors anymore. You must use {@link io.vertx.ext.web.Router#errorHandler(int, Handler)} with 400 error
+   */
+  @Deprecated
+  Handler<RoutingContext> getValidationFailureHandler();
+
+  /**
+   * Set default validation failure handler. You can enable/disable this feature from
+   * {@link RouterFactoryOptions#setMountValidationFailureHandler(boolean)}
+   *
+   * @param validationFailureHandler
+   * @return this object
+   * @deprecated Router Factory won't manage the validation errors anymore. You must use {@link io.vertx.ext.web.Router#errorHandler(int, Handler)} with 400 error
+   */
+  @Fluent
+  @Deprecated
+  RouterFactory setValidationFailureHandler(Handler<RoutingContext> validationFailureHandler);
+
+  /**
+   * Set not implemented failure handler. It's called when you don't define an handler for a
+   * specific operation. You can enable/disable this feature from
+   * {@link RouterFactoryOptions#setMountNotImplementedHandler(boolean)}
+   *
+   * @param notImplementedFailureHandler
+   * @return this object
+   * @deprecated You must use {@link io.vertx.ext.web.Router#errorHandler(int, Handler)} with 501 error
+   */
+  @Fluent
+  @Deprecated
+  RouterFactory setNotImplementedFailureHandler(Handler<RoutingContext> notImplementedFailureHandler);
+
+  /**
+   * Supply your own BodyHandler if you would like to control body limit, uploads directory and deletion of uploaded files
+   * @param bodyHandler
+   * @return self
+   */
+  @Fluent
+  RouterFactory setBodyHandler(BodyHandler bodyHandler);
+
+  /**
+   * Add global handler to be applied prior to {@link io.vertx.ext.web.Router} being generated. <br/>
+   * Please note that you should not add a body handler inside that list. If you want to modify the body handler, please use {@link RouterFactory#setBodyHandler(BodyHandler)}
+   *
+   * @param globalHandler
+   * @return this object
+   */
+  @Fluent
+  RouterFactory addGlobalHandler(Handler<RoutingContext> globalHandler);
+
+  /**
+   * When set, this function is called while creating the payload of {@link io.vertx.ext.web.api.OperationRequest}
+   * @param extraOperationContextPayloadMapper
+   * @return
+   */
+  @Fluent
+  RouterFactory setExtraOperationContextPayloadMapper(Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper);
 }

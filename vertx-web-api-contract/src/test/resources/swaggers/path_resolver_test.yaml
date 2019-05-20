@@ -1,0 +1,133 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Test spec for OpenAPI3PathResolverTest
+  license:
+    name: Apache 2.0 License
+paths:
+  /pets:
+    get:
+      summary: List all pets
+      operationId: listPets
+      responses:
+        200:
+          description: ok
+  /path/multi/{color_simple}{color_label}/test:
+    get:
+      parameters:
+        - name: color_simple
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/Email"
+          style: simple
+          explode: false
+        - name: color_label
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/EmailArray"
+          style: label
+          explode: false
+      operationId: path_multi_simple_label
+      responses:
+        default:
+          description: Default response
+
+  /path/multi/{color_simple}{color_matrix}/test:
+    get:
+      parameters:
+        - name: color_simple
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/Email"
+          style: simple
+          explode: false
+        - name: color_matrix
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/EmailArray"
+          style: matrix
+          explode: false
+      operationId: path_multi_simple_matrix
+      responses:
+        200:
+          description: Validation successful
+
+  /path/{matrix}/test:
+    get:
+      parameters:
+        - name: matrix
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/EmailArray"
+          style: matrix
+          explode: false
+      operationId: path_array_matrix
+      responses:
+        200:
+          description: Validation successful
+
+  /path/{id}{email}/test:
+    get:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: matrix
+          explode: false
+          schema:
+            type: string
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+            format: email
+          style: matrix
+          explode: false
+      operationId: path_matrix_id_email
+      responses:
+        200:
+          description: Validation successful
+
+  /path/{simple}/test:
+    get:
+      parameters:
+        - name: simple
+          in: path
+          required: true
+          schema:
+            type: string
+          style: simple
+          explode: false
+      operationId: path_simple
+      responses:
+        200:
+          description: Validation successful
+
+components:
+  schemas:
+    Email:
+      type: string
+      format: email
+    EmailArray:
+      type: array
+      items:
+        type: string
+        format: email
+    EmailObject:
+      type: object
+      properties:
+        from:
+          type: string
+          format: email
+        to:
+          type: string
+          format: email
+      required:
+        - from
+        - to

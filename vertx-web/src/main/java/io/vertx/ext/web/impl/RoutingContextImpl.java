@@ -17,6 +17,7 @@
 package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -25,22 +26,15 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.Cookie;
-import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Locale;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.Session;
+import io.vertx.ext.web.*;
+import io.vertx.ext.web.handler.impl.HttpStatusException;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -73,7 +67,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     this.router = router;
 
     fillParsedHeaders(request);
-    if (request.path().charAt(0) != '/') {
+    if (request.path().length() == 0) {
+      // HTTP paths must start with a '/'
+      fail(400);
+    } else if (request.path().charAt(0) != '/') {
+      // For compatiblity we return `Not Found` when a path does not start with `/`
       fail(404);
     }
   }
@@ -137,16 +135,22 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       // Send back FAILURE
       unhandledFailure(statusCode, failure, router);
     } else {
-      // Send back default 404
-      response().setStatusCode(404);
-      if (request().method() == HttpMethod.HEAD) {
-        // HEAD responses don't have a body
-        response().end();
-      } else {
-        response()
-                .putHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
-                .end(DEFAULT_404);
-      }
+      Handler<RoutingContext> handler = router.getErrorHandlerByStatusCode(404);
+      if (handler == null) { // Default 404 handling
+        // Send back default 404
+        this.response()
+          .setStatusMessage("Not Found")
+          .setStatusCode(404);
+        if (this.request().method() == HttpMethod.HEAD) {
+          // HEAD responses don't have a body
+          this.response().end();
+        } else {
+          this.response()
+            .putHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
+            .end("<html><body><h1>Resource not found</h1></body></html>");
+        }
+      } else
+        handler.handle(this);
     }
   }
 
@@ -158,7 +162,13 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void fail(Throwable t) {
-    this.failure = t == null ? new NullPointerException() : t;
+    this.fail(-1, t);
+  }
+
+  @Override
+  public void fail(int statusCode, Throwable throwable) {
+    this.statusCode = statusCode;
+    this.failure = throwable == null ? new NullPointerException() : throwable;
     doFail();
   }
 
@@ -195,7 +205,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public String normalisedPath() {
     if (normalisedPath == null) {
-      normalisedPath = Utils.normalizePath(request.path());
+      String path = request.path();
+      if (path == null) {
+        normalisedPath = "/";
+      } else {
+        normalisedPath = HttpUtils.normalizePath(path);
+      }
     }
     return normalisedPath;
   }
@@ -250,12 +265,14 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public JsonObject getBodyAsJson() {
-    return body != null ? new JsonObject(body) : null;
+    // the minimal json is {} so we need at least 2 chars
+    return body != null && body.length() > 1 ? new JsonObject(body) : null;
   }
 
   @Override
   public JsonArray getBodyAsJsonArray() {
-    return body != null ? new JsonArray(body) : null;
+    // the minimal array is [] so we need at least 2 chars
+    return body != null && body.length() > 1 ? new JsonArray(body) : null;
   }
 
   @Override
@@ -410,8 +427,18 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   private MultiMap getQueryParams() {
+    // Check if query params are already parsed
     if (queryParams == null) {
-      queryParams = MultiMap.caseInsensitiveMultiMap();
+      try {
+        queryParams = MultiMap.caseInsensitiveMultiMap();
+
+        // Decode query parameters and put inside context.queryParams
+        Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
+        for (Map.Entry<String, List<String>> entry : decodedParams.entrySet())
+          queryParams.add(entry.getKey(), entry.getValue());
+      } catch (IllegalArgumentException e) {
+        throw new HttpStatusException(400, "Error while decoding query params", e);
+      }
     }
     return queryParams;
   }

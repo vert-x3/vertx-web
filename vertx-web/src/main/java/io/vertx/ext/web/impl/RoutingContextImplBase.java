@@ -17,11 +17,13 @@
 package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.impl.HttpStatusException;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -90,15 +92,7 @@ public abstract class RoutingContextImplBase implements RoutingContext {
           return true;
         }
       } catch (Throwable t) {
-        if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);
-        if (!failed) {
-          if (log.isTraceEnabled()) log.trace("Failing the routing");
-          fail(t);
-        } else {
-          // Failure in handling failure!
-          if (log.isTraceEnabled()) log.trace("Failure in handling failure");
-          unhandledFailure(-1, t, currentRoute.router());
-        }
+        handleInHandlerRuntimeFailure(currentRoute, failed, t);
         return true;
       }
     }
@@ -122,39 +116,49 @@ public abstract class RoutingContextImplBase implements RoutingContext {
               continue;
             }
           } catch (Throwable t) {
-            if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);
-            if (!failed) {
-              if (log.isTraceEnabled()) log.trace("Failing the routing");
-              fail(t);
-            } else {
-              // Failure in handling failure!
-              if (log.isTraceEnabled()) log.trace("Failure in handling failure");
-              unhandledFailure(-1, t, route.router());
-            }
+            handleInHandlerRuntimeFailure(route, failed, t);
           }
           return true;
         }
-      } catch (IllegalArgumentException e) {
+      } catch (Throwable e) {
         if (log.isTraceEnabled()) log.trace("IllegalArgumentException thrown during iteration", e);
-        // Failure in handling failure!
-        unhandledFailure(400, e, route.router());
+        // Failure in matches algorithm (If the exception is instanceof IllegalArgumentException probably is a QueryStringDecoder error!)
+        if (!this.response().ended())
+          unhandledFailure((e instanceof IllegalArgumentException) ? 400 : -1, e, route.router());
         return true;
       }
     }
     return false;
   }
 
+  private void handleInHandlerRuntimeFailure(RouteImpl route, boolean failed, Throwable t) {
+    if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);
+    if (!failed) {
+      if (log.isTraceEnabled()) log.trace("Failing the routing");
+      fail(t);
+    } else {
+      // Failure in handling failure!
+      if (log.isTraceEnabled()) log.trace("Failure in handling failure");
+      unhandledFailure(-1, t, route.router());
+    }
+  }
+
 
   protected void unhandledFailure(int statusCode, Throwable failure, RouterImpl router) {
-    int code = statusCode != -1 ? statusCode : 500;
-    if (failure != null) {
-      if (router.exceptionHandler() != null) {
-        router.exceptionHandler().handle(failure);
-      } else {
-        log.error("Unexpected exception in route", failure);
+    int code = statusCode != -1 ?
+      statusCode :
+      (failure instanceof HttpStatusException) ?
+        ((HttpStatusException) failure).getStatusCode() :
+        500;
+    Handler<RoutingContext> errorHandler = router.getErrorHandlerByStatusCode(code);
+    if (errorHandler != null) {
+      try {
+        errorHandler.handle(this);
+      } catch (Throwable t) {
+        log.error("Error in error handler", t);
       }
     }
-    if (!response().ended()) {
+    if (!response().ended() && !response().closed()) {
       try {
         response().setStatusCode(code);
       } catch (IllegalArgumentException e) {

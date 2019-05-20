@@ -3,9 +3,11 @@ package io.vertx.ext.web.api.validation;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.WebTestWithWebClientBase;
+import io.vertx.ext.web.api.ApiWebTestBase;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.handler.BodyHandler;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -14,10 +16,12 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class WebTestValidationBase extends WebTestWithWebClientBase {
+public class WebTestValidationBase extends ApiWebTestBase {
 
   static Map<ParameterType, List<String>> sampleValuesSuccess;
   static Map<ParameterType, List<String>> sampleValuesFailure;
+
+  @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
 
   static {
     sampleValuesSuccess = new HashMap<>();
@@ -48,6 +52,8 @@ public class WebTestValidationBase extends WebTestWithWebClientBase {
     sampleValuesFailure.put(ParameterType.TIME, Arrays.asList(new SimpleDateFormat("yyyy:MM:dd").format(new Date())));
     sampleValuesSuccess.put(ParameterType.BASE64, Arrays.asList("SGVsbG8gVmVydHg="));
     sampleValuesFailure.put(ParameterType.BASE64, Arrays.asList());
+    sampleValuesSuccess.put(ParameterType.UUID, Arrays.asList(UUID.randomUUID().toString()));
+    sampleValuesFailure.put(ParameterType.UUID, Arrays.asList(UUID.randomUUID().toString() + "a"));
 
   }
 
@@ -63,10 +69,18 @@ public class WebTestValidationBase extends WebTestWithWebClientBase {
 
   public void loadHandlers(String path, HttpMethod method, boolean expectFail, ValidationHandler validationHandler,
                            Handler<RoutingContext> handler) {
-    router.route(method, path).handler(BodyHandler.create())
+    router.route(method, path).handler(BodyHandler.create(tempFolder.getRoot().getAbsolutePath()))
       .handler(validationHandler)
       .handler(handler)
       .failureHandler(generateFailureHandler(expectFail));
+  }
+
+  public void loadHandlers(String path, HttpMethod method, boolean expectFail, ValidationHandler validationHandler,
+                           Handler<RoutingContext> handler, Handler<RoutingContext> failureHandler) {
+    router.route(method, path).handler(BodyHandler.create(tempFolder.getRoot().getAbsolutePath()))
+      .handler(validationHandler)
+      .handler(handler)
+      .failureHandler(failureHandler);
   }
 
   public void testPrimitiveParameterType(ParameterType type) {

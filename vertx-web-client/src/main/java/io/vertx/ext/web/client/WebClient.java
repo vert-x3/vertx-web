@@ -22,7 +22,8 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientImpl;
-import io.vertx.ext.web.client.impl.WebClientImpl;
+import io.vertx.core.net.SocketAddress;
+import io.vertx.ext.web.client.impl.WebClientBase;
 
 /**
  * An asynchronous HTTP / HTTP/2 client called {@code WebClient}.
@@ -63,7 +64,7 @@ public interface WebClient {
    * @return the created web client
    */
   static WebClient create(Vertx vertx, WebClientOptions options) {
-    return new WebClientImpl(vertx.createHttpClient(options), options);
+    return new WebClientBase(vertx.createHttpClient(options), options);
   }
 
   /**
@@ -89,7 +90,7 @@ public interface WebClient {
   static WebClient wrap(HttpClient httpClient, WebClientOptions options) {
     WebClientOptions actualOptions = new WebClientOptions(((HttpClientImpl) httpClient).getOptions());
     actualOptions.init(options);
-    return new WebClientImpl(httpClient, actualOptions);
+    return new WebClientBase(httpClient, actualOptions);
   }
 
   /**
@@ -103,6 +104,16 @@ public interface WebClient {
   HttpRequest<Buffer> request(HttpMethod method, int port, String host, String requestURI);
 
   /**
+   * Like {@link #request(HttpMethod, int, String, String)} using the {@code serverAddress} parameter to connect to the
+   * server instead of the {@code port} and {@code host} parameters.
+   * <p>
+   * The request host header will still be created from the {@code port} and {@code host} parameters.
+   * <p>
+   * Use {@link SocketAddress#domainSocketAddress(String)} to connect to a unix domain socket server.
+   */
+  HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, int port, String host, String requestURI);
+
+  /**
    * Create an HTTP request to send to the server at the specified host and default port.
    * @param method  the HTTP method
    * @param host  the host
@@ -110,6 +121,16 @@ public interface WebClient {
    * @return  an HTTP client request object
    */
   HttpRequest<Buffer> request(HttpMethod method, String host, String requestURI);
+
+  /**
+   * Like {@link #request(HttpMethod, String, String)} using the {@code serverAddress} parameter to connect to the
+   * server instead of the default port and {@code host} parameter.
+   * <p>
+   * The request host header will still be created from the default port and {@code host} parameter.
+   * <p>
+   * Use {@link SocketAddress#domainSocketAddress(String)} to connect to a unix domain socket server.
+   */
+  HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, String host, String requestURI);
 
   /**
    * Create an HTTP request to send to the server at the default host and port.
@@ -120,6 +141,16 @@ public interface WebClient {
   HttpRequest<Buffer> request(HttpMethod method, String requestURI);
 
   /**
+   * Like {@link #request(HttpMethod, String)} using the {@code serverAddress} parameter to connect to the
+   * server instead of the default port and default host.
+   * <p>
+   * The request host header will still be created from the default port and default host.
+   * <p>
+   * Use {@link SocketAddress#domainSocketAddress(String)} to connect to a unix domain socket server.
+   */
+  HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, String requestURI);
+
+  /**
    * Create an HTTP request to send to the server at the specified host and port.
    * @param method  the HTTP method
    * @param options  the request options
@@ -128,12 +159,32 @@ public interface WebClient {
   HttpRequest<Buffer> request(HttpMethod method, RequestOptions options);
 
   /**
+   * Like {@link #request(HttpMethod, RequestOptions)} using the {@code serverAddress} parameter to connect to the
+   * server instead of the {@code options} parameter.
+   * <p>
+   * The request host header will still be created from the {@code options} parameter.
+   * <p>
+   * Use {@link SocketAddress#domainSocketAddress(String)} to connect to a unix domain socket server.
+   */
+  HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, RequestOptions options);
+
+  /**
    * Create an HTTP request to send to the server using an absolute URI
    * @param method  the HTTP method
    * @param absoluteURI  the absolute URI
    * @return  an HTTP client request object
    */
   HttpRequest<Buffer> requestAbs(HttpMethod method, String absoluteURI);
+
+  /**
+   * Like {@link #requestAbs(HttpMethod, String)} using the {@code serverAddress} parameter to connect to the
+   * server instead of the {@code absoluteURI} parameter.
+   * <p>
+   * The request host header will still be created from the {@code absoluteURI} parameter.
+   * <p>
+   * Use {@link SocketAddress#domainSocketAddress(String)} to connect to a unix domain socket server.
+   */
+  HttpRequest<Buffer> requestAbs(HttpMethod method, SocketAddress serverAddress, String absoluteURI);
 
   /**
    * Create an HTTP GET request to send to the server at the default host and port.

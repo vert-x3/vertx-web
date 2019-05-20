@@ -314,7 +314,7 @@ public interface ParameterTypeValidator {
    * @return
    */
   static ParameterTypeValidator createStringEnumTypeValidator(List<String> allowedValues) {
-    return new EnumTypeValidator(allowedValues, ParameterType.GENERIC_STRING.validationMethod());
+    return new EnumTypeValidator<>(allowedValues, ParameterType.GENERIC_STRING.validationMethod());
   }
 
   /**
@@ -325,9 +325,9 @@ public interface ParameterTypeValidator {
    *                      can be null
    * @return
    */
-  static ParameterTypeValidator createEnumTypeValidatorWithInnerValidator(List<String> allowedValues,
+  static ParameterTypeValidator createEnumTypeValidatorWithInnerValidator(List<Object> allowedValues,
                                                                           ParameterTypeValidator innerValidator) {
-    return new EnumTypeValidator(allowedValues, innerValidator);
+    return new EnumTypeValidator<>(allowedValues, innerValidator);
   }
 
   /**

@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-template-engines</artifactId>
-    <version>3.6.0-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>vertx-web-templ-freemarker</artifactId>
@@ -16,17 +16,23 @@
     <dependency>
       <groupId>org.freemarker</groupId>
       <artifactId>freemarker</artifactId>
-      <version>2.3.27-incubating</version>
+      <version>2.3.28</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
+      <artifactId>vertx-web-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
-      <type>test-jar</type>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-unit</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -59,25 +65,12 @@
         </executions>
         <configuration>
           <bnd><![CDATA[
-          Fragment-Host: vertx-web
           Import-Package: \
-            groovy.lang.*;resolution:=optional,\
-            org.codehaus.groovy.*;resolution:=optional,\
-            kotlin.*;resolution:=optional,\
-            io.vertx.groovy.*;resolution:=optional,\
             io.vertx.ext.auth.*,\
-            io.vertx.lang.rxjava.*;resolution:=optional,\
-            io.vertx.lang.groovy.*;resolution:=optional,\
             io.vertx.codegen.annotations;resolution:=optional,\
-            io.vertx.rx.java;resolution:=optional,\
-            io.vertx.rxjava.core.*;resolution:=optional,\
-            io.vertx.rxjava.ext.auth.*;resolution:=optional,\
-            rx.*;resolution:=optional,\
-            io.reactivex.*;resolution:=optional,\
-            io.vertx.reactivex.*;resolution:=optional,\
-            io.vertx.lang.reactivex.*;resolution:=optional,\
             !io.vertx.ext.web.impl,\
             *
+            -exportcontents: !*impl, !examples, !io.vertx.ext.templ, *
           ]]></bnd>
         </configuration>
       </plugin>

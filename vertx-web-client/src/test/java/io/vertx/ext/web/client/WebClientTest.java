@@ -1,35 +1,28 @@
 package io.vertx.ext.web.client;
 
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.VertxException;
-import io.vertx.core.VertxOptions;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.dns.AddressResolverOptions;
 import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.OpenOptions;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpConnection;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.*;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
+import io.vertx.ext.web.client.predicate.ErrorConverter;
+import io.vertx.ext.web.client.predicate.ResponsePredicate;
+import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
-import io.vertx.test.core.HttpTestBase;
 import io.vertx.test.core.TestUtils;
-import io.vertx.test.core.tls.Cert;
+import io.vertx.test.tls.Cert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -40,15 +33,20 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.not;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -98,6 +96,28 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testBasicAuthentication() throws Exception {
+    testRequest(
+      client -> client.get("somehost", "somepath").basicAuthentication("ém$¨=!$€", "&@#§$*éà#\"'"),
+      req -> {
+        String auth = req.headers().get(HttpHeaders.AUTHORIZATION);
+        assertEquals("Was expecting authorization header to contain a basic authentication string", "Basic w6ltJMKoPSEk4oKsOiZAI8KnJCrDqcOgIyIn", auth);
+      }
+    );
+  }
+
+  @Test
+  public void testBearerTokenAuthentication() throws Exception {
+    testRequest(
+      client -> client.get("somehost", "somepath").bearerTokenAuthentication("sometoken"),
+      req -> {
+        String auth = req.headers().get(HttpHeaders.AUTHORIZATION);
+        assertEquals("Was expecting authorization header to contain a bearer token authentication string", "Bearer sometoken", auth);
+      }
+    );
+  }
+
+  @Test
   public void testCustomUserAgent() throws Exception {
     client = WebClient.wrap(super.client, new WebClientOptions().setUserAgent("smith"));
     testRequest(client -> client.get("somehost", "somepath"), req -> assertEquals(Collections.singletonList("smith"), req.headers().getAll(HttpHeaders.USER_AGENT)));
@@ -112,6 +132,17 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testUserAgentHeaderOverride() throws Exception {
     testRequest(client -> client.get("somehost", "somepath").putHeader(HttpHeaders.USER_AGENT.toString(), "smith"), req -> assertEquals(Collections.singletonList("smith"), req.headers().getAll(HttpHeaders.USER_AGENT)));
+  }
+
+  @Test
+  public void testPutHeaders() throws Exception {
+    MultiMap headers = MultiMap.caseInsensitiveMultiMap();
+    headers.add("foo","bar");
+    headers.add("ping","pong");
+    testRequest(client -> client.get("somehost", "somepath").putHeaders(headers), req -> {
+      assertEquals("bar", req.headers().get("foo"));
+      assertEquals("pong", req.headers().get("ping"));
+    });
   }
 
   @Test
@@ -331,6 +362,10 @@ public class WebClientTest extends HttpTestBase {
             return this;
           }
           @Override
+          public ReadStream<Buffer> fetch(long amount) {
+            throw new UnsupportedOperationException();
+          }
+          @Override
           public ReadStream<Buffer> resume() {
             paused.set(false);
             return this;
@@ -384,6 +419,10 @@ public class WebClientTest extends HttpTestBase {
             return this;
           }
           @Override
+          public ReadStream<Buffer> fetch(long amount) {
+            return this;
+          }
+          @Override
           public ReadStream<Buffer> pause() {
             return this;
           }
@@ -396,8 +435,11 @@ public class WebClientTest extends HttpTestBase {
             return this;
           }
         }, onFailure(err -> {
-          assertSame(cause, err);
-          complete();
+          if (cause == err) {
+            complete();
+          } else {
+            fail(new Exception("Unexpected failure", err));
+          }
         }));
     await();
   }
@@ -420,6 +462,10 @@ public class WebClientTest extends HttpTestBase {
         if (handler != null) {
           vertx.runOnContext(v -> exceptionHandler.handle(cause));
         }
+        return this;
+      }
+      @Override
+      public ReadStream<Buffer> fetch(long amount) {
         return this;
       }
       @Override
@@ -636,12 +682,26 @@ public class WebClientTest extends HttpTestBase {
       }
       @Override
       public WriteStream<Buffer> write(Buffer data) {
+        return write(data, null);
+      }
+      @Override
+      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
         size.addAndGet(data.length());
+        if (handler != null) {
+          handler.handle(Future.succeededFuture());
+        }
         return this;
       }
       @Override
       public void end() {
+        end((Handler<AsyncResult<Void>>) null);
+      }
+      @Override
+      public void end(Handler<AsyncResult<Void>> handler) {
         ended.set(true);
+        if (handler != null) {
+          handler.handle(Future.succeededFuture());
+        }
       }
       @Override
       public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
@@ -689,11 +749,25 @@ public class WebClientTest extends HttpTestBase {
       }
       @Override
       public WriteStream<Buffer> write(Buffer data) {
+        return write(data, null);
+      }
+      @Override
+      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
         received.addAndGet(data.length());
+        if (handler != null) {
+          handler.handle(Future.succeededFuture());
+        }
         return this;
       }
       @Override
       public void end() {
+        end((Handler<AsyncResult<Void>>) null);
+      }
+      @Override
+      public void end(Handler<AsyncResult<Void>> handler) {
+        if (handler != null) {
+          handler.handle(Future.succeededFuture());
+        }
       }
       @Override
       public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
@@ -735,11 +809,23 @@ public class WebClientTest extends HttpTestBase {
       }
       @Override
       public WriteStream<Buffer> write(Buffer data) {
+        return write(data, null);
+      }
+      @Override
+      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
         exceptionHandler.handle(cause);
+        if (handler != null) {
+          handler.handle(Future.failedFuture(cause));
+        }
         return this;
       }
       @Override
       public void end() {
+        throw new AssertionError();
+      }
+      @Override
+      public void end(Handler<AsyncResult<Void>> handler) {
+        throw new AssertionError();
       }
       @Override
       public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
@@ -765,6 +851,71 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testAsyncFileResponseBodyStream() throws Exception {
+    server.requestHandler(req -> {
+      HttpServerResponse resp = req.response();
+      resp.end(TestUtils.randomBuffer(1024 * 1024));
+    });
+    startServer();
+    AtomicLong received = new AtomicLong();
+    AtomicBoolean closed = new AtomicBoolean();
+    AsyncFile file = new AsyncFile() {
+      public AsyncFile handler(Handler<Buffer> handler) { throw new UnsupportedOperationException(); }
+      public AsyncFile pause() { throw new UnsupportedOperationException(); }
+      public AsyncFile resume() { throw new UnsupportedOperationException(); }
+      public AsyncFile endHandler(Handler<Void> handler) { throw new UnsupportedOperationException(); }
+      public AsyncFile setWriteQueueMaxSize(int i) { throw new UnsupportedOperationException(); }
+      public AsyncFile drainHandler(Handler<Void> handler) { throw new UnsupportedOperationException(); }
+      public AsyncFile fetch(long l) { throw new UnsupportedOperationException(); }
+      public void end() { close(null); }
+      public void end(Handler<AsyncResult<Void>> handler) { close(handler); }
+      public void close() { throw new UnsupportedOperationException(); }
+      public AsyncFile write(Buffer buffer, long l, Handler<AsyncResult<Void>> handler) { throw new UnsupportedOperationException(); }
+      public AsyncFile read(Buffer buffer, int i, long l, int i1, Handler<AsyncResult<Buffer>> handler) { throw new UnsupportedOperationException(); }
+      public AsyncFile flush() { throw new UnsupportedOperationException(); }
+      public AsyncFile flush(Handler<AsyncResult<Void>> handler) { throw new UnsupportedOperationException(); }
+      public AsyncFile setReadPos(long l) { throw new UnsupportedOperationException(); }
+      public AsyncFile setReadLength(long l) { throw new UnsupportedOperationException(); }
+      public AsyncFile setWritePos(long l) { throw new UnsupportedOperationException(); }
+      public AsyncFile setReadBufferSize(int i) { throw new UnsupportedOperationException(); }
+      public AsyncFile exceptionHandler(Handler<Throwable> handler) {
+        return this;
+      }
+      public boolean writeQueueFull() {
+        return false;
+      }
+      public long getWritePos() {
+        throw new UnsupportedOperationException();
+      }
+      public AsyncFile write(Buffer buffer) {
+        return write(buffer, null);
+      }
+      public AsyncFile write(Buffer buffer, Handler<AsyncResult<Void>> handler) {
+        received.addAndGet(buffer.length());
+        if (handler != null) {
+          handler.handle(Future.succeededFuture());
+        }
+        return this;
+      }
+      public void close(Handler<AsyncResult<Void>> handler) {
+        vertx.setTimer(500, id -> {
+          closed.set(true);
+          handler.handle(Future.succeededFuture());
+        });
+      }
+    };
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(BodyCodec.pipe(file))
+      .send(onSuccess(v -> {
+        assertEquals(1024 * 1024, received.get());
+        assertTrue(closed.get());
+        testComplete();
+      }));
+    await();
+  }
+
+  @Test
   public void testResponseJsonObjectMissingBody() throws Exception {
     testResponseMissingBody(BodyCodec.jsonObject());
   }
@@ -785,12 +936,26 @@ public class WebClientTest extends HttpTestBase {
       }
       @Override
       public WriteStream<Buffer> write(Buffer data) {
+        return write(data, null);
+      }
+      @Override
+      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
         length.addAndGet(data.length());
+        if (handler != null) {
+          handler.handle(Future.succeededFuture());
+        }
         return this;
       }
       @Override
       public void end() {
+        end((Handler<AsyncResult<Void>>) null);
+      }
+      @Override
+      public void end(Handler<AsyncResult<Void>> handler) {
         ended.set(true);
+        if (handler != null) {
+          handler.handle(Future.succeededFuture());
+        }
       }
       @Override
       public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
@@ -845,7 +1010,7 @@ public class WebClientTest extends HttpTestBase {
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.timeout(50).send(onFailure(err -> {
-      assertEquals(err.getClass(), TimeoutException.class);
+      assertTrue(err instanceof TimeoutException);
       testComplete();
     }));
     await();
@@ -871,7 +1036,7 @@ public class WebClientTest extends HttpTestBase {
   public void testQueryParamAppend() throws Exception {
     testRequest(client -> client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/?param1=param1_value1").addQueryParam("param1", "param1_value2").addQueryParam("param2", "param2_value"), req -> {
       assertEquals("param1=param1_value1&param1=param1_value2&param2=param2_value", req.query());
-      assertEquals("param1_value2", req.getParam("param1"));
+      assertEquals("param1_value1", req.getParam("param1"));
       assertEquals("param2_value", req.getParam("param2"));
     });
   }
@@ -959,9 +1124,7 @@ public class WebClientTest extends HttpTestBase {
         assertEquals("test.txt", upload.filename());
         assertEquals("text/plain", upload.contentType());
         upload.handler(fileBuffer::appendBuffer);
-        upload.endHandler(v -> {
-          assertEquals(content, fileBuffer);
-        });
+        upload.endHandler(v -> assertEquals(content, fileBuffer));
       });
       req.endHandler(v -> {
         assertEquals("vert.x", req.getFormAttribute("toolkit"));
@@ -1012,6 +1175,10 @@ public class WebClientTest extends HttpTestBase {
     waitFor(2);
     String location = "http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT + "/ok";
     server.requestHandler(req -> {
+      if (!req.headers().contains("foo", "bar", true)) {
+        fail("Missing expected header");
+        return;
+      }
       if (req.path().equals("/redirect")) {
         req.response().setStatusCode(301).putHeader("Location", location).end();
         if (!expect) {
@@ -1025,7 +1192,8 @@ public class WebClientTest extends HttpTestBase {
       }
     });
     startServer();
-    HttpRequest<Buffer> builder = client.get("/redirect");
+    HttpRequest<Buffer> builder = client.get("/redirect")
+      .putHeader("foo", "bar");
     if (set != null) {
       builder = builder.followRedirects(set);
     }
@@ -1043,6 +1211,47 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testInvalidRedirection() throws Exception {
+    server.requestHandler(req -> {
+      assertEquals(HttpMethod.POST, req.method());
+      assertEquals("/redirect", req.path());
+      req.response().setStatusCode(302).putHeader("Location", "http://www.google.com").end();
+    });
+    startServer();
+    HttpRequest<Buffer> builder = client
+      .post("/redirect")
+      .followRedirects(true);
+    builder.send(onSuccess(resp -> {
+      assertEquals(302, resp.statusCode());
+      assertEquals("http://www.google.com", resp.getHeader("Location"));
+      assertNull(resp.body());
+      complete();
+    }));
+    await();
+  }
+
+  @Test
+  public void testRedirectLimit() throws Exception {
+    String location = "http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT + "/redirect";
+    server.requestHandler(req -> {
+      assertEquals(HttpMethod.GET, req.method());
+      assertEquals("/redirect", req.path());
+      req.response().setStatusCode(302).putHeader("Location", location).end();
+    });
+    startServer();
+    HttpRequest<Buffer> builder = client
+      .get("/redirect")
+      .followRedirects(true);
+    builder.send(onSuccess(resp -> {
+      assertEquals(302, resp.statusCode());
+      assertEquals(location, resp.getHeader("Location"));
+      assertNull(resp.body());
+      complete();
+    }));
+    await();
+  }
+
+  @Test
   public void testVirtualHost() throws Exception {
     server.requestHandler(req -> {
       assertEquals("another-host:8080", req.host());
@@ -1050,9 +1259,20 @@ public class WebClientTest extends HttpTestBase {
     });
     startServer();
     HttpRequest<Buffer> req = client.get("/test").virtualHost("another-host");
-    req.send(onSuccess(resp -> {
-      testComplete();
-    }));
+    req.send(onSuccess(resp -> testComplete()));
+    await();
+  }
+
+  @Test
+  public void testSocketAddress() throws Exception {
+    server.requestHandler(req -> {
+      assertEquals("another-host:8080", req.host());
+      req.response().end();
+    });
+    startServer();
+    SocketAddress addr = SocketAddress.inetSocketAddress(8080, "localhost");
+    HttpRequest<Buffer> req = client.request(HttpMethod.GET, addr, 8080, "another-host", "/test");
+    req.send(onSuccess(resp -> testComplete()));
     await();
   }
 
@@ -1220,4 +1440,200 @@ public class WebClientTest extends HttpTestBase {
       server2.close();
     }
   }
+
+  @Test
+  public void testExpectFail() throws Exception {
+    testExpectation(true,
+      req -> req.expect(ResponsePredicate.create(r -> ResponsePredicateResult.failure("boom"))),
+      HttpServerResponse::end);
+  }
+
+  @Test
+  public void testExpectPass() throws Exception {
+    testExpectation(false,
+      req -> req.expect(ResponsePredicate.create(r -> ResponsePredicateResult.success())),
+      HttpServerResponse::end);
+  }
+
+  @Test
+  public void testExpectStatusFail() throws Exception {
+    testExpectation(true,
+      req -> req.expect(ResponsePredicate.status(200)),
+      resp -> resp.setStatusCode(201).end());
+  }
+
+  @Test
+  public void testExpectStatusPass() throws Exception {
+    testExpectation(false,
+      req -> req.expect(ResponsePredicate.status(200)),
+      resp -> resp.setStatusCode(200).end());
+  }
+
+  @Test
+  public void testExpectStatusRangeFail() throws Exception {
+    testExpectation(true,
+      req -> req.expect(ResponsePredicate.SC_SUCCESS),
+      resp -> resp.setStatusCode(500).end());
+  }
+
+  @Test
+  public void testExpectStatusRangePass1() throws Exception {
+    testExpectation(false,
+      req -> req.expect(ResponsePredicate.SC_SUCCESS),
+      resp -> resp.setStatusCode(200).end());
+  }
+
+  @Test
+  public void testExpectStatusRangePass2() throws Exception {
+    testExpectation(false,
+      req -> req.expect(ResponsePredicate.SC_SUCCESS),
+      resp -> resp.setStatusCode(299).end());
+  }
+
+  @Test
+  public void testExpectContentTypeFail() throws Exception {
+    testExpectation(true,
+      req -> req.expect(ResponsePredicate.JSON),
+      HttpServerResponse::end);
+  }
+
+  @Test
+  public void testExpectOneOfContentTypesFail() throws Exception {
+    testExpectation(true,
+      req -> req.expect(ResponsePredicate.contentType(Arrays.asList("text/plain", "text/csv"))),
+      httpServerResponse -> httpServerResponse.putHeader(HttpHeaders.CONTENT_TYPE, HttpHeaders.TEXT_HTML).end());
+  }
+
+  @Test
+  public void testExpectContentTypePass() throws Exception {
+    testExpectation(false,
+      req -> req.expect(ResponsePredicate.JSON),
+      resp -> resp.putHeader("content-type", "application/JSON").end());
+  }
+
+  @Test
+  public void testExpectOneOfContentTypesPass() throws Exception {
+    testExpectation(false,
+      req -> req.expect(ResponsePredicate.contentType(Arrays.asList("text/plain", "text/HTML"))),
+      httpServerResponse -> httpServerResponse.putHeader(HttpHeaders.CONTENT_TYPE, HttpHeaders.TEXT_HTML).end());
+  }
+
+  @Test
+  public void testExpectCustomException() throws Exception {
+    ResponsePredicate predicate = ResponsePredicate.create(r -> ResponsePredicateResult.failure("boom"), result -> new CustomException(result.message()));
+
+    testExpectation(true, req -> req.expect(predicate), HttpServerResponse::end, ar -> {
+      Throwable cause = ar.cause();
+      assertThat(cause, instanceOf(CustomException.class));
+      CustomException customException = (CustomException) cause;
+      assertEquals("boom", customException.getMessage());
+    });
+  }
+
+  @Test
+  public void testExpectCustomExceptionWithResponseBody() throws Exception {
+    UUID uuid = UUID.randomUUID();
+
+    ResponsePredicate predicate = ResponsePredicate.create(ResponsePredicate.SC_SUCCESS, ErrorConverter.createFullBody(result -> {
+        JsonObject body = result.response().bodyAsJsonObject();
+        return new CustomException(UUID.fromString(body.getString("tag")), body.getString("message"));
+      }));
+
+    testExpectation(true, req -> req.expect(predicate), httpServerResponse -> {
+      httpServerResponse
+        .setStatusCode(400)
+        .end(new JsonObject().put("tag", uuid.toString()).put("message", "tilt").toBuffer());
+    }, ar -> {
+      Throwable cause = ar.cause();
+      assertThat(cause, instanceOf(CustomException.class));
+      CustomException customException = (CustomException) cause;
+      assertEquals("tilt", customException.getMessage());
+      assertEquals(uuid, customException.tag);
+    });
+  }
+
+  @Test
+  public void testExpectFunctionThrowsException() throws Exception {
+    ResponsePredicate predicate = ResponsePredicate.create(r -> {
+      throw new IndexOutOfBoundsException("boom");
+    });
+
+    testExpectation(true, req -> req.expect(predicate), HttpServerResponse::end, ar -> {
+      assertThat(ar.cause(), instanceOf(IndexOutOfBoundsException.class));
+    });
+  }
+
+  @Test
+  public void testErrorConverterThrowsException() throws Exception {
+    ResponsePredicate predicate = ResponsePredicate.create(r -> {
+      return ResponsePredicateResult.failure("boom");
+    }, result -> {
+      throw new IndexOutOfBoundsException();
+    });
+
+    testExpectation(true, req -> req.expect(predicate), HttpServerResponse::end, ar -> {
+      assertThat(ar.cause(), instanceOf(IndexOutOfBoundsException.class));
+    });
+  }
+
+  @Test
+  public void testErrorConverterReturnsNull() throws Exception {
+    ResponsePredicate predicate = ResponsePredicate.create(r -> {
+      return ResponsePredicateResult.failure("boom");
+    }, r -> null);
+
+    testExpectation(true, req -> req.expect(predicate), HttpServerResponse::end, ar -> {
+      assertThat(ar.cause(), not(instanceOf(NullPointerException.class)));
+    });
+  }
+
+  private static class CustomException extends Exception {
+
+    UUID tag;
+
+    CustomException(String message) {
+      super(message);
+    }
+
+    CustomException(UUID tag, String message) {
+      super(message);
+      this.tag = tag;
+    }
+  }
+
+  private void testExpectation(boolean shouldFail,
+                               Consumer<HttpRequest<?>> modifier,
+                               Consumer<HttpServerResponse> bilto) throws Exception {
+    testExpectation(shouldFail, modifier, bilto, null);
+  }
+
+  private void testExpectation(boolean shouldFail,
+                               Consumer<HttpRequest<?>> modifier,
+                               Consumer<HttpServerResponse> bilto,
+                               Consumer<AsyncResult<?>> resultTest) throws Exception {
+    server.requestHandler(request -> bilto.accept(request.response()));
+    startServer();
+    HttpRequest<Buffer> request = client
+      .get("/test");
+    modifier.accept(request);
+    request.send(ar -> {
+      if (ar.succeeded()) {
+        assertFalse("Expected response success", shouldFail);
+      } else {
+        assertTrue("Expected response failure", shouldFail);
+      }
+      if (resultTest != null) resultTest.accept(ar);
+      testComplete();
+    });
+    await();
+  }
+
+  @Test
+  public void testDontModifyRequestURIQueryParams() throws Exception {
+    testRequest(
+      client -> client.get("/remote-server?jREJBBB5x2AaiSSDO0/OskoCztDZBAAAAAADV1A4"),
+      req -> assertEquals("/remote-server?jREJBBB5x2AaiSSDO0/OskoCztDZBAAAAAADV1A4", req.uri())
+    );
+  }
+
 }

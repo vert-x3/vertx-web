@@ -425,7 +425,8 @@ public class WebExamples {
 
   public void example20(Router router) {
 
-    Route route1 = router.route("/some/path/").handler(routingContext -> {
+    Route route = router.route("/some/path/");
+    route.handler(routingContext -> {
 
       HttpServerResponse response = routingContext.response();
       // enable chunked responses because we will be adding data as
@@ -439,7 +440,7 @@ public class WebExamples {
       routingContext.vertx().setTimer(5000, tid -> routingContext.next());
     });
 
-    Route route2 = router.route("/some/path/").handler(routingContext -> {
+    route.handler(routingContext -> {
 
       HttpServerResponse response = routingContext.response();
       response.write("route2\n");
@@ -448,7 +449,7 @@ public class WebExamples {
       routingContext.vertx().setTimer(5000, tid -> routingContext.next());
     });
 
-    Route route3 = router.route("/some/path/").handler(routingContext -> {
+    route.handler(routingContext -> {
 
       HttpServerResponse response = routingContext.response();
       response.write("route3");
@@ -734,8 +735,7 @@ public class WebExamples {
   public void example38(Vertx vertx, AuthProvider authProvider, Router router) {
 
     router.route().handler(CookieHandler.create());
-    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-    router.route().handler(UserSessionHandler.create(authProvider));
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).setAuthProvider(authProvider));
 
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
@@ -761,8 +761,7 @@ public class WebExamples {
   public void example39(Vertx vertx, AuthProvider authProvider, Router router) {
 
     router.route().handler(CookieHandler.create());
-    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-    router.route().handler(UserSessionHandler.create(authProvider));
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).setAuthProvider(authProvider));
 
     AuthHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
@@ -1257,8 +1256,6 @@ public class WebExamples {
     // We need cookies and sessions
     router.route()
       .handler(CookieHandler.create());
-    router.route()
-      .handler(SessionHandler.create(LocalSessionStore.create(vertx)));
     // Simple auth service which uses a GitHub to
     // authenticate the user
     OAuth2Auth authProvider =
@@ -1266,7 +1263,7 @@ public class WebExamples {
     // We need a user session handler too to make sure
     // the user is stored in the session between requests
     router.route()
-      .handler(UserSessionHandler.create(authProvider));
+      .handler(SessionHandler.create(LocalSessionStore.create(vertx)).setAuthProvider(authProvider));
     // we now protect the resource under the path "/protected"
     router.route("/protected").handler(
       OAuth2AuthHandler.create(authProvider)
@@ -1280,28 +1277,26 @@ public class WebExamples {
     );
     // Entry point to the application, this will render
     // a custom template.
-    router.get("/").handler(ctx -> {
-      ctx.response()
-        .putHeader("Content-Type", "text/html")
-        .end(
-          "<html>\n" +
-          "  <body>\n" +
-          "    <p>\n" +
-          "      Well, hello there!\n" +
-          "    </p>\n" +
-          "    <p>\n" +
-          "      We're going to the protected resource, if there is no\n" +
-          "      user in the session we will talk to the GitHub API. Ready?\n" +
-          "      <a href=\"/protected\">Click here</a> to begin!</a>\n" +
-          "    </p>\n" +
-          "    <p>\n" +
-          "      <b>If that link doesn't work</b>, remember to provide\n" +
-          "      your own <a href=\"https://github.com/settings/applications/new\">\n" +
-          "      Client ID</a>!\n" +
-          "    </p>\n" +
-          "  </body>\n" +
-          "</html>");
-    });
+    router.get("/").handler(ctx -> ctx.response()
+      .putHeader("Content-Type", "text/html")
+      .end(
+        "<html>\n" +
+        "  <body>\n" +
+        "    <p>\n" +
+        "      Well, hello there!\n" +
+        "    </p>\n" +
+        "    <p>\n" +
+        "      We're going to the protected resource, if there is no\n" +
+        "      user in the session we will talk to the GitHub API. Ready?\n" +
+        "      <a href=\"/protected\">Click here</a> to begin!</a>\n" +
+        "    </p>\n" +
+        "    <p>\n" +
+        "      <b>If that link doesn't work</b>, remember to provide\n" +
+        "      your own <a href=\"https://github.com/settings/applications/new\">\n" +
+        "      Client ID</a>!\n" +
+        "    </p>\n" +
+        "  </body>\n" +
+        "</html>"));
     // The protected resource
     router.get("/protected").handler(ctx -> {
       // at this moment your user object should contain the info

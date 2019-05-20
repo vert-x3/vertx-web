@@ -44,7 +44,7 @@ public interface FormLoginHandler extends Handler<RoutingContext> {
   String DEFAULT_PASSWORD_PARAM = "password";
 
   /**
-   * The default value of the form attribute which will contain the return url
+   * The default value of the session attribute which will contain the return url
    */
   String DEFAULT_RETURN_URL_PARAM = "return_url";
 

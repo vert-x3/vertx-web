@@ -1,26 +1,49 @@
+/*
+ * Copyright 2018 Red Hat, Inc.
+ *
+ * Red Hat licenses this file to you under the Apache License, version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License.  You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+
 package examples;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.SocketAddress;
+import io.vertx.core.parsetools.JsonParser;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
-import io.vertx.docgen.Source;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.predicate.ErrorConverter;
+import io.vertx.ext.web.client.predicate.ResponsePredicate;
+import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
+
+import java.util.function.Function;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-@Source
 public class WebClientExamples {
 
   public void create(Vertx vertx) {
@@ -75,7 +98,16 @@ public class WebClientExamples {
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")
       .addQueryParam("param", "param_value")
-      .send(ar -> {});
+      .send(ar -> {
+        if (ar.succeeded()) {
+          // Obtain response
+          HttpResponse<Buffer> response = ar.result();
+
+          System.out.println("Received response with status code" + response.statusCode());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
   }
 
   public void simpleGetWithInitialParams(WebClient client) {
@@ -178,7 +210,11 @@ public class WebClientExamples {
     // When the stream len is unknown sendStream sends the file to the server using chunked transfer encoding
     client
       .post(8080, "myserver.mycompany.com", "/some-uri")
-      .sendStream(stream, resp -> {});
+      .sendStream(stream, ar -> {
+        if (ar.succeeded()) {
+          // Ok
+        }
+      });
   }
 
   public void sendJsonObject(WebClient client) {
@@ -277,6 +313,16 @@ public class WebClientExamples {
     request.putHeader("other-header", "foo");
   }
 
+  public void addBasicAccessAuthentication(WebClient client) {
+    HttpRequest<Buffer> request = client.get(8080, "myserver.mycompany.com", "/some-uri")
+      .basicAuthentication("myid", "mypassword");
+  }
+
+  public void addBearerTokenAuthentication(WebClient client) {
+    HttpRequest<Buffer> request = client.get(8080, "myserver.mycompany.com", "/some-uri")
+      .bearerTokenAuthentication("myBearerToken");
+  }
+
   public void receiveResponse(WebClient client) {
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")
@@ -343,6 +389,26 @@ public class WebClientExamples {
       });
   }
 
+  public void receiveResponseAsJsonStream(WebClient client) {
+    JsonParser parser = JsonParser.newParser().objectValueMode();
+    parser.handler(event -> {
+      JsonObject object = event.objectValue();
+      System.out.println("Got " + object.encode());
+    });
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .as(BodyCodec.jsonStream(parser))
+      .send(ar -> {
+        if (ar.succeeded()) {
+          HttpResponse<Void> response = ar.result();
+
+          System.out.println("Received response with status code" + response.statusCode());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
   public void receiveResponseAndDiscard(WebClient client) {
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")
@@ -375,6 +441,135 @@ public class WebClientExamples {
           System.out.println("Something went wrong " + ar.cause().getMessage());
         }
       });
+  }
+
+  public void manualSanityChecks(WebClient client) {
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .send(ar -> {
+        if (ar.succeeded()) {
+
+          HttpResponse<Buffer> response = ar.result();
+
+          if (response.statusCode() == 200 && response.getHeader("content-type").equals("application/json")) {
+
+            // Decode the body as a json object
+            JsonObject body = response.bodyAsJsonObject();
+            System.out.println("Received response with status code" + response.statusCode() + " with body " + body);
+
+          } else {
+            System.out.println("Something went wrong " + response.statusCode());
+          }
+
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void usingPredicates(WebClient client) {
+
+    // Check CORS header allowing to do POST
+    Function<HttpResponse<Void>, ResponsePredicateResult> methodsPredicate = resp -> {
+      String methods = resp.getHeader("Access-Control-Allow-Methods");
+      if (methods != null) {
+        if (methods.contains("POST")) {
+          return ResponsePredicateResult.success();
+        }
+      }
+      return ResponsePredicateResult.failure("Does not work");
+    };
+
+    // Send pre-flight CORS request
+    client
+      .request(HttpMethod.OPTIONS, 8080, "myserver.mycompany.com", "/some-uri")
+      .putHeader("Origin", "Server-b.com")
+      .putHeader("Access-Control-Request-Method", "POST")
+      .expect(methodsPredicate)
+      .send(ar -> {
+        if (ar.succeeded()) {
+          // Process the POST request now
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void usingPredefinedPredicates(WebClient client) {
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .expect(ResponsePredicate.SC_SUCCESS)
+      .expect(ResponsePredicate.JSON)
+      .send(ar -> {
+        if (ar.succeeded()) {
+
+          HttpResponse<Buffer> response = ar.result();
+
+          // Safely decode the body as a json object
+          JsonObject body = response.bodyAsJsonObject();
+          System.out.println("Received response with status code" + response.statusCode() + " with body " + body);
+
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void usingSpecificStatus(WebClient client) {
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .expect(ResponsePredicate.status(200, 202))
+      .send(ar -> {
+        // ....
+      });
+  }
+
+  public void usingSpecificContentType(WebClient client) {
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .expect(ResponsePredicate.contentType("some/content-type"))
+      .send(ar -> {
+        // ....
+      });
+  }
+
+  private static class MyCustomException extends Exception {
+    private final String code;
+
+    public MyCustomException(String message) {
+      super(message);
+      code = null;
+    }
+
+    public MyCustomException(String code, String message) {
+      super(message);
+      this.code = code;
+    }
+  }
+
+  public void predicateCustomError() {
+    ResponsePredicate predicate = ResponsePredicate.create(ResponsePredicate.SC_SUCCESS, result -> {
+      return new MyCustomException(result.message());
+    });
+  }
+
+  public void predicateCustomErrorWithBody() {
+    ErrorConverter converter = ErrorConverter.createFullBody(result -> {
+
+      // Invoked after the response body is fully received
+      HttpResponse<Buffer> response = result.response();
+
+      if (response.getHeader("content-type").equals("application/json")) {
+        // Error body is JSON data
+        JsonObject body = response.bodyAsJsonObject();
+        return new MyCustomException(body.getString("code"), body.getString("message"));
+      }
+
+      // Fallback to defaut message
+      return new MyCustomException(result.message());
+    });
+
+    ResponsePredicate predicate = ResponsePredicate.create(ResponsePredicate.SC_SUCCESS, converter);
   }
 
   public void testClientDisableFollowRedirects(Vertx vertx) {
@@ -433,6 +628,30 @@ public class WebClientExamples {
           HttpResponse<Buffer> response = ar.result();
 
           System.out.println("Received response with status code" + response.statusCode());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void testSocketAddress(WebClient client) {
+
+    // Creates the unix domain socket address to access the Docker API
+    SocketAddress serverAddress = SocketAddress.domainSocketAddress("/var/run/docker.sock");
+
+    // We still need to specify host and port so the request HTTP header will be localhost:8080
+    // otherwise it will be a malformed HTTP request
+    // the actual value does not matter much for this example
+    client
+      .request(HttpMethod.GET, serverAddress, 8080, "localhost", "/images/json")
+      .expect(ResponsePredicate.SC_ACCEPTED)
+      .as(BodyCodec.jsonObject())
+      .send(ar -> {
+        if (ar.succeeded()) {
+          // Obtain response
+          HttpResponse<JsonObject> response = ar.result();
+
+          System.out.println("Current Docker images" + response.body());
         } else {
           System.out.println("Something went wrong " + ar.cause().getMessage());
         }

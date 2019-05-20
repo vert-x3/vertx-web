@@ -1,0 +1,121 @@
+<!--
+ *  Copyright (c) Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  Adapated from https://github.com/graphql/graphiql/blob/master/example/index.html
+ *
+ *  This source code is licensed under the MIT license.
+ *  https://github.com/graphql/graphiql/blob/master/LICENSE
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      height: 100%;
+      margin: 0;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    #graphiql {
+      height: 100vh;
+    }
+  </style>
+
+  <script src="//cdn.jsdelivr.net/es6-promise/4.0.5/es6-promise.auto.min.js" crossorigin="anonymous"></script>
+  <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js" crossorigin="anonymous"></script>
+  <script src="//cdn.jsdelivr.net/react/15.4.2/react.min.js" crossorigin="anonymous"></script>
+  <script src="//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js" crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@0.13.0/graphiql.css" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/graphiql@0.13.0/graphiql.min.js" crossorigin="anonymous"></script>
+
+</head>
+<body>
+<div id="graphiql">Loading...</div>
+<script>
+
+  var graphQLUri = '/graphql';
+  var headers = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  };
+  var parameters = {};
+
+  <!-- VERTX-WEB-GRAPHIQL-REPLACEMENT -->
+
+  var search = window.location.search;
+  search.substr(1).split('&').forEach(function (entry) {
+    var eq = entry.indexOf('=');
+    if (eq >= 0) {
+      parameters[decodeURIComponent(entry.slice(0, eq))] =
+        decodeURIComponent(entry.slice(eq + 1));
+    }
+  });
+
+  if (parameters.variables) {
+    try {
+      parameters.variables =
+        JSON.stringify(JSON.parse(parameters.variables), null, 2);
+    } catch (e) {
+    }
+  }
+
+  function onEditQuery(newQuery) {
+    parameters.query = newQuery;
+    updateURL();
+  }
+
+  function onEditVariables(newVariables) {
+    parameters.variables = newVariables;
+    updateURL();
+  }
+
+  function onEditOperationName(newOperationName) {
+    parameters.operationName = newOperationName;
+    updateURL();
+  }
+
+  function updateURL() {
+    var newSearch = '?' + Object.keys(parameters).filter(function (key) {
+      return Boolean(parameters[key]);
+    }).map(function (key) {
+      return encodeURIComponent(key) + '=' +
+        encodeURIComponent(parameters[key]);
+    }).join('&');
+    history.replaceState(null, null, newSearch);
+  }
+
+  function graphQLFetcher(graphQLParams) {
+    return fetch(graphQLUri, {
+      method: 'post',
+      headers: headers,
+      body: JSON.stringify(graphQLParams),
+      credentials: 'include'
+    }).then(function (response) {
+      return response.text();
+    }).then(function (responseBody) {
+      try {
+        return JSON.parse(responseBody);
+      } catch (error) {
+        return responseBody;
+      }
+    });
+  }
+
+  ReactDOM.render(
+    React.createElement(GraphiQL, {
+      fetcher: graphQLFetcher,
+      query: parameters.query,
+      variables: parameters.variables,
+      operationName: parameters.operationName,
+      onEditQuery: onEditQuery,
+      onEditVariables: onEditVariables,
+      onEditOperationName: onEditOperationName
+    }),
+    document.getElementById('graphiql')
+  );
+</script>
+</body>
+</html>

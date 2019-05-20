@@ -6,6 +6,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.RequestParameter;
 
 import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -56,6 +58,8 @@ public class RequestParameterImpl implements RequestParameter {
   public void setValue(Object value) {
     this.value = value;
   }
+
+  public Object getValue() { return this.value; }
 
   @Override
   public @Nullable List<String> getObjectKeys() {
@@ -170,6 +174,23 @@ public class RequestParameterImpl implements RequestParameter {
   @Override
   public boolean isEmpty() {
     return isNull();
+  }
+
+  @Override
+  public Object toJson() {
+    if (isArray())
+      return new JsonArray(getArray().stream().map(RequestParameter::toJson).collect(Collectors.toList()));
+    else if (isObject())
+      return ((Map<String, RequestParameter>) value)
+        .entrySet()
+        .stream()
+        .collect(Collector.of(
+            JsonObject::new,
+            (j, e) -> j.put(e.getKey(), e.getValue().toJson()),
+            JsonObject::mergeIn
+          ));
+    else
+      return value;
   }
 
   @Override

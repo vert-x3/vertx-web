@@ -17,7 +17,7 @@ public enum ParameterType {
   /**
    * STRING Type accept every string
    */
-  GENERIC_STRING(value -> RequestParameter.create(value)), EMAIL(new StringTypeValidator(RegularExpressions.EMAIL)),
+  GENERIC_STRING(RequestParameter::create), EMAIL(new StringTypeValidator(RegularExpressions.EMAIL)),
   URI(new StringTypeValidator(RegularExpressions.URI)), /**
    * It allows true, false, t, f, 1, 0
    */
@@ -41,7 +41,12 @@ public enum ParameterType {
    */
   TIME(new StringTypeValidator(RegularExpressions.TIME)), BASE64(new StringTypeValidator(RegularExpressions.BASE64)),
   IPV4(new StringTypeValidator(RegularExpressions.IPV4)), IPV6(new StringTypeValidator(RegularExpressions.IPV6)),
-  HOSTNAME(new StringTypeValidator(RegularExpressions.HOSTNAME));
+  HOSTNAME(new StringTypeValidator(RegularExpressions.HOSTNAME)),
+
+  /**
+   * UUID as defined by RFC4122
+   */
+  UUID(new StringTypeValidator(RegularExpressions.UUID));
 
   private ParameterTypeValidator validationMethod;
 

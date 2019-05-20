@@ -42,6 +42,19 @@ public class RoutingContextImplTest extends WebTestBase {
         }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
     }
 
+  @Test
+  public void test_empty_yields_null_json_types() throws Exception {
+    router.route().handler(event -> {
+      assertNull(event.getBodyAsJsonArray());
+      assertNull(event.getBodyAsJson());
+      event.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.write(Buffer.buffer(""));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
+
     @Test
     public void test_one_item_array_as_json_array_yields_one_item_json_array() throws Exception {
         router.route().handler(event -> {

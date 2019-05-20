@@ -62,28 +62,36 @@ public class ValidationException extends VertxException {
   private String parameterName;
   private ParameterValidationRule validationRule;
   private String value;
+  private String message;
   final private ErrorType errorType;
 
-  private ValidationException(String message, String parameterName, String value, ParameterValidationRule
-    validationRule, ErrorType errorType) {
-    super((message != null && message.length() != 0) ? message : "ValidationException{" + "parameterName='" +
-      parameterName + '\'' + ", value='" + value + '\'' + ", errorType=" + errorType + '}');
+  private ValidationException(String message, String parameterName, String value, ParameterValidationRule validationRule, ErrorType errorType, Throwable cause) {
+    super(cause);
+    this.message = message;
     this.parameterName = parameterName;
     this.validationRule = validationRule;
     this.value = value;
     this.errorType = errorType;
   }
 
+  private ValidationException(String message, String parameterName, String value, ParameterValidationRule validationRule, ErrorType errorType) {
+    this(message, parameterName, value, validationRule, errorType, null);
+  }
+
+  public ValidationException(String message, ErrorType error, Throwable cause) {
+    this(message, null, null, null, error, cause);
+  }
+
   public ValidationException(String message, ErrorType error) {
-    this(message, null, null, null, error);
+    this(message, null, null, null, error, null);
   }
 
   public ValidationException(ErrorType error) {
-    this(null, null, null, null, error);
+    this(null, null, null, null, error, null);
   }
 
   public ValidationException(String message) {
-    this(message, null, null, null, null);
+    this(message, null, null, null, null, null);
   }
 
   @Nullable
@@ -116,9 +124,20 @@ public class ValidationException extends VertxException {
   }
 
   @Override
+  public String getMessage() {
+    if (message != null && !message.isEmpty()) return message;
+    else return toString();
+  }
+
+  @Override
   public String toString() {
-    return "ValidationException{" + "parameterName='" + parameterName + '\'' + ", value='" + value + '\'' + ", " +
-      "errorType=" + errorType + '}';
+    return "ValidationException{" +
+      "parameterName='" + parameterName + '\'' +
+      ", validationRule=" + validationRule +
+      ", value='" + value + '\'' +
+      ", message='" + message + '\'' +
+      ", errorType=" + errorType +
+      '}';
   }
 
   public static class ValidationExceptionFactory {
@@ -132,7 +151,7 @@ public class ValidationException extends VertxException {
     public static ValidationException generateNotFoundValidationException(String parameterName, ParameterLocation
       location) {
       return new ValidationException("Error during validation of request. Parameter \"" + parameterName + "\" inside " +
-        "" + "" + "" + location.s + "not found", parameterName, null, null, ErrorType.NOT_FOUND);
+        location.s + " not found", parameterName, null, null, ErrorType.NOT_FOUND);
     }
 
     public static ValidationException generateUnexpectedArrayValidationException(String parameterName,
@@ -190,8 +209,9 @@ public class ValidationException extends VertxException {
       return new ValidationException(message, ErrorType.JSON_NOT_PARSABLE);
     }
 
-    public static ValidationException generateInvalidJsonBodyException(String message) {
-      return new ValidationException(message, ErrorType.JSON_INVALID);
+    public static ValidationException generateInvalidJsonBodyException(String jsonPath, String value, String message) {
+      String jsonPathWithoutDollar = (jsonPath != null) ? jsonPath.substring(jsonPath.indexOf("$.") + 2) : "";
+      return new ValidationException(message, (jsonPathWithoutDollar.length() == 0) ? "body" : "body." + jsonPathWithoutDollar, value, null, ErrorType.JSON_INVALID);
     }
 
     public static ValidationException generateInvalidXMLBodyException(String message) {

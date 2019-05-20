@@ -11,7 +11,7 @@ public class RegularExpressions {
     "(?:[01]?\\d{1,2}|2[0-4]\\d|25[0-5])\\]))$";
   public static final String URI = "^[a-zA-Z][a-zA-Z0-9+-.]*:[^\\s]*$";
   public static final String DATE = "^\\d{4}-(?:0[0-9]|1[0-2])-[0-9]{2}$";
-  public static final String DATETIME = "^\\d{4}-(?:0[0-9]|1[0-2])-[0-9]{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?Z$";
+  public static final String DATETIME = "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d|60)(\\.\\d+)?(Z|(\\+|-)([01]\\d|2[0-3]):([0-5]\\d))$";
   public static final String TIME = "^\\d{2}:\\d{2}:\\d{2}$";
   public static final String BASE64 = "^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$";
   public static final String IPV4 = "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}" + "" +
@@ -30,5 +30,7 @@ public class RegularExpressions {
     "(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))(%.+)?\\s*$";
   public static final String HOSTNAME = "^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*" + "" +
     "([A-Za-z]|[A-Za-z][A-Za-z0-9\\-]*[A-Za-z0-9])$";
+
+  public static final String UUID = "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$";
 
 }

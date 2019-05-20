@@ -1,13 +1,12 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
 import io.vertx.core.Handler;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.*;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.validation.ValidationException;
@@ -33,12 +32,21 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
   HttpServer schemaServer;
 
   final Handler<RoutingContext> handler = routingContext -> {
-    routingContext
-      .response()
-      .setStatusCode(200)
-      .setStatusMessage("OK")
-      .putHeader("Content-Type", "application/json")
-      .end(((RequestParameters)routingContext.get("parsedParameters")).body().getJsonObject().encode());
+    RequestParameter body = ((RequestParameters)routingContext.get("parsedParameters")).body();
+    if (body.isJsonObject())
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("Content-Type", "application/json")
+        .end(body.getJsonObject().encode());
+    else
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("Content-Type", "application/json")
+        .end(body.getJsonArray().encode());
   };
 
   final Handler<RoutingContext> FAILURE_HANDLER = routingContext -> {
@@ -63,9 +71,9 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
         new RouterFactoryOptions()
         .setRequireSecurityHandlers(false)
         .setMountValidationFailureHandler(true)
-        .setValidationFailureHandler(FAILURE_HANDLER)
         .setMountNotImplementedHandler(false)
       );
+      routerFactory.setValidationFailureHandler(FAILURE_HANDLER);
       latch.countDown();
     });
     awaitLatch(latch);
@@ -87,9 +95,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     router = routerFactory.getRouter();
     server = this.vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
     CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router::accept).listen(onSuccess(res -> {
-      latch.countDown();
-    }));
+    server.requestHandler(router::accept).listen(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
   }
 
@@ -97,9 +103,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     if (server != null) {
       CountDownLatch latch = new CountDownLatch(1);
       try {
-        server.close((asyncResult) -> {
-          latch.countDown();
-        });
+        server.close((asyncResult) -> latch.countDown());
       } catch (IllegalStateException e) { // Server is already open
         latch.countDown();
       }
@@ -112,19 +116,15 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     r.route().handler(StaticHandler.create("./src/test/resources/swaggers/schemas"));
     CountDownLatch latch = new CountDownLatch(1);
     schemaServer = vertx.createHttpServer(new HttpServerOptions().setPort(8081))
-      .requestHandler(r::accept).listen(onSuccess(res -> {
-        latch.countDown();
-      }));
-    awaitLatch(latch);;
+      .requestHandler(r::accept).listen(onSuccess(res -> latch.countDown()));
+    awaitLatch(latch);
   }
 
   private void stopSchemaServer() throws Exception {
     if (schemaServer != null) {
       CountDownLatch latch = new CountDownLatch(1);
       try {
-        schemaServer.close((asyncResult) -> {
-          latch.countDown();
-        });
+        schemaServer.close((asyncResult) -> latch.countDown());
       } catch (IllegalStateException e) { // Server is already open
         latch.countDown();
       }
@@ -134,8 +134,14 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
 
   private void assertRequestOk(String uri, String jsonName) throws Exception {
     String jsonString = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonName), StandardCharsets.UTF_8));
-    JsonObject obj = new JsonObject(jsonString);
-    testRequestWithJSON(HttpMethod.POST, uri, obj, 200, "OK", obj);
+    jsonString = jsonString.trim();
+    if (jsonString.startsWith("[")) {
+      JsonArray array = new JsonArray(jsonString);
+      testRequestWithJSON(HttpMethod.POST, uri, array.toBuffer(), 200, "OK", array.toBuffer());
+    } else {
+      JsonObject obj = new JsonObject(jsonString);
+      testRequestWithJSON(HttpMethod.POST, uri, obj.toBuffer(), 200, "OK", obj.toBuffer());
+    }
   };
 
   private void assertRequestOk(String uri, String jsonNameRequest, String jsonNameResponse) throws Exception {
@@ -143,12 +149,17 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     JsonObject objRequest = new JsonObject(jsonStringRequest);
     String jsonStringResponse = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonNameResponse), StandardCharsets.UTF_8));
     JsonObject objResponse = new JsonObject(jsonStringResponse);
-    testRequestWithJSON(HttpMethod.POST, uri, objRequest, 200, "OK", objResponse);
+    testRequestWithJSON(HttpMethod.POST, uri, objRequest.toBuffer(), 200, "OK", objResponse.toBuffer());
   };
 
   private void assertRequestFail(String uri, String jsonName) throws Exception {
     String jsonString = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonName), StandardCharsets.UTF_8));
-    testRequestWithJSON(HttpMethod.POST, uri, new JsonObject(jsonString), 400, "ValidationException", null);
+    jsonString = jsonString.trim();
+    if (jsonString.startsWith("[")) {
+      testRequestWithJSON(HttpMethod.POST, uri, new JsonArray(jsonString).toBuffer(), 400, "ValidationException");
+    } else {
+      testRequestWithJSON(HttpMethod.POST, uri, new JsonObject(jsonString).toBuffer(), 400, "ValidationException");
+    }
   };
 
   @Test
@@ -275,4 +286,37 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     assertRequestOk("/test13", "test13_ok_request.json", "test13_ok_response.json");
   }
 
+  @Test
+  public void test14() throws Exception {
+    routerFactory.addHandlerByOperationId("test14", handler);
+    startServer();
+    assertRequestOk("/test14", "test14_ok.json");
+    assertRequestFail("/test14", "test14_fail.json");
+  }
+
+  @Test
+  public void test15() throws Exception {
+    routerFactory.addHandlerByOperationId("test15", handler);
+    startServer();
+    assertRequestOk("/test15", "test15_ok_1.json");
+    assertRequestOk("/test15", "test15_ok_2.json");
+    assertRequestFail("/test15", "test15_fail.json");
+  }
+
+  @Test
+  public void test16() throws Exception {
+    routerFactory.addHandlerByOperationId("test16", handler);
+    startServer();
+    assertRequestOk("/test16", "test16_ok.json");
+    assertRequestFail("/test16", "test16_fail.json");
+  }
+
+
+  @Test
+  public void testLocalRelativeRef() throws Exception {
+    routerFactory.addHandlerByOperationId("testLocalRelativeRef", handler);
+    startServer();
+    assertRequestOk("/testLocalRelativeRef", "testLocalRelativeRef_ok.json");
+    assertRequestFail("/testLocalRelativeRef", "testLocalRelativeRef_fail.json");
+  }
 }

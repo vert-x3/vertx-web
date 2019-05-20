@@ -106,6 +106,24 @@
       }
     };
 
+    this.onevent = function (event, message) {
+      return false; // return false to signal that this message is not processed
+    };
+
+    this.onunhandled = function (json) {
+      try {
+        if (json.type === 'err')
+          self.onerror(json);
+        else if (json.event) {
+          console.warn('No handler found for event: %o. Message: %O', json.event, json);
+        } else {
+          console.warn('No handler found for message: ', json);
+        }
+      } catch (e) {
+        // dev tools are disabled so we cannot use console on IE
+      }
+    };
+
     var setupSockJSConnection = function () {
       self.sockJSConn = new SockJS(url, null, options);
       self.state = EventBus.CONNECTING;
@@ -140,7 +158,17 @@
       };
 
       self.sockJSConn.onmessage = function (e) {
-        var json = JSON.parse(e.data);
+        var json;
+
+        try {
+          json = JSON.parse(e.data);
+        } catch(ex) {
+          json = {
+            type: 'err',
+            failureType: ex.toString(),
+            message: e.data
+          };
+        }
 
         // define a reply function on the message itself
         if (json.replyAddress) {
@@ -171,14 +199,8 @@
             handler(null, json);
           }
         } else {
-          if (json.type === 'err') {
-            self.onerror(json);
-          } else {
-            try {
-              console.warn('No handler found for message: ', json);
-            } catch (e) {
-              // dev tools are disabled so we cannot use console on IE
-            }
+          if (!json.event || !self.onevent(json.event, json.message)) {
+            self.onunhandled(json)
           }
         }
       }

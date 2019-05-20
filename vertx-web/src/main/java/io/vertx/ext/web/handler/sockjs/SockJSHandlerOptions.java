@@ -26,6 +26,7 @@ import java.util.Set;
  * Options for configuring a SockJS handler
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @DataObject
 public class SockJSHandlerOptions {
@@ -34,7 +35,7 @@ public class SockJSHandlerOptions {
   public static final boolean DEFAULT_INSERT_JSESSIONID = true;
   public static final long DEFAULT_HEARTBEAT_INTERVAL = 25L * 1000;
   public static final int DEFAULT_MAX_BYTES_STREAMING = 128 * 1024;
-  public static final String DEFAULT_LIBRARY_URL = "//cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js";
+  public static final String DEFAULT_LIBRARY_URL = "//cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js";
 
   private long sessionTimeout;
   private boolean insertJSESSIONID;

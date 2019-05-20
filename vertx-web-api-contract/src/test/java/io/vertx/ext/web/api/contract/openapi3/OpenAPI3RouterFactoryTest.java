@@ -1,35 +1,49 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
+import io.swagger.v3.oas.models.Operation;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.WebTestWithWebClientBase;
+import io.vertx.ext.web.api.ApiWebTestBase;
+import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.multipart.MultipartForm;
+import org.apache.http.HttpStatus;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-import java.net.URLEncoder;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * This tests are about OpenAPI3RouterFactory behaviours
+ *
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
+public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
 
   private OpenAPI3RouterFactory routerFactory;
+  private HttpServer fileServer;
+  private HttpServer securedFileServer;
+
+  @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
 
   private Handler<RoutingContext> generateFailureHandler(boolean expected) {
     return routingContext -> {
@@ -48,24 +62,55 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   }
 
   private void startServer() throws InterruptedException {
-    Router router = routerFactory.getRouter();
+    router = routerFactory.getRouter();
     server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
     CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router::accept).listen(onSuccess(res -> {
-      latch.countDown();
-    }));
+    server.requestHandler(router).listen(onSuccess(res -> latch.countDown()));
+    awaitLatch(latch);
+  }
+
+  private void startFileServer() throws InterruptedException {
+    Router router = Router.router(vertx);
+    router.route().handler(StaticHandler.create("src/test/resources"));
+    CountDownLatch latch = new CountDownLatch(1);
+    fileServer = vertx.createHttpServer(new HttpServerOptions().setPort(8081))
+      .requestHandler(router).listen(onSuccess(res -> latch.countDown()));
+    awaitLatch(latch);
+  }
+
+  private void startSecuredFileServer() throws InterruptedException {
+    Router router = Router.router(vertx);
+    router.route()
+      .handler((RoutingContext ctx) -> {
+        if (ctx.request().getHeader("Authorization") == null) ctx.fail(HttpStatus.SC_FORBIDDEN);
+        else ctx.next();
+      })
+      .handler(StaticHandler.create("src/test/resources"));
+    CountDownLatch latch = new CountDownLatch(1);
+    securedFileServer = vertx.createHttpServer(new HttpServerOptions().setPort(8081))
+      .requestHandler(router).listen(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
   }
 
   private void stopServer() throws Exception {
     routerFactory = null;
-    if (server != null) {
-      CountDownLatch latch = new CountDownLatch(1);
+    CountDownLatch latch = new CountDownLatch(3);
+    stopServer(latch, fileServer);
+    stopServer(latch, securedFileServer);
+    stopServer(latch, server);
+    awaitLatch(latch);
+    fileServer = null;
+    server = null;
+  }
+
+  private void stopServer(CountDownLatch latch, HttpServer server) {
+    if (server == null) {
+      latch.countDown();
+    } else {
       server.close((asyncResult) -> {
         assertTrue(asyncResult.succeeded());
         latch.countDown();
       });
-      awaitLatch(latch);
     }
   }
 
@@ -107,7 +152,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     if (client != null) {
       try {
         client.close();
-      } catch (IllegalStateException e) {
+      } catch (IllegalStateException ignored) {
       }
     }
     super.tearDown();
@@ -153,8 +198,29 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
   @Test
   public void loadSpecFromURL() throws Exception {
+    startFileServer();
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.create(this.vertx, "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "http://localhost:8081/swaggers/router_factory_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
+        assertNotNull(openAPI3RouterFactoryAsyncResult.result());
+        latch.countDown();
+      });
+    awaitLatch(latch);
+  }
+
+  @Test
+  public void loadSpecFromURLWithAuthorizationValues() throws Exception {
+    startSecuredFileServer();
+    CountDownLatch latch = new CountDownLatch(1);
+    JsonObject authValue = new JsonObject()
+      .put("value", "Bearer xx.yy.zz")
+      .put("keyName", "Authorization")
+      .put("type", "header");
+    OpenAPI3RouterFactory.create(
+      this.vertx,
+      "http://localhost:8081/swaggers/router_factory_test.yaml",
+      Collections.singletonList(authValue),
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
         assertNotNull(openAPI3RouterFactoryAsyncResult.result());
@@ -165,8 +231,9 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
   @Test
   public void failLoadSpecFromURL() throws Exception {
+    startFileServer();
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.create(this.vertx, "https://helloworld.com/spec.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "http://localhost:8081/swaggers/does_not_exist.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.failed());
         assertEquals(RouterFactoryException.class, openAPI3RouterFactoryAsyncResult.cause().getClass());
@@ -187,13 +254,11 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage("OK")
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage("OK")
+          .end());
 
         latch.countDown();
       });
@@ -214,13 +279,11 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
         routerFactory
           .addHandlerByOperationId("listPets", routingContext -> routingContext.fail(null))
-          .addFailureHandlerByOperationId("listPets", routingContext -> {
-            routingContext
-              .response()
-              .setStatusCode(500)
-              .setStatusMessage("ERROR")
-              .end();
-          });
+          .addFailureHandlerByOperationId("listPets", routingContext -> routingContext
+            .response()
+            .setStatusCode(500)
+            .setStatusMessage("ERROR")
+            .end());
 
         latch.countDown();
       });
@@ -250,13 +313,11 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
           .addFailureHandlerByOperationId("listPets", routingContext ->
             routingContext.put("message", routingContext.get("message") + "E").next()
           )
-          .addFailureHandlerByOperationId("listPets", routingContext -> {
-            routingContext
-              .response()
-              .setStatusCode(500)
-              .setStatusMessage(routingContext.get("message"))
-              .end();
-          });
+          .addFailureHandlerByOperationId("listPets", routingContext -> routingContext
+            .response()
+            .setStatusCode(500)
+            .setStatusMessage(routingContext.get("message"))
+            .end());
 
         latch.countDown();
       });
@@ -275,15 +336,13 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
 
-        routerFactory.addHandlerByOperationId("listPetsSecurity", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(routingContext.get("first_level") + "-" +
-              routingContext.get("second_level") + "-" + routingContext.get("third_level_one") +
-              "-" + routingContext.get("third_level_two") + "-Done")
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPetsSecurity", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(routingContext.get("first_level") + "-" +
+            routingContext.get("second_level") + "-" + routingContext.get("third_level_one") +
+            "-" + routingContext.get("third_level_two") + "-Done")
+          .end());
 
         routerFactory.addSecurityHandler("api_key",
           routingContext -> routingContext.put("first_level", "User").next()
@@ -315,6 +374,40 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   }
 
   @Test
+  public void mountMultipleSecurityHandlers() throws Exception {
+    final Handler<RoutingContext> firstHandler = routingContext -> routingContext.put("firstHandler", "OK").next();
+    final Handler<RoutingContext> secondHandler = routingContext -> routingContext.put("secondHandler", "OK").next();
+    final Handler<RoutingContext> secondApiKey = routingContext -> routingContext.put("secondApiKey", "OK").next();
+    final Handler<RoutingContext> thirdApiKey = routingContext -> routingContext.put("thirdApiKey", "OK").next();
+
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
+
+        routerFactory.addHandlerByOperationId("listPetsSecurity", routingContext ->
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("First handler: " + routingContext.get("firstHandler") + ", Second handler: " + routingContext.get("secondHandler") + ", Second api key: " + routingContext.get("secondApiKey") + ", Third api key: " + routingContext.get("thirdApiKey"))
+            .end()
+        );
+
+        routerFactory.addSecurityHandler("api_key", firstHandler);
+        routerFactory.addSecurityHandler("api_key", secondHandler);
+        routerFactory.addSecurityHandler("second_api_key", secondApiKey);
+        routerFactory.addSecurityHandler("third_api_key", thirdApiKey);
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(HttpMethod.GET, "/pets_security_test", 200, "First handler: OK, Second handler: OK, Second api key: OK, Third api key: OK");
+  }
+
+  @Test
   public void requireSecurityHandler() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
@@ -322,13 +415,11 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(routingContext.get("message") + "OK")
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(routingContext.get("message") + "OK")
+          .end());
 
         latch.countDown();
       });
@@ -336,34 +427,39 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
     assertThrow(routerFactory::getRouter, RouterFactoryException.class);
 
-    routerFactory.addSecurityHandler("api_key", routingContext -> routingContext.next());
+    routerFactory.addSecurityHandler("api_key", RoutingContext::next);
 
     routerFactory.addSecurityHandler("second_api_key",
-      routingContext -> routingContext.next()
+      RoutingContext::next
     );
 
     routerFactory.addSecurityHandler("third_api_key",
-      routingContext -> routingContext.next()
+      RoutingContext::next
     );
 
     assertNotThrow(routerFactory::getRouter, RouterFactoryException.class);
   }
 
+
   @Test
-  public void requireGlobalSecurityHandler() throws Exception {
+  public void testGlobalSecurityHandler() throws Exception {
+    final Handler<RoutingContext> handler = routingContext -> {
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage(((routingContext.get("message") != null) ? routingContext.get("message") + "-OK" : "OK"))
+        .end();
+    };
+
     CountDownLatch latch = new CountDownLatch(1);
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/global_security_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(routingContext.get("message") + "-OK")
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPetsWithoutSecurity", handler);
+        routerFactory.addHandlerByOperationId("listPetsWithOverride", handler);
+        routerFactory.addHandlerByOperationId("listPetsWithoutOverride", handler);
 
         latch.countDown();
       });
@@ -376,12 +472,14 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     );
 
     routerFactory.addSecurityHandler("api_key",
-      routingContext -> routingContext.put("message", routingContext.get("message") +  "-Local").next()
+      routingContext -> routingContext.put("message", "Local").next()
     );
 
     startServer();
 
-    testRequest(HttpMethod.GET, "/pets", 200, "Global-Local-OK");
+    testRequest(HttpMethod.GET, "/petsWithoutSecurity", 200, "OK");
+    testRequest(HttpMethod.GET, "/petsWithOverride", 200, "Local-OK");
+    testRequest(HttpMethod.GET, "/petsWithoutOverride", 200, "Global-OK");
   }
 
   @Test
@@ -392,13 +490,11 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(routingContext.get("message") + "OK")
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(routingContext.get("message") + "OK")
+          .end());
 
         latch.countDown();
       });
@@ -413,15 +509,13 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS.setMountValidationFailureHandler(true));
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(((RequestParameters) routingContext.get("parsedParameters")).queryParameter("limit").toString())
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(((RequestParameters) routingContext.get("parsedParameters")).queryParameter("limit").toString())
+          .end());
 
         latch.countDown();
       });
@@ -439,23 +533,20 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS
-          .setValidationFailureHandler(routingContext ->
-            routingContext
-              .response()
-              .setStatusCode(400)
-              .setStatusMessage("Very very Bad Request")
-              .end()
-          )
-        );
-
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS.setMountValidationFailureHandler(true));
+        routerFactory.setValidationFailureHandler(routingContext ->
           routingContext
             .response()
-            .setStatusCode(200)
-            .setStatusMessage(((RequestParameters) routingContext.get("parsedParameters")).queryParameter("limit").toString())
-            .end();
-        });
+            .setStatusCode(400)
+            .setStatusMessage("Very very Bad Request")
+            .end()
+        );
+
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(((RequestParameters) routingContext.get("parsedParameters")).queryParameter("limit").toString())
+          .end());
 
         latch.countDown();
       });
@@ -479,21 +570,17 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
             .setMountValidationFailureHandler(false)
         );
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(((RequestParameters) routingContext.get("parsedParameters")).queryParameter("limit").toString())
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(((RequestParameters) routingContext.get("parsedParameters")).queryParameter("limit").toString())
+          .end());
 
-        routerFactory.addFailureHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode((routingContext.failure() instanceof ValidationException) ? 400 : 500)
-            .setStatusMessage((routingContext.failure() instanceof ValidationException) ? "Very very Bad Request" : "Error")
-            .end();
-        });
+        routerFactory.addFailureHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode((routingContext.failure() instanceof ValidationException) ? 400 : 500)
+          .setStatusMessage((routingContext.failure() instanceof ValidationException) ? "Very very Bad Request" : "Error")
+          .end());
 
         latch.countDown();
       });
@@ -518,6 +605,8 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
             .setMountNotImplementedHandler(true)
         );
 
+        routerFactory.addHandlerByOperationId("showPetById", RoutingContext::next);
+
         latch.countDown();
       });
     awaitLatch(latch);
@@ -525,6 +614,37 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     startServer();
 
     testRequest(HttpMethod.GET, "/pets", 501, "Not Implemented");
+  }
+
+
+
+  @Test
+  public void mountNotAllowedHandler() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(
+          new RouterFactoryOptions()
+            .setRequireSecurityHandlers(false)
+            .setMountNotImplementedHandler(true)
+        );
+
+        routerFactory.addHandlerByOperationId("deletePets", RoutingContext::next);
+        routerFactory.addHandlerByOperationId("createPets", RoutingContext::next);
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(HttpMethod.GET, "/pets", null, resp -> {
+      assertTrue(
+        Stream.of("DELETE", "POST").collect(Collectors.toSet())
+          .equals(new HashSet<>(Arrays.asList(resp.getHeader("Allow").split(Pattern.quote(", ")))))
+      );
+    }, 405, "Method Not Allowed", null);
   }
 
   @Test
@@ -537,13 +657,14 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
           new RouterFactoryOptions()
             .setMountNotImplementedHandler(true)
             .setRequireSecurityHandlers(false)
-            .setNotImplementedFailureHandler(routingContext ->
-              routingContext
-                .response()
-                .setStatusCode(501)
-                .setStatusMessage("We are too lazy to implement this operation")
-                .end()
-              )
+        );
+
+        routerFactory.setNotImplementedFailureHandler(routingContext ->
+          routingContext
+            .response()
+            .setStatusCode(501)
+            .setStatusMessage("We are too lazy to implement this operation")
+            .end()
         );
 
         latch.countDown();
@@ -581,26 +702,22 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(
-          new RouterFactoryOptions()
-            .setRequireSecurityHandlers(false)
-            .addGlobalHandler(rc -> {
-              rc.response().putHeader("header-from-global-handler", "some dummy data");
-              rc.next();
-            })
-            .addGlobalHandler(rc -> {
-              rc.response().putHeader("header-from-global-handler", "some more dummy data");
-              rc.next();
-            })
-        );
+        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage("OK")
-            .end();
+        routerFactory.addGlobalHandler(rc -> {
+          rc.response().putHeader("header-from-global-handler", "some dummy data");
+          rc.next();
         });
+        routerFactory.addGlobalHandler(rc -> {
+            rc.response().putHeader("header-from-global-handler", "some more dummy data");
+            rc.next();
+        });
+
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage("OK")
+          .end());
 
         latch.countDown();
       });
@@ -614,12 +731,40 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   }
 
   @Test
+  public void exposeConfigurationTest() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false).setOperationModelKey("fooBarKey"));
+
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
+          Operation operation = routingContext.get("fooBarKey");
+
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+            .end(operation.getOperationId());
+        });
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(HttpMethod.GET, "/pets", 200, "OK", "listPets");
+  }
+
+  @Test
   public void consumesTest() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/produces_consumes_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
+        routerFactory.setBodyHandler(BodyHandler.create(tempFolder.getRoot().getAbsolutePath()));
 
         routerFactory.addHandlerByOperationId("consumesTest", routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
@@ -647,7 +792,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
     // Json consumes test
     JsonObject obj = new JsonObject("{\"name\":\"francesco\"}");
-    testRequestWithJSON(HttpMethod.POST, "/consumesTest", obj, 200, "OK", obj);
+    testRequestWithJSON(HttpMethod.POST, "/consumesTest", obj.toBuffer(), 200, "OK", obj.toBuffer());
 
     // Form consumes tests
     MultiMap form = MultiMap.caseInsensitiveMultiMap();
@@ -665,7 +810,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
 
         routerFactory.addHandlerByOperationId("producesTest", routingContext -> {
-          if (((RequestParameters)routingContext.get("parsedParameters")).queryParameter("fail").getBoolean())
+          if (((RequestParameters) routingContext.get("parsedParameters")).queryParameter("fail").getBoolean())
             routingContext.response().putHeader("content-type", "text/plain").setStatusCode(500).end("Hate it");
           else
             routingContext.response().setStatusCode(200).end("{}"); // ResponseContentTypeHandler does the job for me
@@ -704,7 +849,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         routerFactory.addFailureHandlerByOperationId("showProductById", generateFailureHandler(false));
 
         latch.countDown();
-    });
+      });
     awaitLatch(latch);
 
     startServer();
@@ -743,53 +888,239 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     testRequest(HttpMethod.GET, "/foo/a%3Ab?p2=a%3Ab", 200, "a:b");
   }
 
-    /**
-     * Tests that user can supply customised BodyHandler
-     * @throws Exception
-     */
+  /**
+   * Tests that user can supply customised BodyHandler
+   *
+   * @throws Exception
+   */
   @Test
   public void customBodyHandlerTest() throws Exception {
-      try {
-          CountDownLatch latch = new CountDownLatch(1);
-          OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/upload_test.yaml",
-                  openAPI3RouterFactoryAsyncResult -> {
-                      try {
-                          if (openAPI3RouterFactoryAsyncResult.succeeded()) {
-                              routerFactory = openAPI3RouterFactoryAsyncResult.result();
-                              routerFactory.setOptions(
-                                      new RouterFactoryOptions()
-                                              .setRequireSecurityHandlers(false)
-                                              .setBodyHandler(BodyHandler.create("my-uploads"))
-                              );
+    try {
+      CountDownLatch latch = new CountDownLatch(1);
+      OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/upload_test.yaml",
+        openAPI3RouterFactoryAsyncResult -> {
+          try {
+            if (openAPI3RouterFactoryAsyncResult.succeeded()) {
+              routerFactory = openAPI3RouterFactoryAsyncResult.result();
+              routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
 
-                              routerFactory.addHandlerByOperationId("upload", (h) -> {
-                                  h.response().setStatusCode(201).end();
-                              });
-                          }
-                          else {
-                              fail(openAPI3RouterFactoryAsyncResult.cause());
-                          }
-                      }
-                      finally {
-                          latch.countDown();
-                      }
-                  });
-          awaitLatch(latch);
+              routerFactory.setBodyHandler(BodyHandler.create("my-uploads"));
 
-          startServer();
+              routerFactory.addHandlerByOperationId("upload", (h) -> h.response().setStatusCode(201).end());
+            } else {
+              fail(openAPI3RouterFactoryAsyncResult.cause());
+            }
+          } finally {
+            latch.countDown();
+          }
+        });
+      awaitLatch(latch);
 
-          // We're not uploading a real file, just triggering BodyHandler
-          MultiMap form = MultiMap.caseInsensitiveMultiMap();
+      startServer();
 
-          assertFalse(Paths.get("./my-uploads").toFile().exists());
+      // We're not uploading a real file, just triggering BodyHandler
+      MultiMap form = MultiMap.caseInsensitiveMultiMap();
 
-          testRequestWithForm(HttpMethod.POST, "/upload", FormType.MULTIPART, form, 201, "Created");
+      assertFalse(Paths.get("./my-uploads").toFile().exists());
 
-          // BodyHandler should create this custom directory for us
-          assertTrue(Paths.get("./my-uploads").toFile().exists());
-      }
-      finally {
-          Paths.get("./my-uploads").toFile().deleteOnExit();
-      }
+      testRequestWithForm(HttpMethod.POST, "/upload", FormType.MULTIPART, form, 201, "Created");
+
+      // BodyHandler should create this custom directory for us
+      assertTrue(Paths.get("./my-uploads").toFile().exists());
+    } finally {
+      Paths.get("./my-uploads").toFile().deleteOnExit();
+    }
+  }
+
+  @Test
+  public void commaSeparatedMultipartEncoding() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/multipart.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        if (openAPI3RouterFactoryAsyncResult.succeeded()) {
+          routerFactory = openAPI3RouterFactoryAsyncResult.result();
+          routerFactory.setBodyHandler(BodyHandler.create(tempFolder.getRoot().getAbsolutePath()));
+          routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
+          routerFactory.addHandlerByOperationId("testMultipartMultiple", (ctx) -> {
+            RequestParameters params = ctx.get("parsedParameters");
+            ctx.response().setStatusCode(200).setStatusMessage(params.formParameter("type").getString()).end();
+          });
+          latch.countDown();
+        } else {
+          fail(openAPI3RouterFactoryAsyncResult.cause());
+        }
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    MultipartForm form1 =
+      MultipartForm
+        .create()
+        .binaryFileUpload("file1", "random-file", "src/test/resources/random-file", "application/octet-stream")
+        .attribute("type", "application/octet-stream");
+
+    testRequestWithMultipartForm(HttpMethod.POST, "/testMultipartMultiple", form1, 200, "application/octet-stream");
+
+    MultipartForm form2 =
+      MultipartForm
+        .create()
+        .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "text/plain")
+        .attribute("type", "text/plain");
+
+    testRequestWithMultipartForm(HttpMethod.POST, "/testMultipartMultiple", form2, 200, "text/plain");
+
+    MultipartForm form3 =
+      MultipartForm
+        .create()
+        .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "application/json")
+        .attribute("type", "application/json");
+
+    testRequestWithMultipartForm(HttpMethod.POST, "/testMultipartMultiple", form3, 400, "Bad Request");
+  }
+
+  @Test
+  public void wildcardMultipartEncoding() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/multipart.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        if (openAPI3RouterFactoryAsyncResult.succeeded()) {
+          routerFactory = openAPI3RouterFactoryAsyncResult.result();
+          routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
+          routerFactory.setBodyHandler(BodyHandler.create(tempFolder.getRoot().getAbsolutePath()));
+          routerFactory.addHandlerByOperationId("testMultipartWildcard", (ctx) -> {
+            RequestParameters params = ctx.get("parsedParameters");
+            ctx.response().setStatusCode(200).setStatusMessage(params.formParameter("type").getString()).end();
+          });
+          latch.countDown();
+        } else {
+          fail(openAPI3RouterFactoryAsyncResult.cause());
+        }
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    MultipartForm form1 =
+      MultipartForm
+        .create()
+        .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "text/plain")
+        .attribute("type", "text/plain");
+
+    testRequestWithMultipartForm(HttpMethod.POST, "/testMultipartWildcard", form1, 200, "text/plain");
+
+    MultipartForm form2 =
+      MultipartForm
+        .create()
+        .binaryFileUpload("file1", "random.csv", "src/test/resources/random.csv", "text/csv")
+        .attribute("type", "text/csv");
+
+    testRequestWithMultipartForm(HttpMethod.POST, "/testMultipartWildcard", form2, 200, "text/csv");
+
+    MultipartForm form3 =
+      MultipartForm
+        .create()
+        .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "application/json")
+        .attribute("type", "application/json");
+
+    testRequestWithMultipartForm(HttpMethod.POST, "/testMultipartWildcard", form3, 400, "Bad Request");
+  }
+
+  @Test
+  public void testSharedRequestBody() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/shared_request_body.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+
+        final Handler<RoutingContext> handler = routingContext -> {
+          RequestParameters params = routingContext.get("parsedParameters");
+          RequestParameter body = params.body();
+          JsonObject jsonBody = body.getJsonObject();
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+            .putHeader("Content-Type", "application/json")
+            .end(jsonBody.toBuffer());
+        };
+
+        routerFactory.addHandlerByOperationId("thisWayWorks", handler);
+        routerFactory.addHandlerByOperationId("thisWayBroken", handler);
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    JsonObject obj = new JsonObject().put("id", "aaa").put("name", "bla");
+    testRequestWithJSON(HttpMethod.POST, "/v1/working", obj.toBuffer(), 200, "OK", obj.toBuffer());
+    testRequestWithJSON(HttpMethod.POST, "/v1/notworking", obj.toBuffer(), 200, "OK", obj.toBuffer());
+  }
+
+  @Test
+  public void pathResolverShouldNotCreateRegex() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/produces_consumes_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
+
+        routerFactory.addHandlerByOperationId("consumesTest", routingContext ->
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+        );
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    router = routerFactory.getRouter();
+
+    assertTrue(router.getRoutes().stream().map(Route::getPath).anyMatch("/consumesTest"::equals));
+  }
+
+  @Test
+  public void testJsonEmptyBody() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+      onSuccess(routerFactory -> {
+        this.routerFactory = routerFactory;
+        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false).setMountNotImplementedHandler(false));
+
+        routerFactory.addHandlerByOperationId("jsonEmptyBody", routingContext -> {
+          RequestParameters params = routingContext.get("parsedParameters");
+          RequestParameter body = params.body();
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+            .putHeader("Content-Type", "application/json")
+            .end(new JsonObject().put("bodyEmpty", body == null).toBuffer());
+        });
+
+        latch.countDown();
+      }));
+    awaitLatch(latch);
+
+    startServer();
+
+    CountDownLatch requestLatch = new CountDownLatch(1);
+    client
+      .request(HttpMethod.POST, 8080, "localhost", "/jsonBody/empty", onSuccess(res -> {
+        assertEquals(200, res.statusCode());
+        assertEquals("application/json", res.getHeader(HttpHeaders.CONTENT_TYPE));
+        res.bodyHandler(buff -> {
+          JsonObject result = new JsonObject(normalizeLineEndingsFor(buff));
+          assertEquals(new JsonObject().put("bodyEmpty", true), result);
+          requestLatch.countDown();
+        });
+      }))
+      .end();
+    awaitLatch(requestLatch);
   }
 }

@@ -102,6 +102,25 @@ paths:
       responses:
         default:
           description: ok
+  /queryTests/objectTests/onlyAdditionalProperties:
+    get:
+      operationId: objectTestOnlyAdditionalProperties
+      parameters:
+        - name: params
+          in: query
+          schema:
+            type: object
+            additionalProperties:
+              type: integer
+          style: form
+          explode: true
+        - name: wellKnownParam
+          in: query
+          schema:
+            type: string
+      responses:
+        default:
+          description: ok
   /queryTests/defaultString:
     get:
       operationId: testDefaultString
@@ -250,6 +269,30 @@ paths:
       responses:
         default:
           description: ok
+  /jsonBodyWithDate:
+    post:
+      operationId: jsonBodyWithDate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                dateTime1:
+                  type: string
+                  format: date-time
+                dateTime2:
+                  type: string
+                  format: date-time
+                dateTime3:
+                  type: string
+                  format: date-time
+      responses:
+        default:
+          description: ok
   /queryTests/allOfTest:
     get:
       operationId: alloftest
@@ -337,9 +380,72 @@ paths:
       responses:
         default:
           description: ok
+  /cookieTests/objectTests/onlyAdditionalProperties:
+    get:
+      operationId: cookieObjectTestOnlyAdditionalProperties
+      parameters:
+        - name: params
+          in: cookie
+          schema:
+            type: object
+            additionalProperties:
+              type: integer
+          style: form
+          explode: true
+        - name: wellKnownParam
+          in: cookie
+          schema:
+            type: string
+      responses:
+        default:
+          description: ok
   /multipart/complex:
     post:
       operationId: complexMultipartRequest
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                param1:
+                  type: string
+                param1binary:
+                  type: string
+                  format: binary
+                param2:
+                  $ref: "#/components/schemas/Pet"
+                param3:
+                  type: string
+                param4:
+                  type: array
+                  items:
+                    type: number
+                    format: float
+                param5:
+                  type: integer
+                  format: int32
+                  enum:
+                    - 1
+                    - 2
+              required:
+                - param1
+                - param1Binary
+                - param3
+            encoding:
+              param3:
+                contentType: text/csv
+              param1:
+                contentType: text/plain
+              param1Binary:
+                contentType: text/plain
+      responses:
+        default:
+          description: ok
+  /multipart/complex/empty:
+    post:
+      operationId: complexMultipartRequestEmpty
       requestBody:
         required: false
         content:
@@ -358,9 +464,16 @@ paths:
                   items:
                     type: number
                     format: float
+                param1binary:
+                  type: string
+                  format: binary
             encoding:
               param3:
-                contentType: application/sql
+                contentType: text/csv
+              param1:
+                contentType: text/plain
+              param1Binary:
+                contentType: text/plain
       responses:
         default:
           description: ok
@@ -404,6 +517,25 @@ paths:
       responses:
         default:
           description: Ok
+  '/query/form/explode/object':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: form
+          explode: true
+      operationId: 'query_form_explode_object'
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
 components:
   schemas:
     Pet:
@@ -450,6 +582,21 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SchemaRecursive'
+    ColorObject:
+      type: object
+      properties:
+        R:
+          type: string
+        G:
+          type: string
+        B:
+          type: string
+        alpha:
+          type: number
+      required:
+        - R
+        - G
+        - B
   securitySchemes:
     api_key:
       type: apiKey

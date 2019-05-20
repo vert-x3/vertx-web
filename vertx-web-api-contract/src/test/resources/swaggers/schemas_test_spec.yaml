@@ -127,7 +127,7 @@ paths:
             schema:
               allOf:
                 - $ref: 'http://localhost:8081/card.json'
-                - $ref: './src/test/resources/swaggers/schemas/Card_id.yaml'
+                - $ref: './schemas/Card_id.yaml'
                 - type: object
                   properties:
                     parent_card:
@@ -157,7 +157,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: './src/test/resources/swaggers/schemas/tree.yaml#/tree'
+              $ref: './schemas/tree.yaml#/tree'
   /test12:
     post:
       operationId: test12
@@ -185,7 +185,60 @@ paths:
                 a:
                   type: string
                   default: Hello
+  /test14:
+    post:
+      operationId: test14
+      responses:
+        default:
+          description: "OK"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+              minItems: 1
+  /test15:
+    post:
+      operationId: test15
+      responses:
+        default:
+          description: "OK"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                nullable: true
+              minItems: 1
 
+  /test16:
+    post:
+      operationId: test16
+      responses:
+        default:
+          description: "OK"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/schemaC"
+  /testLocalRelativeRef:
+    post:
+      operationId: testLocalRelativeRef
+      responses:
+        default:
+          description: "OK"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas/card.json"
 
 components:
   schemas:
@@ -238,3 +291,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/schemaA'
+    schemaC:
+      title: schemaC
+      properties:
+        mymap:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/schemaD"
+    schemaD:
+      required:
+        - a
+      properties:
+        a:
+          type: string

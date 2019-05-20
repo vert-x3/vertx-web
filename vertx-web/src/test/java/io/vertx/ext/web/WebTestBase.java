@@ -30,7 +30,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -148,7 +147,7 @@ public class WebTestBase extends VertxTestBase {
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    HttpClientRequest req = client.request(method, port, "localhost", path, resp -> {
+    HttpClientRequest req = client.request(method, port, "localhost", path, onSuccess(resp -> {
       assertEquals(statusCode, resp.statusCode());
       assertEquals(statusMessage, resp.statusMessage());
       if (responseAction != null) {
@@ -165,7 +164,7 @@ public class WebTestBase extends VertxTestBase {
           latch.countDown();
         });
       }
-    });
+    }));
     if (requestAction != null) {
       requestAction.accept(req);
     }
@@ -195,7 +194,7 @@ public class WebTestBase extends VertxTestBase {
 
       BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
       String inputLine;
-      StringBuffer response = new StringBuffer();
+      StringBuilder response = new StringBuilder();
 
       while ((inputLine = in.readLine()) != null) {
         response.append(inputLine);
@@ -208,7 +207,7 @@ public class WebTestBase extends VertxTestBase {
 
       BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
       String inputLine;
-      StringBuffer response = new StringBuffer();
+      StringBuilder response = new StringBuilder();
 
       while ((inputLine = in.readLine()) != null) {
         response.append(inputLine);
