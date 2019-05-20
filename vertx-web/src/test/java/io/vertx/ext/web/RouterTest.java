@@ -19,7 +19,10 @@ package io.vertx.ext.web;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpServerResponse;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -2307,7 +2310,10 @@ public class RouterTest extends WebTestBase {
   public void testDecodingError() throws Exception {
     String BAD_PARAM = "~!@\\||$%^&*()_=-%22;;%27%22:%3C%3E/?]}{";
 
-    router.route().handler(RoutingContext::next);
+    router.route().handler(rc -> {
+      rc.queryParams(); // Trigger decoding
+      rc.next();
+    });
     router.route("/path").handler(rc -> rc.response().setStatusCode(500).end());
     testRequest(HttpMethod.GET, "/path?q=" + BAD_PARAM, 400, "Bad Request");
   }
@@ -2400,8 +2406,12 @@ public class RouterTest extends WebTestBase {
 
     router.errorHandler(400, context -> context.response().setStatusCode(500).setStatusMessage("Dumb").end());
 
-    router.route().handler(rc -> rc.next());
-    router.route("/path").handler(rc -> rc.response().setStatusCode(500).end());
+    router.route().handler(rc -> {
+      rc.queryParams(); // Trigger decoding
+      rc.next();
+    }).handler(rc -> {
+      rc.response().setStatusCode(500).end();
+    });
     testRequest(HttpMethod.GET, "/path?q=" + BAD_PARAM, 500,"Dumb");
   }
 
