@@ -21,6 +21,7 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.impl.GraphQLHandlerImpl;
 import org.dataloader.DataLoaderRegistry;
@@ -75,4 +76,15 @@ public interface GraphQLHandler extends Handler<RoutingContext> {
   @Fluent
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   GraphQLHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory);
+
+  /**
+   * Customize the HTTP headers to add to GraphQL requests sent by the GraphiQL user interface.
+   * The result will be applied on top of the fixed set of headers specified in {@link GraphiQLOptions#getHeaders()}.
+   * <p>
+   * This can be useful if, for example, the server is protected by authentication.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  GraphQLHandler graphiQLRequestHeaders(Function<RoutingContext, MultiMap> factory);
 }

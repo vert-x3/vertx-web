@@ -293,7 +293,7 @@ Captures are denoted in regular expressions with capture groups (i.e. surroundin
 Using int index param names might be troublesome in some cases.
 It's possible to use named capture groups in the regex path.
 
-* [source,$lang]
+[source,$lang]
 ----
 {@link examples.WebExamples#example6_2}
 ----
@@ -982,7 +982,7 @@ Here's an example of a simple app, using a redirect auth handler on the default 
 === JWT authorisation
 
 With JWT authorisation resources can be protected by means of permissions and users without enough rights are denied
-access.
+access. You need to add the `io.vertx:vertx-auth-jwt:${maven.version}` dependency to use `JWTAuthProvider`
 
 To use this handler there are 2 steps involved:
 

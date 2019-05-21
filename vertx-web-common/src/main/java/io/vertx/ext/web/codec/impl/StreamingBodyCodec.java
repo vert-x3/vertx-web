@@ -64,29 +64,39 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
       }
 
       @Override
-      public WriteStream<Buffer> write(Buffer data) {
-        stream.write(data);
+      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
+        stream.write(data, handler);
         return this;
       }
 
       @Override
+      public WriteStream<Buffer> write(Buffer data) {
+        return write(data, null);
+      }
+
+      @Override
       public void end() {
+        end((Handler<AsyncResult<Void>>) null);
+      }
+
+      @Override
+      public void end(Handler<AsyncResult<Void>> handler) {
         if (close) {
-          if (stream instanceof AsyncFile) {
-            AsyncFile file = (AsyncFile) stream;
-            file.close(ar -> {
-              if (ar.succeeded()) {
-                fut.tryComplete();
-              } else {
-                fut.tryFail(ar.cause());
-              }
-            });
-          } else {
-            stream.end();
-            fut.tryComplete();
-          }
+          stream.end(ar -> {
+            if (ar.succeeded()) {
+              fut.tryComplete();
+            } else {
+              fut.tryFail(ar.cause());
+            }
+            if (handler != null) {
+              handler.handle(ar);
+            }
+          });
         } else {
           fut.tryComplete();
+          if (handler != null) {
+            handler.handle(Future.succeededFuture());
+          }
         }
       }
 

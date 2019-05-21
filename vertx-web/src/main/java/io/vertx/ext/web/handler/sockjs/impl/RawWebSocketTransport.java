@@ -32,14 +32,15 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.ServerWebSocket;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.core.net.impl.ConnectionBase;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Router;
@@ -51,18 +52,20 @@ import io.vertx.ext.web.handler.sockjs.SockJSSocket;
  */
 class RawWebSocketTransport {
 
-  private static final Logger log = LoggerFactory.getLogger(RawWebSocketTransport.class);
-
   private static class RawWSSockJSSocket extends SockJSSocketBase {
 
-    ServerWebSocket ws;
+    final ServerWebSocket ws;
     MultiMap headers;
+    boolean closed;
 
     RawWSSockJSSocket(Vertx vertx, Session webSession, User webUser, ServerWebSocket ws) {
       super(vertx, webSession, webUser);
       this.ws = ws;
       ws.closeHandler(v -> {
         // Make sure the writeHandler gets unregistered
+        synchronized (RawWSSockJSSocket.this) {
+          closed = true;
+        }
         RawWSSockJSSocket.super.close();
       });
     }
@@ -89,8 +92,31 @@ class RawWebSocketTransport {
       return this;
     }
 
-    public SockJSSocket write(Buffer data) {
-      ws.writeBinaryMessage(data);
+    private synchronized boolean canWrite(Handler<AsyncResult<Void>> handler) {
+      if (closed) {
+        if (handler != null) {
+          vertx.runOnContext(v -> {
+            handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION));
+          });
+        }
+        return false;
+      }
+      return true;
+    }
+
+    @Override
+    public SockJSSocket write(Buffer data, Handler<AsyncResult<Void>> handler) {
+      if (canWrite(handler)) {
+        ws.writeBinaryMessage(data, handler);
+      }
+      return this;
+    }
+
+    @Override
+    public SockJSSocket write(String data, Handler<AsyncResult<Void>> handler) {
+      if (canWrite(handler)) {
+        ws.writeTextMessage(data, handler);
+      }
       return this;
     }
 
@@ -119,6 +145,12 @@ class RawWebSocketTransport {
     }
 
     public void close() {
+      synchronized (this) {
+        if (closed) {
+          return;
+        }
+        closed = true;
+      }
       super.close();
       ws.close();
     }
@@ -128,6 +160,12 @@ class RawWebSocketTransport {
     }
 
     public void close(int statusCode, String reason) {
+      synchronized (this) {
+        if (closed) {
+          return;
+        }
+        closed = true;
+      }
       super.close();
       ws.close((short) statusCode, reason);
     }

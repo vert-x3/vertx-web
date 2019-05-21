@@ -34,7 +34,7 @@ public class CookieStoreImpl implements CookieStore {
   }
   
   @Override
-  public Iterable<Cookie> get(boolean ssl, String domain, String path) {
+  public Iterable<Cookie> get(Boolean ssl, String domain, String path) {
     assert domain != null && domain.length() > 0;
 
     String cleanPath;
@@ -57,7 +57,7 @@ public class CookieStoreImpl implements CookieStore {
     TreeMap<String, Cookie> matches = new TreeMap<>();
     
     Consumer<Cookie> adder = c -> {
-      if (!ssl && c.isSecure()) {
+      if (ssl != Boolean.TRUE && c.isSecure()) {
         return;
       }
       if (c.path() != null && !cleanPath.equals(c.path())) {

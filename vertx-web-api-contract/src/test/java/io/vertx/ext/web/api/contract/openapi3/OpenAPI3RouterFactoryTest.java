@@ -16,6 +16,7 @@ import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.multipart.MultipartForm;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 
@@ -888,6 +889,98 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
     } finally {
       Paths.get("./my-uploads").toFile().deleteOnExit();
     }
+  }
+
+  @Test
+  public void commaSeparatedMultipartEncoding() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/multipart.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        if (openAPI3RouterFactoryAsyncResult.succeeded()) {
+          routerFactory = openAPI3RouterFactoryAsyncResult.result();
+          routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
+          routerFactory.addHandlerByOperationId("testMultipartMultiple", (ctx) -> {
+            RequestParameters params = ctx.get("parsedParameters");
+            ctx.response().setStatusCode(200).setStatusMessage(params.formParameter("type").getString()).end();
+          });
+          latch.countDown();
+        } else {
+          fail(openAPI3RouterFactoryAsyncResult.cause());
+        }
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    MultipartForm form1 =
+      MultipartForm
+        .create()
+        .binaryFileUpload("file1", "random-file", "src/test/resources/random-file", "application/octet-stream")
+        .attribute("type", "application/octet-stream");
+
+    testRequestWithMultipartForm(HttpMethod.POST, "/testMultipartMultiple", form1, 200, "application/octet-stream");
+
+    MultipartForm form2 =
+      MultipartForm
+        .create()
+        .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "text/plain")
+        .attribute("type", "text/plain");
+
+    testRequestWithMultipartForm(HttpMethod.POST, "/testMultipartMultiple", form2, 200, "text/plain");
+
+    MultipartForm form3 =
+      MultipartForm
+        .create()
+        .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "application/json")
+        .attribute("type", "application/json");
+
+    testRequestWithMultipartForm(HttpMethod.POST, "/testMultipartMultiple", form3, 400, "Bad Request");
+  }
+
+  @Test
+  public void wildcardMultipartEncoding() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/multipart.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        if (openAPI3RouterFactoryAsyncResult.succeeded()) {
+          routerFactory = openAPI3RouterFactoryAsyncResult.result();
+          routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
+          routerFactory.addHandlerByOperationId("testMultipartWildcard", (ctx) -> {
+            RequestParameters params = ctx.get("parsedParameters");
+            ctx.response().setStatusCode(200).setStatusMessage(params.formParameter("type").getString()).end();
+          });
+          latch.countDown();
+        } else {
+          fail(openAPI3RouterFactoryAsyncResult.cause());
+        }
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    MultipartForm form1 =
+      MultipartForm
+        .create()
+        .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "text/plain")
+        .attribute("type", "text/plain");
+
+    testRequestWithMultipartForm(HttpMethod.POST, "/testMultipartWildcard", form1, 200, "text/plain");
+
+    MultipartForm form2 =
+      MultipartForm
+        .create()
+        .binaryFileUpload("file1", "random.csv", "src/test/resources/random.csv", "text/csv")
+        .attribute("type", "text/csv");
+
+    testRequestWithMultipartForm(HttpMethod.POST, "/testMultipartWildcard", form2, 200, "text/csv");
+
+    MultipartForm form3 =
+      MultipartForm
+        .create()
+        .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "application/json")
+        .attribute("type", "application/json");
+
+    testRequestWithMultipartForm(HttpMethod.POST, "/testMultipartWildcard", form3, 400, "Bad Request");
   }
 
   @Test

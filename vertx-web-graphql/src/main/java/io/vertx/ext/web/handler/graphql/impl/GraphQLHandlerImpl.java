@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler.graphql.impl;
 import graphql.ExecutionInput;
 import graphql.GraphQL;
 import io.vertx.core.Context;
+import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -26,17 +27,23 @@ import io.vertx.core.impl.NoStackTraceThrowable;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
+import io.vertx.ext.web.handler.graphql.GraphiQLOptions;
 import org.dataloader.DataLoaderRegistry;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
@@ -47,11 +54,16 @@ import static java.util.stream.Collectors.toList;
  */
 public class GraphQLHandlerImpl implements GraphQLHandler {
 
+  private static final Function<RoutingContext, Object> DEFAULT_QUERY_CONTEXT_FACTORY = rc -> rc;
+  private static final Function<RoutingContext, DataLoaderRegistry> DEFAULT_DATA_LOADER_REGISTRY_FACTORY = rc -> null;
+  private static final Function<RoutingContext, MultiMap> DEFAULT_GRAPHIQL_REQUEST_HEADERS_FACTORY = rc -> null;
+
   private final GraphQL graphQL;
   private final GraphQLHandlerOptions options;
 
-  private Function<RoutingContext, Object> queryContextFactory = rc -> rc;
-  private Function<RoutingContext, DataLoaderRegistry> dataLoaderRegistryFactory = rc -> null;
+  private Function<RoutingContext, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
+  private Function<RoutingContext, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
+  private Function<RoutingContext, MultiMap> graphiQLRequestHeadersFactory = DEFAULT_GRAPHIQL_REQUEST_HEADERS_FACTORY;
 
   public GraphQLHandlerImpl(GraphQL graphQL, GraphQLHandlerOptions options) {
     Objects.requireNonNull(graphQL, "graphQL");
@@ -62,13 +74,19 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
 
   @Override
   public synchronized GraphQLHandler queryContext(Function<RoutingContext, Object> factory) {
-    queryContextFactory = factory != null ? factory : rc -> rc;
+    queryContextFactory = factory != null ? factory : DEFAULT_QUERY_CONTEXT_FACTORY;
     return this;
   }
 
   @Override
   public synchronized GraphQLHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory) {
-    dataLoaderRegistryFactory = factory != null ? factory : rc -> null;
+    dataLoaderRegistryFactory = factory != null ? factory : DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
+    return this;
+  }
+
+  @Override
+  public synchronized GraphQLHandler graphiQLRequestHeaders(Function<RoutingContext, MultiMap> factory) {
+    graphiQLRequestHeadersFactory = factory != null ? factory : DEFAULT_GRAPHIQL_REQUEST_HEADERS_FACTORY;
     return this;
   }
 
@@ -90,6 +108,14 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   }
 
   private void handleGet(RoutingContext rc) {
+    if (options.getGraphiQLOptions().isEnabled()) {
+      Stream<String> accept = rc.parsedHeaders().accept().stream().map(MIMEHeader::subComponent);
+      if (accept.anyMatch(sub -> "html".equalsIgnoreCase(sub))) {
+        handleGraphiQL(rc);
+        return;
+      }
+    }
+
     String q = getQueryFromQueryParam(rc);
     if (q == null) {
       failQueryMissing(rc);
@@ -105,6 +131,49 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     }
     query.setVariables(variablesFromQueryParam);
     executeOne(rc, query);
+  }
+
+  private void handleGraphiQL(RoutingContext rc) {
+    ClassLoader classLoader = getClass().getClassLoader();
+    try (InputStream stream = classLoader.getResourceAsStream("io/vertx/ext/web/handler/graphql/graphiql.html")) {
+      String source = new Scanner(stream, "UTF-8").useDelimiter("\\A").next();
+      String replacement = replacement(rc);
+      String html = replacement.isEmpty() ? source : source.replace("<!-- VERTX-WEB-GRAPHIQL-REPLACEMENT -->", replacement);
+      rc.response().end(html);
+    } catch (IOException ignore) {
+      // Only if stream.close() throws IOException
+    }
+  }
+
+  private String replacement(RoutingContext rc) {
+    GraphiQLOptions graphiQLOptions = options.getGraphiQLOptions();
+    StringBuilder builder = new StringBuilder();
+    if (graphiQLOptions.getGraphQLUri() != null) {
+      builder.append("var graphQLUri = ").append(graphiQLOptions.getGraphQLUri()).append(";");
+    }
+    MultiMap headers = MultiMap.caseInsensitiveMultiMap();
+    Map<String, String> fixedHeaders = graphiQLOptions.getHeaders();
+    if (fixedHeaders != null) {
+      fixedHeaders.forEach(headers::add);
+    }
+    Function<RoutingContext, MultiMap> rh;
+    synchronized (this) {
+      rh = this.graphiQLRequestHeadersFactory;
+    }
+    MultiMap dynamicHeaders = rh.apply(rc);
+    if (dynamicHeaders != null) {
+      headers.addAll(dynamicHeaders);
+    }
+    if (!headers.isEmpty()) {
+      headers.forEach(header -> builder.append("headers['").append(header.getKey()).append("'] = '").append(header.getValue()).append("';"));
+    }
+    if (graphiQLOptions.getQuery() != null) {
+      builder.append("parameters['query'] = '").append(graphiQLOptions.getQuery()).append("';");
+    }
+    if (graphiQLOptions.getVariables() != null) {
+      builder.append("parameters['variables'] = '").append(graphiQLOptions.getVariables().encode()).append("';");
+    }
+    return builder.toString();
   }
 
   private void handlePost(RoutingContext rc, Buffer body) {

@@ -12,6 +12,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
@@ -100,7 +101,7 @@ public class WebClientTest extends HttpTestBase {
       client -> client.get("somehost", "somepath").basicAuthentication("ém$¨=!$€", "&@#§$*éà#\"'"),
       req -> {
         String auth = req.headers().get(HttpHeaders.AUTHORIZATION);
-        assertEquals("Was expecting authorization header to contain a basic authentication string", "Basic w6ltJMKoPSEk4oKsLSZAI8KnJCrDqcOgIyIn", auth);
+        assertEquals("Was expecting authorization header to contain a basic authentication string", "Basic w6ltJMKoPSEk4oKsOiZAI8KnJCrDqcOgIyIn", auth);
       }
     );
   }
@@ -131,6 +132,17 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testUserAgentHeaderOverride() throws Exception {
     testRequest(client -> client.get("somehost", "somepath").putHeader(HttpHeaders.USER_AGENT.toString(), "smith"), req -> assertEquals(Collections.singletonList("smith"), req.headers().getAll(HttpHeaders.USER_AGENT)));
+  }
+
+  @Test
+  public void testPutHeaders() throws Exception {
+    MultiMap headers = MultiMap.caseInsensitiveMultiMap();
+    headers.add("foo","bar");
+    headers.add("ping","pong");
+    testRequest(client -> client.get("somehost", "somepath").putHeaders(headers), req -> {
+      assertEquals("bar", req.headers().get("foo"));
+      assertEquals("pong", req.headers().get("ping"));
+    });
   }
 
   @Test
@@ -670,12 +682,26 @@ public class WebClientTest extends HttpTestBase {
       }
       @Override
       public WriteStream<Buffer> write(Buffer data) {
+        return write(data, null);
+      }
+      @Override
+      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
         size.addAndGet(data.length());
+        if (handler != null) {
+          handler.handle(Future.succeededFuture());
+        }
         return this;
       }
       @Override
       public void end() {
+        end((Handler<AsyncResult<Void>>) null);
+      }
+      @Override
+      public void end(Handler<AsyncResult<Void>> handler) {
         ended.set(true);
+        if (handler != null) {
+          handler.handle(Future.succeededFuture());
+        }
       }
       @Override
       public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
@@ -723,11 +749,25 @@ public class WebClientTest extends HttpTestBase {
       }
       @Override
       public WriteStream<Buffer> write(Buffer data) {
+        return write(data, null);
+      }
+      @Override
+      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
         received.addAndGet(data.length());
+        if (handler != null) {
+          handler.handle(Future.succeededFuture());
+        }
         return this;
       }
       @Override
       public void end() {
+        end((Handler<AsyncResult<Void>>) null);
+      }
+      @Override
+      public void end(Handler<AsyncResult<Void>> handler) {
+        if (handler != null) {
+          handler.handle(Future.succeededFuture());
+        }
       }
       @Override
       public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
@@ -769,11 +809,23 @@ public class WebClientTest extends HttpTestBase {
       }
       @Override
       public WriteStream<Buffer> write(Buffer data) {
+        return write(data, null);
+      }
+      @Override
+      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
         exceptionHandler.handle(cause);
+        if (handler != null) {
+          handler.handle(Future.failedFuture(cause));
+        }
         return this;
       }
       @Override
       public void end() {
+        throw new AssertionError();
+      }
+      @Override
+      public void end(Handler<AsyncResult<Void>> handler) {
+        throw new AssertionError();
       }
       @Override
       public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
@@ -815,7 +867,8 @@ public class WebClientTest extends HttpTestBase {
       public AsyncFile setWriteQueueMaxSize(int i) { throw new UnsupportedOperationException(); }
       public AsyncFile drainHandler(Handler<Void> handler) { throw new UnsupportedOperationException(); }
       public AsyncFile fetch(long l) { throw new UnsupportedOperationException(); }
-      public void end() { throw new UnsupportedOperationException(); }
+      public void end() { close(null); }
+      public void end(Handler<AsyncResult<Void>> handler) { close(handler); }
       public void close() { throw new UnsupportedOperationException(); }
       public AsyncFile write(Buffer buffer, long l, Handler<AsyncResult<Void>> handler) { throw new UnsupportedOperationException(); }
       public AsyncFile read(Buffer buffer, int i, long l, int i1, Handler<AsyncResult<Buffer>> handler) { throw new UnsupportedOperationException(); }
@@ -834,7 +887,13 @@ public class WebClientTest extends HttpTestBase {
         throw new UnsupportedOperationException();
       }
       public AsyncFile write(Buffer buffer) {
+        return write(buffer, null);
+      }
+      public AsyncFile write(Buffer buffer, Handler<AsyncResult<Void>> handler) {
         received.addAndGet(buffer.length());
+        if (handler != null) {
+          handler.handle(Future.succeededFuture());
+        }
         return this;
       }
       public void close(Handler<AsyncResult<Void>> handler) {
@@ -876,12 +935,26 @@ public class WebClientTest extends HttpTestBase {
       }
       @Override
       public WriteStream<Buffer> write(Buffer data) {
+        return write(data, null);
+      }
+      @Override
+      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
         length.addAndGet(data.length());
+        if (handler != null) {
+          handler.handle(Future.succeededFuture());
+        }
         return this;
       }
       @Override
       public void end() {
+        end((Handler<AsyncResult<Void>>) null);
+      }
+      @Override
+      public void end(Handler<AsyncResult<Void>> handler) {
         ended.set(true);
+        if (handler != null) {
+          handler.handle(Future.succeededFuture());
+        }
       }
       @Override
       public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
@@ -1185,6 +1258,19 @@ public class WebClientTest extends HttpTestBase {
     });
     startServer();
     HttpRequest<Buffer> req = client.get("/test").virtualHost("another-host");
+    req.send(onSuccess(resp -> testComplete()));
+    await();
+  }
+
+  @Test
+  public void testSocketAddress() throws Exception {
+    server.requestHandler(req -> {
+      assertEquals("another-host:8080", req.host());
+      req.response().end();
+    });
+    startServer();
+    SocketAddress addr = SocketAddress.inetSocketAddress(8080, "localhost");
+    HttpRequest<Buffer> req = client.request(HttpMethod.GET, addr, 8080, "another-host", "/test");
     req.send(onSuccess(resp -> testComplete()));
     await();
   }
@@ -1540,4 +1626,13 @@ public class WebClientTest extends HttpTestBase {
     });
     await();
   }
+
+  @Test
+  public void testDontModifyRequestURIQueryParams() throws Exception {
+    testRequest(
+      client -> client.get("/remote-server?jREJBBB5x2AaiSSDO0/OskoCztDZBAAAAAADV1A4"),
+      req -> assertEquals("/remote-server?jREJBBB5x2AaiSSDO0/OskoCztDZBAAAAAADV1A4", req.uri())
+    );
+  }
+
 }

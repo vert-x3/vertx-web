@@ -8,8 +8,8 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.api.OperationResponse;
 import io.vertx.ext.web.api.OperationRequest;
+import io.vertx.ext.web.api.OperationResponse;
 import io.vertx.ext.web.api.RequestParameters;
 
 import java.util.function.Function;
@@ -39,7 +39,7 @@ public class RouteToEBServiceHandler implements Handler<RoutingContext> {
         if (op.getHeaders() != null)
           op.getHeaders().forEach(h -> response.putHeader(h.getKey(), h.getValue()));
         if (op.getPayload() != null)
-          response.end(op.getPayload().toString());
+          response.end(op.getPayload());
         else
           response.end();
       } else {

@@ -139,7 +139,7 @@ public class BodyHandlerImpl implements BodyHandler {
     }
     try {
       long parsedContentLength = Long.parseLong(contentLength);
-      return  parsedContentLength < 0 ? null : parsedContentLength;
+      return parsedContentLength < 0 ? -1 : parsedContentLength;
     }
     catch (NumberFormatException ex) {
       return -1;

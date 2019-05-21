@@ -33,11 +33,13 @@ public class GraphQLHandlerOptions {
   public static final boolean DEFAULT_REQUEST_BATCHING_ENABLED = false;
 
   private boolean requestBatchingEnabled = DEFAULT_REQUEST_BATCHING_ENABLED;
+  private GraphiQLOptions graphiQLOptions;
 
   /**
    * Default constructor.
    */
   public GraphQLHandlerOptions() {
+    graphiQLOptions = new GraphiQLOptions();
   }
 
   /**
@@ -47,6 +49,7 @@ public class GraphQLHandlerOptions {
    */
   public GraphQLHandlerOptions(GraphQLHandlerOptions other) {
     requestBatchingEnabled = other.requestBatchingEnabled;
+    graphiQLOptions = other.graphiQLOptions == null ? new GraphiQLOptions() : new GraphiQLOptions(other.graphiQLOptions);
   }
 
   /**
@@ -57,6 +60,15 @@ public class GraphQLHandlerOptions {
   public GraphQLHandlerOptions(JsonObject json) {
     this();
     GraphQLHandlerOptionsConverter.fromJson(json, this);
+  }
+
+  /**
+   * @return a JSON representation of these options
+   */
+  public JsonObject toJson() {
+    JsonObject json = new JsonObject();
+    GraphQLHandlerOptionsConverter.toJson(this, json);
+    return json;
   }
 
   /**
@@ -75,6 +87,25 @@ public class GraphQLHandlerOptions {
    */
   public GraphQLHandlerOptions setRequestBatchingEnabled(boolean requestBatchingEnabled) {
     this.requestBatchingEnabled = requestBatchingEnabled;
+    return this;
+  }
+
+  /**
+   * @return the GraphiQL options
+   */
+  public GraphiQLOptions getGraphiQLOptions() {
+    return graphiQLOptions;
+  }
+
+  /**
+   * Configure the GraphiQL development tool.
+   *
+   * @param graphiQLOptions the {@link GraphiQLOptions} options to use
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  public GraphQLHandlerOptions setGraphiQLOptions(GraphiQLOptions graphiQLOptions) {
+    this.graphiQLOptions = graphiQLOptions;
     return this;
   }
 }

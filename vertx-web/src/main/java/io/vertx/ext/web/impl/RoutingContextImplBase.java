@@ -157,7 +157,7 @@ public abstract class RoutingContextImplBase implements RoutingContext {
         log.error("Error in error handler", t);
       }
     }
-    if (!response().ended()) {
+    if (!response().ended() && !response().closed()) {
       try {
         response().setStatusCode(code);
       } catch (IllegalArgumentException e) {
