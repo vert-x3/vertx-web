@@ -30,9 +30,15 @@ import io.vertx.ext.web.codec.spi.BodyStream;
 public class StreamingBodyCodec implements BodyCodec<Void> {
 
   private final WriteStream<Buffer> stream;
+  private final boolean close;
 
   public StreamingBodyCodec(WriteStream<Buffer> stream) {
+	  this(stream, true);
+  }
+
+  public StreamingBodyCodec(WriteStream<Buffer> stream, boolean close) {
     this.stream = stream;
+    this.close = close;
   }
 
   @Override
@@ -65,17 +71,21 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
 
       @Override
       public void end() {
-        if (stream instanceof AsyncFile) {
-          AsyncFile file = (AsyncFile) stream;
-          file.close(ar -> {
-            if (ar.succeeded()) {
-              fut.tryComplete();
-            } else {
-              fut.tryFail(ar.cause());
-            }
-          });
+        if (close) {
+          if (stream instanceof AsyncFile) {
+            AsyncFile file = (AsyncFile) stream;
+            file.close(ar -> {
+              if (ar.succeeded()) {
+                fut.tryComplete();
+              } else {
+                fut.tryFail(ar.cause());
+              }
+            });
+          } else {
+            stream.end();
+            fut.tryComplete();
+          }
         } else {
-          stream.end();
           fut.tryComplete();
         }
       }

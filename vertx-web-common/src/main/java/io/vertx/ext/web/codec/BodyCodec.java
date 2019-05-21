@@ -104,11 +104,22 @@ public interface BodyCodec<T> {
   /**
    * A body codec that pipes the body to a write stream.
    *
-   * @param stream the destination tream
+   * @param stream the destination stream
    * @return the body codec for a write stream
    */
   static BodyCodec<Void> pipe(WriteStream<Buffer> stream) {
-    return new StreamingBodyCodec(stream);
+	return pipe(stream, true);
+  }
+
+  /**
+   * A body codec that pipes the body to a write stream.
+   *
+   * @param stream the destination stream
+   * @param close whether the destination stream should be closed
+   * @return the body codec for a write stream
+   */
+  static BodyCodec<Void> pipe(WriteStream<Buffer> stream, boolean close) {
+    return new StreamingBodyCodec(stream, close);
   }
 
   /**
