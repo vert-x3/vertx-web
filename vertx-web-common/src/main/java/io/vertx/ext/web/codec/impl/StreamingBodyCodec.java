@@ -94,6 +94,9 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
           });
         } else {
           fut.tryComplete();
+          if (handler != null) {
+            handler.handle(Future.succeededFuture());
+          }
         }
       }
 
