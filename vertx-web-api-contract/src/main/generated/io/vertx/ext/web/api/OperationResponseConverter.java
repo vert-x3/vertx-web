@@ -14,6 +14,16 @@ import java.time.format.DateTimeFormatter;
    static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, OperationResponse obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
+        case "cookies":
+          if (member.getValue() instanceof JsonArray) {
+            java.util.ArrayList<io.vertx.ext.web.api.OperationCookie> list =  new java.util.ArrayList<>();
+            ((Iterable<Object>)member.getValue()).forEach( item -> {
+              if (item instanceof JsonObject)
+                list.add(new io.vertx.ext.web.api.OperationCookie((JsonObject)item));
+            });
+            obj.setCookies(list);
+          }
+          break;
         case "payload":
           if (member.getValue() instanceof String) {
             obj.setPayload(io.vertx.core.buffer.Buffer.buffer(java.util.Base64.getDecoder().decode((String)member.getValue())));
@@ -38,6 +48,11 @@ import java.time.format.DateTimeFormatter;
   }
 
    static void toJson(OperationResponse obj, java.util.Map<String, Object> json) {
+    if (obj.getCookies() != null) {
+      JsonArray array = new JsonArray();
+      obj.getCookies().forEach(item -> array.add(item.toJson()));
+      json.put("cookies", array);
+    }
     if (obj.getPayload() != null) {
       json.put("payload", java.util.Base64.getEncoder().encodeToString(obj.getPayload().getBytes()));
     }

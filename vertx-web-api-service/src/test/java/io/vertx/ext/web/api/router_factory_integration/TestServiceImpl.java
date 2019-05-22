@@ -4,10 +4,13 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.api.OperationResponse;
+import io.vertx.ext.web.api.OperationCookie;
 import io.vertx.ext.web.api.OperationRequest;
-import io.vertx.ext.web.api.RequestParameter;
+import io.vertx.ext.web.api.OperationResponse;
+
+import java.util.Collections;
 
 public class TestServiceImpl implements TestService {
   Vertx vertx;
@@ -50,5 +53,13 @@ public class TestServiceImpl implements TestService {
     resultHandler.handle(Future.succeededFuture(
       OperationResponse.completedWithJson(new JsonObject().put("result", "Hello " + context.getExtra().getString("username") + "!")))
     );
+  }
+
+  @Override
+  public void testCookie(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler) {
+    OperationCookie cookie = new OperationCookie("test", "test-value");
+    resultHandler.handle(Future.succeededFuture(
+      OperationResponse.completedWithPlainText(Buffer.buffer("hello")).setCookies(Collections.singletonList(cookie))
+    ));
   }
 }

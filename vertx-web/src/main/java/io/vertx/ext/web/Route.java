@@ -23,6 +23,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * A route is a holder for a set of criteria which determine whether an HTTP request or failure should be routed
@@ -183,6 +184,11 @@ public interface Route {
    */
   @Nullable
   String getPath();
+
+  /**
+   * @return the http methods accepted by this route
+   */
+  Set<HttpMethod> methods();
 
   /**
    * When you add a new route with a regular expression, you can add named capture groups for parameters. <br/>
