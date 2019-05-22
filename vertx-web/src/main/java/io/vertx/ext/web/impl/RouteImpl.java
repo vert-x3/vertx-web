@@ -190,6 +190,11 @@ public class RouteImpl implements Route {
   }
 
   @Override
+  public Set<HttpMethod> methods() {
+    return this.methods;
+  }
+
+  @Override
   public Route setRegexGroupsNames(List<String> groups) {
     this.groups = groups;
     return this;
