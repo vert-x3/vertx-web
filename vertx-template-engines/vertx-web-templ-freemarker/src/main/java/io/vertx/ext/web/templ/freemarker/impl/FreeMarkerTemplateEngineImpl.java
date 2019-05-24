@@ -25,6 +25,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
+import io.vertx.ext.web.common.template.impl.TemplateHolder;
 import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
 
 import java.io.ByteArrayOutputStream;
@@ -39,7 +40,7 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
   private final Configuration config;
 
   public FreeMarkerTemplateEngineImpl(Vertx vertx) {
-    super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
+    super(vertx, DEFAULT_TEMPLATE_EXTENSION);
 
     config = new Configuration(Configuration.VERSION_2_3_28);
     config.setObjectWrapper(new VertxWebObjectWrapper(config.getIncompatibleImprovements()));
@@ -54,28 +55,21 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
-  public FreeMarkerTemplateEngine setMaxCacheSize(int maxCacheSize) {
-    this.cache.setMaxSize(maxCacheSize);
-    return this;
-  }
-
-  @Override
   public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
-      Template template = isCachingEnabled() ? cache.get(templateFile) : null;
+      String src = adjustLocation(templateFile);
+      TemplateHolder<Template> template = getTemplate(src);
       if (template == null) {
         // real compile
         synchronized (this) {
           // Compile
-          template = config.getTemplate(adjustLocation(templateFile));
+          template = new TemplateHolder<>(config.getTemplate(src));
         }
-        if (isCachingEnabled()) {
-          cache.put(templateFile, template);
-        }
+        putTemplate(src, template);
       }
 
       try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-        template.process(context, new OutputStreamWriter(baos));
+        template.template().process(context, new OutputStreamWriter(baos));
         handler.handle(Future.succeededFuture(Buffer.buffer(baos.toByteArray())));
       }
 

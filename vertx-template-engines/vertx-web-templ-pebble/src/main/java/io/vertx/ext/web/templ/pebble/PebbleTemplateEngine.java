@@ -33,14 +33,8 @@ import io.vertx.ext.web.templ.pebble.impl.PebbleTemplateEngineImpl;
 public interface PebbleTemplateEngine extends TemplateEngine {
 
   /**
-   * Default max number of templates to cache
-   */
-  int DEFAULT_MAX_CACHE_SIZE = 10000;
-
-  /**
    * Default template extension
    */
-  @Deprecated
   String DEFAULT_TEMPLATE_EXTENSION = "peb";
 
   /**
@@ -59,8 +53,8 @@ public interface PebbleTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   @GenIgnore
-  static PebbleTemplateEngine create(PebbleEngine engine) {
-    return new PebbleTemplateEngineImpl(engine);
+  static PebbleTemplateEngine create(Vertx vertx, PebbleEngine engine) {
+    return new PebbleTemplateEngineImpl(vertx, engine);
   }
 
   /**
@@ -75,16 +69,5 @@ public interface PebbleTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   @Fluent
-  @Deprecated
   PebbleTemplateEngine setExtension(String extension);
-
-  /**
-   * Set the max cache size for the engine
-   *
-   * @param maxCacheSize
-   *            the maxCacheSize
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  PebbleTemplateEngine setMaxCacheSize(int maxCacheSize);
 }

@@ -29,14 +29,8 @@ import io.vertx.ext.web.templ.freemarker.impl.FreeMarkerTemplateEngineImpl;
 @VertxGen
 public interface FreeMarkerTemplateEngine extends TemplateEngine {
   /**
-   * Default max number of templates to cache
-   */
-  int DEFAULT_MAX_CACHE_SIZE = 10000;
-
-  /**
    * Default template extension
    */
-  @Deprecated
   String DEFAULT_TEMPLATE_EXTENSION = "ftl";
 
   /**
@@ -45,7 +39,7 @@ public interface FreeMarkerTemplateEngine extends TemplateEngine {
    * @return  the engine
    */
   static FreeMarkerTemplateEngine create(Vertx vertx) {
-    return new FreeMarkerTemplateEngineImpl(vertx);
+    return new FreeMarkerTemplateEngineImpl(vertx).setExtension(DEFAULT_TEMPLATE_EXTENSION);
   }
 
   /**
@@ -59,15 +53,5 @@ public interface FreeMarkerTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   @Fluent
-  @Deprecated
   FreeMarkerTemplateEngine setExtension(String extension);
-
-  /**
-   * Set the max cache size for the engine
-   *
-   * @param maxCacheSize  the maxCacheSize
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  FreeMarkerTemplateEngine setMaxCacheSize(int maxCacheSize);
 }

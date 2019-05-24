@@ -22,7 +22,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.templ.rocker.RockerTemplateEngine;
 
 import java.util.Map;
@@ -30,21 +29,17 @@ import java.util.Map;
 /**
  * @author <a href="mailto:xianguang.zhou@outlook.com">Xianguang Zhou</a>
  */
-public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implements RockerTemplateEngine {
+public class RockerTemplateEngineImpl implements RockerTemplateEngine {
+
+  private String extension;
 
   public RockerTemplateEngineImpl() {
-    super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
+    setExtension(DEFAULT_TEMPLATE_EXTENSION);
   }
 
   @Override
-  public RockerTemplateEngine setExtension(String extension) {
-    doSetExtension(extension);
-    return this;
-  }
-
-  @Override
-  public RockerTemplateEngine setMaxCacheSize(int maxCacheSize) {
-    this.cache.setMaxSize(maxCacheSize);
+  public RockerTemplateEngine setExtension(String ext) {
+    this.extension = ext.charAt(0) == '.' ? ext : "." + ext;
     return this;
   }
 
@@ -70,4 +65,12 @@ public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implem
     }
   }
 
+  private String adjustLocation(String location) {
+    if (extension != null) {
+      if (!location.endsWith(extension)) {
+        location += extension;
+      }
+    }
+    return location;
+  }
 }

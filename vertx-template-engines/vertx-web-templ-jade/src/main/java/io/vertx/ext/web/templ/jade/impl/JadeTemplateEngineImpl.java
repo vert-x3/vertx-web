@@ -25,6 +25,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
+import io.vertx.ext.web.common.template.impl.TemplateHolder;
 import io.vertx.ext.web.templ.jade.JadeTemplateEngine;
 
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   private final JadeConfiguration config = new JadeConfiguration();
 
   public JadeTemplateEngineImpl(Vertx vertx) {
-    super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
+    super(vertx, DEFAULT_TEMPLATE_EXTENSION);
     config.setTemplateLoader(new JadeTemplateLoader(vertx));
     config.setCaching(false);
   }
@@ -54,26 +55,19 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   }
 
   @Override
-  public JadeTemplateEngine setMaxCacheSize(int maxCacheSize) {
-    this.cache.setMaxSize(maxCacheSize);
-    return this;
-  }
-
-  @Override
   public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
-      JadeTemplate template = isCachingEnabled() ? cache.get(templateFile) : null;
+      String src = adjustLocation(templateFile);
+      TemplateHolder<JadeTemplate> template = getTemplate(src);
 
       if (template == null) {
         synchronized (this) {
           // Compile
-          template = config.getTemplate(templateFile);
+          template = new TemplateHolder<>(config.getTemplate(src));
         }
-        if (isCachingEnabled()) {
-          cache.put(templateFile, template);
-        }
+        putTemplate(src, template);
       }
-      handler.handle(Future.succeededFuture(Buffer.buffer(config.renderTemplate(template, context))));
+      handler.handle(Future.succeededFuture(Buffer.buffer(config.renderTemplate(template.template(), context))));
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }
@@ -106,7 +100,7 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
     @Override
     public Reader getReader(String name) throws IOException {
       // the internal loader will always resolve with .jade extension
-      name = adjustLocation(name.endsWith(".jade") ? name.substring(0, name.length() - 5) : name);
+      name = adjustLocation(name);
       String templ = null;
 
       if (vertx.fileSystem().existsBlocking(name)) {

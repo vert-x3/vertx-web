@@ -34,14 +34,8 @@ import io.vertx.ext.web.templ.handlebars.impl.HandlebarsTemplateEngineImpl;
 public interface HandlebarsTemplateEngine extends TemplateEngine {
 
   /**
-   * Default max number of templates to cache
-   */
-  int DEFAULT_MAX_CACHE_SIZE = 10000;
-
-  /**
    * Default template extension
    */
-  @Deprecated
   String DEFAULT_TEMPLATE_EXTENSION = "hbs";
 
   /**
@@ -64,17 +58,7 @@ public interface HandlebarsTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   @Fluent
-  @Deprecated
   HandlebarsTemplateEngine setExtension(String extension);
-
-  /**
-   * Set the max cache size for the engine
-   *
-   * @param maxCacheSize  the maxCacheSize
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize);
 
   /**
    * Get a reference to the internal Handlebars object so it

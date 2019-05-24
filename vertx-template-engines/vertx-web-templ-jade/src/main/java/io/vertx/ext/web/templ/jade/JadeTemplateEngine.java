@@ -33,14 +33,8 @@ import io.vertx.ext.web.templ.jade.impl.JadeTemplateEngineImpl;
 public interface JadeTemplateEngine extends TemplateEngine {
 
   /**
-   * Default max number of templates to cache
-   */
-  int DEFAULT_MAX_CACHE_SIZE = 10000;
-
-  /**
    * Default template extension
    */
-  @Deprecated
   String DEFAULT_TEMPLATE_EXTENSION = "jade";
 
   /**
@@ -63,17 +57,7 @@ public interface JadeTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   @Fluent
-  @Deprecated
   JadeTemplateEngine setExtension(String extension);
-
-  /**
-   * Set the max cache size for the engine
-   *
-   * @param maxCacheSize  the maxCacheSize
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  JadeTemplateEngine setMaxCacheSize(int maxCacheSize);
 
   /**
    * Get a reference to the internal JadeConfiguration object so it

@@ -31,14 +31,8 @@ import io.vertx.ext.web.templ.mvel.impl.MVELTemplateEngineImpl;
 public interface MVELTemplateEngine extends TemplateEngine {
 
   /**
-   * Default max number of templates to cache
-   */
-  int DEFAULT_MAX_CACHE_SIZE = 10000;
-
-  /**
    * Default template extension
    */
-  @Deprecated
   String DEFAULT_TEMPLATE_EXTENSION = "templ";
 
   /**
@@ -63,13 +57,4 @@ public interface MVELTemplateEngine extends TemplateEngine {
   @Fluent
   @Deprecated
   MVELTemplateEngine setExtension(String extension);
-
-  /**
-   * Set the max cache size for the engine
-   *
-   * @param maxCacheSize  the maxCacheSize
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  MVELTemplateEngine setMaxCacheSize(int maxCacheSize);
 }
