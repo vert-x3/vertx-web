@@ -22,6 +22,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
+import io.vertx.ext.web.common.template.impl.TemplateHolder;
 import org.mvel2.integration.impl.ImmutableDefaultFactory;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
@@ -41,7 +42,7 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
   private final Vertx vertx;
 
   public MVELTemplateEngineImpl(Vertx vertx) {
-    super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
+    super(vertx, DEFAULT_TEMPLATE_EXTENSION);
     this.vertx = vertx;
   }
 
@@ -52,47 +53,40 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
   }
 
   @Override
-  public MVELTemplateEngine setMaxCacheSize(int maxCacheSize) {
-    this.cache.setMaxSize(maxCacheSize);
-    return this;
-  }
-
-  @Override
   public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
-      int idx = templateFile.lastIndexOf('/');
-      String prefix = "";
-      if (idx != -1) {
-        prefix = templateFile.substring(0, idx);
-      }
+      String src = adjustLocation(templateFile);
+      TemplateHolder<CompiledTemplate> template = getTemplate(src);
 
-      CompiledTemplate template = isCachingEnabled() ? cache.get(templateFile) : null;
       if (template == null) {
-        // real compile
-        String loc = adjustLocation(templateFile);
-
-        String templ = null;
-
-        if (vertx.fileSystem().existsBlocking(loc)) {
-          templ = vertx.fileSystem()
-            .readFileBlocking(loc)
-            .toString(Charset.defaultCharset());
+        int idx = src.lastIndexOf('/');
+        String baseDir = "";
+        if (idx != -1) {
+          baseDir = src.substring(0, idx);
         }
 
-        if (templ == null) {
-          handler.handle(Future.failedFuture("Cannot find template " + loc));
+        if (!vertx.fileSystem().existsBlocking(src)) {
+          handler.handle(Future.failedFuture("Cannot find template " + src));
           return;
         }
 
-        template = TemplateCompiler.compileTemplate(templ);
-        if (isCachingEnabled()) {
-          cache.put(templateFile, template);
-        }
+        template = new TemplateHolder<>(
+          TemplateCompiler
+          .compileTemplate(
+            vertx.fileSystem()
+              .readFileBlocking(src)
+              .toString(Charset.defaultCharset())),
+          baseDir);
+
+        putTemplate(src, template);
       }
+
+      final CompiledTemplate mvel = template.template();
+      final String baseDir = template.baseDir();
 
       handler.handle(Future.succeededFuture(
         Buffer.buffer(
-          (String) new TemplateRuntime(template.getTemplate(), null, template.getRoot(), prefix)
+          (String) new TemplateRuntime(mvel.getTemplate(), null, mvel.getRoot(), baseDir)
             .execute(new StringAppender(), context, new ImmutableDefaultFactory())
         )
       ));

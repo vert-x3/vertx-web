@@ -30,14 +30,8 @@ import io.vertx.ext.web.templ.rocker.impl.RockerTemplateEngineImpl;
 public interface RockerTemplateEngine extends TemplateEngine {
 
   /**
-   * Default max number of templates to cache
-   */
-  int DEFAULT_MAX_CACHE_SIZE = 10000;
-
-  /**
    * Default template extension
    */
-  @Deprecated
   String DEFAULT_TEMPLATE_EXTENSION = "rocker.html";
 
   /**
@@ -61,16 +55,5 @@ public interface RockerTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   @Fluent
-  @Deprecated
   RockerTemplateEngine setExtension(String extension);
-
-  /**
-   * Set the max cache size for the engine
-   *
-   * @param maxCacheSize
-   *          the maxCacheSize
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  RockerTemplateEngine setMaxCacheSize(int maxCacheSize);
 }

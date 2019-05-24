@@ -29,6 +29,7 @@ import com.github.jknack.handlebars.io.TemplateLoader;
 import com.github.jknack.handlebars.io.TemplateSource;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.common.template.impl.TemplateHolder;
 import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 
 /**
@@ -43,7 +44,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   private ValueResolver[] resolvers;
 
   public HandlebarsTemplateEngineImpl(Vertx vertx) {
-    super(HandlebarsTemplateEngine.DEFAULT_TEMPLATE_EXTENSION, HandlebarsTemplateEngine.DEFAULT_MAX_CACHE_SIZE);
+    super(vertx, HandlebarsTemplateEngine.DEFAULT_TEMPLATE_EXTENSION);
     loader = new Loader(vertx);
     // custom resolvers
     resolvers = new ValueResolver[ValueResolver.VALUE_RESOLVERS.length + 2];
@@ -63,34 +64,29 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
-  public HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize) {
-    this.cache.setMaxSize(maxCacheSize);
-    return this;
-  }
-
-  @Override
   public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
-      int idx = templateFile.lastIndexOf('/');
-      String prefix = "";
-      String basename = templateFile;
-      if (idx != -1) {
-        prefix = templateFile.substring(0, idx);
-        basename = templateFile.substring(idx + 1);
-      }
-      Template template = isCachingEnabled() ? cache.get(templateFile) : null;
+      String src = adjustLocation(templateFile);
+      TemplateHolder<Template> template = getTemplate(src);
+
       if (template == null) {
+        // either it's not cache or cache is disabled
+        int idx = src.lastIndexOf('/');
+        String prefix = "";
+        String basename = src;
+        if (idx != -1) {
+          prefix = src.substring(0, idx);
+          basename = src.substring(idx + 1);
+        }
         synchronized (this) {
           loader.setPrefix(prefix);
-          // Strip leading slash from Utils##normalizePath
-          template = handlebars.compile(basename);
-          if (isCachingEnabled()) {
-            cache.put(templateFile, template);
-          }
+          template = new TemplateHolder<>(handlebars.compile(basename), prefix);
         }
+        putTemplate(src, template);
       }
+
       Context engineContext = Context.newBuilder(context).resolver(getResolvers()).build();
-      handler.handle(Future.succeededFuture(Buffer.buffer(template.apply(engineContext))));
+      handler.handle(Future.succeededFuture(Buffer.buffer(template.template().apply(engineContext))));
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }

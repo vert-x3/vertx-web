@@ -70,5 +70,7 @@ public interface TemplateEngine {
    *
    * @return True if template files are cached; otherwise, false.
    */
-  boolean isCachingEnabled();
+  default boolean isCachingEnabled() {
+    return false;
+  }
 }

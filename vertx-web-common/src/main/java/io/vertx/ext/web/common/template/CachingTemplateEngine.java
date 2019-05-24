@@ -16,8 +16,10 @@
 
 package io.vertx.ext.web.common.template;
 
+import io.vertx.core.Vertx;
+import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.common.WebEnvironment;
-import io.vertx.ext.web.common.template.impl.ConcurrentLRUCache;
+import io.vertx.ext.web.common.template.impl.TemplateHolder;
 
 import java.util.Objects;
 
@@ -29,9 +31,8 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
   // should not be static, so at at creation time the value is evaluated
   private final boolean enableCache = !WebEnvironment.development();
 
-  protected final ConcurrentLRUCache<String, T> cache;
+  private final LocalMap<String, TemplateHolder<T>> cache;
 
-  @Deprecated
   protected String extension;
 
   @Deprecated
@@ -41,11 +42,38 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
     doSetExtension(ext);
   }
 
+  protected CachingTemplateEngine(Vertx vertx, String ext) {
+    if (isCachingEnabled()) {
+      cache = vertx.sharedData().getLocalMap("__vertx.web.template.cache");
+    } else {
+      cache = null;
+    }
+
+    Objects.requireNonNull(ext);
+    doSetExtension(ext);
+  }
+
   protected CachingTemplateEngine(int maxCacheSize) {
     if (maxCacheSize < 1) {
       throw new IllegalArgumentException("maxCacheSize must be >= 1");
     }
-    this.cache = new ConcurrentLRUCache<>(maxCacheSize);
+    this.cache = null;
+  }
+
+  public TemplateHolder<T> getTemplate(String filename) {
+    if (isCachingEnabled()) {
+      return cache.get(filename);
+    }
+
+    return null;
+  }
+
+  public TemplateHolder<T> putTemplate(String filename, TemplateHolder<T> templateHolder) {
+    if (isCachingEnabled()) {
+      return cache.put(filename, templateHolder);
+    }
+
+    return null;
   }
 
   @Override
@@ -53,7 +81,6 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
       return enableCache;
   }
 
-  @Deprecated
   protected String adjustLocation(String location) {
     if (extension != null) {
       if (!location.endsWith(extension)) {
@@ -63,9 +90,7 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
     return location;
   }
 
-  @Deprecated
   protected void doSetExtension(String ext) {
     this.extension = ext.charAt(0) == '.' ? ext : "." + ext;
   }
-
 }

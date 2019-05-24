@@ -459,7 +459,7 @@ public class PebbleTemplateTest {
   @Test
   public void customBuilderShouldRender(TestContext should) {
     final Async test = should.async();
-    final TemplateEngine engine = PebbleTemplateEngine.create(new PebbleEngine.Builder().extension(new TestExtension()).loader(new PebbleVertxLoader(vertx)).build());
+    final TemplateEngine engine = PebbleTemplateEngine.create(vertx, new PebbleEngine.Builder().extension(new TestExtension()).loader(new PebbleVertxLoader(vertx)).build());
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
