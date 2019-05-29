@@ -11,6 +11,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -160,7 +161,7 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
     List<AuthorizationValue> authorizationValues = auth.stream()
       .map(obj -> obj.mapTo(AuthorizationValue.class))
       .collect(Collectors.toList());
-    vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
+    vertx.executeBlocking((Promise<OpenAPI3RouterFactory> future) -> {
       SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(url, authorizationValues, OpenApi3Utils.getParseOptions());
       if (swaggerParseResult.getMessages().isEmpty()) {
         future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI(), new ResolverCache(swaggerParseResult.getOpenAPI(), null, url)));
