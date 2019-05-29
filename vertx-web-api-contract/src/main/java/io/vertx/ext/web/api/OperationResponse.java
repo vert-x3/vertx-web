@@ -14,8 +14,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
-
 @DataObject(generateConverter = true, publicConverter = false)
 public class OperationResponse {
 
@@ -127,9 +125,9 @@ public class OperationResponse {
     return this;
   }
 
-  @Fluent public OperationResponse addCookie(OperationCookie... cookies) {
-    if (cookies != null && cookies.length > 1) {
-      this.cookies.addAll(asList(cookies));
+  @Fluent public OperationResponse addCookie(OperationCookie cookie) {
+    if (cookie != null) {
+      this.cookies.add(cookie);
     }
     return this;
   }
