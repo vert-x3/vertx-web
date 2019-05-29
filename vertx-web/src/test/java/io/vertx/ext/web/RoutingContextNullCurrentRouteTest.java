@@ -1,7 +1,7 @@
 package io.vertx.ext.web;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
@@ -49,7 +49,7 @@ public class RoutingContextNullCurrentRouteTest {
     public static class TestVerticle extends AbstractVerticle {
 
         @Override
-        public void start(Future<Void> startFuture) throws Exception {
+        public void start(Promise<Void> startFuture) throws Exception {
 
             Router router = Router.router(vertx);
             router.get("/test").handler(routingCount ->

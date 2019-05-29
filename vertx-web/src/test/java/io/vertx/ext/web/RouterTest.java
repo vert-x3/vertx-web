@@ -23,6 +23,8 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.Promise;
+import io.vertx.core.http.*;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -2122,7 +2124,7 @@ public class RouterTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(multipleConnections);
 
-    Handler<Future<Object>> execute200Request = future -> {
+    Handler<Promise<Object>> execute200Request = future -> {
       try {
         Thread.sleep((int) (1 + Math.random() * 10));
         testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
@@ -2133,7 +2135,7 @@ public class RouterTest extends WebTestBase {
       }
     };
 
-    Handler<Future<Object>> execute400Request = future -> {
+    Handler<Promise<Object>> execute400Request = future -> {
       try {
         Thread.sleep((int) (1 + Math.random() * 10));
         testSyncRequest("GET", "/fail", 400, "ERROR", "fhandler1fhandler2fhandler3");

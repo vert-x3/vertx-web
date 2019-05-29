@@ -18,6 +18,7 @@ package io.vertx.ext.web.codec.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -67,18 +68,16 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
     handler.handle(Future.succeededFuture(new BodyStream<T>() {
 
       Buffer buffer = Buffer.buffer();
-      Future<T> state = Future.future();
+      Promise<T> state = Promise.promise();
 
       @Override
       public void handle(Throwable cause) {
-        if (!state.isComplete()) {
-          state.fail(cause);
-        }
+        state.tryFail(cause);
       }
 
       @Override
       public Future<T> result() {
-        return state;
+        return state.future();
       }
 
       @Override
@@ -106,7 +105,7 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
 
       @Override
       public void end(Handler<AsyncResult<Void>> handler) {
-        if (!state.isComplete()) {
+        if (!state.future().isComplete()) {
           T result;
           if (buffer.length() > 0) {
             try {

@@ -160,10 +160,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }
     } else {
       BridgeEventImpl event = eventSupplier.get();
-      Future<Boolean> fut = Future.future();
-      event.setFuture(fut);
       bridgeEventHandler.handle(event);
-      fut.setHandler(res -> {
+      event.future().setHandler(res -> {
         if (res.succeeded()) {
           if (res.result()) {
             if (okAction != null) {
