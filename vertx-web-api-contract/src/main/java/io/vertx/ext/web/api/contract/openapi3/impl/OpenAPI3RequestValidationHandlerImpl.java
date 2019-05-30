@@ -477,8 +477,11 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     if (requestBody != null && requestBody.getContent() != null) {
       for (Map.Entry<String, ? extends MediaType> mediaType : requestBody.getContent().entrySet()) {
         if (Utils.isJsonContentType(mediaType.getKey()) && mediaType.getValue().getSchema() != null) {
-          this.setEntireBodyValidator(JsonTypeValidator.JsonTypeValidatorFactory
-            .createJsonTypeValidator(OpenApi3Utils.generateSanitizedJsonSchemaNode(mediaType.getValue().getSchema(), this.spec)));
+          this.setEntireBodyValidator(
+            JsonTypeValidator
+              .JsonTypeValidatorFactory
+              .createJsonTypeValidator(OpenApi3Utils.generateSanitizedJsonSchemaNode(mediaType.getValue().getSchema(), this.spec))
+          );
         } else if (mediaType.getKey().equals("application/x-www-form-urlencoded") && mediaType.getValue().getSchema()
           != null) {
           for (Map.Entry<String, ? extends Schema> paramSchema : ((Map<String, Schema>) mediaType.getValue().getSchema().getProperties())

@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
@@ -25,8 +26,10 @@ import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.ServiceResponse;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -144,8 +147,18 @@ public class RouteImpl implements Route {
   }
 
   @Override
+  public Route handler(Function<RoutingContext, Future<ServiceResponse>> requestFunction) {
+    return handler(new ServiceResponseHandler(requestFunction));
+  }
+
+  @Override
   public Route blockingHandler(Handler<RoutingContext> contextHandler) {
     return blockingHandler(contextHandler, true);
+  }
+
+  @Override
+  public Route blockingHandler(Function<RoutingContext, Future<ServiceResponse>> requestFunction) {
+    return handler(new BlockingHandlerDecorator(new ServiceResponseHandler(requestFunction), true));
   }
 
   @Override
@@ -158,6 +171,11 @@ public class RouteImpl implements Route {
     this.failureHandlers.add(exceptionHandler);
     checkAdd();
     return this;
+  }
+
+  @Override
+  public Route failureHandler(Function<RoutingContext, Future<ServiceResponse>> failureRequestFunction) {
+    return failureHandler(new ServiceResponseHandler(failureRequestFunction));
   }
 
   @Override

@@ -19,11 +19,13 @@ package io.vertx.ext.web;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * A route is a holder for a set of criteria which determine whether an HTTP request or failure should be routed
@@ -110,12 +112,17 @@ public interface Route {
   @Fluent
   Route handler(Handler<RoutingContext> requestHandler);
 
+  @Fluent
+  Route handler(Function<RoutingContext, Future<ServiceResponse>> requestFunction);
 
   /**
    * Like {@link io.vertx.ext.web.Route#blockingHandler(Handler, boolean)} called with ordered = true
    */
   @Fluent
   Route blockingHandler(Handler<RoutingContext> requestHandler);
+
+  @Fluent
+  Route blockingHandler(Function<RoutingContext, Future<ServiceResponse>> requestFunction);
 
   /**
    * Specify a blocking request handler for the route.
@@ -144,6 +151,9 @@ public interface Route {
    */
   @Fluent
   Route failureHandler(Handler<RoutingContext> failureHandler);
+
+  @Fluent
+  Route failureHandler(Function<RoutingContext, Future<ServiceResponse>> failureRequestFunction);
 
   /**
    * Remove this route from the router
