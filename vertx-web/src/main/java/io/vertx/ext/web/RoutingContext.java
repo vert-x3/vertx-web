@@ -510,9 +510,8 @@ public interface RoutingContext {
   /**
    * Gets the value of a single query parameter
    *
-   * @param query The name of query parameter
-   * @return The list of all elements inside query parameter
+   * @param name The name of query parameter
+   * @return The list of all parameters matching the parameter name. It returns an empty list if no query parameter with {@code name} was found
    */
-  @Nullable
-  List<String> queryParam(String query);
+  List<String> queryParam(String name);
 }
