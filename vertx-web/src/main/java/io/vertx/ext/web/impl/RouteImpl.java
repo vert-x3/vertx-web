@@ -147,7 +147,7 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public Route handler(Function<RoutingContext, Future<ServiceResponse>> requestFunction) {
+  public Route function(Function<RoutingContext, Future<ServiceResponse>> requestFunction) {
     return handler(new ServiceResponseHandler(requestFunction));
   }
 
@@ -157,7 +157,7 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public Route blockingHandler(Function<RoutingContext, Future<ServiceResponse>> requestFunction) {
+  public Route blockingFunction(Function<RoutingContext, Future<ServiceResponse>> requestFunction) {
     return handler(new BlockingHandlerDecorator(new ServiceResponseHandler(requestFunction), true));
   }
 
@@ -174,7 +174,7 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public Route failureHandler(Function<RoutingContext, Future<ServiceResponse>> failureRequestFunction) {
+  public Route failureFunction(Function<RoutingContext, Future<ServiceResponse>> failureRequestFunction) {
     return failureHandler(new ServiceResponseHandler(failureRequestFunction));
   }
 
