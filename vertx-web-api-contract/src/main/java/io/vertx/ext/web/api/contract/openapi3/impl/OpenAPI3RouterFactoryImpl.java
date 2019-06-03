@@ -19,7 +19,6 @@ import io.vertx.ext.web.api.contract.impl.RouteToEBServiceHandler;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.impl.RouteImpl;
-import joptsimple.internal.Strings;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -39,9 +38,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   private static Handler<RoutingContext> generateNotAllowedHandler(List<HttpMethod> allowedMethods){
     return rc -> {
       rc.addHeadersEndHandler(v ->
-          rc.response().headers().add("Allow", Strings.join(
-            allowedMethods.stream().map(HttpMethod::toString).collect(Collectors.toList()), ", "
-          ))
+          rc.response().headers().add("Allow", allowedMethods.stream().map(HttpMethod::toString).collect(Collectors.joining(", ")))
         );
       rc.fail(405);
     };

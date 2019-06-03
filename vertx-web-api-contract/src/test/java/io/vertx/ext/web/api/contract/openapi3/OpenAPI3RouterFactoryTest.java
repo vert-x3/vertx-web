@@ -17,7 +17,6 @@ import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.multipart.MultipartForm;
-import org.apache.http.HttpStatus;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -82,7 +81,7 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
     Router router = Router.router(vertx);
     router.route()
       .handler((RoutingContext ctx) -> {
-        if (ctx.request().getHeader("Authorization") == null) ctx.fail(HttpStatus.SC_FORBIDDEN);
+        if (ctx.request().getHeader("Authorization") == null) ctx.fail(403);
         else ctx.next();
       })
       .handler(StaticHandler.create("src/test/resources"));
