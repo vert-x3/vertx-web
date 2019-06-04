@@ -1,6 +1,6 @@
 package io.vertx.ext.web.client.codec;
 
-import io.vertx.core.json.JsonCodec;
+import io.vertx.core.spi.json.JsonCodec;
 import io.vertx.core.json.JsonObject;
 
 public class ItalianWineAndCheeseCodec implements JsonCodec<ItalianWineAndCheese, JsonObject> {
