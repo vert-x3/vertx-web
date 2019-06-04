@@ -218,4 +218,36 @@ public class WebTestBase extends VertxTestBase {
     }
 
   }
+
+  protected void testRequestWithBody(HttpClient client, HttpMethod method, int port, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
+                                   int statusCode, String statusMessage, Buffer requestBodyBuffer,
+                                   Consumer<Buffer> responseBodyBufferAssert, boolean normalizeLineEndings) throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    HttpClientRequest req = client.request(method, port, "localhost", path, onSuccess(resp -> {
+      assertEquals(statusCode, resp.statusCode());
+      assertEquals(statusMessage, resp.statusMessage());
+      if (responseAction != null) {
+        responseAction.accept(resp);
+      }
+      if (responseBodyBufferAssert == null) {
+        latch.countDown();
+      } else {
+        resp.bodyHandler(buff -> {
+          if (normalizeLineEndings) {
+            buff = normalizeLineEndingsFor(buff);
+          }
+          responseBodyBufferAssert.accept(buff);
+          latch.countDown();
+        });
+      }
+    }));
+    if (requestAction != null) {
+      requestAction.accept(req);
+    }
+    if (requestBodyBuffer != null)
+      req.end(requestBodyBuffer);
+    else
+      req.end();
+    awaitLatch(latch);
+  }
 }

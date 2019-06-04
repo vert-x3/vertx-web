@@ -19,6 +19,9 @@ package io.vertx.ext.web;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.file.AsyncFile;
+import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
@@ -2450,5 +2453,56 @@ public class RouterTest extends WebTestBase {
     });
     req.end();
     latch.await();
+  }
+
+  private Future<AsyncFile> openFile(String filename) {
+    Future<AsyncFile> fut = Future.future();
+    vertx.fileSystem().open(filename, new OpenOptions().setWrite(false), fut);
+    return fut;
+  }
+
+  @Test
+  public void testRouteFunctionWithStream() throws Exception {
+    router
+      .get("/hello")
+      .function(rc ->
+        openFile("hello.txt")
+          .map(asyncFile -> WebResponse.fromStream("text/plain", asyncFile))
+      );
+
+    testRequestWithBody(
+      client,
+      HttpMethod.GET,
+      this.server.actualPort(),
+      "/hello",
+      null,
+      res -> assertEquals("text/plain", res.getHeader("content-type")),
+      200, "OK",
+      null, resBuf -> assertEquals(Buffer.buffer("hello world\n"), resBuf),
+      true
+    );
+  }
+
+  @Test
+  public void testRouteFunctionWithBufferedPayload() throws Exception {
+    Buffer buf = Buffer.buffer("hello world\n");
+
+    router
+      .get("/hello")
+      .function(rc ->
+        Future.succeededFuture(WebResponse.fromBuffer("text/plain", buf))
+      );
+
+    testRequestWithBody(
+      client,
+      HttpMethod.GET,
+      this.server.actualPort(),
+      "/hello",
+      null,
+      res -> assertEquals("text/plain", res.getHeader("content-type")),
+      200, "OK",
+      null, resBuf -> assertEquals(buf, resBuf),
+      true
+    );
   }
 }

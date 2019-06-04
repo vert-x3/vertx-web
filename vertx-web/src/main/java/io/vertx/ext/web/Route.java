@@ -113,7 +113,7 @@ public interface Route {
   Route handler(Handler<RoutingContext> requestHandler);
 
   @Fluent
-  Route function(Function<RoutingContext, Future<ServiceResponse>> requestFunction);
+  Route function(Function<RoutingContext, Future<WebResponse>> requestFunction);
 
   /**
    * Like {@link io.vertx.ext.web.Route#blockingHandler(Handler, boolean)} called with ordered = true
@@ -122,7 +122,7 @@ public interface Route {
   Route blockingHandler(Handler<RoutingContext> requestHandler);
 
   @Fluent
-  Route blockingFunction(Function<RoutingContext, Future<ServiceResponse>> requestFunction);
+  Route blockingFunction(Function<RoutingContext, Future<WebResponse>> requestFunction);
 
   /**
    * Specify a blocking request handler for the route.
@@ -153,7 +153,7 @@ public interface Route {
   Route failureHandler(Handler<RoutingContext> failureHandler);
 
   @Fluent
-  Route failureFunction(Function<RoutingContext, Future<ServiceResponse>> failureRequestFunction);
+  Route failureFunction(Function<RoutingContext, Future<WebResponse>> failureRequestFunction);
 
   /**
    * Remove this route from the router
