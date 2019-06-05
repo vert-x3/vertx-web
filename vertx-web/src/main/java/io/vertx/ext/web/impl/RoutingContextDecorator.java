@@ -245,6 +245,11 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
+  public void json(Object pojo) {
+    decoratedContext.json(pojo);
+  }
+
+  @Override
   public void setBody(Buffer body) {
     decoratedContext.setBody(body);
   }

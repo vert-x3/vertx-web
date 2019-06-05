@@ -26,6 +26,8 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -2462,35 +2464,13 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testRouteFunctionWithStream() throws Exception {
-    router
-      .get("/hello")
-      .function(rc ->
-        openFile("hello.txt")
-          .map(asyncFile -> WebResponse.fromStream("text/plain", asyncFile))
-      );
-
-    testRequestWithBody(
-      client,
-      HttpMethod.GET,
-      this.server.actualPort(),
-      "/hello",
-      null,
-      res -> assertEquals("text/plain", res.getHeader("content-type")),
-      200, "OK",
-      null, resBuf -> assertEquals(Buffer.buffer("hello world\n"), resBuf),
-      true
-    );
-  }
-
-  @Test
   public void testRouteFunctionWithBufferedPayload() throws Exception {
-    Buffer buf = Buffer.buffer("hello world\n");
-
     router
       .get("/hello")
-      .function(rc ->
-        Future.succeededFuture(WebResponse.fromBuffer("text/plain", buf))
+      .produces("application/json")
+      .handler(ResponseContentTypeHandler.create())
+      .jsonHandler(rc ->
+        Future.succeededFuture(new JsonObject().put("hello", "world"))
       );
 
     testRequestWithBody(
@@ -2498,10 +2478,10 @@ public class RouterTest extends WebTestBase {
       HttpMethod.GET,
       this.server.actualPort(),
       "/hello",
-      null,
-      res -> assertEquals("text/plain", res.getHeader("content-type")),
+      res -> res.putHeader("Accept", "application/json"),
+      res -> assertEquals("application/json", res.getHeader("content-type")),
       200, "OK",
-      null, resBuf -> assertEquals(buf, resBuf),
+      null, resBuf -> assertEquals(new JsonObject().put("hello", "world"), resBuf.toJsonObject()),
       true
     );
   }

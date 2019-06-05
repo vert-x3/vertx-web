@@ -113,22 +113,19 @@ public interface Route {
   Route handler(Handler<RoutingContext> requestHandler);
 
   /**
-   * Like {@link io.vertx.ext.web.Route#handler(Handler)} but it mounts a
+   * Like {@link io.vertx.ext.web.Route#handler(Handler)}
    *
    * @param requestFunction
    * @return
    */
   @Fluent
-  Route function(Function<RoutingContext, Future<WebResponse>> requestFunction);
+  <T> Route jsonHandler(Function<RoutingContext, Future<T>> requestFunction);
 
   /**
    * Like {@link io.vertx.ext.web.Route#blockingHandler(Handler, boolean)} called with ordered = true
    */
   @Fluent
   Route blockingHandler(Handler<RoutingContext> requestHandler);
-
-  @Fluent
-  Route blockingFunction(Function<RoutingContext, Future<WebResponse>> requestFunction);
 
   /**
    * Specify a blocking request handler for the route.
@@ -157,9 +154,6 @@ public interface Route {
    */
   @Fluent
   Route failureHandler(Handler<RoutingContext> failureHandler);
-
-  @Fluent
-  Route failureFunction(Function<RoutingContext, Future<WebResponse>> failureRequestFunction);
 
   /**
    * Remove this route from the router

@@ -27,6 +27,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.impl.HttpUtils;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
@@ -424,6 +425,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public @Nullable List<String> queryParam(String query) {
     return getQueryParams().getAll(query);
+  }
+
+  @Override
+  public void json(Object pojo) {
+    this.response().end(Json.encode(pojo));
   }
 
   private MultiMap getQueryParams() {

@@ -513,4 +513,6 @@ public interface RoutingContext {
    */
   @Nullable
   List<String> queryParam(String query);
+
+  void json(Object pojo);
 }

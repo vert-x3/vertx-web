@@ -26,7 +26,6 @@ import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.WebResponse;
 
 import java.util.*;
 import java.util.function.Function;
@@ -147,18 +146,16 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public Route function(Function<RoutingContext, Future<WebResponse>> requestFunction) {
-    return handler(new WebResponseHandler(requestFunction));
+  public <T> Route jsonHandler(Function<RoutingContext, Future<T>> requestFunction) {
+    return handler(rc -> requestFunction.apply(rc).setHandler(ar -> {
+      if (ar.succeeded()) rc.json(ar.result());
+      else rc.fail(ar.cause());
+    }));
   }
 
   @Override
   public Route blockingHandler(Handler<RoutingContext> contextHandler) {
     return blockingHandler(contextHandler, true);
-  }
-
-  @Override
-  public Route blockingFunction(Function<RoutingContext, Future<WebResponse>> requestFunction) {
-    return handler(new BlockingHandlerDecorator(new WebResponseHandler(requestFunction), true));
   }
 
   @Override
@@ -171,11 +168,6 @@ public class RouteImpl implements Route {
     this.failureHandlers.add(exceptionHandler);
     checkAdd();
     return this;
-  }
-
-  @Override
-  public Route failureFunction(Function<RoutingContext, Future<WebResponse>> failureRequestFunction) {
-    return failureHandler(new WebResponseHandler(failureRequestFunction));
   }
 
   @Override

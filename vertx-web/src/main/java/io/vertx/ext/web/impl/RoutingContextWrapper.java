@@ -286,4 +286,9 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
     return inner.queryParam(query);
   }
 
+  @Override
+  public void json(Object pojo) {
+    inner.json(pojo);
+  }
+
 }
