@@ -83,7 +83,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
       context.fail(405); // Must be a POST
     } else {
       if (!req.isExpectMultipart()) {
-        throw new IllegalStateException("Form body not parsed - do you forget to include a BodyHandler?");
+        throw new IllegalStateException("HttpServerRequest should have setExpectMultipart set to true, but it is currently set to false.");
       }
       MultiMap params = req.formAttributes();
       String username = params.get(usernameParam);
