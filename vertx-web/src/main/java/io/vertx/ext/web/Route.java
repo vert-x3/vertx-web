@@ -112,6 +112,12 @@ public interface Route {
   @Fluent
   Route handler(Handler<RoutingContext> requestHandler);
 
+  /**
+   * Like {@link io.vertx.ext.web.Route#handler(Handler)} but it mounts a
+   *
+   * @param requestFunction
+   * @return
+   */
   @Fluent
   Route function(Function<RoutingContext, Future<WebResponse>> requestFunction);
 

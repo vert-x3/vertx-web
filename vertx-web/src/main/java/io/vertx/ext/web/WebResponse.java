@@ -9,6 +9,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.impl.WebResponseImpl;
 
+/**
+ *
+ */
 public interface WebResponse {
 
   @Fluent
