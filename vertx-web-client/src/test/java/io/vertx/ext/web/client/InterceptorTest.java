@@ -308,6 +308,11 @@ public class InterceptorTest extends HttpTestBase {
     }
 
     @Override
+    public List<String> followedRedirects() {
+      return null;
+    }
+
+    @Override
     public JsonArray bodyAsJsonArray() {
       return null;
     }
