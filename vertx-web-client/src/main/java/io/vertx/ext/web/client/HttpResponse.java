@@ -120,7 +120,7 @@ public interface HttpResponse<T> {
    * @return the list of all followed redirects, including the final location.
    */
   @CacheReturn
-  List<String> redirected();
+  List<String> followedRedirects();
 
   /**
    * @return the response body decoded as a {@code String}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used

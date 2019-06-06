@@ -308,7 +308,7 @@ public class InterceptorTest extends HttpTestBase {
     }
 
     @Override
-    public List<String> redirected() {
+    public List<String> followedRedirects() {
       return null;
     }
 

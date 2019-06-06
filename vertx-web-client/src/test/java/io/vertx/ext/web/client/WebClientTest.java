@@ -1201,8 +1201,8 @@ public class WebClientTest extends HttpTestBase {
       if (expect) {
         assertEquals(200, resp.statusCode());
         assertEquals("/ok", resp.body().toString());
-        assertEquals(1, resp.redirected().size());
-        assertEquals(location, resp.redirected().get(0));
+        assertEquals(1, resp.followedRedirects().size());
+        assertEquals(location, resp.followedRedirects().get(0));
       } else {
         assertEquals(301, resp.statusCode());
         assertEquals(location, resp.getHeader("location"));
@@ -1238,9 +1238,9 @@ public class WebClientTest extends HttpTestBase {
       .send(onSuccess(resp -> {
         assertEquals(200, resp.statusCode());
         assertEquals("/ok", resp.body().toString());
-        assertEquals(2, resp.redirected().size());
-        assertEquals(middleRedirect, resp.redirected().get(0));
-        assertEquals(endRedirect, resp.redirected().get(1));
+        assertEquals(2, resp.followedRedirects().size());
+        assertEquals(middleRedirect, resp.followedRedirects().get(0));
+        assertEquals(endRedirect, resp.followedRedirects().get(1));
         complete();
     }));
     await();

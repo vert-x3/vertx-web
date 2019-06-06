@@ -106,7 +106,7 @@ public class HttpResponseImpl<T> implements HttpResponse<T> {
   }
 
   @Override
-  public List<String> redirected() {
+  public List<String> followedRedirects() {
     return redirects;
   }
 
