@@ -4,12 +4,21 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import io.vertx.core.spi.json.JsonCodec;
 
 /**
- * Converter for {@link io.vertx.ext.web.api.OperationRequest}.
+ * Converter and Codec for {@link io.vertx.ext.web.api.OperationRequest}.
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.api.OperationRequest} original class using Vert.x codegen.
  */
- class OperationRequestConverter {
+public class OperationRequestConverter implements JsonCodec<OperationRequest, JsonObject> {
+
+  public static final OperationRequestConverter INSTANCE = new OperationRequestConverter();
+
+  @Override public JsonObject encode(OperationRequest value) { return (value != null) ? value.toJson() : null; }
+
+  @Override public OperationRequest decode(JsonObject value) { return (value != null) ? new OperationRequest(value) : null; }
+
+  @Override public Class<OperationRequest> getTargetClass() { return OperationRequest.class; }
 
    static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, OperationRequest obj) {
     for (java.util.Map.Entry<String, Object> member : json) {

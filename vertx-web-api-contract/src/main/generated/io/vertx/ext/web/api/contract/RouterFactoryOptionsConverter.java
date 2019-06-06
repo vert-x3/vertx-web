@@ -4,12 +4,21 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import io.vertx.core.spi.json.JsonCodec;
 
 /**
- * Converter for {@link io.vertx.ext.web.api.contract.RouterFactoryOptions}.
+ * Converter and Codec for {@link io.vertx.ext.web.api.contract.RouterFactoryOptions}.
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.api.contract.RouterFactoryOptions} original class using Vert.x codegen.
  */
- class RouterFactoryOptionsConverter {
+public class RouterFactoryOptionsConverter implements JsonCodec<RouterFactoryOptions, JsonObject> {
+
+  public static final RouterFactoryOptionsConverter INSTANCE = new RouterFactoryOptionsConverter();
+
+  @Override public JsonObject encode(RouterFactoryOptions value) { return (value != null) ? value.toJson() : null; }
+
+  @Override public RouterFactoryOptions decode(JsonObject value) { return (value != null) ? new RouterFactoryOptions(value) : null; }
+
+  @Override public Class<RouterFactoryOptions> getTargetClass() { return RouterFactoryOptions.class; }
 
    static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, RouterFactoryOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
