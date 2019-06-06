@@ -174,6 +174,17 @@ public class HttpContext<T> {
   }
 
   /**
+   * Follow the redirect, this executes the {@link ClientPhase#FOLLOW_REDIRECT} phase:
+   * <ul>
+   *   <li>Traverse the interceptor chain</li>
+   *   <li>Send the redirect request</li>
+   * </ul>
+   */
+  public void followRedirect() {
+    fire(ClientPhase.SEND_REQUEST);
+  }
+
+  /**
    * Receive the HTTP response, this executes the {@link ClientPhase#RECEIVE_RESPONSE} phase:
    * <ul>
    *   <li>Traverse the interceptor chain</li>
@@ -193,7 +204,9 @@ public class HttpContext<T> {
             if (request.headers != null) {
               nextRequest.headers().addAll(request.headers);
             }
-            sendRequest(nextRequest);
+            this.clientRequest = nextRequest;
+            this.clientResponse = clientResponse;
+            fire(ClientPhase.FOLLOW_REDIRECT);
           } else {
             fail(ar.cause());
           }
@@ -264,6 +277,9 @@ public class HttpContext<T> {
         break;
       case SEND_REQUEST:
         handleSendRequest();
+        break;
+      case FOLLOW_REDIRECT:
+        followRedirect();
         break;
       case RECEIVE_RESPONSE:
         handleReceiveResponse();

@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
+import io.vertx.core.http.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,14 +40,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.OpenOptions;
-import io.vertx.core.http.CaseInsensitiveHeaders;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -96,7 +89,8 @@ public class SessionAwareWebClientTest {
       try {
         reqHandler.accept(req);
       } finally {
-        req.response().end();
+        if (!req.response().ended())
+          req.response().end();
       }
     });
     server.listen(context.asyncAssertSuccess(s -> async.complete()));
@@ -556,6 +550,34 @@ public class SessionAwareWebClientTest {
     Cookie cookie = new DefaultCookie("a", "a");
     context.assertTrue(store == store.put(cookie));
     context.assertTrue(store == store.remove(cookie));
+  }
+
+  @Test
+  public void testRedirectWithoutLosingCookies(TestContext context) throws Exception {
+    String location = "http://localhost:" + PORT + "/ok";
+    prepareServer(context, req -> {
+      if (req.path().equals("/redirect")) {
+        req
+          .response()
+          .setStatusCode(301)
+          .putHeader("Location", location)
+          .putHeader(HttpHeaders.SET_COOKIE, "vertx-web.session=8770f50f5221108c8b8b2d4ee9aef76e");
+      } else {
+        context.assertEquals("vertx-web.session=8770f50f5221108c8b8b2d4ee9aef76e", req.getHeader(HttpHeaders.COOKIE));
+        req
+          .response()
+          .end(req.path());
+      }
+    });
+    Async async = context.async();
+    client.get("/redirect")
+      .followRedirects(true)
+      .send(context.asyncAssertSuccess(resp -> {
+        assertEquals(200, resp.statusCode());
+        assertEquals("/ok", resp.body().toString());
+        async.complete();
+      }));
+    async.await();
   }
 
   public void validate(TestContext context, Iterable<Cookie> cookies, String[] expectedNames, String[] expectedVals) {
