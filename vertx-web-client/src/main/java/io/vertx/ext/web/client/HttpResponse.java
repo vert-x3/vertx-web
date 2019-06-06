@@ -117,6 +117,12 @@ public interface HttpResponse<T> {
   Buffer bodyAsBuffer();
 
   /**
+   * @return the list of all followed redirects, including the final location.
+   */
+  @CacheReturn
+  List<String> redirected();
+
+  /**
    * @return the response body decoded as a {@code String}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @CacheReturn

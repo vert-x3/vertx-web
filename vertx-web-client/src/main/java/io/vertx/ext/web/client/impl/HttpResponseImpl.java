@@ -36,6 +36,7 @@ public class HttpResponseImpl<T> implements HttpResponse<T> {
   private final MultiMap trailers;
   private final List<String> cookies;
   private final T body;
+  private final List<String> redirects;
 
   public HttpResponseImpl(HttpVersion version,
                           int statusCode,
@@ -43,7 +44,7 @@ public class HttpResponseImpl<T> implements HttpResponse<T> {
                           MultiMap headers,
                           MultiMap trailers,
                           List<String> cookies,
-                          T body) {
+                          T body, List<String> redirects) {
     this.version = version;
     this.statusCode = statusCode;
     this.statusMessage = statusMessage;
@@ -51,6 +52,7 @@ public class HttpResponseImpl<T> implements HttpResponse<T> {
     this.trailers = trailers;
     this.cookies = cookies;
     this.body = body;
+    this.redirects = redirects;
   }
 
   @Override
@@ -104,8 +106,15 @@ public class HttpResponseImpl<T> implements HttpResponse<T> {
   }
 
   @Override
+  public List<String> redirected() {
+    return redirects;
+  }
+
+  @Override
   public JsonArray bodyAsJsonArray() {
     Buffer b = bodyAsBuffer();
     return b != null ? BodyCodecImpl.JSON_ARRAY_DECODER.apply(b) : null;
   }
+
+
 }

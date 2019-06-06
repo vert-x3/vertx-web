@@ -44,7 +44,7 @@ public class PredicateInterceptor implements Handler<HttpContext<?>> {
         for (ResponsePredicate expectation : expectations) {
           ResponsePredicateResultImpl predicateResult;
           try {
-            predicateResult = (ResponsePredicateResultImpl) expectation.apply(responseCopy(resp, null));
+            predicateResult = (ResponsePredicateResultImpl) expectation.apply(responseCopy(resp, httpContext,null));
           } catch (Exception e) {
             httpContext.fail(e);
             return;
@@ -55,7 +55,7 @@ public class PredicateInterceptor implements Handler<HttpContext<?>> {
               failOnPredicate(httpContext, errorConverter, predicateResult);
             } else {
               resp.bodyHandler(buffer -> {
-                predicateResult.setHttpResponse(responseCopy(resp, buffer));
+                predicateResult.setHttpResponse(responseCopy(resp, httpContext, buffer));
                 failOnPredicate(httpContext, errorConverter, predicateResult);
               });
               resp.resume();
@@ -69,7 +69,7 @@ public class PredicateInterceptor implements Handler<HttpContext<?>> {
     httpContext.next();
   }
 
-  private <B> HttpResponseImpl<B> responseCopy(HttpClientResponse resp, B value) {
+  private <B> HttpResponseImpl<B> responseCopy(HttpClientResponse resp, HttpContext<?> httpContext, B value) {
     return new HttpResponseImpl<>(
       resp.version(),
       resp.statusCode(),
@@ -77,7 +77,9 @@ public class PredicateInterceptor implements Handler<HttpContext<?>> {
       MultiMap.caseInsensitiveMultiMap().addAll(resp.headers()),
       null,
       new ArrayList<>(resp.cookies()),
-      value);
+      value,
+      httpContext.getRedirectedLocations()
+    );
   }
 
   private void failOnPredicate(HttpContext<?> ctx, ErrorConverter converter, ResponsePredicateResultImpl predicateResult) {
