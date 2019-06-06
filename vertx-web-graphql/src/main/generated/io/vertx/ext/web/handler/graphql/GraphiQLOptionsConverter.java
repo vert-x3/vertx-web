@@ -4,12 +4,21 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import io.vertx.core.spi.json.JsonCodec;
 
 /**
- * Converter for {@link io.vertx.ext.web.handler.graphql.GraphiQLOptions}.
+ * Converter and Codec for {@link io.vertx.ext.web.handler.graphql.GraphiQLOptions}.
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.handler.graphql.GraphiQLOptions} original class using Vert.x codegen.
  */
-public class GraphiQLOptionsConverter {
+public class GraphiQLOptionsConverter implements JsonCodec<GraphiQLOptions, JsonObject> {
+
+  public static final GraphiQLOptionsConverter INSTANCE = new GraphiQLOptionsConverter();
+
+  @Override public JsonObject encode(GraphiQLOptions value) { return (value != null) ? value.toJson() : null; }
+
+  @Override public GraphiQLOptions decode(JsonObject value) { return (value != null) ? new GraphiQLOptions(value) : null; }
+
+  @Override public Class<GraphiQLOptions> getTargetClass() { return GraphiQLOptions.class; }
 
   public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, GraphiQLOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
