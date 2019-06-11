@@ -155,6 +155,21 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
+  public HttpRequest<Buffer> raw(String customHttpMethod, String requestURI) {
+    return request(HttpMethod.OTHER, requestURI).rawMethod(customHttpMethod);
+  }
+
+  @Override
+  public HttpRequest<Buffer> raw(String customHttpMethod, int port, String host, String requestURI) {
+    return request(HttpMethod.OTHER, port, host, requestURI).rawMethod(customHttpMethod);
+  }
+
+  @Override
+  public HttpRequest<Buffer> raw(String customHttpMethod, String host, String requestURI) {
+    return request(HttpMethod.OTHER, host, requestURI).rawMethod(customHttpMethod);
+  }
+
+  @Override
   public HttpRequest<Buffer> postAbs(String absoluteURI) {
     return requestAbs(HttpMethod.POST, absoluteURI);
   }
@@ -177,6 +192,11 @@ public class WebClientBase implements WebClientInternal {
   @Override
   public HttpRequest<Buffer> headAbs(String absoluteURI) {
     return requestAbs(HttpMethod.HEAD, absoluteURI);
+  }
+
+  @Override
+  public HttpRequest<Buffer> rawAbs(String customHttpMethod, String absoluteURI) {
+    return null;
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, String requestURI) {
