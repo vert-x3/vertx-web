@@ -462,6 +462,8 @@ The client will follow at most `16` requests redirections, it can be changed in 
 {@link examples.WebClientExamples#testClientChangeMaxRedirects(io.vertx.core.Vertx)}
 ----
 
+NOTE: For security reason, client won't follow redirects for request with methods different from GET or HEAD
+
 == Using HTTPS
 
 Vert.x Web Client can be configured to use HTTPS in exactly the same way as the Vert.x {@link io.vertx.core.http.HttpClient}.
