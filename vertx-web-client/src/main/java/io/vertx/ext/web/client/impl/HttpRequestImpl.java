@@ -47,6 +47,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   SocketAddress serverAddress;
   MultiMap params;
   HttpMethod method;
+  String rawMethod;
   String protocol;
   int port;
   String host;
@@ -108,6 +109,13 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public HttpRequest<T> method(HttpMethod value) {
     method = value;
+    return this;
+  }
+
+  @Override
+  public HttpRequest<T> rawMethod(String method) {
+    rawMethod = method;
+    method(HttpMethod.OTHER);
     return this;
   }
 

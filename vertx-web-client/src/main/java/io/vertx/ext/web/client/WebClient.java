@@ -379,6 +379,46 @@ public interface WebClient {
   HttpRequest<Buffer> headAbs(String absoluteURI);
 
   /**
+   * Create a request with a custom HTTP method to send to the server at the default host and port.
+   *
+   * @param customHttpMethod custom HTTP Method
+   * @param requestURI  the relative URI
+   * @return  an HTTP client request object
+   */
+  HttpRequest<Buffer> raw(String customHttpMethod, String requestURI);
+
+  /**
+   * Create a request with a custom HTTP method to send to the server at the specified host and port.
+   *
+   * @param customHttpMethod custom HTTP Method
+   * @param port  the port
+   * @param host  the host
+   * @param requestURI  the relative URI
+   * @return  an HTTP client request object
+   */
+  HttpRequest<Buffer> raw(String customHttpMethod, int port, String host, String requestURI);
+
+  /**
+   * Create a request with a custom HTTP method  to send to the server at the specified host and default port.
+   *
+   * @param customHttpMethod custom HTTP Method
+   * @param host  the host
+   * @param requestURI  the relative URI
+   * @return  an HTTP client request object
+   */
+  HttpRequest<Buffer> raw(String customHttpMethod, String host, String requestURI);
+
+  /**
+   * Create a request with a custom HTTP method  to send to the server using an absolute URI, specifying a response handler to receive
+   * the response
+   *
+   * @param customHttpMethod custom HTTP Method
+   * @param absoluteURI  the absolute URI
+   * @return  an HTTP client request object
+   */
+  HttpRequest<Buffer> rawAbs(String customHttpMethod, String absoluteURI);
+
+  /**
    * Close the client. Closing will close down any pooled connections.
    * Clients should always be closed after use.
    */

@@ -77,6 +77,14 @@ public interface HttpRequest<T> {
   HttpRequest<T> method(HttpMethod value);
 
   /**
+   * Configure the request to use a custom HTTP method
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> rawMethod(String method);
+
+  /**
    * Configure the request to use a new port {@code value}.
    *
    * @return a reference to this, so the API can be used fluently
