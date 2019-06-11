@@ -136,6 +136,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       unhandledFailure(statusCode, failure, router);
     } else {
       Handler<RoutingContext> handler = router.getErrorHandlerByStatusCode(404);
+      this.statusCode = 404;
       if (handler == null) { // Default 404 handling
         // Send back default 404
         this.response()

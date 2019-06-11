@@ -2394,7 +2394,7 @@ public class RouterTest extends WebTestBase {
     router.errorHandler(404, routingContext -> routingContext
       .response()
       .setStatusMessage("Not Found")
-      .setStatusCode(404)
+      .setStatusCode(routingContext.statusCode())
       .end("Not Found custom error")
     );
     testRequest(HttpMethod.GET, "/blah", 404, "Not Found", "Not Found custom error");
