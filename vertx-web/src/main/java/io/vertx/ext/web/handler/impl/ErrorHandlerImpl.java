@@ -108,7 +108,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
 
   private boolean sendError(RoutingContext context, String mime, int errorCode, String errorMessage) {
 
-    final String title = "Matron!";
+    final String title = "An unexpected error occurred";
 
     HttpServerResponse response = context.response();
 
