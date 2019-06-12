@@ -25,7 +25,6 @@ import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.MethodOverrideHandler;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -139,13 +138,8 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route handler(Handler<RoutingContext> contextHandler) {
-    if (contextHandler instanceof MethodOverrideHandler) {
-      this.contextHandlers.add(0, contextHandler);
-    } else {
-      this.contextHandlers.add(contextHandler);
-    }
-
-    checkAdd(); // how this works on middlewares??? Seems to be allowing only one on Router
+    this.contextHandlers.add(contextHandler);
+    checkAdd();
     return this;
   }
 
