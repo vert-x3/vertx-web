@@ -22,6 +22,7 @@ import io.vertx.ext.web.RoutingContext;
 
 /**
  * A handler which logs request information to the Vert.x logger.
+ * You should mount this handler before any handler that could fail the routing context
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
