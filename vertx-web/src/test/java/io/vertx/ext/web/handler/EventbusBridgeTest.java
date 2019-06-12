@@ -305,6 +305,58 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
+  public void testHookRegistered() throws Exception {
+    CountDownLatch registerLatch = new CountDownLatch(1);
+    CountDownLatch registeredLatch = new CountDownLatch(1);
+    CountDownLatch requestLatch = new CountDownLatch(1);
+
+    final String payload = "hello slinkydeveloper!";
+
+    // 1. Check if REGISTER hook is called
+    // 2. Check if REGISTERED hook is called
+    // 3. Try to send a message while managing REGISTERED event
+    // 4. Check if client receives the message
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEventType.REGISTER) {
+        assertNotNull(be.socket());
+        JsonObject raw = be.getRawMessage();
+        assertEquals(addr, raw.getString("address"));
+        registerLatch.countDown();
+      } else if (be.type() == BridgeEventType.REGISTERED) {
+        assertNotNull(be.socket());
+        JsonObject raw = be.getRawMessage();
+        assertEquals(addr, raw.getString("address"));
+
+        // The client should be able to receive this message
+        vertx.eventBus().send(addr, payload);
+
+        registeredLatch.countDown();
+      }
+      be.complete(true);
+    });
+
+    client.webSocket(websocketURI, onSuccess(ws -> {
+      // Register
+      JsonObject msg = new JsonObject().put("type", "register").put("address", addr);
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
+
+      ws.handler(buff -> {
+        String str = buff.toString();
+        JsonObject received = new JsonObject(str);
+        assertEquals("rec", received.getString("type"));
+        assertEquals(payload, received.getString("body"));
+        ws.closeHandler(v -> requestLatch.countDown());
+        ws.close();
+      });
+    }));
+
+    awaitLatch(registerLatch);
+    awaitLatch(registeredLatch);
+    awaitLatch(requestLatch);
+  }
+
+  @Test
   public void testHookReceive() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
