@@ -1375,5 +1375,29 @@ public class WebExamples {
       // do something...
     });
   }
+
+  public void example64(Router router) {
+    router.route().handler(MethodOverrideHandler.create());
+
+    router.route(HttpMethod.GET, "/").handler(ctx -> {
+      // do GET stuff...
+    });
+
+    router.route(HttpMethod.POST, "/").handler(ctx -> {
+      // do POST stuff...
+    });
+  }
+
+  public void example65(Router router) {
+    router.route().handler(MethodOverrideHandler.create(false));
+
+    router.route(HttpMethod.GET, "/").handler(ctx -> {
+      // do GET stuff...
+    });
+
+    router.route(HttpMethod.POST, "/").handler(ctx -> {
+      // do POST stuff...
+    });
+  }
 }
 
