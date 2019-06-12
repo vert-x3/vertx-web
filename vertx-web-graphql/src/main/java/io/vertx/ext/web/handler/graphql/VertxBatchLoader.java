@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler.graphql;
 
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import org.dataloader.BatchLoaderEnvironment;
 import org.dataloader.BatchLoaderWithContext;
 
@@ -31,7 +32,7 @@ import java.util.concurrent.CompletionStage;
  */
 public class VertxBatchLoader<K, V> implements BatchLoaderWithContext<K, V> {
 
-  private final TriConsumer<List<K>, BatchLoaderEnvironment, Future<List<V>>> batchLoader;
+  private final TriConsumer<List<K>, BatchLoaderEnvironment, Promise<List<V>>> batchLoader;
 
   /**
    * Create a new batch loader.
@@ -42,22 +43,22 @@ public class VertxBatchLoader<K, V> implements BatchLoaderWithContext<K, V> {
    * <li>a future that the implementor must complete after the data objects are loaded</li>
    * </ul>
    */
-  public VertxBatchLoader(TriConsumer<List<K>, BatchLoaderEnvironment, Future<List<V>>> batchLoader) {
+  public VertxBatchLoader(TriConsumer<List<K>, BatchLoaderEnvironment, Promise<List<V>>> batchLoader) {
     this.batchLoader = batchLoader;
   }
 
   @Override
   public CompletionStage<List<V>> load(List<K> keys, BatchLoaderEnvironment environment) {
     CompletableFuture<List<V>> cf = new CompletableFuture<>();
-    Future<List<V>> future = Future.future();
-    future.setHandler(ar -> {
+    Promise<List<V>> promise = Promise.promise();
+    promise.future().setHandler(ar -> {
       if (ar.succeeded()) {
         cf.complete(ar.result());
       } else {
         cf.completeExceptionally(ar.cause());
       }
     });
-    batchLoader.accept(keys, environment, future);
+    batchLoader.accept(keys, environment, promise);
     return cf;
   }
 }

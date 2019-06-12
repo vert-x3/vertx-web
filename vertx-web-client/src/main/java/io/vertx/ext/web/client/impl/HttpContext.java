@@ -333,8 +333,8 @@ public class HttpContext<T> {
   private void handleReceiveResponse() {
     HttpClientResponse resp = clientResponse;
     Context context = Vertx.currentContext();
-    Future<HttpResponse<T>> fut = Future.future();
-    fut.setHandler(r -> {
+    Promise<HttpResponse<T>> promise = Promise.promise();
+    promise.future().setHandler(r -> {
       // We are running on a context (the HTTP client mandates it)
       context.runOnContext(v -> {
         if (r.succeeded()) {
@@ -345,8 +345,8 @@ public class HttpContext<T> {
       });
     });
     resp.exceptionHandler(err -> {
-      if (!fut.isComplete()) {
-        fut.fail(err);
+      if (!promise.future().isComplete()) {
+        promise.fail(err);
       }
     });
     Pipe<Buffer> pipe = resp.pipe();
@@ -357,7 +357,7 @@ public class HttpContext<T> {
           if (ar2.succeeded()) {
             stream.result().setHandler(ar3 -> {
               if (ar3.succeeded()) {
-                fut.complete(new HttpResponseImpl<T>(
+                promise.complete(new HttpResponseImpl<T>(
                   resp.version(),
                   resp.statusCode(),
                   resp.statusMessage(),
@@ -366,11 +366,11 @@ public class HttpContext<T> {
                   resp.cookies(),
                   stream.result().result()));
               } else {
-                fut.fail(ar3.cause());
+                promise.fail(ar3.cause());
               }
             });
           } else {
-            fut.fail(ar2.cause());
+            promise.fail(ar2.cause());
           }
         });
       } else {
@@ -381,7 +381,8 @@ public class HttpContext<T> {
   }
 
   private void handleSendRequest() {
-    Future<HttpClientResponse> responseFuture = Future.<HttpClientResponse>future().setHandler(ar -> {
+    Promise<HttpClientResponse> responseFuture = Promise.<HttpClientResponse>promise();
+    responseFuture.future().setHandler(ar -> {
       if (ar.succeeded()) {
         HttpClientResponse resp = ar.result();
         resp.pause();

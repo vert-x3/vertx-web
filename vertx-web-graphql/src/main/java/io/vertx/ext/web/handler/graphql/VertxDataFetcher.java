@@ -18,7 +18,7 @@ package io.vertx.ext.web.handler.graphql;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import io.vertx.core.Future;
+import io.vertx.core.Promise;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -31,7 +31,7 @@ import java.util.function.BiConsumer;
  */
 public class VertxDataFetcher<T> implements DataFetcher<CompletionStage<T>> {
 
-  private final BiConsumer<DataFetchingEnvironment, Future<T>> dataFetcher;
+  private final BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher;
 
   /**
    * Create a new data fetcher.
@@ -41,22 +41,22 @@ public class VertxDataFetcher<T> implements DataFetcher<CompletionStage<T>> {
    * <li>a future that the implementor must complete after the data objects are fetched</li>
    * </ul>
    */
-  public VertxDataFetcher(BiConsumer<DataFetchingEnvironment, Future<T>> dataFetcher) {
+  public VertxDataFetcher(BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher) {
     this.dataFetcher = dataFetcher;
   }
 
   @Override
   public CompletionStage<T> get(DataFetchingEnvironment environment) throws Exception {
     CompletableFuture<T> cf = new CompletableFuture<>();
-    Future<T> future = Future.future();
-    future.setHandler(ar -> {
+    Promise<T> promise = Promise.promise();
+    promise.future().setHandler(ar -> {
       if (ar.succeeded()) {
         cf.complete(ar.result());
       } else {
         cf.completeExceptionally(ar.cause());
       }
     });
-    dataFetcher.accept(environment, future);
+    dataFetcher.accept(environment, promise);
     return cf;
   }
 }

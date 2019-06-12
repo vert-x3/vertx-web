@@ -17,8 +17,8 @@
 package io.vertx.ext.web.handler.graphql;
 
 import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
@@ -101,18 +101,18 @@ class GraphQLRequest {
   }
 
   void send(HttpClient client, int expectedStatus, Handler<AsyncResult<JsonObject>> handler) throws Exception {
-    Future<JsonObject> future = Future.future();
-    future.setHandler(handler);
+    Promise<JsonObject> promise = Promise.promise();
+    promise.future().setHandler(handler);
     HttpClientRequest request = client.request(method, 8080, "localhost", getUri());
     request.handler(response -> {
       if (expectedStatus != response.statusCode()) {
-        future.fail(response.statusCode() + " " + response.statusMessage());
+        promise.fail(response.statusCode() + " " + response.statusMessage());
       } else if (response.statusCode() == 200) {
-        response.bodyHandler(buffer -> future.complete(new JsonObject(buffer)));
+        response.bodyHandler(buffer -> promise.complete(new JsonObject(buffer)));
       } else {
-        future.complete();
+        promise.complete();
       }
-    }).exceptionHandler(future::fail);
+    }).exceptionHandler(promise::fail);
     if (contentType != null) {
       request.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
     }
