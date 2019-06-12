@@ -187,7 +187,7 @@ public class ErrorHandlerTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
       String page = buff.toString();
-      assertEquals("<html><body>Matron!.404.Not Found</body></html>", page);
+      assertEquals("<html><body>An unexpected error occurred.404.Not Found</body></html>", page);
       testComplete();
     }), statusCode, statusMessage, null);
     await();
@@ -209,7 +209,7 @@ public class ErrorHandlerTest extends WebTestBase {
     assertTrue(page.startsWith("<html>"));
     assertTrue(page.contains(String.valueOf(statusCode)));
     assertTrue(page.contains(statusMessage));
-    assertTrue(page.contains("Matron!"));
+    assertTrue(page.contains("An unexpected error occurred"));
     if (e != null) {
       if (displayExceptionDetails) {
         assertTrue(page.contains(e.getStackTrace()[0].toString()));
