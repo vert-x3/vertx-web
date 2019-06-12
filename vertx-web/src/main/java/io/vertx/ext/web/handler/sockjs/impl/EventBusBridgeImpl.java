@@ -257,6 +257,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           MessageConsumer reg = eb.consumer(address).handler(handler);
           registrations.put(address, reg);
           info.handlerCount++;
+          // Notify registration completed
+          checkCallHook(() -> new BridgeEventImpl(BridgeEventType.REGISTERED, rawMsg, sock), null, null);
         } else {
           // inbound match failed
           if (debug) {
