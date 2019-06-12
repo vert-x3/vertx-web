@@ -3,11 +3,16 @@ branches:
   only:
   - master
   - /^\d+\.\d+$/
+cache:
+  directories:
+    - $HOME/.m2
+before_cache:
+  - rm -rf $HOME/.m2/repository/io/vertx/
 jobs:
   include:
     - stage: test
-      name: "OracleJDK 8"
-      jdk: oraclejdk8
+      name: "OpenJDK 8"
+      jdk: openjdk8
       script: mvn -q clean verify -B
     - if: type != pull_request
       name: "OpenJDK 11"
