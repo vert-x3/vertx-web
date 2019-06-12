@@ -44,14 +44,18 @@ public abstract class RoutingContextImplBase implements RoutingContext {
   protected RouteImpl currentRoute;
   protected AtomicInteger currentRouteNextHandlerIndex;
   protected AtomicInteger currentRouteNextFailureHandlerIndex;
+  // When Route#matches executes, if it returns != 0 this flag is configured
+  // to write the correct status code at the end of routing process
+  protected int matchFailure;
 
   protected RoutingContextImplBase(String mountPoint, HttpServerRequest request, Set<RouteImpl> routes) {
     this.mountPoint = mountPoint;
     this.request = new HttpServerRequestWrapper(request);
     this.routes = routes;
     this.iter = routes.iterator();
-    currentRouteNextHandlerIndex = new AtomicInteger(0);
-    currentRouteNextFailureHandlerIndex = new AtomicInteger(0);
+    this.currentRouteNextHandlerIndex = new AtomicInteger(0);
+    this.currentRouteNextFailureHandlerIndex = new AtomicInteger(0);
+    resetMatchFailure();
   }
 
   @Override
@@ -84,6 +88,7 @@ public abstract class RoutingContextImplBase implements RoutingContext {
       try {
         if (!failed && currentRoute.hasNextContextHandler(this)) {
           currentRouteNextHandlerIndex.incrementAndGet();
+          resetMatchFailure();
           currentRoute.handleContext(this);
           return true;
         } else if (failed && currentRoute.hasNextFailureHandler(this)) {
@@ -101,8 +106,10 @@ public abstract class RoutingContextImplBase implements RoutingContext {
       currentRouteNextHandlerIndex.set(0);
       currentRouteNextFailureHandlerIndex.set(0);
       try {
-        if (route.matches(this, mountPoint(), failed)) {
+        int matchResult = route.matches(this, mountPoint(), failed);
+        if (matchResult == 0) {
           if (log.isTraceEnabled()) log.trace("Route matches: " + route);
+          resetMatchFailure();
           try {
             currentRoute = route;
             if (log.isTraceEnabled()) log.trace("Calling the " + (failed ? "failure" : "") + " handler");
@@ -119,6 +126,8 @@ public abstract class RoutingContextImplBase implements RoutingContext {
             handleInHandlerRuntimeFailure(route, failed, t);
           }
           return true;
+        } else {
+          this.matchFailure = matchResult;
         }
       } catch (Throwable e) {
         if (log.isTraceEnabled()) log.trace("IllegalArgumentException thrown during iteration", e);
@@ -169,5 +178,9 @@ public abstract class RoutingContextImplBase implements RoutingContext {
       }
       response().end(response().getStatusMessage());
     }
+  }
+
+  private void resetMatchFailure() {
+    this.matchFailure = 404;
   }
 }

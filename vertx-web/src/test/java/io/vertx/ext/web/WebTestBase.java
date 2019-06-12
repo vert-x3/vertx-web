@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
@@ -85,6 +86,10 @@ public class WebTestBase extends VertxTestBase {
       awaitLatch(latch);
     }
     super.tearDown();
+  }
+
+  protected void testRequest(HttpMethod method, String path, HttpResponseStatus statusCode) throws Exception {
+    testRequest(method, path, null, statusCode.code(), statusCode.reasonPhrase(), null);
   }
 
   protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage) throws Exception {
