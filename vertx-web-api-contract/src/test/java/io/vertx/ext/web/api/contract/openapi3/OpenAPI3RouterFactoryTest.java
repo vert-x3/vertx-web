@@ -1,5 +1,6 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.swagger.v3.oas.models.Operation;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -756,7 +757,7 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
     MultiMap form = MultiMap.caseInsensitiveMultiMap();
     form.add("name", "francesco");
     testRequestWithForm(HttpMethod.POST, "/consumesTest", FormType.FORM_URLENCODED, form, 200, "OK");
-    testRequestWithForm(HttpMethod.POST, "/consumesTest", FormType.MULTIPART, form, 404, "Not Found");
+    testRequestWithForm(HttpMethod.POST, "/consumesTest", FormType.MULTIPART, form, 415, HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE.reasonPhrase());
   }
 
   @Test
