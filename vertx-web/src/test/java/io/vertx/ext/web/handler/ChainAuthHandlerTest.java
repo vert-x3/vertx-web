@@ -12,6 +12,8 @@ import org.junit.Test;
 
 public class ChainAuthHandlerTest extends WebTestBase {
 
+  private AuthHandler redirectAuthHandler;
+
   protected ChainAuthHandler chain;
 
   @Override
@@ -20,14 +22,15 @@ public class ChainAuthHandlerTest extends WebTestBase {
 
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
     AuthProvider authProvider = ShiroAuth.create(vertx, new ShiroAuthOptions().setType(ShiroAuthRealmType.PROPERTIES).setConfig(authConfig));
+    redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
     // create a chain
     chain = ChainAuthHandler.create();
 
     chain
       .append(JWTAuthHandler.create(null))
-      .append(RedirectAuthHandler.create(authProvider))
-      .append(BasicAuthHandler.create(authProvider));
+      .append(BasicAuthHandler.create(authProvider))
+      .append(redirectAuthHandler);
 
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
     router.route().handler(chain);
@@ -50,6 +53,14 @@ public class ChainAuthHandlerTest extends WebTestBase {
   @Test
   public void testWithBadAuthorization() throws Exception {
     // there is an authorization header, but the token is invalid it should be processed by the basic auth
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="), resp -> assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWWW-Authenticate")),401, "Unauthorized", "Unauthorized");
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="),401, "Unauthorized", "Unauthorized");
+  }
+
+  @Test
+  public void testWithBasicAuthAsLastHandlerInChain() throws Exception {
+    // after removing the RedirectAuthHandler, we check if the chain correctly returns the WWW-Authenticate Header, since now the BasicAuthHandler is the last handler in the chain
+    chain.remove(redirectAuthHandler);
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="), resp -> assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWW-Authenticate")),401, "Unauthorized", "Unauthorized");
+    chain.append(redirectAuthHandler); // given we cannot guarantee test order, we append the redirectAuthHandler again
   }
 }
