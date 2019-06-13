@@ -241,20 +241,20 @@ public class RouteImpl implements Route {
     failureHandler.handle(context);
   }
 
-  synchronized boolean matches(RoutingContextImplBase context, String mountPoint, boolean failure) {
+  /**
+   * @return 0 if route matches, otherwise it return the status code
+   */
+  synchronized int matches(RoutingContextImplBase context, String mountPoint, boolean failure) {
 
     if (failure && !hasNextFailureHandler(context) || !failure && !hasNextContextHandler(context)) {
-      return false;
+      return 404;
     }
     if (!enabled) {
-      return false;
+      return 404;
     }
     HttpServerRequest request = context.request();
-    if (!methods.isEmpty() && !methods.contains(request.method())) {
-      return false;
-    }
     if (path != null && pattern == null && !pathMatches(mountPoint, context)) {
-      return false;
+      return 404;
     }
     if (pattern != null) {
       String path = useNormalisedPath ? context.normalisedPath() : context.request().path();
@@ -306,8 +306,13 @@ public class RouteImpl implements Route {
           }
         }
       } else {
-        return false;
+        return 404;
       }
+    }
+
+    if (!methods.isEmpty() && !methods.contains(request.method())) {
+      // If I'm here path or path pattern matches, but the method is wrong
+      return 405;
     }
 
     if (!consumes.isEmpty()) {
@@ -315,7 +320,11 @@ public class RouteImpl implements Route {
       MIMEHeader contentType = context.parsedHeaders().contentType();
       MIMEHeader consumal = contentType.findMatchedBy(consumes);
       if (consumal == null && !(contentType.rawValue().isEmpty() && emptyBodyPermittedWithConsumes)) {
-        return false;
+        if (contentType.rawValue().isEmpty()) {
+          return 400;
+        } else {
+          return 415;
+        }
       }
     }
     List<MIMEHeader> acceptableTypes = context.parsedHeaders().accept();
@@ -323,11 +332,11 @@ public class RouteImpl implements Route {
       MIMEHeader selectedAccept = context.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, produces);
       if (selectedAccept != null) {
         context.setAcceptableContentType(selectedAccept.rawValue());
-        return true;
+        return 0;
       }
-      return false;
+      return 406;
     }
-    return true;
+    return 0;
   }
 
   private void addPathParam(RoutingContext context, String name, String value) {

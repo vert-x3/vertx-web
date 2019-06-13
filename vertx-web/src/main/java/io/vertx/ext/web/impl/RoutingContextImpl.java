@@ -135,19 +135,18 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       // Send back FAILURE
       unhandledFailure(statusCode, failure, router);
     } else {
-      Handler<RoutingContext> handler = router.getErrorHandlerByStatusCode(404);
+      Handler<RoutingContext> handler = router.getErrorHandlerByStatusCode(this.matchFailure);
+      this.statusCode = this.matchFailure;
       if (handler == null) { // Default 404 handling
-        // Send back default 404
-        this.response()
-          .setStatusMessage("Not Found")
-          .setStatusCode(404);
-        if (this.request().method() == HttpMethod.HEAD) {
-          // HEAD responses don't have a body
-          this.response().end();
-        } else {
+        // Send back empty default response with status code
+        this.response().setStatusCode(matchFailure);
+        if (this.request().method() != HttpMethod.HEAD && matchFailure == 404) {
+          // If it's a 404 let's send a body too
           this.response()
             .putHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
             .end("<html><body><h1>Resource not found</h1></body></html>");
+        } else {
+          this.response().end();
         }
       } else
         handler.handle(this);

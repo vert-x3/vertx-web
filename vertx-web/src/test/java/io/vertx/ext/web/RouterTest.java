@@ -16,6 +16,8 @@
 
 package io.vertx.ext.web;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpStatusClass;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -104,7 +106,7 @@ public class RouterTest extends WebTestBase {
     }
     for (HttpMethod meth : METHODS) {
       if (meth != method) {
-        testRequest(meth, path, 404, "Not Found");
+        testRequest(meth, path, HttpResponseStatus.METHOD_NOT_ALLOWED);
       }
     }
   }
@@ -157,7 +159,7 @@ public class RouterTest extends WebTestBase {
     String path = "/blah";
     router.route().path(path).method(HttpMethod.GET).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathExact(HttpMethod.GET, path);
-    testRequest(HttpMethod.POST, path, 404, "Not Found");
+    testRequest(HttpMethod.POST, path, HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -165,7 +167,7 @@ public class RouterTest extends WebTestBase {
     String path = "/blah";
     router.route().path(path + "*").method(HttpMethod.GET).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathBegin(HttpMethod.GET, path);
-    testRequest(HttpMethod.POST, path, 404, "Not Found");
+    testRequest(HttpMethod.POST, path, HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -174,7 +176,7 @@ public class RouterTest extends WebTestBase {
     router.route().path(path).method(HttpMethod.GET).method(HttpMethod.POST).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathExact(HttpMethod.GET, path);
     testPathExact(HttpMethod.POST, path);
-    testRequest(HttpMethod.PUT, path, 404, "Not Found");
+    testRequest(HttpMethod.PUT, path, HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -183,7 +185,7 @@ public class RouterTest extends WebTestBase {
     router.route().path(path + "*").method(HttpMethod.GET).method(HttpMethod.POST).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathBegin(HttpMethod.GET, path);
     testPathBegin(HttpMethod.POST, path);
-    testRequest(HttpMethod.PUT, path, 404, "Not Found");
+    testRequest(HttpMethod.PUT, path, HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   private void testPathBegin(String path) throws Exception {
@@ -256,7 +258,7 @@ public class RouterTest extends WebTestBase {
     testNoPath(meth);
     for (HttpMethod m : METHODS) {
       if (m != meth) {
-        testRequest(m, "/whatever", 404, "Not Found");
+        testRequest(m, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
       }
     }
   }
@@ -662,7 +664,7 @@ public class RouterTest extends WebTestBase {
   public void testPattern1WithMethod() throws Exception {
     router.route(HttpMethod.GET, "/:abc").handler(rc -> rc.response().setStatusMessage(rc.request().params().get("abc")).end());
     testPattern("/tim", "tim");
-    testRequest(HttpMethod.POST, "/tim", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/tim", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -849,7 +851,7 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
     });
     testPattern("/dog/cat", "dogcat");
-    testRequest(HttpMethod.POST, "/dog/cat", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/dog/cat", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -890,8 +892,8 @@ public class RouterTest extends WebTestBase {
   public void testConsumes() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -901,15 +903,15 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;itWorks", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
   }
 
   @Test
   public void testConsumesWithParameter() throws Exception {
     router.route().consumes("text/html;boo=ya").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -917,22 +919,22 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html;boo=\"yeah,right\"").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\";itWorks=4real", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 415, "Unsupported Media Type");
     // this might look wrong but since there is only 1 entry per content-type, the comma has no semantic meaning
     // therefore it is ignored
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
   }
 
   @Test
   public void testConsumesWithQuotedParameterWithQuotes() throws Exception {
     router.route().consumes("text/html;boo=\"yeah\\\"right\"").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah\\\"right\"", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -948,10 +950,10 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html").consumes("application/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -961,9 +963,9 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;works", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;works", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=done;it=works", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;yes=no;right", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;boo", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;works=aright", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;yes=no;right", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;boo", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;works=aright", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -973,7 +975,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -981,7 +983,7 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/*").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -989,7 +991,7 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("*/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/html", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -1019,15 +1021,15 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testConsumesNoContentType() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
-    testRequest(HttpMethod.GET, "/foo", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/foo", HttpResponseStatus.BAD_REQUEST);
   }
 
   @Test
   public void testProduces() throws Exception {
     router.route().produces("text/html").handler(rc -> rc.response().end());
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 200, "OK");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 406, "Not Acceptable");
     testRequest(HttpMethod.GET, "/foo", 200, "OK");
   }
 
@@ -1037,7 +1039,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo;itWorks", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 406, "Not Acceptable");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "*/*", 200, "OK");
   }
 
@@ -1045,8 +1047,8 @@ public class RouterTest extends WebTestBase {
   public void testProducesWithParameter() throws Exception {
     router.route().produces("text/html;boo=ya").handler(rc -> rc.response().end());
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 406, "Not Acceptable");
   }
 
   @Test
@@ -1054,10 +1056,10 @@ public class RouterTest extends WebTestBase {
     router.route().produces("text/html").produces("application/json").handler(rc -> rc.response().end());
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/blah", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/blah", 406, "Not Acceptable");
   }
 
   @Test
@@ -1078,7 +1080,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "json", 200, "application/json");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text", 406, "Not Acceptable");
   }
 
   @Test
@@ -1088,7 +1090,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/*", 200, "text/html");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/*", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/*", 406, "Not Acceptable");
   }
 
   @Test
@@ -1125,7 +1127,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "*/json", 200, "application/json");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/html", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/html", 406, "Not Acceptable");
   }
 
   @Test
@@ -1446,11 +1448,11 @@ public class RouterTest extends WebTestBase {
   public void testGet() throws Exception {
     router.get().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.GET, "/whatever", 200, "foo");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -1470,11 +1472,11 @@ public class RouterTest extends WebTestBase {
     router.get("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.GET, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -1482,22 +1484,22 @@ public class RouterTest extends WebTestBase {
     router.getWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.GET, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testPost() throws Exception {
     router.post().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.POST, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -1517,11 +1519,11 @@ public class RouterTest extends WebTestBase {
     router.post("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.POST, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.POST, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -1529,22 +1531,22 @@ public class RouterTest extends WebTestBase {
     router.postWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.POST, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.POST, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testPut() throws Exception {
     router.put().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.PUT, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -1564,11 +1566,11 @@ public class RouterTest extends WebTestBase {
     router.put("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.PUT, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.PUT, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -1576,22 +1578,22 @@ public class RouterTest extends WebTestBase {
     router.putWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.PUT, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.PUT, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testDelete() throws Exception {
     router.delete().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.DELETE, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -1611,11 +1613,11 @@ public class RouterTest extends WebTestBase {
     router.delete("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.DELETE, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.DELETE, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -1623,22 +1625,22 @@ public class RouterTest extends WebTestBase {
     router.deleteWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.DELETE, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.DELETE, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testOptions() throws Exception {
     router.options().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.OPTIONS, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -1658,11 +1660,11 @@ public class RouterTest extends WebTestBase {
     router.options("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.OPTIONS, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -1670,22 +1672,22 @@ public class RouterTest extends WebTestBase {
     router.optionsWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.OPTIONS, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testHead() throws Exception {
     router.head().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.HEAD, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -1705,11 +1707,11 @@ public class RouterTest extends WebTestBase {
     router.head("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.HEAD, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.HEAD, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -1717,11 +1719,11 @@ public class RouterTest extends WebTestBase {
     router.headWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.HEAD, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.HEAD, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -2452,5 +2454,30 @@ public class RouterTest extends WebTestBase {
     });
     req.end();
     latch.await();
+  }
+
+  @Test
+  public void testMethodNotAllowedCustomErrorHandler() throws Exception {
+    router.get("/path").handler(rc -> rc.response().end());
+    router.post("/path").handler(rc -> rc.response().end());
+    router.errorHandler(405, context -> context.response().setStatusCode(context.statusCode()).setStatusMessage("Dumb").end());
+
+    testRequest(HttpMethod.PUT, "/path", 405, "Dumb");
+  }
+
+  @Test
+  public void testNotAcceptableCustomErrorHandler() throws Exception {
+    router.route().produces("text/html").handler(rc -> rc.response().end());
+    router.errorHandler(406, context -> context.response().setStatusCode(context.statusCode()).setStatusMessage("Dumb").end());
+
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 406, "Dumb");
+  }
+
+  @Test
+  public void testUnsupportedMediaTypeCustomErrorHandler() throws Exception {
+    router.route().consumes("text/html").handler(rc -> rc.response().end());
+    router.errorHandler(415, context -> context.response().setStatusCode(context.statusCode()).setStatusMessage("Dumb").end());
+
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Dumb");
   }
 }

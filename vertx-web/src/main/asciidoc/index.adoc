@@ -631,13 +631,17 @@ user understands, if you're only interested in the user prefered locale then the
 {@link io.vertx.ext.web.RoutingContext#preferredLocale} will return the 1st element of the list or `null` if no
 locale was provided by the user.
 
-== Default 404 Handling
+== Route match failures
 
-If no routes match for any particular request, Vert.x-Web will signal a 404 error.
+If no routes match for any particular request, Vert.x-Web will signal an error depending on match failure:
 
+* 404 If no route matches the path
+* 405 If a route matches the path but don't match the HTTP Method
+* 406 If a route matches the path and the method but It can't provide a response with a content type matching `Accept` header
+* 415 If a route matches the path and the method but It can't accept the `Content-type`
+* 400 If a route matches the path and the method but It can't accept an empty body
 
-A default 404 error handler is provided by Router. Anyway you can provide your own 404 error handler with
-{@link io.vertx.ext.web.Router#errorHandler}
+You can manually manage those failures using {@link io.vertx.ext.web.Router#errorHandler}
 
 == Error handling
 
