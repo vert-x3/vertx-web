@@ -126,7 +126,7 @@ public abstract class RoutingContextImplBase implements RoutingContext {
             handleInHandlerRuntimeFailure(route, failed, t);
           }
           return true;
-        } else {
+        } else if (matchResult != 404) {
           this.matchFailure = matchResult;
         }
       } catch (Throwable e) {

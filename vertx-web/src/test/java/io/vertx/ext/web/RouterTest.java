@@ -2480,4 +2480,29 @@ public class RouterTest extends WebTestBase {
 
     testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Dumb");
   }
+
+  @Test
+  public void testMethodNotAllowedStatusCode() throws Exception {
+    router.get("/path").handler(rc -> rc.response().end());
+    router.post("/path").handler(rc -> rc.response().end());
+    router.put("/hello").handler(rc -> rc.response().end());
+
+    testRequest(HttpMethod.PUT, "/path", HttpResponseStatus.METHOD_NOT_ALLOWED);
+  }
+
+  @Test
+  public void testNotAcceptableStatusCode() throws Exception {
+    router.route().produces("text/html").handler(rc -> rc.response().end());
+    router.route("/hello").produces("something/html").handler(rc -> rc.response().end());
+
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 406, HttpResponseStatus.NOT_ACCEPTABLE.reasonPhrase());
+  }
+
+  @Test
+  public void testUnsupportedMediaTypeStatusCode() throws Exception {
+    router.route().consumes("text/html").handler(rc -> rc.response().end());
+    router.get("/hello").consumes("something/html").handler(rc -> rc.response().end());
+
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE.reasonPhrase());
+  }
 }
