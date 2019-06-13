@@ -14,6 +14,8 @@ import java.util.Set;
 
 public class ChainAuthHandlerImpl extends AuthHandlerImpl implements ChainAuthHandler {
 
+  private String lastFailedAuthenticateHeader = null;
+
   private final List<AuthHandler> handlers = new ArrayList<>();
 
   public ChainAuthHandlerImpl() {
@@ -79,6 +81,7 @@ public class ChainAuthHandlerImpl extends AuthHandlerImpl implements ChainAuthHa
             case 401:
             case 403:
               // try again with next provider since we know what kind of error it is
+              lastFailedAuthenticateHeader = getLastFailedAuthenticateHeader(authHandler, ctx);
               iterate(idx + 1, ctx, exception, handler);
               return;
           }
@@ -94,4 +97,19 @@ public class ChainAuthHandlerImpl extends AuthHandlerImpl implements ChainAuthHa
       handler.handle(Future.succeededFuture(res.result()));
     });
   }
+
+  private String getLastFailedAuthenticateHeader(AuthHandler authHandler, RoutingContext context) {
+    if (authHandler instanceof AuthHandlerImpl) {
+      return ((AuthHandlerImpl) authHandler).authenticateHeader(context);
+    }
+
+    return null;
+  }
+
+  @Override
+  protected String authenticateHeader(RoutingContext ctx) {
+    return lastFailedAuthenticateHeader;
+  }
 }
+
+
