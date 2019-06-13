@@ -26,8 +26,8 @@ public class ChainAuthHandlerTest extends WebTestBase {
 
     chain
       .append(JWTAuthHandler.create(null))
-      .append(BasicAuthHandler.create(authProvider))
-      .append(RedirectAuthHandler.create(authProvider));
+      .append(RedirectAuthHandler.create(authProvider))
+      .append(BasicAuthHandler.create(authProvider));
 
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
     router.route().handler(chain);
@@ -50,6 +50,6 @@ public class ChainAuthHandlerTest extends WebTestBase {
   @Test
   public void testWithBadAuthorization() throws Exception {
     // there is an authorization header, but the token is invalid it should be processed by the basic auth
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="),401, "Unauthorized", "Unauthorized");
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="), resp -> assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWWW-Authenticate")),401, "Unauthorized", "Unauthorized");
   }
 }
