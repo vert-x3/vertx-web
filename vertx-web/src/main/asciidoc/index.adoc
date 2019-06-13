@@ -20,7 +20,7 @@ You can use Vert.x-Web to create classic server-side web applications, RESTful w
 web applications, or any other kind of web application you can think of. Vert.x-Web doesn't care. It's up to you to chose
 the type of app you prefer, not Vert.x-Web.
 
-Vert.x-Web is a great fit for writingRESTful HTTP micro-services*, but we don'tforce* you to write apps like that.
+Vert.x-Web is a great fit for writing RESTful HTTP micro-services**, but we don't force** you to write apps like that.
 
 Some of the key features of Vert.x-Web include:
 
@@ -2173,3 +2173,33 @@ This is handled automatically by the handler as long as the provider is configur
 
 In real life this means that your API's can access your protected resources using the header `Authorization` with the
 value `Bearer BASE64_ACCESS_TOKEN`.
+
+=== Handling HTTP Method overriding
+
+Many companies and other services impose limitations to the REST HTTP methods they allow to the outside world. Some are lax by allowing any method, most are restricted by allowing only a small-but-decent set and some only allow GET and POST. The reasons for such restritions varies: browser or client limitations or a really strict corporate firewalls. Web services with only GET and POST does not express well the REST ideology. PUT, DELETE, OPTIONS, among others are quite useful to specify what do to to a resource. To deal with it, it was created the X-HTTP-METHOD-OVERRIDE HTTP header as a workaround.
+
+By sending a request with GET/POST and which method the request should truly process inside the X-HTTP-METHOD-OVERRIDE HTTP header, the server should recognize the header and redirect to the appropriate method.
+
+Vert.x allows one to do so, simply by:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example64}
+----
+
+Since it will redirect the request, it is wise to avoid firing request handlers unnecessarily, so it is better to add the MethodOverrideHandler as the first handler.
+
+Also, a word of caution: THIS MIGHT BECOME AN ATTACK VECTOR FOR ILL-INTENTIONED PEOPLE!
+
+To mitigate such a problem, the MethodOverrideHandler comes with a Safe-Downgrade Policy by default. This policy says that the method contained in X-HTTP-METHOD-OVERRIDE can override the original one if:
+
+* the overriding method is idempotent; or
+* the overriding method is safe and the method to be overrided is NOT idempotent; or
+* the method to be overrided is not safe.
+
+Although we do NOT recommend, Vert.x will not force you to anything. If it is your desire to allow any overriding, then:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example65}
+----
