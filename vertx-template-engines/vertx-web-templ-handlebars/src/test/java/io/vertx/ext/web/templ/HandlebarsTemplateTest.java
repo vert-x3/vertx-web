@@ -310,7 +310,6 @@ public class HandlebarsTemplateTest {
   public void testTemplatePerf(TestContext should) {
     final Async test = should.async();
     TemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
-    System.out.println(engine.isCachingEnabled());
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
