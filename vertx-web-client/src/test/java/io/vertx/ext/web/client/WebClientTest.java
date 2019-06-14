@@ -1201,11 +1201,47 @@ public class WebClientTest extends HttpTestBase {
       if (expect) {
         assertEquals(200, resp.statusCode());
         assertEquals("/ok", resp.body().toString());
+        assertEquals(1, resp.followedRedirects().size());
+        assertEquals(location, resp.followedRedirects().get(0));
       } else {
         assertEquals(301, resp.statusCode());
         assertEquals(location, resp.getHeader("location"));
       }
       complete();
+    }));
+    await();
+  }
+
+  @Test
+  public void testMultipleRedirect() throws Exception {
+    waitFor(2);
+    String middleRedirect = "http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT + "/middle";
+    String endRedirect = "http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT + "/ok";
+    server.requestHandler(req -> {
+      if (!req.headers().contains("foo", "bar", true)) {
+        fail("Missing expected header");
+        return;
+      }
+      if (req.path().equals("/redirect")) {
+        req.response().setStatusCode(301).putHeader("Location", middleRedirect).end();
+      } else if (req.path().equals("/middle")) {
+        req.response().setStatusCode(301).putHeader("Location", endRedirect).end();
+      } else {
+        req.response().end(req.path());
+        complete();
+      }
+    });
+    startServer();
+    client.get("/redirect")
+      .putHeader("foo", "bar")
+      .followRedirects(true)
+      .send(onSuccess(resp -> {
+        assertEquals(200, resp.statusCode());
+        assertEquals("/ok", resp.body().toString());
+        assertEquals(2, resp.followedRedirects().size());
+        assertEquals(middleRedirect, resp.followedRedirects().get(0));
+        assertEquals(endRedirect, resp.followedRedirects().get(1));
+        complete();
     }));
     await();
   }

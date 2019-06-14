@@ -34,10 +34,7 @@ import io.vertx.ext.web.multipart.MultipartForm;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -59,6 +56,7 @@ public class HttpContext<T> {
   private HttpResponse<T> response;
   private Throwable failure;
   private int redirects;
+  private List<String> redirectedLocations = new ArrayList<>();
 
   HttpContext(Context context, HttpClientImpl client, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.context = context;
@@ -147,6 +145,13 @@ public class HttpContext<T> {
   }
 
   /**
+   * @return all traced redirects
+   */
+  public List<String> getRedirectedLocations() {
+    return redirectedLocations;
+  }
+
+  /**
    * Prepare the HTTP request, this executes the {@link ClientPhase#PREPARE_REQUEST} phase:
    * <ul>
    *   <li>Traverse the interceptor chain</li>
@@ -187,6 +192,7 @@ public class HttpContext<T> {
       redirects++;
       Future<HttpClientRequest> next = client.redirectHandler().apply(clientResponse);
       if (next != null) {
+        redirectedLocations.add(clientResponse.getHeader(HttpHeaders.LOCATION));
         next.setHandler(ar -> {
           if (ar.succeeded()) {
             HttpClientRequest nextRequest = ar.result();
@@ -364,7 +370,9 @@ public class HttpContext<T> {
                   resp.headers(),
                   resp.trailers(),
                   resp.cookies(),
-                  stream.result().result()));
+                  stream.result().result(),
+                  redirectedLocations
+                ));
               } else {
                 promise.fail(ar3.cause());
               }
