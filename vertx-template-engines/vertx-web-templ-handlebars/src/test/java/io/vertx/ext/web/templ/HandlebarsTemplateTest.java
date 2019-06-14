@@ -231,7 +231,7 @@ public class HandlebarsTemplateTest {
   @Test
   public void testTemplateChangeExtension(TestContext should) {
     final Async test = should.async();
-    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx).setExtension("zbs");
+    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx, "zbs");
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
@@ -248,7 +248,7 @@ public class HandlebarsTemplateTest {
   @Test
   public void testNoSuchTemplate(TestContext should) {
     final Async test = should.async();
-    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx).setExtension("zbs");
+    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx, "zbs");
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
@@ -262,7 +262,7 @@ public class HandlebarsTemplateTest {
   }
 
   @Test
-  public void testGetHandlebars() throws Exception {
+  public void testGetHandlebars() {
     HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
     assertNotNull(engine.getHandlebars());
   }

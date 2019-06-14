@@ -23,7 +23,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -100,14 +99,14 @@ public class MVELTemplateTest {
     engine.render(context, "src/test/filesystemtemplates/test-mvel-template4.templ", render -> {
       should.assertTrue(render.succeeded());
       String res = render.result().toString();
-      should.assertEquals("Hello badger and fox\nRequest path is /test-mvel-template4.templ\n", res);
+      should.assertEquals("Hello badger and fox\nRequest path is /test-mvel-template4.templ", res);
       test.complete();
     });
     test.await();
   }
 
   @Test
-  public void testTemplateHandlerOnClasspathDisableCaching(TestContext should) throws Exception {
+  public void testTemplateHandlerOnClasspathDisableCaching(TestContext should) {
     System.setProperty("vertxweb.environment", "development");
     testTemplateHandlerOnClasspath(should);
   }
@@ -134,7 +133,7 @@ public class MVELTemplateTest {
   @Test
   public void testTemplateHandlerChangeExtension(TestContext should) {
     final Async test = should.async();
-    TemplateEngine engine = MVELTemplateEngine.create(vertx).setExtension("bempl");
+    TemplateEngine engine = MVELTemplateEngine.create(vertx, "bempl");
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")

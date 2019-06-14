@@ -25,7 +25,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.extension.TestExtension;
 import io.vertx.ext.web.templ.pebble.impl.PebbleVertxLoader;
@@ -149,7 +148,7 @@ public class PebbleTemplateTest {
   @Test
   public void testTemplateHandlerChangeExtension(TestContext should) {
     final Async test = should.async();
-    TemplateEngine engine = PebbleTemplateEngine.create(vertx).setExtension("beb");
+    TemplateEngine engine = PebbleTemplateEngine.create(vertx, "beb");
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")

@@ -71,7 +71,7 @@ public class RockerTemplateEngineTest {
   @Test
   public void testTemplateHandlerChangeExtension(TestContext should) {
     final Async test = should.async();
-    TemplateEngine engine = RockerTemplateEngine.create().setExtension("rocker.raw");
+    TemplateEngine engine = RockerTemplateEngine.create("rocker.raw");
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")

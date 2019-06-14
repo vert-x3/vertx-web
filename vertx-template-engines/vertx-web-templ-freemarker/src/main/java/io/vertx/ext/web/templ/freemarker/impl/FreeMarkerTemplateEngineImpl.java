@@ -39,19 +39,13 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
 
   private final Configuration config;
 
-  public FreeMarkerTemplateEngineImpl(Vertx vertx) {
-    super(vertx, DEFAULT_TEMPLATE_EXTENSION);
+  public FreeMarkerTemplateEngineImpl(Vertx vertx, String extension) {
+    super(vertx, extension);
 
     config = new Configuration(Configuration.VERSION_2_3_28);
     config.setObjectWrapper(new VertxWebObjectWrapper(config.getIncompatibleImprovements()));
     config.setTemplateLoader(new FreeMarkerTemplateLoader(vertx));
     config.setCacheStorage(new NullCacheStorage());
-  }
-
-  @Override
-  public FreeMarkerTemplateEngine setExtension(String extension) {
-    doSetExtension(extension);
-    return this;
   }
 
   @Override

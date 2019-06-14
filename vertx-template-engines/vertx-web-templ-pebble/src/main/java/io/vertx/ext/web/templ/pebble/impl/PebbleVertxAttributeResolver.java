@@ -29,7 +29,7 @@ import io.vertx.core.json.JsonObject;
  * @author Nicola Murino <nicola dot murino at gmail.com> 
  */
 
-public class PebbleVertxAttributeResolver implements AttributeResolver {
+class PebbleVertxAttributeResolver implements AttributeResolver {
 
   @Override
   public ResolvedAttribute resolve(Object instance, Object attributeNameValue, Object[] argumentValues,
@@ -38,7 +38,7 @@ public class PebbleVertxAttributeResolver implements AttributeResolver {
     if (instance instanceof JsonObject) {
       ResolvedAttribute resolvedAttribute = new ResolvedAttribute(null);
 
-      if (attributeNameValue != null && attributeNameValue instanceof String) {
+      if (attributeNameValue instanceof String) {
         JsonObject jsonObject = (JsonObject) instance;
         resolvedAttribute = new ResolvedAttribute(jsonObject.getValue((String) attributeNameValue));
       }

@@ -15,7 +15,6 @@
  */
 package io.vertx.ext.web.templ.freemarker;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.common.template.TemplateEngine;
@@ -39,19 +38,15 @@ public interface FreeMarkerTemplateEngine extends TemplateEngine {
    * @return  the engine
    */
   static FreeMarkerTemplateEngine create(Vertx vertx) {
-    return new FreeMarkerTemplateEngineImpl(vertx).setExtension(DEFAULT_TEMPLATE_EXTENSION);
+    return new FreeMarkerTemplateEngineImpl(vertx, DEFAULT_TEMPLATE_EXTENSION);
   }
 
   /**
-   * @deprecated as a user you should use filename with extensions on the render method instead of relying
-   * on this method to suffix your filenames. Using this method is quite an opinionated API and has the side
-   * effect that you cannot use files without extensions as templates.
+   * Create a template engine using defaults
    *
-   * Set the extension for the engine
-   *
-   * @param extension  the extension
-   * @return a reference to this for fluency
+   * @return  the engine
    */
-  @Fluent
-  FreeMarkerTemplateEngine setExtension(String extension);
+  static FreeMarkerTemplateEngine create(Vertx vertx, String extension) {
+    return new FreeMarkerTemplateEngineImpl(vertx, extension);
+  }
 }

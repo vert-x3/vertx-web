@@ -1223,8 +1223,8 @@ TODO more CORS docs
 Vert.x-Web includes dynamic page generation capabilities by including out of the box support for several popular template
 engines. You can also easily add your own.
 
-Template engines are described by {@link io.vertx.ext.web.templ.TemplateEngine}. In order to render a template
-{@link io.vertx.ext.web.templ.TemplateEngine#render} is used.
+Template engines are described by {@link io.vertx.ext.web.common.template.TemplateEngine}. In order to render a template
+{@link io.vertx.ext.web.common.template.TemplateEngine#render} is used.
 
 The simplest way to use templates is not to call the template engine directly but to use the
 {@link io.vertx.ext.web.handler.TemplateHandler}.
@@ -1321,7 +1321,7 @@ router.getWithRegex(".+\\.hbs").handler(handler.handle);
 
 To use MVEL, you need to add the following _dependency_ to your project:
 `${maven.groupId}:vertx-web-templ-mvel:${maven.version}`. Create an instance of the MVEL template engine using:
-`io.vertx.ext.web.templ.MVELTemplateEngine#create()`
+`io.vertx.ext.web.templ.mvel.MVELTemplateEngine#create(io.vertx.core.Vertx)`
 
 When using the MVEL template engine, it will by default look for
 templates with the `.templ` extension if no extension is specified in the file name.
@@ -1347,7 +1347,7 @@ MVEL templates.
 
 To use the Jade template engine, you need to add the following _dependency_ to your project:
 `${maven.groupId}:vertx-web-templ-jade:${maven.version}`. Create an instance of the Jade template engine using:
-`io.vertx.ext.web.templ.JadeTemplateEngine#create()`.
+`io.vertx.ext.web.templ.jade.JadeTemplateEngine#create(io.vertx.core.Vertx)`.
 
 When using the Jade template engine, it will by default look for
 templates with the `.jade` extension if no extension is specified in the file name.
@@ -1373,7 +1373,7 @@ Jade templates.
 
 To use Handlebars, you need to add the following _dependency_ to your project:
 `${maven.groupId}:vertx-web-templ-handlebars:${maven.version}`. Create an instance of the Handlebars template engine
-using: `io.vertx.ext.web.templ.HandlebarsTemplateEngine#create()`.
+using: `io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine#create(io.vertx.core.Vertx)`.
 
 When using the Handlebars template engine, it will by default look for
 templates with the `.hbs` extension if no extension is specified in the file name.
@@ -1398,7 +1398,7 @@ handlebars templates.
 
 To use Thymeleaf, you need to add the following _dependency_ to your project:
 `${maven.groupId}:vertx-web-templ-thymeleaf:${maven.version}`. Create an instance of the Thymeleaf template engine
-using: `io.vertx.ext.web.templ.ThymeleafTemplateEngine#create()`.
+using: `io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine#create(io.vertx.core.Vertx)`.
 
 When using the Thymeleaf template engine, it will by default look for
 templates with the `.html` extension if no extension is specified in the file name.
@@ -1454,7 +1454,7 @@ Apache FreeMarker templates.
 
 To use Pebble, you need to add the following _dependency_ to your project:
 `io.vertx:vertx-web-templ-pebble:${maven.version}`. Create an instance of the Pebble template engine
-using: `io.vertx.ext.web.templ.PebbleTemplateEngine#create(vertx)`.
+using: `io.vertx.ext.web.templ.pebble.PebbleTemplateEngine#create(vertx)`.
 
 When using the Pebble template engine, it will by default look for
 templates with the `.peb` extension if no extension is specified in the file name.
@@ -1508,12 +1508,16 @@ Hello @foo and @bar
 Request path is @context.getString("path")
 ----
 
-=== Disabling caching
+=== Caching
+
+Many of the engines support caching of the compiled templates. The cache is stored inside a vert.x shared data local map
+which allows the engines to share the same cache across several verticles in a efficient and safe way.
+
+==== Disabling caching
 
 During development you might want to disable template caching so that the template gets reevaluated on each request.
-In order to do this you need to set the system property: `io.vertx.ext.web.TemplateEngine.disableCache` to `true`.
-
-By default it will be false. So caching is always enabled.
+In order to do this you need to set the system property: `vertxweb.environment` or environment variable
+`VERTXWEB_ENVIRONMENT` to `dev` or `development`. By default caching is always enabled.
 
 == Error handler
 

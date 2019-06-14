@@ -18,7 +18,6 @@ package io.vertx.ext.web.templ.handlebars;
 
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.ValueResolver;
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
@@ -44,21 +43,17 @@ public interface HandlebarsTemplateEngine extends TemplateEngine {
    * @return  the engine
    */
   static HandlebarsTemplateEngine create(Vertx vertx) {
-    return new HandlebarsTemplateEngineImpl(vertx);
+    return new HandlebarsTemplateEngineImpl(vertx, DEFAULT_TEMPLATE_EXTENSION);
   }
 
   /**
-   * @deprecated as a user you should use filename with extensions on the render method instead of relying
-   * on this method to suffix your filenames. Using this method is quite an opinionated API and has the side
-   * effect that you cannot use files without extensions as templates.
+   * Create a template engine using defaults
    *
-   * Set the extension for the engine
-   *
-   * @param extension  the extension
-   * @return a reference to this for fluency
+   * @return  the engine
    */
-  @Fluent
-  HandlebarsTemplateEngine setExtension(String extension);
+  static HandlebarsTemplateEngine create(Vertx vertx, String extension) {
+    return new HandlebarsTemplateEngineImpl(vertx, extension);
+  }
 
   /**
    * Get a reference to the internal Handlebars object so it

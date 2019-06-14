@@ -27,7 +27,7 @@ import io.vertx.core.json.JsonArray;
 /**
  * @author <a href="https://github.com/Jotschi">Johannes Schüth</a>
  */
-public class JsonArrayValueResolver implements ValueResolver {
+class JsonArrayValueResolver implements ValueResolver {
 
   public static final ValueResolver INSTANCE = new JsonArrayValueResolver();
 

@@ -31,16 +31,10 @@ import java.util.Map;
  */
 public class RockerTemplateEngineImpl implements RockerTemplateEngine {
 
-  private String extension;
+  private final String extension;
 
-  public RockerTemplateEngineImpl() {
-    setExtension(DEFAULT_TEMPLATE_EXTENSION);
-  }
-
-  @Override
-  public RockerTemplateEngine setExtension(String ext) {
-    this.extension = ext.charAt(0) == '.' ? ext : "." + ext;
-    return this;
+  public RockerTemplateEngineImpl(String extension) {
+    this.extension = extension.charAt(0) == '.' ? extension : "." + extension;
   }
 
   @Override

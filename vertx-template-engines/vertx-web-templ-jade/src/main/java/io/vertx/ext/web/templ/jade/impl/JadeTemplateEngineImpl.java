@@ -42,16 +42,10 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
 
   private final JadeConfiguration config = new JadeConfiguration();
 
-  public JadeTemplateEngineImpl(Vertx vertx) {
-    super(vertx, DEFAULT_TEMPLATE_EXTENSION);
+  public JadeTemplateEngineImpl(Vertx vertx, String extension) {
+    super(vertx, extension);
     config.setTemplateLoader(new JadeTemplateLoader(vertx));
     config.setCaching(false);
-  }
-
-  @Override
-  public JadeTemplateEngine setExtension(String extension) {
-    doSetExtension(extension);
-    return this;
   }
 
   @Override
@@ -81,15 +75,23 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   private class JadeTemplateLoader implements TemplateLoader {
 
     private final Vertx vertx;
-    private long lastMod = System.currentTimeMillis();
 
     JadeTemplateLoader(Vertx vertx) {
       this.vertx = vertx;
     }
 
     @Override
-    public long getLastModified(String name) {
-      return lastMod;
+    public long getLastModified(String name) throws IOException {
+      name = adjustLocation(name);
+      try {
+        if (vertx.fileSystem().existsBlocking(name)) {
+          return vertx.fileSystem().propsBlocking(name).lastModifiedTime();
+        } else {
+          throw new IOException("Cannot find resource " + name);
+        }
+      } catch (RuntimeException e) {
+        throw new IOException("Unexpected exception", e);
+      }
     }
 
     @Override

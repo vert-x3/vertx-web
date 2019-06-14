@@ -43,8 +43,8 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
 
   private ValueResolver[] resolvers;
 
-  public HandlebarsTemplateEngineImpl(Vertx vertx) {
-    super(vertx, HandlebarsTemplateEngine.DEFAULT_TEMPLATE_EXTENSION);
+  public HandlebarsTemplateEngineImpl(Vertx vertx, String extension) {
+    super(vertx, extension);
     loader = new Loader(vertx);
     // custom resolvers
     resolvers = new ValueResolver[ValueResolver.VALUE_RESOLVERS.length + 2];
@@ -55,12 +55,6 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
     System.arraycopy(ValueResolver.VALUE_RESOLVERS, 0, resolvers, 2, ValueResolver.VALUE_RESOLVERS.length);
     // create the engine
     handlebars = new Handlebars(loader);
-  }
-
-  @Override
-  public HandlebarsTemplateEngine setExtension(String extension) {
-    doSetExtension(extension);
-    return this;
   }
 
   @Override

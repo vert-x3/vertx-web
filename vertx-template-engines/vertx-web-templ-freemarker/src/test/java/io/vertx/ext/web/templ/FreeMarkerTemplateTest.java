@@ -23,7 +23,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
 import org.junit.BeforeClass;
@@ -131,7 +130,7 @@ public class FreeMarkerTemplateTest {
   }
 
   @Test
-  public void testTemplateHandlerNoExtension(TestContext should) throws Exception {
+  public void testTemplateHandlerNoExtension(TestContext should) {
     final Async test = should.async();
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
@@ -152,7 +151,7 @@ public class FreeMarkerTemplateTest {
   @Test
   public void testTemplateHandlerChangeExtension(TestContext should) {
     final Async test = should.async();
-    TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx).setExtension("mvl");
+    TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx, "mvl");
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")

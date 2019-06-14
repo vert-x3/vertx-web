@@ -46,24 +46,16 @@ import java.util.Set;
  */
 public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
-  // should not be static, so at at creation time the value is evaluated
-  private final boolean enableCache = !WebEnvironment.development();
-
   private final TemplateEngine templateEngine = new TemplateEngine();
-  private ResourceTemplateResolver templateResolver;
+  private final ResourceTemplateResolver templateResolver;
 
   public ThymeleafTemplateEngineImpl(Vertx vertx) {
     ResourceTemplateResolver templateResolver = new ResourceTemplateResolver(vertx);
-    templateResolver.setCacheable(isCachingEnabled());
+    templateResolver.setCacheable(!WebEnvironment.development());
     templateResolver.setTemplateMode(ThymeleafTemplateEngine.DEFAULT_TEMPLATE_MODE);
 
     this.templateResolver = templateResolver;
     this.templateEngine.setTemplateResolver(templateResolver);
-  }
-
-  @Override
-  public boolean isCachingEnabled() {
-    return enableCache;
   }
 
   @Override
@@ -85,16 +77,16 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
       synchronized (this) {
         templateEngine.process(templateFile, new WebIContext(context, (String) context.get("lang")), new Writer() {
           @Override
-          public void write(char[] cbuf, int off, int len) throws IOException {
+          public void write(char[] cbuf, int off, int len) {
             buffer.appendString(new String(cbuf, off, len));
           }
 
           @Override
-          public void flush() throws IOException {
+          public void flush() {
           }
 
           @Override
-          public void close() throws IOException {
+          public void close() {
           }
         });
       }
@@ -142,7 +134,7 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
   private static class ResourceTemplateResolver extends StringTemplateResolver {
     private final Vertx vertx;
 
-    public ResourceTemplateResolver(Vertx vertx) {
+    ResourceTemplateResolver(Vertx vertx) {
       super();
       this.vertx = vertx;
       setName("vertx/Thymeleaf3");

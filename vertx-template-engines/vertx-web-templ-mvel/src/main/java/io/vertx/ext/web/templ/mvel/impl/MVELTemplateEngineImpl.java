@@ -41,15 +41,9 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
 
   private final Vertx vertx;
 
-  public MVELTemplateEngineImpl(Vertx vertx) {
-    super(vertx, DEFAULT_TEMPLATE_EXTENSION);
+  public MVELTemplateEngineImpl(Vertx vertx, String extension) {
+    super(vertx, extension);
     this.vertx = vertx;
-  }
-
-  @Override
-  public MVELTemplateEngine setExtension(String extension) {
-    doSetExtension(extension);
-    return this;
   }
 
   @Override

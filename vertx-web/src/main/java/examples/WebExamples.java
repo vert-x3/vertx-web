@@ -22,6 +22,7 @@ import io.vertx.ext.auth.oauth2.providers.GithubAuth;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.*;
+import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.handler.sockjs.BridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
@@ -29,7 +30,6 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
-import io.vertx.ext.web.templ.TemplateEngine;
 
 import java.util.List;
 import java.util.Set;

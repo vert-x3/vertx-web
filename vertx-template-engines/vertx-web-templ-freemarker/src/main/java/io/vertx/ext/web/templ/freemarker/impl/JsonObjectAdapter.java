@@ -29,7 +29,7 @@ import io.vertx.core.json.JsonObject;
 /**
  * @author Thomas Segismont
  */
-public class JsonObjectAdapter extends WrappingTemplateModel implements TemplateHashModelEx, AdapterTemplateModel {
+class JsonObjectAdapter extends WrappingTemplateModel implements TemplateHashModelEx, AdapterTemplateModel {
 
   private final JsonObject jsonObject;
 
@@ -45,22 +45,22 @@ public class JsonObjectAdapter extends WrappingTemplateModel implements Template
   }
 
   @Override
-  public boolean isEmpty() throws TemplateModelException {
+  public boolean isEmpty() {
     return jsonObject.isEmpty();
   }
 
   @Override
-  public int size() throws TemplateModelException {
+  public int size() {
     return jsonObject.size();
   }
 
   @Override
-  public TemplateCollectionModel keys() throws TemplateModelException {
+  public TemplateCollectionModel keys() {
     return new SimpleCollection(jsonObject.fieldNames(), getObjectWrapper());
   }
 
   @Override
-  public TemplateCollectionModel values() throws TemplateModelException {
+  public TemplateCollectionModel values() {
     return new SimpleCollection(jsonObject.getMap().values(), getObjectWrapper());
   }
 

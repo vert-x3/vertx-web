@@ -58,12 +58,12 @@ class FreeMarkerTemplateLoader implements TemplateLoader {
   }
 
   @Override
-  public Reader getReader(Object templateSource, String encoding) throws IOException {
+  public Reader getReader(Object templateSource, String encoding) {
     return new StringReader(((StringTemplateSource) templateSource).source);
   }
 
   @Override
-  public void closeTemplateSource(Object templateSource) throws IOException {
+  public void closeTemplateSource(Object templateSource) {
 
   }
 
