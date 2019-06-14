@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.templ.mvel;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.common.template.TemplateEngine;
@@ -31,14 +30,8 @@ import io.vertx.ext.web.templ.mvel.impl.MVELTemplateEngineImpl;
 public interface MVELTemplateEngine extends TemplateEngine {
 
   /**
-   * Default max number of templates to cache
-   */
-  int DEFAULT_MAX_CACHE_SIZE = 10000;
-
-  /**
    * Default template extension
    */
-  @Deprecated
   String DEFAULT_TEMPLATE_EXTENSION = "templ";
 
   /**
@@ -47,29 +40,15 @@ public interface MVELTemplateEngine extends TemplateEngine {
    * @return  the engine
    */
   static MVELTemplateEngine create(Vertx vertx) {
-    return new MVELTemplateEngineImpl(vertx);
+    return new MVELTemplateEngineImpl(vertx, DEFAULT_TEMPLATE_EXTENSION);
   }
 
   /**
-   * @deprecated as a user you should use filename with extensions on the render method instead of relying
-   * on this method to suffix your filenames. Using this method is quite an opinionated API and has the side
-   * effect that you cannot use files without extensions as templates.
+   * Create a template engine using defaults
    *
-   * Set the extension for the engine
-   *
-   * @param extension  the extension
-   * @return a reference to this for fluency
+   * @return  the engine
    */
-  @Fluent
-  @Deprecated
-  MVELTemplateEngine setExtension(String extension);
-
-  /**
-   * Set the max cache size for the engine
-   *
-   * @param maxCacheSize  the maxCacheSize
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  MVELTemplateEngine setMaxCacheSize(int maxCacheSize);
+  static MVELTemplateEngine create(Vertx vertx, String extension) {
+    return new MVELTemplateEngineImpl(vertx, extension);
+  }
 }

@@ -23,7 +23,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
 import org.junit.BeforeClass;
@@ -51,8 +50,6 @@ public class FreeMarkerTemplateNoCacheTest {
   public void testCachingDisabled(TestContext should) throws Exception {
     System.setProperty("vertxweb.environment", "development");
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
-
-    should.assertFalse(engine.isCachingEnabled(), "Caching should be disabled");
 
     final Async test = should.async();
 

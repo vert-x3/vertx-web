@@ -27,7 +27,7 @@ import io.vertx.core.json.JsonArray;
 /**
  * @author Thomas Segismont
  */
-public class JsonArrayAdapter extends WrappingTemplateModel implements TemplateSequenceModel, AdapterTemplateModel {
+class JsonArrayAdapter extends WrappingTemplateModel implements TemplateSequenceModel, AdapterTemplateModel {
 
   private final JsonArray jsonArray;
 
@@ -37,7 +37,7 @@ public class JsonArrayAdapter extends WrappingTemplateModel implements TemplateS
   }
 
   @Override
-  public int size() throws TemplateModelException {
+  public int size() {
     return jsonArray.size();
   }
 

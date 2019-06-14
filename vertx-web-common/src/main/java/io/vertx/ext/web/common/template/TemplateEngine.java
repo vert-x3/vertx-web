@@ -63,12 +63,4 @@ public interface TemplateEngine {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   void render(Map<String, Object> context, String templateFileName, Handler<AsyncResult<Buffer>> handler);
-
-  /**
-   * Returns true if the template template caches template files. If false, then template files are freshly loaded each
-   * time they are used.
-   *
-   * @return True if template files are cached; otherwise, false.
-   */
-  boolean isCachingEnabled();
 }

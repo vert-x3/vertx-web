@@ -24,6 +24,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
+import io.vertx.ext.web.common.template.impl.TemplateHolder;
 import io.vertx.ext.web.templ.pebble.PebbleTemplateEngine;
 
 import java.io.StringWriter;
@@ -38,45 +39,38 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
 
   private final PebbleEngine pebbleEngine;
 
-  public PebbleTemplateEngineImpl(Vertx vertx) {
-    this(new PebbleEngine.Builder().loader(new PebbleVertxLoader(vertx)).extension(new PebbleVertxExtension())
+  public PebbleTemplateEngineImpl(Vertx vertx, String extension) {
+    this(vertx,
+      extension,
+      new PebbleEngine.Builder()
+        .loader(new PebbleVertxLoader(vertx))
+        .extension(new PebbleVertxExtension())
         .cacheActive(false).build());
   }
 
-  public PebbleTemplateEngineImpl(PebbleEngine engine) {
-    super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
+  public PebbleTemplateEngineImpl(Vertx vertx, String extension, PebbleEngine engine) {
+    super(vertx, extension);
     this.pebbleEngine = engine;
-  }
-
-  @Override
-  public PebbleTemplateEngine setExtension(String extension) {
-    doSetExtension(extension);
-    return this;
-  }
-
-  @Override
-  public PebbleTemplateEngine setMaxCacheSize(int maxCacheSize) {
-    this.cache.setMaxSize(maxCacheSize);
-    return this;
   }
 
   @Override
   public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
-      PebbleTemplate template = isCachingEnabled() ? cache.get(templateFile) : null;
+      String src = adjustLocation(templateFile);
+      TemplateHolder<PebbleTemplate> template = getTemplate(src);
       if (template == null) {
         // real compile
-        final String loc = adjustLocation(templateFile);
-        template = pebbleEngine.getTemplate(loc);
-        if (isCachingEnabled()) {
-          cache.put(templateFile, template);
+        synchronized (this) {
+          template = new TemplateHolder<>(pebbleEngine.getTemplate(adjustLocation(src)));
         }
+        putTemplate(src, template);
       }
+
       // special key for lang selection
       final String lang = (String) context.get("lang");
       // rendering
       final StringWriter stringWriter = new StringWriter();
-      template.evaluate(stringWriter, context, lang == null ? Locale.getDefault() : Locale.forLanguageTag(lang));
+      template.template().evaluate(stringWriter, context, lang == null ? Locale.getDefault() : Locale.forLanguageTag(lang));
       handler.handle(Future.succeededFuture(Buffer.buffer(stringWriter.toString())));
     } catch (final Exception ex) {
       handler.handle(Future.failedFuture(ex));

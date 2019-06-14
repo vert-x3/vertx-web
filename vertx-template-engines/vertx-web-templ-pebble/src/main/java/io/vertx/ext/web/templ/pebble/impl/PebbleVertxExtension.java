@@ -20,14 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.mitchellbosecke.pebble.attributes.AttributeResolver;
-import com.mitchellbosecke.pebble.attributes.DefaultAttributeResolver;
 import com.mitchellbosecke.pebble.extension.AbstractExtension;
 
 /**
  * @author Nicola Murino <nicola dot murino at gmail.com> 
  */
 
-public class PebbleVertxExtension extends AbstractExtension {
+class PebbleVertxExtension extends AbstractExtension {
 
   @Override
   public List<AttributeResolver> getAttributeResolver() {

@@ -23,7 +23,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -116,7 +115,7 @@ public class JadeTemplateTest {
   @Test
   public void testTemplateHandlerChangeExtension(TestContext should) {
     final Async test = should.async();
-    TemplateEngine engine = JadeTemplateEngine.create(vertx).setExtension("made");
+    TemplateEngine engine = JadeTemplateEngine.create(vertx, "made");
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
@@ -135,7 +134,7 @@ public class JadeTemplateTest {
   @Test
   public void testNoSuchTemplate(TestContext should) {
     final Async test = should.async();
-    TemplateEngine engine = JadeTemplateEngine.create(vertx).setExtension("made");
+    TemplateEngine engine = JadeTemplateEngine.create(vertx, "made");
 
     final JsonObject context = new JsonObject();
 

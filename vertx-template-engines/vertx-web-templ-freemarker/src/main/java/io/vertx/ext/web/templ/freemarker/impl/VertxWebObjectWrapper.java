@@ -26,7 +26,7 @@ import io.vertx.core.json.JsonObject;
 /**
  * @author Thomas Segismont
  */
-public class VertxWebObjectWrapper extends DefaultObjectWrapper {
+class VertxWebObjectWrapper extends DefaultObjectWrapper {
 
   public VertxWebObjectWrapper(Version incompatibleImprovements) {
     super(incompatibleImprovements);

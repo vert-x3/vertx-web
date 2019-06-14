@@ -28,7 +28,7 @@ import java.nio.charset.Charset;
  */
 public class VertxBufferOutput extends AbstractRockerOutput<VertxBufferOutput> {
 
-  public static VertxBufferOutputFactory FACTORY = new VertxBufferOutputFactory();
+  public static final VertxBufferOutputFactory FACTORY = new VertxBufferOutputFactory();
 
   private final Buffer buffer;
 
@@ -47,13 +47,13 @@ public class VertxBufferOutput extends AbstractRockerOutput<VertxBufferOutput> {
   }
 
   @Override
-  public VertxBufferOutput w(String string) throws IOException {
+  public VertxBufferOutput w(String string) {
     buffer.appendBytes(string.getBytes(charset));
     return this;
   }
 
   @Override
-  public VertxBufferOutput w(byte[] bytes) throws IOException {
+  public VertxBufferOutput w(byte[] bytes) {
     buffer.appendBytes(bytes);
     return this;
   }

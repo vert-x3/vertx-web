@@ -23,7 +23,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -115,7 +114,7 @@ public class ThymeleafTemplateTest {
   }
 
   @Test
-  public void testTemplateHandlerOnClasspathDisableCaching(TestContext should) throws Exception {
+  public void testTemplateHandlerOnClasspathDisableCaching(TestContext should) {
     System.setProperty("vertxweb.environment", "development");
     testTemplateHandlerOnClasspath(should);
   }

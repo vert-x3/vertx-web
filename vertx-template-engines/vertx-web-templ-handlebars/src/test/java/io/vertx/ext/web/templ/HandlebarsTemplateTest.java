@@ -21,7 +21,6 @@ import io.vertx.core.file.FileSystemOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 
@@ -39,6 +38,7 @@ import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -231,7 +231,7 @@ public class HandlebarsTemplateTest {
   @Test
   public void testTemplateChangeExtension(TestContext should) {
     final Async test = should.async();
-    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx).setExtension("zbs");
+    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx, "zbs");
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
@@ -248,7 +248,7 @@ public class HandlebarsTemplateTest {
   @Test
   public void testNoSuchTemplate(TestContext should) {
     final Async test = should.async();
-    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx).setExtension("zbs");
+    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx, "zbs");
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
@@ -262,7 +262,7 @@ public class HandlebarsTemplateTest {
   }
 
   @Test
-  public void testGetHandlebars() throws Exception {
+  public void testGetHandlebars() {
     HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
     assertNotNull(engine.getHandlebars());
   }
@@ -305,4 +305,29 @@ public class HandlebarsTemplateTest {
     });
     test.await();
   }
+
+  @Test
+  public void testTemplatePerf(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
+
+    final JsonObject context = new JsonObject()
+      .put("foo", "badger")
+      .put("bar", "fox");
+
+    final AtomicInteger cnt = new AtomicInteger(0);
+    final long t0 = System.currentTimeMillis();
+    for (int i = 0; i < 1000000; i++) {
+      engine.render(context, "somedir/test-handlebars-template2.hbs", render -> {
+        should.assertTrue(render.succeeded());
+        should.assertEquals("Hello badger and fox", render.result().toString());
+        if (cnt.incrementAndGet() == 1000000) {
+          final long t1 = System.currentTimeMillis();
+          System.out.println(t1 - t0);
+          test.complete();
+        }
+      });
+    }
+  }
+
 }
