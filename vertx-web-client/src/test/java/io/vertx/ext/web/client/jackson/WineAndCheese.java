@@ -36,4 +36,9 @@ public class WineAndCheese {
     }
     return false;
   }
+  
+  @Override
+	public int hashCode() {
+		return Objects.hash(wine, cheese);
+	}
 }
