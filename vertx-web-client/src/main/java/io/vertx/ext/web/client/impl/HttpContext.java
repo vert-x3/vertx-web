@@ -349,6 +349,9 @@ public class HttpContext<T> {
     if (request.headers != null) {
       req.headers().addAll(request.headers);
     }
+    if (request.rawMethod != null) {
+      req.setRawMethod(request.rawMethod);
+    }
     sendRequest(req);
   }
 

@@ -1672,4 +1672,14 @@ public class WebClientTest extends HttpTestBase {
     );
   }
 
+  @Test
+  public void testRawMethod() throws Exception {
+    testRequest(
+      client -> client.raw("MY_METHOD", "/"),
+      req -> {
+        assertEquals(HttpMethod.OTHER, req.method());
+        assertEquals("MY_METHOD", req.rawMethod());
+    });
+  }
+
 }
