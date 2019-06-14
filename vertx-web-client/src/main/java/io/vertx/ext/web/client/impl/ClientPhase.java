@@ -29,6 +29,11 @@ public enum ClientPhase {
   SEND_REQUEST,
 
   /**
+   * The {@link io.vertx.core.http.HttpClientResponse} has been received, but the client must follow a redirect
+   */
+  FOLLOW_REDIRECT,
+
+  /**
    * The {@link io.vertx.core.http.HttpClientResponse} has been received and the {@link HttpContext#response()} will be created.
    */
   RECEIVE_RESPONSE,
