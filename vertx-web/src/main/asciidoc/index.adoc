@@ -406,7 +406,7 @@ If two matching routes have the same value of order, then they will be called in
 
 You can also specify that a route is handled last, with {@link io.vertx.ext.web.Route#last}
 
-Note: Route order could be specified only before you configure an handler
+Note: Route order can be specified only before you configure an handler!
 
 == Routing based on MIME type of request
 
