@@ -15,9 +15,11 @@
  */
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.CSRFHandler;
@@ -27,9 +29,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.Random;
 
 
 /**
@@ -41,7 +41,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
   private static final Base64.Encoder BASE64 = Base64.getMimeEncoder();
 
-  private final Random RAND = new SecureRandom();
+  private final VertxContextPRNG random;
   private final Mac mac;
 
   private boolean nagHttps;
@@ -51,8 +51,9 @@ public class CSRFHandlerImpl implements CSRFHandler {
   private String responseBody = DEFAULT_RESPONSE_BODY;
   private long timeout = SessionHandler.DEFAULT_SESSION_TIMEOUT;
 
-  public CSRFHandlerImpl(final String secret) {
+  public CSRFHandlerImpl(final Vertx vertx, final String secret) {
     try {
+      random = VertxContextPRNG.current(vertx);
       mac = Mac.getInstance("HmacSHA256");
       mac.init(new SecretKeySpec(secret.getBytes(), "HmacSHA256"));
     } catch (NoSuchAlgorithmException | InvalidKeyException e) {
@@ -98,7 +99,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
   private String generateToken() {
     byte[] salt = new byte[32];
-    RAND.nextBytes(salt);
+    random.nextBytes(salt);
 
     String saltPlusToken = BASE64.encodeToString(salt) + "." + Long.toString(System.currentTimeMillis());
     String signature = BASE64.encodeToString(mac.doFinal(saltPlusToken.getBytes()));

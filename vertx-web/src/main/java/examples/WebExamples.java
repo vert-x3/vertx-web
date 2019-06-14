@@ -1102,10 +1102,10 @@ public class WebExamples {
     };
   }
 
-  public void example54(Router router) {
+  public void example54(Vertx vertx, Router router) {
 
     router.route().handler(CookieHandler.create());
-    router.route().handler(CSRFHandler.create("abracadabra"));
+    router.route().handler(CSRFHandler.create(vertx, "abracadabra"));
     router.route().handler(rc -> {
 
     });
