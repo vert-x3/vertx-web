@@ -15,8 +15,8 @@ To use this module, add the following to the _dependencies_ section of your Mave
 [source,xml,subs="+attributes"]
 ----
 <dependency>
-  <groupId>${maven.groupId}</groupId>
-  <artifactId>${maven.artifactId}</artifactId>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-graphql</artifactId>
   <version>${maven.version}</version>
 </dependency>
 ----
