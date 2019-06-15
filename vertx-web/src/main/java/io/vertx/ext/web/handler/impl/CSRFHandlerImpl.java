@@ -143,7 +143,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
         .setStatusCode(statusCode)
         .end(responseBody);
     } else {
-      ctx.fail(statusCode);
+      ctx.fail(new HttpStatusException(statusCode, ERROR_MESSAGE));
     }
   }
 
