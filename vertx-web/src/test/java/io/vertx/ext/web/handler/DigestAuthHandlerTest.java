@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DigestAuthHandlerTest extends WebTestBase {
 
   private static final MessageDigest MD5;
+  private static final String DEFAULT_NONCE_MAP_NAME = "htdigest.nonces";
 
   static {
     try {
@@ -45,6 +46,26 @@ public class DigestAuthHandlerTest extends WebTestBase {
   @Test
   public void testLoginDefaultRealm() throws Exception {
     doLogin("testrealm@host.com");
+  }
+
+  @Test
+  public void checkNoncesCleanup() throws Exception {
+    router.clear();
+    HtdigestAuth authProvider = HtdigestAuth.create(vertx);
+    /* set nonceExpireTimeout to a negative value so the cached nonces must be deleted as soon as a new request 
+     * is done
+     */
+    router.route("/dir/*").handler(DigestAuthHandler.create(vertx, authProvider, -100));
+    int initialNoncesSize = vertx.sharedData().getLocalMap(DEFAULT_NONCE_MAP_NAME).size();
+    /* Now make some new requests without authentication: for each new request a new nonce is generated
+     * and the old one is expired so the final nonces size must be equal to the initial one + 1
+     */
+    int numRequests = 5;
+    for (int i = 0; i < numRequests; ++i) {
+      testRequest(HttpMethod.GET, "/dir/index.html", null, null, 401, "Unauthorized", null);
+    }
+    int finalNoncesSize = vertx.sharedData().getLocalMap(DEFAULT_NONCE_MAP_NAME).size();
+    assertEquals(initialNoncesSize + 1, finalNoncesSize);
   }
 
   private void doLogin(String realm) throws Exception {
