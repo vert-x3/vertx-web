@@ -25,7 +25,7 @@ Or, if you use Gradle:
 
 [source,groovy,subs="+attributes"]
 ----
-compile '${maven.groupId}:${maven.artifactId}:${maven.version}'
+compile 'io.vertx:vertx-web-graphql:${maven.version}'
 ----
 
 == Handler setup
