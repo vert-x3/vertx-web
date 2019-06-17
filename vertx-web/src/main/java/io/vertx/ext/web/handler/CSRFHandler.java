@@ -19,6 +19,8 @@ import io.vertx.ext.web.handler.impl.CSRFHandlerImpl;
 @VertxGen
 public interface CSRFHandler extends Handler<RoutingContext> {
 
+  String ERROR_MESSAGE = "Invalid or missing csrf token";
+
   String DEFAULT_COOKIE_NAME = "XSRF-TOKEN";
 
   String DEFAULT_COOKIE_PATH = "/";
