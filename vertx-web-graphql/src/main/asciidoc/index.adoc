@@ -91,7 +91,7 @@ The GraphQL-Java API is very well suited for the asynchronous world: the asynchr
 
 To https://vertx.io/docs/vertx-core/java/#golden_rule[avoid blocking the event loop], all you have to do is implement https://www.graphql-java.com/documentation/${graphql.java.doc.version}/data-fetching/[data fetchers] that return a `CompletionStage` instead of the result directly.
 
-[source,java]
+[source,$lang]
 ----
 {@link examples.GraphQLExamples#completionStageDataFetcher}
 ----
@@ -103,7 +103,7 @@ But when you work with Vert.x callback-based APIs, it requires a bit of boilerpl
 
 This is where the {@link io.vertx.ext.web.handler.graphql.VertxDataFetcher} can help:
 
-[source,java]
+[source,$lang]
 ----
 {@link examples.GraphQLExamples#vertxDataFetcher}
 ----
@@ -118,7 +118,7 @@ Let's say your authentication layer stores a `User` object in the {@link io.vert
 
 You may retrieve this object by inspecting the `DataFetchingEnvironment`:
 
-[source,java]
+[source,$lang]
 ----
 {@link examples.GraphQLExamples#routingContextInDataFetchingEnvironment}
 ----
@@ -127,7 +127,7 @@ NOTE: The routing context is available with any kind of data fetchers, not just 
 
 If you prefer not to expose the routing context to your data fetchers, configure the GraphQL handler to customize the context object:
 
-[source,java]
+[source,$lang]
 ----
 {@link examples.GraphQLExamples#customContextInDataFetchingEnvironment}
 ----
@@ -141,7 +141,7 @@ Nevertheless, some Vert.x data clients return {@link io.vertx.core.json.JsonArra
 
 If you don't need (or don't wish to) use a domain object layer, you can configure GraphQL-Java to use {@link io.vertx.ext.web.handler.graphql.VertxPropertyDataFetcher} instead:
 
-[source,java]
+[source,$lang]
 ----
 {@link examples.GraphQLExamples#jsonData}
 ----
@@ -154,14 +154,14 @@ Dataloaders help you to load data efficiently by batching fetch requests and cac
 
 First, you must configure the `GraphQL` object to use the `DataLoaderDispatcherInstrumentation`:
 
-[source,java]
+[source,$lang]
 ----
 {@link examples.GraphQLExamples#dataLoaderDispatcherInstrumentation}
 ----
 
 Then create a batch loader:
 
-[source,java]
+[source,$lang]
 ----
 {@link examples.GraphQLExamples#createBatchLoader}
 ----
@@ -170,7 +170,7 @@ TIP: If you work with Vert.x callback-based APIs, you may use a {@link io.vertx.
 
 Eventually, configure the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} to create a `DataLoaderRegistry` for each request:
 
-[source,java]
+[source,$lang]
 ----
 {@link examples.GraphQLExamples#dataLoaderRegistry}
 ----
