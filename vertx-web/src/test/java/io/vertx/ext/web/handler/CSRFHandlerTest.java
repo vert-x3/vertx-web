@@ -20,6 +20,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.handler.impl.HttpStatusException;
 import org.junit.AfterClass;
 import org.junit.Test;
 
@@ -53,15 +54,27 @@ public class CSRFHandlerTest extends WebTestBase {
     }, 200, "OK", null);
   }
 
+  Throwable failure;
+
   @Test
   public void testPostWithoutHeader() throws Exception {
+
+    // we need to wait getting failure Throwable
+    CountDownLatch latch = new CountDownLatch(1);
 
     router.route().handler(CookieHandler.create());
     router.route().handler(CSRFHandler.create(vertx, "Abracadabra"));
     router.route().handler(rc -> rc.response().end());
-
+    router.errorHandler(403, rc -> {
+      failure = rc.failure();
+      latch.countDown();
+    });
 
     testRequest(HttpMethod.POST, "/", null, null, 403, "Forbidden", null);
+
+    latch.await();
+    assertTrue(failure instanceof HttpStatusException);
+    assertEquals(((HttpStatusException)failure).getPayload(), CSRFHandler.ERROR_MESSAGE);
   }
 
   String rawCookie;
