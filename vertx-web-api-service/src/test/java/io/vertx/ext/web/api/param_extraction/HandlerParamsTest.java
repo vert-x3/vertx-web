@@ -51,7 +51,7 @@ public class HandlerParamsTest extends VertxTestBase {
       .getMap().entrySet()
       .stream().map(e -> e.getValue() != null ? e.getValue() : "null").map(Object::toString).reduce("", String::concat);
     CountDownLatch latch = new CountDownLatch(1);
-    vertx.eventBus().send(address, payload, new DeliveryOptions().addHeader("action", actionName), (AsyncResult<Message<JsonObject>> res) -> {
+    vertx.eventBus().request(address, payload, new DeliveryOptions().addHeader("action", actionName), (AsyncResult<Message<JsonObject>> res) -> {
       if (res.succeeded()) {
         OperationResponse op = new OperationResponse(res.result().body());
         assertEquals(200, op.getStatusCode().intValue());

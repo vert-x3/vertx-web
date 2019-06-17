@@ -865,7 +865,7 @@ public class EventbusBridgeTest extends WebTestBase {
         ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(reply.encode(), true));
       });
 
-      vertx.setTimer(500, tid -> vertx.eventBus().send(addr, "foobar", res -> {
+      vertx.setTimer(500, tid -> vertx.eventBus().request(addr, "foobar", res -> {
         if (res.succeeded()) {
           assertEquals("barfoo", res.result().body());
           ws.closeHandler(v2 -> latch.countDown());
@@ -932,7 +932,7 @@ public class EventbusBridgeTest extends WebTestBase {
       consumer.handler(msg -> {
         Object receivedBody = msg.body();
         assertEquals("one", receivedBody);
-        msg.reply("two", rep -> {
+        msg.replyAndRequest("two", rep -> {
           assertTrue(rep.succeeded());
           Object repReceivedBody = rep.result().body();
           assertEquals("three", repReceivedBody);
