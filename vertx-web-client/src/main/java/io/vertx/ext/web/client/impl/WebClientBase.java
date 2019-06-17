@@ -196,7 +196,7 @@ public class WebClientBase implements WebClientInternal {
 
   @Override
   public HttpRequest<Buffer> rawAbs(String customHttpMethod, String absoluteURI) {
-    return null;
+    return requestAbs(HttpMethod.OTHER, absoluteURI).rawMethod(customHttpMethod);
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, String requestURI) {
