@@ -301,7 +301,7 @@ public class WebExamples {
 
   public void example11(Router router) {
 
-    Route route1 = router.route("/some/path/").handler(routingContext -> {
+    Route route1 = router.route("/some/path/").order(1).handler(routingContext -> {
 
       HttpServerResponse response = routingContext.response();
       response.write("route1\n");
@@ -310,7 +310,7 @@ public class WebExamples {
       routingContext.next();
     });
 
-    Route route2 = router.route("/some/path/").handler(routingContext -> {
+    Route route2 = router.route("/some/path/").order(0).handler(routingContext -> {
 
       HttpServerResponse response = routingContext.response();
       // enable chunked responses because we will be adding data as
@@ -324,7 +324,7 @@ public class WebExamples {
       routingContext.next();
     });
 
-    Route route3 = router.route("/some/path/").handler(routingContext -> {
+    Route route3 = router.route("/some/path/").order(2).handler(routingContext -> {
 
       HttpServerResponse response = routingContext.response();
       response.write("route3");
@@ -332,9 +332,6 @@ public class WebExamples {
       // Now end the response
       routingContext.response().end();
     });
-
-    // Change the order of route2 so it runs before route1
-    route2.order(-1);
   }
 
   public void example12(Router router) {
