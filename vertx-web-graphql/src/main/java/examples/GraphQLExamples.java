@@ -40,8 +40,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
-
 /**
  * @author Thomas SEGISMONT
  */
@@ -110,7 +108,7 @@ public class GraphQLExamples {
       return completableFuture;
     };
 
-    RuntimeWiring runtimeWiring = newRuntimeWiring()
+    RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()
       .type("Query", builder -> builder.dataFetcher("allLinks", dataFetcher))
       .build();
   }
@@ -125,7 +123,7 @@ public class GraphQLExamples {
 
     });
 
-    RuntimeWiring runtimeWiring = newRuntimeWiring()
+    RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()
       .type("Query", builder -> builder.dataFetcher("allLinks", dataFetcher))
       .build();
   }
@@ -174,7 +172,7 @@ public class GraphQLExamples {
   }
 
   private void jsonData() {
-    RuntimeWiring.Builder builder = newRuntimeWiring();
+    RuntimeWiring.Builder builder = RuntimeWiring.newRuntimeWiring();
 
     builder.wiringFactory(new WiringFactory() {
 
