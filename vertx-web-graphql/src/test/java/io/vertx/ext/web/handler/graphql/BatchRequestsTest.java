@@ -38,7 +38,7 @@ public class BatchRequestsTest extends GraphQLTestBase {
   @Test
   public void testEmptyBatch() throws Exception {
     HttpClientRequest request = client.request(HttpMethod.POST, 8080, "localhost", "/graphql");
-    request.handler(onSuccess(response -> {
+    request.setHandler(onSuccess(response -> {
       if (response.statusCode() != 200) {
         fail(response.statusCode() + " " + response.statusMessage());
       } else {
@@ -59,7 +59,7 @@ public class BatchRequestsTest extends GraphQLTestBase {
     HttpClientRequest request = client.request(HttpMethod.POST, 8080, "localhost", "/graphql");
     JsonObject query = new JsonObject()
       .put("query", "query { allLinks { url } }");
-    request.handler(onSuccess(response -> {
+    request.setHandler(onSuccess(response -> {
       if (response.statusCode() != 200) {
         fail(response.statusCode() + " " + response.statusMessage());
       } else {
@@ -81,7 +81,7 @@ public class BatchRequestsTest extends GraphQLTestBase {
     HttpClientRequest request = client.request(HttpMethod.POST, 8080, "localhost", "/graphql");
     JsonObject query = new JsonObject()
       .put("foo", "bar");
-    request.handler(onSuccess(response -> {
+    request.setHandler(onSuccess(response -> {
       if (response.statusCode() == 400) {
         complete();
       } else {

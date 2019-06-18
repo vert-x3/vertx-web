@@ -1,5 +1,6 @@
 package io.vertx.ext.web.impl;
 
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
@@ -27,6 +28,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
     path = request.path();
     uri = request.uri();
     absoluteURI = null;
+  }
+
+  @Override
+  public Future<Buffer> body() {
+    return delegate.body();
   }
 
   @Override

@@ -419,7 +419,7 @@ public class HttpContext<T> {
       }
     });
     HttpClientRequest req = clientRequest;
-    req.handler(ar -> {
+    req.setHandler(ar -> {
       if (ar.succeeded()) {
         responseFuture.tryComplete(ar.result());
       } else {

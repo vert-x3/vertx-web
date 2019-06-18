@@ -32,12 +32,13 @@
 
 package io.vertx.ext.web.handler.sockjs;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
@@ -75,27 +76,27 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   SockJSSocket endHandler(Handler<Void> endHandler);
 
   @Override
-  default SockJSSocket write(Buffer data) {
-    return write(data, null);
+  default Future<Void> write(Buffer data) {
+    Promise<Void> promise = Promise.promise();
+    write(data, promise);
+    return promise.future();
   }
 
   /**
    * Write a {@link String} to the socket, encoded in UTF-8.
    *
    * @param data  the string to write
-   * @return a reference to this, so the API can be used fluently
    */
-  @Fluent
-  default SockJSSocket write(String data) {
-    return write(data, null);
+  default void write(String data) {
+    write(data, null);
   }
 
-  default SockJSSocket write(String data, Handler<AsyncResult<Void>> handler) {
-    return write(Buffer.buffer(data), handler);
+  default void write(String data, Handler<AsyncResult<Void>> handler) {
+    write(Buffer.buffer(data), handler);
   }
 
   @Override
-  SockJSSocket write(Buffer data, Handler<AsyncResult<Void>> handler);
+  void write(Buffer data, Handler<AsyncResult<Void>> handler);
 
   @Override
   SockJSSocket setWriteQueueMaxSize(int maxSize);
@@ -114,10 +115,10 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   String writeHandlerID();
 
   /**
-   * Call {@link #end()}.
+   * Call {@link #close()}.
    */
   @Override
-  void end();
+  Future<Void> end();
 
   /**
    * Close it

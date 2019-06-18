@@ -54,8 +54,7 @@ public class SockJSAsyncHandlerTest extends SockJSTestBase {
 
       client.post("/test/400/8ne8e94a/xhr_send", onSuccess(respSend -> assertEquals(204, respSend.statusCode())))
         .putHeader("content-length", "13")
-        .write("\"Hello World\"")
-        .end();
+        .end("\"Hello World\"");
     })).end();
 
     await();

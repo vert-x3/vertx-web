@@ -27,18 +27,17 @@ public class JsonStreamBodyCodec implements BodyCodec<Void> {
       }
 
       @Override
-      public WriteStream<Buffer> write(Buffer buffer) {
+      public Future<Void> write(Buffer buffer) {
         parser.handle(buffer);
-        return this;
+        return Future.succeededFuture();
       }
 
       @Override
-      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
+      public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         parser.handle(data);
         if (handler != null) {
           handler.handle(Future.succeededFuture());
         }
-        return this;
       }
 
       @Override
@@ -47,11 +46,6 @@ public class JsonStreamBodyCodec implements BodyCodec<Void> {
         if (handler != null) {
           handler.handle(Future.succeededFuture());
         }
-      }
-
-      @Override
-      public void end() {
-        parser.end();
       }
 
       @Override

@@ -200,7 +200,7 @@ public class StaticHandlerTest extends WebTestBase {
       resp.bodyHandler(this::assertNotNull);
       testComplete();
     }));
-    request.pushHandler(pushedReq -> pushedReq.handler(pushedResp -> {
+    request.pushHandler(pushedReq -> pushedReq.setHandler(pushedResp -> {
       fail();
     }));
     request.end();
@@ -233,7 +233,7 @@ public class StaticHandlerTest extends WebTestBase {
       resp.bodyHandler(this::assertNotNull);
     }));
     CountDownLatch latch = new CountDownLatch(2);
-    request.pushHandler(pushedReq -> pushedReq.handler(onSuccess(pushedResp -> {
+    request.pushHandler(pushedReq -> pushedReq.setHandler(onSuccess(pushedResp -> {
       assertNotNull(pushedResp);
       pushedResp.bodyHandler(this::assertNotNull);
       latch.countDown();

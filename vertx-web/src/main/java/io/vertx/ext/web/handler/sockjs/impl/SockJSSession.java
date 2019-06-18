@@ -122,13 +122,13 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   }
 
   @Override
-  public SockJSSocket write(Buffer buffer, Handler<AsyncResult<Void>> handler) {
+  public void write(Buffer buffer, Handler<AsyncResult<Void>> handler) {
     synchronized (this) {
       if (closed) {
         if (handler != null) {
           context.runOnContext(v -> handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION)));
         }
-        return this;
+        return;
       }
       String msgStr = buffer.toString();
       pendingWrites.add(msgStr);
@@ -148,7 +148,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
         }
       }
     }
-    return this;
+    return;
   }
 
   @Override

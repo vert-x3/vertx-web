@@ -681,20 +681,17 @@ public class WebClientTest extends HttpTestBase {
         return this;
       }
       @Override
-      public WriteStream<Buffer> write(Buffer data) {
-        return write(data, null);
+      public Future<Void> write(Buffer data) {
+        Promise<Void> promise = Promise.promise();
+        write(data, promise);
+        return promise.future();
       }
       @Override
-      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
+      public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         size.addAndGet(data.length());
         if (handler != null) {
           handler.handle(Future.succeededFuture());
         }
-        return this;
-      }
-      @Override
-      public void end() {
-        end((Handler<AsyncResult<Void>>) null);
       }
       @Override
       public void end(Handler<AsyncResult<Void>> handler) {
@@ -748,20 +745,23 @@ public class WebClientTest extends HttpTestBase {
         return this;
       }
       @Override
-      public WriteStream<Buffer> write(Buffer data) {
-        return write(data, null);
+      public Future<Void> write(Buffer data) {
+        Promise<Void> promise = Promise.promise();
+        write(data, promise);
+        return promise.future();
       }
       @Override
-      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
+      public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         received.addAndGet(data.length());
         if (handler != null) {
           handler.handle(Future.succeededFuture());
         }
-        return this;
       }
       @Override
-      public void end() {
-        end((Handler<AsyncResult<Void>>) null);
+      public Future<Void> end() {
+        Promise<Void> promise = Promise.promise();
+        end(promise);
+        return promise.future();
       }
       @Override
       public void end(Handler<AsyncResult<Void>> handler) {
@@ -808,19 +808,20 @@ public class WebClientTest extends HttpTestBase {
         return this;
       }
       @Override
-      public WriteStream<Buffer> write(Buffer data) {
-        return write(data, null);
+      public Future<Void> write(Buffer data) {
+        Promise<Void> promise = Promise.promise();
+        write(data, promise);
+        return promise.future();
       }
       @Override
-      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
+      public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         exceptionHandler.handle(cause);
         if (handler != null) {
           handler.handle(Future.failedFuture(cause));
         }
-        return this;
       }
       @Override
-      public void end() {
+      public Future<Void> end() {
         throw new AssertionError();
       }
       @Override
@@ -860,6 +861,12 @@ public class WebClientTest extends HttpTestBase {
     AtomicLong received = new AtomicLong();
     AtomicBoolean closed = new AtomicBoolean();
     AsyncFile file = new AsyncFile() {
+      public Future<Void> write(Buffer buffer, long position) {
+        throw new UnsupportedOperationException();
+      }
+      public Future<Buffer> read(Buffer buffer, int offset, long position, int length) {
+        throw new UnsupportedOperationException();
+      }
       public AsyncFile handler(Handler<Buffer> handler) { throw new UnsupportedOperationException(); }
       public AsyncFile pause() { throw new UnsupportedOperationException(); }
       public AsyncFile resume() { throw new UnsupportedOperationException(); }
@@ -867,12 +874,12 @@ public class WebClientTest extends HttpTestBase {
       public AsyncFile setWriteQueueMaxSize(int i) { throw new UnsupportedOperationException(); }
       public AsyncFile drainHandler(Handler<Void> handler) { throw new UnsupportedOperationException(); }
       public AsyncFile fetch(long l) { throw new UnsupportedOperationException(); }
-      public void end() { close(null); }
+      public Future<Void> end() { return close(); }
       public void end(Handler<AsyncResult<Void>> handler) { close(handler); }
-      public void close() { throw new UnsupportedOperationException(); }
-      public AsyncFile write(Buffer buffer, long l, Handler<AsyncResult<Void>> handler) { throw new UnsupportedOperationException(); }
+      public Future<Void> close() { throw new UnsupportedOperationException(); }
+      public void write(Buffer buffer, long l, Handler<AsyncResult<Void>> handler) { throw new UnsupportedOperationException(); }
       public AsyncFile read(Buffer buffer, int i, long l, int i1, Handler<AsyncResult<Buffer>> handler) { throw new UnsupportedOperationException(); }
-      public AsyncFile flush() { throw new UnsupportedOperationException(); }
+      public Future<Void> flush() { throw new UnsupportedOperationException(); }
       public AsyncFile flush(Handler<AsyncResult<Void>> handler) { throw new UnsupportedOperationException(); }
       public AsyncFile setReadPos(long l) { throw new UnsupportedOperationException(); }
       public AsyncFile setReadLength(long l) { throw new UnsupportedOperationException(); }
@@ -887,15 +894,16 @@ public class WebClientTest extends HttpTestBase {
       public long getWritePos() {
         throw new UnsupportedOperationException();
       }
-      public AsyncFile write(Buffer buffer) {
-        return write(buffer, null);
+      public Future<Void> write(Buffer buffer) {
+        Promise<Void> promise = Promise.promise();
+        write(buffer, promise);
+        return promise.future();
       }
-      public AsyncFile write(Buffer buffer, Handler<AsyncResult<Void>> handler) {
+      public void write(Buffer buffer, Handler<AsyncResult<Void>> handler) {
         received.addAndGet(buffer.length());
         if (handler != null) {
           handler.handle(Future.succeededFuture());
         }
-        return this;
       }
       public void close(Handler<AsyncResult<Void>> handler) {
         vertx.setTimer(500, id -> {
@@ -935,20 +943,17 @@ public class WebClientTest extends HttpTestBase {
         return this;
       }
       @Override
-      public WriteStream<Buffer> write(Buffer data) {
-        return write(data, null);
+      public Future<Void> write(Buffer data) {
+        Promise<Void> promise = Promise.promise();
+        write(data, promise);
+        return promise.future();
       }
       @Override
-      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
+      public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         length.addAndGet(data.length());
         if (handler != null) {
           handler.handle(Future.succeededFuture());
         }
-        return this;
-      }
-      @Override
-      public void end() {
-        end((Handler<AsyncResult<Void>>) null);
       }
       @Override
       public void end(Handler<AsyncResult<Void>> handler) {
@@ -991,7 +996,11 @@ public class WebClientTest extends HttpTestBase {
 
   @Test
   public void testHttpResponseError() throws Exception {
-    server.requestHandler(req -> req.response().setChunked(true).write(Buffer.buffer("some-data")).close());
+    server.requestHandler(req -> {
+      HttpServerResponse resp = req.response();
+      resp.setChunked(true).write(Buffer.buffer("some-data"));
+      resp.close();
+    });
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get

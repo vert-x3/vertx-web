@@ -105,19 +105,17 @@ class RawWebSocketTransport {
     }
 
     @Override
-    public SockJSSocket write(Buffer data, Handler<AsyncResult<Void>> handler) {
+    public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
       if (canWrite(handler)) {
         ws.writeBinaryMessage(data, handler);
       }
-      return this;
     }
 
     @Override
-    public SockJSSocket write(String data, Handler<AsyncResult<Void>> handler) {
+    public void write(String data, Handler<AsyncResult<Void>> handler) {
       if (canWrite(handler)) {
         ws.writeTextMessage(data, handler);
       }
-      return this;
     }
 
     public SockJSSocket setWriteQueueMaxSize(int maxQueueSize) {

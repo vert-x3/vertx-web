@@ -64,19 +64,15 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
       }
 
       @Override
-      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
+      public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         stream.write(data, handler);
-        return this;
       }
 
       @Override
-      public WriteStream<Buffer> write(Buffer data) {
-        return write(data, null);
-      }
-
-      @Override
-      public void end() {
-        end((Handler<AsyncResult<Void>>) null);
+      public Future<Void> write(Buffer data) {
+        Promise<Void> promise = Promise.promise();
+        write(data, promise);
+        return promise.future();
       }
 
       @Override

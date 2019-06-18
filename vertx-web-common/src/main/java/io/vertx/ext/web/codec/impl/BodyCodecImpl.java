@@ -86,21 +86,15 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
       }
 
       @Override
-      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
+      public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         buffer.appendBuffer(data);
         handler.handle(Future.succeededFuture());
-        return this;
       }
 
       @Override
-      public WriteStream<Buffer> write(Buffer data) {
+      public Future<Void> write(Buffer data) {
         buffer.appendBuffer(data);
-        return this;
-      }
-
-      @Override
-      public void end() {
-        end((Handler<AsyncResult<Void>>) null);
+        return Future.succeededFuture();
       }
 
       @Override

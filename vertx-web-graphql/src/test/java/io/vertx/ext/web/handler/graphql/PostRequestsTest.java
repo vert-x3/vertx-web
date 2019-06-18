@@ -166,7 +166,7 @@ public class PostRequestsTest extends GraphQLTestBase {
   public void testUnsupportedMediaType() throws Exception {
     client.post("/graphql")
       .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
-      .handler(onSuccess(response -> {
+      .setHandler(onSuccess(response -> {
         assertEquals(415, response.statusCode());
         testComplete();
       })).end("<h1>Hello world!</h1>");

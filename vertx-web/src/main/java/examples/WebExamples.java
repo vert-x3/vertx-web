@@ -384,7 +384,7 @@ public class WebExamples {
 
       HttpServerResponse response = routingContext.response();
       response.putHeader("content-type", "application/json");
-      response.write(someJSON).end();
+      response.end(someJSON);
 
     });
   }
@@ -400,7 +400,7 @@ public class WebExamples {
       String acceptableContentType = routingContext.getAcceptableContentType();
 
       response.putHeader("content-type", acceptableContentType);
-      response.write(whatever).end();
+      response.end(whatever);
     });
   }
 
