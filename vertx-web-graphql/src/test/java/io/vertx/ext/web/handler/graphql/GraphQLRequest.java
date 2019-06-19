@@ -47,6 +47,8 @@ class GraphQLRequest {
   private String httpQueryString;
   private String graphQLQuery;
   private boolean graphQLQueryAsParam;
+  private String operationName;
+  private boolean operationNameAsParam;
   private JsonObject variables = new JsonObject();
   private boolean variablesAsParam;
   private String contentType = JSON;
@@ -55,9 +57,9 @@ class GraphQLRequest {
   GraphQLRequest setMethod(HttpMethod method) {
     this.method = method;
     if (method == GET) {
-      graphQLQueryAsParam = variablesAsParam = true;
+      graphQLQueryAsParam = operationNameAsParam = variablesAsParam = true;
     } else if (method == POST) {
-      graphQLQueryAsParam = variablesAsParam = false;
+      graphQLQueryAsParam = operationNameAsParam = variablesAsParam = false;
     }
     return this;
   }
@@ -77,8 +79,22 @@ class GraphQLRequest {
     return this;
   }
 
-  JsonObject getVariables() {
-    return variables;
+  GraphQLRequest setOperationName(String operationName) {
+    this.operationName = operationName;
+    return this;
+  }
+
+  GraphQLRequest setOperationNameAsParam(boolean operationNameAsParam) {
+    this.operationNameAsParam = operationNameAsParam;
+    return this;
+  }
+
+  GraphQLRequest addVariable(String name, Object value) {
+    if (variables == null) {
+      variables = new JsonObject();
+    }
+    variables.put(name, value);
+    return this;
   }
 
   GraphQLRequest setVariablesAsParam(boolean variablesAsParam) {
@@ -140,6 +156,9 @@ class GraphQLRequest {
     if (graphQLQueryAsParam && graphQLQuery != null) {
       params.put("query", graphQLQuery);
     }
+    if (operationNameAsParam && operationName != null) {
+      params.put("operationName", operationName);
+    }
     if (variablesAsParam && !variables.isEmpty()) {
       params.put("variables", variables.toString());
     }
@@ -161,6 +180,9 @@ class GraphQLRequest {
     JsonObject json = new JsonObject();
     if (graphQLQuery != null) {
       json.put("query", graphQLQuery);
+    }
+    if (operationName != null) {
+      json.put("operationName", operationName);
     }
     if (!variables.isEmpty()) {
       json.put("variables", variables);

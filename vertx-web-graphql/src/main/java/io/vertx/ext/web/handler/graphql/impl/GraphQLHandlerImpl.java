@@ -116,21 +116,19 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       }
     }
 
-    String q = getQueryFromQueryParam(rc);
-    if (q == null) {
+    String query = rc.queryParams().get("query");
+    if (query == null) {
       failQueryMissing(rc);
       return;
     }
-    GraphQLQuery query = new GraphQLQuery().setQuery(q);
-    Map<String, Object> variablesFromQueryParam;
+    Map<String, Object> variables;
     try {
-      variablesFromQueryParam = getVariablesFromQueryParam(rc);
+      variables = getVariablesFromQueryParam(rc);
     } catch (Exception e) {
       rc.fail(400, e);
       return;
     }
-    query.setVariables(variablesFromQueryParam);
-    executeOne(rc, query);
+    executeOne(rc, new GraphQLQuery(query, rc.queryParams().get("operationName"), variables));
   }
 
   private void handleGraphiQL(RoutingContext rc) {
@@ -177,33 +175,33 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   }
 
   private void handlePost(RoutingContext rc, Buffer body) {
-    Map<String, Object> variablesFromQueryParm;
+    Map<String, Object> variables;
     try {
-      variablesFromQueryParm = getVariablesFromQueryParam(rc);
+      variables = getVariablesFromQueryParam(rc);
     } catch (Exception e) {
       rc.fail(400, e);
       return;
     }
 
-    String queryFromQueryParam = getQueryFromQueryParam(rc);
-    if (queryFromQueryParam != null) {
-      executeOne(rc, new GraphQLQuery().setQuery(queryFromQueryParam).setVariables(variablesFromQueryParm));
+    String query = rc.queryParams().get("query");
+    if (query != null) {
+      executeOne(rc, new GraphQLQuery(query, rc.queryParams().get("operationName"), variables));
       return;
     }
 
     switch (getContentType(rc)) {
       case "application/json":
-        handlePostJson(rc, body, variablesFromQueryParm);
+        handlePostJson(rc, body, rc.queryParams().get("operationName"), variables);
         break;
       case "application/graphql":
-        executeOne(rc, new GraphQLQuery().setQuery(body.toString()).setVariables(variablesFromQueryParm));
+        executeOne(rc, new GraphQLQuery(body.toString(), rc.queryParams().get("operationName"), variables));
         break;
       default:
         rc.fail(415);
     }
   }
 
-  private void handlePostJson(RoutingContext rc, Buffer body, Map<String, Object> variablesFromQueryParm) {
+  private void handlePostJson(RoutingContext rc, Buffer body, String operationName, Map<String, Object> variables) {
     GraphQLInput graphQLInput;
     try {
       graphQLInput = Json.decodeValue(body, GraphQLInput.class);
@@ -212,15 +210,15 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       return;
     }
     if (graphQLInput instanceof GraphQLBatch) {
-      handlePostBatch(rc, (GraphQLBatch) graphQLInput, variablesFromQueryParm);
+      handlePostBatch(rc, (GraphQLBatch) graphQLInput, operationName, variables);
     } else if (graphQLInput instanceof GraphQLQuery) {
-      handlePostQuery(rc, (GraphQLQuery) graphQLInput, variablesFromQueryParm);
+      handlePostQuery(rc, (GraphQLQuery) graphQLInput, operationName, variables);
     } else {
       rc.fail(500);
     }
   }
 
-  private void handlePostBatch(RoutingContext rc, GraphQLBatch batch, Map<String, Object> variablesFromQueryParm) {
+  private void handlePostBatch(RoutingContext rc, GraphQLBatch batch, String operationName, Map<String, Object> variables) {
     if (!options.isRequestBatchingEnabled()) {
       rc.fail(400);
       return;
@@ -230,8 +228,11 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
         failQueryMissing(rc);
         return;
       }
-      if (query.getVariables() == null) {
-        query.setVariables(variablesFromQueryParm);
+      if (operationName != null) {
+        query.setOperationName(operationName);
+      }
+      if (variables != null) {
+        query.setVariables(variables);
       }
     }
     executeBatch(rc, batch);
@@ -249,13 +250,16 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     }, contextExecutor(rc));
   }
 
-  private void handlePostQuery(RoutingContext rc, GraphQLQuery query, Map<String, Object> variablesFromQueryParm) {
+  private void handlePostQuery(RoutingContext rc, GraphQLQuery query, String operationName, Map<String, Object> variables) {
     if (query.getQuery() == null) {
       failQueryMissing(rc);
       return;
     }
-    if (query.getVariables() == null) {
-      query.setVariables(variablesFromQueryParm);
+    if (operationName != null) {
+      query.setOperationName(operationName);
+    }
+    if (variables != null) {
+      query.setVariables(variables);
     }
     executeOne(rc, query);
   }
@@ -270,6 +274,10 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     ExecutionInput.Builder builder = ExecutionInput.newExecutionInput();
 
     builder.query(query.getQuery());
+    String operationName = query.getOperationName();
+    if (operationName != null) {
+      builder.operationName(operationName);
+    }
     Map<String, Object> variables = query.getVariables();
     if (variables != null) {
       builder.variables(variables);
@@ -298,10 +306,6 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   private String getContentType(RoutingContext rc) {
     String contentType = rc.request().headers().get(HttpHeaders.CONTENT_TYPE);
     return contentType == null ? "application/json" : contentType.toLowerCase();
-  }
-
-  private String getQueryFromQueryParam(RoutingContext rc) {
-    return rc.queryParams().get("query");
   }
 
   private Map<String, Object> getVariablesFromQueryParam(RoutingContext rc) throws Exception {

@@ -92,10 +92,32 @@ public class PostRequestsTest extends GraphQLTestBase {
   }
 
   @Test
+  public void testMultipleQueriesWithOperationName() throws Exception {
+    String query = "query foo { allLinks { url } }"
+      + " "
+      + "query bar($secure: Boolean) { allLinks(secureOnly: $secure) { url } }";
+    GraphQLRequest request = new GraphQLRequest()
+      .setGraphQLQuery(query)
+      .setOperationName("bar")
+      .addVariable("secure", "true");
+    request.send(client, onSuccess(body -> {
+      List<String> expected = testData.urls().stream()
+        .filter(url -> url.startsWith("https://"))
+        .collect(toList());
+      if (testData.checkLinkUrls(expected, body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
+    }));
+    await();
+  }
+
+  @Test
   public void testSimplePostWithVariable() throws Exception {
     GraphQLRequest request = new GraphQLRequest()
-      .setGraphQLQuery("query($secure: Boolean) { allLinks(secureOnly: $secure) { url } }");
-    request.getVariables().put("secure", "true");
+      .setGraphQLQuery("query($secure: Boolean) { allLinks(secureOnly: $secure) { url } }")
+      .addVariable("secure", "true");
     request.send(client, onSuccess(body -> {
       List<String> expected = testData.urls().stream()
         .filter(url -> url.startsWith("https://"))

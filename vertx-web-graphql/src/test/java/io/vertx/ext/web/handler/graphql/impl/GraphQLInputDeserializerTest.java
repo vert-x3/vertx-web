@@ -21,6 +21,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.junit.Test;
 
+import java.util.Collections;
+
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
@@ -41,12 +43,16 @@ public class GraphQLInputDeserializerTest {
   }
 
   private JsonObject createQuery() {
-    return new JsonObject().put("query", "foo").put("variables", new JsonObject().put("bar", "baz"));
+    return new JsonObject()
+      .put("query", "foo")
+      .put("operationName", "op")
+      .put("variables", new JsonObject().put("bar", "baz"));
   }
 
   private void verify(GraphQLQuery graphQLQuery) {
     assertEquals("foo", graphQLQuery.getQuery());
-    assertEquals("baz", graphQLQuery.getVariables().get("bar"));
+    assertEquals("op", graphQLQuery.getOperationName());
+    assertEquals(Collections.<String, Object>singletonMap("bar", "baz"), graphQLQuery.getVariables());
   }
 
   @Test

@@ -29,9 +29,16 @@ import java.util.Map;
 public class GraphQLQuery implements GraphQLInput {
 
   private String query;
+  private String operationName;
   private Map<String, Object> variables;
 
   public GraphQLQuery() {
+  }
+
+  public GraphQLQuery(String query, String operationName, Map<String, Object> variables) {
+    this.query = query;
+    this.operationName = operationName;
+    this.variables = variables;
   }
 
   public String getQuery() {
@@ -40,6 +47,15 @@ public class GraphQLQuery implements GraphQLInput {
 
   public GraphQLQuery setQuery(String query) {
     this.query = query;
+    return this;
+  }
+
+  public String getOperationName() {
+    return operationName;
+  }
+
+  public GraphQLQuery setOperationName(String operationName) {
+    this.operationName = operationName;
     return this;
   }
 
@@ -56,6 +72,7 @@ public class GraphQLQuery implements GraphQLInput {
   public String toString() {
     return "GraphQLQuery{" +
       "query='" + query + '\'' +
+      ", operationName='" + operationName + '\'' +
       ", variables=" + variables +
       '}';
   }
