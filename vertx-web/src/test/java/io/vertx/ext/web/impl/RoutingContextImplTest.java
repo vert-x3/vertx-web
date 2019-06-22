@@ -16,31 +16,31 @@ import java.util.Collections;
 
 public class RoutingContextImplTest extends WebTestBase {
 
-    @AfterClass
-    public static void oneTimeTearDown() {
-        Vertx vertx = Vertx.vertx();
-        if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
-            vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
-        }
+  @AfterClass
+  public static void oneTimeTearDown() {
+    Vertx vertx = Vertx.vertx();
+    if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
+      vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
     }
+  }
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        router.route().handler(BodyHandler.create());
-    }
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    router.route().handler(BodyHandler.create());
+  }
 
-    @Test
-    public void test_empty_array_as_json_array_yields_empty_json_array() throws Exception {
-        router.route().handler(event -> {
-            assertEquals(new JsonArray(), event.getBodyAsJsonArray());
-            event.response().end();
-        });
-        testRequest(HttpMethod.POST, "/", req -> {
-            req.setChunked(true);
-            req.write(Buffer.buffer("[]"));
-        }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
-    }
+  @Test
+  public void test_empty_array_as_json_array_yields_empty_json_array() throws Exception {
+    router.route().handler(event -> {
+      assertEquals(new JsonArray(), event.getBodyAsJsonArray());
+      event.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.write(Buffer.buffer("[]"));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
 
   @Test
   public void test_empty_fails_json_types() throws Exception {
@@ -120,17 +120,17 @@ public class RoutingContextImplTest extends WebTestBase {
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
   }
 
-    @Test
-    public void test_object_as_json_yields_json_object() throws Exception {
-        router.route().handler(event -> {
-            assertEquals(new JsonObject(Collections.singletonMap("foo", "bar")), event.getBodyAsJson());
-            event.response().end();
-        });
-        testRequest(HttpMethod.POST, "/", req -> {
-            req.setChunked(true);
-            req.write(Buffer.buffer("{ \"foo\": \"bar\" }"));
-        }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
-    }
+  @Test
+  public void test_object_as_json_yields_json_object() throws Exception {
+    router.route().handler(event -> {
+      assertEquals(new JsonObject(Collections.singletonMap("foo", "bar")), event.getBodyAsJson());
+      event.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.write(Buffer.buffer("{ \"foo\": \"bar\" }"));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
 
   @Test
   public void test_null_literal_object_as_json_yields_empty_json_object() throws Exception {
