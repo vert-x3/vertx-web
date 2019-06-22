@@ -27,11 +27,15 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.impl.HttpUtils;
+import io.vertx.core.json.DecodeException;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Locale;
 import io.vertx.ext.web.*;
+import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 
 import java.util.*;
@@ -264,14 +268,18 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public JsonObject getBodyAsJson() {
-    // the minimal json is {} so we need at least 2 chars
-    return body != null && body.length() > 1 ? new JsonObject(body) : null;
+    if (body != null) {
+      return BodyCodecImpl.JSON_OBJECT_DECODER.apply(body);
+    }
+    return null;
   }
 
   @Override
   public JsonArray getBodyAsJsonArray() {
-    // the minimal array is [] so we need at least 2 chars
-    return body != null && body.length() > 1 ? new JsonArray(body) : null;
+    if (body != null) {
+      return BodyCodecImpl.JSON_ARRAY_DECODER.apply(body);
+    }
+    return null;
   }
 
   @Override

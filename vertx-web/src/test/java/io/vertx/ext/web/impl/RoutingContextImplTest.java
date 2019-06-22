@@ -43,7 +43,7 @@ public class RoutingContextImplTest extends WebTestBase {
   }
 
   @Test
-  public void test_empty_yields_null_json_types() throws Exception {
+  public void test_empty_fails_json_types() throws Exception {
     router.route().handler(event -> {
       assertNull(event.getBodyAsJsonArray());
       assertNull(event.getBodyAsJson());
@@ -52,7 +52,7 @@ public class RoutingContextImplTest extends WebTestBase {
     testRequest(HttpMethod.POST, "/", req -> {
       req.setChunked(true);
       req.write(Buffer.buffer(""));
-    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+    }, HttpResponseStatus.INTERNAL_SERVER_ERROR.code(), HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase(), null);
   }
 
   @Test
@@ -70,6 +70,42 @@ public class RoutingContextImplTest extends WebTestBase {
       req.setChunked(true);
       req.write(Buffer.buffer("[ { \"foo\": \"bar\" } ]"));
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
+
+  @Test
+  public void test_null_literal_array_as_json_array_yields_null_json_array() throws Exception {
+    router.route().handler(event -> {
+      assertEquals(null, event.getBodyAsJsonArray());
+      event.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.write(Buffer.buffer("null"));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
+
+  @Test
+  public void test_non_array_as_json_array_fails_json_array() throws Exception {
+    router.route().handler(event -> {
+      assertEquals(null, event.getBodyAsJsonArray());
+      event.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.write(Buffer.buffer("\"1234"));
+    }, HttpResponseStatus.INTERNAL_SERVER_ERROR.code(), HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase(), null);
+  }
+
+  @Test
+  public void test_invalid_array_as_json_array_fails_json_array() throws Exception {
+    router.route().handler(event -> {
+      assertEquals(null, event.getBodyAsJsonArray());
+      event.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.write(Buffer.buffer("1234"));
+    }, HttpResponseStatus.INTERNAL_SERVER_ERROR.code(), HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase(), null);
   }
 
   @Test
@@ -94,6 +130,42 @@ public class RoutingContextImplTest extends WebTestBase {
       req.setChunked(true);
       req.write(Buffer.buffer("{ \"foo\": \"bar\" }"));
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
+
+  @Test
+  public void test_null_literal_object_as_json_yields_empty_json_object() throws Exception {
+    router.route().handler(event -> {
+      assertEquals(null, event.getBodyAsJson());
+      event.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.write(Buffer.buffer("null"));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
+
+  @Test
+  public void test_invalid_json_object_as_json_fails_json_object() throws Exception {
+    router.route().handler(event -> {
+      assertEquals(null, event.getBodyAsJson());
+      event.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.write(Buffer.buffer("\"1234"));
+    }, HttpResponseStatus.INTERNAL_SERVER_ERROR.code(), HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase(), null);
+  }
+
+  @Test
+  public void test_non_json_object_as_json_fails_json_object() throws Exception {
+    router.route().handler(event -> {
+      assertEquals(null, event.getBodyAsJson());
+      event.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.write(Buffer.buffer("1234"));
+    }, HttpResponseStatus.INTERNAL_SERVER_ERROR.code(), HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase(), null);
   }
 
   @Test

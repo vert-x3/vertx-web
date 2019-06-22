@@ -25,7 +25,7 @@ public class GraphQLHandlerOptionsConverter implements JsonCodec<GraphQLHandlerO
       switch (member.getKey()) {
         case "graphiQLOptions":
           if (member.getValue() instanceof JsonObject) {
-            obj.setGraphiQLOptions(io.vertx.ext.web.handler.graphql.GraphiQLOptionsConverter.INSTANCE.decode((JsonObject)member.getValue()));
+            obj.setGraphiQLOptions(new io.vertx.ext.web.handler.graphql.GraphiQLOptions((JsonObject)member.getValue()));
           }
           break;
         case "requestBatchingEnabled":
@@ -43,7 +43,7 @@ public class GraphQLHandlerOptionsConverter implements JsonCodec<GraphQLHandlerO
 
   public static void toJson(GraphQLHandlerOptions obj, java.util.Map<String, Object> json) {
     if (obj.getGraphiQLOptions() != null) {
-      json.put("graphiQLOptions", io.vertx.ext.web.handler.graphql.GraphiQLOptionsConverter.INSTANCE.encode(obj.getGraphiQLOptions()));
+      json.put("graphiQLOptions", obj.getGraphiQLOptions().toJson());
     }
     json.put("requestBatchingEnabled", obj.isRequestBatchingEnabled());
   }

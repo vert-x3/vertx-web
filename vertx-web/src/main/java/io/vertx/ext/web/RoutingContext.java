@@ -251,12 +251,16 @@ public interface RoutingContext {
   /**
    * @return Get the entire HTTP request body as a {@link JsonObject}. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
+   * <br/>
+   * When the body is {@code null} or the {@code "null"} JSON literal then {@code null} is returned.
    */
   @Nullable JsonObject getBodyAsJson();
 
   /**
    * @return Get the entire HTTP request body as a {@link JsonArray}. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
+   * <br/>
+   * When the body is {@code null} or the {@code "null"} JSON literal then {@code null} is returned.
    */
   @Nullable JsonArray getBodyAsJsonArray();
 

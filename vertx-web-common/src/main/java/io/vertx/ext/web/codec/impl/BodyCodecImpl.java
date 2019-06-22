@@ -20,6 +20,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -36,9 +37,26 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
 
   public static final Function<Buffer, Void> VOID_DECODER = buff -> null;
   public static final Function<Buffer, String> UTF8_DECODER = Buffer::toString;
-  public static final Function<Buffer, JsonObject> JSON_OBJECT_DECODER = buff -> new JsonObject(buff.toString());
-  public static final Function<Buffer, JsonArray> JSON_ARRAY_DECODER = buff -> new JsonArray(buff.toString());
-
+  public static final Function<Buffer, JsonObject> JSON_OBJECT_DECODER = buff -> {
+    Object val = Json.decodeValue(buff);
+    if (val == null) {
+      return null;
+    }
+    if (val instanceof JsonObject) {
+      return (JsonObject) val;
+    }
+    throw new DecodeException("Invalid Json Object decoded as " + val.getClass().getName());
+  };
+  public static final Function<Buffer, JsonArray> JSON_ARRAY_DECODER = buff -> {
+    Object val = Json.decodeValue(buff);
+    if (val == null) {
+      return null;
+    }
+    if (val instanceof JsonArray) {
+      return (JsonArray) val;
+    }
+    throw new DecodeException("Invalid Json Object decoded as " + val.getClass().getName());
+  };
   public static final BodyCodec<String> STRING = new BodyCodecImpl<>(UTF8_DECODER);
   public static final BodyCodec<Void> NONE = new BodyCodecImpl<>(VOID_DECODER);
   public static final BodyCodec<Buffer> BUFFER = new BodyCodecImpl<>(Function.identity());
