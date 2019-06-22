@@ -502,23 +502,32 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
-  public void testResponseBodyAsAsJsonObject() throws Exception {
-    JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
-    server.requestHandler(req -> req.response().end(expected.encode()));
-    startServer();
-    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get
-      .as(BodyCodec.jsonObject())
-      .send(onSuccess(resp -> {
+  public void testNullLiteralResponseBodyAsJsonObject() throws Exception {
+    this.testResponseBodyAs(BodyCodec.jsonObject(), "null", this.onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
-      assertEquals(expected, resp.body());
+      assertEquals(null, resp.body());
       testComplete();
     }));
-    await();
   }
 
   @Test
-  public void testResponseBodyAsAsJsonMapped() throws Exception {
+  public void testAnotherJsonResponseBodyAsJsonObject() throws Exception {
+    this.testResponseBodyAs(BodyCodec.jsonObject(), "1234", this.onFailure(err -> {
+      assertEquals(DecodeException.class, err.getClass());
+      testComplete();
+    }));
+  }
+
+  @Test
+  public void testInvalidJsonResponseBodyAsJsonObject() throws Exception {
+    this.testResponseBodyAs(BodyCodec.jsonObject(), "\"1234", this.onFailure(err -> {
+      assertEquals(DecodeException.class, err.getClass());
+      testComplete();
+    }));
+  }
+
+  @Test
+  public void testResponseBodyAsJsonMapped() throws Exception {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
     server.requestHandler(req -> req.response().end(expected.encode()));
     startServer();
@@ -534,7 +543,32 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
-  public void testResponseBodyAsAsJsonArray() throws Exception {
+  public void testNullLiteralResponseBodyAsJsonMapped() throws Exception {
+    this.testResponseBodyAs(BodyCodec.json(WineAndCheese.class), "null", this.onSuccess(resp -> {
+      assertEquals(200, resp.statusCode());
+      assertEquals(null, resp.body());
+      testComplete();
+    }));
+  }
+
+  @Test
+  public void testAnotherJsonResponseBodyAsJsonMapped() throws Exception {
+    this.testResponseBodyAs(BodyCodec.json(WineAndCheese.class), "1234", this.onFailure(err -> {
+      assertEquals(DecodeException.class, err.getClass());
+      testComplete();
+    }));
+  }
+
+  @Test
+  public void testInvalidJsonResponseBodyAsJsonMapped() throws Exception {
+    this.testResponseBodyAs(BodyCodec.json(WineAndCheese.class), "\"1234", this.onFailure(err -> {
+      assertEquals(DecodeException.class, err.getClass());
+      testComplete();
+    }));
+  }
+
+  @Test
+  public void testResponseBodyAsJsonArray() throws Exception {
     JsonArray expected = new JsonArray().add("cheese").add("wine");
     server.requestHandler(req -> req.response().end(expected.encode()));
     startServer();
@@ -550,7 +584,32 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
-  public void testResponseBodyAsAsJsonArrayMapped() throws Exception {
+  public void testNullLiteralResponseBodyAsJsonArray() throws Exception {
+    this.testResponseBodyAs(BodyCodec.jsonArray(), "null", this.onSuccess(resp -> {
+      assertEquals(200, resp.statusCode());
+      assertEquals(null, resp.body());
+      testComplete();
+    }));
+  }
+
+  @Test
+  public void testAnotherJsonResponseBodyAsJsonArray() throws Exception {
+    this.testResponseBodyAs(BodyCodec.jsonArray(), "1234", this.onFailure(err -> {
+      assertEquals(DecodeException.class, err.getClass());
+      testComplete();
+    }));
+  }
+
+  @Test
+  public void testInvalidJsonResponseBodyAsJsonArray() throws Exception {
+    this.testResponseBodyAs(BodyCodec.jsonArray(), "\"1234", this.onFailure(err -> {
+      assertEquals(DecodeException.class, err.getClass());
+      testComplete();
+    }));
+  }
+
+  @Test
+  public void testResponseBodyAsJsonArrayMapped() throws Exception {
     JsonArray expected = new JsonArray().add("cheese").add("wine");
     server.requestHandler(req -> req.response().end(expected.encode()));
     startServer();
@@ -566,84 +625,151 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
-  public void testResponseBodyDiscarded() throws Exception {
-    server.requestHandler(req -> req.response().end(TestUtils.randomAlphaString(1024)));
-    startServer();
-    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get
-      .as(BodyCodec.none())
-      .send(onSuccess(resp -> {
+  public void testNullLiteralResponseBodyAsJsonArrayMapped() throws Exception {
+    this.testResponseBodyAs(BodyCodec.json(List.class), "null", this.onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(null, resp.body());
       testComplete();
     }));
+  }
+
+  @Test
+  public void testAnotherJsonResponseBodyAsJsonArrayMapped() throws Exception {
+    this.testResponseBodyAs(BodyCodec.json(List.class), "1234", this.onFailure(err -> {
+      assertEquals(DecodeException.class, err.getClass());
+      testComplete();
+    }));
+  }
+
+  @Test
+  public void testInvalidJsonResponseBodyAsJsonArrayMapped() throws Exception {
+    this.testResponseBodyAs(BodyCodec.json(List.class), "\"1234", this.onFailure(err -> {
+      assertEquals(DecodeException.class, err.getClass());
+      testComplete();
+    }));
+  }
+
+  private <T> void testResponseBody(String body, Handler<AsyncResult<HttpResponse<Buffer>>> checker) throws Exception {
+    server.requestHandler(req -> req.response().end(body));
+    startServer();
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get.send(checker);
     await();
+  }
+
+  private <T> void testResponseBodyAs(BodyCodec<T> bodyCodec, String body, Handler<AsyncResult<HttpResponse<T>>> checker) throws Exception {
+    server.requestHandler(req -> req.response().end(body));
+    startServer();
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(bodyCodec)
+      .send(checker);
+    await();
+  }
+
+  @Test
+  public void testResponseBodyDiscarded() throws Exception {
+    testResponseBodyAs(BodyCodec.none(), TestUtils.randomAlphaString(1024), onSuccess(resp -> {
+      assertEquals(200, resp.statusCode());
+      assertEquals(null, resp.body());
+      testComplete();
+    }));
   }
 
   @Test
   public void testResponseUnknownContentTypeBodyAsJsonObject() throws Exception {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
-    server.requestHandler(req -> req.response().end(expected.encode()));
-    startServer();
-    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(onSuccess(resp -> {
+    testResponseBody(expected.encode(), onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(expected, resp.bodyAsJsonObject());
       testComplete();
     }));
-    await();
   }
 
   @Test
   public void testResponseUnknownContentTypeBodyAsJsonArray() throws Exception {
     JsonArray expected = new JsonArray().add("cheese").add("wine");
-    server.requestHandler(req -> req.response().end(expected.encode()));
-    startServer();
-    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(onSuccess(resp -> {
+    testResponseBody(expected.encode(), onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(expected, resp.bodyAsJsonArray());
       testComplete();
     }));
-    await();
   }
 
   @Test
   public void testResponseUnknownContentTypeBodyAsJsonMapped() throws Exception {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
-    server.requestHandler(req -> req.response().end(expected.encode()));
-    startServer();
-    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(onSuccess(resp -> {
+    testResponseBody(expected.encode(), onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.bodyAsJson(WineAndCheese.class));
       testComplete();
     }));
-    await();
   }
 
   @Test
-  public void testResponseBodyUnmarshallingError() throws Exception {
-    server.requestHandler(req -> req.response().end("not-json-object"));
-    startServer();
-    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get
-      .as(BodyCodec.jsonObject())
-      .send(onFailure(err -> {
-      assertTrue(err instanceof DecodeException);
+  public void testResponseInvalidContentTypeBodyAs() throws Exception {
+    testResponseBody("\"1234", onSuccess(resp -> {
+      assertEquals(200, resp.statusCode());
+      try {
+        resp.bodyAsJsonObject();
+        fail();
+      } catch (DecodeException ignore) {
+      }
+      try {
+        resp.bodyAsJsonArray();
+        fail();
+      } catch (DecodeException ignore) {
+      }
+      try {
+        resp.bodyAsJson(WineAndCheese.class);
+        fail();
+      } catch (DecodeException ignore) {
+      }
       testComplete();
     }));
-    await();
+  }
+  @Test
+  public void testResponseAnotherContentTypeBodyAs() throws Exception {
+    testResponseBody("1234", onSuccess(resp -> {
+      assertEquals(200, resp.statusCode());
+      try {
+        resp.bodyAsJsonObject();
+        fail();
+      } catch (DecodeException ignore) {
+      }
+      try {
+        resp.bodyAsJsonArray();
+        fail();
+      } catch (DecodeException ignore) {
+      }
+      try {
+        resp.bodyAsJson(WineAndCheese.class);
+        fail();
+      } catch (DecodeException ignore) {
+      }
+      testComplete();
+    }));
+  }
+
+  @Test
+  public void testResponseNullContentTypeBodyAs() throws Exception {
+    testResponseBody("null", onSuccess(resp -> {
+      assertEquals(200, resp.statusCode());
+      assertEquals(null, resp.bodyAsJsonObject());
+      assertEquals(null, resp.bodyAsJsonArray());
+      assertEquals(null, resp.bodyAsJson(WineAndCheese.class));
+      testComplete();
+    }));
   }
 
   @Test
   public void testResponseBodyStreamNoClose() throws Exception {
-	testResponseBodyStream(false);
+	  testResponseBodyStream(false);
   }
 
   @Test
   public void testResponseBodyStream() throws Exception {
-	testResponseBodyStream(true);
+	  testResponseBodyStream(true);
   }
 
   public void testResponseBodyStream(boolean close) throws Exception {
