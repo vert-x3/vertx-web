@@ -32,6 +32,7 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
+import io.vertx.ext.web.multipart.impl.MultipartFormImpl;
 
 import java.util.ArrayList;
 import java.util.Base64;
@@ -58,6 +59,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   BodyCodec<T> codec;
   boolean followRedirects;
   Boolean ssl;
+  boolean multipartMixed = true;
   public List<ResponsePredicate> expectations;
 
   HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, Boolean ssl, int port, String host, String uri, BodyCodec<T>
@@ -98,6 +100,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.codec = other.codec;
     this.followRedirects = other.followRedirects;
     this.ssl = other.ssl;
+    this.multipartMixed = other.multipartMixed;
   }
 
   @Override
@@ -239,6 +242,12 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public HttpRequest<T> copy() {
     return new HttpRequestImpl<>(this);
+  }
+
+  @Override
+  public HttpRequest<T> multipartMixed(boolean allow) {
+    multipartMixed = allow;
+    return this;
   }
 
   @Override
