@@ -30,9 +30,12 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.net.ConnectException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -44,6 +47,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
@@ -56,7 +60,6 @@ public class WebClientTest extends HttpTestBase {
   @Rule
   public TemporaryFolder testFolder = new TemporaryFolder();
 
-  private File testFile;
   private WebClient client;
 
   @Override
@@ -74,7 +77,6 @@ public class WebClientTest extends HttpTestBase {
     client = WebClient.wrap(super.client);
     server.close();
     server = vertx.createHttpServer(new HttpServerOptions().setPort(DEFAULT_HTTP_PORT).setHost(DEFAULT_HTTP_HOST));
-    testFile = testFolder.newFile("test.txt");
   }
 
   @Test
@@ -1248,38 +1250,144 @@ public class WebClientTest extends HttpTestBase {
 
   private void testFileUploadFormMultipart(int size) throws Exception {
     Buffer content = Buffer.buffer(TestUtils.randomAlphaString(size));
+    List<Upload> toUpload = Collections.singletonList(new Upload("test", "test.txt", content));
+    MultipartForm form = MultipartForm.create()
+      .attribute("toolkit", "vert.x")
+      .attribute("runtime", "jvm");
+    testFileUploadFormMultipart(form, toUpload, true, (req, uploads) -> {
+      assertEquals("vert.x", req.getFormAttribute("toolkit"));
+      assertEquals("jvm", req.getFormAttribute("runtime"));
+      assertEquals(1, uploads.size());
+      assertEquals("test", uploads.get(0).name);
+      assertEquals("test.txt", uploads.get(0).filename);
+      assertEquals(content, uploads.get(0).data);
+    });
+  }
 
-    vertx.fileSystem().writeFileBlocking(testFile.getPath(), content);
+  @Test
+  public void testFileUploadsFormMultipart() throws Exception {
+    Buffer content1 = Buffer.buffer(TestUtils.randomAlphaString(16));
+    Buffer content2 = Buffer.buffer(TestUtils.randomAlphaString(16));
+    List<Upload> toUpload = Arrays.asList(
+      new Upload("test1", "test1.txt", content1),
+      new Upload("test2", "test2.txt", content2)
+    );
+    testFileUploadFormMultipart(MultipartForm.create(), toUpload, true, (req, uploads) -> {
+      assertEquals(2, uploads.size());
+      assertEquals("test1", uploads.get(0).name);
+      assertEquals("test1.txt", uploads.get(0).filename);
+      assertEquals(content1, uploads.get(0).data);
+      assertEquals("test2", uploads.get(1).name);
+      assertEquals("test2.txt", uploads.get(1).filename);
+      assertEquals(content2, uploads.get(1).data);
+    });
+  }
+
+  @Test
+  public void testFileUploadsSameNameFormMultipart() throws Exception {
+    Buffer content1 = Buffer.buffer(TestUtils.randomAlphaString(16));
+    Buffer content2 = Buffer.buffer(TestUtils.randomAlphaString(16));
+    List<Upload> toUpload = Arrays.asList(
+      new Upload("test", "test1.txt", content1),
+      new Upload("test", "test2.txt", content2)
+    );
+    testFileUploadFormMultipart(MultipartForm.create(), toUpload, true, (req, uploads) -> {
+      assertEquals(2, uploads.size());
+      assertEquals("test", uploads.get(0).name);
+      // This is test2.txt - it is not clear to me whether this is a bug in Netty or not as there
+      // is a test for this in Netty test suite
+      // see HttpPostRequestEncoderTest#testMultiFileUploadInMixedMode
+      // I tried using web browser and recreate an HTML4 form with the same attribute name in a form
+      // all browsers are actually not using multipart mixed encoding
+      assertEquals("test2.txt", uploads.get(0).filename);
+      assertEquals(content1, uploads.get(0).data);
+      assertEquals("test", uploads.get(1).name);
+      assertEquals("test2.txt", uploads.get(1).filename);
+      assertEquals(content2, uploads.get(1).data);
+    });
+  }
+
+  @Test
+  public void testFileUploadsSameNameFormMultipartDisableMultipartMixed() throws Exception {
+    Buffer content1 = Buffer.buffer(TestUtils.randomAlphaString(16));
+    Buffer content2 = Buffer.buffer(TestUtils.randomAlphaString(16));
+    List<Upload> toUpload = Arrays.asList(
+      new Upload("test", "test1.txt", content1),
+      new Upload("test", "test2.txt", content2)
+    );
+    testFileUploadFormMultipart(MultipartForm.create(), toUpload, false, (req, uploads) -> {
+      assertEquals(2, uploads.size());
+      assertEquals("test", uploads.get(0).name);
+      assertEquals("test1.txt", uploads.get(0).filename);
+      assertEquals(content1, uploads.get(0).data);
+      assertEquals("test", uploads.get(1).name);
+      assertEquals("test2.txt", uploads.get(1).filename);
+      assertEquals(content2, uploads.get(1).data);
+    });
+  }
+
+  private void testFileUploadFormMultipart(MultipartForm form, List<Upload> toUpload, boolean multipartMixed, BiConsumer<HttpServerRequest, List<Upload>> checker) throws Exception {
+    File[] testFiles = new File[toUpload.size()];
+    for (int i = 0;i < testFiles.length;i++) {
+      String name = toUpload.get(i).filename;
+      testFiles[i] = testFolder.newFile(name);
+      vertx.fileSystem().writeFileBlocking(testFiles[i].getPath(), toUpload.get(i).data);
+    }
 
     server.requestHandler(req -> {
       req.setExpectMultipart(true);
+      AtomicInteger idx = new AtomicInteger();
+      List<Upload> uploads = new ArrayList<>();
       req.uploadHandler(upload -> {
+        int val = idx.getAndIncrement();
         Buffer fileBuffer = Buffer.buffer();
-        assertEquals("file", upload.name());
-        assertEquals("test.txt", upload.filename());
         assertEquals("text/plain", upload.contentType());
         upload.handler(fileBuffer::appendBuffer);
-        upload.endHandler(v -> assertEquals(content, fileBuffer));
+        upload.endHandler(v -> {
+          uploads.add(new Upload(upload.name(), upload.filename(), fileBuffer));
+        });
       });
       req.endHandler(v -> {
-        assertEquals("vert.x", req.getFormAttribute("toolkit"));
-        assertEquals("jvm", req.getFormAttribute("runtime"));
+        checker.accept(req, uploads);
         req.response().end();
       });
     });
     startServer();
-    MultipartForm form = MultipartForm.create()
-      .attribute("toolkit", "vert.x")
-      .attribute("runtime", "jvm")
-      .textFileUpload("file", testFile.getName(), testFile.getPath(), "text/plain");
+    for (int i = 0;i < testFiles.length;i++) {
+      form.textFileUpload(toUpload.get(i).name, toUpload.get(i).filename, testFiles[i].getPath(), "text/plain");
+    }
 
     HttpRequest<Buffer> builder = client.post("somepath");
+    builder.multipartMixed(multipartMixed);
     builder.sendMultipartForm(form, onSuccess(resp -> complete()));
     await();
   }
 
+  static class Upload {
+    final String name;
+    final String filename;
+    final Buffer data;
+    Upload(String name, String filename, Buffer data) {
+      this.name = name;
+      this.filename = filename;
+      this.data = data;
+    }
+  }
   @Test
   public void testFileUploadWhenFileDoesNotExist() {
+    HttpRequest<Buffer> builder = client.post("somepath");
+    MultipartForm form = MultipartForm.create()
+      .textFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain");
+
+    builder.sendMultipartForm(form, onFailure(err -> {
+      assertEquals(err.getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
+      complete();
+    }));
+    await();
+  }
+
+  @Test
+  public void testFileUploads() {
     HttpRequest<Buffer> builder = client.post("somepath");
     MultipartForm form = MultipartForm.create()
       .textFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain");

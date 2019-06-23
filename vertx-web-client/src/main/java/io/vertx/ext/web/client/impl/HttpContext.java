@@ -16,6 +16,7 @@
 package io.vertx.ext.web.client.impl;
 
 import io.netty.handler.codec.http.QueryStringEncoder;
+import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
@@ -450,7 +451,8 @@ public class HttpContext<T> {
         MultipartFormUpload multipartForm;
         try {
           boolean multipart = "multipart/form-data".equals(contentType);
-          multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart);
+          HttpPostRequestEncoder.EncoderMode encoderMode = request.multipartMixed ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
+          multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
           this.body = multipartForm;
         } catch (Exception e) {
           responseFuture.tryFail(e);

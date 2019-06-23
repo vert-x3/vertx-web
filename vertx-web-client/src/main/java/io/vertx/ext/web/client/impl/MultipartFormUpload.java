@@ -18,8 +18,10 @@ package io.vertx.ext.web.client.impl;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.HttpConstants;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
@@ -51,14 +53,22 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
   private boolean ended;
   private final Context context;
 
-  public MultipartFormUpload(Context context, MultipartForm parts, boolean multipart) throws Exception {
+  public MultipartFormUpload(Context context,
+                             MultipartForm parts,
+                             boolean multipart,
+                             HttpPostRequestEncoder.EncoderMode encoderMode) throws Exception {
     this.context = context;
     this.pending = new InboundBuffer<Buffer>(context).emptyHandler(v -> checkEnd()).drainHandler(v -> run()).pause();
     this.request = new DefaultFullHttpRequest(
       HttpVersion.HTTP_1_1,
       io.netty.handler.codec.http.HttpMethod.POST,
       "/");
-    this.encoder = new HttpPostRequestEncoder(request, multipart);
+    this.encoder = new HttpPostRequestEncoder(
+      new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE),
+      request,
+      multipart,
+      HttpConstants.DEFAULT_CHARSET,
+      encoderMode);
     for (FormDataPart formDataPart : parts) {
       if (formDataPart.isAttribute()) {
         encoder.addBodyAttribute(formDataPart.name(), formDataPart.value());

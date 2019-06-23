@@ -285,6 +285,19 @@ public interface HttpRequest<T> {
   HttpRequest<T> copy();
 
   /**
+   * Allow or disallow multipart mixed encoding when sending {@link MultipartForm} having files sharing the same
+   * file name.
+   * <br/>
+   * The default value is {@code true}.
+   * <br/>
+   * Set to {@code false} if you want to achieve the behavior for <a href="http://www.w3.org/TR/html5/forms.html#multipart-form-data">HTML5</a>.
+   *
+   * @param allow {@code true} allows use of multipart mixed encoding
+   * @return a reference to this, so the API can be used fluently
+   */
+  HttpRequest<T> multipartMixed(boolean allow);
+
+  /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} stream.
    *
    * @param body the body

@@ -15,6 +15,7 @@
  */
 package io.vertx.ext.web.client;
 
+import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.unit.Async;
@@ -22,6 +23,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.impl.MultipartFormUpload;
 import io.vertx.ext.web.multipart.MultipartForm;
+import io.vertx.ext.web.multipart.impl.MultipartFormImpl;
 import io.vertx.test.core.TestUtils;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
@@ -65,7 +67,7 @@ public class MultipartFormUploadTest {
   public void testSimpleAttribute(TestContext ctx) throws Exception {
     Async async = ctx.async();
     Buffer result = Buffer.buffer();
-    MultipartFormUpload upload = new MultipartFormUpload(vertx.getOrCreateContext(), MultipartForm.create().attribute("foo", "bar"), false);
+    MultipartFormUpload upload = new MultipartFormUpload(vertx.getOrCreateContext(), MultipartForm.create().attribute("foo", "bar"), false, HttpPostRequestEncoder.EncoderMode.RFC1738);
     upload.run();
     upload.endHandler(v -> {
       assertEquals("foo=bar", result.toString());
@@ -105,7 +107,7 @@ public class MultipartFormUploadTest {
         "the-file",
         largeFile.getName(),
         largeFile.getAbsolutePath(),
-        "text/plain"), true);
+        "text/plain"), true, HttpPostRequestEncoder.EncoderMode.RFC1738);
       List<Buffer> buffers = Collections.synchronizedList(new ArrayList<>());
       AtomicInteger end = new AtomicInteger();
       upload.endHandler(v -> {
