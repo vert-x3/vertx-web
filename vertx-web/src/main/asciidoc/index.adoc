@@ -505,6 +505,18 @@ In the above example, if you sent a request with the following `accept` header:
 Then the route would match and `acceptableContentType` would contain `text/html` as both are
 acceptable but that has a higher `q` value.
 
+== Routing based on VirtualHost
+
+You can configure that a `Route` will match against the request hostname.
+
+Request are checked against the `Host` header to a match and patterns allow the usage of `*` wildcards, as for
+example `*.vertx.io` or fully domain names as `www.vertx.io`.
+
+[source,$lang]
+----
+{@link examples.WebExamples#example56}
+----
+
 == Combining routing criteria
 
 You can combine all the above routing criteria in many different ways, for example:
@@ -2075,19 +2087,6 @@ fetch('/process', {
     key: 'value'
   }
 })
-----
-
-== VirtualHost Handler
-
-The Virtual Host Handler will verify the request hostname and if it matches it will send the request to the
-registered handler, otherwise will continue inside the normal handlers chain.
-
-Request are checked against the `Host` header to a match and patterns allow the usage of `*` wildcards, as for
-example `*.vertx.io` or fully domain names as `www.vertx.io`.
-
-[source,$lang]
-----
-{@link examples.WebExamples#example56}
 ----
 
 == OAuth2AuthHandler Handler

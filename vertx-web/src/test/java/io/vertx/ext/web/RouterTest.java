@@ -2505,4 +2505,22 @@ public class RouterTest extends WebTestBase {
 
     testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE.reasonPhrase());
   }
+
+  @Test
+  public void testVHost() throws Exception {
+    router.route().virtualHost("*.com").handler(ctx -> ctx.response().end());
+
+    router.route().handler(ctx -> ctx.fail(500));
+
+    testRequest(HttpMethod.GET, "/", req -> req.setHost("www.mysite.com"), 200, "OK", null);
+  }
+
+  @Test
+  public void testVHostShouldFail() throws Exception {
+    router.route().virtualHost("*.com").handler(ctx -> ctx.response().end());
+
+    router.route().handler(ctx -> ctx.fail(500));
+
+    testRequest(HttpMethod.GET, "/", req -> req.setHost("www.mysite.net"), 500, "Internal Server Error", null);
+  }
 }
