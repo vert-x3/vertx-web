@@ -19,7 +19,9 @@ package io.vertx.ext.web.handler;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
@@ -68,10 +70,36 @@ public interface AuthHandler extends Handler<RoutingContext> {
   void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler);
 
   /**
+   * Parses the credentials from the request into a JsonObject. The implementation should
+   * be able to extract the required info for the auth provider in the format the provider
+   * expects.
+   *
+   * @param context the routing context
+   * @return the future to be called once the information is available.
+   */
+  default Future<JsonObject> parseCredentials(RoutingContext context) {
+    Promise<JsonObject> promise = Promise.promise();
+    parseCredentials(context, promise);
+    return promise.future();
+  }
+
+  /**
    * Authorizes the given user against all added authorities.
    *
    * @param user a user.
    * @param handler the handler for the result.
    */
   void authorize(User user, Handler<AsyncResult<Void>> handler);
+
+  /**
+   * Authorizes the given user against all added authorities.
+   *
+   * @param user a user.
+   * @return future for the result.
+   */
+  default Future<Void> authorize(User user) {
+    Promise<Void> promise = Promise.promise();
+    authorize(user, promise);
+    return promise.future();
+  }
 }
