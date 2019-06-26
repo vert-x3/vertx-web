@@ -353,8 +353,10 @@ public interface Router extends Handler<HttpServerRequest> {
    * @param mountPoint  the mount point (path prefix) to mount it on
    * @param subRouter  the router to mount as a sub router
    * @return a reference to this, so the API can be used fluently
+   * @deprecated create a route ending with * and use {@link Route#routeTo(Router)}
    */
   @Fluent
+  @Deprecated
   Router mountSubRouter(String mountPoint, Router subRouter);
 
   /**

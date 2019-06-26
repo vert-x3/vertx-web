@@ -24,6 +24,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.*;
@@ -157,6 +158,14 @@ public class RouteImpl implements Route {
   public synchronized Route failureHandler(Handler<RoutingContext> exceptionHandler) {
     this.failureHandlers.add(exceptionHandler);
     checkAdd();
+    return this;
+  }
+
+  @Override
+  public Route routeTo(Router router) {
+    this.exactPath = false;
+    handler(router::handleContext);
+    failureHandler(router::handleContext);
     return this;
   }
 

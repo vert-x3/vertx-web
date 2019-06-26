@@ -145,6 +145,9 @@ public interface Route {
   @Fluent
   Route failureHandler(Handler<RoutingContext> failureHandler);
 
+  @Fluent
+  Route routeTo(Router router);
+
   /**
    * Remove this route from the router
    *
