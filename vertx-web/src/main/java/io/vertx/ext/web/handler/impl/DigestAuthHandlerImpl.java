@@ -31,8 +31,10 @@ import io.vertx.ext.web.handler.DigestAuthHandler;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
@@ -93,7 +95,16 @@ public class DigestAuthHandlerImpl extends AuthorizationAuthHandler implements D
     // clean up nonce
     long now = System.currentTimeMillis();
     if (now - lastExpireRun > nonceExpireTimeout / 2) {
-      nonces.entrySet().removeIf(entry -> entry.getValue().createdAt + nonceExpireTimeout < now);
+      Set<String> toRemove = new HashSet<>();
+      nonces.forEach((String key, Nonce n) -> {
+        if (n != null && n.createdAt + nonceExpireTimeout < now) {
+          toRemove.add(key);
+        }
+      });
+
+      for (String n : toRemove) {
+        nonces.remove(n);
+      }
       lastExpireRun = now;
     }
 
