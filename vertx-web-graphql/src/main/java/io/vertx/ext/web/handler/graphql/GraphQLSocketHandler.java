@@ -7,10 +7,6 @@ import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
 public interface GraphQLSocketHandler extends Handler<SockJSSocket> {
 
-  GraphQLSocketHandler exceptionHandler(Handler<Throwable> exceptionHandler);
-
-  GraphQLSocketHandler completeHandler(Handler<SockJSSocket> completeHandler);
-
   GraphQLSocketHandler endHandler(Handler<SockJSSocket> endHandler);
 
   static GraphQLSocketHandler create(GraphQL graphQL) {
