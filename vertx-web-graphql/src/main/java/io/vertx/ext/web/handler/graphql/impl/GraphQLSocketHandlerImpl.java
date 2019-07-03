@@ -4,9 +4,9 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import io.vertx.core.Handler;
+import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.graphql.GraphQLSocketHandler;
-import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -18,66 +18,66 @@ public class GraphQLSocketHandlerImpl implements GraphQLSocketHandler {
 
   private final GraphQL graphQL;
 
-  private Handler<SockJSSocket> endHandler;
+  private Handler<ServerWebSocket> endHandler;
 
   public GraphQLSocketHandlerImpl(GraphQL graphQL) {
     this.graphQL = graphQL;
   }
 
   @Override
-  public void handle(SockJSSocket sockJSSocket) {
+  public void handle(ServerWebSocket serverWebSocket) {
     final Map<String, Subscription> subscriptions = Collections.synchronizedMap(new HashMap<>());
 
-    sockJSSocket.handler(buffer -> {
+    serverWebSocket.handler(buffer -> {
       try {
         GraphQLMessageWithPayload message = buffer.toJsonObject().mapTo(GraphQLMessageWithPayload.class);
         String opId = message.getId();
 
         if (message.getType() == null) {
-          sendError(sockJSSocket, opId, new Exception("Invalid message type!"));
+          sendError(serverWebSocket, opId, new Exception("Invalid message type!"));
           return;
         }
 
         switch (message.getType()) {
           case CONNECTION_INIT:
-            sendMessage(sockJSSocket, null, GraphQLMessage.Type.CONNECTION_ACK);
+            sendMessage(serverWebSocket, null, GraphQLMessage.Type.CONNECTION_ACK);
             break;
           case CONNECTION_TERMINATE:
-            sockJSSocket.close();
+            serverWebSocket.close();
             break;
           case START:
-            subscribe(sockJSSocket, subscriptions, message);
+            subscribe(serverWebSocket, subscriptions, message);
             break;
           case STOP:
-            unsubscribe(sockJSSocket, subscriptions, opId);
+            unsubscribe(serverWebSocket, subscriptions, opId);
             break;
           default:
-            sendError(sockJSSocket, opId, new Exception("Invalid message type!"));
+            sendError(serverWebSocket, opId, new Exception("Invalid message type!"));
             break;
         }
       } catch (Exception e) {
-        sendError(sockJSSocket, null, e);
+        sendError(serverWebSocket, null, e);
       }
     });
 
-    sockJSSocket.endHandler(v -> {
+    serverWebSocket.endHandler(v -> {
       subscriptions.values().forEach(Subscription::cancel);
 
       if (endHandler != null) {
-        endHandler.handle(sockJSSocket);
+        endHandler.handle(serverWebSocket);
       }
     });
   }
 
   @Override
-  public GraphQLSocketHandler endHandler(Handler<SockJSSocket> endHandler) {
+  public GraphQLSocketHandler endHandler(Handler<ServerWebSocket> endHandler) {
     this.endHandler = endHandler;
 
     return this;
   }
 
   private void subscribe(
-    SockJSSocket sockJSSocket,
+    ServerWebSocket serverWebSocket,
     Map<String, Subscription> subscriptions,
     GraphQLMessageWithPayload message
   ) {
@@ -85,7 +85,7 @@ public class GraphQLSocketHandlerImpl implements GraphQLSocketHandler {
 
     // Unsubscribe if it's subscribed
     if (subscriptions.containsKey(opId)) {
-      unsubscribe(sockJSSocket, subscriptions, opId);
+      unsubscribe(serverWebSocket, subscriptions, opId);
     }
 
     GraphQLQuery payload = message.getPayload();
@@ -115,27 +115,26 @@ public class GraphQLSocketHandlerImpl implements GraphQLSocketHandler {
 
         @Override
         public void onNext(ExecutionResult er) {
-          JsonObject data = new JsonObject(er.toSpecification());
-          sendMessage(sockJSSocket, opId, GraphQLMessage.Type.DATA, er);
+          sendMessage(serverWebSocket, opId, GraphQLMessage.Type.DATA, er);
 
           subscriptionRef.get().request(1);
         }
 
         @Override
         public void onError(Throwable t) {
-          sendError(sockJSSocket, opId, t);
+          sendError(serverWebSocket, opId, t);
         }
 
         @Override
         public void onComplete() {
-          sendMessage(sockJSSocket, opId, GraphQLMessage.Type.COMPLETE);
+          sendMessage(serverWebSocket, opId, GraphQLMessage.Type.COMPLETE);
           subscriptions.remove(opId);
         }
       });
     });
   }
 
-  private void unsubscribe(SockJSSocket sockJSSocket, Map<String, Subscription> subscriptions, String opId) {
+  private void unsubscribe(ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions, String opId) {
     Subscription subscription = subscriptions.get(opId);
 
     if (subscription != null) {
@@ -144,24 +143,24 @@ public class GraphQLSocketHandlerImpl implements GraphQLSocketHandler {
     }
   }
 
-  private void sendMessage(SockJSSocket sockJSSocket, String opId, GraphQLMessage.Type type, ExecutionResult payload) {
+  private void sendMessage(ServerWebSocket serverWebSocket, String opId, GraphQLMessage.Type type, ExecutionResult payload) {
     final GraphQLMessageWithExecutionResult message = new GraphQLMessageWithExecutionResult();
     message.setId(opId);
     message.setType(type);
     message.setPayload(payload);
 
-    sockJSSocket.write(JsonObject.mapFrom(message).toBuffer());
+    serverWebSocket.write(JsonObject.mapFrom(message).toBuffer());
   }
 
-  private void sendMessage(SockJSSocket sockJSSocket, String opId, GraphQLMessage.Type type) {
+  private void sendMessage(ServerWebSocket serverWebSocket, String opId, GraphQLMessage.Type type) {
     final GraphQLMessage message = new GraphQLMessage();
     message.setId(opId);
     message.setType(type);
 
-    sendMessage(sockJSSocket, message);
+    sendMessage(serverWebSocket, message);
   }
 
-  private void sendError(SockJSSocket sockJSSocket, String opId, Throwable throwable) {
+  private void sendError(ServerWebSocket serverWebSocket, String opId, Throwable throwable) {
     GraphQLMessageWithError message = new GraphQLMessageWithError();
     message.setId(opId);
     message.setType(GraphQLMessage.Type.ERROR);
@@ -170,11 +169,11 @@ public class GraphQLSocketHandlerImpl implements GraphQLSocketHandler {
     error.setMessage(throwable.getMessage());
     message.setPayload(error);
 
-    sendMessage(sockJSSocket, message);
+    sendMessage(serverWebSocket, message);
   }
 
-  private void sendMessage(SockJSSocket sockJSSocket, GraphQLMessage message) {
-    sockJSSocket.write(JsonObject.mapFrom(message).toBuffer());
+  private void sendMessage(ServerWebSocket serverWebSocket, GraphQLMessage message) {
+    serverWebSocket.write(JsonObject.mapFrom(message).toBuffer());
   }
 
 }
