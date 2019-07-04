@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "apollo-link": "latest",
+    "apollo-link-http": "latest",
+    "apollo-link-batch-http": "latest",
+    "babel-plugin-transform-es2015-modules-commonjs": "latest",
+    "graphql": "latest",
+    "graphql-tag": "latest",
+    "jest": "latest",
+    "unfetch": "latest"
+  }
+}
