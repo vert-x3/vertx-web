@@ -11,5 +11,9 @@
     "graphql-tag": "2.10.1",
     "jest": "24.8.0",
     "unfetch": "4.1.0"
+  },
+  "dependencies": {
+    "apollo-link-ws": "^1.0.18",
+    "subscriptions-transport-ws": "^0.9.16"
   }
 }

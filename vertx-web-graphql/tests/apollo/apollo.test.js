@@ -2,9 +2,12 @@ import fetch from 'unfetch';
 import {execute, makePromise} from 'apollo-link';
 import {HttpLink} from 'apollo-link-http';
 import {BatchHttpLink} from 'apollo-link-batch-http';
+import {WebSocketLink} from 'apollo-link-ws';
+import {SubscriptionClient} from 'subscriptions-transport-ws';
 import gql from 'graphql-tag';
 
 const uri = 'http://localhost:8080/graphql';
+const wsUri = 'ws://localhost:8080/graphql';
 
 const allLinksQuery = gql`
 {
@@ -42,4 +45,13 @@ test('batch http link', async () => {
   let link = new BatchHttpLink({uri: uri, fetch: fetch});
   let results = await Promise.all([allLinksQuery, secureOnlyQuery].map(q => makePromise(execute(link, {query: q}))));
   results.forEach(verify);
+});
+
+test('ws link', async () => {
+  const client = new SubscriptionClient(wsUri, {
+    reconnect: true
+  });
+  const link = new WebSocketLink(client);
+  let result = await makePromise(execute(link, {query: allLinksQuery}));
+  verify(result);
 });
