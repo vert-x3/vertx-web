@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Red Hat, Inc.
+ *
+ * Red Hat licenses this file to you under the Apache License, version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License.  You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.vertx.ext.web.handler.graphql;
 
 import graphql.GraphQL;
@@ -6,7 +22,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
-import io.vertx.ext.web.handler.graphql.impl.GraphQLSocketHandlerImpl;
+import io.vertx.ext.web.handler.graphql.impl.ApolloWSHandlerImpl;
 
 /**
  * A websocket {@link io.vertx.core.Handler} for GraphQL requests.
@@ -14,7 +30,7 @@ import io.vertx.ext.web.handler.graphql.impl.GraphQLSocketHandlerImpl;
  * @author Rogelio Orts
  */
 @VertxGen
-public interface GraphQLSocketHandler extends Handler<ServerWebSocket> {
+public interface ApolloWSHandler extends Handler<ServerWebSocket> {
 
   /**
    * Customize the end {@link Handler}.
@@ -24,14 +40,14 @@ public interface GraphQLSocketHandler extends Handler<ServerWebSocket> {
    */
   @Fluent
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  GraphQLSocketHandler endHandler(Handler<ServerWebSocket> endHandler);
+  ApolloWSHandler endHandler(Handler<ServerWebSocket> endHandler);
 
   /**
-   * Create a new {@link GraphQLSocketHandler} that will use the provided {@code graphQL} object to execute queries.
+   * Create a new {@link ApolloWSHandler} that will use the provided {@code graphQL} object to execute queries.
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static GraphQLSocketHandler create(GraphQL graphQL) {
-    return new GraphQLSocketHandlerImpl(graphQL);
+  static ApolloWSHandler create(GraphQL graphQL) {
+    return new ApolloWSHandlerImpl(graphQL);
   }
 
 }

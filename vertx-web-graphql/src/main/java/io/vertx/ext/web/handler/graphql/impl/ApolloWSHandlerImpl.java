@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Red Hat, Inc.
+ *
+ * Red Hat licenses this file to you under the Apache License, version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License.  You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.vertx.ext.web.handler.graphql.impl;
 
 import graphql.ExecutionInput;
@@ -6,7 +22,7 @@ import graphql.GraphQL;
 import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.handler.graphql.GraphQLSocketHandler;
+import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -14,13 +30,16 @@ import org.reactivestreams.Subscription;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class GraphQLSocketHandlerImpl implements GraphQLSocketHandler {
+/**
+ * @author Rogelio Orts
+ */
+public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   private final GraphQL graphQL;
 
   private Handler<ServerWebSocket> endHandler;
 
-  public GraphQLSocketHandlerImpl(GraphQL graphQL) {
+  public ApolloWSHandlerImpl(GraphQL graphQL) {
     this.graphQL = graphQL;
   }
 
@@ -31,7 +50,7 @@ public class GraphQLSocketHandlerImpl implements GraphQLSocketHandler {
     serverWebSocket.handler(buffer -> {
       try {
         GraphQLMessageWithPayload message = buffer.toJsonObject().mapTo(GraphQLMessageWithPayload.class);
-        String opId = message.getId();
+        String opId = message.getOpId();
 
         if (message.getType() == null) {
           sendError(serverWebSocket, opId, new Exception("Invalid message type!"));
@@ -70,7 +89,7 @@ public class GraphQLSocketHandlerImpl implements GraphQLSocketHandler {
   }
 
   @Override
-  public GraphQLSocketHandler endHandler(Handler<ServerWebSocket> endHandler) {
+  public ApolloWSHandler endHandler(Handler<ServerWebSocket> endHandler) {
     this.endHandler = endHandler;
 
     return this;
@@ -81,7 +100,7 @@ public class GraphQLSocketHandlerImpl implements GraphQLSocketHandler {
     Map<String, Subscription> subscriptions,
     GraphQLMessageWithPayload message
   ) {
-    String opId = message.getId();
+    String opId = message.getOpId();
 
     // Unsubscribe if it's subscribed
     if (subscriptions.containsKey(opId)) {
@@ -145,7 +164,7 @@ public class GraphQLSocketHandlerImpl implements GraphQLSocketHandler {
 
   private void sendMessage(ServerWebSocket serverWebSocket, String opId, GraphQLMessage.Type type, ExecutionResult payload) {
     final GraphQLMessageWithExecutionResult message = new GraphQLMessageWithExecutionResult();
-    message.setId(opId);
+    message.setOpId(opId);
     message.setType(type);
     message.setPayload(payload);
 
@@ -154,7 +173,7 @@ public class GraphQLSocketHandlerImpl implements GraphQLSocketHandler {
 
   private void sendMessage(ServerWebSocket serverWebSocket, String opId, GraphQLMessage.Type type) {
     final GraphQLMessage message = new GraphQLMessage();
-    message.setId(opId);
+    message.setOpId(opId);
     message.setType(type);
 
     sendMessage(serverWebSocket, message);
@@ -162,7 +181,7 @@ public class GraphQLSocketHandlerImpl implements GraphQLSocketHandler {
 
   private void sendError(ServerWebSocket serverWebSocket, String opId, Throwable throwable) {
     GraphQLMessageWithError message = new GraphQLMessageWithError();
-    message.setId(opId);
+    message.setOpId(opId);
     message.setType(GraphQLMessage.Type.ERROR);
 
     GraphQLMessageWithError.Error error = new GraphQLMessageWithError.Error();

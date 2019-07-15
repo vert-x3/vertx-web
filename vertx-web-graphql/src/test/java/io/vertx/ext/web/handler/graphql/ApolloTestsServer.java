@@ -51,7 +51,6 @@ public class ApolloTestsServer extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
-
     Router router = Router.router(vertx);
 
     router.route().handler(CorsHandler.create("*").allowedMethods(EnumSet.of(GET, POST)));
@@ -59,11 +58,13 @@ public class ApolloTestsServer extends AbstractVerticle {
     GraphQLHandlerOptions graphQLHandlerOptions = new GraphQLHandlerOptions()
       .setGraphiQLOptions(new GraphiQLOptions().setEnabled(true))
       .setRequestBatchingEnabled(true);
+    GraphQL graphQL = setupGraphQL();
 
-    router.route("/graphql").handler(GraphQLHandler.create(setupGraphQL(), graphQLHandlerOptions));
+    router.route("/graphql").handler(GraphQLHandler.create(graphQL, graphQLHandlerOptions));
 
     vertx.createHttpServer()
       .requestHandler(router)
+      .websocketHandler(ApolloWSHandler.create(graphQL))
       .listen(8080)
       .<Void>mapEmpty()
       .setHandler(ar -> {
