@@ -22,6 +22,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.impl.ApolloWSHandlerImpl;
 
 /**
@@ -30,7 +31,7 @@ import io.vertx.ext.web.handler.graphql.impl.ApolloWSHandlerImpl;
  * @author Rogelio Orts
  */
 @VertxGen
-public interface ApolloWSHandler extends Handler<ServerWebSocket> {
+public interface ApolloWSHandler extends Handler<RoutingContext> {
 
   /**
    * Customize the end {@link Handler}.

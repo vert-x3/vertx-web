@@ -20,8 +20,11 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -35,6 +38,8 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
+  private final static String CONNECTION_UPGRADE_VALUE = "Upgrade";
+
   private final GraphQL graphQL;
 
   private Handler<ServerWebSocket> endHandler;
@@ -44,10 +49,27 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   }
 
   @Override
-  public void handle(ServerWebSocket serverWebSocket) {
+  public void handle(RoutingContext routingContext) {
+    System.out.println("OK!! 1");
+    MultiMap headers = routingContext.request().headers();
+    if(
+      headers.contains(HttpHeaders.CONNECTION)
+        &&
+      CONNECTION_UPGRADE_VALUE.equals(headers.get(HttpHeaders.CONNECTION))
+    ) {
+      System.out.println("OK!! 2");
+      ServerWebSocket serverWebSocket = routingContext.request().upgrade();
+      handleConnection(serverWebSocket);
+    } else {
+      routingContext.next();
+    }
+  }
+
+  private void handleConnection(ServerWebSocket serverWebSocket) {
     final Map<String, Subscription> subscriptions = Collections.synchronizedMap(new HashMap<>());
 
     serverWebSocket.handler(buffer -> {
+      System.out.println("OK!! 3");
       try {
         GraphQLMessageWithPayload message = buffer.toJsonObject().mapTo(GraphQLMessageWithPayload.class);
         String opId = message.getOpId();

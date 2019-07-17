@@ -60,11 +60,11 @@ public class ApolloTestsServer extends AbstractVerticle {
       .setRequestBatchingEnabled(true);
     GraphQL graphQL = setupGraphQL();
 
+    router.route("/graphql").handler(ApolloWSHandler.create(graphQL));
     router.route("/graphql").handler(GraphQLHandler.create(graphQL, graphQLHandlerOptions));
 
     vertx.createHttpServer()
       .requestHandler(router)
-      .websocketHandler(ApolloWSHandler.create(graphQL))
       .listen(8080)
       .<Void>mapEmpty()
       .setHandler(ar -> {
