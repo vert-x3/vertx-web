@@ -52,6 +52,7 @@ test('ws link', async () => {
     reconnect: true
   });
   const link = new WebSocketLink(client);
+  console.log(link);
   let result = await makePromise(execute(link, {query: allLinksQuery}));
   verify(result);
 });

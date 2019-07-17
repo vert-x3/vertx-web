@@ -50,14 +50,12 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   @Override
   public void handle(RoutingContext routingContext) {
-    System.out.println("OK!! 1");
     MultiMap headers = routingContext.request().headers();
     if(
       headers.contains(HttpHeaders.CONNECTION)
         &&
       CONNECTION_UPGRADE_VALUE.equals(headers.get(HttpHeaders.CONNECTION))
     ) {
-      System.out.println("OK!! 2");
       ServerWebSocket serverWebSocket = routingContext.request().upgrade();
       handleConnection(serverWebSocket);
     } else {
@@ -69,7 +67,6 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     final Map<String, Subscription> subscriptions = Collections.synchronizedMap(new HashMap<>());
 
     serverWebSocket.handler(buffer -> {
-      System.out.println("OK!! 3");
       try {
         GraphQLMessageWithPayload message = buffer.toJsonObject().mapTo(GraphQLMessageWithPayload.class);
         String opId = message.getOpId();
