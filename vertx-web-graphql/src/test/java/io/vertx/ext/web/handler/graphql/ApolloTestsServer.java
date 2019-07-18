@@ -26,6 +26,7 @@ import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.CorsHandler;
 
@@ -63,7 +64,9 @@ public class ApolloTestsServer extends AbstractVerticle {
     router.route("/graphql").handler(ApolloWSHandler.create(graphQL));
     router.route("/graphql").handler(GraphQLHandler.create(graphQL, graphQLHandlerOptions));
 
-    vertx.createHttpServer()
+    final HttpServerOptions httpServerOptions = new HttpServerOptions()
+      .setWebsocketSubProtocols("graphql-ws");
+    vertx.createHttpServer(httpServerOptions)
       .requestHandler(router)
       .listen(8080)
       .<Void>mapEmpty()

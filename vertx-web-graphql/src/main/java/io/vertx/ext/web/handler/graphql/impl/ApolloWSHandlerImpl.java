@@ -38,7 +38,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
-  private final static String CONNECTION_UPGRADE_VALUE = "Upgrade";
+  private final static String HEADER_CONNECTION_UPGRADE_VALUE = "Upgrade";
+  private final static String HEADER_SEC_WEBSOCKET_PROTOCOL_KEY = "Sec-WebSocket-Protocol";
+  private final static String HEADER_SEC_WEBSOCKET_PROTOCOL_VALUE = "graphql-ws";
 
   private final GraphQL graphQL;
 
@@ -54,7 +56,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     if(
       headers.contains(HttpHeaders.CONNECTION)
         &&
-      CONNECTION_UPGRADE_VALUE.equals(headers.get(HttpHeaders.CONNECTION))
+      HEADER_CONNECTION_UPGRADE_VALUE.equals(headers.get(HttpHeaders.CONNECTION))
     ) {
       ServerWebSocket serverWebSocket = routingContext.request().upgrade();
       handleConnection(serverWebSocket);
@@ -84,10 +86,10 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
             serverWebSocket.close();
             break;
           case START:
-            subscribe(serverWebSocket, subscriptions, message);
+            start(serverWebSocket, subscriptions, message);
             break;
           case STOP:
-            unsubscribe(serverWebSocket, subscriptions, opId);
+            stop(serverWebSocket, subscriptions, opId);
             break;
           default:
             sendError(serverWebSocket, opId, new Exception("Invalid message type!"));
@@ -114,7 +116,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     return this;
   }
 
-  private void subscribe(
+  private void start(
     ServerWebSocket serverWebSocket,
     Map<String, Subscription> subscriptions,
     GraphQLMessageWithPayload message
@@ -123,7 +125,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
     // Unsubscribe if it's subscribed
     if (subscriptions.containsKey(opId)) {
-      unsubscribe(serverWebSocket, subscriptions, opId);
+      stop(serverWebSocket, subscriptions, opId);
     }
 
     GraphQLQuery payload = message.getPayload();
@@ -139,40 +141,61 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     }
 
     graphQL.executeAsync(builder).thenAccept(executionResult -> {
-      Publisher<ExecutionResult> publisher = executionResult.getData();
-
-      AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-      publisher.subscribe(new Subscriber<ExecutionResult>() {
-        @Override
-        public void onSubscribe(Subscription s) {
-          subscriptionRef.set(s);
-          subscriptions.put(opId, s);
-
-          s.request(1);
-        }
-
-        @Override
-        public void onNext(ExecutionResult er) {
-          sendMessage(serverWebSocket, opId, GraphQLMessage.Type.DATA, er);
-
-          subscriptionRef.get().request(1);
-        }
-
-        @Override
-        public void onError(Throwable t) {
-          sendError(serverWebSocket, opId, t);
-        }
-
-        @Override
-        public void onComplete() {
-          sendMessage(serverWebSocket, opId, GraphQLMessage.Type.COMPLETE);
-          subscriptions.remove(opId);
-        }
-      });
+      if (executionResult.getData() instanceof Publisher) {
+        subscribe(serverWebSocket, subscriptions, opId, executionResult);
+      } else {
+        sendBackExecutionResult(serverWebSocket, opId, executionResult);
+      }
     });
   }
 
-  private void unsubscribe(ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions, String opId) {
+  private void subscribe(
+    ServerWebSocket serverWebSocket,
+    Map<String, Subscription> subscriptions,
+    String opId,
+    ExecutionResult executionResult
+  ) {
+    Publisher<ExecutionResult> publisher = executionResult.getData();
+
+    AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
+    publisher.subscribe(new Subscriber<ExecutionResult>() {
+      @Override
+      public void onSubscribe(Subscription s) {
+        subscriptionRef.set(s);
+        subscriptions.put(opId, s);
+
+        s.request(1);
+      }
+
+      @Override
+      public void onNext(ExecutionResult er) {
+        sendMessage(serverWebSocket, opId, GraphQLMessage.Type.DATA, er);
+
+        subscriptionRef.get().request(1);
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        sendError(serverWebSocket, opId, t);
+      }
+
+      @Override
+      public void onComplete() {
+        sendMessage(serverWebSocket, opId, GraphQLMessage.Type.COMPLETE);
+        subscriptions.remove(opId);
+      }
+    });
+  }
+
+  private void sendBackExecutionResult(
+    ServerWebSocket serverWebSocket,
+    String opId,
+    ExecutionResult executionResult
+  ) {
+    sendMessage(serverWebSocket, opId, GraphQLMessage.Type.DATA, executionResult);
+  }
+
+  private void stop(ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions, String opId) {
     Subscription subscription = subscriptions.get(opId);
 
     if (subscription != null) {
@@ -187,7 +210,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     message.setType(type);
     message.setPayload(payload);
 
-    serverWebSocket.write(JsonObject.mapFrom(message).toBuffer());
+    serverWebSocket.writeTextMessage(JsonObject.mapFrom(message).toString());
   }
 
   private void sendMessage(ServerWebSocket serverWebSocket, String opId, GraphQLMessage.Type type) {
@@ -211,7 +234,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   }
 
   private void sendMessage(ServerWebSocket serverWebSocket, GraphQLMessage message) {
-    serverWebSocket.write(JsonObject.mapFrom(message).toBuffer());
+    serverWebSocket.writeTextMessage(JsonObject.mapFrom(message).toString());
   }
 
 }

@@ -48,11 +48,8 @@ test('batch http link', async () => {
 });
 
 test('ws link', async () => {
-  const client = new SubscriptionClient(wsUri, {
-    reconnect: true
-  });
+  const client = new SubscriptionClient(wsUri);
   const link = new WebSocketLink(client);
-  console.log(link);
   let result = await makePromise(execute(link, {query: allLinksQuery}));
   verify(result);
 });
