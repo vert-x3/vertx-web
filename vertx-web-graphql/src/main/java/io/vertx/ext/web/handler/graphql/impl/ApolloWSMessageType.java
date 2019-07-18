@@ -22,52 +22,37 @@ import com.fasterxml.jackson.annotation.JsonValue;
 /**
  * @author Rogelio Orts
  */
-public class GraphQLMessage {
+public enum ApolloWSMessageType {
+  CONNECTION_INIT("connection_init"),
+  CONNECTION_TERMINATE("connection_terminate"),
+  START("start"),
+  STOP("stop"),
+  CONNECTION_ACK("connection_ack"),
+  CONNECTION_ERROR("error"),
+  CONNECTION_KEEP_ALIVE("ka"),
+  DATA("data"),
+  ERROR("error"),
+  COMPLETE("complete");
 
-  @JsonProperty("id")
-  private String opId;
+  private String text;
 
-  private Type type;
-
-  public String getOpId() {
-    return opId;
+  ApolloWSMessageType(String text) {
+    this.text = text;
   }
 
-  public void setOpId(String opId) {
-    this.opId = opId;
+  @JsonValue
+  public String getText() {
+    return text;
   }
 
-  public Type getType() {
-    return type;
-  }
-
-  public void setType(Type type) {
-    this.type = type;
-  }
-
-  public enum Type {
-    CONNECTION_INIT("connection_init"),
-    CONNECTION_TERMINATE("connection_terminate"),
-    START("start"),
-    STOP("stop"),
-    CONNECTION_ACK("connection_ack"),
-    CONNECTION_ERROR("error"),
-    CONNECTION_KEEP_ALIVE("ka"),
-    DATA("data"),
-    ERROR("error"),
-    COMPLETE("complete");
-
-    private String text;
-
-    Type(String text) {
-      this.text = text;
+  public static ApolloWSMessageType from(String type) {
+    for(ApolloWSMessageType t : values()) {
+      if(t.getText().equals(type)) {
+        return t;
+      }
     }
 
-    @JsonValue
-    public String getText() {
-      return text;
-    }
-
+    throw new IllegalArgumentException("No enum constant for " + type);
   }
 
 }
