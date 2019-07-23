@@ -27,7 +27,10 @@ import graphql.schema.idl.WiringFactory;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.*;
@@ -35,10 +38,17 @@ import org.dataloader.BatchLoaderEnvironment;
 import org.dataloader.BatchLoaderWithContext;
 import org.dataloader.DataLoader;
 import org.dataloader.DataLoaderRegistry;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 
 /**
  * @author Thomas SEGISMONT
@@ -213,5 +223,44 @@ public class GraphQLExamples {
       return new DataLoaderRegistry().register("link", linkDataLoader);
 
     });
+  }
+
+  public void addApolloWsHandlerToRouter(Router router) {
+    GraphQL graphQL = setupGraphQLJava();
+
+    router.route("/graphql").handler(ApolloWSHandler.create(graphQL));
+  }
+
+  public void configureServerForApolloWs(Vertx vertx, Router router) {
+    final HttpServerOptions httpServerOptions = new HttpServerOptions()
+      .setWebsocketSubProtocols("graphql-ws");
+    vertx.createHttpServer(httpServerOptions)
+      .requestHandler(router)
+      .listen(8080);
+  }
+
+  public void subscriptionDataFetcher(Vertx vertx) {
+    final RuntimeWiring runtimeWiring = newRuntimeWiring()
+      .type("Subscription", builder ->
+        builder.dataFetcher(
+          "tick",
+          new DataFetcher() {
+            @Override
+            public Publisher<Map<String, Object>> get(DataFetchingEnvironment dataFetchingEnvironment) throws Exception {
+              return subscriber -> {
+                AtomicInteger counter = new AtomicInteger(0);
+
+                long periodicId = vertx.setPeriodic(1000, l -> {
+                  Map<String, Object> tick = new HashMap<>();
+                  tick.put("count", counter.getAndIncrement());
+
+                  subscriber.onNext(tick);
+                });
+              };
+            }
+          }
+        )
+      )
+      .build();
   }
 }
