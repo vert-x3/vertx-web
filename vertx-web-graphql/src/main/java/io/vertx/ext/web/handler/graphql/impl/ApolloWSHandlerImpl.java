@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
-  private final static String HEADER_CONNECTION_UPGRADE_VALUE = "Upgrade";
+  private final static String HEADER_CONNECTION_UPGRADE_VALUE = "upgrade";
 
   private final GraphQL graphQL;
 
@@ -54,7 +54,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     if(
       headers.contains(HttpHeaders.CONNECTION)
         &&
-      HEADER_CONNECTION_UPGRADE_VALUE.equals(headers.get(HttpHeaders.CONNECTION))
+      HEADER_CONNECTION_UPGRADE_VALUE.equals(headers.get(HttpHeaders.CONNECTION).toLowerCase())
     ) {
       ServerWebSocket serverWebSocket = routingContext.request().upgrade();
       handleConnection(serverWebSocket);
