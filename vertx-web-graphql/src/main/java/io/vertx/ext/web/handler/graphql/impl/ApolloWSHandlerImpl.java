@@ -31,6 +31,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -64,7 +65,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   }
 
   private void handleConnection(ServerWebSocket serverWebSocket) {
-    final Map<String, Subscription> subscriptions = Collections.synchronizedMap(new HashMap<>());
+    Map<String, Subscription> subscriptions = new ConcurrentHashMap();
 
     serverWebSocket.handler(buffer -> {
       try {
@@ -73,7 +74,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
         String type = message.getString("type");
 
         if (type == null) {
-          sendError(serverWebSocket, opId, new Exception("Invalid message type!"));
+          sendError(serverWebSocket, opId, "Invalid message type!");
           return;
         }
 
@@ -91,11 +92,11 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
             stop(serverWebSocket, subscriptions, opId);
             break;
           default:
-            sendError(serverWebSocket, opId, new Exception("Invalid message type!"));
+            sendError(serverWebSocket, opId, "Invalid message type!");
             break;
         }
       } catch (Exception e) {
-        sendError(serverWebSocket, null, e);
+        sendError(serverWebSocket, null, e.getMessage());
       }
     });
 
@@ -115,11 +116,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     return this;
   }
 
-  private void start(
-    ServerWebSocket serverWebSocket,
-    Map<String, Subscription> subscriptions,
-    JsonObject message
-  ) {
+  private void start(ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions, JsonObject message) {
     String opId = message.getString("id");
 
     // Unsubscribe if it's subscribed
@@ -149,11 +146,8 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   }
 
   private void subscribe(
-    ServerWebSocket serverWebSocket,
-    Map<String, Subscription> subscriptions,
-    String opId,
-    ExecutionResult executionResult
-  ) {
+      ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions, String opId,
+      ExecutionResult executionResult) {
     Publisher<ExecutionResult> publisher = executionResult.getData();
 
     AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
@@ -175,7 +169,8 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
       @Override
       public void onError(Throwable t) {
-        sendError(serverWebSocket, opId, t);
+        sendError(serverWebSocket, opId, t.getMessage());
+        subscriptions.remove(opId);
       }
 
       @Override
@@ -186,11 +181,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     });
   }
 
-  private void sendBackExecutionResult(
-    ServerWebSocket serverWebSocket,
-    String opId,
-    ExecutionResult executionResult
-  ) {
+  private void sendBackExecutionResult(ServerWebSocket serverWebSocket, String opId, ExecutionResult executionResult) {
     sendMessage(serverWebSocket, opId, ApolloWSMessageType.DATA, executionResult);
   }
 
@@ -204,11 +195,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   }
 
   private void sendMessage(
-    ServerWebSocket serverWebSocket,
-    String opId,
-    ApolloWSMessageType type,
-    ExecutionResult payload
-  ) {
+      ServerWebSocket serverWebSocket, String opId, ApolloWSMessageType type, ExecutionResult payload) {
     JsonObject message = new JsonObject()
       .put("id", opId)
       .put("type", type.getText())
@@ -225,9 +212,9 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     sendMessage(serverWebSocket, message);
   }
 
-  private void sendError(ServerWebSocket serverWebSocket, String opId, Throwable throwable) {
+  private void sendError(ServerWebSocket serverWebSocket, String opId, String errorMsg) {
     JsonObject error = new JsonObject()
-      .put("message", throwable.getMessage());
+      .put("message", errorMsg);
     JsonObject message = new JsonObject()
       .put("id", opId)
       .put("type", ApolloWSMessageType.ERROR.getText())

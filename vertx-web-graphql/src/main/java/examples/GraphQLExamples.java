@@ -232,7 +232,7 @@ public class GraphQLExamples {
   }
 
   public void configureServerForApolloWs(Vertx vertx, Router router) {
-    final HttpServerOptions httpServerOptions = new HttpServerOptions()
+    HttpServerOptions httpServerOptions = new HttpServerOptions()
       .setWebsocketSubProtocols("graphql-ws");
     vertx.createHttpServer(httpServerOptions)
       .requestHandler(router)
@@ -240,7 +240,7 @@ public class GraphQLExamples {
   }
 
   public void subscriptionDataFetcher(Vertx vertx) {
-    final RuntimeWiring runtimeWiring = newRuntimeWiring()
+    RuntimeWiring runtimeWiring = newRuntimeWiring()
       .type("Subscription", builder ->
         builder.dataFetcher(
           "tick",
