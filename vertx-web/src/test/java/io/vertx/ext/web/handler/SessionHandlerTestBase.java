@@ -44,7 +44,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSessionCookieName() throws Exception {
-		router.route().handler(CookieHandler.create());
 		String sessionCookieName = "acme.sillycookie";
 		router.route().handler(SessionHandler.create(store).setSessionCookieName(sessionCookieName));
 		router.route().handler(rc -> rc.response().end());
@@ -56,7 +55,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSessionCookiePath() throws Exception {
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store).setSessionCookiePath("/path"));
 		router.route().handler(rc -> rc.response().end());
 		testRequest(HttpMethod.GET, "/", null, resp -> {
@@ -67,7 +65,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSessionCookieHttpOnlyFlag() throws Exception {
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store).setCookieHttpOnlyFlag(true));
 		router.route().handler(rc -> rc.response().end());
 
@@ -80,7 +77,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSessionCookieSecureFlag() throws Exception {
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store).setCookieSecureFlag(true));
 		router.route().handler(rc -> rc.response().end());
 
@@ -93,7 +89,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSessionCookieSecureFlagAndHttpOnlyFlags() throws Exception {
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store).setCookieSecureFlag(true).setCookieHttpOnlyFlag(true));
 		router.route().handler(rc -> rc.response().end());
 
@@ -107,7 +102,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSessionFields() throws Exception {
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store));
 		AtomicReference<String> rid = new AtomicReference<>();
 		router.route().handler(rc -> {
@@ -131,7 +125,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSession() throws Exception {
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store));
 		AtomicReference<String> rid = new AtomicReference<>();
 		AtomicInteger requestCount = new AtomicInteger();
@@ -176,7 +169,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSessionExpires() throws Exception {
-		router.route().handler(CookieHandler.create());
 		long timeout = 1000;
 		router.route().handler(SessionHandler.create(store).setSessionTimeout(timeout));
 		AtomicReference<String> rid = new AtomicReference<>();
@@ -224,7 +216,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testDestroySession() throws Exception {
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store));
 		AtomicReference<String> rid = new AtomicReference<>();
 		AtomicInteger requestCount = new AtomicInteger();
@@ -267,7 +258,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testLastAccessed1() throws Exception {
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store));
 		AtomicReference<Session> rid = new AtomicReference<>();
 		long start = System.currentTimeMillis();
@@ -285,7 +275,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testLastAccessed2() throws Exception {
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store));
 		AtomicReference<Session> rid = new AtomicReference<>();
 		router.route().handler(rc -> {
@@ -300,7 +289,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testIssue172_setnull() throws Exception {
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store));
 		AtomicReference<Session> rid = new AtomicReference<>();
 
@@ -314,7 +302,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSessionCookieAttack() throws Exception {
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store));
 		// faking that there was some auth error
 		router.route().handler(rc -> rc.fail(401));
@@ -328,7 +315,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		final AtomicInteger counter = new AtomicInteger(0);
 		final AtomicReference<String> id = new AtomicReference<>();
 
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store));
 		// faking some error
 		router.route().handler(rc -> {
@@ -367,7 +353,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 	private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
 
 	protected long doTestSessionRetryTimeout() throws Exception {
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store));
 		AtomicReference<Session> rid = new AtomicReference<>();
 
@@ -409,7 +394,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 		final AtomicReference<String> sessionId = new AtomicReference<>();
 
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store));
 		// call #0 anonymous a random id should be returned
 		router.route("/0").handler(rc -> {
@@ -462,7 +446,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 	@Test
 	public void testSessionIdLength() throws Exception {
 
-		router.route().handler(CookieHandler.create());
 		router.route().handler(SessionHandler.create(store));
 
 		router.route("/1").handler(rc -> {

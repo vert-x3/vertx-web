@@ -16,8 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
-import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
-import io.netty.handler.codec.http.cookie.DefaultCookie;
+import io.vertx.core.http.impl.ServerCookie;
 import io.vertx.ext.web.Cookie;
 
 
@@ -27,101 +26,102 @@ import io.vertx.ext.web.Cookie;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class CookieImpl implements Cookie {
+public class CookieImpl implements Cookie, ServerCookie {
 
-  private final io.netty.handler.codec.http.cookie.Cookie nettyCookie;
-  private boolean changed;
-  private boolean fromUserAgent;
+  static Cookie wrapIfNecessary(ServerCookie cookie) {
+    if (cookie == null) {
+      return null;
+    }
+    return cookie instanceof Cookie ? (Cookie) cookie : new CookieImpl(cookie);
+  }
+
+  final io.vertx.core.http.impl.ServerCookie delegate;
 
   public CookieImpl(String name, String value) {
-    this.nettyCookie = new DefaultCookie(name, value);
-    this.changed = true;
+    this.delegate = (ServerCookie) io.vertx.core.http.Cookie.cookie(name, value);
+  }
+
+  public CookieImpl(io.vertx.core.http.impl.ServerCookie delegate) {
+    this.delegate = delegate;
   }
 
   public CookieImpl(io.netty.handler.codec.http.cookie.Cookie nettyCookie) {
-    this.nettyCookie = nettyCookie;
-    fromUserAgent = true;
+    this.delegate = new io.vertx.core.http.impl.CookieImpl(nettyCookie);
   }
 
   @Override
   public String getValue() {
-    return nettyCookie.value();
+    return delegate.getValue();
   }
 
   @Override
   public Cookie setValue(final String value) {
-    nettyCookie.setValue(value);
-    this.changed = true;
+    delegate.setValue(value);
     return this;
   }
 
   @Override
   public String getName() {
-    return nettyCookie.name();
+    return delegate.getName();
   }
 
   @Override
   public Cookie setDomain(final String domain) {
-    nettyCookie.setDomain(domain);
-    this.changed = true;
+    delegate.setDomain(domain);
     return this;
   }
 
   @Override
   public String getDomain() {
-    return nettyCookie.domain();
+    return delegate.getDomain();
   }
 
   @Override
   public Cookie setPath(final String path) {
-    nettyCookie.setPath(path);
-    this.changed = true;
+    delegate.setPath(path);
     return this;
   }
 
   @Override
   public String getPath() {
-    return nettyCookie.path();
+    return delegate.getPath();
   }
 
   @Override
   public Cookie setMaxAge(final long maxAge) {
-    nettyCookie.setMaxAge(maxAge);
-    this.changed = true;
+    delegate.setMaxAge(maxAge);
     return this;
   }
 
   @Override
   public Cookie setSecure(final boolean secure) {
-    nettyCookie.setSecure(secure);
-    this.changed = true;
+    delegate.setSecure(secure);
     return this;
   }
 
   @Override
   public Cookie setHttpOnly(final boolean httpOnly) {
-    nettyCookie.setHttpOnly(httpOnly);
-    this.changed = true;
+    delegate.setHttpOnly(httpOnly);
     return this;
   }
 
   @Override
   public String encode() {
-    return ServerCookieEncoder.STRICT.encode(nettyCookie);
+    return delegate.encode();
   }
 
   @Override
   public boolean isChanged() {
-    return changed;
+    return delegate.isChanged();
   }
 
   @Override
   public void setChanged(boolean changed) {
-    this.changed = changed;
+    delegate.setChanged(changed);
   }
 
   @Override
   public boolean isFromUserAgent() {
-    return fromUserAgent;
+    return delegate.isFromUserAgent();
   }
 }

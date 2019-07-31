@@ -24,7 +24,6 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.test.core.VertxTestBase;
@@ -56,7 +55,6 @@ abstract class SockJSTestBase extends VertxTestBase {
       public void start(Promise<Void> startFuture) throws Exception {
 
         Router router = Router.router(vertx);
-        router.route().handler(CookieHandler.create());
         router.route()
           .handler(SessionHandler.create(LocalSessionStore.create(vertx))
             .setNagHttps(false)

@@ -182,8 +182,7 @@ public interface RoutingContext {
   String normalisedPath();
 
   /**
-   * Get the cookie with the specified name. The context must have first been routed to a {@link io.vertx.ext.web.handler.CookieHandler}
-   * for this to work.
+   * Get the cookie with the specified name.
    *
    * @param name  the cookie name
    * @return the cookie
@@ -191,18 +190,28 @@ public interface RoutingContext {
   @Nullable Cookie getCookie(String name);
 
   /**
-   * Add a cookie. This will be sent back to the client in the response. The context must have first been routed
-   * to a {@link io.vertx.ext.web.handler.CookieHandler} for this to work.
+   * Add a cookie. This will be sent back to the client in the response.
    *
    * @param cookie  the cookie
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
+  RoutingContext addCookie(io.vertx.core.http.Cookie cookie);
+
+  /**
+   * Add a cookie. This will be sent back to the client in the response.
+   *
+   * @param cookie  the cookie
+   * @return a reference to this, so the API can be used fluently
+   * @deprecated instead use {@link #addCookie(io.vertx.core.http.Cookie)}
+   */
+  @GenIgnore
+  @Deprecated
+  @Fluent
   RoutingContext addCookie(Cookie cookie);
 
   /**
-   * Expire a cookie, notifying a User Agent to remove it from its cookie jar. The context must have first been routed
-   * to a {@link io.vertx.ext.web.handler.CookieHandler} for this to work.
+   * Expire a cookie, notifying a User Agent to remove it from its cookie jar.
    *
    * @param name  the name of the cookie
    * @return the cookie, if it existed, or null
@@ -213,8 +222,7 @@ public interface RoutingContext {
 
   /**
    * Remove a cookie from the cookie set. If invalidate is true then it will expire a cookie, notifying a User Agent to
-   * remove it from its cookie jar. The context must have first been routed to a
-   * {@link io.vertx.ext.web.handler.CookieHandler} for this to work.
+   * remove it from its cookie jar.
    *
    * @param name  the name of the cookie
    * @return the cookie, if it existed, or null
@@ -222,16 +230,21 @@ public interface RoutingContext {
   @Nullable Cookie removeCookie(String name, boolean invalidate);
 
   /**
-   * @return the number of cookies. The context must have first been routed to a {@link io.vertx.ext.web.handler.CookieHandler}
-   * for this to work.
+   * @return the number of cookies.
    */
   int cookieCount();
 
   /**
-   * @return a set of all the cookies. The context must have first been routed to a {@link io.vertx.ext.web.handler.CookieHandler}
-   * for this to be populated.
+   * @deprecated use instead {@link #cookieMap()}
+   * @return a set of all the cookies.
    */
+  @Deprecated
   Set<Cookie> cookies();
+
+  /**
+   * @return a map of all the cookies.
+   */
+  Map<String, io.vertx.core.http.Cookie> cookieMap();
 
   /**
    * @return  the entire HTTP request body as a string, assuming UTF-8 encoding. The context must have first been routed to a

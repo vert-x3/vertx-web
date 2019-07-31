@@ -34,9 +34,6 @@ import io.vertx.ext.web.sstore.SessionStore;
  * <p>
  * The session is available on the routing context with
  * {@link RoutingContext#session()}.
- * <p>
- * The session handler requires a {@link CookieHandler} to be on the routing
- * chain before it.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */

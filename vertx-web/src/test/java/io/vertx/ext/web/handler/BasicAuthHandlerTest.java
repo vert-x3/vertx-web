@@ -86,7 +86,6 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
   @Test
   public void testWithSessions() throws Exception {
     router.route().handler(BodyHandler.create());
-    router.route().handler(CookieHandler.create());
     SessionStore store = new SerializingSessionStore();
 
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");

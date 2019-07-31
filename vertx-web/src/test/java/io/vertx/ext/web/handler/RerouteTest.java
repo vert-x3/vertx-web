@@ -114,7 +114,6 @@ public class RerouteTest extends WebTestBase {
 
   @Test
   public void testRerouteClearHeader3() throws Exception {
-    router.route().handler(CookieHandler.create());
     router.get("/users/:name").handler(ctx -> {
       ctx.response().putHeader("X-woop", "durp2");
       ctx.response().end("/users/:name");

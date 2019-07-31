@@ -27,6 +27,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.impl.HttpUtils;
+import io.vertx.core.http.impl.ServerCookie;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -40,6 +41,7 @@ import io.vertx.ext.web.handler.impl.HttpStatusException;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -220,40 +222,44 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public Cookie getCookie(String name) {
-    return cookiesMap().get(name);
+    return CookieImpl.wrapIfNecessary((ServerCookie) request.getCookie(name));
   }
 
   @Override
   public RoutingContext addCookie(Cookie cookie) {
-    cookiesMap().put(cookie.getName(), cookie);
+    return addCookie(((io.vertx.core.http.Cookie) cookie));
+  }
+
+  @Override
+  public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
+    request.response().addCookie(cookie);
     return this;
   }
 
   @Override
   public Cookie removeCookie(String name, boolean invalidate) {
-    Cookie cookie = cookiesMap().get(name);
-    if (cookie != null) {
-      if (invalidate && cookie.isFromUserAgent()) {
-        // in the case the cookie was passed from the User Agent
-        // we need to expire it and sent it back to it can be
-        // invalidated
-        cookie.setMaxAge(0L);
-      } else {
-        // this was a temporary cookie so we can safely remove it
-        cookiesMap().remove(name);
-      }
-    }
-    return cookie;
+    ServerCookie cookie = (ServerCookie) request.response().removeCookie(name, invalidate);
+    return CookieImpl.wrapIfNecessary(cookie);
   }
 
   @Override
   public int cookieCount() {
-    return cookiesMap().size();
+    return request.cookieCount();
   }
 
   @Override
   public Set<Cookie> cookies() {
-    return new HashSet<>(cookiesMap().values());
+    return request.cookieMap()
+      .values()
+      .stream()
+      .map(c -> (ServerCookie)c)
+      .map(CookieImpl::wrapIfNecessary)
+      .collect(Collectors.toCollection(HashSet::new));
+  }
+
+  @Override
+  public Map<String, io.vertx.core.http.Cookie> cookieMap() {
+    return request.cookieMap();
   }
 
   @Override
@@ -473,13 +479,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       response().bodyEndHandler(v -> bodyEndHandlers.values().forEach(handler -> handler.handle(null)));
     }
     return bodyEndHandlers;
-  }
-
-  private Map<String, Cookie> cookiesMap() {
-    if (cookies == null) {
-      cookies = new HashMap<>();
-    }
-    return cookies;
   }
 
   private Set<FileUpload> getFileUploads() {

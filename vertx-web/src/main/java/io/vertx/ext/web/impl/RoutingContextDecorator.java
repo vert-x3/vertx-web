@@ -47,6 +47,11 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
+  public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
+    return decoratedContext.addCookie(cookie);
+  }
+
+  @Override
   public int addHeadersEndHandler(Handler<Void> handler) {
     return decoratedContext.addHeadersEndHandler(handler);
   }
@@ -59,6 +64,11 @@ public class RoutingContextDecorator implements RoutingContext {
   @Override
   public Set<Cookie> cookies() {
     return decoratedContext.cookies();
+  }
+
+  @Override
+  public Map<String, io.vertx.core.http.Cookie> cookieMap() {
+    return decoratedContext.cookieMap();
   }
 
   @Override

@@ -72,7 +72,6 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
   protected void testAuthorisation(String username, boolean fail, Set<String> authorities) throws Exception {
     if (requiresSession()) {
       router.route().handler(BodyHandler.create());
-      router.route().handler(CookieHandler.create());
       SessionStore store = getSessionStore();
       router.route().handler(SessionHandler.create(store));
     }
