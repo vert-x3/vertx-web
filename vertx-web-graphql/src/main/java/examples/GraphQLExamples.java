@@ -239,28 +239,11 @@ public class GraphQLExamples {
       .listen(8080);
   }
 
-  public void subscriptionDataFetcher(Vertx vertx) {
-    RuntimeWiring runtimeWiring = newRuntimeWiring()
-      .type("Subscription", builder ->
-        builder.dataFetcher(
-          "tick",
-          new DataFetcher() {
-            @Override
-            public Publisher<Map<String, Object>> get(DataFetchingEnvironment dataFetchingEnvironment) throws Exception {
-              return subscriber -> {
-                AtomicInteger counter = new AtomicInteger(0);
+  public void configureWebSocketLinkAndHttpLinkSamePath(Router router) {
+    GraphQL graphQL = setupGraphQLJava();
 
-                long periodicId = vertx.setPeriodic(1000, l -> {
-                  Map<String, Object> tick = new HashMap<>();
-                  tick.put("count", counter.getAndIncrement());
-
-                  subscriber.onNext(tick);
-                });
-              };
-            }
-          }
-        )
-      )
-      .build();
+    router.route("/graphql").handler(ApolloWSHandler.create(graphQL));
+    router.route("/graphql").handler(GraphQLHandler.create(graphQL));
   }
+
 }

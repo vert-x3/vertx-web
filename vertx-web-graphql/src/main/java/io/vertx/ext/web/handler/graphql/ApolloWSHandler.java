@@ -26,7 +26,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.impl.ApolloWSHandlerImpl;
 
 /**
- * A websocket {@link io.vertx.core.Handler} for GraphQL requests.
+ * A handler for GraphQL requests sent over Apollo's {@code subscriptions-transport-ws} transport.
  *
  * @author Rogelio Orts
  */
@@ -44,7 +44,7 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
   ApolloWSHandler endHandler(Handler<ServerWebSocket> endHandler);
 
   /**
-   * Create a new {@link ApolloWSHandler} that will use the provided {@code graphQL} object to execute queries.
+   * Create a new {@link ApolloWSHandler} that will use the provided {@code graphQL} object to execute requests.
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ApolloWSHandler create(GraphQL graphQL) {
