@@ -741,10 +741,6 @@ such as the name, file-name and size to be accessed.
 
 Vert.x-Web has out of the box cookies support.
 
-Before 3.8.1, cookie required to use the {@link io.vertx.ext.web.handler.CookieHandler} to active this functionality.
-
-Since 3.8.1, the `CookieHandler` has been deprecated and should not be used anymore.
-
 === Manipulating cookies
 
 You use {@link io.vertx.ext.web.RoutingContext#getCookie(String)} to retrieve

@@ -5,6 +5,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -42,11 +43,6 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
-  public RoutingContext addCookie(Cookie cookie) {
-    return decoratedContext.addCookie(cookie);
-  }
-
-  @Override
   public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
     return decoratedContext.addCookie(cookie);
   }
@@ -59,11 +55,6 @@ public class RoutingContextDecorator implements RoutingContext {
   @Override
   public int cookieCount() {
     return decoratedContext.cookieCount();
-  }
-
-  @Override
-  public Set<Cookie> cookies() {
-    return decoratedContext.cookies();
   }
 
   @Override

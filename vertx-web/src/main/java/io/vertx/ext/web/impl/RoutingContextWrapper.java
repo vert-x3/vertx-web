@@ -21,6 +21,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -194,12 +195,6 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
-    inner.addCookie(cookie);
-    return this;
-  }
-
-  @Override
   public Cookie removeCookie(String name, boolean invalidate) {
     return inner.removeCookie(name, invalidate);
   }
@@ -207,11 +202,6 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public int cookieCount() {
     return inner.cookieCount();
-  }
-
-  @Override
-  public Set<Cookie> cookies() {
-    return inner.cookies();
   }
 
   @Override

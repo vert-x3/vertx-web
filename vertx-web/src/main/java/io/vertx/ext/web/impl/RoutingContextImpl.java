@@ -23,6 +23,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -222,12 +223,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public Cookie getCookie(String name) {
-    return CookieImpl.wrapIfNecessary((ServerCookie) request.getCookie(name));
-  }
-
-  @Override
-  public RoutingContext addCookie(Cookie cookie) {
-    return addCookie(((io.vertx.core.http.Cookie) cookie));
+    return request.getCookie(name);
   }
 
   @Override
@@ -238,8 +234,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public Cookie removeCookie(String name, boolean invalidate) {
-    ServerCookie cookie = (ServerCookie) request.response().removeCookie(name, invalidate);
-    return CookieImpl.wrapIfNecessary(cookie);
+    return request.response().removeCookie(name, invalidate);
   }
 
   @Override
@@ -248,17 +243,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public Set<Cookie> cookies() {
-    return request.cookieMap()
-      .values()
-      .stream()
-      .map(c -> (ServerCookie)c)
-      .map(CookieImpl::wrapIfNecessary)
-      .collect(Collectors.toCollection(HashSet::new));
-  }
-
-  @Override
-  public Map<String, io.vertx.core.http.Cookie> cookieMap() {
+  public Map<String, Cookie> cookieMap() {
     return request.cookieMap();
   }
 

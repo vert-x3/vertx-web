@@ -21,6 +21,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -199,18 +200,6 @@ public interface RoutingContext {
   RoutingContext addCookie(io.vertx.core.http.Cookie cookie);
 
   /**
-   * Add a cookie. This will be sent back to the client in the response.
-   *
-   * @param cookie  the cookie
-   * @return a reference to this, so the API can be used fluently
-   * @deprecated instead use {@link #addCookie(io.vertx.core.http.Cookie)}
-   */
-  @GenIgnore
-  @Deprecated
-  @Fluent
-  RoutingContext addCookie(Cookie cookie);
-
-  /**
    * Expire a cookie, notifying a User Agent to remove it from its cookie jar.
    *
    * @param name  the name of the cookie
@@ -233,13 +222,6 @@ public interface RoutingContext {
    * @return the number of cookies.
    */
   int cookieCount();
-
-  /**
-   * @deprecated use instead {@link #cookieMap()}
-   * @return a set of all the cookies.
-   */
-  @Deprecated
-  Set<Cookie> cookies();
 
   /**
    * @return a map of all the cookies.
