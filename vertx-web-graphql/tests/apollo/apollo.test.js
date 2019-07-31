@@ -25,6 +25,22 @@ const secureOnlyQuery = gql`
 }
 `;
 
+const staticCounterQuery = gql`
+query Query {
+  staticCounter (num: 5) {
+    count
+  }
+}
+`;
+
+const counterSubscription = gql`
+subscription Subscription {
+  counter {
+    count
+  }
+}
+`;
+
 const verify = result => {
   expect(result).toHaveProperty('data.allLinks');
   expect(result.data.allLinks).toBeInstanceOf(Array);
@@ -50,6 +66,27 @@ test('batch http link', async () => {
 test('ws link', async () => {
   const client = new SubscriptionClient(wsUri);
   const link = new WebSocketLink(client);
-  let result = await makePromise(execute(link, {query: allLinksQuery}));
-  verify(result);
+  let result = await makePromise(execute(link, {query: staticCounterQuery}));
+
+  expect(result).toHaveProperty('data.staticCounter');
+  expect(result.data.staticCounter).toBeInstanceOf(Object);
+
+  expect(result.data.staticCounter.count).toEqual(5);
+});
+
+test('ws link subscription', () => {
+  const client = new SubscriptionClient(wsUri);
+  const link = new WebSocketLink(client);
+
+  return new Promise((resolve, reject) => {
+    execute(link, {query: counterSubscription})
+      .subscribe(result => {
+        expect(result).toHaveProperty('data.counter');
+        expect(result.data.counter).toBeInstanceOf(Object);
+
+        expect(result.data.counter.count).toEqual(1);
+
+        resolve();
+      });
+  });
 });
