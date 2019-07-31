@@ -24,9 +24,13 @@ import io.vertx.ext.web.handler.impl.CookieHandlerImpl;
  * A handler which decodes cookies from the request, makes them available in the {@link RoutingContext}
  * and writes them back in the response.
  *
+ * Since 3.8.1 this handler simply calls the next request handler. This handler will be removed in Vert.x 4.
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @deprecated cookies are enabled by default and this handler is not required anymore
  */
 @VertxGen
+@Deprecated
 public interface CookieHandler extends Handler<RoutingContext> {
 
   /**

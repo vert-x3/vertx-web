@@ -16,8 +16,8 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
@@ -33,7 +33,6 @@ public class CookieHandlerTest extends WebTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    router.route().handler(CookieHandler.create());
   }
 
   @Test
@@ -52,16 +51,16 @@ public class CookieHandlerTest extends WebTestBase {
   public void testGetCookies() throws Exception {
     router.route().handler(rc -> {
       assertEquals(3, rc.cookieCount());
-      Set<Cookie> cookies = rc.cookies();
-      assertTrue(contains(cookies, "foo"));
-      assertTrue(contains(cookies, "wibble"));
-      assertTrue(contains(cookies, "plop"));
+      Map<String, Cookie> cookies = rc.cookieMap();
+      assertTrue(cookies.containsKey("foo"));
+      assertTrue(cookies.containsKey("wibble"));
+      assertTrue(cookies.containsKey("plop"));
       Cookie removed = rc.removeCookie("foo");
-      cookies = rc.cookies();
+      cookies = rc.cookieMap();
       // removed cookies, need to be sent back with an expiration date
-      assertTrue(contains(cookies, "foo"));
-      assertTrue(contains(cookies, "wibble"));
-      assertTrue(contains(cookies, "plop"));
+      assertTrue(cookies.containsKey("foo"));
+      assertTrue(cookies.containsKey("wibble"));
+      assertTrue(cookies.containsKey("plop"));
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", req -> req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop"), resp -> {
@@ -71,15 +70,6 @@ public class CookieHandlerTest extends WebTestBase {
       assertTrue(cookies.get(0).contains("Max-Age=0"));
       assertTrue(cookies.get(0).contains("Expires="));
     }, 200, "OK", null);
-  }
-
-  private boolean contains(Set<Cookie> cookies, String name) {
-    for (Cookie cookie: cookies) {
-      if (cookie.getName().equals(name)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @Test

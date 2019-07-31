@@ -194,6 +194,12 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
+    inner.addCookie(cookie);
+    return this;
+  }
+
+  @Override
   public Cookie removeCookie(String name, boolean invalidate) {
     return inner.removeCookie(name, invalidate);
   }
@@ -206,6 +212,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public Set<Cookie> cookies() {
     return inner.cookies();
+  }
+
+  @Override
+  public Map<String, io.vertx.core.http.Cookie> cookieMap() {
+    return inner.cookieMap();
   }
 
   @Override

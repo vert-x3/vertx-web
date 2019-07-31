@@ -1,5 +1,6 @@
 package io.vertx.ext.web.impl;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
@@ -12,6 +13,8 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.security.cert.X509Certificate;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
+import java.util.Set;
 
 class HttpServerRequestWrapper implements HttpServerRequest {
 
@@ -252,5 +255,20 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   @Override
   public StreamPriority streamPriority() {
     return delegate.streamPriority();
+  }
+
+  @Override
+  public @Nullable Cookie getCookie(String name) {
+    return delegate.getCookie(name);
+  }
+
+  @Override
+  public int cookieCount() {
+    return delegate.cookieCount();
+  }
+
+  @Override
+  public Map<String, Cookie> cookieMap() {
+    return delegate.cookieMap();
   }
 }

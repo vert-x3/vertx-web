@@ -28,9 +28,12 @@ import io.vertx.ext.web.impl.CookieImpl;
  * All cookies must have a name and a value and can optionally have other fields set such as path, domain, etc.
  * <p>
  * (Derived from io.netty.handler.codec.http.Cookie)
+ *
+ * @deprecated use instead {@link io.vertx.core.http.Cookie}, this class will be removed in Vert.x 4
  */
+@Deprecated
 @VertxGen
-public interface Cookie {
+public interface Cookie extends io.vertx.core.http.Cookie {
 
   /**
    * Create a new cookie
@@ -52,99 +55,32 @@ public interface Cookie {
     return new CookieImpl(nettyCookie);
   }
 
-  /**
-   * @return the name of this cookie
-   */
-  String getName();
-
-  /**
-   * @return the value of this cookie
-   */
-  String getValue();
-
-  /**
-   * Sets the value of this cookie
-   *
-   * @param value The value to set
-   * @return a reference to this, so the API can be used fluently
-   */
+  @Override
   @Fluent
   Cookie setValue(String value);
 
-  /**
-   * Sets the domain of this cookie
-   *
-   * @param domain The domain to use
-   * @return a reference to this, so the API can be used fluently
-   */
+  @Override
   @Fluent
   Cookie setDomain(@Nullable String domain);
 
-  /**
-   * @return  the domain for the cookie
-   */
-  @Nullable
-  String getDomain();
-
-  /**
-   * Sets the path of this cookie.
-   *
-   * @param path The path to use for this cookie
-   * @return a reference to this, so the API can be used fluently
-   */
+  @Override
   @Fluent
   Cookie setPath(@Nullable String path);
 
-  /**
-   *
-   * @return the path for this cookie
-   */
-  @Nullable
-  String getPath();
-
-  /**
-   * Sets the maximum age of this cookie in seconds.
-   * If an age of {@code 0} is specified, this cookie will be
-   * automatically removed by browser because it will expire immediately.
-   * If {@link Long#MIN_VALUE} is specified, this cookie will be removed when the
-   * browser is closed.
-   * If you don't set this the cookie will be a session cookie and be removed when the browser is closed.
-   *
-   * @param maxAge The maximum age of this cookie in seconds
-   */
+  @Override
   @Fluent
   Cookie setMaxAge(long maxAge);
 
-  /**
-   * Sets the security getStatus of this cookie
-   *
-   * @param secure True if this cookie is to be secure, otherwise false
-   * @return a reference to this, so the API can be used fluently
-   */
+  @Override
   @Fluent
   Cookie setSecure(boolean secure);
 
-  /**
-   * Determines if this cookie is HTTP only.
-   * If set to true, this cookie cannot be accessed by a client
-   * side script. However, this works only if the browser supports it.
-   * For for information, please look
-   * <a href="http://www.owasp.org/index.php/HTTPOnly">here</a>.
-   *
-   * @param httpOnly True if the cookie is HTTP only, otherwise false.
-   */
+  @Override
   @Fluent
   Cookie setHttpOnly(boolean httpOnly);
 
   /**
-   * Encode the cookie to a string. This is what is used in the Set-Cookie header
-   *
-   * @return  the encoded cookie
-   */
-  String encode();
-
-  /**
-   * Has the cookie been changed? Changed cookies will be saved out in the response and sent to the browser.
+   * Has the cookie been changed? Changed cookieMap will be saved out in the response and sent to the browser.
    *
    * @return true  if changed
    */
@@ -164,4 +100,5 @@ public interface Cookie {
    * @return true if the cookie comes from the User Agent.
    */
   boolean isFromUserAgent();
+
 }

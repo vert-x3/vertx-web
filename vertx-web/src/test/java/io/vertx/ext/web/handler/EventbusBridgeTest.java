@@ -1017,7 +1017,6 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testSendRequiresAuthorityHasAuthority() throws Exception {
     sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredAuthority("bang_sticks")));
     router.clear();
-    router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
@@ -1031,7 +1030,6 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testSendRequiresAuthorityHasnotAuthority() throws Exception {
     sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredAuthority("pick_nose")));
     router.clear();
-    router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");

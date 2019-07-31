@@ -8,6 +8,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.Cookie;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.KeyStoreOptions;
@@ -613,28 +614,15 @@ public class WebExamples {
     });
   }
 
-  public void example29(Router router) {
+  public void example30(RoutingContext routingContext) {
 
-    // This cookie handler will be called for all routes
-    router.route().handler(CookieHandler.create());
+    Cookie someCookie = routingContext.getCookie("mycookie");
+    String cookieValue = someCookie.getValue();
 
-  }
+    // Do something with cookie...
 
-  public void example30(Router router) {
-
-    // This cookie handler will be called for all routes
-    router.route().handler(CookieHandler.create());
-
-    router.route("some/path/").handler(routingContext -> {
-
-      Cookie someCookie = routingContext.getCookie("mycookie");
-      String cookieValue = someCookie.getValue();
-
-      // Do something with cookie...
-
-      // Add a cookie - this will get written back in the response automatically
-      routingContext.addCookie(Cookie.cookie("othercookie", "somevalue"));
-    });
+    // Add a cookie - this will get written back in the response automatically
+    routingContext.addCookie(Cookie.cookie("othercookie", "somevalue"));
   }
 
   public void example31(Vertx vertx) {
@@ -675,9 +663,6 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    // We need a cookie handler first
-    router.route().handler(CookieHandler.create());
-
     // Create a clustered session store using defaults
     SessionStore store = ClusteredSessionStore.create(vertx);
 
@@ -699,7 +684,6 @@ public class WebExamples {
 
   public void example34(SessionHandler sessionHandler, Router router) {
 
-    router.route().handler(CookieHandler.create());
     router.route().handler(sessionHandler);
 
     // Now your application handlers
@@ -723,7 +707,6 @@ public class WebExamples {
 
   public void example37(Vertx vertx, AuthProvider authProvider, Router router) {
 
-    router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
@@ -731,7 +714,6 @@ public class WebExamples {
 
   public void example38(Vertx vertx, AuthProvider authProvider, Router router) {
 
-    router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).setAuthProvider(authProvider));
 
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
@@ -757,7 +739,6 @@ public class WebExamples {
 
   public void example39(Vertx vertx, AuthProvider authProvider, Router router) {
 
-    router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).setAuthProvider(authProvider));
 
     AuthHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
@@ -958,7 +939,6 @@ public class WebExamples {
 
     // Now set up some basic auth handling:
 
-    router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
@@ -1104,7 +1084,6 @@ public class WebExamples {
 
   public void example54(Router router) {
 
-    router.route().handler(CookieHandler.create());
     router.route().handler(CSRFHandler.create("abracadabra"));
     router.route().handler(rc -> {
 
@@ -1250,9 +1229,6 @@ public class WebExamples {
     // we use a Router to route all HTTP requests
     // to organize our code in a reusable way.
 
-    // We need cookies and sessions
-    router.route()
-      .handler(CookieHandler.create());
     // Simple auth service which uses a GitHub to
     // authenticate the user
     OAuth2Auth authProvider =

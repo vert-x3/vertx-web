@@ -739,19 +739,16 @@ such as the name, file-name and size to be accessed.
 
 == Handling cookies
 
-Vert.x-Web has cookies support using the {@link io.vertx.ext.web.handler.CookieHandler}.
+Vert.x-Web has out of the box cookies support.
 
-You should make sure a cookie handler is on a matching route for any requests that require this functionality.
+Before 3.8.1, cookie required to use the {@link io.vertx.ext.web.handler.CookieHandler} to active this functionality.
 
-[source,$lang]
-----
-{@link examples.WebExamples#example29}
-----
+Since 3.8.1, the `CookieHandler` has been deprecated and should not be used anymore.
 
 === Manipulating cookies
 
 You use {@link io.vertx.ext.web.RoutingContext#getCookie(String)} to retrieve
-a cookie by name, or use {@link io.vertx.ext.web.RoutingContext#cookies()} to retrieve the entire set.
+a cookie by name, or use {@link io.vertx.ext.web.RoutingContext#cookieMap()} to retrieve the entire set.
 
 To remove a cookie, use {@link io.vertx.ext.web.RoutingContext#removeCookie(String)}.
 
@@ -760,7 +757,7 @@ To add a cookie use {@link io.vertx.ext.web.RoutingContext#addCookie(Cookie)}.
 The set of cookies will be written back in the response automatically when the response headers are written so the
 browser can store them.
 
-Cookies are described by instances of {@link io.vertx.ext.web.Cookie}. This allows you to retrieve the name,
+Cookies are described by instances of {@link io.vertx.core.http.Cookie}. This allows you to retrieve the name,
 value, domain, path and other normal cookie properties.
 
 Here's an example of querying and adding cookies:
@@ -863,9 +860,6 @@ Here are some examples of creating a clustered {@link io.vertx.ext.web.sstore.Se
 
 Once you've created a session store you can create a session handler, and add it to a route. You should make sure
 your session handler is routed to before your application handlers.
-
-You'll also need to include a {@link io.vertx.ext.web.handler.CookieHandler} as the session handler uses cookies to
-lookup the session. The cookie handler should be before the session handler when routing.
 
 Here's an example:
 
