@@ -1520,6 +1520,42 @@ Hello @foo and @bar
 Request path is @context.getString("path")
 ----
 
+=== HTTL template engine
+
+To use HTTL, you need to add the following _dependency_ to your project:
+`${maven.groupId}:vertx-web-templ-httl:${maven.version}`. Create an instance of the HTTL template engine
+using: `io.vertx.ext.web.templ.httl.HTTLTemplateEngine#create(io.vertx.core.Vertx)`.
+
+When using the HTTL template engine, it will by default look for
+templates with the `.httl` extension if no extension is specified in the file name.
+
+The values of the JSON context object passed to the `render` method are then exposed as template parameters.
+Given:
+
+----
+[snip]
+TemplateEngine engine = HTTLTemplateEngine.create(vertx);
+final JsonObject context = new JsonObject()
+  .put("foo", "badger")
+  .put("bar", "fox");
+
+engine.render(context, "somedir/test-httl-template1.httl", render -> {
+  // (...)
+});
+[snip]
+----
+
+then the template can be as the following `somedir/test-httl-template1.httl` resource file:
+
+----
+<!-- #set(String foo, String bar) -->
+Hello ${foo} and ${bar}
+
+----
+
+Please consult the https://httl.github.io/en/[HTTL documentation] for how to write
+HTTL templates.
+
 === Caching
 
 Many of the engines support caching of the compiled templates. The cache is stored inside a vert.x shared data local map
