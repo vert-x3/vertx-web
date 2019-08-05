@@ -696,6 +696,14 @@ to install handlers to consume the HTTP request body and this must be done befor
 {@link examples.WebExamples#example27}
 ----
 
+If an async call is required before, the `HttpServerRequest` should be paused and then resumed so that the request
+events are not delivered until the body handler is ready to process them.
+
+[source,$lang]
+----
+{@link examples.WebExamples#example27_1}
+----
+
 === Getting the request body
 
 If you know the request body is JSON, then you can use {@link io.vertx.ext.web.RoutingContext#getBodyAsJson},
