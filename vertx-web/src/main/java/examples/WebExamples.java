@@ -7,6 +7,7 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.json.JsonObject;
@@ -600,6 +601,32 @@ public class WebExamples {
     // This body handler will be called for all routes
     router.route().handler(BodyHandler.create());
 
+  }
+
+  public void example27_1(Router router) {
+
+    router.route().handler(routingContext -> {
+
+      HttpServerRequest request = routingContext.request();
+
+      // Pause the request
+      request.pause();
+
+      someAsyncCall(result -> {
+
+        // Resume the request
+        request.resume();
+
+        // And continue processing
+        routingContext.next();
+      });
+    });
+
+    // This body handler will be called for all routes
+    router.route().handler(BodyHandler.create());
+  }
+
+  private void someAsyncCall(Handler<Void> handler) {
   }
 
   public void example28(Router router) {
