@@ -38,6 +38,7 @@ public class OperationResponse {
         headers.set(entry.getKey(), (String)entry.getValue());
       }
     }
+    json.getJsonArray("setCookieHeaders").forEach(setCookie -> headers.add("Set-Cookie", setCookie.toString()));
   }
 
   public OperationResponse(Integer statusCode, String statusMessage, Buffer payload, MultiMap headers) {
@@ -56,11 +57,20 @@ public class OperationResponse {
 
   public JsonObject toJson() {
     JsonObject json = new JsonObject();
+    JsonArray setCookieHeaders = new JsonArray();
     OperationResponseConverter.toJson(this, json);
     if (headers != null) {
       JsonObject hJson = new JsonObject();
-      headers.entries().forEach(entry -> hJson.put(entry.getKey(), entry.getValue()));
+      headers.entries().forEach(entry -> {
+        if (entry.getKey().equalsIgnoreCase("Set-Cookie")) {
+          setCookieHeaders.add(entry.getValue());
+        }
+        else {
+          hJson.put(entry.getKey(), entry.getValue());
+        }
+      });
       json.put("headers", hJson);
+      json.put("setCookieHeaders", setCookieHeaders);
     }
     return json;
   }
