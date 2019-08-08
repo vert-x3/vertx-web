@@ -6,12 +6,12 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Converter for {@link io.vertx.ext.web.handler.graphql.GraphiQLOptions}.
- * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.handler.graphql.GraphiQLOptions} original class using Vert.x codegen.
+ * Converter for {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions}.
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions} original class using Vert.x codegen.
  */
-public class GraphiQLOptionsConverter {
+public class GraphiQLHandlerOptionsConverter {
 
-  public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, GraphiQLOptions obj) {
+  public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, GraphiQLHandlerOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
         case "enabled":
@@ -48,11 +48,11 @@ public class GraphiQLOptionsConverter {
     }
   }
 
-  public static void toJson(GraphiQLOptions obj, JsonObject json) {
+  public static void toJson(GraphiQLHandlerOptions obj, JsonObject json) {
     toJson(obj, json.getMap());
   }
 
-  public static void toJson(GraphiQLOptions obj, java.util.Map<String, Object> json) {
+  public static void toJson(GraphiQLHandlerOptions obj, java.util.Map<String, Object> json) {
     json.put("enabled", obj.isEnabled());
     if (obj.getGraphQLUri() != null) {
       json.put("graphQLUri", obj.getGraphQLUri());

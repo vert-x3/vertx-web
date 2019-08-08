@@ -14,11 +14,6 @@ public class GraphQLHandlerOptionsConverter {
   public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, GraphQLHandlerOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
-        case "graphiQLOptions":
-          if (member.getValue() instanceof JsonObject) {
-            obj.setGraphiQLOptions(new io.vertx.ext.web.handler.graphql.GraphiQLOptions((JsonObject)member.getValue()));
-          }
-          break;
         case "requestBatchingEnabled":
           if (member.getValue() instanceof Boolean) {
             obj.setRequestBatchingEnabled((Boolean)member.getValue());
@@ -33,9 +28,6 @@ public class GraphQLHandlerOptionsConverter {
   }
 
   public static void toJson(GraphQLHandlerOptions obj, java.util.Map<String, Object> json) {
-    if (obj.getGraphiQLOptions() != null) {
-      json.put("graphiQLOptions", obj.getGraphiQLOptions().toJson());
-    }
     json.put("requestBatchingEnabled", obj.isRequestBatchingEnabled());
   }
 }
