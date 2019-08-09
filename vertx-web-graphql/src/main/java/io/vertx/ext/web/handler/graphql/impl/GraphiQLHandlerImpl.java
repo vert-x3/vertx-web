@@ -23,6 +23,7 @@ import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.GraphiQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions;
@@ -66,9 +67,14 @@ public class GraphiQLHandlerImpl implements GraphiQLHandler {
       rc.next();
       return;
     }
+    HttpServerResponse response = rc.response();
     String filename = Utils.pathOffset(rc.normalisedPath(), rc);
     if (filename.isEmpty()) {
-      rc.next();
+      if (rc.parsedHeaders().accept().stream().map(MIMEHeader::subComponent).anyMatch(sub -> "html".equalsIgnoreCase(sub))) {
+        rc.response().setStatusCode(301).putHeader(HttpHeaders.LOCATION, rc.currentRoute().getPath()).end();
+      } else {
+        rc.next();
+      }
       return;
     }
     if (filename.equals("/")) {
@@ -79,7 +85,6 @@ public class GraphiQLHandlerImpl implements GraphiQLHandler {
       rc.next();
       return;
     }
-    HttpServerResponse response = rc.response();
     if (filename.equals("/index.html")) {
       resource = resource.replace("__VERTX_GRAPHIQL_CONFIG__", replacement(rc));
       response.putHeader(HttpHeaders.CACHE_CONTROL, "no-cache");
