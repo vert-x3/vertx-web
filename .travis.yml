@@ -37,8 +37,9 @@ jobs:
       if: type != pull_request AND env(SONATYPE_NEXUS_USERNAME) IS present
       script:
         - cd vertx-web-graphql/vertx-web-graphiql
-        - npm run build
+        - GENERATE_SOURCEMAP=false npm run build
         - cd build
+        - mkdir --parents ../../src/main/resources/io/vertx/ext/web/handler/graphiql
         - cp index.html ../../src/main/resources/io/vertx/ext/web/handler/graphiql
         - find static -name "*.js"  -exec cp --parents {} ../../src/main/resources/io/vertx/ext/web/handler/graphiql \;
         - find static -name "*.css"  -exec cp --parents {} ../../src/main/resources/io/vertx/ext/web/handler/graphiql \;
