@@ -57,9 +57,7 @@ public class ApolloTestsServer extends AbstractVerticle {
     router.route().handler(CorsHandler.create("*").allowedMethods(EnumSet.of(GET, POST)));
 
     GraphQLHandlerOptions graphQLHandlerOptions = new GraphQLHandlerOptions()
-      .setGraphiQLOptions(new GraphiQLOptions().setEnabled(true))
       .setRequestBatchingEnabled(true);
-
     router.route("/graphql").handler(GraphQLHandler.create(setupGraphQL(), graphQLHandlerOptions));
 
     vertx.createHttpServer()
