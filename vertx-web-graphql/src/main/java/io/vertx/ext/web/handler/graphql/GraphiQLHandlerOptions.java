@@ -29,7 +29,7 @@ import java.util.Map;
  * @author Thomas Segismont
  */
 @DataObject(generateConverter = true)
-public class GraphiQLOptions {
+public class GraphiQLHandlerOptions {
 
   /**
    * Whether GraphiQL development tool should be enabled by default = false.
@@ -49,7 +49,7 @@ public class GraphiQLOptions {
   /**
    * Default constructor.
    */
-  public GraphiQLOptions() {
+  public GraphiQLHandlerOptions() {
   }
 
   /**
@@ -57,7 +57,7 @@ public class GraphiQLOptions {
    *
    * @param other the options to copy
    */
-  public GraphiQLOptions(GraphiQLOptions other) {
+  public GraphiQLHandlerOptions(GraphiQLHandlerOptions other) {
     enabled = other.enabled;
     graphQLUri = other.graphQLUri;
     headers = other.headers == null ? null : new HashMap<>(other.headers);
@@ -70,9 +70,9 @@ public class GraphiQLOptions {
    *
    * @param json the JSON
    */
-  public GraphiQLOptions(JsonObject json) {
+  public GraphiQLHandlerOptions(JsonObject json) {
     this();
-    GraphiQLOptionsConverter.fromJson(json, this);
+    GraphiQLHandlerOptionsConverter.fromJson(json, this);
   }
 
   /**
@@ -80,7 +80,7 @@ public class GraphiQLOptions {
    */
   public JsonObject toJson() {
     JsonObject json = new JsonObject();
-    GraphiQLOptionsConverter.toJson(this, json);
+    GraphiQLHandlerOptionsConverter.toJson(this, json);
     return json;
   }
 
@@ -98,7 +98,7 @@ public class GraphiQLOptions {
    *
    * @return a reference to this, so the API can be used fluently
    */
-  public GraphiQLOptions setEnabled(boolean enabled) {
+  public GraphiQLHandlerOptions setEnabled(boolean enabled) {
     this.enabled = enabled;
     return this;
   }
@@ -117,7 +117,7 @@ public class GraphiQLOptions {
    *
    * @return a reference to this, so the API can be used fluently
    */
-  public GraphiQLOptions setGraphQLUri(String graphQLUri) {
+  public GraphiQLHandlerOptions setGraphQLUri(String graphQLUri) {
     this.graphQLUri = graphQLUri;
     return this;
   }
@@ -136,7 +136,7 @@ public class GraphiQLOptions {
    *
    * @return a reference to this, so the API can be used fluently
    */
-  public GraphiQLOptions setHeaders(Map<String, String> headers) {
+  public GraphiQLHandlerOptions setHeaders(Map<String, String> headers) {
     this.headers = headers;
     return this;
   }
@@ -155,7 +155,7 @@ public class GraphiQLOptions {
    *
    * @return a reference to this, so the API can be used fluently
    */
-  public GraphiQLOptions setQuery(String query) {
+  public GraphiQLHandlerOptions setQuery(String query) {
     this.query = query;
     return this;
   }
@@ -174,7 +174,7 @@ public class GraphiQLOptions {
    *
    * @return a reference to this, so the API can be used fluently
    */
-  public GraphiQLOptions setVariables(JsonObject variables) {
+  public GraphiQLHandlerOptions setVariables(JsonObject variables) {
     this.variables = variables;
     return this;
   }
