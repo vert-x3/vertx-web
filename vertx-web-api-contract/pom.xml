@@ -31,7 +31,7 @@
     <dependency>
       <groupId>io.swagger.parser.v3</groupId>
       <artifactId>swagger-parser-v3</artifactId>
-      <version>2.0.11</version>
+      <version>2.0.13</version>
       <exclusions>
         <exclusion>
           <groupId>com.google.guava</groupId>
