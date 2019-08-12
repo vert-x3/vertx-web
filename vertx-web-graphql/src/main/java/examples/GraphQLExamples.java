@@ -58,25 +58,19 @@ public class GraphQLExamples {
   }
 
   public void handlerSetupGraphiQL(GraphQL graphQL, Router router) {
-    GraphQLHandlerOptions options = new GraphQLHandlerOptions()
-      .setGraphiQLOptions(new GraphiQLOptions()
-        .setEnabled(true)
-      );
+    GraphiQLHandlerOptions options = new GraphiQLHandlerOptions()
+      .setEnabled(true);
 
-    router.route("/graphql").handler(GraphQLHandler.create(graphQL, options));
+    router.route("/graphiql/*").handler(GraphiQLHandler.create(options));
   }
 
-  public void handlerSetupGraphiQLAuthn(GraphQL graphQL, Router router) {
-    GraphQLHandlerOptions options = new GraphQLHandlerOptions()
-      .setGraphiQLOptions(new GraphiQLOptions()
-        .setEnabled(true)
-      );
+  public void handlerSetupGraphiQLAuthn(GraphiQLHandler graphiQLHandler, Router router) {
+    graphiQLHandler.graphiQLRequestHeaders(rc -> {
+      String token = rc.get("token");
+      return MultiMap.caseInsensitiveMultiMap().add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+    });
 
-    GraphQLHandler graphQLHandler = GraphQLHandler.create(graphQL, options)
-      .graphiQLRequestHeaders(rc -> {
-        String token = rc.get("token");
-        return MultiMap.caseInsensitiveMultiMap().add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
-      });
+    router.route("/graphiql/*").handler(graphiQLHandler);
   }
 
   public void handlerSetupBatching(GraphQL graphQL) {
