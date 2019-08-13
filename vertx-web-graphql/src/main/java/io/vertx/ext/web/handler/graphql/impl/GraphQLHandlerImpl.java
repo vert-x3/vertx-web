@@ -305,7 +305,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
 
   private String getContentType(RoutingContext rc) {
     String contentType = rc.request().headers().get(HttpHeaders.CONTENT_TYPE);
-    return contentType == null ? "application/json" : contentType.toLowerCase();
+    return contentType == null ? "application/json" : contentType.toLowerCase().split(";")[0];
   }
 
   private Map<String, Object> getVariablesFromQueryParam(RoutingContext rc) throws Exception {
