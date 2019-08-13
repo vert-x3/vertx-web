@@ -17,8 +17,6 @@
 package io.vertx.ext.web;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpStatusClass;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClientRequest;
@@ -26,7 +24,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.Promise;
-import io.vertx.core.http.*;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -1798,9 +1795,9 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testLocaleWithCountry() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(3, rc.acceptableLocales().size());
-      assertEquals("da", rc.preferredLocale().language());
-      assertEquals("DK", rc.preferredLocale().country());
+      assertEquals(3, rc.acceptableLanguages().size());
+      assertEquals("da", rc.preferredLanguage().tag().toLowerCase());
+      assertEquals("DK", rc.preferredLanguage().subtag().toUpperCase());
       rc.response().end();
     });
 
@@ -1811,8 +1808,8 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testLocaleSimple() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(3, rc.acceptableLocales().size());
-      assertEquals("da", rc.preferredLocale().language());
+      assertEquals(3, rc.acceptableLanguages().size());
+      assertEquals("da", rc.preferredLanguage().tag().toLowerCase());
       rc.response().end();
     });
 
@@ -1822,9 +1819,9 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testLocaleWithoutQuality() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(1, rc.acceptableLocales().size());
-      assertEquals("en", rc.preferredLocale().language());
-      assertEquals("GB", rc.preferredLocale().country());
+      assertEquals(1, rc.acceptableLanguages().size());
+      assertEquals("en", rc.preferredLanguage().tag().toLowerCase());
+      assertEquals("GB", rc.preferredLanguage().subtag().toUpperCase());
       rc.response().end();
     });
 
@@ -1834,8 +1831,8 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testLocaleSameQuality() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(2, rc.acceptableLocales().size());
-      assertEquals("pt", rc.preferredLocale().language());
+      assertEquals(2, rc.acceptableLanguages().size());
+      assertEquals("pt", rc.preferredLanguage().tag().toLowerCase());
       rc.response().end();
     });
 
@@ -1845,7 +1842,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testLocaleNoHeaderFromClient() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(0, rc.acceptableLocales().size());
+      assertEquals(0, rc.acceptableLanguages().size());
       rc.response().end();
     });
 

@@ -640,9 +640,9 @@ locale for a client or the sorted list of preferred locales by quality.
 {@link examples.WebExamples#example57}
 ----
 
-The main method {@link io.vertx.ext.web.RoutingContext#acceptableLocales} will return the ordered list of locales the
-user understands, if you're only interested in the user prefered locale then the helper:
-{@link io.vertx.ext.web.RoutingContext#preferredLocale} will return the 1st element of the list or `null` if no
+The main method {@link io.vertx.ext.web.RoutingContext#acceptableLanguages} will return the ordered list of languages the
+user understands, if you're only interested in the user prefered language then the helper:
+{@link io.vertx.ext.web.RoutingContext#preferredLanguage} will return the 1st element of the list or `null` if no
 locale was provided by the user.
 
 == Route match failures

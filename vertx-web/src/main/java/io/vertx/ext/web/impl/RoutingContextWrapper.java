@@ -265,11 +265,6 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public List<Locale> acceptableLocales() {
-    return inner.acceptableLocales();
-  }
-
-  @Override
   public Map<String, String> pathParams() {
     return inner.pathParams();
   }
