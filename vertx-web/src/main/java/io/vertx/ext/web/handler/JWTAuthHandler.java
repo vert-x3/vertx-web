@@ -42,19 +42,6 @@ public interface JWTAuthHandler extends AuthHandler {
   }
 
   /**
-   * Create a JWT auth handler
-   *
-   * @param authProvider  the auth provider to use.
-   * @return the auth handler
-   *
-   * @deprecated Skipping of routes should be handled at the router level not at the handler level.
-   */
-  @Deprecated
-  static JWTAuthHandler create(JWTAuth authProvider, String skip) {
-    return new JWTAuthHandlerImpl(authProvider, skip);
-  }
-
-  /**
    * Set the audience list
    * @param audience  the audience list
    * @return a reference to this for fluency

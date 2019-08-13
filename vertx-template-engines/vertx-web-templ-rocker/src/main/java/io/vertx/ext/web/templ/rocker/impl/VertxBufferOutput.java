@@ -20,7 +20,6 @@ import com.fizzed.rocker.ContentType;
 import com.fizzed.rocker.runtime.AbstractRockerOutput;
 import io.vertx.core.buffer.Buffer;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 
 /**

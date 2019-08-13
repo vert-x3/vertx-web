@@ -32,7 +32,6 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
-import io.vertx.ext.web.multipart.impl.MultipartFormImpl;
 
 import java.util.ArrayList;
 import java.util.Base64;

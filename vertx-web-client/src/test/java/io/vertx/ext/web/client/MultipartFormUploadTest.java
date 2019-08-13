@@ -23,7 +23,6 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.impl.MultipartFormUpload;
 import io.vertx.ext.web.multipart.MultipartForm;
-import io.vertx.ext.web.multipart.impl.MultipartFormImpl;
 import io.vertx.test.core.TestUtils;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;

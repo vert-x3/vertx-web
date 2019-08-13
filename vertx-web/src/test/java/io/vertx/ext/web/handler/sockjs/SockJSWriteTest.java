@@ -20,8 +20,6 @@ import io.vertx.core.http.WebSocketBase;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */

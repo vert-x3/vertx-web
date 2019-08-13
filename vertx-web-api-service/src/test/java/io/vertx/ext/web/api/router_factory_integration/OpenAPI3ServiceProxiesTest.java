@@ -55,7 +55,7 @@ public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
     Router router = routerFactory.getRouter();
     server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
     CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router::accept).listen(onSuccess(res -> {
+    server.requestHandler(router).listen(onSuccess(res -> {
       latch.countDown();
     }));
     awaitLatch(latch);

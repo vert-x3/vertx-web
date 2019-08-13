@@ -19,11 +19,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.LockSupport;
-import java.util.function.BooleanSupplier;
-
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */

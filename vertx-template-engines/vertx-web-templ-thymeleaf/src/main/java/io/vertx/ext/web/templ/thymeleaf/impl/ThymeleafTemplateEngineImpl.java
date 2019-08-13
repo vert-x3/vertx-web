@@ -32,7 +32,6 @@ import org.thymeleaf.templateresource.StringTemplateResource;
 
 import io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine;
 
-import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.Locale;

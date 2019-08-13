@@ -35,25 +35,6 @@
 |[[noPush]]`@noPush`|`Boolean`|-
 |===
 
-[[PermittedOptions]]
-== PermittedOptions
-
-++++
- Specify a match to allow for inbound and outbound traffic using the
- link.
-++++
-'''
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[address]]`@address`|`String`|-
-|[[addressRegex]]`@addressRegex`|`String`|-
-|[[match]]`@match`|`Json object`|-
-|[[requiredAuthority]]`@requiredAuthority`|`String`|-
-|===
-
 [[SockJSHandlerOptions]]
 == SockJSHandlerOptions
 

@@ -10,7 +10,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpClientRequest;
-import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.spi.CookieStore;
 
 /**

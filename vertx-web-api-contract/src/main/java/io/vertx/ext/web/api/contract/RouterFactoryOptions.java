@@ -4,13 +4,6 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.api.validation.ValidationException;
-import io.vertx.ext.web.handler.BodyHandler;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper

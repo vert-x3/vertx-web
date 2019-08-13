@@ -15,7 +15,6 @@ import javax.security.cert.X509Certificate;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
-import java.util.Set;
 
 class HttpServerRequestWrapper implements HttpServerRequest {
 
