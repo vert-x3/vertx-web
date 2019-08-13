@@ -35,6 +35,13 @@ public class JWTAuthHandlerImpl extends AuthorizationAuthHandler implements JWTA
   private final String skip;
   private final JsonObject options;
 
+  public JWTAuthHandlerImpl(JWTAuth authProvider) {
+    super(authProvider, Type.BEARER);
+    this.skip = null;
+    options = new JsonObject();
+  }
+
+  @Deprecated
   public JWTAuthHandlerImpl(JWTAuth authProvider, String skip) {
     super(authProvider, Type.BEARER);
     this.skip = skip;
