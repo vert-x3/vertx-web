@@ -22,12 +22,14 @@ jobs:
       jdk: openjdk8
       before_script:
         - cd vertx-web-graphql
-        - mvn exec:java -Dexec.mainClass=io.vertx.ext.web.handler.graphql.ApolloTestsServer -Dexec.classpathScope=test > /dev/null 2>&1 &
+        - mvn exec:java -Dexec.mainClass=io.vertx.ext.web.handler.graphql.ApolloTestsServer -Dexec.classpathScope=test > ${HOME}/ApolloTestsServer.log 2>&1 &
         - echo $! > ${HOME}/ApolloTestsServer.pid
+        - ( tail -f ${HOME}/ApolloTestsServer.log & ) | grep -q "Apollo tests server started"
       script:
         - cd tests/apollo
         - npm install
         - npm run test
+      after_failure: cat ${HOME}/ApolloTestsServer.log
       after_script: cat ${HOME}/ApolloTestsServer.pid | xargs kill -9
     - stage: deploy
       name: "Deploy to Sonatype's snapshots repository"
