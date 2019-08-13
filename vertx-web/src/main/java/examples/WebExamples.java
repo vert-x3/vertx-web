@@ -1163,9 +1163,9 @@ public class WebExamples {
   }
 
   public void example56(Router router) {
-    router.route().handler(VirtualHostHandler.create("*.vertx.io", routingContext -> {
+    router.route().virtualHost("*.vertx.io").handler(routingContext -> {
       // do something if the request is for *.vertx.io
-    }));
+    });
   }
 
   public void example57(Router router) {
