@@ -146,6 +146,18 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
   }
 
   /**
+   * @see OpenAPI3RouterFactory#create(Vertx, String, Handler)
+   * @param vertx
+   * @param url location of your spec. It can be an absolute path, a local path or remote url (with HTTP protocol)
+   * @return future When specification is loaded, this future will be called with AsyncResult<OpenAPI3RouterFactory>
+   */
+  static Future<OpenAPI3RouterFactory> create(Vertx vertx, String url) {
+    Promise<OpenAPI3RouterFactory> promise = Promise.promise();
+    create(vertx, url, promise);
+    return promise.future();
+  }
+
+  /**
    * Create a new OpenAPI3RouterFactory
    *
    * @param vertx
@@ -172,5 +184,19 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
           future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
       }
     }, handler);
+  }
+
+  /**
+   * @see OpenAPI3RouterFactory#create(Vertx, String, Handler)
+   * @param vertx
+   * @param url location of your spec. It can be an absolute path, a local path or remote url (with HTTP protocol)
+   * @param auth list of authorization values needed to access the remote url. Each item should be json representation
+   *             of an {@link AuthorizationValue}
+   * @return future When specification is loaded, this future will be called with AsyncResult<OpenAPI3RouterFactory>
+   */
+  static Future<OpenAPI3RouterFactory> create(Vertx vertx, String url, List<JsonObject> auth) {
+    Promise<OpenAPI3RouterFactory> promise = Promise.promise();
+    create(vertx, url, auth, promise);
+    return promise.future();
   }
 }

@@ -87,8 +87,10 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
    *
    * @param data  the string to write
    */
-  default void write(String data) {
-    write(data, null);
+  default Future<Void> write(String data) {
+    Promise<Void> promise = Promise.promise();
+    write(data, promise);
+    return promise.future();
   }
 
   default void write(String data, Handler<AsyncResult<Void>> handler) {
