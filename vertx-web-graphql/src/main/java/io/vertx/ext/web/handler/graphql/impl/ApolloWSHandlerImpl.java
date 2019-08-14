@@ -26,6 +26,8 @@ import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
+import io.vertx.ext.web.handler.graphql.GraphQLHandler;
+import org.dataloader.DataLoaderRegistry;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -41,6 +43,7 @@ import java.util.function.Function;
 public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   private static final Function<RoutingContext, Object> DEFAULT_QUERY_CONTEXT_FACTORY = rc -> rc;
+  private static final Function<RoutingContext, DataLoaderRegistry> DEFAULT_DATA_LOADER_REGISTRY_FACTORY = rc -> null;
 
   private final static String HEADER_CONNECTION_UPGRADE_VALUE = "upgrade";
 
@@ -50,6 +53,8 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   private Function<RoutingContext, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
 
+  private Function<RoutingContext, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
+
   public ApolloWSHandlerImpl(GraphQL graphQL) {
     this.graphQL = graphQL;
   }
@@ -57,6 +62,12 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   @Override
   public synchronized ApolloWSHandler queryContext(Function<RoutingContext, Object> factory) {
     queryContextFactory = factory != null ? factory : DEFAULT_QUERY_CONTEXT_FACTORY;
+    return this;
+  }
+
+  @Override
+  public synchronized ApolloWSHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory) {
+    dataLoaderRegistryFactory = factory != null ? factory : DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
     return this;
   }
 
@@ -146,6 +157,15 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
       qc = queryContextFactory;
     }
     builder.context(qc.apply(routingContext));
+
+    Function<RoutingContext, DataLoaderRegistry> dlr;
+    synchronized (this) {
+      dlr = dataLoaderRegistryFactory;
+    }
+    DataLoaderRegistry registry = dlr.apply(routingContext);
+    if (registry != null) {
+      builder.dataLoaderRegistry(registry);
+    }
 
     String operationName = payload.getOperationName();
     if (operationName != null) {

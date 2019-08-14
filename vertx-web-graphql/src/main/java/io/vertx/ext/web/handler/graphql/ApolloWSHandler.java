@@ -24,6 +24,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.impl.ApolloWSHandlerImpl;
+import org.dataloader.DataLoaderRegistry;
 
 import java.util.function.Function;
 
@@ -61,5 +62,15 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
    */
   @Fluent
   ApolloWSHandler queryContext(Function<RoutingContext, Object> factory);
+
+  /**
+   * Customize the {@link DataLoaderRegistry}.
+   * The provided {@code factory} method will be invoked for each incoming GraphQL request.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  ApolloWSHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory);
 
 }
