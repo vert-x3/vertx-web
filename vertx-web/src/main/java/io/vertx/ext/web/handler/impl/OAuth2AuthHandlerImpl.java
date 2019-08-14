@@ -16,136 +16,165 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.User;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.AuthHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.regex.Pattern;
+import java.util.HashSet;
+import java.util.Set;
+
+import static io.vertx.ext.auth.oauth2.OAuth2FlowType.AUTH_CODE;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2AuthHandler {
+public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements OAuth2AuthHandler {
 
-  private static final Pattern BEARER = Pattern.compile("^Bearer$", Pattern.CASE_INSENSITIVE);
+  private static final Logger log = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
+
+  /**
+   * This is a verification step, it can abort the instantiation by
+   * throwing a RuntimeException
+   *
+   * @param provider a auth provider
+   * @return the provider if valid
+   */
+  private static AuthProvider verifyProvider(AuthProvider provider) {
+    if (provider instanceof OAuth2Auth) {
+      if (((OAuth2Auth) provider).getFlowType() != AUTH_CODE) {
+        throw new IllegalArgumentException("OAuth2Auth + Bearer Auth requires OAuth2 AUTH_CODE flow");
+      }
+    }
+
+    return provider;
+  }
 
   private final String host;
   private final String callbackPath;
-  private final boolean supportJWT;
+  private final Set<String> scopes = new HashSet<>();
 
   private Route callback;
-  private JsonObject extraParams = new JsonObject();
+  private JsonObject extraParams;
+  // explicit signal that tokens are handled as bearer only (meaning, no backend server known)
+  private boolean bearerOnly = true;
 
   public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String callbackURL) {
-    super(authProvider);
-    this.supportJWT = authProvider.hasJWTToken();
+    super(verifyProvider(authProvider), Type.BEARER);
+
     try {
-      final URL url = new URL(callbackURL);
-      this.host = url.getProtocol() + "://" + url.getHost() + (url.getPort() == -1 ? "" : ":" + url.getPort());
-      this.callbackPath = url.getPath();
+      if (callbackURL != null) {
+        final URL url = new URL(callbackURL);
+        this.host = url.getProtocol() + "://" + url.getHost() + (url.getPort() == -1 ? "" : ":" + url.getPort());
+        this.callbackPath = url.getPath();
+      } else {
+        this.host = null;
+        this.callbackPath = null;
+      }
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }
   }
 
   @Override
-  public void handle(RoutingContext ctx) {
-    User user = ctx.user();
-    if (user != null) {
-      // Already authenticated.
-
-      // if this provider support JWT authorize
-      if (supportJWT) {
-        authorise(user, ctx);
-      } else {
-        // oauth2 used only for authentication (with or without scopes)
-        ctx.next();
-      }
-
-    } else {
-
-      if (supportJWT) {
-        // if the provider supports JWT we can try to validate the Authorization header
-        final HttpServerRequest request = ctx.request();
-
-        final String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
-
-        if (authorization != null) {
-
-          String[] parts = authorization.split(" ");
-          if (parts.length == 2) {
-            final String scheme = parts[0],
-              credentials = parts[1];
-
-            if (BEARER.matcher(scheme).matches()) {
-
-              ((OAuth2Auth) authProvider).decodeToken(credentials, decodeToken -> {
-                if (decodeToken.failed()) {
-                  ctx.response().putHeader("WWW-Authenticate", "Bearer error=\"invalid_token\" error_message=\"" + decodeToken.cause().getMessage() + "\"");
-                  ctx.fail(401);
-                  return;
-                }
-
-                ctx.setUser(decodeToken.result());
-                Session session = ctx.session();
-                if (session != null) {
-                  // the user has upgraded from unauthenticated to authenticated
-                  // session should be upgraded as recommended by owasp
-                  session.regenerateId();
-                }
-                // continue
-                ctx.next();
-              });
-              return;
-
-            }
-          } else {
-            ctx.response().putHeader("WWW-Authenticate", "Bearer error=\"invalid_token\"");
-            ctx.fail(401);
-            return;
-          }
-        }
-      }
-
-      // redirect request to the oauth2 server
-      ctx.response()
-          .putHeader("Location", authURI(host, ctx.normalisedPath()))
-          .setStatusCode(302)
-          .end();
-    }
+  public AuthHandler addAuthority(String authority) {
+    scopes.add(authority);
+    return this;
   }
 
-  private String authURI(String host, String redirectURL) {
-    if (callback == null) {
-      throw new NullPointerException("callback is null");
+  @Override
+  public AuthHandler addAuthorities(Set<String> authorities) {
+    this.scopes.addAll(authorities);
+    return this;
+  }
+
+  @Override
+  public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
+    // when the handler is working as bearer only, then the `Authorization` header is required
+    parseAuthorization(context, !bearerOnly, parseAuthorization -> {
+      if (parseAuthorization.failed()) {
+        handler.handle(Future.failedFuture(parseAuthorization.cause()));
+        return;
+      }
+      // Authorization header can be null when in bearerOnly mode
+      final String token = parseAuthorization.result();
+
+      if (token == null) {
+        // redirect request to the oauth2 server as we know nothing about this request
+        if (callback == null) {
+          // it's a failure both cases but the cause is not the same
+          handler.handle(Future.failedFuture("callback route is not configured."));
+          return;
+        }
+        // when this handle is mounted as a catch all, the callback route must be configured before,
+        // as it would shade the callback route. When a request matches the callback path and has the
+        // method GET the exceptional case should not redirect to the oauth2 server as it would become
+        // an infinite redirect loop. In this case an exception must be raised.
+        if (
+          context.request().method() == HttpMethod.GET &&
+            context.normalisedPath().equals(callback.getPath())) {
+
+          if (log.isWarnEnabled()) {
+            log.warn("The callback route is shaded by the OAuth2AuthHandler, ensure the callback route is added BEFORE the OAuth2AuthHandler route!");
+          }
+          handler.handle(Future.failedFuture(new HttpStatusException(500, "Infinite redirect loop [oauth2 callback]")));
+        } else {
+          // the redirect is processed as a failure to abort the chain
+          handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(context.request().uri()))));
+        }
+      } else {
+        // attempt to decode the token and handle it as a user
+        ((OAuth2Auth) authProvider).decodeToken(token, decodeToken -> {
+          if (decodeToken.failed()) {
+            handler.handle(Future.failedFuture(new HttpStatusException(401, decodeToken.cause().getMessage())));
+            return;
+          }
+
+          context.setUser(decodeToken.result());
+          // continue
+          handler.handle(Future.succeededFuture());
+        });
+      }
+    });
+  }
+
+  private String authURI(String redirectURL) {
+    final JsonObject config = new JsonObject()
+      .put("state", redirectURL);
+
+    if (host != null) {
+      config.put("redirect_uri", host + callback.getPath());
     }
 
-    if (authorities.size() > 0) {
-      JsonArray scopes = new JsonArray();
+    if (extraParams != null) {
+      config.mergeIn(extraParams);
+    }
+
+    if (scopes.size() > 0) {
+      JsonArray _scopes = new JsonArray();
       // scopes are passed as an array because the auth provider has the knowledge on how to encode them
-      for (String authority : authorities) {
-        scopes.add(authority);
+      for (String authority : scopes) {
+        _scopes.add(authority);
       }
 
-      return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
-        .put("redirect_uri", host + callback.getPath())
-        .put("scopes", scopes)
-        .put("state", redirectURL));
-    } else {
-      return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
-        .put("redirect_uri", host + callback.getPath())
-        .put("state", redirectURL));
+      config.put("scopes", _scopes);
     }
+
+    return ((OAuth2Auth) authProvider).authorizeURL(config);
   }
 
   @Override
@@ -155,15 +184,14 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
   }
 
   @Override
-  public OAuth2AuthHandler setupCallback(Route route) {
+  public OAuth2AuthHandler setupCallback(final Route route) {
 
-    callback = route;
-
-    if (!"".equals(callbackPath)) {
+    if (callbackPath != null && !"".equals(callbackPath)) {
       // no matter what path was provided we will make sure it is the correct one
-      callback.path(callbackPath);
+      route.path(callbackPath);
     }
-    callback.method(HttpMethod.GET);
+
+    route.method(HttpMethod.GET);
 
     route.handler(ctx -> {
       // Handle the callback of the flow
@@ -177,7 +205,18 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
 
       final String state = ctx.request().getParam("state");
 
-      ((OAuth2Auth) authProvider).getToken(new JsonObject().put("code", code).put("redirect_uri", host + callback.getPath()).mergeIn(extraParams), res -> {
+      final JsonObject config = new JsonObject()
+        .put("code", code);
+
+      if (host != null) {
+        config.put("redirect_uri", host + route.getPath());
+      }
+
+      if (extraParams != null) {
+        config.mergeIn(extraParams);
+      }
+
+      authProvider.authenticate(config, res -> {
         if (res.failed()) {
           ctx.fail(res.cause());
         } else {
@@ -190,20 +229,25 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
             // we should redirect the UA so this link becomes invalid
             ctx.response()
               // disable all caching
-              .putHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+              .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
               .putHeader("Pragma", "no-cache")
-              .putHeader("Expires", "0")
-              // redirect
-              .putHeader("Location", state)
+              .putHeader(HttpHeaders.EXPIRES, "0")
+              // redirect (when there is no state, redirect to home
+              .putHeader(HttpHeaders.LOCATION, state != null ? state : "/")
               .setStatusCode(302)
-              .end("Redirecting to " + state + ".");
+              .end("Redirecting to " + (state != null ? state : "/") + ".");
           } else {
             // there is no session object so we cannot keep state
-            ctx.reroute(state);
+            ctx.reroute(state != null ? state : "/");
           }
         }
       });
     });
+
+    // the redirect handler has been setup so we can process this
+    // handler has full oauth2
+    bearerOnly = false;
+    callback = route;
 
     return this;
   }

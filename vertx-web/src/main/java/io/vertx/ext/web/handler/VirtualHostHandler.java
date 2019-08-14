@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.VirtualHostHandlerImpl;
 
@@ -25,8 +26,10 @@ import io.vertx.ext.web.handler.impl.VirtualHostHandlerImpl;
  * Handler that will filter requests based on the request Host name.
  *
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
+ * @deprecated Use {@link Route#virtualHost(String)}
  */
 @VertxGen
+@Deprecated
 public interface VirtualHostHandler extends Handler<RoutingContext> {
 
   /**

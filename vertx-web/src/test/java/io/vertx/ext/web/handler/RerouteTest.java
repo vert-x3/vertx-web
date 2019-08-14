@@ -17,7 +17,6 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -37,36 +36,24 @@ public class RerouteTest extends WebTestBase {
 
   @Test
   public void testReroute() throws Exception {
-    router.get("/users/:name").handler(ctx -> {
-      ctx.response().end("/users/:name");
-    });
-    router.get("/me").handler(ctx -> {
-      ctx.reroute("/users/paulo");
-    });
+    router.get("/users/:name").handler(ctx -> ctx.response().end("/users/:name"));
+    router.get("/me").handler(ctx -> ctx.reroute("/users/paulo"));
 
     testRequest(HttpMethod.GET, "/me", 200, "OK", "/users/:name");
   }
 
   @Test
   public void testRerouteReparse() throws Exception {
-    router.get("/users/:name").handler(ctx -> {
-      ctx.response().end(ctx.request().getParam("name"));
-    });
-    router.get("/me").handler(ctx -> {
-      ctx.reroute("/users/paulo");
-    });
+    router.get("/users/:name").handler(ctx -> ctx.response().end(ctx.request().getParam("name")));
+    router.get("/me").handler(ctx -> ctx.reroute("/users/paulo"));
 
     testRequest(HttpMethod.GET, "/me", 200, "OK", "paulo");
   }
 
   @Test
   public void testRerouteMethod() throws Exception {
-    router.post("/me").handler(ctx -> {
-      ctx.response().end("POST");
-    });
-    router.get("/me").handler(ctx -> {
-      ctx.reroute(HttpMethod.POST, "/me");
-    });
+    router.post("/me").handler(ctx -> ctx.response().end("POST"));
+    router.get("/me").handler(ctx -> ctx.reroute(HttpMethod.POST, "/me"));
 
     testRequest(HttpMethod.GET, "/me", 200, "OK", "POST");
   }
@@ -74,12 +61,8 @@ public class RerouteTest extends WebTestBase {
   @Test
   public void testRerouteWithBody() throws Exception {
     router.route("/test/*").handler(BodyHandler.create());
-    router.route("/test/v1").handler(ctx -> {
-      ctx.reroute("/test/v2");
-    });
-    router.route("/test/v2").handler(ctx -> {
-      ctx.response().end();
-    });
+    router.route("/test/v1").handler(ctx -> ctx.reroute("/test/v2"));
+    router.route("/test/v2").handler(ctx -> ctx.response().end());
 
     testRequest(HttpMethod.POST, "/test/v1", req -> {
       req.setChunked(true);
@@ -89,14 +72,10 @@ public class RerouteTest extends WebTestBase {
 
   @Test
   public void testRerouteFailure() throws Exception {
-    router.get("/error/400").handler(ctx -> {
-      ctx.response()
-              .setStatusCode(400)
-              .end("/error/400");
-    });
-    router.get("/me").handler(ctx -> {
-      ctx.fail(400);
-    });
+    router.get("/error/400").handler(ctx -> ctx.response()
+            .setStatusCode(400)
+            .end("/error/400"));
+    router.get("/me").handler(ctx -> ctx.fail(400));
     router.get().failureHandler(ctx -> {
       if (ctx.statusCode() == 400) {
         ctx.reroute("/error/400");
@@ -110,17 +89,13 @@ public class RerouteTest extends WebTestBase {
 
   @Test
   public void testRerouteClearHeader() throws Exception {
-    router.get("/users/:name").handler(ctx -> {
-      ctx.response().end("/users/:name");
-    });
+    router.get("/users/:name").handler(ctx -> ctx.response().end("/users/:name"));
     router.get("/me").handler(ctx -> {
       ctx.response().putHeader("X-woop", "durp");
       ctx.reroute("/users/paulo");
     });
 
-    testRequest(HttpMethod.GET, "/me", null, res -> {
-      assertNull(res.getHeader("X-woop"));
-    }, 200, "OK", "/users/:name");
+    testRequest(HttpMethod.GET, "/me", null, res -> assertNull(res.getHeader("X-woop")), 200, "OK", "/users/:name");
   }
 
   @Test
@@ -134,14 +109,11 @@ public class RerouteTest extends WebTestBase {
       ctx.reroute("/users/paulo");
     });
 
-    testRequest(HttpMethod.GET, "/me", null, res -> {
-      assertEquals("durp2", res.getHeader("X-woop"));
-    }, 200, "OK", "/users/:name");
+    testRequest(HttpMethod.GET, "/me", null, res -> assertEquals("durp2", res.getHeader("X-woop")), 200, "OK", "/users/:name");
   }
 
   @Test
   public void testRerouteClearHeader3() throws Exception {
-    router.route().handler(CookieHandler.create());
     router.get("/users/:name").handler(ctx -> {
       ctx.response().putHeader("X-woop", "durp2");
       ctx.response().end("/users/:name");
@@ -155,5 +127,13 @@ public class RerouteTest extends WebTestBase {
       assertEquals("durp2", res.getHeader("X-woop"));
       assertNull(res.getHeader("Cookie"));
     }, 200, "OK", "/users/:name");
+  }
+
+  @Test
+  public void testRerouteWithParams() throws Exception {
+    router.get("/other").handler(ctx -> ctx.response().end("/other"));
+    router.get("/base").handler(ctx -> ctx.reroute("/other?paramter1=p1&parameter2=p2"));
+
+    testRequest(HttpMethod.GET, "/base", 200, "OK", "/other");
   }
 }

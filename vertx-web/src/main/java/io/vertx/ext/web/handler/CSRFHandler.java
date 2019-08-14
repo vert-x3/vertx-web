@@ -3,6 +3,7 @@ package io.vertx.ext.web.handler;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.CSRFHandlerImpl;
 
@@ -19,7 +20,11 @@ import io.vertx.ext.web.handler.impl.CSRFHandlerImpl;
 @VertxGen
 public interface CSRFHandler extends Handler<RoutingContext> {
 
+  String ERROR_MESSAGE = "Invalid or missing csrf token";
+
   String DEFAULT_COOKIE_NAME = "XSRF-TOKEN";
+
+  String DEFAULT_COOKIE_PATH = "/";
 
   String DEFAULT_HEADER_NAME = "X-XSRF-TOKEN";
 
@@ -34,8 +39,8 @@ public interface CSRFHandler extends Handler<RoutingContext> {
    *
    * @param secret server secret to sign the token.
    */
-  static CSRFHandler create(String secret) {
-    return new CSRFHandlerImpl(secret);
+  static CSRFHandler create(Vertx vertx, String secret) {
+    return new CSRFHandlerImpl(vertx, secret);
   }
 
   /**
@@ -47,6 +52,15 @@ public interface CSRFHandler extends Handler<RoutingContext> {
    */
   @Fluent
   CSRFHandler setCookieName(String name);
+
+  /**
+   * Set the cookie path. By default / is used.
+   *
+   * @param path a new path for the cookie.
+   * @return fluent
+   */
+  @Fluent
+  CSRFHandler setCookiePath(String path);
 
   /**
    * Set the header name. By default X-XSRF-TOKEN is used as it is the expected name by AngularJS however other

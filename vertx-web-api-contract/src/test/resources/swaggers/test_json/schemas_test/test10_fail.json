@@ -1,0 +1,19 @@
+{
+  "value": "A",
+  "childs": [
+    {
+      "value": "B"
+    },
+    {
+      "value": 6,
+      "childs": [
+        {
+          "value": "D"
+        }
+      ],
+      "parent": {
+        "value": "A"
+      }
+    }
+  ]
+}

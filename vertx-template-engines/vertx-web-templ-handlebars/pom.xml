@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-template-engines</artifactId>
-    <version>3.4.2-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>vertx-web-templ-handlebars</artifactId>
@@ -16,15 +16,11 @@
     <dependency>
       <groupId>com.github.jknack</groupId>
       <artifactId>handlebars</artifactId>
-      <version>4.0.3</version>
+      <version>4.1.2</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.commons</groupId>
-          <artifactId>commons-lang3</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -34,20 +30,13 @@
       <version>1.7.21</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>3.4</version>
-    </dependency>
-    <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
+      <artifactId>vertx-web-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
-      <type>test-jar</type>
-      <version>${project.version}</version>
+      <artifactId>vertx-unit</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -59,7 +48,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
-          <useDefaultManifestFile>true</useDefaultManifestFile>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
         </configuration>
       </plugin>
 
@@ -78,23 +69,12 @@
         </executions>
         <configuration>
           <bnd><![CDATA[
-          Fragment-Host: vertx-web
           Import-Package: \
-            groovy.lang.*;resolution:=optional,\
-            org.codehaus.groovy.*;resolution:=optional,\
-            kotlin.*;resolution:=optional,\
-            io.vertx.groovy.*;resolution:=optional,\
             io.vertx.ext.auth.*;resolution:=optional,\
-            io.vertx.lang.rxjava.*;resolution:=optional,\
-            io.vertx.lang.groovy.*;resolution:=optional,\
             io.vertx.codegen.annotations;resolution:=optional,\
-            io.vertx.rx.java;resolution:=optional,\
-            io.vertx.rxjava.core.*;resolution:=optional,\
-            io.vertx.rxjava.ext.auth.*;resolution:=optional,\
-            rx.*;resolution:=optional,\
             !io.vertx.ext.web.impl,\
             *
-          -exportcontents: !*impl, !examples, *
+          -exportcontents: !*impl, !examples, !io.vertx.ext.templ, *
           ]]></bnd>
         </configuration>
       </plugin>
@@ -116,9 +96,6 @@
               <artifactSet>
                 <includes>
                   <include>*:handlebars</include>
-                  <include>org.apache.commons:commons-lang3</include>
-                  <include>org.antlr:*</include>
-                  <!-- run in no-rhino mode (do not include rhino) -->
                 </includes>
               </artifactSet>
             </configuration>

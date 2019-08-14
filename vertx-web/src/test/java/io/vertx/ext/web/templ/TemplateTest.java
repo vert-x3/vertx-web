@@ -23,11 +23,13 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Route;
+import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.TemplateHandler;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
+
+import java.util.Map;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -83,40 +85,13 @@ public class TemplateTest extends WebTestBase {
     await();
   }
 
-  /**
-   * TODO remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
-   */
-  @Test
-  public void testRenderDirectlyOld() throws Exception {
-    TemplateEngine engine = new TestEngine(false);
-    router.route().handler(context -> {
-      context.put("foo", "badger");
-      context.put("bar", "fox");
-      engine.render(context, "somedir/test-template.html", res -> {
-        if (res.succeeded()) {
-          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
-        } else {
-          context.fail(res.cause());
-        }
-      });
-    });
-    String expected =
-      "<html>\n" +
-        "<body>\n" +
-        "<h1>Test template</h1>\n" +
-        "foo is badger bar is fox<br>\n" +
-        "</body>\n" +
-        "</html>";
-    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
-  }
-
   @Test
   public void testRenderDirectly() throws Exception {
     TemplateEngine engine = new TestEngine(false);
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
-      engine.render(context, "somedir", "test-template.html", res -> {
+      engine.render(context.data(), "somedir/test-template.html", res -> {
         if (res.succeeded()) {
           context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
         } else {
@@ -132,36 +107,6 @@ public class TemplateTest extends WebTestBase {
         "</body>\n" +
         "</html>";
     testRequest(HttpMethod.GET, "/", 200, "OK", expected);
-  }
-
-  /**
-   * TODO remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
-   */
-  @Test
-  public void testRenderToBufferOld() throws Exception {
-    TemplateEngine engine = new TestEngine(false);
-    String expected =
-      "<html>\n" +
-        "<body>\n" +
-        "<h1>Test template</h1>\n" +
-        "foo is badger bar is fox<br>\n" +
-        "</body>\n" +
-        "</html>";
-    router.route().handler(context -> {
-      context.put("foo", "badger");
-      context.put("bar", "fox");
-      engine.render(context, "somedir/test-template.html", onSuccess(res -> {
-        String rendered = res.toString();
-        final String actual = normalizeLineEndingsFor(res).toString();
-        assertEquals(expected, actual);
-        context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
-        context.response().end(rendered);
-        testComplete();
-      }));
-    });
-
-    testRequestBuffer(HttpMethod.GET, "/", null, null, 200, "OK", Buffer.buffer(expected), true);
-    await();
   }
 
   @Test
@@ -177,7 +122,7 @@ public class TemplateTest extends WebTestBase {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
-      engine.render(context, "somedir", "test-template.html", onSuccess(res -> {
+      engine.render(context.data(), "somedir/test-template.html", onSuccess(res -> {
         String rendered = res.toString();
         final String actual = normalizeLineEndingsFor(res).toString();
         assertEquals(expected, actual);
@@ -200,28 +145,14 @@ public class TemplateTest extends WebTestBase {
       this.fail = fail;
     }
 
-    /**
-     * TODO remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
-     */
     @Override
-    public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
-      int sep = templateFileName.indexOf('/');
-      if (sep != -1) {
-        render(context, templateFileName.substring(0, sep), templateFileName.substring(sep), handler);
-      } else {
-        render(context, "", templateFileName, handler);
-      }
-    }
-
-    @Override
-    public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
-      templateFileName = templateDirectory + Utils.normalizePath(templateFileName);
+    public void render(Map<String, Object> context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
       if (fail) {
         handler.handle(Future.failedFuture(new Exception("eek")));
       } else {
         String templ = Utils.readFileToString(vertx, templateFileName);
-        String rendered = templ.replace("{foo}", context.get("foo"));
-        rendered = rendered.replace("{bar}", context.get("bar"));
+        String rendered = templ.replace("{foo}", (String) context.get("foo"));
+        rendered = rendered.replace("{bar}", (String) context.get("bar"));
         handler.handle(Future.succeededFuture(Buffer.buffer(rendered)));
       }
     }

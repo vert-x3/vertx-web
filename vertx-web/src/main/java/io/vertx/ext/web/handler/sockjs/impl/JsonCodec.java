@@ -53,6 +53,7 @@ import java.io.IOException;
  * any other non ASCII character we unicode escape it
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 public class JsonCodec {
 
@@ -100,7 +101,7 @@ public class JsonCodec {
             gen.writeRaw(',');
             break;
           case JsonWriteContext.STATUS_EXPECT_NAME:
-            throw new JsonGenerationException("Can not write string value here");
+            throw new JsonGenerationException("Can not write string value here", gen);
         }
         gen.writeRaw('"');
         for (char c : str.toCharArray()) {
@@ -128,7 +129,7 @@ public class JsonCodec {
     }
   }
 
-  public static Object decodeValue(String str, Class<?> clazz) throws DecodeException {
+  public static <T> T decodeValue(String str, Class<T> clazz) throws DecodeException {
     try {
       return mapper.readValue(str, clazz);
     }

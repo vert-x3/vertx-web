@@ -43,6 +43,18 @@ public interface OAuth2AuthHandler extends AuthHandler {
   }
 
   /**
+   * Create a OAuth2 auth handler without host pinning.
+   * Most providers will not look to the redirect url but always redirect to
+   * the preconfigured callback. So this factory does not provide a callback url.
+   *
+   * @param authProvider  the auth provider to use
+   * @return the auth handler
+   */
+  static OAuth2AuthHandler create(OAuth2Auth authProvider) {
+    return new OAuth2AuthHandlerImpl(authProvider, null);
+  }
+
+  /**
    * Extra parameters needed to be passed while requesting a token.
    *
    * @param extraParams extra optional parameters.

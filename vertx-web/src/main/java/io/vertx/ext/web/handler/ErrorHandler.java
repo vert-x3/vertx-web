@@ -18,13 +18,21 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.ext.web.common.WebEnvironment;
 import io.vertx.ext.web.handler.impl.ErrorHandlerImpl;
 import io.vertx.ext.web.RoutingContext;
 
 /**
- * A pretty error handler for rendering error pages.
+ * A pretty error handler for rendering error pages. When working in development mode
+ * exception details will be returned in the server responses, otherwise or when
+ * manually specified no exception details are returned in the HTTP response.
+ *
+ * The reason the display of the exception details is by default dependent of the mode
+ * is to follow the security best practices:
+ * <a href="https://www.owasp.org/index.php/Improper_Error_Handling">https://www.owasp.org/index.php/Improper_Error_Handling</a>
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
 public interface ErrorHandler extends Handler<RoutingContext> {
@@ -32,12 +40,7 @@ public interface ErrorHandler extends Handler<RoutingContext> {
   /**
    * The default template to use for rendering
    */
-  String DEFAULT_ERROR_HANDLER_TEMPLATE = "vertx-web-error.html";
-
-  /**
-   * Should exception details be displayed by default?
-   */
-  boolean DEFAULT_DISPLAY_EXCEPTION_DETAILS = true;
+  String DEFAULT_ERROR_HANDLER_TEMPLATE = "META-INF/vertx/web/vertx-web-error.html";
 
   /**
    * Create an error handler using defaults
@@ -45,7 +48,7 @@ public interface ErrorHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static ErrorHandler create() {
-    return new ErrorHandlerImpl(DEFAULT_ERROR_HANDLER_TEMPLATE, DEFAULT_DISPLAY_EXCEPTION_DETAILS);
+    return create(DEFAULT_ERROR_HANDLER_TEMPLATE, WebEnvironment.development());
   }
 
   /**
@@ -66,7 +69,7 @@ public interface ErrorHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static ErrorHandler create(boolean displayExceptionDetails) {
-    return new ErrorHandlerImpl(DEFAULT_ERROR_HANDLER_TEMPLATE, displayExceptionDetails);
+    return create(DEFAULT_ERROR_HANDLER_TEMPLATE, displayExceptionDetails);
   }
 
   /**
@@ -76,7 +79,7 @@ public interface ErrorHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static ErrorHandler create(String errorTemplateName) {
-    return new ErrorHandlerImpl(errorTemplateName, DEFAULT_DISPLAY_EXCEPTION_DETAILS);
+    return create(errorTemplateName, WebEnvironment.development());
   }
 
 }

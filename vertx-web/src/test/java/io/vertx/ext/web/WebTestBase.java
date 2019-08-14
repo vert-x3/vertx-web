@@ -16,10 +16,22 @@
 
 package io.vertx.ext.web;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.test.core.VertxTestBase;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -42,19 +54,28 @@ public class WebTestBase extends VertxTestBase {
   public void setUp() throws Exception {
     super.setUp();
     router = Router.router(vertx);
-    server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
-    client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080));
+    server = vertx.createHttpServer(getHttpServerOptions());
+    client = vertx.createHttpClient(getHttpClientOptions());
     CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router::accept).listen(onSuccess(res -> {
-      latch.countDown();
-    }));
+    server.requestHandler(router).listen(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
+  }
+
+  protected HttpServerOptions getHttpServerOptions() {
+    return new HttpServerOptions().setPort(8080).setHost("localhost");
+  }
+
+  protected HttpClientOptions getHttpClientOptions() {
+    return new HttpClientOptions().setDefaultPort(8080);
   }
 
   @Override
   public void tearDown() throws Exception {
     if (client != null) {
-      client.close();
+      try {
+        client.close();
+      } catch (IllegalStateException e) {
+      }
     }
     if (server != null) {
       CountDownLatch latch = new CountDownLatch(1);
@@ -65,6 +86,10 @@ public class WebTestBase extends VertxTestBase {
       awaitLatch(latch);
     }
     super.tearDown();
+  }
+
+  protected void testRequest(HttpMethod method, String path, HttpResponseStatus statusCode) throws Exception {
+    testRequest(method, path, null, statusCode.code(), statusCode.reasonPhrase(), null);
   }
 
   protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage) throws Exception {
@@ -127,7 +152,7 @@ public class WebTestBase extends VertxTestBase {
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    HttpClientRequest req = client.request(method, port, "localhost", path, resp -> {
+    HttpClientRequest req = client.request(method, port, "localhost", path, onSuccess(resp -> {
       assertEquals(statusCode, resp.statusCode());
       assertEquals(statusMessage, resp.statusMessage());
       if (responseAction != null) {
@@ -144,7 +169,7 @@ public class WebTestBase extends VertxTestBase {
           latch.countDown();
         });
       }
-    });
+    }));
     if (requestAction != null) {
       requestAction.accept(req);
     }
@@ -162,5 +187,40 @@ public class WebTestBase extends VertxTestBase {
       }
     }
     return normalized;
+  }
+
+  protected void testSyncRequest(String httpMethod, String path, int statusCode, String statusMessage, String responseBody) throws IOException {
+    HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:" + this.server.actualPort() + path).openConnection();
+    connection.setRequestMethod(httpMethod);
+
+    assertEquals(statusCode, connection.getResponseCode());
+    if (connection.getResponseCode() < 400) { // So dummy compare
+      assertEquals(statusMessage, connection.getResponseMessage());
+
+      BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+      String inputLine;
+      StringBuilder response = new StringBuilder();
+
+      while ((inputLine = in.readLine()) != null) {
+        response.append(inputLine);
+      }
+      in.close();
+
+      assertEquals(responseBody, response.toString());
+    } else {
+      assertEquals(statusMessage, connection.getResponseMessage());
+
+      BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+      String inputLine;
+      StringBuilder response = new StringBuilder();
+
+      while ((inputLine = in.readLine()) != null) {
+        response.append(inputLine);
+      }
+      in.close();
+
+      assertEquals(responseBody, response.toString());
+    }
+
   }
 }

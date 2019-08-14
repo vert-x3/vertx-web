@@ -1,0 +1,126 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Test spec for OpenAPI3RouterFactoryTest
+  license:
+    name: Apache 2.0 License
+paths:
+  /testA:
+    post:
+      operationId: testA
+      tags:
+        - test
+      x-vertx-event-bus: address
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        200:
+          description: ok
+  /testB:
+    post:
+      operationId: testB
+      tags:
+        - test
+      x-vertx-event-bus: address
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        200:
+          description: ok
+  /testC:
+    post:
+      operationId: test_ -C_
+      tags:
+        - anotherTest
+      x-vertx-event-bus:
+        address: anotherAddress
+        method: testD
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        200:
+          description: ok
+  /testD:
+    post:
+      operationId: testD
+      tags:
+        - anotherTest
+      x-vertx-event-bus:
+        address: anotherAddress
+        method: testD
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        200:
+          description: ok
+  /testPathLevel:
+    x-vertx-event-bus: address
+    get:
+      operationId: pathLevelGet
+      responses:
+        200:
+          description: ok
+    post:
+      operationId: pathLevelPost
+      responses:
+        200:
+          description: ok
+  /testMerge:
+    x-vertx-event-bus: address
+    get:
+      operationId: pathLevelGet2
+      x-vertx-event-bus:
+        method: getPathLevel
+      responses:
+        200:
+          description: ok
+    post:
+      operationId: pathLevelPost2
+      x-vertx-event-bus:
+        method: postPathLevel
+      responses:
+        200:
+          description: ok
+  /testMerge2:
+    x-vertx-event-bus:
+      address: address
+    get:
+      operationId: pathLevelGet3
+      x-vertx-event-bus:
+        method: getPathLevel
+      responses:
+        200:
+          description: ok
+    post:
+      operationId: pathLevelPost3
+      x-vertx-event-bus:
+        method: postPathLevel
+      responses:
+        200:
+          description: ok
+components:
+  schemas:
+    Payload:
+      type: object
+      properties:
+        hello:
+          type: string
+        name:
+          type: string
+      required:
+        - hello
+        - name
+      additionalProperties: false
+

@@ -16,8 +16,8 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
@@ -33,7 +33,6 @@ public class CookieHandlerTest extends WebTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    router.route().handler(CookieHandler.create());
   }
 
   @Test
@@ -52,32 +51,25 @@ public class CookieHandlerTest extends WebTestBase {
   public void testGetCookies() throws Exception {
     router.route().handler(rc -> {
       assertEquals(3, rc.cookieCount());
-      Set<Cookie> cookies = rc.cookies();
-      assertTrue(contains(cookies, "foo"));
-      assertTrue(contains(cookies, "wibble"));
-      assertTrue(contains(cookies, "plop"));
-      rc.removeCookie("foo");
-      cookies = rc.cookies();
-      assertFalse(contains(cookies, "foo"));
-      assertTrue(contains(cookies, "wibble"));
-      assertTrue(contains(cookies, "plop"));
+      Map<String, Cookie> cookies = rc.cookieMap();
+      assertTrue(cookies.containsKey("foo"));
+      assertTrue(cookies.containsKey("wibble"));
+      assertTrue(cookies.containsKey("plop"));
+      Cookie removed = rc.removeCookie("foo");
+      cookies = rc.cookieMap();
+      // removed cookies, need to be sent back with an expiration date
+      assertTrue(cookies.containsKey("foo"));
+      assertTrue(cookies.containsKey("wibble"));
+      assertTrue(cookies.containsKey("plop"));
       rc.response().end();
     });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop");
-    }, resp -> {
+    testRequest(HttpMethod.GET, "/", req -> req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop"), resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
-      assertEquals(0, cookies.size());
+      // the expired cookie must be sent back
+      assertEquals(1, cookies.size());
+      assertTrue(cookies.get(0).contains("Max-Age=0"));
+      assertTrue(cookies.get(0).contains("Expires="));
     }, 200, "OK", null);
-  }
-
-  private boolean contains(Set<Cookie> cookies, String name) {
-    for (Cookie cookie: cookies) {
-      if (cookie.getName().equals(name)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @Test
@@ -88,29 +80,37 @@ public class CookieHandlerTest extends WebTestBase {
       assertEquals("blibble", rc.getCookie("wibble").getValue());
       assertEquals("flop", rc.getCookie("plop").getValue());
       rc.removeCookie("plop");
-      assertEquals(2, rc.cookieCount());
+      // the expected number of elements should remain the same as we're sending an invalidate cookie back
+      assertEquals(3, rc.cookieCount());
       rc.next();
     });
     router.route().handler(rc -> {
-      assertEquals(2, rc.cookieCount());
       assertEquals("bar", rc.getCookie("foo").getValue());
       assertEquals("blibble", rc.getCookie("wibble").getValue());
-      assertNull(rc.getCookie("plop"));
+      assertNotNull(rc.getCookie("plop"));
       rc.addCookie(Cookie.cookie("fleeb", "floob"));
-      assertEquals(3, rc.cookieCount());
+      assertEquals(4, rc.cookieCount());
       assertNull(rc.removeCookie("blarb"));
-      assertEquals(3, rc.cookieCount());
+      assertEquals(4, rc.cookieCount());
       Cookie foo = rc.getCookie("foo");
       foo.setValue("blah");
       rc.response().end();
     });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop");
-    }, resp -> {
+    testRequest(HttpMethod.GET, "/", req -> req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop"), resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
-      assertEquals(2, cookies.size());
+      assertEquals(3, cookies.size());
       assertTrue(cookies.contains("foo=blah"));
       assertTrue(cookies.contains("fleeb=floob"));
+      boolean found = false;
+      for (String s : cookies) {
+        if (s.startsWith("plop")) {
+          found = true;
+          assertTrue(s.contains("Max-Age=0"));
+          assertTrue(s.contains("Expires="));
+          break;
+        }
+      }
+      assertTrue(found);
     }, 200, "OK", null);
   }
 

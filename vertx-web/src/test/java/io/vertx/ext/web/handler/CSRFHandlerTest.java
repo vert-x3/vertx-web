@@ -20,7 +20,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.handler.impl.HttpStatusException;
 import org.junit.AfterClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -42,8 +44,7 @@ public class CSRFHandlerTest extends WebTestBase {
   @Test
   public void testGetCookie() throws Exception {
 
-    router.route().handler(CookieHandler.create());
-    router.route().handler(CSRFHandler.create("Abracadabra"));
+    router.route().handler(CSRFHandler.create(vertx, "Abracadabra"));
     router.get().handler(rc -> rc.response().end());
 
     testRequest(HttpMethod.GET, "/", null, resp -> {
@@ -53,47 +54,58 @@ public class CSRFHandlerTest extends WebTestBase {
     }, 200, "OK", null);
   }
 
+  Throwable failure;
+
   @Test
   public void testPostWithoutHeader() throws Exception {
 
-    router.route().handler(CookieHandler.create());
-    router.route().handler(CSRFHandler.create("Abracadabra"));
-    router.route().handler(rc -> rc.response().end());
+    // we need to wait getting failure Throwable
+    CountDownLatch latch = new CountDownLatch(1);
 
+    router.route().handler(CSRFHandler.create(vertx, "Abracadabra"));
+    router.route().handler(rc -> rc.response().end());
+    router.errorHandler(403, rc -> {
+      failure = rc.failure();
+      latch.countDown();
+    });
 
     testRequest(HttpMethod.POST, "/", null, null, 403, "Forbidden", null);
+
+    latch.await();
+    assertTrue(failure instanceof HttpStatusException);
+    assertEquals(((HttpStatusException)failure).getPayload(), CSRFHandler.ERROR_MESSAGE);
   }
 
+  String rawCookie;
   String tmpCookie;
 
   @Test
   public void testPostWithHeader() throws Exception {
 
-    router.route().handler(CookieHandler.create());
-    router.route().handler(CSRFHandler.create("Abracadabra"));
-    router.route().handler(rc -> rc.response().end());
+    router.route().handler(StaticHandler.create());
+    router.route("/xsrf").handler(CSRFHandler.create(vertx, "Abracadabra"));
+    router.route("/xsrf").handler(rc -> rc.response().end());
 
-    testRequest(HttpMethod.GET, "/", null, resp -> {
+    testRequest(HttpMethod.GET, "/xsrf", null, resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
       String cookie = cookies.get(0);
-      tmpCookie = cookie.substring(cookie.indexOf('=') + 1);
+      rawCookie = cookie;
+      tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
     }, 200, "OK", null);
 
-    testRequest(HttpMethod.POST, "/", req -> {
+    testRequest(HttpMethod.POST, "/xsrf", req -> {
       req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader("Cookie", rawCookie);
     }, null, 200, "OK", null);
   }
 
   @Test
   public void testPostWithExpiredCookie() throws Exception {
-    router.route().handler(CookieHandler.create());
-    router.route().handler(CSRFHandler.create("Abracadabra").setTimeout(1));
+    router.route().handler(CSRFHandler.create(vertx, "Abracadabra").setTimeout(1));
     router.route().handler(rc -> rc.response().end());
 
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
-          "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34=");
-    }, null, 403, "Forbidden", null);
+    testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
+        "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34="), null, 403, "Forbidden", null);
   }
 
   @Test
@@ -101,14 +113,14 @@ public class CSRFHandlerTest extends WebTestBase {
 
     // since we are working with forms we need the body handler to be present
     router.route().handler(BodyHandler.create());
-    router.route().handler(CookieHandler.create());
-    router.route().handler(CSRFHandler.create("Abracadabra"));
+    router.route().handler(CSRFHandler.create(vertx, "Abracadabra"));
     router.route().handler(rc -> rc.response().end());
 
     testRequest(HttpMethod.GET, "/", null, resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
       String cookie = cookies.get(0);
-      tmpCookie = cookie.substring(cookie.indexOf('=') + 1);
+      rawCookie = cookie;
+      tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
     }, 200, "OK", null);
 
     testRequest(HttpMethod.POST, "/", req -> {
@@ -122,16 +134,18 @@ public class CSRFHandlerTest extends WebTestBase {
       buffer.appendString(str);
       req.headers().set("content-length", String.valueOf(buffer.length()));
       req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+      req.putHeader("Cookie", rawCookie);
       req.write(buffer);
     }, null, 200, "OK", null);
   }
 
+  @Ignore
   @Test
   public void testPostWithFormAttributeWithoutCookies() throws Exception {
 
     // since we are working with forms we need the body handler to be present
     router.route().handler(BodyHandler.create());
-    router.route().handler(CSRFHandler.create("Abracadabra"));
+    router.route().handler(CSRFHandler.create(vertx, "Abracadabra"));
     router.route().handler(rc -> {
       String token = rc.get(CSRFHandler.DEFAULT_HEADER_NAME);
       if (token != null) {
@@ -158,6 +172,7 @@ public class CSRFHandlerTest extends WebTestBase {
     // response body is known
     latch.await();
 
+    // will fail as the cookie is always required to be validated!
     testRequest(HttpMethod.POST, "/", req -> {
       // create a HTTP form
       String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
@@ -170,20 +185,17 @@ public class CSRFHandlerTest extends WebTestBase {
       req.headers().set("content-length", String.valueOf(buffer.length()));
       req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
       req.write(buffer);
-    }, null, 200, "OK", null);
+    }, null, 403, "Forbidden", null);
   }
 
   @Test
   public void testPostWithCustomResponseBody() throws Exception {
     final String expectedResponseBody = "Expected response body";
 
-    router.route().handler(CookieHandler.create());
-    router.route().handler(CSRFHandler.create("Abracadabra").setTimeout(1).setResponseBody(expectedResponseBody));
+    router.route().handler(CSRFHandler.create(vertx, "Abracadabra").setTimeout(1).setResponseBody(expectedResponseBody));
     router.route().handler(rc -> rc.response().end());
 
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
-        "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34=");
-    }, null, 403, "Forbidden", expectedResponseBody);
+    testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
+      "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34="), null, 403, "Forbidden", expectedResponseBody);
   }
 }

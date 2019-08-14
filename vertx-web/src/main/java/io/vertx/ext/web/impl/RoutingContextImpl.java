@@ -18,21 +18,32 @@ package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.codegen.annotations.CacheReturn;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.impl.HttpUtils;
+import io.vertx.core.http.impl.ServerCookie;
+import io.vertx.core.json.DecodeException;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.*;
 import io.vertx.ext.web.Locale;
+import io.vertx.ext.web.*;
+import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.ext.web.codec.impl.BodyCodecImpl;
+import io.vertx.ext.web.handler.impl.HttpStatusException;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -42,6 +53,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private final RouterImpl router;
   private Map<String, Object> data;
   private Map<String, String> pathParams;
+  private MultiMap queryParams;
   private AtomicInteger handlerSeq = new AtomicInteger();
   private Map<Integer, Handler<Void>> headersEndHandlers;
   private Map<Integer, Handler<Void>> bodyEndHandlers;
@@ -66,7 +78,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     this.router = router;
 
     fillParsedHeaders(request);
-    if (request.path().charAt(0) != '/') {
+    if (request.path().length() == 0) {
+      // HTTP paths must start with a '/'
+      fail(400);
+    } else if (request.path().charAt(0) != '/') {
+      // For compatiblity we return `Not Found` when a path does not start with `/`
       fail(404);
     }
   }
@@ -130,16 +146,21 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       // Send back FAILURE
       unhandledFailure(statusCode, failure, router);
     } else {
-      // Send back default 404
-      response().setStatusCode(404);
-      if (request().method() == HttpMethod.HEAD) {
-        // HEAD responses don't have a body
-        response().end();
-      } else {
-        response()
-                .putHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
-                .end(DEFAULT_404);
-      }
+      Handler<RoutingContext> handler = router.getErrorHandlerByStatusCode(this.matchFailure);
+      this.statusCode = this.matchFailure;
+      if (handler == null) { // Default 404 handling
+        // Send back empty default response with status code
+        this.response().setStatusCode(matchFailure);
+        if (this.request().method() != HttpMethod.HEAD && matchFailure == 404) {
+          // If it's a 404 let's send a body too
+          this.response()
+            .putHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
+            .end("<html><body><h1>Resource not found</h1></body></html>");
+        } else {
+          this.response().end();
+        }
+      } else
+        handler.handle(this);
     }
   }
 
@@ -151,7 +172,13 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void fail(Throwable t) {
-    this.failure = t == null ? new NullPointerException() : t;
+    this.fail(-1, t);
+  }
+
+  @Override
+  public void fail(int statusCode, Throwable throwable) {
+    this.statusCode = statusCode;
+    this.failure = throwable == null ? new NullPointerException() : throwable;
     doFail();
   }
 
@@ -188,35 +215,40 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public String normalisedPath() {
     if (normalisedPath == null) {
-      normalisedPath = Utils.normalizePath(request.path());
+      String path = request.path();
+      if (path == null) {
+        normalisedPath = "/";
+      } else {
+        normalisedPath = HttpUtils.normalizePath(path);
+      }
     }
     return normalisedPath;
   }
 
   @Override
   public Cookie getCookie(String name) {
-    return cookiesMap().get(name);
+    return request.getCookie(name);
   }
 
   @Override
-  public RoutingContext addCookie(Cookie cookie) {
-    cookiesMap().put(cookie.getName(), cookie);
+  public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
+    request.response().addCookie(cookie);
     return this;
   }
 
   @Override
-  public Cookie removeCookie(String name) {
-    return cookiesMap().remove(name);
+  public Cookie removeCookie(String name, boolean invalidate) {
+    return request.response().removeCookie(name, invalidate);
   }
 
   @Override
   public int cookieCount() {
-    return cookiesMap().size();
+    return request.cookieCount();
   }
 
   @Override
-  public Set<Cookie> cookies() {
-    return new HashSet<>(cookiesMap().values());
+  public Map<String, Cookie> cookieMap() {
+    return request.cookieMap();
   }
 
   @CacheReturn
@@ -247,7 +279,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public JsonObject getBodyAsJson() {
     if (body != null) {
       if (parsedBodyAsJson == null) {
-        parsedBodyAsJson = new JsonObject(getBodyAsString());
+        parsedBodyAsJson = BodyCodecImpl.JSON_OBJECT_DECODER.apply(body);
       }
       return parsedBodyAsJson;
     }
@@ -259,7 +291,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public JsonArray getBodyAsJsonArray() {
     if (body != null) {
       if (parsedBodyAsJsonArray == null) {
-        parsedBodyAsJsonArray = new JsonArray(getBodyAsString());
+        parsedBodyAsJsonArray = BodyCodecImpl.JSON_ARRAY_DECODER.apply(body);
       }
       return parsedBodyAsJsonArray;
     }
@@ -351,6 +383,18 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void reroute(HttpMethod method, String path) {
+    int split = path.indexOf('?');
+
+    if (split == -1) {
+      split = path.indexOf('#');
+    }
+
+    if (split != -1) {
+      log.warn("Non path segment is not considered: " + path.substring(split));
+      // reroute is path based so we trim out the non url path parts
+      path = path.substring(0, split);
+    }
+
     ((HttpServerRequestWrapper) request).setMethod(method);
     ((HttpServerRequestWrapper) request).setPath(path);
     request.params().clear();
@@ -399,6 +443,33 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return getPathParams().get(name);
   }
 
+  @Override
+  public MultiMap queryParams() {
+    return getQueryParams();
+  }
+
+  @Override
+  public @Nullable List<String> queryParam(String query) {
+    return getQueryParams().getAll(query);
+  }
+
+  private MultiMap getQueryParams() {
+    // Check if query params are already parsed
+    if (queryParams == null) {
+      try {
+        queryParams = MultiMap.caseInsensitiveMultiMap();
+
+        // Decode query parameters and put inside context.queryParams
+        Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
+        for (Map.Entry<String, List<String>> entry : decodedParams.entrySet())
+          queryParams.add(entry.getKey(), entry.getValue());
+      } catch (IllegalArgumentException e) {
+        throw new HttpStatusException(400, "Error while decoding query params", e);
+      }
+    }
+    return queryParams;
+  }
+
   private Map<String, String> getPathParams() {
     if (pathParams == null) {
       pathParams = new HashMap<>();
@@ -424,13 +495,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return bodyEndHandlers;
   }
 
-  private Map<String, Cookie> cookiesMap() {
-    if (cookies == null) {
-      cookies = new HashMap<>();
-    }
-    return cookies;
-  }
-
   private Set<FileUpload> getFileUploads() {
     if (fileUploads == null) {
       fileUploads = new HashSet<>();
@@ -440,6 +504,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private void doFail() {
     this.iter = router.iterator();
+    currentRoute = null;
     next();
   }
 

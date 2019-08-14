@@ -16,14 +16,12 @@
 
 package io.vertx.ext.web;
 
-import io.vertx.codegen.annotations.CacheReturn;
-import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.codegen.annotations.Nullable;
-import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.codegen.annotations.*;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -39,7 +37,7 @@ import java.util.Set;
  * Represents the context for the handling of a request in Vert.x-Web.
  * <p>
  * A new instance is created for each HTTP request that is received in the
- * {@link Router#accept(HttpServerRequest)} of the router.
+ * {@link Router#handle(HttpServerRequest)} of the router.
  * <p>
  * The same instance is passed to any matching request or failure handlers during the routing of the request or
  * failure.
@@ -50,6 +48,8 @@ import java.util.Set;
  * <p>
  * The context also provides access to the {@link Session}, cookies and body for the request, given the correct handlers
  * in the application.
+ * <p>
+ * If you use the internal error handler
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -82,21 +82,35 @@ public interface RoutingContext {
    * Fail the context with the specified status code.
    * <p>
    * This will cause the router to route the context to any matching failure handlers for the request. If no failure handlers
-   * match a default failure response will be sent.
+   * match It will trigger the error handler matching the status code. You can define such error handler with
+   * {@link Router#errorHandler(int, Handler)}. If no error handler is not defined, It will send a default failure response with provided status code.
    *
    * @param statusCode  the HTTP status code
    */
   void fail(int statusCode);
 
   /**
-   * Fail the context with the specified throwable.
+   * Fail the context with the specified throwable and 500 status code.
    * <p>
    * This will cause the router to route the context to any matching failure handlers for the request. If no failure handlers
-   * match a default failure response with status code 500 will be sent.
+   * match It will trigger the error handler matching the status code. You can define such error handler with
+   * {@link Router#errorHandler(int, Handler)}. If no error handler is not defined, It will send a default failure response with 500 status code.
    *
    * @param throwable  a throwable representing the failure
    */
   void fail(Throwable throwable);
+
+  /**
+   * Fail the context with the specified throwable and the specified the status code.
+   * <p>
+   * This will cause the router to route the context to any matching failure handlers for the request. If no failure handlers
+   * match It will trigger the error handler matching the status code. You can define such error handler with
+   * {@link Router#errorHandler(int, Handler)}. If no error handler is not defined, It will send a default failure response with provided status code.
+   *
+   * @param statusCode the HTTP status code
+   * @param throwable a throwable representing the failure
+   */
+  void fail(int statusCode, Throwable throwable);
 
   /**
    * Put some arbitrary data in the context. This will be available in any handlers that receive the context.
@@ -131,7 +145,7 @@ public interface RoutingContext {
   /**
    * @return all the context data as a map
    */
-  @GenIgnore
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   Map<String, Object> data();
 
   /**
@@ -169,8 +183,7 @@ public interface RoutingContext {
   String normalisedPath();
 
   /**
-   * Get the cookie with the specified name. The context must have first been routed to a {@link io.vertx.ext.web.handler.CookieHandler}
-   * for this to work.
+   * Get the cookie with the specified name.
    *
    * @param name  the cookie name
    * @return the cookie
@@ -178,35 +191,42 @@ public interface RoutingContext {
   @Nullable Cookie getCookie(String name);
 
   /**
-   * Add a cookie. This will be sent back to the client in the response. The context must have first been routed
-   * to a {@link io.vertx.ext.web.handler.CookieHandler} for this to work.
+   * Add a cookie. This will be sent back to the client in the response.
    *
    * @param cookie  the cookie
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  RoutingContext addCookie(Cookie cookie);
+  RoutingContext addCookie(io.vertx.core.http.Cookie cookie);
 
   /**
-   * Remove a cookie. The context must have first been routed to a {@link io.vertx.ext.web.handler.CookieHandler}
-   * for this to work.
+   * Expire a cookie, notifying a User Agent to remove it from its cookie jar.
    *
    * @param name  the name of the cookie
    * @return the cookie, if it existed, or null
    */
-  @Nullable Cookie removeCookie(String name);
+  default @Nullable Cookie removeCookie(String name) {
+    return removeCookie(name, true);
+  }
 
   /**
-   * @return the number of cookies. The context must have first been routed to a {@link io.vertx.ext.web.handler.CookieHandler}
-   * for this to work.
+   * Remove a cookie from the cookie set. If invalidate is true then it will expire a cookie, notifying a User Agent to
+   * remove it from its cookie jar.
+   *
+   * @param name  the name of the cookie
+   * @return the cookie, if it existed, or null
+   */
+  @Nullable Cookie removeCookie(String name, boolean invalidate);
+
+  /**
+   * @return the number of cookies.
    */
   int cookieCount();
 
   /**
-   * @return a set of all the cookies. The context must have first been routed to a {@link io.vertx.ext.web.handler.CookieHandler}
-   * for this to be populated.
+   * @return a map of all the cookies.
    */
-  Set<Cookie> cookies();
+  Map<String, io.vertx.core.http.Cookie> cookieMap();
 
   /**
    * @return  the entire HTTP request body as a string, assuming UTF-8 encoding. The context must have first been routed to a
@@ -226,12 +246,16 @@ public interface RoutingContext {
   /**
    * @return Get the entire HTTP request body as a {@link JsonObject}. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
+   * <br/>
+   * When the body is {@code null} or the {@code "null"} JSON literal then {@code null} is returned.
    */
   @CacheReturn @Nullable JsonObject getBodyAsJson();
 
   /**
    * @return Get the entire HTTP request body as a {@link JsonArray}. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
+   * <br/>
+   * When the body is {@code null} or the {@code "null"} JSON literal then {@code null} is returned.
    */
   @CacheReturn @Nullable JsonArray getBodyAsJsonArray();
 
@@ -470,4 +494,21 @@ public interface RoutingContext {
    */
   @Nullable
   String pathParam(String name);
+
+  /**
+   * Returns a map of all query parameters inside the <a href="https://en.wikipedia.org/wiki/Query_string">query string</a><br/>
+   * The query parameters are lazily decoded: the decoding happens on the first time this method is called. If the query string is invalid
+   * it fails the context
+   *
+   * @return the multimap of query parameters
+   */
+  MultiMap queryParams();
+
+  /**
+   * Gets the value of a single query parameter. For more info {@link RoutingContext#queryParams()}
+   *
+   * @param name The name of query parameter
+   * @return The list of all parameters matching the parameter name. It returns an empty list if no query parameter with {@code name} was found
+   */
+  List<String> queryParam(String name);
 }

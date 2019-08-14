@@ -17,12 +17,11 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.handler.impl.CorsHandlerImpl;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.impl.CorsHandlerImpl;
 
 import java.util.Set;
 
@@ -59,7 +58,7 @@ public interface CorsHandler extends Handler<RoutingContext> {
    * @param methods the methods to add
    * @return a reference to this, so the API can be used fluently
    */
-  @GenIgnore
+  @Fluent
   CorsHandler allowedMethods(Set<HttpMethod> methods);
 
   /**

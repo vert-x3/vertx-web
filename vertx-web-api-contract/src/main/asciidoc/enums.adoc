@@ -1,0 +1,110 @@
+= Enums
+
+[[ContainerSerializationStyle]]
+== ContainerSerializationStyle
+
+++++
+ This enum contains supported object and arrays serialization styles. Every style has a enum value, and an array of
+ strings to refeer to it.
+++++
+'''
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[csv]]`csv`|+++
+Comma separated values: "value1,value2,value3"
+ aliases: "csv", "commaDelimited", "form", "simple"
++++
+|[[ssv]]`ssv`|+++
+Space separated values: "value1 value2 value3"
+ aliases: "ssv", "spaceDelimited"
++++
+|[[psv]]`psv`|+++
+Pipe separated values: "value1|value2|value3"
+ aliases: "psv", "pipeDelimited"
++++
+|[[dsv]]`dsv`|+++
+Dot delimited values: "value1.value2.value3"
+ aliases: "dsv", "dotDelimited", "label"
++++
+|[[simple_exploded_object]]`simple_exploded_object`|+++
+For internal usage, don't use it
++++
+|[[matrix_exploded_array]]`matrix_exploded_array`|+++
+For internal usage, don't use it
++++
+|===
+
+[[ParameterLocation]]
+== ParameterLocation
+
+++++
+ ParameterLocation describe the location of parameter inside HTTP Request
+++++
+'''
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[HEADER]]`HEADER`|-
+|[[QUERY]]`QUERY`|-
+|[[PATH]]`PATH`|-
+|[[FILE]]`FILE`|-
+|[[BODY_FORM]]`BODY_FORM`|-
+|[[BODY]]`BODY`|-
+|[[BODY_JSON]]`BODY_JSON`|-
+|[[BODY_XML]]`BODY_XML`|-
+|[[COOKIE]]`COOKIE`|-
+|===
+
+[[ParameterType]]
+== ParameterType
+
+++++
+ ParameterType contains prebuilt type validators. To access to ParameterTypeValidator of every ParameterType, use
+ link
+++++
+'''
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[GENERIC_STRING]]`GENERIC_STRING`|+++
+STRING Type accept every string
++++
+|[[EMAIL]]`EMAIL`|-
+|[[URI]]`URI`|-
+|[[BOOL]]`BOOL`|+++
+It allows true, false, t, f, 1, 0
++++
+|[[INT]]`INT`|+++
+INT type does the validation with Integer.parseInt(value)
++++
+|[[FLOAT]]`FLOAT`|+++
+FLOAT type does the validation with Float.parseFloat(value)
++++
+|[[DOUBLE]]`DOUBLE`|+++
+DOUBLE type does the validation with Double.parseDouble(value)
++++
+|[[DATE]]`DATE`|+++
+DATE as defined by full-date - RFC3339
++++
+|[[DATETIME]]`DATETIME`|+++
+DATETIME as defined by date-time - RFC3339
++++
+|[[TIME]]`TIME`|+++
+TIME as defined by partial-time - RFC3339
++++
+|[[BASE64]]`BASE64`|-
+|[[IPV4]]`IPV4`|-
+|[[IPV6]]`IPV6`|-
+|[[HOSTNAME]]`HOSTNAME`|-
+|[[UUID]]`UUID`|+++
+UUID as defined by RFC4122
++++
+|===
+

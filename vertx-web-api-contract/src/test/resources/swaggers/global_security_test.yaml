@@ -1,0 +1,74 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Test spec for OpenAPI3RouterFactoryTest.requireGlobalSecurityHandler()
+  license:
+    name: Apache 2.0 License
+security:
+  - global_api_key: []
+paths:
+  /petsWithoutSecurity:
+    get:
+      summary: List all pets
+      operationId: listPetsWithoutSecurity
+      security: []
+      responses:
+        default:
+          description: OK
+  /petsWithOverride:
+    get:
+      summary: List all pets
+      operationId: listPetsWithOverride
+      security:
+        - api_key: []
+      responses:
+        default:
+          description: OK
+  /petsWithoutOverride:
+    get:
+      summary: List all pets
+      operationId: listPetsWithoutOverride
+      responses:
+        default:
+          description: OK
+
+components:
+  schemas:
+    Pet:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        tag:
+          type: string
+    Pets:
+      type: array
+      items:
+        $ref: "#/components/schemas/Pet"
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+  securitySchemes:
+    global_api_key:
+      type: apiKey
+      name: global_api_key
+      in: header
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
+

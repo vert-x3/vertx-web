@@ -16,17 +16,19 @@
 
 package io.vertx.ext.web.impl;
 
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -59,7 +61,6 @@ public class RouterImpl implements Router {
     return compare;
   };
 
-
   private static final Logger log = LoggerFactory.getLogger(RouterImpl.class);
 
   private final Vertx vertx;
@@ -70,10 +71,10 @@ public class RouterImpl implements Router {
   }
 
   private final AtomicInteger orderSequence = new AtomicInteger();
-  private Handler<Throwable> exceptionHandler;
+  private Map<Integer, Handler<RoutingContext>> errorHandlers = new ConcurrentHashMap<>();
 
   @Override
-  public void accept(HttpServerRequest request) {
+  public void handle(HttpServerRequest request) {
     if (log.isTraceEnabled()) log.trace("Router: " + System.identityHashCode(this) +
       " accepting request " + request.method() + " " + request.absoluteURI());
     new RoutingContextImpl(null, this, request, routes).next();
@@ -272,9 +273,19 @@ public class RouterImpl implements Router {
     return this;
   }
 
+  @Deprecated
   @Override
   public synchronized Router exceptionHandler(Handler<Throwable> exceptionHandler) {
-    this.exceptionHandler = exceptionHandler;
+    if (exceptionHandler != null) {
+      this.errorHandler(500, routingContext -> exceptionHandler.handle(routingContext.failure()));
+    }
+    return this;
+  }
+
+  @Override
+  public Router errorHandler(int statusCode, Handler<RoutingContext> errorHandler) {
+    Objects.requireNonNull(errorHandler);
+    this.errorHandlers.put(statusCode, errorHandler);
     return this;
   }
 
@@ -294,8 +305,8 @@ public class RouterImpl implements Router {
     return routes.iterator();
   }
 
-  Handler<Throwable> exceptionHandler() {
-    return exceptionHandler;
+  Handler<RoutingContext> getErrorHandlerByStatusCode(int statusCode) {
+    return errorHandlers.get(statusCode);
   }
 
   private String getAndCheckRoutePath(RoutingContext ctx) {

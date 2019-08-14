@@ -16,10 +16,14 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.User;
+import io.vertx.core.shareddata.LocalMap;
+import io.vertx.core.shareddata.Shareable;
+import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -27,29 +31,41 @@ import io.vertx.ext.web.handler.DigestAuthHandler;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class DigestAuthHandlerImpl extends AuthHandlerImpl implements DigestAuthHandler {
+public class DigestAuthHandlerImpl extends AuthorizationAuthHandler implements DigestAuthHandler {
 
-  private static class Nonce {
+  /**
+   * Default name for map used to store nonces
+   */
+  private static final String DEFAULT_NONCE_MAP_NAME = "htdigest.nonces";
+
+  /**
+   * Shareable objects should be immutable.
+   */
+  private static class Nonce implements Shareable {
     private final long createdAt;
-    private int count;
+    private final int count;
 
-    Nonce() {
-      createdAt = System.currentTimeMillis();
-      count = 0;
+    Nonce(int count) {
+      this(System.currentTimeMillis(), count);
+    }
+
+    Nonce(long createdAt, int count) {
+      this.createdAt = createdAt;
+      this.count = count;
     }
   }
 
   private static final Pattern PARSER = Pattern.compile("(\\w+)=[\"]?([^\"]*)[\"]?$");
+  private static final Pattern SPLITTER = Pattern.compile(",(?=(?:[^\"]|\"[^\"]*\")*$)");
+
   private static final MessageDigest MD5;
 
   static {
@@ -60,141 +76,118 @@ public class DigestAuthHandlerImpl extends AuthHandlerImpl implements DigestAuth
     }
   }
 
-  private final SecureRandom random = new SecureRandom();
-  private final Map<String, Nonce> nonces = new HashMap<>();
+  private final VertxContextPRNG random;
+  private final LocalMap<String, Nonce> nonces;
 
   private final long nonceExpireTimeout;
 
   private long lastExpireRun;
 
-  public DigestAuthHandlerImpl(HtdigestAuth authProvider, long nonceExpireTimeout) {
-    super(authProvider);
+  public DigestAuthHandlerImpl(Vertx vertx, HtdigestAuth authProvider, long nonceExpireTimeout) {
+    super(authProvider, authProvider.realm(), Type.DIGEST);
+    random = VertxContextPRNG.current(vertx);
+    nonces = vertx.sharedData().getLocalMap(DEFAULT_NONCE_MAP_NAME);
     this.nonceExpireTimeout = nonceExpireTimeout;
   }
 
   @Override
-  public void handle(RoutingContext context) {
+  public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
     // clean up nonce
     long now = System.currentTimeMillis();
     if (now - lastExpireRun > nonceExpireTimeout / 2) {
-      for(Iterator<Map.Entry<String,Nonce>> it = nonces.entrySet().iterator(); it.hasNext();){
-        Map.Entry<String, Nonce> entry = it.next();
-        if (entry.getValue().createdAt + nonceExpireTimeout < now) {
-          it.remove();
+      Set<String> toRemove = new HashSet<>();
+      nonces.forEach((String key, Nonce n) -> {
+        if (n != null && n.createdAt + nonceExpireTimeout < now) {
+          toRemove.add(key);
         }
-      }
+      });
 
+      for (String n : toRemove) {
+        nonces.remove(n);
+      }
       lastExpireRun = now;
     }
 
-    User user = context.user();
-    if (user != null) {
-      // Already authenticated in, just authorise
-      authorise(user, context);
-    } else {
-      HttpServerRequest request = context.request();
-      String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
+    parseAuthorization(context, false, parseAuthorization -> {
+      if (parseAuthorization.failed()) {
+        handler.handle(Future.failedFuture(parseAuthorization.cause()));
+        return;
+      }
 
-      if (authorization == null) {
-        handle401(context);
-      } else {
-        try {
-          String sscheme;
-          int idx = authorization.indexOf(' ');
+      final JsonObject authInfo = new JsonObject();
 
-          if (idx <= 0) {
-            context.fail(400);
+      try {
+        // Split the parameters by comma.
+        String[] tokens = SPLITTER.split(parseAuthorization.result());
+        // Parse parameters.
+        int i = 0;
+        int len = tokens.length;
+
+        while (i < len) {
+          // Strip quotes and whitespace.
+          Matcher m = PARSER.matcher(tokens[i]);
+          if (m.find()) {
+            authInfo.put(m.group(1), m.group(2));
+          }
+
+          ++i;
+        }
+
+        final String nonce = authInfo.getString("nonce");
+
+        // check for expiration
+        if (!nonces.containsKey(nonce)) {
+          handler.handle(Future.failedFuture(UNAUTHORIZED));
+          return;
+        }
+
+        // check for nonce counter (prevent replay attack)
+        if (authInfo.containsKey("qop")) {
+          int nc = Integer.parseInt(authInfo.getString("nc"), 16);
+          final Nonce n = nonces.get(nonce);
+          if (nc <= n.count) {
+            handler.handle(Future.failedFuture(UNAUTHORIZED));
             return;
           }
+          // update the nounce count
+          nonces.put(nonce, new Nonce(n.createdAt, nc));
+        }
 
-          sscheme = authorization.substring(0, idx);
+        final String uri = authInfo.getString("uri");
 
-          if (!"Digest".equalsIgnoreCase(sscheme)) {
-            context.fail(400);
-            return;
-          }
+        if (!uri.equalsIgnoreCase(context.request().uri())) {
+          handler.handle(Future.failedFuture(UNAUTHORIZED));
+          return;
+        }
+      } catch (RuntimeException e) {
+        handler.handle(Future.failedFuture(e));
+      }
 
-          JsonObject authInfo = new JsonObject();
-          // Split the parameters by comma.
-          String[] tokens = authorization.substring(idx).split(",(?=(?:[^\"]|\"[^\"]*\")*$)");
-          // Parse parameters.
-          int i = 0;
-          int len = tokens.length;
-
-          while (i < len) {
-            // Strip quotes and whitespace.
-            Matcher m = PARSER.matcher(tokens[i]);
-            if (m.find()) {
-              authInfo.put(m.group(1), m.group(2));
-            }
-
-            ++i;
-          }
-
-          final String nonce = authInfo.getString("nonce");
-
-          // check for expiration
-          if (!nonces.containsKey(nonce)) {
-            handle401(context);
-            return;
-          }
-
-          // check for nonce counter (prevent replay attack
-          if (authInfo.containsKey("qop")) {
-            Integer nc = Integer.parseInt(authInfo.getString("nc"));
-            final Nonce n = nonces.get(nonce);
-            if (nc <= n.count) {
-              handle401(context);
-              return;
-            }
-            n.count = nc;
-          }
-
-          // validate the opaque value
-          final Session session = context.session();
-          if (session != null) {
-            String opaque = (String) session.data().get("opaque");
-            if (opaque != null && !opaque.equals(authInfo.getString("opaque"))) {
-              handle401(context);
-              return;
-            }
-          }
-
-          // we now need to pass some extra info
-          authInfo.put("method", context.request().method().name());
-
-          authProvider.authenticate(authInfo, res -> {
-            if (res.succeeded()) {
-              User authenticated = res.result();
-              context.setUser(authenticated);
-              if (session != null) {
-                // the user has upgraded from unauthenticated to authenticated
-                // session should be upgraded as recommended by owasp
-                session.regenerateId();
-              }
-              authorise(authenticated, context);
-            } else {
-              handle401(context);
-            }
-          });
-
-        } catch (ArrayIndexOutOfBoundsException e) {
-          handle401(context);
-        } catch (IllegalArgumentException | NullPointerException e) {
-          // IllegalArgumentException includes PatternSyntaxException and NumberFormatException
-          context.fail(e);
+      // validate the opaque value
+      final Session session = context.session();
+      if (session != null) {
+        String opaque = (String) session.data().get("opaque");
+        if (opaque != null && !opaque.equals(authInfo.getString("opaque"))) {
+          handler.handle(Future.failedFuture(UNAUTHORIZED));
+          return;
         }
       }
-    }
+
+      // we now need to pass some extra info
+      authInfo.put("method", context.request().method().name());
+
+      handler.handle(Future.succeededFuture(authInfo));
+    });
   }
 
-  private void handle401(RoutingContext context) {
+  @Override
+  protected String authenticateHeader(RoutingContext context) {
     final byte[] bytes = new byte[32];
     random.nextBytes(bytes);
     // generate nonce
     String nonce = md5(bytes);
     // save it
-    nonces.put(nonce, new Nonce());
+    nonces.put(nonce, new Nonce(0));
 
     // generate opaque
     String opaque = null;
@@ -209,8 +202,7 @@ public class DigestAuthHandlerImpl extends AuthHandlerImpl implements DigestAuth
       opaque = md5(bytes);
     }
 
-    context.response().putHeader("WWW-Authenticate", "Digest realm=\"" + ((HtdigestAuth) authProvider).realm() + "\", qop=\"auth\", nonce=\"" + nonce + "\", opaque=\"" + opaque + "\"");
-    context.fail(401);
+    return "Digest realm=\"" + realm + "\", qop=\"auth\", nonce=\"" + nonce + "\", opaque=\"" + opaque + "\"";
   }
 
   private final static char[] hexArray = "0123456789abcdef".toCharArray();

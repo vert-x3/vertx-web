@@ -1,0 +1,173 @@
+= Vert.x Web GraphQL
+
+Vert.x Web GraphQL extends Vert.x Web with the https://www.graphql-java.com[GraphQL-Java] library so that you can build a GraphQL server.
+
+TIP: This is the reference documentation for Vert.x Web GraphQL.
+It is highly recommended to get familiar with the GraphQL-Java API first.
+You may start by reading the https://www.graphql-java.com/documentation/${graphql.java.doc.version}/[GraphQL-Java documentation].
+
+WARNING: This module has _Tech Preview_ status, this means the API can change between versions.
+
+== Getting started
+
+To use this module, add the following to the _dependencies_ section of your Maven POM file:
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-graphql</artifactId>
+  <version>${maven.version}</version>
+</dependency>
+----
+
+Or, if you use Gradle:
+
+[source,groovy,subs="+attributes"]
+----
+compile 'io.vertx:vertx-web-graphql:${maven.version}'
+----
+
+== Handler setup
+
+Create a Vert.x Web {@link io.vertx.ext.web.Route} and a {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} for it:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#handlerSetup}
+----
+
+The handler serves both `GET` and `POST` requests.
+However you can restrict the service to one type of HTTP method:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#handlerSetupPost}
+----
+
+TIP: The {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} does not require a {@link io.vertx.ext.web.handler.BodyHandler} to read `POST` requests content.
+
+=== GraphiQL client
+
+As you are building your application, testing your GraphQL queries in https://github.com/graphql/graphiql[GraphiQL] can be handy.
+
+The GraphiQL user interface is disabled by default.
+To enable it, configure the {@link io.vertx.ext.web.handler.graphql.GraphiQLOptions}:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#handlerSetupGraphiQL}
+----
+
+Then browse to http://localhost:8080/graphql.
+
+TIP: GraphiQL user interface is enabled automatically when Vert.x Web is in development mode.
+To switch the development mode on, use the `VERTXWEB_ENVIRONMENT` environment variable or `vertxweb.environment` system property and set it to `dev`.
+
+Please refer to the {@link io.vertx.ext.web.handler.graphql.GraphiQLOptions} documentation for details on customization options.
+
+If your application is protected by authentication, you can customize the headers to send by GraphiQL dynamically:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#handlerSetupGraphiQLAuthn}
+----
+
+=== Enable query batching
+
+Query batching consists in posting an array instead of a single object to the GraphQL endpoint.
+
+Vert.x Web GraphQL can handle such requests but by default the feature is disabled.
+To enable it, create the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} with options:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#handlerSetupBatching}
+----
+
+== Building a GraphQL server
+
+The GraphQL-Java API is very well suited for the asynchronous world: the asynchronous execution strategy is the default for queries (serial asynchronous for mutations).
+
+To https://vertx.io/docs/vertx-core/java/#golden_rule[avoid blocking the event loop], all you have to do is implement https://www.graphql-java.com/documentation/${graphql.java.doc.version}/data-fetching/[data fetchers] that return a `CompletionStage` instead of the result directly.
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#completionStageDataFetcher}
+----
+
+=== Fetching data with callback-based APIs
+
+Implementing a data fetcher that returns a `CompletionStage` is not a complex task.
+But when you work with Vert.x callback-based APIs, it requires a bit of boilerplate.
+
+This is where the {@link io.vertx.ext.web.handler.graphql.VertxDataFetcher} can help:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#vertxDataFetcher}
+----
+
+=== Providing data fetchers with some context
+
+Very often, the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} will be declared after other route handlers.
+For example, you could protect your application with authentication.
+
+In this case, it is likely that your data fetchers will need to know which user is logged-in to narrow down the results.
+Let's say your authentication layer stores a `User` object in the {@link io.vertx.ext.web.RoutingContext}.
+
+You may retrieve this object by inspecting the `DataFetchingEnvironment`:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#routingContextInDataFetchingEnvironment}
+----
+
+NOTE: The routing context is available with any kind of data fetchers, not just {@link io.vertx.ext.web.handler.graphql.VertxDataFetcher}.
+
+If you prefer not to expose the routing context to your data fetchers, configure the GraphQL handler to customize the context object:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#customContextInDataFetchingEnvironment}
+----
+
+=== JSON data results
+
+The default GraphQL data fetcher is `PropertyDataFetcher`.
+As a consequence, it will be able to read the fields of your domain objects without further configuration.
+
+Nevertheless, some Vert.x data clients return {@link io.vertx.core.json.JsonArray} and {@link io.vertx.core.json.JsonObject} results.
+
+If you don't need (or don't wish to) use a domain object layer, you can configure GraphQL-Java to use {@link io.vertx.ext.web.handler.graphql.VertxPropertyDataFetcher} instead:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#jsonData}
+----
+
+TIP: {@link io.vertx.ext.web.handler.graphql.VertxPropertyDataFetcher} wraps a `PropertyDataFetcher` so you can still use it with domain objects.
+
+=== Using dataloaders
+
+Dataloaders help you to load data efficiently by batching fetch requests and caching results.
+
+First, create a batch loader:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#createBatchLoader}
+----
+
+TIP: If you work with Vert.x callback-based APIs, you may use a {@link io.vertx.ext.web.handler.graphql.VertxBatchLoader} to simplify your code.
+
+Then, configure the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} to create a `DataLoaderRegistry` for each request:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#dataLoaderRegistry}
+----
+
+ifeval::["$lang" == "java"]
+include::override/rxjava2.adoc[]
+endif::[]

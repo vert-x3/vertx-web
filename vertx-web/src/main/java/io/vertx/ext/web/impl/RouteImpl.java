@@ -19,8 +19,9 @@ package io.vertx.ext.web.impl;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
@@ -30,9 +31,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
  * This class is thread-safe
- *
+ * <p>
  * Some parts (e.g. content negotiation) from Yoke by Paulo Lopes
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -45,20 +45,25 @@ public class RouteImpl implements Route {
   private final RouterImpl router;
   private final Set<HttpMethod> methods = new HashSet<>();
   private final Set<MIMEHeader> consumes = new LinkedHashSet<>();
+  private boolean emptyBodyPermittedWithConsumes = false;
   private final Set<MIMEHeader> produces = new LinkedHashSet<>();
   private String path;
   private int order;
   private boolean enabled = true;
-  private Handler<RoutingContext> contextHandler;
-  private Handler<RoutingContext> failureHandler;
+  private List<Handler<RoutingContext>> contextHandlers;
+  private List<Handler<RoutingContext>> failureHandlers;
   private boolean added;
   private Pattern pattern;
   private List<String> groups;
   private boolean useNormalisedPath = true;
+  private Set<String> namedGroupsInRegex = new TreeSet<>();
+  private Pattern virtualHostPattern;
 
   RouteImpl(RouterImpl router, int order) {
     this.router = router;
     this.order = order;
+    this.contextHandlers = new ArrayList<>();
+    this.failureHandlers = new ArrayList<>();
   }
 
   RouteImpl(RouterImpl router, int order, HttpMethod method, String path) {
@@ -119,6 +124,12 @@ public class RouteImpl implements Route {
   }
 
   @Override
+  public Route virtualHost(String hostnamePattern) {
+    this.virtualHostPattern = Pattern.compile("^" + hostnamePattern.replaceAll("\\.", "\\\\.").replaceAll("[*]", "(.*?)") + "$", Pattern.CASE_INSENSITIVE);
+    return this;
+  }
+
+  @Override
   public synchronized Route order(int order) {
     if (added) {
       throw new IllegalStateException("Can't change order after route is active");
@@ -134,10 +145,7 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route handler(Handler<RoutingContext> contextHandler) {
-    if (this.contextHandler != null) {
-      throw new IllegalStateException("Setting handler for a route more than once!");
-    }
-    this.contextHandler = contextHandler;
+    this.contextHandlers.add(contextHandler);
     checkAdd();
     return this;
   }
@@ -154,10 +162,7 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route failureHandler(Handler<RoutingContext> exceptionHandler) {
-    if (this.failureHandler != null) {
-      throw new IllegalStateException("Setting failureHandler for a route more than once!");
-    }
-    this.failureHandler = exceptionHandler;
+    this.failureHandlers.add(exceptionHandler);
     checkAdd();
     return this;
   }
@@ -192,16 +197,27 @@ public class RouteImpl implements Route {
   }
 
   @Override
+  public Set<HttpMethod> methods() {
+    return this.methods;
+  }
+
+  @Override
+  public Route setRegexGroupsNames(List<String> groups) {
+    this.groups = groups;
+    return this;
+  }
+
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("Route[ ");
     sb.append("path:").append(path);
     sb.append(" pattern:").append(pattern);
-    sb.append(" handler:").append(contextHandler);
-    sb.append(" failureHandler:").append(failureHandler);
+    sb.append(" handlers:").append(contextHandlers);
+    sb.append(" failureHandlers:").append(failureHandlers);
     sb.append(" order:").append(order);
     sb.append(" methods:[");
     int cnt = 0;
-    for (HttpMethod method: methods) {
+    for (HttpMethod method : methods) {
       sb.append(method);
       cnt++;
       if (cnt < methods.size()) {
@@ -212,35 +228,43 @@ public class RouteImpl implements Route {
     return sb.toString();
   }
 
-  synchronized void handleContext(RoutingContext context) {
-    if (contextHandler != null) {
-      contextHandler.handle(context);
+  void handleContext(RoutingContextImplBase context) {
+    Handler<RoutingContext> contextHandler;
+
+    synchronized (this) {
+      contextHandler = contextHandlers.get(context.currentRouteNextHandlerIndex() - 1);
     }
+
+    contextHandler.handle(context);
   }
 
-  synchronized void handleFailure(RoutingContext context) {
-    if (failureHandler != null) {
-      failureHandler.handle(context);
+  void handleFailure(RoutingContextImplBase context) {
+    Handler<RoutingContext> failureHandler;
+
+    synchronized (this) {
+      failureHandler = failureHandlers.get(context.currentRouteNextFailureHandlerIndex() - 1);
     }
+
+    failureHandler.handle(context);
   }
 
-  synchronized boolean matches(RoutingContext context, String mountPoint, boolean failure) {
+  /**
+   * @return 0 if route matches, otherwise it return the status code
+   */
+  synchronized int matches(RoutingContextImplBase context, String mountPoint, boolean failure) {
 
-    if (failure && failureHandler == null || !failure && contextHandler == null) {
-      return false;
+    if (failure && !hasNextFailureHandler(context) || !failure && !hasNextContextHandler(context)) {
+      return 404;
     }
     if (!enabled) {
-      return false;
+      return 404;
     }
     HttpServerRequest request = context.request();
-    if (!methods.isEmpty() && !methods.contains(request.method())) {
-      return false;
-    }
     if (path != null && pattern == null && !pathMatches(mountPoint, context)) {
-      return false;
+      return 404;
     }
     if (pattern != null) {
-      String path = useNormalisedPath ? Utils.normalizePath(context.request().path()) : context.request().path();
+      String path = useNormalisedPath ? context.normalisedPath() : context.request().path();
       if (mountPoint != null) {
         path = path.substring(mountPoint.length());
       }
@@ -248,60 +272,88 @@ public class RouteImpl implements Route {
       Matcher m = pattern.matcher(path);
       if (m.matches()) {
         if (m.groupCount() > 0) {
-          Map<String, String> params = new HashMap<>(m.groupCount());
           if (groups != null) {
             // Pattern - named params
             // decode the path as it could contain escaped chars.
             for (int i = 0; i < groups.size(); i++) {
               final String k = groups.get(i);
-              final String value = Utils.urlDecode(m.group("p" + i), false);
-              if (!request.params().contains(k)) {
-                params.put(k, value);
-              } else {
-                context.pathParams().put(k, value);
+              String undecodedValue;
+              // We try to take value in three ways:
+              // 1. group name of type p0, p1, pN (most frequent and used by vertx params)
+              // 2. group name inside the regex
+              // 3. No group name
+              try {
+                undecodedValue = m.group("p" + i);
+              } catch (IllegalArgumentException e) {
+                try {
+                  undecodedValue = m.group(k);
+                } catch (IllegalArgumentException e1) {
+                  // Groups starts from 1 (0 group is total match)
+                  undecodedValue = m.group(i + 1);
+                }
               }
+              addPathParam(context, k, undecodedValue);
             }
           } else {
             // Straight regex - un-named params
             // decode the path as it could contain escaped chars.
+            for (String namedGroup : namedGroupsInRegex) {
+              String namedGroupValue = m.group(namedGroup);
+              if (namedGroupValue != null) {
+                addPathParam(context, namedGroup, namedGroupValue);
+              }
+            }
             for (int i = 0; i < m.groupCount(); i++) {
               String group = m.group(i + 1);
-              if(group != null) {
+              if (group != null) {
                 final String k = "param" + i;
-                final String value = Utils.urlDecode(group, false);
-                if (!request.params().contains(k)) {
-                  params.put(k, value);
-                } else {
-                  context.pathParams().put(k, value);
-                }
+                addPathParam(context, k, group);
               }
             }
           }
-          request.params().addAll(params);
-          context.pathParams().putAll(params);
         }
       } else {
-        return false;
+        return 404;
       }
     }
+
+    if (!methods.isEmpty() && !methods.contains(request.method())) {
+      // If I'm here path or path pattern matches, but the method is wrong
+      return 405;
+    }
+
     if (!consumes.isEmpty()) {
       // Can this route consume the specified content type
       MIMEHeader contentType = context.parsedHeaders().contentType();
       MIMEHeader consumal = contentType.findMatchedBy(consumes);
-      if(consumal == null){
-        return false;
+      if (consumal == null && !(contentType.rawValue().isEmpty() && emptyBodyPermittedWithConsumes)) {
+        if (contentType.rawValue().isEmpty()) {
+          return 400;
+        } else {
+          return 415;
+        }
       }
     }
     List<MIMEHeader> acceptableTypes = context.parsedHeaders().accept();
     if (!produces.isEmpty() && !acceptableTypes.isEmpty()) {
       MIMEHeader selectedAccept = context.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, produces);
-        if(selectedAccept != null){
-          context.setAcceptableContentType(selectedAccept.rawValue());
-          return true;
-        }
-      return false;
+      if (selectedAccept != null) {
+        context.setAcceptableContentType(selectedAccept.rawValue());
+        return 0;
+      }
+      return 406;
     }
-    return true;
+    if (!virtualHostMatches(context.request.host())) return 404;
+    return 0;
+  }
+
+  private void addPathParam(RoutingContext context, String name, String value) {
+    HttpServerRequest request = context.request();
+    final String decodedValue = URIDecoder.decodeURIComponent(value, false);
+    if (!request.params().contains(name)) {
+      request.params().add(name, decodedValue);
+    }
+    context.pathParams().put(name, decodedValue);
   }
 
   RouterImpl router() {
@@ -314,7 +366,7 @@ public class RouteImpl implements Route {
 
     if (useNormalisedPath) {
       // never null
-      requestPath = Utils.normalizePath(ctx.request().path());
+      requestPath = ctx.normalisedPath();
     } else {
       requestPath = ctx.request().path();
       // can be null
@@ -331,6 +383,18 @@ public class RouteImpl implements Route {
       }
       return requestPath.startsWith(thePath);
     }
+  }
+
+  private boolean virtualHostMatches(String host) {
+    if (virtualHostPattern == null) return true;
+    boolean match = false;
+    for (String h : host.split(":")) {
+      if (virtualHostPattern.matcher(h).matches()) {
+        match = true;
+        break;
+      }
+    }
+    return match;
   }
 
   private boolean pathMatchesExact(String path1, String path2) {
@@ -365,10 +429,27 @@ public class RouteImpl implements Route {
 
   private void setRegex(String regex) {
     pattern = Pattern.compile(regex);
+    Set<String> namedGroups = findNamedGroups(pattern.pattern());
+    if (!namedGroups.isEmpty()) {
+      namedGroupsInRegex.addAll(namedGroups);
+    }
+  }
+
+  private Set<String> findNamedGroups(String path) {
+    Set<String> namedGroups = new TreeSet<>();
+    Matcher m = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>").matcher(path);
+
+    while (m.find()) {
+      namedGroups.add(m.group(1));
+    }
+    return namedGroups;
   }
 
   // intersection of regex chars and https://tools.ietf.org/html/rfc3986#section-3.3
   private static final Pattern RE_OPERATORS_NO_STAR = Pattern.compile("([\\(\\)\\$\\+\\.])");
+
+  // Pattern for :<token name> in path
+  private static final Pattern RE_TOKEN_SEARCH = Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)");
 
   private void createPatternRegex(String path) {
     // escape path from any regex special chars
@@ -378,7 +459,7 @@ public class RouteImpl implements Route {
       path = path.substring(0, path.length() - 1) + ".*";
     }
     // We need to search for any :<token name> tokens in the String and replace them with named capture groups
-    Matcher m =  Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)").matcher(path);
+    Matcher m = RE_TOKEN_SEARCH.matcher(path);
     StringBuffer sb = new StringBuffer();
     groups = new ArrayList<>();
     int index = 0;
@@ -414,6 +495,18 @@ public class RouteImpl implements Route {
       router.add(this);
       added = true;
     }
+  }
+
+  synchronized protected boolean hasNextContextHandler(RoutingContextImplBase context) {
+    return context.currentRouteNextHandlerIndex() < contextHandlers.size();
+  }
+
+  synchronized protected boolean hasNextFailureHandler(RoutingContextImplBase context) {
+    return context.currentRouteNextFailureHandlerIndex() < failureHandlers.size();
+  }
+
+  public void setEmptyBodyPermittedWithConsumes(boolean emptyBodyPermittedWithConsumes) {
+    this.emptyBodyPermittedWithConsumes = emptyBodyPermittedWithConsumes;
   }
 
 }

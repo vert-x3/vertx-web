@@ -19,9 +19,10 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.CorsHandler;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -36,6 +37,8 @@ import static io.vertx.core.http.HttpHeaders.*;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class CorsHandlerImpl implements CorsHandler {
+
+  public static final String CORS_HANDLED_FLAG = "corsHeadersWritten";
 
   private final Pattern allowedOrigin;
 
@@ -101,10 +104,6 @@ public class CorsHandlerImpl implements CorsHandler {
 
   @Override
   public CorsHandler allowCredentials(boolean allow) {
-    if (allowedOrigin == null && allow) {
-      // https://developer.mozilla.org/En/HTTP_access_control#Requests_with_credentials
-      throw new IllegalStateException("wildcard origin with credentials is not allowed");
-    }
     this.allowCredentials = allow;
     return this;
   }
@@ -137,12 +136,14 @@ public class CorsHandlerImpl implements CorsHandler {
         if (maxAgeSeconds != null) {
           response.putHeader(ACCESS_CONTROL_MAX_AGE, maxAgeSeconds);
         }
-        response.setStatusCode(204).end();
+        // according to MDC although the is no body the response should be OK
+        response.setStatusCode(200).end();
       } else {
         addCredentialsAndOriginHeader(response, origin);
         if (exposedHeadersString != null) {
           response.putHeader(ACCESS_CONTROL_EXPOSE_HEADERS, exposedHeadersString);
         }
+        context.put(CORS_HANDLED_FLAG, true);
         context.next();
       }
     } else {
@@ -166,11 +167,20 @@ public class CorsHandlerImpl implements CorsHandler {
   }
 
   private boolean isValidOrigin(String origin) {
-    if (allowedOrigin == null) {
+    if (allowedOrigin == null && isValidOriginURI(origin)) {
       // Null means accept all origins
       return true;
     }
     return allowedOrigin.matcher(origin).matches();
+  }
+
+  private boolean isValidOriginURI(String origin) {
+    try {
+      URI.create(origin);
+      return true;
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
   }
 
   private String getAllowedOrigin(String origin) {

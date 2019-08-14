@@ -1,6 +1,7 @@
 package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
@@ -8,13 +9,13 @@ import io.vertx.core.http.*;
 import io.vertx.core.net.NetSocket;
 import io.vertx.core.net.SocketAddress;
 
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.security.cert.X509Certificate;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 class HttpServerRequestWrapper implements HttpServerRequest {
 
@@ -23,13 +24,23 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   private String path;
   private String uri;
   private String absoluteURI;
-  
+
   HttpServerRequestWrapper(HttpServerRequest request) {
     delegate = request;
     method = request.method();
     path = request.path();
     uri = request.uri();
     absoluteURI = null;
+  }
+
+  @Override
+  public Future<Buffer> body() {
+    return delegate.body();
+  }
+
+  @Override
+  public long bytesRead() {
+    return delegate.bytesRead();
   }
 
   @Override
@@ -50,6 +61,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   @Override
   public HttpServerRequest resume() {
     return delegate.resume();
+  }
+
+  @Override
+  public HttpServerRequest fetch(long amount) {
+    return delegate.fetch(amount);
   }
 
   @Override
@@ -145,6 +161,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
+  public SSLSession sslSession() {
+    return delegate.sslSession();
+  }
+
+  @Override
   public String absoluteURI() {
     if (absoluteURI == null) {
       try {
@@ -226,7 +247,34 @@ class HttpServerRequestWrapper implements HttpServerRequest {
     return delegate.isEnded();
   }
 
+  @Override
   public boolean isSSL() {
     return delegate.isSSL();
+  }
+
+  @Override
+  public HttpServerRequest streamPriorityHandler(Handler<StreamPriority> handler) {
+    delegate.streamPriorityHandler(handler);
+    return this;
+  }
+
+  @Override
+  public StreamPriority streamPriority() {
+    return delegate.streamPriority();
+  }
+
+  @Override
+  public @Nullable Cookie getCookie(String name) {
+    return delegate.getCookie(name);
+  }
+
+  @Override
+  public int cookieCount() {
+    return delegate.cookieCount();
+  }
+
+  @Override
+  public Map<String, Cookie> cookieMap() {
+    return delegate.cookieMap();
   }
 }

@@ -32,12 +32,15 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 interface TransportListener {
 
-  void sendFrame(String body);
+  void sendFrame(String body, Handler<AsyncResult<Void>> handler);
 
   void close();
 

@@ -19,9 +19,9 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.jwt.JWTAuth;
-import io.vertx.ext.auth.jwt.JWTOptions;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
+import io.vertx.ext.jwt.JWTOptions;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Before;
@@ -41,7 +41,7 @@ public class JWTAuthHandlerTest extends WebTestBase {
         .put("path", "keystore.jceks")
         .put("password", "secret"));
 
-    authProvider = JWTAuth.create(vertx, authConfig);
+    authProvider = JWTAuth.create(vertx, new JWTAuthOptions(authConfig));
   }
 
   @Test
@@ -61,9 +61,7 @@ public class JWTAuthHandlerTest extends WebTestBase {
     }, 401, "Unauthorized", null);
 
     // Now try again with credentials
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions()));
-    }, 200, "OK", "Welcome to the protected resource!");
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())), 200, "OK", "Welcome to the protected resource!");
 
   }
 
@@ -84,9 +82,9 @@ public class JWTAuthHandlerTest extends WebTestBase {
     // Now try again with bad token
     final String token = authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions());
 
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Bearer x" + token);
-    }, 401, "Unauthorized", null);
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Bearer x" + token), 401, "Unauthorized", null);
+
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic " + token), 401, "Unauthorized", null);
 
   }
 }

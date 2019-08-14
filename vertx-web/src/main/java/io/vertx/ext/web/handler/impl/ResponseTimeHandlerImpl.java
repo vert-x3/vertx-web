@@ -16,20 +16,25 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.ResponseTimeHandler;
+
+import static java.util.concurrent.TimeUnit.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class ResponseTimeHandlerImpl implements ResponseTimeHandler {
 
+  private static final CharSequence HEADER_NAME = HttpHeaders.createOptimized("x-response-time");
+
   @Override
   public void handle(RoutingContext ctx) {
-    long start = System.currentTimeMillis();
+    long start = System.nanoTime();
     ctx.addHeadersEndHandler(v -> {
-      long duration = System.currentTimeMillis() - start;
-      ctx.response().putHeader("x-response-time", duration + "ms");
+      long duration = MILLISECONDS.convert(System.nanoTime() - start, NANOSECONDS);
+      ctx.response().putHeader(HEADER_NAME, duration + "ms");
     });
     ctx.next();
   }

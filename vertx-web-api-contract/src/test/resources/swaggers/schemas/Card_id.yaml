@@ -1,0 +1,6 @@
+type: object
+properties:
+  id_card:
+    type: string
+required:
+  - id_card

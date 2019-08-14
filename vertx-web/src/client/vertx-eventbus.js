@@ -17,7 +17,7 @@
   if (typeof require === 'function' && typeof module !== 'undefined') {
     // CommonJS loader
     var SockJS = require('sockjs-client');
-    if(!SockJS) {
+    if (!SockJS) {
       throw new Error('vertx-eventbus.js requires sockjs-client, see http://sockjs.org');
     }
     factory(SockJS);
@@ -42,7 +42,7 @@
 
   function mergeHeaders(defaultHeaders, headers) {
     if (defaultHeaders) {
-      if(!headers) {
+      if (!headers) {
         return defaultHeaders;
       }
 
@@ -75,10 +75,26 @@
     // attributes
     this.pingInterval = options.vertxbus_ping_interval || 5000;
     this.pingTimerID = null;
-    this.sockJSConn = new SockJS(url, null, options);
-    this.state = EventBus.CONNECTING;
-    this.handlers = {};
-    this.replyHandlers = {};
+
+    this.reconnectEnabled = false;
+    this.reconnectAttempts = 0;
+    this.reconnectTimerID = null;
+    // adapted from backo
+    this.maxReconnectAttempts = options.vertxbus_reconnect_attempts_max || Infinity;
+    this.reconnectDelayMin = options.vertxbus_reconnect_delay_min || 1000;
+    this.reconnectDelayMax = options.vertxbus_reconnect_delay_max || 5000;
+    this.reconnectExponent = options.vertxbus_reconnect_exponent || 2;
+    this.randomizationFactor = options.vertxbus_randomization_factor || 0.5;
+    var getReconnectDelay = function() {
+      var ms = self.reconnectDelayMin * Math.pow(self.reconnectExponent, self.reconnectAttempts);
+      if (self.randomizationFactor) {
+        var rand =  Math.random();
+        var deviation = Math.floor(rand * self.randomizationFactor * ms);
+        ms = (Math.floor(rand * 10) & 1) == 0  ? ms - deviation : ms + deviation;
+      }
+      return Math.min(ms, self.reconnectDelayMax) | 0;
+    };
+
     this.defaultHeaders = null;
 
     // default event handlers
@@ -90,61 +106,108 @@
       }
     };
 
-    this.sockJSConn.onopen = function () {
-      self.pingEnabled(true);
-      self.state = EventBus.OPEN;
-      self.onopen && self.onopen();
+    this.onevent = function (event, message) {
+      return false; // return false to signal that this message is not processed
     };
 
-    this.sockJSConn.onclose = function (e) {
-      self.state = EventBus.CLOSED;
-      if (self.pingTimerID) clearInterval(self.pingTimerID);
-      self.onclose && self.onclose(e);
-    };
-
-    this.sockJSConn.onmessage = function (e) {
-      var json = JSON.parse(e.data);
-
-      // define a reply function on the message itself
-      if (json.replyAddress) {
-        Object.defineProperty(json, 'reply', {
-          value: function (message, headers, callback) {
-            self.send(json.replyAddress, message, headers, callback);
-          }
-        });
-      }
-
-      if (self.handlers[json.address]) {
-        // iterate all registered handlers
-        var handlers = self.handlers[json.address];
-        for (var i = 0; i < handlers.length; i++) {
-          if (json.type === 'err') {
-            handlers[i]({failureCode: json.failureCode, failureType: json.failureType, message: json.message});
-          } else {
-            handlers[i](null, json);
-          }
-        }
-      } else if (self.replyHandlers[json.address]) {
-        // Might be a reply message
-        var handler = self.replyHandlers[json.address];
-        delete self.replyHandlers[json.address];
-        if (json.type === 'err') {
-          handler({failureCode: json.failureCode, failureType: json.failureType, message: json.message});
-        } else {
-          handler(null, json);
-        }
-      } else {
-        if (json.type === 'err') {
+    this.onunhandled = function (json) {
+      try {
+        if (json.type === 'err')
           self.onerror(json);
+        else if (json.event) {
+          console.warn('No handler found for event: %o. Message: %O', json.event, json);
         } else {
-          try {
-            console.warn('No handler found for message: ', json);
-          } catch (e) {
-            // dev tools are disabled so we cannot use console on IE
+          console.warn('No handler found for message: ', json);
+        }
+      } catch (e) {
+        // dev tools are disabled so we cannot use console on IE
+      }
+    };
+
+    var setupSockJSConnection = function () {
+      self.sockJSConn = new SockJS(url, null, options);
+      self.state = EventBus.CONNECTING;
+
+      // handlers and reply handlers are tied to the state of the socket
+      // they are added onopen or when sending, so reset when reconnecting
+      self.handlers = {};
+      self.replyHandlers = {};
+
+      self.sockJSConn.onopen = function () {
+        self.enablePing(true);
+        self.state = EventBus.OPEN;
+        self.onopen && self.onopen();
+        if (self.reconnectTimerID) {
+          self.reconnectAttempts = 0;
+          // fire separate event for reconnects
+          // consistent behavior with adding handlers onopen
+          self.onreconnect && self.onreconnect();
+        }
+      };
+
+      self.sockJSConn.onclose = function (e) {
+        self.state = EventBus.CLOSED;
+        if (self.pingTimerID) clearInterval(self.pingTimerID);
+        if (self.reconnectEnabled && self.reconnectAttempts < self.maxReconnectAttempts) {
+          self.sockJSConn = null;
+          // set id so users can cancel
+          self.reconnectTimerID = setTimeout(setupSockJSConnection, getReconnectDelay());
+          ++self.reconnectAttempts;
+        }
+        self.onclose && self.onclose(e);
+      };
+
+      self.sockJSConn.onmessage = function (e) {
+        var json;
+
+        try {
+          json = JSON.parse(e.data);
+        } catch(ex) {
+          json = {
+            type: 'err',
+            failureType: ex.toString(),
+            message: e.data
+          };
+        }
+
+        // define a reply function on the message itself
+        if (json.replyAddress) {
+          Object.defineProperty(json, 'reply', {
+            value: function (message, headers, callback) {
+              self.send(json.replyAddress, message, headers, callback);
+            }
+          });
+        }
+
+        if (self.handlers[json.address]) {
+          // iterate all registered handlers
+          var handlers = self.handlers[json.address];
+          for (var i = 0; i < handlers.length; i++) {
+            if (json.type === 'err') {
+              handlers[i]({ failureCode: json.failureCode, failureType: json.failureType, message: json.message });
+            } else {
+              handlers[i](null, json);
+            }
+          }
+        } else if (self.replyHandlers[json.address]) {
+          // Might be a reply message
+          var handler = self.replyHandlers[json.address];
+          delete self.replyHandlers[json.address];
+          if (json.type === 'err') {
+            handler({ failureCode: json.failureCode, failureType: json.failureType, message: json.message });
+          } else {
+            handler(null, json);
+          }
+        } else {
+          if (!json.event || !self.onevent(json.event, json.message)) {
+            self.onunhandled(json)
           }
         }
       }
-    }
+    };
+
+    // function cannot be anonymous and self-calling due to pseudo-recursion
+    setupSockJSConnection();
   };
 
   /**
@@ -275,10 +338,12 @@
   };
 
   /**
-   * Closes the connection to the EvenBus Bridge.
+   * Closes the connection to the EventBus Bridge,
+   * preventing any reconnect attempts
    */
   EventBus.prototype.close = function () {
     this.state = EventBus.CLOSING;
+    this.enableReconnect(false);
     this.sockJSConn.close();
   };
 
@@ -287,12 +352,12 @@
   EventBus.CLOSING = 2;
   EventBus.CLOSED = 3;
 
-  EventBus.prototype.pingEnabled = function (enable) {
+  EventBus.prototype.enablePing = function (enable) {
     var self = this;
 
     if (enable) {
       var sendPing = function () {
-        self.sockJSConn.send(JSON.stringify({type: 'ping'}));
+        self.sockJSConn.send(JSON.stringify({ type: 'ping' }));
       };
 
       if (self.pingInterval > 0) {
@@ -305,6 +370,17 @@
         clearInterval(self.pingTimerID);
         self.pingTimerID = null;
       }
+    }
+  };
+
+  EventBus.prototype.enableReconnect = function (enable) {
+    var self = this;
+
+    self.reconnectEnabled = enable;
+    if (!enable && self.reconnectTimerID) {
+      clearTimeout(self.reconnectTimerID);
+      self.reconnectTimerID = null;
+      self.reconnectAttempts = 0;
     }
   };
 

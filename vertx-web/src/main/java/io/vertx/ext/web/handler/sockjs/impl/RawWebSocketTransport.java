@@ -32,42 +32,47 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.ServerWebSocket;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.core.net.impl.ConnectionBase;
+import io.vertx.core.streams.ReadStream;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
-import io.vertx.ext.auth.User;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 class RawWebSocketTransport {
 
-  private static final Logger log = LoggerFactory.getLogger(WebSocketTransport.class);
-
   private static class RawWSSockJSSocket extends SockJSSocketBase {
 
-    ServerWebSocket ws;
+    final ServerWebSocket ws;
     MultiMap headers;
+    boolean closed;
 
     RawWSSockJSSocket(Vertx vertx, Session webSession, User webUser, ServerWebSocket ws) {
       super(vertx, webSession, webUser);
       this.ws = ws;
       ws.closeHandler(v -> {
         // Make sure the writeHandler gets unregistered
+        synchronized (RawWSSockJSSocket.this) {
+          closed = true;
+        }
         RawWSSockJSSocket.super.close();
       });
     }
 
     public SockJSSocket handler(Handler<Buffer> handler) {
-      ws.handler(handler);
+      ws.binaryMessageHandler(handler);
+      ws.textMessageHandler(textMessage -> handler.handle(Buffer.buffer(textMessage)));
       return this;
     }
 
@@ -81,9 +86,36 @@ class RawWebSocketTransport {
       return this;
     }
 
-    public SockJSSocket write(Buffer data) {
-      ws.write(data);
+    @Override
+    public ReadStream<Buffer> fetch(long amount) {
+      ws.fetch(amount);
       return this;
+    }
+
+    private synchronized boolean canWrite(Handler<AsyncResult<Void>> handler) {
+      if (closed) {
+        if (handler != null) {
+          vertx.runOnContext(v -> {
+            handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION));
+          });
+        }
+        return false;
+      }
+      return true;
+    }
+
+    @Override
+    public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
+      if (canWrite(handler)) {
+        ws.writeBinaryMessage(data, handler);
+      }
+    }
+
+    @Override
+    public void write(String data, Handler<AsyncResult<Void>> handler) {
+      if (canWrite(handler)) {
+        ws.writeTextMessage(data, handler);
+      }
     }
 
     public SockJSSocket setWriteQueueMaxSize(int maxQueueSize) {
@@ -111,8 +143,29 @@ class RawWebSocketTransport {
     }
 
     public void close() {
+      synchronized (this) {
+        if (closed) {
+          return;
+        }
+        closed = true;
+      }
       super.close();
       ws.close();
+    }
+
+    public void closeAfterSessionExpired() {
+      this.close((short) 1001, "Session expired");
+    }
+
+    public void close(int statusCode, String reason) {
+      synchronized (this) {
+        if (closed) {
+          return;
+        }
+        closed = true;
+      }
+      super.close();
+      ws.close((short) statusCode, reason);
     }
 
     @Override
@@ -150,13 +203,9 @@ class RawWebSocketTransport {
       sockHandler.handle(sock);
     });
 
-    router.get(wsRE).handler(rc -> {
-      rc.response().setStatusCode(400).end("Can \"Upgrade\" only to \"WebSocket\".");
-    });
+    router.get(wsRE).handler(rc -> rc.response().setStatusCode(400).end("Can \"Upgrade\" only to \"WebSocket\"."));
 
-    router.get(wsRE).handler(rc -> {
-      rc.response().putHeader("Allow", "GET").setStatusCode(405).end();
-    });
+    router.get(wsRE).handler(rc -> rc.response().putHeader("Allow", "GET").setStatusCode(405).end());
   }
 
 }

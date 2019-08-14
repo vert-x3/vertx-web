@@ -45,7 +45,7 @@ class TestWith(unittest2.TestCase):
             self.assertRaises(KeyError, lambda: None)
         except self.failureException:
             e = sys.exc_info()[1]
-            self.assertIn("KeyError not raised", e.args)
+            self.assertIn("KeyError not raised by <lambda>", e.args)
         else:
             self.fail("assertRaises() didn't fail")
         try:

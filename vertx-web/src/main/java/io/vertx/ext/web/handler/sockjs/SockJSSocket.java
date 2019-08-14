@@ -32,11 +32,13 @@
 
 package io.vertx.ext.web.handler.sockjs;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
@@ -74,18 +76,29 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   SockJSSocket endHandler(Handler<Void> endHandler);
 
   @Override
-  SockJSSocket write(Buffer data);
+  default Future<Void> write(Buffer data) {
+    Promise<Void> promise = Promise.promise();
+    write(data, promise);
+    return promise.future();
+  }
 
   /**
    * Write a {@link String} to the socket, encoded in UTF-8.
    *
    * @param data  the string to write
-   * @return a reference to this, so the API can be used fluently
    */
-  @Fluent
-  default SockJSSocket write(String data) {
-    return write(Buffer.buffer(data));
+  default Future<Void> write(String data) {
+    Promise<Void> promise = Promise.promise();
+    write(data, promise);
+    return promise.future();
   }
+
+  default void write(String data, Handler<AsyncResult<Void>> handler) {
+    write(Buffer.buffer(data), handler);
+  }
+
+  @Override
+  void write(Buffer data, Handler<AsyncResult<Void>> handler);
 
   @Override
   SockJSSocket setWriteQueueMaxSize(int maxSize);
@@ -104,15 +117,23 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   String writeHandlerID();
 
   /**
-   * Call {@link #end()}.
+   * Call {@link #close()}.
    */
   @Override
-  void end();
+  Future<Void> end();
 
   /**
    * Close it
    */
   void close();
+
+  /**
+   * Close it giving a status code and reason. Only Applicable to RawWebSocket will downgrade to plain close for
+   * other transports.
+   */
+  default void close(int statusCode, String reason) {
+    close();
+  }
 
   /**
    * Return the remote address for this socket

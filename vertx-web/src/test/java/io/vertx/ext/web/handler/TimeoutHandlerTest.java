@@ -20,6 +20,8 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -39,9 +41,9 @@ public class TimeoutHandlerTest extends WebTestBase {
   public void testTimeoutWithCustomBodyEndHandler() throws Exception {
     long timeout = 500;
 
-    final boolean[] ended = {false};
+    AtomicBoolean ended = new AtomicBoolean();
     router.route().handler(routingContext -> {
-      routingContext.addBodyEndHandler(event -> ended[0] = true);
+      routingContext.addBodyEndHandler(event -> ended.set(true));
       routingContext.next();
     });
 
@@ -51,7 +53,7 @@ public class TimeoutHandlerTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/", 503, "Service Unavailable");
 
-    assertTrue(ended[0]);
+    waitUntil(ended::get);
   }
 
 
@@ -59,9 +61,7 @@ public class TimeoutHandlerTest extends WebTestBase {
   public void testTimeoutCancelled() throws Exception {
     long timeout = 500;
     router.route().handler(TimeoutHandler.create(timeout));
-    router.route().handler(rc -> {
-      rc.response().end();
-    });
+    router.route().handler(rc -> rc.response().end());
     testRequest(HttpMethod.GET, "/", 200, "OK");
     Thread.sleep(1000); // Let timer kick in, if it's going to
   }

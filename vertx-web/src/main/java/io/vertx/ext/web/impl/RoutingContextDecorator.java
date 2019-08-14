@@ -2,8 +2,10 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -19,7 +21,7 @@ import java.util.Set;
 
 /**
  * Decorate a {@link RoutingContext} and simply delegate all method calls to the decorated handler
- * 
+ *
  * @author <a href="mailto:stephane.bastian.dev@gmail.com>Stéphane Bastian</a>
  *
  */
@@ -27,7 +29,7 @@ public class RoutingContextDecorator implements RoutingContext {
 
   private final Route currentRoute;
   private final RoutingContext decoratedContext;
-  
+
   public RoutingContextDecorator(Route currentRoute, RoutingContext decoratedContext) {
     Objects.requireNonNull(currentRoute);
     Objects.requireNonNull(decoratedContext);
@@ -41,7 +43,7 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
-  public RoutingContext addCookie(Cookie cookie) {
+  public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
     return decoratedContext.addCookie(cookie);
   }
 
@@ -56,8 +58,8 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
-  public Set<Cookie> cookies() {
-    return decoratedContext.cookies();
+  public Map<String, io.vertx.core.http.Cookie> cookieMap() {
+    return decoratedContext.cookieMap();
   }
 
   @Override
@@ -80,6 +82,11 @@ public class RoutingContextDecorator implements RoutingContext {
   public void fail(Throwable throwable) {
     // make sure the fail handler run on the correct context
     vertx().runOnContext(future -> decoratedContext.fail(throwable));
+  }
+
+  @Override
+  public void fail(int statusCode, Throwable throwable) {
+    vertx().runOnContext(future -> decoratedContext.fail(statusCode, throwable));
   }
 
   @Override
@@ -169,8 +176,8 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
-  public Cookie removeCookie(String name) {
-    return decoratedContext.removeCookie(name);
+  public Cookie removeCookie(String name, boolean invalidate) {
+    return decoratedContext.removeCookie(name, invalidate);
   }
 
   @Override
@@ -202,7 +209,7 @@ public class RoutingContextDecorator implements RoutingContext {
   public ParsedHeaderValues parsedHeaders() {
     return decoratedContext.parsedHeaders();
   }
-  
+
   @Override
   public void setAcceptableContentType(String contentType) {
     decoratedContext.setAcceptableContentType(contentType);
@@ -226,6 +233,16 @@ public class RoutingContextDecorator implements RoutingContext {
   @Override
   public @Nullable String pathParam(String name) {
     return decoratedContext.pathParam(name);
+  }
+
+  @Override
+  public MultiMap queryParams() {
+    return decoratedContext.queryParams();
+  }
+
+  @Override
+  public @Nullable List<String> queryParam(String query) {
+    return decoratedContext.queryParam(query);
   }
 
   @Override
@@ -257,5 +274,5 @@ public class RoutingContextDecorator implements RoutingContext {
   public Vertx vertx() {
     return decoratedContext.vertx();
   }
-  
+
 }

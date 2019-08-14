@@ -21,8 +21,8 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.FormLoginHandler;
@@ -83,7 +83,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
       context.fail(405); // Must be a POST
     } else {
       if (!req.isExpectMultipart()) {
-        throw new IllegalStateException("Form body not parsed - do you forget to include a BodyHandler?");
+        throw new IllegalStateException("HttpServerRequest should have setExpectMultipart set to true, but it is currently set to false.");
       }
       MultiMap params = req.formAttributes();
       String username = params.get(usernameParam);

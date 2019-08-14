@@ -1,124 +1,155 @@
 # -*- coding: utf-8 -*-
-import socket
-from urlparse import urlsplit
+import ssl
 
 from tornado import iostream, escape
-
 from ws4py.client import WebSocketBaseClient
 from ws4py.exc import HandshakeError
 
 __all__ = ['TornadoWebSocketClient']
 
 class TornadoWebSocketClient(WebSocketBaseClient):
-    def __init__(self, url, protocols=None, version='8'):
-        WebSocketBaseClient.__init__(self, url, protocols=protocols, version=version)
-        self.io = iostream.IOStream(socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0))
+    def __init__(self, url, protocols=None, extensions=None,
+                 io_loop=None, ssl_options=None, headers=None, exclude_headers=None):
+        """
+        .. code-block:: python
+
+            from tornado import ioloop
+
+            class MyClient(TornadoWebSocketClient):
+                def opened(self):
+                    for i in range(0, 200, 25):
+                        self.send("*" * i)
+
+                def received_message(self, m):
+                    print((m, len(str(m))))
+
+                def closed(self, code, reason=None):
+                    ioloop.IOLoop.instance().stop()
+
+            ws = MyClient('ws://localhost:9000/echo', protocols=['http-only', 'chat'])
+            ws.connect()
+
+            ioloop.IOLoop.instance().start()
+        """
+        WebSocketBaseClient.__init__(self, url, protocols, extensions,
+                                     ssl_options=ssl_options, headers=headers, exclude_headers=exclude_headers)
+        if self.scheme == "wss":
+            self.sock = ssl.wrap_socket(self.sock, do_handshake_on_connect=False, **self.ssl_options)
+            self._is_secure = True
+            self.io = iostream.SSLIOStream(self.sock, io_loop, ssl_options=self.ssl_options)
+        else:
+            self.io = iostream.IOStream(self.sock, io_loop)
+        self.io_loop = io_loop
 
     def connect(self):
-        parts = urlsplit(self.url)
-        host, port = parts.netloc, 80
-        if ':' in host:
-            host, port = parts.netloc.split(':')
-        self.io.connect((host, int(port)), self.__send_handshake)
+        """
+        Connects the websocket and initiate the upgrade handshake.
+        """
+        self.io.set_close_callback(self.__connection_refused)
+        self.io.connect((self.host, int(self.port)), self.__send_handshake)
+
+    def _write(self, b):
+        """
+        Trying to prevent a write operation
+        on an already closed websocket stream.
+
+        This cannot be bullet proof but hopefully
+        will catch almost all use cases.
+        """
+        if self.terminated:
+            raise RuntimeError("Cannot send on a terminated websocket")
+
+        self.io.write(b)
+
+    def __connection_refused(self, *args, **kwargs):
+        self.server_terminated = True
+        self.closed(1005, 'Connection refused')
 
     def __send_handshake(self):
         self.io.set_close_callback(self.__connection_closed)
         self.io.write(escape.utf8(self.handshake_request),
                       self.__handshake_sent)
-    
+
     def __connection_closed(self, *args, **kwargs):
         self.server_terminated = True
         self.closed(1006, 'Connection closed during handshake')
-    
+
     def __handshake_sent(self):
-        self.io.read_until("\r\n\r\n", self.__handshake_completed)
+        self.io.read_until(b"\r\n\r\n", self.__handshake_completed)
 
     def __handshake_completed(self, data):
         self.io.set_close_callback(None)
         try:
-            response_line, _, headers = data.partition('\r\n')
+            response_line, _, headers = data.partition(b'\r\n')
             self.process_response_line(response_line)
             protocols, extensions = self.process_handshake_header(headers)
         except HandshakeError:
-            self.io.close()
+            self.close_connection()
             raise
-        
-        self.opened(protocols, extensions)
-        self.io.read_bytes(1, self.__fetch_more)
+
+        self.opened()
+        self.io.set_close_callback(self.__stream_closed)
+        self.io.read_bytes(self.reading_buffer_size, self.__fetch_more)
 
     def __fetch_more(self, bytes):
-        s = self.stream
         try:
-            next_size = s.parser.send(bytes)
+            should_continue = self.process(bytes)
         except:
+            should_continue = False
+
+        if should_continue:
+            self.io.read_bytes(self.reading_buffer_size, self.__fetch_more)
+        else:
+            self.__gracefully_terminate()
+
+    def __gracefully_terminate(self):
+        self.client_terminated = self.server_terminated = True
+
+        try:
+            if not self.stream.closing:
+                self.closed(1006)
+        finally:
             self.close_connection()
-            self.closed(1006)
-            return
-                
-        if s.closing is not None:
-            if not self.client_terminated:
-                next_size = 2
-                self.close()
-            else:
-                self.server_terminated = True
-                self.close_connection()
-                self.closed(s.closing.code, s.closing.reason)
-                return
-            
-        elif s.errors:
-            errors = s.errors[:]
-            for error in s.errors:
-                self.close(error.code, error.reason)
-                s.errors.remove(error)
-                
-        elif s.has_message:
-            self.received_message(s.message)
-            s.message.data = None
-            s.message = None
 
-        for ping in s.pings:
-            self.write_to_connection(s.pong(str(ping.data)))
-        s.pings = []
+    def __stream_closed(self, *args, **kwargs):
+        self.io.set_close_callback(None)
+        code = 1006
+        reason = None
+        if self.stream.closing:
+            code, reason = self.stream.closing.code, self.stream.closing.reason
+        self.closed(code, reason)
+        self.stream._cleanup()
 
-        for pong in s.pongs:
-            self.ponged(pong)
-        s.pongs = []
-    
-        self.io.read_bytes(next_size, self.__fetch_more)
-     
-    def write_to_connection(self, bytes):
-        self.io.write(bytes)
-
-    def read_from_connection(self, amount):
-        self.io.read_bytes(amount, self.__fetch_more)
-        
     def close_connection(self):
+        """
+        Close the underlying connection
+        """
         self.io.close()
 
 if __name__ == '__main__':
     from tornado import ioloop
 
     class MyClient(TornadoWebSocketClient):
-        def opened(self, protocols, extensions):
+        def opened(self):
             def data_provider():
-                for i in range(1, 200, 25):
+                for i in range(0, 200, 25):
                     yield "#" * i
 
             self.send(data_provider())
-            
+
             for i in range(0, 200, 25):
                 self.send("*" * i)
 
         def received_message(self, m):
-            print m, len(str(m))
-            if len(str(m)) == 175:
+            print("#%d" % len(m))
+            if len(m) == 175:
                 self.close()
 
-        def closed(self, code, reason):
+        def closed(self, code, reason=None):
             ioloop.IOLoop.instance().stop()
-                
-    ws = MyClient('http://localhost:9000/', protocols=['http-only', 'chat'])
-    ws.connect()
-        
-    ioloop.IOLoop.instance().start()
+            print(("Closed down", code, reason))
 
+    ws = MyClient('ws://localhost:9000/ws', protocols=['http-only', 'chat'])
+    ws.connect()
+
+    ioloop.IOLoop.instance().start()

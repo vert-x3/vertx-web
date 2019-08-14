@@ -16,10 +16,12 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpVersion;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.LoggerFormat;
 import io.vertx.ext.web.handler.LoggerHandler;
@@ -45,7 +47,7 @@ import java.util.Date;
  */
 public class LoggerHandlerImpl implements LoggerHandler {
 
-  private final io.vertx.core.logging.Logger logger = LoggerFactory.getLogger(this.getClass());
+  private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
   /** The Date formatter (UTC JS compatible format)
    */
@@ -101,15 +103,17 @@ public class LoggerHandlerImpl implements LoggerHandler {
         break;
       case HTTP_2:
         versionFormatted = "HTTP/2.0";
-        break;  
+        break;
     }
 
+    final MultiMap headers = request.headers();
     int status = request.response().getStatusCode();
     String message = null;
 
     switch (format) {
       case DEFAULT:
-        String referrer = request.headers().get("referrer");
+        // as per RFC1945 the header is referer but it is not mandatory some implementations use referrer
+        String referrer = headers.contains("referrer") ? headers.get("referrer") : headers.get("referer");
         String userAgent = request.headers().get("user-agent");
         referrer = referrer == null ? "-" : referrer;
         userAgent = userAgent == null ? "-" : userAgent;

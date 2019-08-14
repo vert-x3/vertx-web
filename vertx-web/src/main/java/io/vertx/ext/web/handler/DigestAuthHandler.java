@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Vertx;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.web.handler.impl.DigestAuthHandlerImpl;
 
@@ -36,21 +37,23 @@ public interface DigestAuthHandler extends AuthHandler {
   /**
    * Create a digest auth handler
    *
+   * @param vertx        the vertx instance
    * @param authProvider the auth provider to use
    * @return the auth handler
    */
-  static DigestAuthHandler create(HtdigestAuth authProvider) {
-    return new DigestAuthHandlerImpl(authProvider, DEFAULT_NONCE_EXPIRE_TIMEOUT);
+  static DigestAuthHandler create(Vertx vertx, HtdigestAuth authProvider) {
+    return new DigestAuthHandlerImpl(vertx, authProvider, DEFAULT_NONCE_EXPIRE_TIMEOUT);
   }
 
   /**
    * Create a digest auth handler, specifying the expire timeout for nonces.
    *
+   * @param vertx              the vertx instance
    * @param authProvider       the auth service to use
    * @param nonceExpireTimeout the nonce expire timeout in milliseconds.
    * @return the auth handler
    */
-  static DigestAuthHandler create(HtdigestAuth authProvider, long nonceExpireTimeout) {
-    return new DigestAuthHandlerImpl(authProvider, nonceExpireTimeout);
+  static DigestAuthHandler create(Vertx vertx, HtdigestAuth authProvider, long nonceExpireTimeout) {
+    return new DigestAuthHandlerImpl(vertx, authProvider, nonceExpireTimeout);
   }
 }

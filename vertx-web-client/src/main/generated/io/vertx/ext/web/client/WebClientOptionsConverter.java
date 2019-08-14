@@ -1,44 +1,52 @@
-/*
- * Copyright 2014 Red Hat, Inc.
- *
- * Red Hat licenses this file to you under the Apache License, version 2.0
- * (the "License"); you may not use this file except in compliance with the
- * License.  You may obtain a copy of the License at:
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations
- * under the License.
- */
-
 package io.vertx.ext.web.client;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import io.vertx.core.spi.json.JsonCodec;
 
 /**
- * Converter for {@link io.vertx.ext.web.client.WebClientOptions}.
- *
+ * Converter and Codec for {@link io.vertx.ext.web.client.WebClientOptions}.
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.client.WebClientOptions} original class using Vert.x codegen.
  */
-public class WebClientOptionsConverter {
+public class WebClientOptionsConverter implements JsonCodec<WebClientOptions, JsonObject> {
 
-  public static void fromJson(JsonObject json, WebClientOptions obj) {
-    if (json.getValue("followRedirects") instanceof Boolean) {
-      obj.setFollowRedirects((Boolean)json.getValue("followRedirects"));
-    }
-    if (json.getValue("userAgent") instanceof String) {
-      obj.setUserAgent((String)json.getValue("userAgent"));
-    }
-    if (json.getValue("userAgentEnabled") instanceof Boolean) {
-      obj.setUserAgentEnabled((Boolean)json.getValue("userAgentEnabled"));
+  public static final WebClientOptionsConverter INSTANCE = new WebClientOptionsConverter();
+
+  @Override public JsonObject encode(WebClientOptions value) { return (value != null) ? value.toJson() : null; }
+
+  @Override public WebClientOptions decode(JsonObject value) { return (value != null) ? new WebClientOptions(value) : null; }
+
+  @Override public Class<WebClientOptions> getTargetClass() { return WebClientOptions.class; }
+
+  public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, WebClientOptions obj) {
+    for (java.util.Map.Entry<String, Object> member : json) {
+      switch (member.getKey()) {
+        case "followRedirects":
+          if (member.getValue() instanceof Boolean) {
+            obj.setFollowRedirects((Boolean)member.getValue());
+          }
+          break;
+        case "userAgent":
+          if (member.getValue() instanceof String) {
+            obj.setUserAgent((String)member.getValue());
+          }
+          break;
+        case "userAgentEnabled":
+          if (member.getValue() instanceof Boolean) {
+            obj.setUserAgentEnabled((Boolean)member.getValue());
+          }
+          break;
+      }
     }
   }
 
   public static void toJson(WebClientOptions obj, JsonObject json) {
+    toJson(obj, json.getMap());
+  }
+
+  public static void toJson(WebClientOptions obj, java.util.Map<String, Object> json) {
     json.put("followRedirects", obj.isFollowRedirects());
     if (obj.getUserAgent() != null) {
       json.put("userAgent", obj.getUserAgent());

@@ -16,132 +16,186 @@
 
 package io.vertx.ext.web.templ;
 
-import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.handler.TemplateHandler;
-import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
+import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
+import io.vertx.core.file.FileSystemOptions;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.ext.web.common.template.TemplateEngine;
+import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class FreeMarkerTemplateTest extends WebTestBase {
+@RunWith(VertxUnitRunner.class)
+public class FreeMarkerTemplateTest {
 
-  @Override
-  public void setUp() throws Exception {
-    System.setProperty("vertx.disableFileCaching", "true");
-    super.setUp();
+  private static Vertx vertx;
+
+  @BeforeClass
+  public static void before() {
+    vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(true)));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspath() throws Exception {
-    TemplateEngine engine = FreeMarkerTemplateEngine.create();
-    testTemplateHandler(engine, "somedir", "test-freemarker-template2.ftl", "Hello badger and fox\nRequest path is /test-freemarker-template2.ftl");
-  }
+  public void testTemplateHandlerOnClasspath(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
-  @Test
-  public void testCachingEnabled() throws Exception {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
-    TemplateEngine engine = FreeMarkerTemplateEngine.create();
+    final JsonObject context = new JsonObject()
+      .put("foo", "badger")
+      .put("bar", "fox");
 
-    PrintWriter out;
-    File temp = File.createTempFile("template", ".ftl", new File("target/classes"));
-    temp.deleteOnExit();
+    context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
 
-    out = new PrintWriter(temp);
-    out.print("before");
-    out.flush();
-    out.close();
-
-    testTemplateHandler(engine, "", temp.getName(), "before");
-
-    // cache is enabled so if we change the content that should not affect the result
-
-    out = new PrintWriter(temp);
-    out.print("after");
-    out.flush();
-    out.close();
-
-    testTemplateHandler(engine, "", temp.getName(), "before");
-  }
-
-  @Test
-  public void testCachingDisabled() throws Exception {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
-    TemplateEngine engine = FreeMarkerTemplateEngine.create();
-
-    assertFalse("Caching should be disabled", engine.isCachingEnabled());
-
-    PrintWriter out;
-    File temp = File.createTempFile("template", ".ftl", new File("target/classes"));
-    temp.deleteOnExit();
-
-    out = new PrintWriter(temp);
-    out.print("before");
-    out.flush();
-    out.close();
-
-    testTemplateHandler(engine, "", temp.getName(), "before");
-
-    // cache is disabled so if we change the content that should affect the result
-
-    out = new PrintWriter(temp);
-    out.print("after");
-    out.flush();
-    out.close();
-
-    testTemplateHandler(engine, "", temp.getName(), "after");
-  }
-
-  @Test
-  public void testTemplateHandlerOnFileSystem() throws Exception {
-    TemplateEngine engine = FreeMarkerTemplateEngine.create();
-    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-freemarker-template3.ftl", "Hello badger and fox\nRequest path is /test-freemarker-template3.ftl");
-  }
-
-  @Test
-  public void testTemplateHandlerOnClasspathDisableCaching() throws Exception {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
-    testTemplateHandlerOnClasspath();
-  }
-
-  @Test
-  public void testTemplateHandlerNoExtension() throws Exception {
-    TemplateEngine engine = FreeMarkerTemplateEngine.create();
-    testTemplateHandler(engine, "somedir", "test-freemarker-template2", "Hello badger and fox\nRequest path is /test-freemarker-template2");
-  }
-
-  @Test
-  public void testTemplateHandlerChangeExtension() throws Exception {
-    TemplateEngine engine = FreeMarkerTemplateEngine.create().setExtension("mvl");
-    testTemplateHandler(engine, "somedir", "test-freemarker-template2", "Cheerio badger and fox\nRequest path is /test-freemarker-template2");
-  }
-
-  @Test
-  public void testTemplateHandlerIncludes() throws Exception {
-    TemplateEngine engine = FreeMarkerTemplateEngine.create();
-    testTemplateHandler(engine, "somedir", "base", "Vert.x rules");
-  }
-
-  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName,
-                                   String expected) throws Exception {
-    router.route().handler(context -> {
-      context.put("foo", "badger");
-      context.put("bar", "fox");
-      context.next();
+    engine.render(context, "somedir/test-freemarker-template2.ftl", render -> {
+      should.assertTrue(render.succeeded());
+      should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template2.ftl\n", render.result().toString());
+      test.complete();
     });
-    router.route().handler(TemplateHandler.create(engine, directoryName, "text/plain"));
-    testRequest(HttpMethod.GET, "/" + templateName, 200, "OK", expected);
+    test.await();
   }
 
   @Test
-  public void testNoSuchTemplate() throws Exception {
-    TemplateEngine engine = FreeMarkerTemplateEngine.create();
-    router.route().handler(TemplateHandler.create(engine, "nosuchtemplate.templ", "text/plain"));
-    testRequest(HttpMethod.GET, "/foo.templ", 500, "Internal Server Error");
+  public void testCachingEnabled(TestContext should) throws IOException {
+    final Async test = should.async();
+
+    System.setProperty("vertxweb.environment", "production");
+    TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
+
+    PrintWriter out;
+    File temp = File.createTempFile("template", ".ftl", new File("target/classes"));
+    temp.deleteOnExit();
+
+    out = new PrintWriter(temp);
+    out.print("before");
+    out.flush();
+    out.close();
+
+    engine.render(new JsonObject(), temp.getName(), render -> {
+      should.assertTrue(render.succeeded());
+      should.assertEquals("before", render.result().toString());
+      // cache is enabled so if we change the content that should not affect the result
+
+      try {
+        PrintWriter out2 = new PrintWriter(temp);
+        out2.print("after");
+        out2.flush();
+        out2.close();
+      } catch (IOException e) {
+        should.fail(e);
+      }
+
+      engine.render(new JsonObject(), temp.getName(), render2 -> {
+        should.assertTrue(render2.succeeded());
+        should.assertEquals("before", render2.result().toString());
+        test.complete();
+      });
+    });
+    test.await();
+  }
+
+  @Test
+  public void testTemplateHandlerOnFileSystem(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
+
+    final JsonObject context = new JsonObject()
+      .put("foo", "badger")
+      .put("bar", "fox");
+
+    context.put("context", new JsonObject().put("path", "/test-freemarker-template3.ftl"));
+
+    engine.render(context, "src/test/filesystemtemplates/test-freemarker-template3.ftl", render -> {
+      should.assertTrue(render.succeeded());
+      should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template3.ftl\n", render.result().toString());
+      test.complete();
+    });
+    test.await();
+  }
+
+  @Test
+  public void testTemplateHandlerOnClasspathDisableCaching(TestContext context) {
+    System.setProperty("vertxweb.environment", "development");
+    testTemplateHandlerOnClasspath(context);
+  }
+
+  @Test
+  public void testTemplateHandlerNoExtension(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
+
+    final JsonObject context = new JsonObject()
+      .put("foo", "badger")
+      .put("bar", "fox");
+
+    context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
+
+    engine.render(context, "somedir/test-freemarker-template2", render -> {
+      should.assertTrue(render.succeeded());
+      should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template2.ftl\n", render.result().toString());
+      test.complete();
+    });
+    test.await();
+  }
+
+  @Test
+  public void testTemplateHandlerChangeExtension(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx, "mvl");
+
+    final JsonObject context = new JsonObject()
+      .put("foo", "badger")
+      .put("bar", "fox");
+
+    context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
+
+    engine.render(context, "somedir/test-freemarker-template2", render -> {
+      should.assertTrue(render.succeeded());
+      should.assertEquals("Cheerio badger and fox\nRequest path is /test-freemarker-template2.ftl\n", render.result().toString());
+      test.complete();
+    });
+    test.await();
+  }
+
+  @Test
+  public void testTemplateHandlerIncludes(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
+
+    final JsonObject context = new JsonObject()
+      .put("foo", "badger")
+      .put("bar", "fox");
+
+    context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
+
+    engine.render(context, "somedir/base", render -> {
+      should.assertTrue(render.succeeded());
+      should.assertEquals("Vert.x rules", render.result().toString());
+      test.complete();
+    });
+    test.await();
+  }
+
+  @Test
+  public void testNoSuchTemplate(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
+
+    engine.render(new JsonObject(), "not-found", render -> {
+      should.assertTrue(render.failed());
+      test.complete();
+    });
+    test.await();
   }
 
 }

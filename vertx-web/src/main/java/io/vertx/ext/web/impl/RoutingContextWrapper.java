@@ -18,8 +18,10 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -70,6 +72,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public void fail(Throwable throwable) {
     inner.fail(throwable);
+  }
+
+  @Override
+  public void fail(int statusCode, Throwable throwable) {
+    inner.fail(statusCode, throwable);
   }
 
   @Override
@@ -188,8 +195,8 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public Cookie removeCookie(String name) {
-    return inner.removeCookie(name);
+  public Cookie removeCookie(String name, boolean invalidate) {
+    return inner.removeCookie(name, invalidate);
   }
 
   @Override
@@ -198,8 +205,8 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public Set<Cookie> cookies() {
-    return inner.cookies();
+  public Map<String, io.vertx.core.http.Cookie> cookieMap() {
+    return inner.cookieMap();
   }
 
   @Override
@@ -270,6 +277,14 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public @Nullable String pathParam(String name) {
     return inner.pathParam(name);
+  }
+
+  @Override
+  public MultiMap queryParams() { return inner.queryParams(); }
+
+  @Override
+  public @Nullable List<String> queryParam(String query) {
+    return inner.queryParam(query);
   }
 
 }

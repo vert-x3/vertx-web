@@ -25,3 +25,4 @@ src/test/resources/vertx-js/*.js
 *.pyc
 .metadata/*
 .recommenders/*
+.vscode
