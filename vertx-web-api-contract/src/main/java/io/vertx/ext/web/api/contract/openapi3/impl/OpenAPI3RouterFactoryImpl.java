@@ -34,6 +34,12 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   private final static String OPENAPI_EXTENSION_ADDRESS = "address";
   private final static String OPENAPI_EXTENSION_METHOD_NAME = "method";
 
+  /**
+   * The router which may be passed in with the setRouter method, or the constructor, 
+   * or initialized new with the getRouter method if not already initialized. 
+   */
+  Router router;
+
   private final static Handler<RoutingContext> NOT_IMPLEMENTED_HANDLER = rc -> rc.fail(501);
   private static Handler<RoutingContext> generateNotAllowedHandler(List<HttpMethod> allowedMethods){
     return rc -> {
@@ -159,11 +165,13 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     }
   }
 
-  public OpenAPI3RouterFactoryImpl(Vertx vertx, OpenAPI spec, ResolverCache refsCache) {
+  public OpenAPI3RouterFactoryImpl(Vertx vertx, OpenAPI spec, ResolverCache refsCache, Router router) {
     super(vertx, spec);
     this.refsCache = refsCache;
     this.operations = new LinkedHashMap<>();
     this.securityHandlers = new SecurityHandlersStore();
+    if(router != null)
+    	setRouter(router);
 
     /* --- Initialization of all arrays and maps --- */
     for (Map.Entry<String, ? extends PathItem> pathEntry : spec.getPaths().entrySet()) {
@@ -276,7 +284,10 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
 
   @Override
   public Router getRouter() {
-    Router router = Router.router(vertx);
+    // initialize the router if not already initialized. 
+    if(router == null)
+      router = Router.router(vertx);
+
     Route globalRoute = router.route();
     globalRoute.handler(this.getBodyHandler());
 
@@ -394,6 +405,10 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     if (this.options.isMountValidationFailureHandler()) router.errorHandler(400, this.getValidationFailureHandler());
     if (this.options.isMountNotImplementedHandler()) router.errorHandler(501, this.getNotImplementedFailureHandler());
     return router;
+  }
+
+  public void setRouter(Router router) {
+    this.router = router;
   }
 
 }

@@ -14,6 +14,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.RouterFactory;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
@@ -142,7 +143,19 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
    * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
    */
   static void create(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
-    create(vertx, url, Collections.emptyList(), handler);
+    create(vertx, url, Collections.emptyList(), handler, null);
+  }
+
+  /**
+   * Create a new OpenAPI3RouterFactory
+   *
+   * @param vertx
+   * @param url location of your spec. It can be an absolute path, a local path or remote url (with HTTP protocol)
+   * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
+   * @param router Optional router that has already been initialized with other handlers to use for OpenAPI handlers. 
+   */
+  static void create(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>> handler, Router router) {
+    create(vertx, url, Collections.emptyList(), handler, router);
   }
 
   /**
@@ -157,14 +170,15 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
   static void create(Vertx vertx,
                      String url,
                      List<JsonObject> auth,
-                     Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
+                     Handler<AsyncResult<OpenAPI3RouterFactory>> handler, 
+                     Router router) {
     List<AuthorizationValue> authorizationValues = auth.stream()
       .map(obj -> obj.mapTo(AuthorizationValue.class))
       .collect(Collectors.toList());
     vertx.executeBlocking((Promise<OpenAPI3RouterFactory> future) -> {
       SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(url, authorizationValues, OpenApi3Utils.getParseOptions());
       if (swaggerParseResult.getMessages().isEmpty()) {
-        future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI(), new ResolverCache(swaggerParseResult.getOpenAPI(), null, url)));
+        future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI(), new ResolverCache(swaggerParseResult.getOpenAPI(), null, url), router));
       } else {
         if (swaggerParseResult.getMessages().size() == 1 && swaggerParseResult.getMessages().get(0).matches("unable to read location `?\\Q" + url + "\\E`?"))
           future.fail(RouterFactoryException.createSpecNotExistsException(url));
