@@ -172,4 +172,19 @@ public class PostRequestsTest extends GraphQLTestBase {
       })).end("<h1>Hello world!</h1>");
     await();
   }
+
+  @Test
+  public void testContentTypeWithCharset() throws Exception {
+    GraphQLRequest request = new GraphQLRequest()
+      .setGraphQLQuery("query { allLinks { url } }")
+      .setContentType("application/json; charset=UTF-8");
+    request.send(client, onSuccess(body -> {
+      if (testData.checkLinkUrls(testData.urls(), body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
+    }));
+    await();
+  }
 }
