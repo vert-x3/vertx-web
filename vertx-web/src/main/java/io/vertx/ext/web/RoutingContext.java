@@ -212,7 +212,7 @@ public interface RoutingContext {
    * @return  the entire HTTP request body as a string, assuming UTF-8 encoding. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    */
-  @Nullable String getBodyAsString();
+  @CacheReturn @Nullable String getBodyAsString();
 
   /**
    * Get the entire HTTP request body as a string, assuming the specified encoding. The context must have first been routed to a
@@ -221,19 +221,19 @@ public interface RoutingContext {
    * @param encoding  the encoding, e.g. "UTF-16"
    * @return the body
    */
-  @Nullable String getBodyAsString(String encoding);
+  @CacheReturn @Nullable String getBodyAsString(String encoding);
 
   /**
    * @return Get the entire HTTP request body as a {@link JsonObject}. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    */
-  @Nullable JsonObject getBodyAsJson();
+  @CacheReturn @Nullable JsonObject getBodyAsJson();
 
   /**
    * @return Get the entire HTTP request body as a {@link JsonArray}. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    */
-  @Nullable JsonArray getBodyAsJsonArray();
+  @CacheReturn @Nullable JsonArray getBodyAsJsonArray();
 
   /**
    * @return Get the entire HTTP request body as a {@link Buffer}. The context must have first been routed to a
