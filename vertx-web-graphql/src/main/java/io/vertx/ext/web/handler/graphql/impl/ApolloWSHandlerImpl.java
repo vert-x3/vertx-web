@@ -33,11 +33,14 @@ import org.reactivestreams.Subscription;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 /**
  * @author Rogelio Orts
  */
 public class ApolloWSHandlerImpl implements ApolloWSHandler {
+
+  private static final Function<RoutingContext, Object> DEFAULT_QUERY_CONTEXT_FACTORY = rc -> rc;
 
   private final static String HEADER_CONNECTION_UPGRADE_VALUE = "upgrade";
 
@@ -45,8 +48,16 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   private Handler<ServerWebSocket> endHandler;
 
+  private Function<RoutingContext, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
+
   public ApolloWSHandlerImpl(GraphQL graphQL) {
     this.graphQL = graphQL;
+  }
+
+  @Override
+  public synchronized ApolloWSHandler queryContext(Function<RoutingContext, Object> factory) {
+    queryContextFactory = factory != null ? factory : DEFAULT_QUERY_CONTEXT_FACTORY;
+    return this;
   }
 
   @Override
@@ -58,13 +69,13 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
       HEADER_CONNECTION_UPGRADE_VALUE.equals(headers.get(HttpHeaders.CONNECTION).toLowerCase())
     ) {
       ServerWebSocket serverWebSocket = routingContext.request().upgrade();
-      handleConnection(serverWebSocket);
+      handleConnection(routingContext, serverWebSocket);
     } else {
       routingContext.next();
     }
   }
 
-  private void handleConnection(ServerWebSocket serverWebSocket) {
+  private void handleConnection(RoutingContext routingContext, ServerWebSocket serverWebSocket) {
     Map<String, Subscription> subscriptions = new ConcurrentHashMap();
 
     serverWebSocket.handler(buffer -> {
@@ -86,7 +97,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
             serverWebSocket.close();
             break;
           case START:
-            start(serverWebSocket, subscriptions, message);
+            start(routingContext, serverWebSocket, subscriptions, message);
             break;
           case STOP:
             stop(serverWebSocket, subscriptions, opId);
@@ -116,7 +127,9 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     return this;
   }
 
-  private void start(ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions, JsonObject message) {
+  private void start(
+      RoutingContext routingContext, ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions,
+      JsonObject message) {
     String opId = message.getString("id");
 
     // Unsubscribe if it's subscribed
@@ -127,6 +140,13 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     GraphQLQuery payload = message.getJsonObject("payload").mapTo(GraphQLQuery.class);
     ExecutionInput.Builder builder = ExecutionInput.newExecutionInput();
     builder.query(payload.getQuery());
+
+    Function<RoutingContext, Object> qc;
+    synchronized (this) {
+      qc = queryContextFactory;
+    }
+    builder.context(qc.apply(routingContext));
+
     String operationName = payload.getOperationName();
     if (operationName != null) {
       builder.operationName(operationName);

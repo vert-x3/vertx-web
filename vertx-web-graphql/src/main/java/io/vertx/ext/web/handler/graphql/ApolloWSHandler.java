@@ -25,6 +25,8 @@ import io.vertx.core.http.ServerWebSocket;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.impl.ApolloWSHandlerImpl;
 
+import java.util.function.Function;
+
 /**
  * A handler for GraphQL requests sent over Apollo's {@code subscriptions-transport-ws} transport.
  *
@@ -50,5 +52,14 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
   static ApolloWSHandler create(GraphQL graphQL) {
     return new ApolloWSHandlerImpl(graphQL);
   }
+
+  /**
+   * Customize the query context object.
+   * The provided {@code factory} method will be invoked for each incoming GraphQL request.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  ApolloWSHandler queryContext(Function<RoutingContext, Object> factory);
 
 }
