@@ -165,6 +165,25 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     }
   }
 
+  public OpenAPI3RouterFactoryImpl(Vertx vertx, OpenAPI spec, ResolverCache refsCache) {
+    super(vertx, spec);
+    this.refsCache = refsCache;
+    this.operations = new LinkedHashMap<>();
+    this.securityHandlers = new SecurityHandlersStore();
+
+    /* --- Initialization of all arrays and maps --- */
+    for (Map.Entry<String, ? extends PathItem> pathEntry : spec.getPaths().entrySet()) {
+      for (Map.Entry<PathItem.HttpMethod, ? extends Operation> opEntry : pathEntry.getValue().readOperationsMap().entrySet()) {
+        this.operations.put(opEntry.getValue().getOperationId(), new OperationValue(
+          HttpMethod.valueOf(opEntry.getKey().name()),
+          pathEntry.getKey(),
+          opEntry.getValue(),
+          pathEntry.getValue()
+        ));
+      }
+    }
+  }
+
   public OpenAPI3RouterFactoryImpl(Vertx vertx, OpenAPI spec, ResolverCache refsCache, Router router) {
     super(vertx, spec);
     this.refsCache = refsCache;
