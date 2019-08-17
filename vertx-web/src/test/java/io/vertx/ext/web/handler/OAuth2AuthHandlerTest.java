@@ -56,7 +56,8 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
   public void testAuthCodeFlow() throws Exception {
 
     // lets mock a oauth2 server using code auth code flow
-    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2ClientOptions()
+        .setFlow(OAuth2FlowType.AUTH_CODE)
         .setClientID("client-id")
         .setClientSecret("client-secret")
         .setSite("http://localhost:10000"));
@@ -113,7 +114,8 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
   public void testAuthCodeFlowBadSetup() throws Exception {
 
     // lets mock a oauth2 server using code auth code flow
-    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2ClientOptions()
+      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientID("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
@@ -189,7 +191,8 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
   public void testPasswordFlow() throws Exception {
 
     // lets mock a oauth2 server using code auth code flow
-    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, OAuth2FlowType.PASSWORD, new OAuth2ClientOptions()
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2ClientOptions()
+      .setFlow(OAuth2FlowType.PASSWORD)
       .setClientID("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
@@ -245,7 +248,9 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
   public void testBearerOnly() throws Exception {
 
     // lets mock a oauth2 server using code auth code flow
-    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions().setClientID("client-id"));
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2ClientOptions().setClientID("client-id")
+      .setFlow(OAuth2FlowType.AUTH_CODE)
+      );
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth2);
 
     // protect everything under /protected

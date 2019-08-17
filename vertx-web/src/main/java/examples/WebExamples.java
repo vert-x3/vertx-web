@@ -1219,7 +1219,7 @@ public class WebExamples {
   public void example59(Vertx vertx, Router router) {
 
     // create an OAuth2 provider, clientID and clientSecret should be requested to Google
-    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
+    OAuth2Auth authProvider = OAuth2Auth.create(vertx, new OAuth2ClientOptions()
       .setClientID("CLIENT_ID")
       .setClientSecret("CLIENT_SECRET")
       .setSite("https://accounts.google.com")
