@@ -28,8 +28,10 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.graphql.*;
 import org.dataloader.BatchLoaderEnvironment;
 import org.dataloader.BatchLoaderWithContext;
@@ -80,11 +82,32 @@ public class GraphQLExamples {
     GraphQLHandler handler = GraphQLHandler.create(graphQL, options);
   }
 
+  public void setupGraphQLHandlerMultipart(Vertx vertx) {
+    GraphQLHandler graphQLHandler = GraphQLHandler.create(
+      setupGraphQLJava(),
+      new GraphQLHandlerOptions().setRequestMultipartEnabled(true)
+    );
+
+    Router router = Router.router(vertx);
+
+    router.route().handler(BodyHandler.create());
+    router.route("/graphql").handler(graphQLHandler);
+  }
+
+  public void setRuntimeScalar() {
+    RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring().scalar(UploadScalar.build()).build();
+  }
+
+  public void getFileUpload(DataFetchingEnvironment environment) {
+    FileUpload file = environment.getArgument("myFile");
+  }
+
   private GraphQL setupGraphQLJava() {
     return null;
   }
 
-  class Link {}
+  class Link {
+  }
 
   private void completionStageDataFetcher() {
     DataFetcher<CompletionStage<List<Link>>> dataFetcher = environment -> {
@@ -122,7 +145,8 @@ public class GraphQLExamples {
       .build();
   }
 
-  class User {}
+  class User {
+  }
 
   private void routingContextInDataFetchingEnvironment() {
     VertxDataFetcher<List<Link>> dataFetcher = new VertxDataFetcher<>((environment, future) -> {

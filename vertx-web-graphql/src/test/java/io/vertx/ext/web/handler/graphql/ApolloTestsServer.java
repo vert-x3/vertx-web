@@ -27,7 +27,9 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import org.reactivestreams.Publisher;
 
@@ -58,11 +60,12 @@ public class ApolloTestsServer extends AbstractVerticle {
     Router router = Router.router(vertx);
 
     router.route().handler(CorsHandler.create("*").allowedMethods(EnumSet.of(GET, POST)));
-
+    router.route().handler(BodyHandler.create());
     router.route("/graphql").handler(ApolloWSHandler.create(setupWsGraphQL()));
 
     GraphQLHandlerOptions graphQLHandlerOptions = new GraphQLHandlerOptions()
-      .setRequestBatchingEnabled(true);
+      .setRequestBatchingEnabled(true)
+      .setRequestMultipartEnabled(true);
     router.route("/graphql").handler(GraphQLHandler.create(setupGraphQL(), graphQLHandlerOptions));
 
     HttpServerOptions httpServerOptions = new HttpServerOptions().setWebsocketSubProtocols("graphql-ws");
@@ -81,12 +84,16 @@ public class ApolloTestsServer extends AbstractVerticle {
 
   private GraphQL setupGraphQL() {
     String schema = vertx.fileSystem().readFileBlocking("links.graphqls").toString();
+    String uploadSchema = vertx.fileSystem().readFileBlocking("upload.graphqls").toString();
 
     SchemaParser schemaParser = new SchemaParser();
-    TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
+    TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema)
+      .merge(schemaParser.parse(uploadSchema));
 
     RuntimeWiring runtimeWiring = newRuntimeWiring()
+      .scalar(UploadScalar.build())
       .type("Query", builder -> builder.dataFetcher("allLinks", this::getAllLinks))
+      .type("Mutation", builder -> builder.dataFetcher("singleUpload", this::singleUpload))
       .build();
 
     SchemaGenerator schemaGenerator = new SchemaGenerator();
@@ -138,4 +145,8 @@ public class ApolloTestsServer extends AbstractVerticle {
     };
   }
 
+  private Object singleUpload(DataFetchingEnvironment env) {
+    final FileUpload file = env.getArgument("file");
+    return new Result(file.fileName());
+  }
 }

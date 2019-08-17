@@ -20,6 +20,11 @@ public class GraphQLHandlerOptionsConverter {
             obj.setRequestBatchingEnabled((Boolean)member.getValue());
           }
           break;
+        case "requestMultipartEnabled":
+          if (member.getValue() instanceof Boolean) {
+            obj.setRequestMultipartEnabled((Boolean)member.getValue());
+          }
+          break;
       }
     }
   }
@@ -30,5 +35,6 @@ public class GraphQLHandlerOptionsConverter {
 
   public static void toJson(GraphQLHandlerOptions obj, java.util.Map<String, Object> json) {
     json.put("requestBatchingEnabled", obj.isRequestBatchingEnabled());
+    json.put("requestMultipartEnabled", obj.isRequestMultipartEnabled());
   }
 }

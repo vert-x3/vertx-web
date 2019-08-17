@@ -32,7 +32,13 @@ public class GraphQLHandlerOptions {
    */
   public static final boolean DEFAULT_REQUEST_BATCHING_ENABLED = false;
 
+  /**
+   * Whether a multipart request should be enabled by default = false
+   */
+  public static final boolean DEFAULT_REQUEST_MULTIPART_ENABLED = false;
+
   private boolean requestBatchingEnabled = DEFAULT_REQUEST_BATCHING_ENABLED;
+  private boolean requestMultipartEnabled = DEFAULT_REQUEST_MULTIPART_ENABLED;
 
   /**
    * Default constructor.
@@ -84,6 +90,25 @@ public class GraphQLHandlerOptions {
    */
   public GraphQLHandlerOptions setRequestBatchingEnabled(boolean requestBatchingEnabled) {
     this.requestBatchingEnabled = requestBatchingEnabled;
+    return this;
+  }
+
+  /**
+   * @return true if request multipart should be enabled, false otherwise
+   */
+  public boolean isRequestMultipartEnabled() {
+    return requestMultipartEnabled;
+  }
+
+  /**
+   * Whether request multipart should be enabled. Defaults to {@code false}.
+   *
+   * @param requestMultipartEnabled true to enable request multipart, false otherwise
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  public GraphQLHandlerOptions setRequestMultipartEnabled(boolean requestMultipartEnabled) {
+    this.requestMultipartEnabled = requestMultipartEnabled;
     return this;
   }
 }

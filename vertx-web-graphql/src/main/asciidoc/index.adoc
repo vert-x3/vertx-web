@@ -199,6 +199,35 @@ Here you can find how to configure the Apollo SubscriptionClient: https://github
 
 IMPORTANT: A subscription `DataFetcher` has to return a `org.reactivestreams.Publisher` instance.
 
+=== GraphQL multipart request
+
+https://github.com/jaydenseric/graphql-multipart-request-spec[GraphQL multipart request] is an interoperable multipart form field structure for `GraphQL` requests.
+By enabling this functionality, GraphQL clients will be able to upload files using a single mutation call.
+All the server-side file handling will be abstracted by the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler}.
+
+To enable it, create a {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} with the requestMultipartEnabled configuration set to true and add the {@link io.vertx.ext.web.handler.BodyHandler} to the router.
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#setupGraphQLHandlerMultipart}
+----
+
+IMPORTANT: If the router does not have a {@link io.vertx.ext.web.handler.BodyHandler}, the multipart request parser will not be able to handle the GraphQL mutation call.
+
+Finally, create the `Upload` scalar and set it to the `RuntimeWiring`:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#setRuntimeScalar}
+----
+
+The `FileUpload` instance can be accessed using the `DataFetchingEnvironment::getArgument` method.
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#getFileUpload}
+----
+
 ifeval::["$lang" == "java"]
 include::override/rxjava2.adoc[]
 endif::[]
