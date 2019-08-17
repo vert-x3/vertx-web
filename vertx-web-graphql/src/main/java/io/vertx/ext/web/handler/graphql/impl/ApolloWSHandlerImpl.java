@@ -152,6 +152,8 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     sendMessage(serverWebSocket, null, ApolloWSMessageType.CONNECTION_ACK);
 
     if (keepAlive != null && keepAlive > 0) {
+      sendMessage(serverWebSocket, null, ApolloWSMessageType.CONNECTION_KEEP_ALIVE);
+      
       Vertx vertx = routingContext.vertx();
       vertx.setPeriodic(keepAlive, timerId -> {
         if (serverWebSocket.isClosed()) {
