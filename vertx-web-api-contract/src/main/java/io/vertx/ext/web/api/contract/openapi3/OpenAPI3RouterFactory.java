@@ -183,20 +183,7 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
                      String url,
                      List<JsonObject> auth,
                      Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
-    List<AuthorizationValue> authorizationValues = auth.stream()
-      .map(obj -> obj.mapTo(AuthorizationValue.class))
-      .collect(Collectors.toList());
-    vertx.executeBlocking((Promise<OpenAPI3RouterFactory> future) -> {
-      SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(url, authorizationValues, OpenApi3Utils.getParseOptions());
-      if (swaggerParseResult.getMessages().isEmpty()) {
-        future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI(), new ResolverCache(swaggerParseResult.getOpenAPI(), null, url), null));
-      } else {
-        if (swaggerParseResult.getMessages().size() == 1 && swaggerParseResult.getMessages().get(0).matches("unable to read location `?\\Q" + url + "\\E`?"))
-          future.fail(RouterFactoryException.createSpecNotExistsException(url));
-        else
-          future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
-      }
-    }, handler);
+    create(vertx, url, auth, handler, null);
   }
 
   /**
