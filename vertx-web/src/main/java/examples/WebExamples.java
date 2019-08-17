@@ -1163,9 +1163,9 @@ public class WebExamples {
   }
 
   public void example56(Router router) {
-    router.route().handler(VirtualHostHandler.create("*.vertx.io", routingContext -> {
+    router.route().virtualHost("*.vertx.io").handler(routingContext -> {
       // do something if the request is for *.vertx.io
-    }));
+    });
   }
 
   public void example57(Router router) {
@@ -1222,6 +1222,7 @@ public class WebExamples {
     OAuth2Auth authProvider = OAuth2Auth.create(vertx, new OAuth2ClientOptions()
       .setClientID("CLIENT_ID")
       .setClientSecret("CLIENT_SECRET")
+      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setSite("https://accounts.google.com")
       .setTokenPath("https://www.googleapis.com/oauth2/v3/token")
       .setAuthorizationPath("/o/oauth2/auth"));

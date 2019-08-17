@@ -38,12 +38,12 @@ import java.util.concurrent.CountDownLatch;
 public class OAuth2AuthHandlerTest extends WebTestBase {
 
   private static final JsonObject fixture = new JsonObject(
-      "{" +
-          "  \"access_token\": \"4adc339e0\"," +
-          "  \"refresh_token\": \"ec1a59d298\"," +
-          "  \"token_type\": \"bearer\"," +
-          "  \"expires_in\": 7200" +
-          "}");
+    "{" +
+      "  \"access_token\": \"4adc339e0\"," +
+      "  \"refresh_token\": \"ec1a59d298\"," +
+      "  \"token_type\": \"bearer\"," +
+      "  \"expires_in\": 7200" +
+      "}");
 
   @Override
   public void tearDown() throws Exception {
@@ -57,10 +57,10 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2ClientOptions()
-        .setFlow(OAuth2FlowType.AUTH_CODE)
-        .setClientID("client-id")
-        .setClientSecret("client-secret")
-        .setSite("http://localhost:10000"));
+      .setClientID("client-id")
+      .setFlow(OAuth2FlowType.AUTH_CODE)
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:10000"));
 
     final CountDownLatch latch = new CountDownLatch(1);
 
@@ -192,10 +192,10 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2ClientOptions()
-      .setFlow(OAuth2FlowType.PASSWORD)
       .setClientID("client-id")
       .setClientSecret("client-secret")
-      .setSite("http://localhost:10000"));
+      .setSite("http://localhost:10000")
+      .setFlow(OAuth2FlowType.PASSWORD));
 
     final CountDownLatch latch = new CountDownLatch(1);
 
@@ -248,9 +248,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
   public void testBearerOnly() throws Exception {
 
     // lets mock a oauth2 server using code auth code flow
-    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2ClientOptions().setClientID("client-id")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
-      );
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2ClientOptions().setFlow(OAuth2FlowType.AUTH_CODE).setClientID("client-id"));
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth2);
 
     // protect everything under /protected

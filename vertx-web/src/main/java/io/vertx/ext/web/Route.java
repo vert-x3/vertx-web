@@ -83,6 +83,15 @@ public interface Route {
   Route consumes(String contentType);
 
   /**
+   * Add a virtual host filter for this route.
+   *
+   * @param hostnamePattern the hostname pattern that should match {@code Host} header of the requests
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Route virtualHost(String hostnamePattern);
+
+  /**
    * Specify the order for this route. The router tests routes in that order.
    *
    * @param order  the order

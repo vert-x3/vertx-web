@@ -57,6 +57,7 @@ public class RouteImpl implements Route {
   private List<String> groups;
   private boolean useNormalisedPath = true;
   private Set<String> namedGroupsInRegex = new TreeSet<>();
+  private Pattern virtualHostPattern;
 
   RouteImpl(RouterImpl router, int order) {
     this.router = router;
@@ -119,6 +120,12 @@ public class RouteImpl implements Route {
   public synchronized Route consumes(String contentType) {
     ParsableMIMEValue value = new ParsableMIMEValue(contentType).forceParse();
     consumes.add(value);
+    return this;
+  }
+
+  @Override
+  public Route virtualHost(String hostnamePattern) {
+    this.virtualHostPattern = Pattern.compile("^" + hostnamePattern.replaceAll("\\.", "\\\\.").replaceAll("[*]", "(.*?)") + "$", Pattern.CASE_INSENSITIVE);
     return this;
   }
 
@@ -336,6 +343,7 @@ public class RouteImpl implements Route {
       }
       return 406;
     }
+    if (!virtualHostMatches(context.request.host())) return 404;
     return 0;
   }
 
@@ -375,6 +383,18 @@ public class RouteImpl implements Route {
       }
       return requestPath.startsWith(thePath);
     }
+  }
+
+  private boolean virtualHostMatches(String host) {
+    if (virtualHostPattern == null) return true;
+    boolean match = false;
+    for (String h : host.split(":")) {
+      if (virtualHostPattern.matcher(h).matches()) {
+        match = true;
+        break;
+      }
+    }
+    return match;
   }
 
   private boolean pathMatchesExact(String path1, String path2) {

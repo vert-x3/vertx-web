@@ -17,10 +17,8 @@
 package examples;
 
 import graphql.GraphQL;
-import graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.FieldWiringEnvironment;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.WiringFactory;
@@ -183,14 +181,6 @@ public class GraphQLExamples {
 
       }
     });
-  }
-
-  public void dataLoaderDispatcherInstrumentation(GraphQLSchema graphQLSchema) {
-    DataLoaderDispatcherInstrumentation dispatcherInstrumentation = new DataLoaderDispatcherInstrumentation();
-
-    GraphQL graphQL = GraphQL.newGraphQL(graphQLSchema)
-      .instrumentation(dispatcherInstrumentation)
-      .build();
   }
 
   public void createBatchLoader() {

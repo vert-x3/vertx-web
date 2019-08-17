@@ -152,14 +152,7 @@ TIP: {@link io.vertx.ext.web.handler.graphql.VertxPropertyDataFetcher} wraps a `
 
 Dataloaders help you to load data efficiently by batching fetch requests and caching results.
 
-First, you must configure the `GraphQL` object to use the `DataLoaderDispatcherInstrumentation`:
-
-[source,$lang]
-----
-{@link examples.GraphQLExamples#dataLoaderDispatcherInstrumentation}
-----
-
-Then create a batch loader:
+First, create a batch loader:
 
 [source,$lang]
 ----
@@ -168,7 +161,7 @@ Then create a batch loader:
 
 TIP: If you work with Vert.x callback-based APIs, you may use a {@link io.vertx.ext.web.handler.graphql.VertxBatchLoader} to simplify your code.
 
-Eventually, configure the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} to create a `DataLoaderRegistry` for each request:
+Then, configure the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} to create a `DataLoaderRegistry` for each request:
 
 [source,$lang]
 ----
