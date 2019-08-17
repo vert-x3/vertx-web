@@ -25,6 +25,7 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.handler.graphql.impl.ApolloWSMessageType;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 
@@ -44,11 +45,14 @@ public class ApolloWSHandlerTest extends WebTestBase {
   private static final int MAX_COUNT = 4;
   private static final int STATIC_COUNT = 5;
 
+  private ApolloWSHandler apolloWSHandler;
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
     GraphQL graphQL = graphQL();
-    router.route("/graphql").handler(ApolloWSHandler.create(graphQL));
+    apolloWSHandler = ApolloWSHandler.create(graphQL);
+    router.route("/graphql").handler(apolloWSHandler);
     router.route("/graphql").handler(GraphQLHandler.create(graphQL));
   }
 
@@ -161,6 +165,36 @@ public class ApolloWSHandlerTest extends WebTestBase {
         .getInteger("count");
       assertEquals(STATIC_COUNT, count);
       complete();
+    }));
+    await();
+  }
+
+  @Test
+  public void testWsKeepAlive() {
+    apolloWSHandler.keepAlive(100L);
+
+    client.webSocket("/graphql", onSuccess(websocket -> {
+      websocket.exceptionHandler(this::fail);
+
+      AtomicInteger counter = new AtomicInteger(0);
+      websocket.handler(buffer -> {
+        try {
+          JsonObject obj = buffer.toJsonObject();
+
+          if (counter.getAndIncrement() == 0) {
+            assertEquals(ApolloWSMessageType.CONNECTION_ACK.getText(), obj.getString("type"));
+          } else {
+            assertEquals(ApolloWSMessageType.CONNECTION_KEEP_ALIVE.getText(), obj.getString("type"));
+            complete();
+          }
+        } catch (Exception e) {
+          fail(e);
+        }
+      });
+
+      JsonObject message = new JsonObject()
+        .put("type", "connection_init");
+      websocket.write(message.toBuffer());
     }));
     await();
   }

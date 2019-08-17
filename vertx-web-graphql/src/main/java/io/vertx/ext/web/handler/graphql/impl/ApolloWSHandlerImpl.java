@@ -21,6 +21,7 @@ import graphql.ExecutionResult;
 import graphql.GraphQL;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
@@ -49,11 +50,13 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   private final GraphQL graphQL;
 
-  private Handler<ServerWebSocket> endHandler;
-
   private Function<RoutingContext, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
 
   private Function<RoutingContext, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
+
+  private Handler<ServerWebSocket> endHandler;
+
+  private Long keepAlive;
 
   public ApolloWSHandlerImpl(GraphQL graphQL) {
     this.graphQL = graphQL;
@@ -68,6 +71,20 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   @Override
   public synchronized ApolloWSHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory) {
     dataLoaderRegistryFactory = factory != null ? factory : DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
+    return this;
+  }
+
+  @Override
+  public ApolloWSHandler keepAlive(Long keepAlive) {
+    this.keepAlive = keepAlive;
+
+    return this;
+  }
+
+  @Override
+  public ApolloWSHandler endHandler(Handler<ServerWebSocket> endHandler) {
+    this.endHandler = endHandler;
+
     return this;
   }
 
@@ -102,7 +119,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
         switch (ApolloWSMessageType.from(type)) {
           case CONNECTION_INIT:
-            sendMessage(serverWebSocket, null, ApolloWSMessageType.CONNECTION_ACK);
+            connect(routingContext, serverWebSocket);
             break;
           case CONNECTION_TERMINATE:
             serverWebSocket.close();
@@ -131,11 +148,19 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     });
   }
 
-  @Override
-  public ApolloWSHandler endHandler(Handler<ServerWebSocket> endHandler) {
-    this.endHandler = endHandler;
+  private void connect(RoutingContext routingContext, ServerWebSocket serverWebSocket) {
+    sendMessage(serverWebSocket, null, ApolloWSMessageType.CONNECTION_ACK);
 
-    return this;
+    if (keepAlive != null && keepAlive > 0) {
+      Vertx vertx = routingContext.vertx();
+      vertx.setPeriodic(keepAlive, timerId -> {
+        if (serverWebSocket.isClosed()) {
+          vertx.cancelTimer(timerId);
+        } else {
+          sendMessage(serverWebSocket, null, ApolloWSMessageType.CONNECTION_KEEP_ALIVE);
+        }
+      });
+    }
   }
 
   private void start(

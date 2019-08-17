@@ -47,14 +47,6 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
   ApolloWSHandler endHandler(Handler<ServerWebSocket> endHandler);
 
   /**
-   * Create a new {@link ApolloWSHandler} that will use the provided {@code graphQL} object to execute requests.
-   */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static ApolloWSHandler create(GraphQL graphQL) {
-    return new ApolloWSHandlerImpl(graphQL);
-  }
-
-  /**
    * Customize the query context object.
    * The provided {@code factory} method will be invoked for each incoming GraphQL request.
    *
@@ -72,5 +64,23 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
   @Fluent
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   ApolloWSHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory);
+
+  /**
+   * Set interval seconds in which keepAlive messages are sent. If keepAlive is _null_ or
+   * zero, no keepAlive messages are sent.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  ApolloWSHandler keepAlive(Long keepAlive);
+
+  /**
+   * Create a new {@link ApolloWSHandler} that will use the provided {@code graphQL} object to execute requests.
+   */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  static ApolloWSHandler create(GraphQL graphQL) {
+    return new ApolloWSHandlerImpl(graphQL);
+  }
 
 }
