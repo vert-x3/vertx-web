@@ -26,8 +26,8 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.graphql.ApolloWSContext;
 import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
-import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import org.dataloader.DataLoaderRegistry;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -54,7 +54,9 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   private Function<RoutingContext, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
 
-  private Handler<ServerWebSocket> endHandler;
+  private Handler<RoutingContext> endHandler;
+
+  private Handler<ApolloWSContext> messageHandler;
 
   private Long keepAlive;
 
@@ -82,8 +84,15 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   }
 
   @Override
-  public ApolloWSHandler endHandler(Handler<ServerWebSocket> endHandler) {
+  public ApolloWSHandler endHandler(Handler<RoutingContext> endHandler) {
     this.endHandler = endHandler;
+
+    return this;
+  }
+
+  @Override
+  public ApolloWSHandler messageHandler(Handler<ApolloWSContext> messageHandler) {
+    this.messageHandler = messageHandler;
 
     return this;
   }
@@ -104,20 +113,25 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   }
 
   private void handleConnection(RoutingContext routingContext, ServerWebSocket serverWebSocket) {
-    Map<String, Subscription> subscriptions = new ConcurrentHashMap();
+    Map<String, Subscription> subscriptions = new ConcurrentHashMap<>();
 
     serverWebSocket.handler(buffer -> {
       try {
         JsonObject message = buffer.toJsonObject();
         String opId = message.getString("id");
-        String type = message.getString("type");
+        ApolloWSMessageType type = ApolloWSMessageType.from(message.getString("type"));
 
         if (type == null) {
           sendError(serverWebSocket, opId, "Invalid message type!");
           return;
         }
 
-        switch (ApolloWSMessageType.from(type)) {
+        ApolloWSContext context = new ApolloWSContext(routingContext, serverWebSocket, type, message);
+        if (messageHandler != null) {
+          messageHandler.handle(context);
+        }
+
+        switch (type) {
           case CONNECTION_INIT:
             connect(routingContext, serverWebSocket);
             break;
@@ -143,7 +157,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
       subscriptions.values().forEach(Subscription::cancel);
 
       if (endHandler != null) {
-        endHandler.handle(serverWebSocket);
+        endHandler.handle(routingContext);
       }
     });
   }
@@ -153,7 +167,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
     if (keepAlive != null && keepAlive > 0) {
       sendMessage(serverWebSocket, null, ApolloWSMessageType.CONNECTION_KEEP_ALIVE);
-      
+
       Vertx vertx = routingContext.vertx();
       vertx.setPeriodic(keepAlive, timerId -> {
         if (serverWebSocket.isClosed()) {

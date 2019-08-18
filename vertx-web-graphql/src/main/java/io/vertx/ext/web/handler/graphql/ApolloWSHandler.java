@@ -38,13 +38,23 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
 
   /**
    * Customize the end {@link Handler}.
+   * This handler will be called for each apollo message received.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  ApolloWSHandler messageHandler(Handler<ApolloWSContext> messageHandler);
+
+  /**
+   * Customize the end {@link Handler}.
    * This handler will be called at the end of each websocket connection.
    *
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  ApolloWSHandler endHandler(Handler<ServerWebSocket> endHandler);
+  ApolloWSHandler endHandler(Handler<RoutingContext> endHandler);
 
   /**
    * Customize the query context object.
