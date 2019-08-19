@@ -37,7 +37,7 @@ import java.util.function.Function;
 public interface ApolloWSHandler extends Handler<RoutingContext> {
 
   /**
-   * Customize the end {@link Handler}.
+   * Customize the message {@link Handler}.
    * This handler will be called for each apollo message received.
    *
    * @return a reference to this, so the API can be used fluently
@@ -47,6 +47,16 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
   ApolloWSHandler messageHandler(Handler<ApolloWSContext> messageHandler);
 
   /**
+   * Customize the conncetion {@link Handler}.
+   * This handler will be called at the beginning of each websocket connection.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  ApolloWSHandler connectionHandler(Handler<ServerWebSocket> endHandler);
+
+  /**
    * Customize the end {@link Handler}.
    * This handler will be called at the end of each websocket connection.
    *
@@ -54,7 +64,7 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
    */
   @Fluent
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  ApolloWSHandler endHandler(Handler<RoutingContext> endHandler);
+  ApolloWSHandler endHandler(Handler<ServerWebSocket> endHandler);
 
   /**
    * Customize the query context object.
@@ -63,7 +73,8 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  ApolloWSHandler queryContext(Function<RoutingContext, Object> factory);
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  ApolloWSHandler queryContext(Function<ApolloWSContext, Object> factory);
 
   /**
    * Customize the {@link DataLoaderRegistry}.
@@ -73,24 +84,26 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
    */
   @Fluent
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  ApolloWSHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory);
-
-  /**
-   * Set interval seconds in which keepAlive messages are sent. If keepAlive is _null_ or
-   * zero, no keepAlive messages are sent.
-   *
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  ApolloWSHandler keepAlive(Long keepAlive);
+  ApolloWSHandler dataLoaderRegistry(Function<ApolloWSContext, DataLoaderRegistry> factory);
 
   /**
    * Create a new {@link ApolloWSHandler} that will use the provided {@code graphQL} object to execute requests.
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ApolloWSHandler create(GraphQL graphQL) {
-    return new ApolloWSHandlerImpl(graphQL);
+    return new ApolloWSHandlerImpl(graphQL, new ApolloWSOptions());
+  }
+
+  /**
+   * Create a new {@link ApolloWSHandler} that will use the provided {@code graphQL} object to execute requests.
+   * <p>
+   * The handler will be configured with the given {@code options}.
+   *
+   * @param options options for configuring the {@link ApolloWSOptions}
+   */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  static ApolloWSHandler create(GraphQL graphQL, ApolloWSOptions options) {
+    return new ApolloWSHandlerImpl(graphQL, options);
   }
 
 }

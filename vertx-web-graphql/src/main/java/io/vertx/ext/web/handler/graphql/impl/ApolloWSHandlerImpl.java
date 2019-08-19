@@ -28,6 +28,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.ApolloWSContext;
 import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
+import io.vertx.ext.web.handler.graphql.ApolloWSOptions;
 import org.dataloader.DataLoaderRegistry;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -43,48 +44,53 @@ import java.util.function.Function;
  */
 public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
-  private static final Function<RoutingContext, Object> DEFAULT_QUERY_CONTEXT_FACTORY = rc -> rc;
-  private static final Function<RoutingContext, DataLoaderRegistry> DEFAULT_DATA_LOADER_REGISTRY_FACTORY = rc -> null;
+  private static final Function<ApolloWSContext, Object> DEFAULT_QUERY_CONTEXT_FACTORY = rc -> rc;
+  private static final Function<ApolloWSContext, DataLoaderRegistry> DEFAULT_DATA_LOADER_REGISTRY_FACTORY = rc -> null;
 
   private final static String HEADER_CONNECTION_UPGRADE_VALUE = "upgrade";
 
   private final GraphQL graphQL;
 
-  private Function<RoutingContext, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
+  private Function<ApolloWSContext, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
 
-  private Function<RoutingContext, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
+  private Function<ApolloWSContext, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
 
-  private Handler<RoutingContext> endHandler;
+  private Handler<ServerWebSocket> connectionHandler;
+
+  private Handler<ServerWebSocket> endHandler;
 
   private Handler<ApolloWSContext> messageHandler;
 
-  private Long keepAlive;
+  private ApolloWSOptions options;
 
-  public ApolloWSHandlerImpl(GraphQL graphQL) {
+  public ApolloWSHandlerImpl(GraphQL graphQL, ApolloWSOptions options) {
+    Objects.requireNonNull(graphQL, "graphQL");
+    Objects.requireNonNull(options, "options");
     this.graphQL = graphQL;
+    this.options = options;
   }
 
   @Override
-  public synchronized ApolloWSHandler queryContext(Function<RoutingContext, Object> factory) {
+  public synchronized ApolloWSHandler queryContext(Function<ApolloWSContext, Object> factory) {
     queryContextFactory = factory != null ? factory : DEFAULT_QUERY_CONTEXT_FACTORY;
     return this;
   }
 
   @Override
-  public synchronized ApolloWSHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory) {
+  public synchronized ApolloWSHandler dataLoaderRegistry(Function<ApolloWSContext, DataLoaderRegistry> factory) {
     dataLoaderRegistryFactory = factory != null ? factory : DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
     return this;
   }
 
   @Override
-  public ApolloWSHandler keepAlive(Long keepAlive) {
-    this.keepAlive = keepAlive;
+  public ApolloWSHandler connectionHandler(Handler<ServerWebSocket> connectionHandler) {
+    this.connectionHandler = connectionHandler;
 
     return this;
   }
 
   @Override
-  public ApolloWSHandler endHandler(Handler<RoutingContext> endHandler) {
+  public ApolloWSHandler endHandler(Handler<ServerWebSocket> endHandler) {
     this.endHandler = endHandler;
 
     return this;
@@ -115,6 +121,10 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   private void handleConnection(RoutingContext routingContext, ServerWebSocket serverWebSocket) {
     Map<String, Subscription> subscriptions = new ConcurrentHashMap<>();
 
+    if (connectionHandler != null) {
+      connectionHandler.handle(serverWebSocket);
+    }
+
     serverWebSocket.handler(buffer -> {
       try {
         JsonObject message = buffer.toJsonObject();
@@ -139,7 +149,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
             serverWebSocket.close();
             break;
           case START:
-            start(routingContext, serverWebSocket, subscriptions, message);
+            start(context, serverWebSocket, subscriptions, message);
             break;
           case STOP:
             stop(serverWebSocket, subscriptions, opId);
@@ -157,7 +167,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
       subscriptions.values().forEach(Subscription::cancel);
 
       if (endHandler != null) {
-        endHandler.handle(routingContext);
+        endHandler.handle(serverWebSocket);
       }
     });
   }
@@ -165,7 +175,8 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   private void connect(RoutingContext routingContext, ServerWebSocket serverWebSocket) {
     sendMessage(serverWebSocket, null, ApolloWSMessageType.CONNECTION_ACK);
 
-    if (keepAlive != null && keepAlive > 0) {
+    long keepAlive = options.getKeepAlive();
+    if (keepAlive > 0) {
       sendMessage(serverWebSocket, null, ApolloWSMessageType.CONNECTION_KEEP_ALIVE);
 
       Vertx vertx = routingContext.vertx();
@@ -180,7 +191,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   }
 
   private void start(
-      RoutingContext routingContext, ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions,
+      ApolloWSContext context, ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions,
       JsonObject message) {
     String opId = message.getString("id");
 
@@ -193,17 +204,17 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     ExecutionInput.Builder builder = ExecutionInput.newExecutionInput();
     builder.query(payload.getQuery());
 
-    Function<RoutingContext, Object> qc;
+    Function<ApolloWSContext, Object> qc;
     synchronized (this) {
       qc = queryContextFactory;
     }
-    builder.context(qc.apply(routingContext));
+    builder.context(qc.apply(context));
 
-    Function<RoutingContext, DataLoaderRegistry> dlr;
+    Function<ApolloWSContext, DataLoaderRegistry> dlr;
     synchronized (this) {
       dlr = dataLoaderRegistryFactory;
     }
-    DataLoaderRegistry registry = dlr.apply(routingContext);
+    DataLoaderRegistry registry = dlr.apply(context);
     if (registry != null) {
       builder.dataLoaderRegistry(registry);
     }

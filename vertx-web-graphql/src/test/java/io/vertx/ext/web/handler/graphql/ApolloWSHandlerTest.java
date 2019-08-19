@@ -45,14 +45,13 @@ public class ApolloWSHandlerTest extends WebTestBase {
   private static final int MAX_COUNT = 4;
   private static final int STATIC_COUNT = 5;
 
-  private ApolloWSHandler apolloWSHandler;
+  private ApolloWSOptions apolloWSOptions = new ApolloWSOptions();
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     GraphQL graphQL = graphQL();
-    apolloWSHandler = ApolloWSHandler.create(graphQL);
-    router.route("/graphql").handler(apolloWSHandler);
+    router.route("/graphql").handler(ApolloWSHandler.create(graphQL, apolloWSOptions));
     router.route("/graphql").handler(GraphQLHandler.create(graphQL));
   }
 
@@ -171,7 +170,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
 
   @Test
   public void testWsKeepAlive() {
-    apolloWSHandler.keepAlive(100L);
+    apolloWSOptions.setKeepAlive(100L);
 
     client.webSocket("/graphql", onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
