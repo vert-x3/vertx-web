@@ -17,25 +17,23 @@
 package io.vertx.ext.web.handler.graphql.impl;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.GraphiQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions;
 import io.vertx.ext.web.impl.Utils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Scanner;
 import java.util.function.Function;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * @author Thomas Segismont
@@ -70,17 +68,14 @@ public class GraphiQLHandlerImpl implements GraphiQLHandler {
     HttpServerResponse response = rc.response();
     String filename = Utils.pathOffset(rc.normalisedPath(), rc);
     if (filename.isEmpty()) {
-      if (rc.parsedHeaders().accept().stream().map(MIMEHeader::subComponent).anyMatch(sub -> "html".equalsIgnoreCase(sub))) {
-        rc.response().setStatusCode(301).putHeader(HttpHeaders.LOCATION, rc.currentRoute().getPath()).end();
-      } else {
-        rc.next();
-      }
+      rc.response().setStatusCode(301).putHeader(HttpHeaders.LOCATION, rc.currentRoute().getPath()).end();
       return;
     }
     if (filename.equals("/")) {
       filename = "/index.html";
     }
-    String resource = loadResource(filename);
+    FileSystem fs = rc.vertx().fileSystem();
+    String resource = fs.readFileBlocking("io/vertx/ext/web/handler/graphiql" + filename).toString(UTF_8);
     if (resource == null) {
       rc.next();
       return;
@@ -100,22 +95,6 @@ public class GraphiQLHandlerImpl implements GraphiQLHandler {
       }
     }
     response.end(resource);
-  }
-
-  private String loadResource(String relativePath) {
-    ClassLoader classLoader = getClass().getClassLoader();
-    URL resource = classLoader.getResource("io/vertx/ext/web/handler/graphiql" + relativePath);
-    if (resource == null) {
-      return null;
-    }
-    try (InputStream stream = resource.openStream()) {
-      return new Scanner(stream, "UTF-8").useDelimiter("\\A").next();
-    } catch (IOException e) {
-      if (log.isTraceEnabled()) {
-        log.trace("Unable to load resource: " + relativePath, e);
-      }
-      return null;
-    }
   }
 
   private String replacement(RoutingContext rc) {
