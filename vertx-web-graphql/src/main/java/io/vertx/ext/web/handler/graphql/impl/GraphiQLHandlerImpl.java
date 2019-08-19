@@ -17,14 +17,12 @@
 package io.vertx.ext.web.handler.graphql.impl;
 
 import io.vertx.core.MultiMap;
-import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.graphql.GraphiQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions;
 import io.vertx.ext.web.impl.Utils;
@@ -34,6 +32,8 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.concurrent.TimeUnit.DAYS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * @author Thomas Segismont
@@ -42,15 +42,18 @@ public class GraphiQLHandlerImpl implements GraphiQLHandler {
 
   private static final Logger log = LoggerFactory.getLogger(GraphiQLHandlerImpl.class);
 
+  private static final String WEBROOT = "io/vertx/ext/web/handler/graphiql";
   private static final Function<RoutingContext, MultiMap> DEFAULT_GRAPHIQL_REQUEST_HEADERS_FACTORY = rc -> null;
 
   private final GraphiQLHandlerOptions options;
+  private final StaticHandler staticHandler;
 
   private Function<RoutingContext, MultiMap> graphiQLRequestHeadersFactory = DEFAULT_GRAPHIQL_REQUEST_HEADERS_FACTORY;
 
   public GraphiQLHandlerImpl(GraphiQLHandlerOptions options) {
     Objects.requireNonNull(options, "options");
     this.options = options;
+    staticHandler = options.isEnabled() ? StaticHandler.create(WEBROOT).setCachingEnabled(true).setMaxAgeSeconds(SECONDS.convert(365, DAYS)) : null;
   }
 
   @Override
@@ -65,36 +68,23 @@ public class GraphiQLHandlerImpl implements GraphiQLHandler {
       rc.next();
       return;
     }
-    HttpServerResponse response = rc.response();
     String filename = Utils.pathOffset(rc.normalisedPath(), rc);
     if (filename.isEmpty()) {
       rc.response().setStatusCode(301).putHeader(HttpHeaders.LOCATION, rc.currentRoute().getPath()).end();
       return;
     }
-    if (filename.equals("/")) {
-      filename = "/index.html";
-    }
-    FileSystem fs = rc.vertx().fileSystem();
-    String resource = fs.readFileBlocking("io/vertx/ext/web/handler/graphiql" + filename).toString(UTF_8);
-    if (resource == null) {
-      rc.next();
-      return;
-    }
-    if (filename.equals("/index.html")) {
-      resource = resource.replace("__VERTX_GRAPHIQL_CONFIG__", replacement(rc));
-      response.putHeader(HttpHeaders.CACHE_CONTROL, "no-cache");
+    if ("/".equals(filename) || "/index.html".equals(filename)) {
+      String resource = rc.vertx().fileSystem()
+        .readFileBlocking(WEBROOT + "/index.html")
+        .toString(UTF_8)
+        .replace("__VERTX_GRAPHIQL_CONFIG__", replacement(rc));
+      rc.response()
+        .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache")
+        .putHeader(HttpHeaders.CONTENT_TYPE, "text/html;charset=utf8")
+        .end(resource);
     } else {
-      response.putHeader(HttpHeaders.CACHE_CONTROL, "max-age=31536000");
+      staticHandler.handle(rc);
     }
-    String contentType = MimeMapping.getMimeTypeForFilename(filename);
-    if (contentType != null) {
-      if (contentType.startsWith("text")) {
-        response.putHeader(HttpHeaders.CONTENT_TYPE, contentType + ";charset=utf8");
-      } else {
-        response.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
-      }
-    }
-    response.end(resource);
   }
 
   private String replacement(RoutingContext rc) {
