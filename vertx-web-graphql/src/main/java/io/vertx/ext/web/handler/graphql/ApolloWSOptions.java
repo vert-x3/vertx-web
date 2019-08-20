@@ -17,16 +17,19 @@
 package io.vertx.ext.web.handler.graphql;
 
 import io.vertx.codegen.annotations.DataObject;
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.common.WebEnvironment;
 
 /**
+ * Options for configuring the {@link ApolloWSHandler}.
+ *
  * @author Rogelio Orts
  */
 @DataObject(generateConverter = true)
 public class ApolloWSOptions {
 
+  /**
+   * Default interval in milliseconds to send {@code KEEPALIVE} messages to all clients = 30000.
+   */
   public static final long DEFAULT_KEEP_ALIVE = 30000L;
 
   private long keepAlive = DEFAULT_KEEP_ALIVE;
@@ -65,14 +68,22 @@ public class ApolloWSOptions {
     return json;
   }
 
+  /**
+   * @return interval in milliseconds to send {@code KEEPALIVE} messages to all clients
+   */
   public long getKeepAlive() {
     return keepAlive;
   }
 
+  /**
+   * Set the interval in milliseconds to send {@code KEEPALIVE} messages to all clients. Defaults to {@code 30000}.
+   *
+   * @param keepAlive interval in milliseconds
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
   public ApolloWSOptions setKeepAlive(long keepAlive) {
     this.keepAlive = keepAlive;
-
     return this;
   }
-
 }
