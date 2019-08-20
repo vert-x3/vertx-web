@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.handler.graphql.impl;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
@@ -46,13 +45,11 @@ public enum ApolloWSMessageType {
   }
 
   public static ApolloWSMessageType from(String type) {
-    for(ApolloWSMessageType t : values()) {
-      if(t.getText().equals(type)) {
+    for (ApolloWSMessageType t : values()) {
+      if (t.getText().equals(type)) {
         return t;
       }
     }
-
-    throw new IllegalArgumentException("No enum constant for " + type);
+    return null;
   }
-
 }
