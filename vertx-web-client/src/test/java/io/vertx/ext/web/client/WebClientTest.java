@@ -1294,12 +1294,7 @@ public class WebClientTest extends HttpTestBase {
     testFileUploadFormMultipart(MultipartForm.create(), toUpload, true, (req, uploads) -> {
       assertEquals(2, uploads.size());
       assertEquals("test", uploads.get(0).name);
-      // This is test2.txt - it is not clear to me whether this is a bug in Netty or not as there
-      // is a test for this in Netty test suite
-      // see HttpPostRequestEncoderTest#testMultiFileUploadInMixedMode
-      // I tried using web browser and recreate an HTML4 form with the same attribute name in a form
-      // all browsers are actually not using multipart mixed encoding
-      assertEquals("test2.txt", uploads.get(0).filename);
+      assertEquals("test1.txt", uploads.get(0).filename);
       assertEquals(content1, uploads.get(0).data);
       assertEquals("test", uploads.get(1).name);
       assertEquals("test2.txt", uploads.get(1).filename);
