@@ -1,6 +1,9 @@
 package io.vertx.ext.web.handler.graphql;
 
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import io.vertx.core.spi.json.JsonCodec;
 
 /**
@@ -11,46 +14,43 @@ public class GraphiQLHandlerOptionsConverter implements JsonCodec<GraphiQLHandle
 
   public static final GraphiQLHandlerOptionsConverter INSTANCE = new GraphiQLHandlerOptionsConverter();
 
-  @Override
-  public JsonObject encode(GraphiQLHandlerOptions value) { return (value != null) ? value.toJson() : null; }
+  @Override public JsonObject encode(GraphiQLHandlerOptions value) { return (value != null) ? value.toJson() : null; }
 
-  @Override
-  public GraphiQLHandlerOptions decode(JsonObject value) { return (value != null) ? new GraphiQLHandlerOptions(value) : null; }
+  @Override public GraphiQLHandlerOptions decode(JsonObject value) { return (value != null) ? new GraphiQLHandlerOptions(value) : null; }
 
-  @Override
-  public Class<GraphiQLHandlerOptions> getTargetClass() { return GraphiQLHandlerOptions.class; }
+  @Override public Class<GraphiQLHandlerOptions> getTargetClass() { return GraphiQLHandlerOptions.class; }
 
   public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, GraphiQLHandlerOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
         case "enabled":
           if (member.getValue() instanceof Boolean) {
-            obj.setEnabled((Boolean) member.getValue());
+            obj.setEnabled((Boolean)member.getValue());
           }
           break;
         case "graphQLUri":
           if (member.getValue() instanceof String) {
-            obj.setGraphQLUri((String) member.getValue());
+            obj.setGraphQLUri((String)member.getValue());
           }
           break;
         case "headers":
           if (member.getValue() instanceof JsonObject) {
             java.util.Map<String, java.lang.String> map = new java.util.LinkedHashMap<>();
-            ((Iterable<java.util.Map.Entry<String, Object>>) member.getValue()).forEach(entry -> {
+            ((Iterable<java.util.Map.Entry<String, Object>>)member.getValue()).forEach(entry -> {
               if (entry.getValue() instanceof String)
-                map.put(entry.getKey(), (String) entry.getValue());
+                map.put(entry.getKey(), (String)entry.getValue());
             });
             obj.setHeaders(map);
           }
           break;
         case "query":
           if (member.getValue() instanceof String) {
-            obj.setQuery((String) member.getValue());
+            obj.setQuery((String)member.getValue());
           }
           break;
         case "variables":
           if (member.getValue() instanceof JsonObject) {
-            obj.setVariables(((JsonObject) member.getValue()).copy());
+            obj.setVariables(((JsonObject)member.getValue()).copy());
           }
           break;
       }

@@ -1,0 +1,11 @@
+type Counter {
+  count: Int
+}
+
+type Query {
+  staticCounter(num: Int = 5): Counter
+}
+
+type Subscription {
+  counter: Counter
+}

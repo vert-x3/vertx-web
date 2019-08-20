@@ -25,7 +25,9 @@ import graphql.schema.idl.WiringFactory;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.*;
@@ -198,4 +200,26 @@ public class GraphQLExamples {
 
     });
   }
+
+  public void addApolloWsHandlerToRouter(Router router) {
+    GraphQL graphQL = setupGraphQLJava();
+
+    router.route("/graphql").handler(ApolloWSHandler.create(graphQL));
+  }
+
+  public void configureServerForApolloWs(Vertx vertx, Router router) {
+    HttpServerOptions httpServerOptions = new HttpServerOptions()
+      .setWebsocketSubProtocols("graphql-ws");
+    vertx.createHttpServer(httpServerOptions)
+      .requestHandler(router)
+      .listen(8080);
+  }
+
+  public void configureWebSocketLinkAndHttpLinkSamePath(Router router) {
+    GraphQL graphQL = setupGraphQLJava();
+
+    router.route("/graphql").handler(ApolloWSHandler.create(graphQL));
+    router.route("/graphql").handler(GraphQLHandler.create(graphQL));
+  }
+
 }
