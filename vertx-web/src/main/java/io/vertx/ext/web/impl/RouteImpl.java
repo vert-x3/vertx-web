@@ -58,6 +58,8 @@ public class RouteImpl implements Route {
   private List<String> groups;
   private boolean useNormalisedPath = true;
   private Set<String> namedGroupsInRegex = new TreeSet<>();
+  private Pattern virtualHostPattern;
+  private boolean pathEndsWithSlash;
 
   private boolean exclusive;
 
@@ -421,7 +423,8 @@ public class RouteImpl implements Route {
     if (exactPath) {
       return pathMatchesExact(requestPath, thePath);
     } else {
-      if (thePath.endsWith("/") && requestPath.equals(removeTrailing(thePath))) {
+      if (pathEndsWithSlash && (requestPath.charAt(requestPath.length() - 1) == '/'
+          ? requestPath.equals(thePath) : thePath.regionMatches(0, requestPath, 0, requestPath.length()))) {
         return true;
       }
       return requestPath.startsWith(thePath);
@@ -430,16 +433,12 @@ public class RouteImpl implements Route {
 
   private boolean pathMatchesExact(String path1, String path2) {
     // Ignore trailing slash when matching paths
-    return removeTrailing(path1).equals(removeTrailing(path2));
+    final int idx1 = path1.length() - 1;
+    return pathEndsWithSlash ?
+       (path1.charAt(idx1) == '/' ? path1.equals(path2) : path2.regionMatches(0, path1, 0, path1.length()))
+      :(path1.charAt(idx1) != '/' ? path1.equals(path2) : path1.regionMatches(0, path2, 0, path2.length()));
   }
 
-  private String removeTrailing(String path) {
-    int i = path.length();
-    if (path.charAt(i - 1) == '/') {
-      path = path.substring(0, i - 1);
-    }
-    return path;
-  }
 
   private void setPath(String path) {
     // See if the path contains ":" - if so then it contains parameter capture groups and we have to generate
@@ -455,7 +454,6 @@ public class RouteImpl implements Route {
     if (path.indexOf(':') != -1) {
       createPatternRegex(path);
     }
-
     pathEndsWithSlash = this.path.endsWith("/");
   }
 
