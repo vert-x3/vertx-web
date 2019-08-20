@@ -65,7 +65,7 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  ApolloWSHandler connectionHandler(Handler<ServerWebSocket> endHandler);
+  ApolloWSHandler connectionHandler(Handler<ServerWebSocket> connectionHandler);
 
   /**
    * Customize the message {@link Handler}.
