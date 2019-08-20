@@ -16,7 +16,8 @@
 
 package io.vertx.ext.web.handler.graphql.impl;
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Rogelio Orts
@@ -39,17 +40,19 @@ public enum ApolloWSMessageType {
     this.text = text;
   }
 
-  @JsonValue
   public String getText() {
     return text;
   }
 
-  public static ApolloWSMessageType from(String type) {
-    for (ApolloWSMessageType t : values()) {
-      if (t.getText().equals(type)) {
-        return t;
-      }
+  private static Map<String, ApolloWSMessageType> lookup = new HashMap<>(values().length);
+
+  static {
+    for (ApolloWSMessageType apolloWSMessageType : values()) {
+      lookup.put(apolloWSMessageType.text, apolloWSMessageType);
     }
-    return null;
+  }
+
+  public static ApolloWSMessageType from(String type) {
+    return lookup.get(type);
   }
 }
