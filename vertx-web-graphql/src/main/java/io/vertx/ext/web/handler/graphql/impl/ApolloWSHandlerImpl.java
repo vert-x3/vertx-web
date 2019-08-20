@@ -34,10 +34,13 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+
+import static io.vertx.core.http.HttpHeaders.*;
 
 /**
  * @author Rogelio Orts
@@ -106,11 +109,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   @Override
   public void handle(RoutingContext routingContext) {
     MultiMap headers = routingContext.request().headers();
-    if(
-      headers.contains(HttpHeaders.CONNECTION)
-        &&
-      HEADER_CONNECTION_UPGRADE_VALUE.equals(headers.get(HttpHeaders.CONNECTION).toLowerCase())
-    ) {
+    if (headers.contains(CONNECTION) && headers.contains(UPGRADE, WEBSOCKET, true)) {
       ServerWebSocket serverWebSocket = routingContext.request().upgrade();
       handleConnection(routingContext, serverWebSocket);
     } else {
