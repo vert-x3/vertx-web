@@ -1024,6 +1024,9 @@ public class WebClientTest extends HttpTestBase {
         }
         return this;
       }
+      public AsyncFile setReadLength(long readLength) {
+        throw new UnsupportedOperationException();
+      }
       public void close(Handler<AsyncResult<Void>> handler) {
         vertx.setTimer(500, id -> {
           closed.set(true);
