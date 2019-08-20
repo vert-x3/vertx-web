@@ -4,6 +4,7 @@
 == ApolloWSOptions
 
 ++++
+ Options for configuring the link.
 ++++
 '''
 
@@ -11,7 +12,9 @@
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[keepAlive]]`@keepAlive`|`Number (long)`|-
+|[[keepAlive]]`@keepAlive`|`Number (long)`|+++
+Set the interval in milliseconds to send <code>KEEPALIVE</code> messages to all clients. Defaults to <code>30000</code>.
++++
 |===
 
 [[GraphQLHandlerOptions]]
