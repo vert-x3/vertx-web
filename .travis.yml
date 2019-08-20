@@ -35,7 +35,7 @@ jobs:
       name: "Deploy to Sonatype's snapshots repository"
       jdk: openjdk8
       if: type != pull_request AND env(SONATYPE_NEXUS_USERNAME) IS present
-      script:
+      before_install:
         - cd vertx-web-graphql/vertx-web-graphiql
         - npm install
         - GENERATE_SOURCEMAP=false npm run build
@@ -45,6 +45,7 @@ jobs:
         - find static -name "*.js"  -exec cp --parents {} ../../src/main/resources/io/vertx/ext/web/handler/graphiql \;
         - find static -name "*.css"  -exec cp --parents {} ../../src/main/resources/io/vertx/ext/web/handler/graphiql \;
         - cd ../../..
+      script:
         - bash .travis.deploy.artifacts.sh
 notifications:
   email:
