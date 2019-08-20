@@ -12,16 +12,13 @@
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[graphiQLOptions]]`@graphiQLOptions`|`link:dataobjects.html#GraphiQLOptions[GraphiQLOptions]`|+++
-Configure the GraphiQL development tool.
-+++
 |[[requestBatchingEnabled]]`@requestBatchingEnabled`|`Boolean`|+++
 Whether request batching should be enabled. Defaults to <code>false</code>.
 +++
 |===
 
-[[GraphiQLOptions]]
-== GraphiQLOptions
+[[GraphiQLHandlerOptions]]
+== GraphiQLHandlerOptions
 
 ++++
  Embedded GraphiQL user interface options.
