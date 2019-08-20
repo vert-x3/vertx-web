@@ -26,10 +26,14 @@ import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.CorsHandler;
+import org.reactivestreams.Publisher;
 
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static io.vertx.core.http.HttpMethod.GET;
@@ -51,16 +55,18 @@ public class ApolloTestsServer extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
-
     Router router = Router.router(vertx);
 
     router.route().handler(CorsHandler.create("*").allowedMethods(EnumSet.of(GET, POST)));
+
+    router.route("/graphql").handler(ApolloWSHandler.create(setupWsGraphQL()));
 
     GraphQLHandlerOptions graphQLHandlerOptions = new GraphQLHandlerOptions()
       .setRequestBatchingEnabled(true);
     router.route("/graphql").handler(GraphQLHandler.create(setupGraphQL(), graphQLHandlerOptions));
 
-    vertx.createHttpServer()
+    HttpServerOptions httpServerOptions = new HttpServerOptions().setWebsocketSubProtocols("graphql-ws");
+    vertx.createHttpServer(httpServerOptions)
       .requestHandler(router)
       .listen(8080, ar -> {
         if (ar.succeeded()) {
@@ -89,10 +95,46 @@ public class ApolloTestsServer extends AbstractVerticle {
       .build();
   }
 
+  private GraphQL setupWsGraphQL() {
+    String schema = vertx.fileSystem().readFileBlocking("counter.graphqls").toString();
+
+    SchemaParser schemaParser = new SchemaParser();
+    TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
+
+    RuntimeWiring runtimeWiring = newRuntimeWiring()
+      .type("Query", builder -> builder.dataFetcher("staticCounter", this::staticCounter))
+      .type("Subscription", builder -> builder.dataFetcher("counter", this::counter))
+      .build();
+
+    SchemaGenerator schemaGenerator = new SchemaGenerator();
+    GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
+
+    return GraphQL.newGraphQL(graphQLSchema)
+      .build();
+  }
+
   private Object getAllLinks(DataFetchingEnvironment env) {
     boolean secureOnly = env.getArgument("secureOnly");
     return testData.links.stream()
       .filter(link -> !secureOnly || link.getUrl().startsWith("https://"))
       .collect(toList());
   }
+
+  private Object staticCounter(DataFetchingEnvironment env) {
+    int count = env.getArgument("num");
+    Map<String, Object> counter = new HashMap<>();
+    counter.put("count", count);
+    return counter;
+  }
+
+  private Publisher<Object> counter(DataFetchingEnvironment env) {
+    return subscriber -> {
+      Map<String, Object> counter = new HashMap<>();
+      counter.put("count", 1);
+
+      subscriber.onNext(counter);
+      subscriber.onComplete();
+    };
+  }
+
 }
