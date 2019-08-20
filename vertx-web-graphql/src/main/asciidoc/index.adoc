@@ -168,6 +168,34 @@ Then, configure the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} to c
 {@link examples.GraphQLExamples#dataLoaderRegistry}
 ----
 
+=== Apollo WebSocketLink
+
+You can use an https://www.apollographql.com/docs/link/links/ws/[Apollo WebSocketLink] which connects over a websocket. This is specially useful if you want
+to add subscriptions to your GraphQL schema, but you can also use the websocket for queries and mutations.
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#addApolloWsHandlerToRouter}
+----
+
+IMPORTANT: To support the "graphql-ws" websocket subprotocol, it has to be added to the server configuration:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#configureServerForApolloWs}
+----
+
+NOTE: If you want to support a WebSocketLink and a HttpLink in the same path, you can add the ApolloWSHandler in first place and then the GraphQLHandler.
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#configureWebSocketLinkAndHttpLinkSamePath}
+----
+
+Here you can find how to configure the Apollo SubscriptionClient: https://github.com/apollographql/subscriptions-transport-ws
+
+IMPORTANT: A subscription `DataFetcher` has to return a `org.reactivestreams.Publisher` instance.
+
 ifeval::["$lang" == "java"]
 include::override/rxjava2.adoc[]
 endif::[]

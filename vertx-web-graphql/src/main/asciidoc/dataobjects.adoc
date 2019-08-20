@@ -1,5 +1,19 @@
 = Cheatsheets
 
+[[ApolloWSOptions]]
+== ApolloWSOptions
+
+++++
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[keepAlive]]`@keepAlive`|`Number (long)`|-
+|===
+
 [[GraphQLHandlerOptions]]
 == GraphQLHandlerOptions
 
