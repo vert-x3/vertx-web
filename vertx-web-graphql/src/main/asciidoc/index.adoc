@@ -178,7 +178,7 @@ to add subscriptions to your GraphQL schema, but you can also use the websocket 
 {@link examples.GraphQLExamples#addApolloWsHandlerToRouter}
 ----
 
-IMPORTANT: To support the "graphql-ws" websocket subprotocol, it has to be added to the server configuration:
+IMPORTANT: To support the `graphql-ws` websocket subprotocol, it has to be added to the server configuration:
 
 [source,$lang]
 ----
