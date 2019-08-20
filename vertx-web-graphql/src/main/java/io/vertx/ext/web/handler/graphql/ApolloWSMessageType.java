@@ -14,15 +14,21 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.graphql.impl;
+package io.vertx.ext.web.handler.graphql;
+
+import io.vertx.codegen.annotations.VertxGen;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * The {@link ApolloWSMessage} types.
+ *
  * @author Rogelio Orts
  */
+@VertxGen
 public enum ApolloWSMessageType {
+
   CONNECTION_INIT("connection_init"),
   CONNECTION_TERMINATE("connection_terminate"),
   START("start"),
@@ -40,6 +46,9 @@ public enum ApolloWSMessageType {
     this.text = text;
   }
 
+  /**
+   * @return text representation of the {@link ApolloWSMessage}
+   */
   public String getText() {
     return text;
   }
@@ -52,6 +61,13 @@ public enum ApolloWSMessageType {
     }
   }
 
+  /**
+   * Get an {@link ApolloWSMessageType} from its text representation.
+   *
+   * @param type the message type text representation
+   *
+   * @return the corresponding message type or null if none matches
+   */
   public static ApolloWSMessageType from(String type) {
     return lookup.get(type);
   }

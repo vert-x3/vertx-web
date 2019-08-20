@@ -1,0 +1,27 @@
+= Enums
+
+[[ApolloWSMessageType]]
+== ApolloWSMessageType
+
+++++
+ The link types.
+++++
+
+'''
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[CONNECTION_INIT]]`CONNECTION_INIT`|-
+|[[CONNECTION_TERMINATE]]`CONNECTION_TERMINATE`|-
+|[[START]]`START`|-
+|[[STOP]]`STOP`|-
+|[[CONNECTION_ACK]]`CONNECTION_ACK`|-
+|[[CONNECTION_ERROR]]`CONNECTION_ERROR`|-
+|[[CONNECTION_KEEP_ALIVE]]`CONNECTION_KEEP_ALIVE`|-
+|[[DATA]]`DATA`|-
+|[[ERROR]]`ERROR`|-
+|[[COMPLETE]]`COMPLETE`|-
+|===
+

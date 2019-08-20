@@ -25,8 +25,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.graphql.ApolloWSContext;
 import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
+import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
+import io.vertx.ext.web.handler.graphql.ApolloWSMessageType;
 import io.vertx.ext.web.handler.graphql.ApolloWSOptions;
 import org.dataloader.DataLoaderRegistry;
 import org.reactivestreams.Publisher;
@@ -40,68 +41,65 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import static io.vertx.core.http.HttpHeaders.*;
+import static io.vertx.ext.web.handler.graphql.ApolloWSMessageType.*;
 
 /**
  * @author Rogelio Orts
  */
 public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
-  private static final Function<ApolloWSContext, Object> DEFAULT_QUERY_CONTEXT_FACTORY = rc -> rc;
-  private static final Function<ApolloWSContext, DataLoaderRegistry> DEFAULT_DATA_LOADER_REGISTRY_FACTORY = rc -> null;
+  private static final Function<ApolloWSMessage, Object> DEFAULT_QUERY_CONTEXT_FACTORY = context -> context;
+  private static final Function<ApolloWSMessage, DataLoaderRegistry> DEFAULT_DATA_LOADER_REGISTRY_FACTORY = rc -> null;
 
   private final static String HEADER_CONNECTION_UPGRADE_VALUE = "upgrade";
 
   private final GraphQL graphQL;
+  private final long keepAlive;
 
-  private Function<ApolloWSContext, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
+  private Function<ApolloWSMessage, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
 
-  private Function<ApolloWSContext, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
+  private Function<ApolloWSMessage, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
 
   private Handler<ServerWebSocket> connectionHandler;
 
   private Handler<ServerWebSocket> endHandler;
 
-  private Handler<ApolloWSContext> messageHandler;
-
-  private ApolloWSOptions options;
+  private Handler<ApolloWSMessage> messageHandler;
 
   public ApolloWSHandlerImpl(GraphQL graphQL, ApolloWSOptions options) {
     Objects.requireNonNull(graphQL, "graphQL");
     Objects.requireNonNull(options, "options");
     this.graphQL = graphQL;
-    this.options = options;
+    this.keepAlive = options.getKeepAlive();
   }
 
   @Override
-  public synchronized ApolloWSHandler queryContext(Function<ApolloWSContext, Object> factory) {
+  public synchronized ApolloWSHandler connectionHandler(Handler<ServerWebSocket> connectionHandler) {
+    this.connectionHandler = connectionHandler;
+    return this;
+  }
+
+  @Override
+  public synchronized ApolloWSHandler messageHandler(Handler<ApolloWSMessage> messageHandler) {
+    this.messageHandler = messageHandler;
+    return this;
+  }
+
+  @Override
+  public synchronized ApolloWSHandler endHandler(Handler<ServerWebSocket> endHandler) {
+    this.endHandler = endHandler;
+    return this;
+  }
+
+  @Override
+  public synchronized ApolloWSHandler queryContext(Function<ApolloWSMessage, Object> factory) {
     queryContextFactory = factory != null ? factory : DEFAULT_QUERY_CONTEXT_FACTORY;
     return this;
   }
 
   @Override
-  public synchronized ApolloWSHandler dataLoaderRegistry(Function<ApolloWSContext, DataLoaderRegistry> factory) {
+  public synchronized ApolloWSHandler dataLoaderRegistry(Function<ApolloWSMessage, DataLoaderRegistry> factory) {
     dataLoaderRegistryFactory = factory != null ? factory : DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
-    return this;
-  }
-
-  @Override
-  public ApolloWSHandler connectionHandler(Handler<ServerWebSocket> connectionHandler) {
-    this.connectionHandler = connectionHandler;
-
-    return this;
-  }
-
-  @Override
-  public ApolloWSHandler endHandler(Handler<ServerWebSocket> endHandler) {
-    this.endHandler = endHandler;
-
-    return this;
-  }
-
-  @Override
-  public ApolloWSHandler messageHandler(Handler<ApolloWSContext> messageHandler) {
-    this.messageHandler = messageHandler;
-
     return this;
   }
 
@@ -110,109 +108,113 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     MultiMap headers = routingContext.request().headers();
     if (headers.contains(CONNECTION) && headers.contains(UPGRADE, WEBSOCKET, true)) {
       ServerWebSocket serverWebSocket = routingContext.request().upgrade();
-      handleConnection(routingContext, serverWebSocket);
+      handleConnection(routingContext.vertx(), serverWebSocket);
     } else {
       routingContext.next();
     }
   }
 
-  private void handleConnection(RoutingContext routingContext, ServerWebSocket serverWebSocket) {
+  private void handleConnection(Vertx vertx, ServerWebSocket serverWebSocket) {
     Map<String, Subscription> subscriptions = new ConcurrentHashMap<>();
 
-    if (connectionHandler != null) {
-      connectionHandler.handle(serverWebSocket);
+    Handler<ServerWebSocket> ch;
+    synchronized (this) {
+      ch = this.connectionHandler;
+    }
+    if (ch != null) {
+      ch.handle(serverWebSocket);
     }
 
     serverWebSocket.handler(buffer -> {
-      try {
-        JsonObject message = buffer.toJsonObject();
-        String opId = message.getString("id");
-        ApolloWSMessageType type = ApolloWSMessageType.from(message.getString("type"));
+      JsonObject content = buffer.toJsonObject();
+      String opId = content.getString("id");
+      ApolloWSMessageType type = from(content.getString("type"));
 
-        if (type == null) {
-          sendError(serverWebSocket, opId, "Invalid message type!");
-          return;
-        }
+      if (type == null) {
+        sendMessage(serverWebSocket, opId, ERROR, "Unknown message type: " + content.getString("type"));
+        return;
+      }
 
-        ApolloWSContext context = new ApolloWSContext(routingContext, serverWebSocket, type, message);
-        if (messageHandler != null) {
-          messageHandler.handle(context);
-        }
+      ApolloWSMessage message = new ApolloWSMessageImpl(serverWebSocket, type, content);
 
-        switch (type) {
-          case CONNECTION_INIT:
-            connect(routingContext, serverWebSocket);
-            break;
-          case CONNECTION_TERMINATE:
-            serverWebSocket.close();
-            break;
-          case START:
-            start(context, serverWebSocket, subscriptions, message);
-            break;
-          case STOP:
-            stop(serverWebSocket, subscriptions, opId);
-            break;
-          default:
-            sendError(serverWebSocket, opId, "Invalid message type!");
-            break;
-        }
-      } catch (Exception e) {
-        sendError(serverWebSocket, null, e.getMessage());
+      Handler<ApolloWSMessage> mh;
+      synchronized (this) {
+        mh = this.messageHandler;
+      }
+      if (mh != null) {
+        mh.handle(message);
+      }
+
+      switch (type) {
+        case CONNECTION_INIT:
+          connect(vertx, serverWebSocket);
+          break;
+        case CONNECTION_TERMINATE:
+          serverWebSocket.close();
+          break;
+        case START:
+          start(serverWebSocket, subscriptions, message);
+          break;
+        case STOP:
+          stop(serverWebSocket, subscriptions, opId);
+          break;
+        default:
+          sendMessage(serverWebSocket, opId, ERROR, "Unsupported message type: " + type);
+          break;
       }
     });
 
     serverWebSocket.endHandler(v -> {
       subscriptions.values().forEach(Subscription::cancel);
 
-      if (endHandler != null) {
-        endHandler.handle(serverWebSocket);
+      Handler<ServerWebSocket> eh;
+      synchronized (this) {
+        eh = this.endHandler;
+      }
+      if (eh != null) {
+        eh.handle(serverWebSocket);
       }
     });
   }
 
-  private void connect(RoutingContext routingContext, ServerWebSocket serverWebSocket) {
-    sendMessage(serverWebSocket, null, ApolloWSMessageType.CONNECTION_ACK);
+  private void connect(Vertx vertx, ServerWebSocket serverWebSocket) {
+    sendMessage(serverWebSocket, null, CONNECTION_ACK, null);
 
-    long keepAlive = options.getKeepAlive();
     if (keepAlive > 0) {
-      sendMessage(serverWebSocket, null, ApolloWSMessageType.CONNECTION_KEEP_ALIVE);
-
-      Vertx vertx = routingContext.vertx();
+      sendMessage(serverWebSocket, null, CONNECTION_KEEP_ALIVE, null);
       vertx.setPeriodic(keepAlive, timerId -> {
         if (serverWebSocket.isClosed()) {
           vertx.cancelTimer(timerId);
         } else {
-          sendMessage(serverWebSocket, null, ApolloWSMessageType.CONNECTION_KEEP_ALIVE);
+          sendMessage(serverWebSocket, null, CONNECTION_KEEP_ALIVE, null);
         }
       });
     }
   }
 
-  private void start(
-      ApolloWSContext context, ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions,
-      JsonObject message) {
-    String opId = message.getString("id");
+  private void start(ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions, ApolloWSMessage message) {
+    String opId = message.content().getString("id");
 
     // Unsubscribe if it's subscribed
     if (subscriptions.containsKey(opId)) {
       stop(serverWebSocket, subscriptions, opId);
     }
 
-    GraphQLQuery payload = message.getJsonObject("payload").mapTo(GraphQLQuery.class);
+    GraphQLQuery payload = message.content().getJsonObject("payload").mapTo(GraphQLQuery.class);
     ExecutionInput.Builder builder = ExecutionInput.newExecutionInput();
     builder.query(payload.getQuery());
 
-    Function<ApolloWSContext, Object> qc;
+    Function<ApolloWSMessage, Object> qc;
     synchronized (this) {
       qc = queryContextFactory;
     }
-    builder.context(qc.apply(context));
+    builder.context(qc.apply(message));
 
-    Function<ApolloWSContext, DataLoaderRegistry> dlr;
+    Function<ApolloWSMessage, DataLoaderRegistry> dlr;
     synchronized (this) {
       dlr = dataLoaderRegistryFactory;
     }
-    DataLoaderRegistry registry = dlr.apply(context);
+    DataLoaderRegistry registry = dlr.apply(message);
     if (registry != null) {
       builder.dataLoaderRegistry(registry);
     }
@@ -230,14 +232,12 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
       if (executionResult.getData() instanceof Publisher) {
         subscribe(serverWebSocket, subscriptions, opId, executionResult);
       } else {
-        sendBackExecutionResult(serverWebSocket, opId, executionResult);
+        sendMessage(serverWebSocket, opId, DATA, new JsonObject(executionResult.toSpecification()));
       }
     });
   }
 
-  private void subscribe(
-      ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions, String opId,
-      ExecutionResult executionResult) {
+  private void subscribe(ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions, String opId, ExecutionResult executionResult) {
     Publisher<ExecutionResult> publisher = executionResult.getData();
 
     AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
@@ -246,75 +246,47 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
       public void onSubscribe(Subscription s) {
         subscriptionRef.set(s);
         subscriptions.put(opId, s);
-
         s.request(1);
       }
 
       @Override
       public void onNext(ExecutionResult er) {
-        sendMessage(serverWebSocket, opId, ApolloWSMessageType.DATA, er);
-
+        sendMessage(serverWebSocket, opId, DATA, new JsonObject(er.toSpecification()));
         subscriptionRef.get().request(1);
       }
 
       @Override
       public void onError(Throwable t) {
-        sendError(serverWebSocket, opId, t.getMessage());
+        sendMessage(serverWebSocket, opId, ERROR, new JsonObject().put("message", t.getMessage()));
         subscriptions.remove(opId);
       }
 
       @Override
       public void onComplete() {
-        sendMessage(serverWebSocket, opId, ApolloWSMessageType.COMPLETE);
+        sendMessage(serverWebSocket, opId, COMPLETE, null);
         subscriptions.remove(opId);
       }
     });
   }
 
-  private void sendBackExecutionResult(ServerWebSocket serverWebSocket, String opId, ExecutionResult executionResult) {
-    sendMessage(serverWebSocket, opId, ApolloWSMessageType.DATA, executionResult);
-  }
-
   private void stop(ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions, String opId) {
     Subscription subscription = subscriptions.get(opId);
-
     if (subscription != null) {
       subscription.cancel();
       subscriptions.remove(opId);
     }
   }
 
-  private void sendMessage(
-      ServerWebSocket serverWebSocket, String opId, ApolloWSMessageType type, ExecutionResult payload) {
-    JsonObject message = new JsonObject()
-      .put("id", opId)
-      .put("type", type.getText())
-      .put("payload", JsonObject.mapFrom(payload));
-
+  private void sendMessage(ServerWebSocket serverWebSocket, String opId, ApolloWSMessageType type, Object payload) {
+    Objects.requireNonNull(type, "type is null");
+    JsonObject message = new JsonObject();
+    if (opId != null) {
+      message.put("id", opId);
+    }
+    message.put("type", type.getText());
+    if (payload != null) {
+      message.put("payload", payload);
+    }
     serverWebSocket.writeTextMessage(message.toString());
   }
-
-  private void sendMessage(ServerWebSocket serverWebSocket, String opId, ApolloWSMessageType type) {
-    JsonObject message = new JsonObject()
-      .put("id", opId)
-      .put("type", type.getText());
-
-    sendMessage(serverWebSocket, message);
-  }
-
-  private void sendError(ServerWebSocket serverWebSocket, String opId, String errorMsg) {
-    JsonObject error = new JsonObject()
-      .put("message", errorMsg);
-    JsonObject message = new JsonObject()
-      .put("id", opId)
-      .put("type", ApolloWSMessageType.ERROR.getText())
-      .put("payload", error);
-
-    sendMessage(serverWebSocket, message);
-  }
-
-  private void sendMessage(ServerWebSocket serverWebSocket, JsonObject message) {
-    serverWebSocket.writeTextMessage(message.toString());
-  }
-
 }

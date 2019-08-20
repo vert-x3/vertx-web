@@ -37,57 +37,9 @@ import java.util.function.Function;
 public interface ApolloWSHandler extends Handler<RoutingContext> {
 
   /**
-   * Customize the message {@link Handler}.
-   * This handler will be called for each apollo message received.
-   *
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  ApolloWSHandler messageHandler(Handler<ApolloWSContext> messageHandler);
-
-  /**
-   * Customize the conncetion {@link Handler}.
-   * This handler will be called at the beginning of each websocket connection.
-   *
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  ApolloWSHandler connectionHandler(Handler<ServerWebSocket> endHandler);
-
-  /**
-   * Customize the end {@link Handler}.
-   * This handler will be called at the end of each websocket connection.
-   *
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  ApolloWSHandler endHandler(Handler<ServerWebSocket> endHandler);
-
-  /**
-   * Customize the query context object.
-   * The provided {@code factory} method will be invoked for each incoming GraphQL request.
-   *
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  ApolloWSHandler queryContext(Function<ApolloWSContext, Object> factory);
-
-  /**
-   * Customize the {@link DataLoaderRegistry}.
-   * The provided {@code factory} method will be invoked for each incoming GraphQL request.
-   *
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  ApolloWSHandler dataLoaderRegistry(Function<ApolloWSContext, DataLoaderRegistry> factory);
-
-  /**
    * Create a new {@link ApolloWSHandler} that will use the provided {@code graphQL} object to execute requests.
+   * <p>
+   * The handler will be configured with the default {@link ApolloWSOptions}.
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ApolloWSHandler create(GraphQL graphQL) {
@@ -106,4 +58,49 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
     return new ApolloWSHandlerImpl(graphQL, options);
   }
 
+  /**
+   * Customize the connection {@link Handler}.
+   * This handler will be called at the beginning of each websocket connection.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  ApolloWSHandler connectionHandler(Handler<ServerWebSocket> endHandler);
+
+  /**
+   * Customize the message {@link Handler}.
+   * This handler will be called for each {@link ApolloWSMessage} received.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  ApolloWSHandler messageHandler(Handler<ApolloWSMessage> messageHandler);
+
+  /**
+   * Customize the end {@link Handler}.
+   * This handler will be called at the end of each websocket connection.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  ApolloWSHandler endHandler(Handler<ServerWebSocket> endHandler);
+
+  /**
+   * Customize the query context object.
+   * The provided {@code factory} method will be invoked for each incoming GraphQL request.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  ApolloWSHandler queryContext(Function<ApolloWSMessage, Object> factory);
+
+  /**
+   * Customize the {@link DataLoaderRegistry}.
+   * The provided {@code factory} method will be invoked for each incoming GraphQL request.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  ApolloWSHandler dataLoaderRegistry(Function<ApolloWSMessage, DataLoaderRegistry> factory);
 }

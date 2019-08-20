@@ -14,49 +14,40 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.graphql;
+package io.vertx.ext.web.handler.graphql.impl;
 
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.graphql.impl.ApolloWSMessageType;
+import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
+import io.vertx.ext.web.handler.graphql.ApolloWSMessageType;
 
 /**
- * @author Rogelio Orts
+ * @author Thomas Segismont
  */
-public class ApolloWSContext {
-
-  private final RoutingContext routingContext;
+public class ApolloWSMessageImpl implements ApolloWSMessage {
 
   private final ServerWebSocket serverWebSocket;
-
   private final ApolloWSMessageType type;
+  private final JsonObject content;
 
-  private final JsonObject message;
-
-  public ApolloWSContext(
-      RoutingContext routingContext, ServerWebSocket serverWebSocket, ApolloWSMessageType type,
-      JsonObject message) {
-    this.routingContext = routingContext;
+  public ApolloWSMessageImpl(ServerWebSocket serverWebSocket, ApolloWSMessageType type, JsonObject content) {
     this.serverWebSocket = serverWebSocket;
     this.type = type;
-    this.message = message;
+    this.content = content;
   }
 
-  public RoutingContext getRoutingContext() {
-    return routingContext;
-  }
-
-  public ServerWebSocket getServerWebSocket() {
+  @Override
+  public ServerWebSocket serverWebSocket() {
     return serverWebSocket;
   }
 
-  public ApolloWSMessageType getType() {
+  @Override
+  public ApolloWSMessageType type() {
     return type;
   }
 
-  public JsonObject getMessage() {
-    return message;
+  @Override
+  public JsonObject content() {
+    return content;
   }
-
 }

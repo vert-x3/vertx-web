@@ -25,17 +25,16 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.handler.graphql.impl.ApolloWSMessageType;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static io.vertx.core.http.HttpMethod.GET;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Rogelio Orts
