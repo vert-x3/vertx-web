@@ -94,4 +94,15 @@ public class ChainAuthHandlerImpl extends AuthHandlerImpl implements ChainAuthHa
       handler.handle(Future.succeededFuture(res.result()));
     });
   }
+
+  @Override
+  protected String authenticateHeader(RoutingContext ctx) {
+    AuthHandler authHandler = handlers.get(handlers.size()-1);
+    if (authHandler instanceof AuthHandlerImpl) {
+      return ((AuthHandlerImpl) authHandler).authenticateHeader(ctx);
+    }
+    return null;
+  }
 }
+
+
