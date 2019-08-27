@@ -12,6 +12,9 @@
     "react-dom": "16.8.6",
     "react-scripts": "3.0.1"
   },
+  "devDependencies": {
+    "recursive-copy": "2.0.10"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
