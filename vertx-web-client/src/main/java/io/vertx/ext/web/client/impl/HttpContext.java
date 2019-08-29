@@ -24,8 +24,8 @@ import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientImpl;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.spi.json.JsonCodec;
 import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
@@ -479,7 +479,7 @@ public class HttpContext<T> {
         } else if (body instanceof JsonObject) {
           buffer = Buffer.buffer(((JsonObject)body).encode());
         } else {
-          buffer = Buffer.buffer(Json.encode(body));
+          buffer = JsonCodec.INSTANCE.toBuffer(body);
         }
         req.exceptionHandler(responseFuture::tryFail);
         req.end(buffer);

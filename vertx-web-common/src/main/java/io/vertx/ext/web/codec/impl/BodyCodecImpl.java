@@ -21,9 +21,9 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.DecodeException;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.spi.json.JsonCodec;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
@@ -38,7 +38,7 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
   public static final Function<Buffer, Void> VOID_DECODER = buff -> null;
   public static final Function<Buffer, String> UTF8_DECODER = Buffer::toString;
   public static final Function<Buffer, JsonObject> JSON_OBJECT_DECODER = buff -> {
-    Object val = Json.decodeValue(buff);
+    Object val = JsonCodec.INSTANCE.fromBuffer(buff, Object.class);
     if (val == null) {
       return null;
     }
@@ -48,7 +48,7 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
     throw new DecodeException("Invalid Json Object decoded as " + val.getClass().getName());
   };
   public static final Function<Buffer, JsonArray> JSON_ARRAY_DECODER = buff -> {
-    Object val = Json.decodeValue(buff);
+    Object val = JsonCodec.INSTANCE.fromBuffer(buff, Object.class);
     if (val == null) {
       return null;
     }
@@ -72,7 +72,7 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
   }
 
   public static <T> Function<Buffer, T> jsonDecoder(Class<T> type) {
-    return buff -> Json.decodeValue(buff.toString(), type);
+    return buff -> JsonCodec.INSTANCE.fromBuffer(buff, type);
   }
 
   private final Function<Buffer, T> decoder;
