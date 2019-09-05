@@ -28,7 +28,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.text.DateFormat;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -37,8 +36,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class StaticHandlerTest extends WebTestBase {
-
-  private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
 
   protected StaticHandler stat;
 
@@ -353,7 +350,7 @@ public class StaticHandlerTest extends WebTestBase {
       assertNotNull(lastModified);
       assertEquals("public, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
     }, 200, "OK", "<html><body>Other page</body></html>");
-    testRequest(HttpMethod.GET, "/otherpage.html", req -> req.putHeader("if-modified-since", dateTimeFormatter.format(toDateTime(lastModifiedRef.get()) - 1)), res -> {
+    testRequest(HttpMethod.GET, "/otherpage.html", req -> req.putHeader("if-modified-since", Utils.formatRFC1123DateTime(toDateTime(lastModifiedRef.get()) - 1)), res -> {
     }, 200, "OK", "<html><body>Other page</body></html>");
   }
 
@@ -435,7 +432,7 @@ public class StaticHandlerTest extends WebTestBase {
       String lastModified = res.headers().get("last-modified");
       assertEquals(modified, toDateTime(lastModified));
     }, 200, "OK", "<html><body>File system page</body></html>");
-    testRequest(HttpMethod.GET, "/fspage.html", req -> req.putHeader("if-modified-since", dateTimeFormatter.format(modified)), null, 304, "Not Modified", null);
+    testRequest(HttpMethod.GET, "/fspage.html", req -> req.putHeader("if-modified-since", Utils.formatRFC1123DateTime(modified)), null, 304, "Not Modified", null);
   }
 
   @Test
@@ -451,7 +448,7 @@ public class StaticHandlerTest extends WebTestBase {
       resource.setLastModified(modified + 1000);
     }, 200, "OK", "<html><body>File system page</body></html>");
     // But it should still return not modified as the entry is cached
-    testRequest(HttpMethod.GET, "/fspage.html", req -> req.putHeader("if-modified-since", dateTimeFormatter.format(modified)), null, 304, "Not Modified", null);
+    testRequest(HttpMethod.GET, "/fspage.html", req -> req.putHeader("if-modified-since", Utils.formatRFC1123DateTime(modified)), null, 304, "Not Modified", null);
   }
 
   @Test
@@ -474,7 +471,7 @@ public class StaticHandlerTest extends WebTestBase {
     }, 200, "OK", html);
     // But it should return a new entry as the entry is now old
     Thread.sleep(cacheEntryTimeout + 1);
-    testRequest(HttpMethod.GET, page, req -> req.putHeader("if-modified-since", dateTimeFormatter.format(modified)), res -> {
+    testRequest(HttpMethod.GET, page, req -> req.putHeader("if-modified-since", Utils.formatRFC1123DateTime(modified)), res -> {
       String lastModified = res.headers().get("last-modified");
       assertEquals(modified + 1000, toDateTime(lastModified));
     }, 200, "OK", html);
@@ -482,7 +479,7 @@ public class StaticHandlerTest extends WebTestBase {
     // 304 must still work when cacheEntry.isOutOfDate() == true, https://github.com/vert-x3/vertx-web/issues/726
     Thread.sleep(cacheEntryTimeout + 1);
 
-    testRequest(HttpMethod.GET, page, req -> req.putHeader("if-modified-since", dateTimeFormatter.format(modified + 1000)), 304, "Not Modified", null);
+    testRequest(HttpMethod.GET, page, req -> req.putHeader("if-modified-since", Utils.formatRFC1123DateTime(modified + 1000)), 304, "Not Modified", null);
   }
 
   @Test
@@ -499,10 +496,10 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setCacheEntryTimeout(3600 * 1000);
 
     long modified = Utils.secondsFactor(pageFile.lastModified());
-    testRequest(HttpMethod.GET, page, req -> req.putHeader("if-modified-since", dateTimeFormatter.format(modified)), null, 304, "Not Modified", null);
+    testRequest(HttpMethod.GET, page, req -> req.putHeader("if-modified-since", Utils.formatRFC1123DateTime(modified)), null, 304, "Not Modified", null);
     pageFile.delete();
     testRequest(HttpMethod.GET, page, 404, "Not Found");
-    testRequest(HttpMethod.GET, page, req -> req.putHeader("if-modified-since", dateTimeFormatter.format(modified)), null, 404, "Not Found", null);
+    testRequest(HttpMethod.GET, page, req -> req.putHeader("if-modified-since", Utils.formatRFC1123DateTime(modified)), null, 404, "Not Found", null);
 
   }
 
@@ -861,8 +858,7 @@ public class StaticHandlerTest extends WebTestBase {
 
   private long toDateTime(String header) {
     try {
-      Date date = dateTimeFormatter.parse(header);
-      return date.getTime();
+      return  Utils.parseREF1123DateTime(header);
     } catch (Exception e) {
       fail(e.getMessage());
       return -1;
