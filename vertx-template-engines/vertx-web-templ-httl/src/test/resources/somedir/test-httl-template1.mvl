@@ -1,0 +1,2 @@
+<!-- #set(String foo, String bar) -->
+Cheerio ${foo} and ${bar}
