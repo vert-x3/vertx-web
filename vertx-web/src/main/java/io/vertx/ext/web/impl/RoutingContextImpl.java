@@ -28,21 +28,16 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.impl.HttpUtils;
-import io.vertx.core.http.impl.ServerCookie;
-import io.vertx.core.json.DecodeException;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Locale;
 import io.vertx.ext.web.*;
-import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -62,15 +57,13 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private String acceptableContentType;
   private ParsableHeaderValuesContainer parsedHeaders;
 
-  // We use Cookie as the key too so we can return keySet in cookies() without copying
-  private Map<String, Cookie> cookies;
   private Buffer body;
   private Set<FileUpload> fileUploads;
   private Session session;
   private User user;
 
-  public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
-    super(mountPoint, request, routes);
+  public RoutingContextImpl(RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
+    super(request, routes);
     this.router = router;
 
     fillParsedHeaders(request);
@@ -375,10 +368,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     statusCode = -1;
     // we need to reset any response headers
     response().headers().clear();
-    // special header case cookies are parsed and cached
-    if (cookies != null) {
-      cookies.clear();
-    }
     // reset the end handlers
     if (headersEndHandlers != null) {
       headersEndHandlers.clear();

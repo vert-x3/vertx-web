@@ -38,7 +38,6 @@ public abstract class RoutingContextImplBase implements RoutingContext {
 
   private final Set<RouteImpl> routes;
 
-  protected final String mountPoint;
   protected final HttpServerRequest request;
   protected Iterator<RouteImpl> iter;
   protected RouteImpl currentRoute;
@@ -48,19 +47,13 @@ public abstract class RoutingContextImplBase implements RoutingContext {
   // to write the correct status code at the end of routing process
   protected int matchFailure;
 
-  protected RoutingContextImplBase(String mountPoint, HttpServerRequest request, Set<RouteImpl> routes) {
-    this.mountPoint = mountPoint;
+  protected RoutingContextImplBase(HttpServerRequest request, Set<RouteImpl> routes) {
     this.request = new HttpServerRequestWrapper(request);
     this.routes = routes;
     this.iter = routes.iterator();
     this.currentRouteNextHandlerIndex = new AtomicInteger(0);
     this.currentRouteNextFailureHandlerIndex = new AtomicInteger(0);
     resetMatchFailure();
-  }
-
-  @Override
-  public String mountPoint() {
-    return mountPoint;
   }
 
   @Override
@@ -106,7 +99,7 @@ public abstract class RoutingContextImplBase implements RoutingContext {
       currentRouteNextHandlerIndex.set(0);
       currentRouteNextFailureHandlerIndex.set(0);
       try {
-        int matchResult = route.matches(this, mountPoint(), failed);
+        int matchResult = route.matches(this, failed);
         if (matchResult == 0) {
           if (log.isTraceEnabled()) log.trace("Route matches: " + route);
           resetMatchFailure();

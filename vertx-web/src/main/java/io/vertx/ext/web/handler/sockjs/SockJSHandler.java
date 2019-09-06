@@ -16,11 +16,10 @@
 
 package io.vertx.ext.web.handler.sockjs;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.sockjs.impl.SockJSHandlerImpl;
 
 /**
@@ -34,7 +33,7 @@ import io.vertx.ext.web.handler.sockjs.impl.SockJSHandlerImpl;
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface SockJSHandler extends Handler<RoutingContext> {
+public interface SockJSHandler {
 
   /**
    * Create a SockJS handler
@@ -64,8 +63,7 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    * @param handler  the handler
    * @return a reference to this, so the API can be used fluently
    */
-  @Fluent
-  SockJSHandler socketHandler(Handler<SockJSSocket> handler);
+  Router socketHandler(Handler<SockJSSocket> handler);
 
   /**
    * Bridge the SockJS handler to the Vert.x event bus. This basically installs a built-in SockJS socket handler
@@ -75,8 +73,7 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    * @param bridgeOptions  options to configure the bridge with
    * @return a reference to this, so the API can be used fluently
    */
-  @Fluent
-  SockJSHandler bridge(BridgeOptions bridgeOptions);
+  Router bridge(BridgeOptions bridgeOptions);
 
   /**
    * Like {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(BridgeOptions)} but specifying a handler
@@ -85,7 +82,6 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    * @param bridgeEventHandler  handler to receive bridge events
    * @return a reference to this, so the API can be used fluently
    */
-  @Fluent
-  SockJSHandler bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler);
+  Router bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler);
 
 }

@@ -99,10 +99,6 @@ public class Utils extends io.vertx.core.impl.Utils {
 
   public static String pathOffset(String path, RoutingContext context) {
     int prefixLen = 0;
-    String mountPoint = context.mountPoint();
-    if (mountPoint != null) {
-      prefixLen = mountPoint.length();
-    }
     String routePath = context.currentRoute().getPath();
     if (routePath != null) {
       prefixLen += routePath.length();

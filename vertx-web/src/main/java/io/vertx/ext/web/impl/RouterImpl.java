@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.impl;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -77,7 +76,7 @@ public class RouterImpl implements Router {
   public void handle(HttpServerRequest request) {
     if (log.isTraceEnabled()) log.trace("Router: " + System.identityHashCode(this) +
       " accepting request " + request.method() + " " + request.absoluteURI());
-    new RoutingContextImpl(null, this, request, routes).next();
+    new RoutingContextImpl(this, request, routes).next();
   }
 
   @Override
@@ -249,16 +248,6 @@ public class RouterImpl implements Router {
   public Router clear() {
     routes.clear();
     return this;
-  }
-
-  @Override
-  public void handleContext(RoutingContext ctx) {
-    new RoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), routes, ctx).next();
-  }
-
-  @Override
-  public void handleFailure(RoutingContext ctx) {
-    new RoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), routes, ctx).next();
   }
 
   @Override

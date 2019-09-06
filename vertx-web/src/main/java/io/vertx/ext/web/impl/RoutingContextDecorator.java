@@ -150,11 +150,6 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
-  public String mountPoint() {
-    return decoratedContext.mountPoint();
-  }
-
-  @Override
   public void next() {
     // make sure the next handler run on the correct context
     vertx().runOnContext(future -> decoratedContext.next());

@@ -154,11 +154,11 @@ public interface RoutingContext {
   @CacheReturn
   Vertx vertx();
 
-  /**
-   * @return the mount point for this router. It will be null for a top level router. For a sub-router it will be the path
-   * at which the subrouter was mounted.
-   */
-  @Nullable String mountPoint();
+//  /**
+//   * @return the mount point for this router. It will be null for a top level router. For a sub-router it will be the path
+//   * at which the subrouter was mounted.
+//   */
+//  @Nullable String mountPoint();
 
   /**
    * @return the current route this context is being routed through.

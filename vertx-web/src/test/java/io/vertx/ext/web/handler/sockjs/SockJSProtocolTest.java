@@ -65,22 +65,22 @@ public class SockJSProtocolTest {
 
     // These applications are required by the SockJS protocol and QUnit tests
 
-    router.route("/echo/*").handler(SockJSHandler.create(vertx,
+    router.mountSubRouter("/echo", SockJSHandler.create(vertx,
       new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> sock.handler(sock::write)));
-    router.route("/close/*").handler(SockJSHandler.create(vertx,
+    router.mountSubRouter("/close", SockJSHandler.create(vertx,
       new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> {
-        // Close with a small delay so the opening sockjs frame "o" is not aggregated in the same TCP frame
-        // than the SockJS close frame "c[3000,"Go away!"]"
-        vertx.setTimer(10, id -> sock.close(3000, "Go away!"));
+      // Close with a small delay so the opening sockjs frame "o" is not aggregated in the same TCP frame
+      // than the SockJS close frame "c[3000,"Go away!"]"
+      vertx.setTimer(10, id -> sock.close(3000, "Go away!"));
     }));
-    router.route("/disabled_websocket_echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions()
+    router.mountSubRouter("/disabled_websocket_echo", SockJSHandler.create(vertx, new SockJSHandlerOptions()
       .setMaxBytesStreaming(4096).addDisabledTransport("WEBSOCKET")).socketHandler(sock -> sock.handler(sock::write)));
-    router.route("/ticker/*").handler(SockJSHandler.create(vertx,
+    router.mountSubRouter("/ticker", SockJSHandler.create(vertx,
       new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> {
       long timerID = vertx.setPeriodic(1000, tid -> sock.write(buffer("tick!")));
       sock.endHandler(v -> vertx.cancelTimer(timerID));
     }));
-    router.route("/amplify/*").handler(SockJSHandler.create(vertx,
+    router.mountSubRouter("/amplify", SockJSHandler.create(vertx,
       new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> sock.handler(data -> {
       String str = data.toString();
       int n = Integer.valueOf(str);
@@ -94,7 +94,7 @@ public class SockJSProtocolTest {
       }
       sock.write(buff);
     })));
-    router.route("/broadcast/*").handler(SockJSHandler.create(vertx,
+    router.mountSubRouter("/broadcast", SockJSHandler.create(vertx,
       new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(new Handler<SockJSSocket>() {
       Set<String> connections = new HashSet<>();
 
@@ -108,7 +108,7 @@ public class SockJSProtocolTest {
         sock.endHandler(v -> connections.remove(sock.writeHandlerID()));
       }
     }));
-    router.route("/cookie_needed_echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().
+    router.mountSubRouter("/cookie_needed_echo", SockJSHandler.create(vertx, new SockJSHandlerOptions().
       setMaxBytesStreaming(4096).setInsertJSESSIONID(true)).socketHandler(sock -> sock.handler(sock::write)));
   }
 
@@ -125,8 +125,8 @@ public class SockJSProtocolTest {
     if (res == 0) {
       File dir = new File("src/test/sockjs-protocol");
       p = Runtime
-          .getRuntime()
-          .exec("python sockjs-protocol.py", new String[]{"SOCKJS_URL=http://localhost:8081"}, dir);
+        .getRuntime()
+        .exec("python sockjs-protocol.py", new String[]{"SOCKJS_URL=http://localhost:8081"}, dir);
 
       try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
         String line;

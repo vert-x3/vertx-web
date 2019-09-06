@@ -56,13 +56,13 @@ public class EventbusBridgeTest extends WebTestBase {
   public void setUp() throws Exception {
     super.setUp();
     sockJSHandler = SockJSHandler.create(vertx);
-    router.route("/eventbus/*").handler(sockJSHandler);
+    websocketURI = "/eventbus/websocket";
   }
 
   @Test
   public void testHookCreateSocket() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SOCKET_CREATED) {
         assertNotNull(be.socket());
         assertNull(be.getRawMessage());
@@ -71,7 +71,25 @@ public class EventbusBridgeTest extends WebTestBase {
       } else {
         be.complete(true);
       }
-    });
+    }));
+    testSend("foobar");
+    await();
+  }
+
+  @Test
+  public void testConnectOnParameter() throws Exception {
+
+    router.mountSubRouter("/eventbus/:id", sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEventType.SOCKET_CREATED) {
+        assertNotNull(be.socket());
+        assertNull(be.getRawMessage());
+        be.complete(true);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    }));
+    websocketURI = "/eventbus/123/websocket";
     testSend("foobar");
     await();
   }
@@ -81,14 +99,14 @@ public class EventbusBridgeTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(2);
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SOCKET_CREATED) {
         be.complete(false);
         latch.countDown();
       } else {
         be.complete(true);
       }
-    });
+    }));
 
     client.webSocket(websocketURI, onSuccess(ws -> {
       JsonObject msg = new JsonObject().put("type", "send").put("address", addr).put("body", "foobar");
@@ -102,7 +120,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testHookSocketClosed() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SOCKET_CLOSED) {
         assertNotNull(be.socket());
         assertNull(be.getRawMessage());
@@ -111,7 +129,7 @@ public class EventbusBridgeTest extends WebTestBase {
       } else {
         be.complete(true);
       }
-    });
+    }));
     client.webSocket(websocketURI, onSuccess(WebSocketBase::close));
     await();
   }
@@ -119,7 +137,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testHookSend() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SEND) {
         assertNotNull(be.socket());
         JsonObject raw = be.getRawMessage();
@@ -130,7 +148,7 @@ public class EventbusBridgeTest extends WebTestBase {
       } else {
         be.complete(true);
       }
-    });
+    }));
     testSend("foobar");
     await();
   }
@@ -138,7 +156,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testHookSendHeaders() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SEND) {
         assertNotNull(be.socket());
         JsonObject raw = be.getRawMessage();
@@ -151,7 +169,7 @@ public class EventbusBridgeTest extends WebTestBase {
       } else {
         be.complete(true);
       }
-    });
+    }));
     testSend(addr, "foobar", true);
     await();
   }
@@ -159,14 +177,14 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testHookSendRejected() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SEND) {
         be.complete(false);
         testComplete();
       } else {
         be.complete(true);
       }
-    });
+    }));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foobar"),
       "rejected");
     await();
@@ -174,13 +192,13 @@ public class EventbusBridgeTest extends WebTestBase {
 
   @Test
   public void testHookSendMissingAddress() throws Exception {
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SEND) {
         be.getRawMessage().remove("address");
         testComplete();
       }
       be.complete(true);
-    });
+    }));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foobar"),
       "missing_address");
     await();
@@ -189,7 +207,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testHookPublish() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.PUBLISH) {
         assertNotNull(be.socket());
         JsonObject raw = be.getRawMessage();
@@ -200,7 +218,7 @@ public class EventbusBridgeTest extends WebTestBase {
       } else {
         be.complete(true);
       }
-    });
+    }));
     testPublish("foobar");
     await();
   }
@@ -208,7 +226,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testHookPublishHeaders() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.PUBLISH) {
         assertNotNull(be.socket());
         JsonObject raw = be.getRawMessage();
@@ -221,7 +239,7 @@ public class EventbusBridgeTest extends WebTestBase {
       } else {
         be.complete(true);
       }
-    });
+    }));
     testPublish(addr, "foobar", true);
     await();
   }
@@ -229,14 +247,14 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testHookPubRejected() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.PUBLISH) {
         be.complete(false);
         testComplete();
       } else {
         be.complete(true);
       }
-    });
+    }));
     testError(new JsonObject().put("type", "publish").put("address", addr).put("body", "foobar"),
       "rejected");
     await();
@@ -244,13 +262,13 @@ public class EventbusBridgeTest extends WebTestBase {
 
   @Test
   public void testHookPublishMissingAddress() throws Exception {
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.PUBLISH) {
         be.getRawMessage().remove("address");
         testComplete();
       }
       be.complete(true);
-    });
+    }));
     testError(new JsonObject().put("type", "publish").put("address", addr).put("body", "foobar"),
       "missing_address");
     await();
@@ -259,7 +277,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testHookRegister() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.REGISTER) {
         assertNotNull(be.socket());
         JsonObject raw = be.getRawMessage();
@@ -269,7 +287,7 @@ public class EventbusBridgeTest extends WebTestBase {
       } else {
         be.complete(true);
       }
-    });
+    }));
     testReceive("foobar");
     await();
   }
@@ -277,14 +295,14 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testHookRegisterRejected() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.REGISTER) {
         be.complete(false);
         testComplete();
       } else {
         be.complete(true);
       }
-    });
+    }));
     testError(new JsonObject().put("type", "register").put("address", addr),
       "rejected");
     await();
@@ -292,13 +310,13 @@ public class EventbusBridgeTest extends WebTestBase {
 
   @Test
   public void testHookRegisterMissingAddress() throws Exception {
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.REGISTER) {
         be.getRawMessage().remove("address");
         testComplete();
       }
       be.complete(true);
-    });
+    }));
     testError(new JsonObject().put("type", "register").put("address", addr).put("body", "foobar"),
       "missing_address");
     await();
@@ -317,7 +335,7 @@ public class EventbusBridgeTest extends WebTestBase {
     // 3. Try to send a message while managing REGISTERED event
     // 4. Check if client receives the message
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.REGISTER) {
         assertNotNull(be.socket());
         JsonObject raw = be.getRawMessage();
@@ -334,7 +352,7 @@ public class EventbusBridgeTest extends WebTestBase {
         registeredLatch.countDown();
       }
       be.complete(true);
-    });
+    }));
 
     client.webSocket(websocketURI, onSuccess(ws -> {
       // Register
@@ -359,7 +377,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testHookReceive() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.RECEIVE) {
         assertNotNull(be.socket());
         JsonObject raw = be.getRawMessage();
@@ -370,7 +388,7 @@ public class EventbusBridgeTest extends WebTestBase {
       } else {
         be.complete(true);
       }
-    });
+    }));
     testReceive("foobar");
     await();
   }
@@ -378,14 +396,14 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testHookReceiveRejected() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.RECEIVE) {
         be.complete(false);
         testComplete();
       } else {
         be.complete(true);
       }
-    });
+    }));
     testReceiveFail(addr, "foobar");
     await();
   }
@@ -393,7 +411,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testHookUnregister() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.UNREGISTER) {
         assertNotNull(be.socket());
         JsonObject raw = be.getRawMessage();
@@ -403,7 +421,7 @@ public class EventbusBridgeTest extends WebTestBase {
       } else {
         be.complete(true);
       }
-    });
+    }));
     testUnregister(addr);
     await();
   }
@@ -411,14 +429,14 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testHookUnregisterRejected() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.UNREGISTER) {
         be.complete(false);
         testComplete();
       } else {
         be.complete(true);
       }
-    });
+    }));
     testError(new JsonObject().put("type", "unregister").put("address", addr),
       "rejected");
     await();
@@ -426,13 +444,13 @@ public class EventbusBridgeTest extends WebTestBase {
 
   @Test
   public void testHookUnregisterMissingAddress() throws Exception {
-    sockJSHandler.bridge(allAccessOptions, be -> {
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.UNREGISTER) {
         be.getRawMessage().remove("address");
         testComplete();
       }
       be.complete(true);
-    });
+    }));
     testError(new JsonObject().put("type", "unregister").put("address", addr).put("body", "foobar"),
       "missing_address");
     await();
@@ -440,145 +458,145 @@ public class EventbusBridgeTest extends WebTestBase {
 
   @Test
   public void testSendStringAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testSend("foobar");
   }
 
   @Test
   public void testSendJsonObjectAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testSend(new JsonObject().put("foo", "bar").put("blah", 123));
   }
 
   @Test
   public void testSendJsonArrayAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testSend(new JsonArray().add("foo").add(1456));
   }
 
   @Test
   public void testSendNumberAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testSend(13456);
   }
 
   @Test
   public void testSendBooleanTrueAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testSend(true);
   }
 
   @Test
   public void testSendBooleanFalseAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testSend(false);
   }
 
   @Test
   public void testPublishStringAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testPublish("foobar");
   }
 
   @Test
   public void testPublishJsonObjectAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testPublish(new JsonObject().put("foo", "bar").put("blah", 123));
   }
 
   @Test
   public void testPublishJsonArrayAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testPublish(new JsonArray().add("foo").add(1456));
   }
 
   @Test
   public void testPublishNumberAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testPublish(13456);
   }
 
   @Test
   public void testPublishBooleanTrueAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testPublish(true);
   }
 
   @Test
   public void testPublishBooleanFalseAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testPublish(false);
   }
 
   @Test
   public void testReceiveStringAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testReceive("foobar");
   }
 
   @Test
   public void testReceiveJsonObjectAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testReceive(new JsonObject().put("foo", "bar").put("blah", 123));
   }
 
   @Test
   public void testReceiveJsonArrayAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testReceive(new JsonArray().add("foo").add(1456));
   }
 
   @Test
   public void testReceiveNumberAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testReceive(13456);
   }
 
   @Test
   public void testReceiveBooleanTrueAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testReceive(true);
   }
 
   @Test
   public void testReceiveBooleanFalseAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testReceive(false);
   }
 
   @Test
   public void testUnregisterAllAccess() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testUnregister("someaddress");
   }
 
   @Test
   public void testInvalidType() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testError(new JsonObject().put("type", "wibble").put("address", "addr"), "invalid_type");
   }
 
   @Test
   public void testInvalidJson() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testError("oqiwjdioqwjdoiqjwd", "invalid_json");
   }
 
   @Test
   public void testMissingType() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testError(new JsonObject().put("address", "someaddress"), "missing_type");
   }
 
   @Test
   public void testMissingAddress() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testError(new JsonObject().put("type", "send").put("body", "hello world"), "missing_address");
   }
 
   @Test
   public void testSendNotPermittedDefaultOptions() throws Exception {
-    sockJSHandler.bridge(defaultOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "hello world"),
       "access_denied");
   }
@@ -586,7 +604,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testSendPermittedAllowAddress() throws Exception {
     String addr = "allow1";
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr))));
     testSend(addr, "foobar");
     testError(new JsonObject().put("type", "send").put("address", "allow2").put("body", "blah"),
       "access_denied");
@@ -595,7 +613,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testSendPermittedAllowAddressRe() throws Exception {
     String addr = "allo.+";
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddressRegex(addr)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddressRegex(addr))));
     testSend("allow1", "foobar");
     testSend("allow2", "foobar");
     testError(new JsonObject().put("type", "send").put("address", "hello").put("body", "blah"),
@@ -606,8 +624,8 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testSendPermittedMultipleAddresses() throws Exception {
     String addr1 = "allow1";
     String addr2 = "allow2";
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr1)).
-      addInboundPermitted(new PermittedOptions().setAddress(addr2)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr1)).
+      addInboundPermitted(new PermittedOptions().setAddress(addr2))));
     testSend("allow1", "foobar");
     testSend("allow2", "foobar");
     testError(new JsonObject().put("type", "send").put("address", "allow3").put("body", "blah"),
@@ -618,8 +636,8 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testSendPermittedMultipleAddressRe() throws Exception {
     String addr1 = "allo.+";
     String addr2 = "ballo.+";
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddressRegex(addr1)).
-      addInboundPermitted(new PermittedOptions().setAddressRegex(addr2)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddressRegex(addr1)).
+      addInboundPermitted(new PermittedOptions().setAddressRegex(addr2))));
     testSend("allow1", "foobar");
     testSend("allow2", "foobar");
     testSend("ballow1", "foobar");
@@ -632,8 +650,8 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testSendPermittedMixedAddressRe() throws Exception {
     String addr1 = "allow1";
     String addr2 = "ballo.+";
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr1)).
-      addInboundPermitted(new PermittedOptions().setAddressRegex(addr2)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr1)).
+      addInboundPermitted(new PermittedOptions().setAddressRegex(addr2))));
     testSend("allow1", "foobar");
     testSend("ballow1", "foobar");
     testSend("ballow2", "foobar");
@@ -646,7 +664,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testSendPermittedStructureMatch() throws Exception {
     JsonObject match = new JsonObject().put("fib", "wib").put("oop", 12);
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setMatch(match)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setMatch(match))));
     testSend(addr, match);
     JsonObject json1 = match.copy();
     json1.put("blah", "foob");
@@ -659,7 +677,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testSendPermittedStructureMatchWithAddress() throws Exception {
     JsonObject match = new JsonObject().put("fib", "wib").put("oop", 12);
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setMatch(match).setAddress(addr)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setMatch(match).setAddress(addr))));
     testSend(addr, match);
     JsonObject json1 = match.copy();
     json1.put("blah", "foob");
@@ -674,7 +692,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testRegisterPermittedAllowAddress() throws Exception {
     String addr = "allow1";
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddress(addr)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddress(addr))));
     testReceive(addr, "foobar");
     testError(new JsonObject().put("type", "register").put("address", "allow2").put("body", "blah"),
       "access_denied");
@@ -683,7 +701,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testRegisterPermittedAllowAddressRe() throws Exception {
     String addr = "allo.+";
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddressRegex(addr)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddressRegex(addr))));
     testReceive("allow1", "foobar");
     testReceive("allow2", "foobar");
     testError(new JsonObject().put("type", "register").put("address", "hello").put("body", "blah"),
@@ -694,8 +712,8 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testRegisterPermittedMultipleAddresses() throws Exception {
     String addr1 = "allow1";
     String addr2 = "allow2";
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddress(addr1)).
-      addOutboundPermitted(new PermittedOptions().setAddress(addr2)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddress(addr1)).
+      addOutboundPermitted(new PermittedOptions().setAddress(addr2))));
     testReceive("allow1", "foobar");
     testReceive("allow2", "foobar");
     testError(new JsonObject().put("type", "register").put("address", "allow3").put("body", "blah"),
@@ -706,8 +724,8 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testRegisterPermittedMultipleAddressRe() throws Exception {
     String addr1 = "allo.+";
     String addr2 = "ballo.+";
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddressRegex(addr1)).
-      addOutboundPermitted(new PermittedOptions().setAddressRegex(addr2)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddressRegex(addr1)).
+      addOutboundPermitted(new PermittedOptions().setAddressRegex(addr2))));
     testReceive("allow1", "foobar");
     testReceive("allow2", "foobar");
     testReceive("ballow1", "foobar");
@@ -720,8 +738,8 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testRegisterPermittedMixedAddressRe() throws Exception {
     String addr1 = "allow1";
     String addr2 = "ballo.+";
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddress(addr1)).
-      addOutboundPermitted(new PermittedOptions().setAddressRegex(addr2)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddress(addr1)).
+      addOutboundPermitted(new PermittedOptions().setAddressRegex(addr2))));
     testReceive("allow1", "foobar");
     testReceive("ballow1", "foobar");
     testReceive("ballow2", "foobar");
@@ -734,7 +752,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testRegisterPermittedStructureMatch() throws Exception {
     JsonObject match = new JsonObject().put("fib", "wib").put("oop", 12);
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setMatch(match)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setMatch(match))));
     testReceive(addr, match);
     JsonObject json1 = match.copy();
     json1.put("blah", "foob");
@@ -748,7 +766,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testRegisterPermittedStructureMatchWithAddress() throws Exception {
     JsonObject match = new JsonObject().put("fib", "wib").put("oop", 12);
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setMatch(match).setAddress(addr)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setMatch(match).setAddress(addr))));
     testReceive(addr, match);
     JsonObject json1 = match.copy();
     json1.put("blah", "foob");
@@ -762,7 +780,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testReplyMessagesInbound() throws Exception {
 
     // Only allow inbound address, reply message should still get through though
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr))));
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -801,7 +819,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testReplyMessagesInboundWithHeaders() throws Exception {
 
     // Only allow inbound address, reply message should still get through though
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr))));
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -845,7 +863,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testReplyMessagesOutbound() throws Exception {
 
     // Only allow outbound address, reply message should still get through though
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddress(addr)));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddress(addr))));
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -881,7 +899,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testReplyToClientTimeout() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions.setReplyTimeout(200));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions.setReplyTimeout(200)));
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -921,7 +939,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Test
   public void testAwaitingReplyToClientTimeout() throws Exception {
 
-    sockJSHandler.bridge(allAccessOptions.setReplyTimeout(200));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions.setReplyTimeout(200)));
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -976,14 +994,14 @@ public class EventbusBridgeTest extends WebTestBase {
 
   @Test
   public void testRegisterNotPermittedDefaultOptions() throws Exception {
-    sockJSHandler.bridge(defaultOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions));
     testError(new JsonObject().put("type", "register").put("address", addr),
       "access_denied");
   }
 
   @Test
   public void testUnregisterNotPermittedDefaultOptions() throws Exception {
-    sockJSHandler.bridge(defaultOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions));
     testError(new JsonObject().put("type", "unregister").put("address", addr),
       "access_denied");
   }
@@ -995,7 +1013,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(1);
 
-    sockJSHandler.bridge(new BridgeOptions(allAccessOptions).setMaxHandlersPerSocket(maxHandlers));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(new BridgeOptions(allAccessOptions).setMaxHandlersPerSocket(maxHandlers)));
 
     client.webSocket(websocketURI, onSuccess(ws -> {
 
@@ -1039,7 +1057,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(1);
 
-    sockJSHandler.bridge(new BridgeOptions(allAccessOptions).setMaxAddressLength(10));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(new BridgeOptions(allAccessOptions).setMaxAddressLength(10)));
 
     client.webSocket(websocketURI, onSuccess(ws -> {
 
@@ -1061,33 +1079,31 @@ public class EventbusBridgeTest extends WebTestBase {
 
   @Test
   public void testSendRequiresAuthorityNotLoggedIn() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredAuthority("admin")));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredAuthority("admin"))));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "not_logged_in");
   }
 
   @Test
   public void testSendRequiresAuthorityHasAuthority() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredAuthority("bang_sticks")));
     router.clear();
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
     AuthProvider authProvider = ShiroAuth.create(vertx, new ShiroAuthOptions().setType(ShiroAuthRealmType.PROPERTIES).setConfig(authConfig));
     addLoginHandler(router, authProvider);
-    router.route("/eventbus/*").handler(sockJSHandler);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredAuthority("bang_sticks"))));
     testSend("foo");
   }
 
   @Test
   public void testSendRequiresAuthorityHasnotAuthority() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredAuthority("pick_nose")));
     router.clear();
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
     AuthProvider authProvider = ShiroAuth.create(vertx, new ShiroAuthOptions().setType(ShiroAuthRealmType.PROPERTIES).setConfig(authConfig));
     addLoginHandler(router, authProvider);
-    router.route("/eventbus/*").handler(sockJSHandler);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredAuthority("pick_nose"))));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "access_denied");
   }
 
@@ -1110,14 +1126,14 @@ public class EventbusBridgeTest extends WebTestBase {
 
   @Test
   public void testInvalidClientReplyAddress() throws Exception {
-    sockJSHandler.bridge(allAccessOptions);
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo")
       .put("replyAddress", "thishasmorethan36characters__________"), "invalid_reply_address");
   }
 
   @Test
   public void testConnectionClosedAfterPingTimeout() throws Exception {
-    sockJSHandler.bridge(allAccessOptions.setPingTimeout(1000));
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(allAccessOptions.setPingTimeout(1000)));
     CountDownLatch latch = new CountDownLatch(1);
     long start = System.currentTimeMillis();
     client.webSocket(websocketURI, onSuccess(ws -> ws.closeHandler(v -> latch.countDown())));

@@ -19,8 +19,6 @@ package io.vertx.ext.web.impl;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
@@ -39,8 +37,6 @@ import java.util.regex.Pattern;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class RouteImpl implements Route {
-
-  private static final Logger log = LoggerFactory.getLogger(RouteImpl.class);
 
   private final RouterImpl router;
   private final Set<HttpMethod> methods = new HashSet<>();
@@ -78,6 +74,7 @@ public class RouteImpl implements Route {
     this.failureHandlers.addAll(other.failureHandlers);
     this.useNormalisedPath = other.useNormalisedPath;
     this.virtualHostPattern = other.virtualHostPattern;
+    this.namedGroupsInRegex.addAll(other.namedGroupsInRegex);
     // override
     if (other.pattern != null) {
       // if the route is a pattern, regardless of the mount point it needs to be
@@ -290,7 +287,7 @@ public class RouteImpl implements Route {
   /**
    * @return 0 if route matches, otherwise it return the status code
    */
-  synchronized int matches(RoutingContextImplBase context, String mountPoint, boolean failure) {
+  synchronized int matches(RoutingContextImplBase context, boolean failure) {
 
     if (failure && !hasNextFailureHandler(context) || !failure && !hasNextContextHandler(context)) {
       return 404;
@@ -299,14 +296,11 @@ public class RouteImpl implements Route {
       return 404;
     }
     HttpServerRequest request = context.request();
-    if (path != null && pattern == null && !pathMatches(mountPoint, context)) {
+    if (path != null && pattern == null && !pathMatches(context)) {
       return 404;
     }
     if (pattern != null) {
       String path = useNormalisedPath ? context.normalisedPath() : context.request().path();
-      if (mountPoint != null) {
-        path = path.substring(mountPoint.length());
-      }
 
       Matcher m = pattern.matcher(path);
       if (m.matches()) {
@@ -399,8 +393,7 @@ public class RouteImpl implements Route {
     return router;
   }
 
-  private boolean pathMatches(String mountPoint, RoutingContext ctx) {
-    String thePath = mountPoint == null ? path : mountPoint + path;
+  private boolean pathMatches(RoutingContext ctx) {
     String requestPath;
 
     if (useNormalisedPath) {
@@ -415,13 +408,13 @@ public class RouteImpl implements Route {
     }
 
     if (exactPath) {
-      return pathMatchesExact(requestPath, thePath);
+      return pathMatchesExact(requestPath, path);
     } else {
       if (pathEndsWithSlash && (requestPath.charAt(requestPath.length() - 1) == '/'
-          ? requestPath.equals(thePath) : thePath.regionMatches(0, requestPath, 0, requestPath.length()))) {
+          ? requestPath.equals(path) : path.regionMatches(0, requestPath, 0, requestPath.length()))) {
         return true;
       }
-      return requestPath.startsWith(thePath);
+      return requestPath.startsWith(path);
     }
   }
 

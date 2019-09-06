@@ -382,15 +382,6 @@ public class SubRouterTest extends WebTestBase {
   }
 
   @Test
-  public void testSubRouteRegex() throws Exception {
-    Router subRouter = Router.router(vertx);
-    router.routeWithRegex("/foo/.*").handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
-    subRouter.route("/blah").handler(rc -> rc.response().setStatusMessage("sausages").end());
-    testRequest(HttpMethod.GET, "/foo/blah", 500, "Internal Server Error");
-
-  }
-
-  @Test
   public void testRegexInSubRouter() throws Exception {
     Router subRouter = Router.router(vertx);
     subRouter.routeWithRegex("\\/test").handler(rc -> rc.response().setStatusMessage("sausages").end());

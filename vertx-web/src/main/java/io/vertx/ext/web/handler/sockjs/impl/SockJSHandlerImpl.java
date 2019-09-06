@@ -65,7 +65,7 @@ import static io.vertx.core.buffer.Buffer.*;
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext> {
+public class SockJSHandlerImpl implements SockJSHandler {
 
   private static final Logger log = LoggerFactory.getLogger(SockJSHandlerImpl.class);
 
@@ -83,26 +83,17 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
   }
 
   @Override
-  public void handle(RoutingContext context) {
-    if (log.isTraceEnabled()) {
-      log.trace("Got request in sockjs server: " + context.request().uri());
-    }
-    router.handleContext(context);
-  }
-
-  @Override
-  public SockJSHandler bridge(BridgeOptions bridgeOptions) {
+  public Router bridge(BridgeOptions bridgeOptions) {
     return bridge(bridgeOptions, null);
   }
 
   @Override
-  public SockJSHandler bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
-    socketHandler(new EventBusBridgeImpl(vertx, bridgeOptions, bridgeEventHandler));
-    return this;
+  public Router bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
+    return socketHandler(new EventBusBridgeImpl(vertx, bridgeOptions, bridgeEventHandler));
   }
 
   @Override
-  public SockJSHandler socketHandler(Handler<SockJSSocket> sockHandler) {
+  public Router socketHandler(Handler<SockJSSocket> sockHandler) {
 
     router.route("/").useNormalisedPath(false).handler(rc -> {
       if (log.isTraceEnabled()) log.trace("Returning welcome response");
@@ -158,7 +149,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
       new RawWebSocketTransport(vertx, router, sockHandler);
     }
 
-    return this;
+    return router;
   }
 
   private Handler<RoutingContext> createChunkingTestHandler() {
