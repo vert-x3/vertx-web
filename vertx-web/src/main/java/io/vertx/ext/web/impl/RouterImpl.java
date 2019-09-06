@@ -263,13 +263,20 @@ public class RouterImpl implements Router {
 
   @Override
   public Router mountSubRouter(String mountPoint, Router subRouter) {
+
+    if (mountPoint.length() > 1 && mountPoint.endsWith("/")) {
+      mountPoint = mountPoint.substring(0, mountPoint.length() - 1);
+    }
+
     if (mountPoint.endsWith("*")) {
       throw new IllegalArgumentException("Don't include * when mounting subrouter");
     }
-    if (mountPoint.contains(":")) {
-      throw new IllegalArgumentException("Can't use patterns in subrouter mounts");
+
+    for (Route r : subRouter.getRoutes()) {
+      routes.add(
+        new RouteImpl(this, orderSequence.getAndIncrement(), mountPoint, (RouteImpl) r)
+      );
     }
-    route(mountPoint + "*").handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
     return this;
   }
 

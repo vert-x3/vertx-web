@@ -67,6 +67,44 @@ public class RouteImpl implements Route {
     this.failureHandlers = new ArrayList<>();
   }
 
+  RouteImpl(RouterImpl router, int order, String pathPrefix, RouteImpl other) {
+    this(router, order);
+    // clone all other values
+    this.methods.addAll(other.methods);
+    this.consumes.addAll(other.consumes);
+    this.emptyBodyPermittedWithConsumes = other.emptyBodyPermittedWithConsumes;
+    this.produces.addAll(other.produces);
+    this.contextHandlers.addAll(other.contextHandlers);
+    this.failureHandlers.addAll(other.failureHandlers);
+    this.useNormalisedPath = other.useNormalisedPath;
+    this.virtualHostPattern = other.virtualHostPattern;
+    // override
+    if (other.pattern != null) {
+      // if the route is a pattern, regardless of the mount point it needs to be
+      // handled as a regex
+      if (other.path != null) {
+        // means that this was a placeholder
+        if (other.exactPath) {
+          checkPath(pathPrefix + other.path);
+          setPath(pathPrefix + other.path);
+        } else {
+          checkPath(pathPrefix + other.path + "*");
+          setPath(pathPrefix + other.path + "*");
+        }
+      } else {
+        setRegex(pathPrefix + other.pattern.pattern());
+      }
+    } else {
+      if (other.exactPath) {
+        checkPath(pathPrefix + other.path);
+        setPath(pathPrefix + other.path);
+      } else {
+        checkPath(pathPrefix + other.path + "*");
+        setPath(pathPrefix + other.path + "*");
+      }
+    }
+  }
+
   RouteImpl(RouterImpl router, int order, HttpMethod method, String path) {
     this(router, order);
     methods.add(method);
@@ -422,8 +460,8 @@ public class RouteImpl implements Route {
         exactPath = false;
         this.path = path.substring(0, path.length() - 1);
       }
+      pathEndsWithSlash = this.path.endsWith("/");
     }
-    pathEndsWithSlash = this.path.endsWith("/");
   }
 
   private void setRegex(String regex) {
