@@ -452,6 +452,10 @@ public class SubRouterTest extends WebTestBase {
     Router subRouter = Router.router(vertx);
 
     subRouter.get("/files/:id/info").handler(ctx -> {
+      // version is extracted from the root router
+      assertEquals("1", ctx.pathParam("version"));
+      // version is extracted from this router
+      assertEquals("2", ctx.pathParam("id"));
       ctx.response().end();
     });
 
