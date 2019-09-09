@@ -772,7 +772,7 @@ public class StaticHandlerImpl implements StaticHandler {
         // Not a conditional request
         return false;
       }
-      long ifModifiedSinceTime = Utils.parseREF1123DateTime(ifModifiedSince);
+      long ifModifiedSinceTime = Utils.parseRFC1123DateTime(ifModifiedSince);
       if(ifModifiedSinceTime <= 0) {
           return false;
       }

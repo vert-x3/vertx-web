@@ -111,14 +111,14 @@ public class Utils extends io.vertx.core.impl.Utils {
      return format(time,DateTimeFormatter.RFC_1123_DATE_TIME);
   }
   
-  public static long parseREF1123DateTime(final String header) {
-	  try {
-		  return header == null || header.isEmpty() ? -1 :
-			  LocalDate.parse(header,DateTimeFormatter.RFC_1123_DATE_TIME).atStartOfDay(ZONE_GMT).toInstant().toEpochMilli();
-	  }catch(DateTimeParseException ex) {
-		  ex.printStackTrace();
-		  return -1;
-	  }
+  public static long parseRFC1123DateTime(final String header) {
+    try {
+      return header == null || header.isEmpty() ? -1 :
+        LocalDate.parse(header,DateTimeFormatter.RFC_1123_DATE_TIME).atStartOfDay(ZONE_GMT).toInstant().toEpochMilli();
+    }catch(DateTimeParseException ex) {
+      ex.printStackTrace();
+      return -1;
+    }
   }
   
   public static String pathOffset(String path, RoutingContext context) {

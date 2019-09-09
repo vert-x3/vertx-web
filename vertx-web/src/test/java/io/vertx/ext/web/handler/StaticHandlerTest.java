@@ -858,7 +858,7 @@ public class StaticHandlerTest extends WebTestBase {
 
   private long toDateTime(String header) {
     try {
-      return  Utils.parseREF1123DateTime(header);
+      return  Utils.parseRFC1123DateTime(header);
     } catch (Exception e) {
       fail(e.getMessage());
       return -1;
