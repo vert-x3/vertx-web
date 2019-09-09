@@ -4,19 +4,19 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import io.vertx.core.spi.json.JsonCodec;
+import io.vertx.core.spi.json.JsonMapper;
 
 /**
- * Converter and Codec for {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions}.
+ * Converter and mapper for {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions}.
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions} original class using Vert.x codegen.
  */
-public class GraphiQLHandlerOptionsConverter implements JsonCodec<GraphiQLHandlerOptions, JsonObject> {
+public class GraphiQLHandlerOptionsConverter implements JsonMapper<GraphiQLHandlerOptions, JsonObject> {
 
   public static final GraphiQLHandlerOptionsConverter INSTANCE = new GraphiQLHandlerOptionsConverter();
 
-  @Override public JsonObject encode(GraphiQLHandlerOptions value) { return (value != null) ? value.toJson() : null; }
+  @Override public JsonObject serialize(GraphiQLHandlerOptions value) { return (value != null) ? value.toJson() : null; }
 
-  @Override public GraphiQLHandlerOptions decode(JsonObject value) { return (value != null) ? new GraphiQLHandlerOptions(value) : null; }
+  @Override public GraphiQLHandlerOptions deserialize(JsonObject value) { return (value != null) ? new GraphiQLHandlerOptions(value) : null; }
 
   @Override public Class<GraphiQLHandlerOptions> getTargetClass() { return GraphiQLHandlerOptions.class; }
 

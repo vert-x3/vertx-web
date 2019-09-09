@@ -4,19 +4,19 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import io.vertx.core.spi.json.JsonCodec;
+import io.vertx.core.spi.json.JsonMapper;
 
 /**
- * Converter and Codec for {@link io.vertx.ext.web.handler.graphql.ApolloWSOptions}.
+ * Converter and mapper for {@link io.vertx.ext.web.handler.graphql.ApolloWSOptions}.
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.handler.graphql.ApolloWSOptions} original class using Vert.x codegen.
  */
-public class ApolloWSOptionsConverter implements JsonCodec<ApolloWSOptions, JsonObject> {
+public class ApolloWSOptionsConverter implements JsonMapper<ApolloWSOptions, JsonObject> {
 
   public static final ApolloWSOptionsConverter INSTANCE = new ApolloWSOptionsConverter();
 
-  @Override public JsonObject encode(ApolloWSOptions value) { return (value != null) ? value.toJson() : null; }
+  @Override public JsonObject serialize(ApolloWSOptions value) { return (value != null) ? value.toJson() : null; }
 
-  @Override public ApolloWSOptions decode(JsonObject value) { return (value != null) ? new ApolloWSOptions(value) : null; }
+  @Override public ApolloWSOptions deserialize(JsonObject value) { return (value != null) ? new ApolloWSOptions(value) : null; }
 
   @Override public Class<ApolloWSOptions> getTargetClass() { return ApolloWSOptions.class; }
 

@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.ValidationMessage;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.impl.DatabindCodec;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.validation.ParameterTypeValidator;
 import io.vertx.ext.web.api.validation.ValidationException;
@@ -35,7 +35,7 @@ public class JsonTypeValidator implements ParameterTypeValidator {
       else if (value.length() == 0)
         node = JsonNodeFactory.instance.textNode("");
       else
-        node = Json.mapper.readTree(value);
+        node = DatabindCodec.mapper.readTree(value);
 
       Set<ValidationMessage> errors = schema.validate(node);
       if (errors.size() == 0) {
@@ -63,7 +63,7 @@ public class JsonTypeValidator implements ParameterTypeValidator {
     public static JsonTypeValidator createJsonTypeValidator(String schema) {
       if (schema.length() != 0) {
         try {
-          return createJsonTypeValidator(Json.mapper.readTree(schema));
+          return createJsonTypeValidator(DatabindCodec.mapper.readTree(schema));
         } catch (IOException e) {
           throw new IllegalArgumentException("schema provided is invalid: " + e);
         }

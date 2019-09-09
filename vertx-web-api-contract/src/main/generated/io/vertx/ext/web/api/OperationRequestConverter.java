@@ -4,19 +4,19 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import io.vertx.core.spi.json.JsonCodec;
+import io.vertx.core.spi.json.JsonMapper;
 
 /**
- * Converter and Codec for {@link io.vertx.ext.web.api.OperationRequest}.
+ * Converter and mapper for {@link io.vertx.ext.web.api.OperationRequest}.
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.api.OperationRequest} original class using Vert.x codegen.
  */
-public class OperationRequestConverter implements JsonCodec<OperationRequest, JsonObject> {
+public class OperationRequestConverter implements JsonMapper<OperationRequest, JsonObject> {
 
   public static final OperationRequestConverter INSTANCE = new OperationRequestConverter();
 
-  @Override public JsonObject encode(OperationRequest value) { return (value != null) ? value.toJson() : null; }
+  @Override public JsonObject serialize(OperationRequest value) { return (value != null) ? value.toJson() : null; }
 
-  @Override public OperationRequest decode(JsonObject value) { return (value != null) ? new OperationRequest(value) : null; }
+  @Override public OperationRequest deserialize(JsonObject value) { return (value != null) ? new OperationRequest(value) : null; }
 
   @Override public Class<OperationRequest> getTargetClass() { return OperationRequest.class; }
 
