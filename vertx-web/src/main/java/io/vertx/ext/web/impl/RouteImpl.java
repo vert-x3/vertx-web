@@ -190,6 +190,11 @@ public class RouteImpl implements Route {
   }
 
   @Override
+  public boolean isRegexPath() {
+    return pattern != null;
+  }
+
+  @Override
   public Set<HttpMethod> methods() {
     return this.methods;
   }
@@ -264,11 +269,18 @@ public class RouteImpl implements Route {
 
       Matcher m = pattern.matcher(path);
       if (m.matches()) {
+        context.matchRest = -1;
+        context.matchNormalized = useNormalisedPath;
+
         if (m.groupCount() > 0) {
+          if (!exactPath) {
+            context.matchRest = m.start("rest");
+          }
+
           if (groups != null) {
             // Pattern - named params
             // decode the path as it could contain escaped chars.
-            for (int i = 0; i < groups.size(); i++) {
+            for (int i = 0; i < Math.min(groups.size(), m.groupCount()); i++) {
               final String k = groups.get(i);
               String undecodedValue;
               // We try to take value in three ways:
@@ -404,11 +416,13 @@ public class RouteImpl implements Route {
         exactPath = false;
         this.path = path.substring(0, path.length() - 1);
       }
+      pathEndsWithSlash = this.path.endsWith("/");
     }
   }
 
   private void setRegex(String regex) {
     pattern = Pattern.compile(regex);
+    exactPath = true;
     Set<String> namedGroups = findNamedGroups(pattern.pattern());
     if (!namedGroups.isEmpty()) {
       namedGroupsInRegex.addAll(namedGroups);
@@ -436,8 +450,12 @@ public class RouteImpl implements Route {
     path = RE_OPERATORS_NO_STAR.matcher(path).replaceAll("\\\\$1");
     // allow usage of * at the end as per documentation
     if (path.charAt(path.length() - 1) == '*') {
-      path = path.substring(0, path.length() - 1) + ".*";
+      path = path.substring(0, path.length() - 1) + "(?<rest>.*)";
+      exactPath = false;
+    } else {
+      exactPath = true;
     }
+
     // We need to search for any :<token name> tokens in the String and replace them with named capture groups
     Matcher m = RE_TOKEN_SEARCH.matcher(path);
     StringBuffer sb = new StringBuffer();

@@ -41,8 +41,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   protected final RoutingContext inner;
   private final String mountPoint;
 
-  public RoutingContextWrapper(String mountPoint, HttpServerRequest request, Set<RouteImpl> iter,
-                               RoutingContext inner) {
+  public RoutingContextWrapper(String mountPoint, HttpServerRequest request, Set<RouteImpl> iter, RoutingContext inner) {
     super(mountPoint, request, iter);
     this.inner = inner;
     String parentMountPoint = inner.mountPoint();
@@ -126,7 +125,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
 
   @Override
   public void setSession(Session session) {
-   inner.setSession(session);
+    inner.setSession(session);
   }
 
   @Override
@@ -290,7 +289,9 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public MultiMap queryParams() { return inner.queryParams(); }
+  public MultiMap queryParams() {
+    return inner.queryParams();
+  }
 
   @Override
   public @Nullable List<String> queryParam(String query) {

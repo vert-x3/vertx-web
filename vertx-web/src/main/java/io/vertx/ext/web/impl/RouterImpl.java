@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.impl;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -33,7 +32,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
  * This class is thread-safe
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -266,10 +264,11 @@ public class RouterImpl implements Router {
     if (mountPoint.endsWith("*")) {
       throw new IllegalArgumentException("Don't include * when mounting subrouter");
     }
-    if (mountPoint.contains(":")) {
-      throw new IllegalArgumentException("Can't use patterns in subrouter mounts");
-    }
-    route(mountPoint + "*").handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
+
+    route(mountPoint + "*")
+      .handler(subRouter::handleContext)
+      .failureHandler(subRouter::handleFailure);
+
     return this;
   }
 
@@ -309,14 +308,23 @@ public class RouterImpl implements Router {
     return errorHandlers.get(statusCode);
   }
 
-  private String getAndCheckRoutePath(RoutingContext ctx) {
-    Route currentRoute = ctx.currentRoute();
-    String path = currentRoute.getPath();
-    if (path == null) {
-      throw new IllegalStateException("Sub routers must be mounted on constant paths (no regex or patterns)");
+  private String getAndCheckRoutePath(RoutingContext routingContext) {
+    final RoutingContextImplBase ctx = (RoutingContextImplBase) routingContext;
+    final Route route = ctx.currentRoute();
+
+    if (route.getPath() != null && !route.isRegexPath()) {
+      return route.getPath();
+    } else {
+      if (ctx.matchRest != -1) {
+        if (ctx.matchNormalized) {
+          return ctx.normalisedPath().substring(0, ctx.matchRest);
+        } else {
+          return ctx.request().path().substring(0, ctx.matchRest);
+        }
+      } else {
+        // failure did not match
+        throw new IllegalStateException("Sub routers must be mounted on paths (constant or parameterized)");
+      }
     }
-    return path;
   }
-
-
 }
