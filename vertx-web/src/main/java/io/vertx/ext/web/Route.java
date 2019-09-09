@@ -195,6 +195,12 @@ public interface Route {
   String getPath();
 
   /**
+   * Returns true of the path is a regular expression, this includes expression paths.
+   * @return true if backed by a pattern.
+   */
+  boolean isRegexPath();
+
+  /**
    * @return the http methods accepted by this route
    */
   Set<HttpMethod> methods();
