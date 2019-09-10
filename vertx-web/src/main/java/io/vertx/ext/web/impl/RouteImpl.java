@@ -167,20 +167,24 @@ public class RouteImpl implements Route {
 
     // The route path must end with a wild card
     if (exactPath) {
-      throw new IllegalArgumentException("Sub router cannot be mounted on an exact path.");
+      throw new IllegalStateException("Sub router cannot be mounted on an exact path.");
     }
     // Parameters are allowed but full regex patterns not
     if (path == null && pattern != null) {
-      throw new IllegalArgumentException("Sub router cannot be mounted on a regular expression path.");
+      throw new IllegalStateException("Sub router cannot be mounted on a regular expression path.");
     }
 
     // No other handler can be registered before or after this call (but they can on a new route object for the same path)
     if (contextHandlers.size() > 0 || failureHandlers.size() > 0) {
-      throw new IllegalArgumentException("Only one sub router per Route object is allowed.");
+      throw new IllegalStateException("Only one sub router per Route object is allowed.");
     }
 
     handler(subRouter::handleContext);
     failureHandler(subRouter::handleFailure);
+
+    // mark the route as exclusive from now on
+    exclusive = true;
+
     return this;
   }
 

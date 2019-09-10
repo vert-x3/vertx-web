@@ -468,4 +468,38 @@ public class SubRouterTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/v/1/files/2/info", 200, "OK");
   }
+
+  @Test(expected = IllegalStateException.class)
+  public void testSubRouterExclusive() throws Exception {
+    Router subRouter = Router.router(vertx);
+
+    subRouter.get("/files/:id/info").handler(ctx -> {
+      // version is extracted from the root router
+      assertEquals("1", ctx.pathParam("version"));
+      // version is extracted from this router
+      assertEquals("2", ctx.pathParam("id"));
+      ctx.response().end();
+    });
+
+    router.route("/v/:version/*")
+      .subRouter(subRouter)
+      .handler(ctx -> {});
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testSubRouterExclusive2() throws Exception {
+    Router subRouter = Router.router(vertx);
+
+    subRouter.get("/files/:id/info").handler(ctx -> {
+      // version is extracted from the root router
+      assertEquals("1", ctx.pathParam("version"));
+      // version is extracted from this router
+      assertEquals("2", ctx.pathParam("id"));
+      ctx.response().end();
+    });
+
+    router.route("/v/:version/*")
+      .handler(ctx -> {})
+      .subRouter(subRouter);
+  }
 }
