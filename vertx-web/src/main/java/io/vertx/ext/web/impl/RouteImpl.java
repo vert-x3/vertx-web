@@ -24,6 +24,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.*;
@@ -59,6 +60,8 @@ public class RouteImpl implements Route {
   private Set<String> namedGroupsInRegex = new TreeSet<>();
   private Pattern virtualHostPattern;
   private boolean pathEndsWithSlash;
+
+  private boolean exclusive;
 
   RouteImpl(RouterImpl router, int order) {
     this.router = router;
@@ -126,7 +129,7 @@ public class RouteImpl implements Route {
 
   @Override
   public Route virtualHost(String hostnamePattern) {
-    this.virtualHostPattern = Pattern.compile("^" + hostnamePattern.replaceAll("\\.", "\\\\.").replaceAll("[*]", "(.*?)") + "$", Pattern.CASE_INSENSITIVE);
+    this.virtualHostPattern = Pattern.compile(hostnamePattern.replaceAll("\\.", "\\\\.").replaceAll("[*]", "(.*?)"), Pattern.CASE_INSENSITIVE);
     return this;
   }
 
@@ -146,6 +149,9 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route handler(Handler<RoutingContext> contextHandler) {
+    if (exclusive) {
+      throw new IllegalStateException("This Route is exclusive for already mounted sub router.");
+    }
     this.contextHandlers.add(contextHandler);
     checkAdd();
     return this;
@@ -157,12 +163,37 @@ public class RouteImpl implements Route {
   }
 
   @Override
+  public Route subRouter(Router subRouter) {
+
+    // The route path must end with a wild card
+    if (exactPath) {
+      throw new IllegalArgumentException("Sub router cannot be mounted on an exact path.");
+    }
+    // Parameters are allowed but full regex patterns not
+    if (path == null && pattern != null) {
+      throw new IllegalArgumentException("Sub router cannot be mounted on a regular expression path.");
+    }
+
+    // No other handler can be registered before or after this call (but they can on a new route object for the same path)
+    if (contextHandlers.size() > 0 || failureHandlers.size() > 0) {
+      throw new IllegalArgumentException("Only one sub router per Route object is allowed.");
+    }
+
+    handler(subRouter::handleContext);
+    failureHandler(subRouter::handleFailure);
+    return this;
+  }
+
+  @Override
   public synchronized Route blockingHandler(Handler<RoutingContext> contextHandler, boolean ordered) {
     return handler(new BlockingHandlerDecorator(contextHandler, ordered));
   }
 
   @Override
   public synchronized Route failureHandler(Handler<RoutingContext> exceptionHandler) {
+    if (exclusive) {
+      throw new IllegalStateException("This Route is exclusive for already mounted sub router.");
+    }
     this.failureHandlers.add(exceptionHandler);
     checkAdd();
     return this;
@@ -423,17 +454,17 @@ public class RouteImpl implements Route {
   private void setPath(String path) {
     // See if the path contains ":" - if so then it contains parameter capture groups and we have to generate
     // a regex for that
-    if (path.indexOf(':') != -1) {
-      createPatternRegex(path);
+    if (path.charAt(path.length() - 1) != '*') {
+      exactPath = true;
       this.path = path;
     } else {
-      if (path.charAt(path.length() - 1) != '*') {
-        exactPath = true;
-        this.path = path;
-      } else {
-        exactPath = false;
-        this.path = path.substring(0, path.length() - 1);
-      }
+      exactPath = false;
+      this.path = path.substring(0, path.length() - 1);
+    }
+
+    if (path.indexOf(':') != -1) {
+      createPatternRegex(path);
+    } else {
       pathEndsWithSlash = this.path.endsWith("/");
     }
   }

@@ -266,8 +266,7 @@ public class RouterImpl implements Router {
     }
 
     route(mountPoint + "*")
-      .handler(subRouter::handleContext)
-      .failureHandler(subRouter::handleFailure);
+      .subRouter(subRouter);
 
     return this;
   }
