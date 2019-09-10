@@ -63,13 +63,14 @@ public class RouterImpl implements Router {
 
   private final Vertx vertx;
   private final Set<RouteImpl> routes = new ConcurrentSkipListSet<>(routeComparator);
+  private final AtomicInteger orderSequence = new AtomicInteger();
 
   public RouterImpl(Vertx vertx) {
     this.vertx = vertx;
   }
 
-  private final AtomicInteger orderSequence = new AtomicInteger();
   private Map<Integer, Handler<RoutingContext>> errorHandlers = new ConcurrentHashMap<>();
+  private Handler<Router> modifiedHandler;
 
   @Override
   public void handle(HttpServerRequest request) {
@@ -260,6 +261,31 @@ public class RouterImpl implements Router {
   }
 
   @Override
+  public Router modifiedHandler(Handler<Router> handler) {
+    if (this.modifiedHandler == null) {
+      this.modifiedHandler = handler;
+    } else {
+      // chain the handler
+      final Handler<Router> previousHandler = this.modifiedHandler;
+
+      this.modifiedHandler = router -> {
+        try {
+          previousHandler.handle(router);
+        } catch (RuntimeException e) {
+          log.error("Router modified notification failed", e);
+        }
+        // invoke the next
+        try {
+          handler.handle(router);
+        } catch (RuntimeException e) {
+          log.error("Router modified notification failed", e);
+        }
+      };
+    }
+    return this;
+  }
+
+  @Override
   public Router mountSubRouter(String mountPoint, Router subRouter) {
     if (mountPoint.endsWith("*")) {
       throw new IllegalArgumentException("Don't include * when mounting subrouter");
@@ -289,10 +315,18 @@ public class RouterImpl implements Router {
 
   void add(RouteImpl route) {
     routes.add(route);
+    // notify the listeners as the routes are changed
+    if (modifiedHandler != null) {
+      modifiedHandler.handle(this);
+    }
   }
 
   void remove(RouteImpl route) {
     routes.remove(route);
+    // notify the listeners as the routes are changed
+    if (modifiedHandler != null) {
+      modifiedHandler.handle(this);
+    }
   }
 
   Vertx vertx() {
