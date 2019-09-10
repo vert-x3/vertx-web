@@ -173,7 +173,6 @@ public class RouteImpl implements Route {
     if (path == null && pattern != null) {
       throw new IllegalStateException("Sub router cannot be mounted on a regular expression path.");
     }
-
     // No other handler can be registered before or after this call (but they can on a new route object for the same path)
     if (contextHandlers.size() > 0 || failureHandlers.size() > 0) {
       throw new IllegalStateException("Only one sub router per Route object is allowed.");
@@ -181,6 +180,11 @@ public class RouteImpl implements Route {
 
     handler(subRouter::handleContext);
     failureHandler(subRouter::handleFailure);
+
+    subRouter.modifiedHandler(this::validateMount);
+
+    // trigger a validation
+    validateMount(subRouter);
 
     // mark the route as exclusive from now on
     exclusive = true;
@@ -468,9 +472,9 @@ public class RouteImpl implements Route {
 
     if (path.indexOf(':') != -1) {
       createPatternRegex(path);
-    } else {
-      pathEndsWithSlash = this.path.endsWith("/");
     }
+
+    pathEndsWithSlash = this.path.endsWith("/");
   }
 
   private void setRegex(String regex) {
@@ -560,4 +564,29 @@ public class RouteImpl implements Route {
     this.emptyBodyPermittedWithConsumes = emptyBodyPermittedWithConsumes;
   }
 
+  private void validateMount(Router router) {
+    for (Route route : router.getRoutes()) {
+      final String combinedPath;
+
+      // this method is similar to what the pattern generation does but
+      // it will not generate a pattern, it will only verify if the paths do not contain
+      // colliding parameter names with the mount path
+
+      // escape path from any regex special chars
+      combinedPath = RE_OPERATORS_NO_STAR
+        .matcher(path + (pathEndsWithSlash ? route.getPath().substring(1) : route.getPath()))
+        .replaceAll("\\\\$1");
+
+      // We need to search for any :<token name> tokens in the String
+      Matcher m = RE_TOKEN_SEARCH.matcher(combinedPath);
+      Set<String> groups = new HashSet<>();
+      while (m.find()) {
+        String group = m.group();
+        if (groups.contains(group)) {
+          throw new IllegalStateException("Cannot use identifier " + group + " more than once in pattern string");
+        }
+        groups.add(group);
+      }
+    }
+  }
 }

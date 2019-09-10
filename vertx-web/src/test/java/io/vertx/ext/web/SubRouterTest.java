@@ -502,4 +502,24 @@ public class SubRouterTest extends WebTestBase {
       .handler(ctx -> {})
       .subRouter(subRouter);
   }
+
+  @Test(expected = IllegalStateException.class)
+  public void testSubRouterDuplicateVariable() throws Exception {
+    Router subRouter = Router.router(vertx);
+
+    subRouter.get("/:id").handler(null);
+
+    router.route("/v/:id*")
+      .subRouter(subRouter);
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testSubRouterDuplicateVariableLaterStage() throws Exception {
+    Router subRouter = Router.router(vertx);
+
+    router.route("/v/:id*")
+      .subRouter(subRouter);
+
+    subRouter.get("/:id").handler(null);
+  }
 }
