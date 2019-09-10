@@ -36,7 +36,7 @@ import java.util.Set;
  * Represents the context for the handling of a request in Vert.x-Web.
  * <p>
  * A new instance is created for each HTTP request that is received in the
- * {@link Router#handle(HttpServerRequest)} of the router.
+ * {@link Router#handle(Object)} of the router.
  * <p>
  * The same instance is passed to any matching request or failure handlers during the routing of the request or
  * failure.
