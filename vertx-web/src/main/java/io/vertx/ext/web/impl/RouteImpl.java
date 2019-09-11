@@ -58,7 +58,6 @@ public class RouteImpl implements Route {
   private List<String> groups;
   private boolean useNormalisedPath = true;
   private Set<String> namedGroupsInRegex = new TreeSet<>();
-  private Pattern virtualHostPattern;
   private boolean pathEndsWithSlash;
 
   private boolean exclusive;
