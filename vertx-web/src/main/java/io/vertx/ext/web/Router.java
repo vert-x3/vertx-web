@@ -379,6 +379,7 @@ public interface Router extends Handler<HttpServerRequest> {
    * @param errorHandler error handler. Note: You <b>must not</b> use {@link RoutingContext#next()} inside the provided handler
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Router errorHandler(int statusCode, Handler<RoutingContext> errorHandler);
 
   /**
@@ -395,4 +396,13 @@ public interface Router extends Handler<HttpServerRequest> {
    */
   void handleFailure(RoutingContext context);
 
+  /**
+   * When a Router routes are changed this handler is notified.
+   * This is useful for routes that depend on the state of the router.
+   *
+   * @param handler a notification handler that will receive this router as argument
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Router modifiedHandler(Handler<Router> handler);
 }

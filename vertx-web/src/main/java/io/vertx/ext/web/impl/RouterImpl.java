@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.impl;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -33,7 +32,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
  * This class is thread-safe
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -65,13 +63,14 @@ public class RouterImpl implements Router {
 
   private final Vertx vertx;
   private final Set<RouteImpl> routes = new ConcurrentSkipListSet<>(routeComparator);
+  private final AtomicInteger orderSequence = new AtomicInteger();
 
   public RouterImpl(Vertx vertx) {
     this.vertx = vertx;
   }
 
-  private final AtomicInteger orderSequence = new AtomicInteger();
   private Map<Integer, Handler<RoutingContext>> errorHandlers = new ConcurrentHashMap<>();
+  private Handler<Router> modifiedHandler;
 
   @Override
   public void handle(HttpServerRequest request) {
@@ -262,14 +261,39 @@ public class RouterImpl implements Router {
   }
 
   @Override
+  public Router modifiedHandler(Handler<Router> handler) {
+    if (this.modifiedHandler == null) {
+      this.modifiedHandler = handler;
+    } else {
+      // chain the handler
+      final Handler<Router> previousHandler = this.modifiedHandler;
+
+      this.modifiedHandler = router -> {
+        try {
+          previousHandler.handle(router);
+        } catch (RuntimeException e) {
+          log.error("Router modified notification failed", e);
+        }
+        // invoke the next
+        try {
+          handler.handle(router);
+        } catch (RuntimeException e) {
+          log.error("Router modified notification failed", e);
+        }
+      };
+    }
+    return this;
+  }
+
+  @Override
   public Router mountSubRouter(String mountPoint, Router subRouter) {
     if (mountPoint.endsWith("*")) {
       throw new IllegalArgumentException("Don't include * when mounting subrouter");
     }
-    if (mountPoint.contains(":")) {
-      throw new IllegalArgumentException("Can't use patterns in subrouter mounts");
-    }
-    route(mountPoint + "*").handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
+
+    route(mountPoint + "*")
+      .subRouter(subRouter);
+
     return this;
   }
 
@@ -291,10 +315,18 @@ public class RouterImpl implements Router {
 
   void add(RouteImpl route) {
     routes.add(route);
+    // notify the listeners as the routes are changed
+    if (modifiedHandler != null) {
+      modifiedHandler.handle(this);
+    }
   }
 
   void remove(RouteImpl route) {
     routes.remove(route);
+    // notify the listeners as the routes are changed
+    if (modifiedHandler != null) {
+      modifiedHandler.handle(this);
+    }
   }
 
   Vertx vertx() {
@@ -309,14 +341,23 @@ public class RouterImpl implements Router {
     return errorHandlers.get(statusCode);
   }
 
-  private String getAndCheckRoutePath(RoutingContext ctx) {
-    Route currentRoute = ctx.currentRoute();
-    String path = currentRoute.getPath();
-    if (path == null) {
-      throw new IllegalStateException("Sub routers must be mounted on constant paths (no regex or patterns)");
+  private String getAndCheckRoutePath(RoutingContext routingContext) {
+    final RoutingContextImplBase ctx = (RoutingContextImplBase) routingContext;
+    final Route route = ctx.currentRoute();
+
+    if (route.getPath() != null && !route.isRegexPath()) {
+      return route.getPath();
+    } else {
+      if (ctx.matchRest != -1) {
+        if (ctx.matchNormalized) {
+          return ctx.normalisedPath().substring(0, ctx.matchRest);
+        } else {
+          return ctx.request().path().substring(0, ctx.matchRest);
+        }
+      } else {
+        // failure did not match
+        throw new IllegalStateException("Sub routers must be mounted on paths (constant or parameterized)");
+      }
     }
-    return path;
   }
-
-
 }

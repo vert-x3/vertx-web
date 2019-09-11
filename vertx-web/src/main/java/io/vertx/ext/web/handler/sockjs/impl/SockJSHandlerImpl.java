@@ -83,6 +83,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
   }
 
   @Override
+  @Deprecated
   public void handle(RoutingContext context) {
     if (log.isTraceEnabled()) {
       log.trace("Got request in sockjs server: " + context.request().uri());
@@ -91,19 +92,17 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
   }
 
   @Override
-  public SockJSHandler bridge(BridgeOptions bridgeOptions) {
+  public Router bridge(BridgeOptions bridgeOptions) {
     return bridge(bridgeOptions, null);
   }
 
   @Override
-  public SockJSHandler bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
-    socketHandler(new EventBusBridgeImpl(vertx, bridgeOptions, bridgeEventHandler));
-    return this;
+  public Router bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
+    return socketHandler(new EventBusBridgeImpl(vertx, bridgeOptions, bridgeEventHandler));
   }
 
   @Override
-  public SockJSHandler socketHandler(Handler<SockJSSocket> sockHandler) {
-
+  public Router socketHandler(Handler<SockJSSocket> sockHandler) {
     router.route("/").useNormalisedPath(false).handler(rc -> {
       if (log.isTraceEnabled()) log.trace("Returning welcome response");
       rc.response().putHeader("Content-Type", "text/plain; charset=UTF-8").end("Welcome to SockJS!\n");
@@ -158,7 +157,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
       new RawWebSocketTransport(vertx, router, sockHandler);
     }
 
-    return this;
+    return router;
   }
 
   private Handler<RoutingContext> createChunkingTestHandler() {

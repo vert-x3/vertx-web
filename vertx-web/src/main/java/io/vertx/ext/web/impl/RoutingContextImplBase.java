@@ -47,6 +47,9 @@ public abstract class RoutingContextImplBase implements RoutingContext {
   // When Route#matches executes, if it returns != 0 this flag is configured
   // to write the correct status code at the end of routing process
   protected int matchFailure;
+  // the current path matched string
+  protected int matchRest = -1;
+  protected boolean matchNormalized;
 
   protected RoutingContextImplBase(String mountPoint, HttpServerRequest request, Set<RouteImpl> routes) {
     this.mountPoint = mountPoint;

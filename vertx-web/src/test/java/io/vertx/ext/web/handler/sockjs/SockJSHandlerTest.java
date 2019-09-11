@@ -168,10 +168,10 @@ public class SockJSHandlerTest extends WebTestBase {
     AtomicInteger receivedReplies = new AtomicInteger(0);
     WebSocket ws = setupRawWebsocketClient(serverPath);
     ws.handler(replyBuffer -> {
-              totalReplyBuffer.appendBuffer(replyBuffer);
-              receivedReplies.incrementAndGet();
+      totalReplyBuffer.appendBuffer(replyBuffer);
+      receivedReplies.incrementAndGet();
 
-            });
+    });
 
     ws.writeFrame(WebSocketFrame.binaryFrame(Buffer.buffer("hello"), true));
 
@@ -272,8 +272,8 @@ public class SockJSHandlerTest extends WebTestBase {
     Buffer expectedReplyBuffer = Buffer.buffer("a[\"").appendBuffer(largeReplyBuffer).appendBuffer(Buffer.buffer("\"]"));
     Buffer clientReplyBuffer = combineReplies(receivedMessages.subList(0, receivedMessages.size() - 1));
     assertEquals(String.format("Combined reply on client (length %s) should equal message from server (%s)",
-            clientReplyBuffer.length(), expectedReplyBuffer.length()),
-            expectedReplyBuffer, clientReplyBuffer);
+      clientReplyBuffer.length(), expectedReplyBuffer.length()),
+      expectedReplyBuffer, clientReplyBuffer);
 
     Buffer finalMessage = receivedMessages.get(receivedMessages.size() - 1);
     assertEquals("Final message should have been a close", SOCKJS_CLOSE_REPLY, finalMessage);
@@ -295,20 +295,19 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   private void setupSockJsServer(String serverPath, BiConsumer<SockJSSocket, Buffer> serverBufferHandler) {
-    String path = serverPath + "/*";
-    router.route(path).handler(SockJSHandler.create(vertx)
-            .socketHandler(sock -> {
-              sock.handler(buffer -> serverBufferHandler.accept(sock, buffer));
-              sock.exceptionHandler(this::fail);
-            }));
+    String path = serverPath;
+    router.mountSubRouter(path, SockJSHandler.create(vertx)
+      .socketHandler(sock -> {
+        sock.handler(buffer -> serverBufferHandler.accept(sock, buffer));
+        sock.exceptionHandler(this::fail);
+      }));
   }
 
   /**
    * This sets up a handler on the websocket
    */
   private WebSocket setupSockJsClient(String serverPath, List<Buffer> receivedMessagesCollector)
-          throws InterruptedException
-  {
+    throws InterruptedException {
     String requestURI = serverPath + "/000/000/websocket";
 
     AtomicReference<WebSocket> openedWebSocketReference = new AtomicReference<>();
@@ -336,8 +335,7 @@ public class SockJSHandlerTest extends WebTestBase {
    * This does not set up a handler on the websocket
    */
   private WebSocket setupRawWebsocketClient(String serverPath)
-          throws InterruptedException
-  {
+    throws InterruptedException {
     String requestURI = serverPath + "/websocket";
 
     AtomicReference<WebSocket> openedWebSocketReference = new AtomicReference<>();
@@ -362,14 +360,14 @@ public class SockJSHandlerTest extends WebTestBase {
 
   @Test
   public void testCookiesRemoved() throws Exception {
-    router.route("/cookiesremoved/*").handler(SockJSHandler.create(vertx)
-          .socketHandler(sock -> {
-            MultiMap headers = sock.headers();
-            String cookieHeader = headers.get("cookie");
-            assertNotNull(cookieHeader);
-            assertEquals("JSESSIONID=wibble", cookieHeader);
-            testComplete();
-          }));
+    router.mountSubRouter("/cookiesremoved", SockJSHandler.create(vertx)
+      .socketHandler(sock -> {
+        MultiMap headers = sock.headers();
+        String cookieHeader = headers.get("cookie");
+        assertNotNull(cookieHeader);
+        assertEquals("JSESSIONID=wibble", cookieHeader);
+        testComplete();
+      }));
     MultiMap headers = new CaseInsensitiveHeaders();
     headers.add("cookie", "JSESSIONID=wibble");
     headers.add("cookie", "flibble=floob");
@@ -387,7 +385,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
   @Test
   public void testTimeoutCloseCode() {
-    router.route("/ws-timeout/*").handler(SockJSHandler
+    router.mountSubRouter("/ws-timeout", SockJSHandler
       .create(vertx)
       .bridge(new BridgeOptions().setPingTimeout(1))
     );
@@ -404,7 +402,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
   @Test
   public void testInvalidMessageCode() {
-    router.route("/ws-timeout/*").handler(SockJSHandler
+    router.mountSubRouter("/ws-timeout", SockJSHandler
       .create(vertx)
       .bridge(new BridgeOptions().addInboundPermitted(new PermittedOptions().setAddress("SockJSHandlerTest.testInvalidMessageCode")))
     );

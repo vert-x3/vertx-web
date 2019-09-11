@@ -24,6 +24,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.*;
@@ -59,6 +60,8 @@ public class RouteImpl implements Route {
   private Set<String> namedGroupsInRegex = new TreeSet<>();
   private Pattern virtualHostPattern;
   private boolean pathEndsWithSlash;
+
+  private boolean exclusive;
 
   RouteImpl(RouterImpl router, int order) {
     this.router = router;
@@ -126,7 +129,7 @@ public class RouteImpl implements Route {
 
   @Override
   public Route virtualHost(String hostnamePattern) {
-    this.virtualHostPattern = Pattern.compile("^" + hostnamePattern.replaceAll("\\.", "\\\\.").replaceAll("[*]", "(.*?)") + "$", Pattern.CASE_INSENSITIVE);
+    this.virtualHostPattern = Pattern.compile(hostnamePattern.replaceAll("\\.", "\\\\.").replaceAll("[*]", "(.*?)"), Pattern.CASE_INSENSITIVE);
     return this;
   }
 
@@ -146,6 +149,9 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route handler(Handler<RoutingContext> contextHandler) {
+    if (exclusive) {
+      throw new IllegalStateException("This Route is exclusive for already mounted sub router.");
+    }
     this.contextHandlers.add(contextHandler);
     checkAdd();
     return this;
@@ -157,12 +163,45 @@ public class RouteImpl implements Route {
   }
 
   @Override
+  public Route subRouter(Router subRouter) {
+
+    // The route path must end with a wild card
+    if (exactPath) {
+      throw new IllegalStateException("Sub router cannot be mounted on an exact path.");
+    }
+    // Parameters are allowed but full regex patterns not
+    if (path == null && pattern != null) {
+      throw new IllegalStateException("Sub router cannot be mounted on a regular expression path.");
+    }
+    // No other handler can be registered before or after this call (but they can on a new route object for the same path)
+    if (contextHandlers.size() > 0 || failureHandlers.size() > 0) {
+      throw new IllegalStateException("Only one sub router per Route object is allowed.");
+    }
+
+    handler(subRouter::handleContext);
+    failureHandler(subRouter::handleFailure);
+
+    subRouter.modifiedHandler(this::validateMount);
+
+    // trigger a validation
+    validateMount(subRouter);
+
+    // mark the route as exclusive from now on
+    exclusive = true;
+
+    return this;
+  }
+
+  @Override
   public synchronized Route blockingHandler(Handler<RoutingContext> contextHandler, boolean ordered) {
     return handler(new BlockingHandlerDecorator(contextHandler, ordered));
   }
 
   @Override
   public synchronized Route failureHandler(Handler<RoutingContext> exceptionHandler) {
+    if (exclusive) {
+      throw new IllegalStateException("This Route is exclusive for already mounted sub router.");
+    }
     this.failureHandlers.add(exceptionHandler);
     checkAdd();
     return this;
@@ -195,6 +234,11 @@ public class RouteImpl implements Route {
   @Override
   public String getPath() {
     return path;
+  }
+
+  @Override
+  public boolean isRegexPath() {
+    return pattern != null;
   }
 
   @Override
@@ -272,11 +316,18 @@ public class RouteImpl implements Route {
 
       Matcher m = pattern.matcher(path);
       if (m.matches()) {
+        context.matchRest = -1;
+        context.matchNormalized = useNormalisedPath;
+
         if (m.groupCount() > 0) {
+          if (!exactPath) {
+            context.matchRest = m.start("rest");
+          }
+
           if (groups != null) {
             // Pattern - named params
             // decode the path as it could contain escaped chars.
-            for (int i = 0; i < groups.size(); i++) {
+            for (int i = 0; i < Math.min(groups.size(), m.groupCount()); i++) {
               final String k = groups.get(i);
               String undecodedValue;
               // We try to take value in three ways:
@@ -411,23 +462,24 @@ public class RouteImpl implements Route {
   private void setPath(String path) {
     // See if the path contains ":" - if so then it contains parameter capture groups and we have to generate
     // a regex for that
-    if (path.indexOf(':') != -1) {
-      createPatternRegex(path);
+    if (path.charAt(path.length() - 1) != '*') {
+      exactPath = true;
       this.path = path;
     } else {
-      if (path.charAt(path.length() - 1) != '*') {
-        exactPath = true;
-        this.path = path;
-      } else {
-        exactPath = false;
-        this.path = path.substring(0, path.length() - 1);
-      }
+      exactPath = false;
+      this.path = path.substring(0, path.length() - 1);
     }
+
+    if (path.indexOf(':') != -1) {
+      createPatternRegex(path);
+    }
+
     pathEndsWithSlash = this.path.endsWith("/");
   }
 
   private void setRegex(String regex) {
     pattern = Pattern.compile(regex);
+    exactPath = true;
     Set<String> namedGroups = findNamedGroups(pattern.pattern());
     if (!namedGroups.isEmpty()) {
       namedGroupsInRegex.addAll(namedGroups);
@@ -455,8 +507,12 @@ public class RouteImpl implements Route {
     path = RE_OPERATORS_NO_STAR.matcher(path).replaceAll("\\\\$1");
     // allow usage of * at the end as per documentation
     if (path.charAt(path.length() - 1) == '*') {
-      path = path.substring(0, path.length() - 1) + ".*";
+      path = path.substring(0, path.length() - 1) + "(?<rest>.*)";
+      exactPath = false;
+    } else {
+      exactPath = true;
     }
+
     // We need to search for any :<token name> tokens in the String and replace them with named capture groups
     Matcher m = RE_TOKEN_SEARCH.matcher(path);
     StringBuffer sb = new StringBuffer();
@@ -508,4 +564,29 @@ public class RouteImpl implements Route {
     this.emptyBodyPermittedWithConsumes = emptyBodyPermittedWithConsumes;
   }
 
+  private void validateMount(Router router) {
+    for (Route route : router.getRoutes()) {
+      final String combinedPath;
+
+      // this method is similar to what the pattern generation does but
+      // it will not generate a pattern, it will only verify if the paths do not contain
+      // colliding parameter names with the mount path
+
+      // escape path from any regex special chars
+      combinedPath = RE_OPERATORS_NO_STAR
+        .matcher(path + (pathEndsWithSlash ? route.getPath().substring(1) : route.getPath()))
+        .replaceAll("\\\\$1");
+
+      // We need to search for any :<token name> tokens in the String
+      Matcher m = RE_TOKEN_SEARCH.matcher(combinedPath);
+      Set<String> groups = new HashSet<>();
+      while (m.find()) {
+        String group = m.group();
+        if (groups.contains(group)) {
+          throw new IllegalStateException("Cannot use identifier " + group + " more than once in pattern string");
+        }
+        groups.add(group);
+      }
+    }
+  }
 }
