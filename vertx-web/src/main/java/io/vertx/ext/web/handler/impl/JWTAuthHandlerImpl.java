@@ -32,19 +32,10 @@ import java.util.List;
  */
 public class JWTAuthHandlerImpl extends AuthorizationAuthHandler implements JWTAuthHandler {
 
-  private final String skip;
   private final JsonObject options;
 
   public JWTAuthHandlerImpl(JWTAuth authProvider) {
     super(authProvider, Type.BEARER);
-    this.skip = null;
-    options = new JsonObject();
-  }
-
-  @Deprecated
-  public JWTAuthHandlerImpl(JWTAuth authProvider, String skip) {
-    super(authProvider, Type.BEARER);
-    this.skip = skip;
     options = new JsonObject();
   }
 
@@ -68,11 +59,6 @@ public class JWTAuthHandlerImpl extends AuthorizationAuthHandler implements JWTA
 
   @Override
   public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
-
-    if (skip != null && context.normalisedPath().startsWith(skip)) {
-      context.next();
-      return;
-    }
 
     parseAuthorization(context, false, parseAuthorization -> {
       if (parseAuthorization.failed()) {

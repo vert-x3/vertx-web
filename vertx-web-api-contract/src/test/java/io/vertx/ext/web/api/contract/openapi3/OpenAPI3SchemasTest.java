@@ -95,7 +95,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     router = routerFactory.getRouter();
     server = this.vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
     CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router::accept).listen(onSuccess(res -> latch.countDown()));
+    server.requestHandler(router).listen(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
   }
 
@@ -116,7 +116,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     r.route().handler(StaticHandler.create("./src/test/resources/swaggers/schemas"));
     CountDownLatch latch = new CountDownLatch(1);
     schemaServer = vertx.createHttpServer(new HttpServerOptions().setPort(8081))
-      .requestHandler(r::accept).listen(onSuccess(res -> latch.countDown()));
+      .requestHandler(r).listen(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
   }
 
