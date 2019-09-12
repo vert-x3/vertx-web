@@ -18,7 +18,6 @@ package io.vertx.ext.web.sstore.cookie;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SessionHandlerTestBase;
 import org.junit.Ignore;
@@ -76,7 +75,6 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
 
     final AtomicReference<String> sessionId = new AtomicReference<>();
 
-    router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(store));
     // call #0 anonymous a random id should be returned
     router.route("/0").handler(rc -> {

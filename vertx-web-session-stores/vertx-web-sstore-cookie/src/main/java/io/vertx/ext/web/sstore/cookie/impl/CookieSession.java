@@ -83,7 +83,9 @@ public class CookieSession extends AbstractSession {
 
     String[] tokens = payload.split("\\.");
     if (tokens.length != 2) {
-      throw new RuntimeException("Corrupted Session data");
+      // no signature present, force a regeneration
+      // by claiming this session as invalid
+      return null;
     }
 
     String signature = ENCODER.encodeToString(mac.doFinal(tokens[0].getBytes()));

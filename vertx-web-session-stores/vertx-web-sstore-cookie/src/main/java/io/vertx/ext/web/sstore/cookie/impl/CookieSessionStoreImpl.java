@@ -81,6 +81,12 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
   public void get(String cookieValue, Handler<AsyncResult<@Nullable Session>> resultHandler) {
     try {
       Session session = new CookieSession(mac, random).setValue(cookieValue);
+
+      if (session == null) {
+        resultHandler.handle(Future.succeededFuture());
+        return;
+      }
+
       // need to validate for expired
       long now = System.currentTimeMillis();
       // if expired, the operation succeeded, but returns null
