@@ -872,6 +872,19 @@ Here are some examples of creating a clustered {@link io.vertx.ext.web.sstore.Se
 {@link examples.WebExamples#example32}
 ----
 
+==== Other stores
+
+Other stores are also available, these stores can be used by importing the correct jar
+to the project. One example of such stores is the cookie store. This store has the advantage
+that it requires no backend or server side state, which can be useful it some situations
+**BUT** all session data will be sent back to the client in the Cookie, so if you need to store
+private information this should not be used.
+
+This store is appropriate if you're using sticky sessions, i.e. your load balancer is
+distributing different requests from the same browser to different servers.
+
+As the session is stored in the Cookie, this means sessions survive server crashes too.
+
 === Creating the session handler
 
 Once you've created a session store you can create a session handler, and add it to a route. You should make sure
