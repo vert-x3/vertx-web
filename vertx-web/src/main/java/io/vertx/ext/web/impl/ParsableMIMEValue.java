@@ -2,7 +2,7 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.ext.web.MIMEHeader;
 
-public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader{
+public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader {
 
   private String component;
   private String subComponent;
@@ -47,18 +47,18 @@ public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader
   @Override
   protected void ensureHeaderProcessed() {
     super.ensureHeaderProcessed();
-    if(component == null){
+    if (component == null) {
       HeaderParser.parseMIME(
-            value,
-            this::setComponent,
-            this::setSubComponent
-          );
+        value,
+        this::setComponent,
+        this::setSubComponent
+      );
       orderWeight = "*".equals(component) ? 0 : 1;
       orderWeight += "*".equals(subComponent) ? 0 : 2;
     }
   }
 
-  public ParsableMIMEValue forceParse(){
+  public ParsableMIMEValue forceParse() {
     ensureHeaderProcessed();
     return this;
   }
@@ -72,7 +72,7 @@ public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader
   }
 
   @Override
-  protected int weightedOrderPart2(){
+  protected int weightedOrderPart2() {
     return orderWeight;
   }
 }

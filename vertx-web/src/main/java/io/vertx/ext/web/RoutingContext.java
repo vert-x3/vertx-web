@@ -425,21 +425,6 @@ public interface RoutingContext {
   void reroute(HttpMethod method, String path);
 
   /**
-   * Returns the locales for the current request. The locales are determined from the `accept-languages` header and
-   * sorted on quality.
-   *
-   * When 2 or more entries have the same quality then the order used to return the best match is based on the lowest
-   * index on the original list. For example if a user has en-US and en-GB with same quality and this order the best
-   * match will be en-US because it was declared as first entry by the client.
-   *
-   * @deprecated Use {@link #acceptableLanguages()} or {@link #parsedHeaders()}.{@link ParsedHeaderValues#acceptLanguage()}
-   * @return the best matched locale for the request
-   */
-  @Deprecated
-  @CacheReturn
-  List<Locale> acceptableLocales();
-
-  /**
    * Returns the languages for the current request. The languages are determined from the <code>Accept-Language</code>
    * header and sorted on quality.
    *
@@ -452,19 +437,6 @@ public interface RoutingContext {
   @CacheReturn
   default List<LanguageHeader> acceptableLanguages(){
     return parsedHeaders().acceptLanguage();
-  }
-
-  /**
-   * Helper to return the user preferred locale. It is the same action as returning the first element of the acceptable
-   * locales.
-   *
-   * @deprecated Use {@link #preferredLanguage()} instead
-   * @return the users preferred locale.
-   */
-  @CacheReturn
-  @Deprecated
-  default Locale preferredLocale() {
-    return preferredLanguage();
   }
 
   /**

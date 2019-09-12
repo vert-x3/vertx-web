@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.KeyType;
 import io.vertx.ext.auth.PubSecKeyOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2ClientOptions;
@@ -274,6 +275,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
         new OAuth2ClientOptions()
           .setClientID("dummy-client")
           .addPubSecKey(new PubSecKeyOptions()
+            .setKeyType(KeyType.PUBLIC)
             .setAlgorithm("RS256")
             .setPublicKey(
               "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmuIC9Qvwoe/3tUpHkcUp\n" +
@@ -288,7 +290,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     assertNotNull(oauth);
 
-    JWT jwt = new JWT().addJWK(new JWK("RS256", null,
+    JWT jwt = new JWT().addJWK(JWK.secKey("RS256",
       "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCa4gL1C/Ch7/e1\n" +
         "SkeRxSm9abNCqdm3PccEpvHNz+MFPFQd58kOzzxePDmc1eGXi1eQfMVEBke0OfBf\n" +
         "Tvj/ahw9FJZoGMdhcHvvVp/3VQ+tz19viWHdbVryGZBTqyAqVBXAOdS548OQKbAo\n" +

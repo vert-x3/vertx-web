@@ -28,21 +28,15 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.impl.HttpUtils;
-import io.vertx.core.http.impl.ServerCookie;
-import io.vertx.core.json.DecodeException;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.Locale;
 import io.vertx.ext.web.*;
-import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -389,19 +383,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
     failure = null;
     restart();
-  }
-
-  /**
-   * <h5>Notes about the dangerous cast and suppression:</h5><br>
-   * I know for sure that <code>List&lt;Locale></code> will contain only <code>List&lt;LanguageHeader></code>.<br>
-   * Currently, LanguageHeader is the only one that extends Locale.<br>
-   * Locale does not extend LanguageHeader because I want full backwards compatibility to the previous vertx version<br>
-   * Also, Locale is being deprecated and the type of objects that extend it inside vertx should not change.
-   */
-  @SuppressWarnings({"rawtypes", "unchecked" })
-  @Override
-  public List<Locale> acceptableLocales() {
-    return (List)parsedHeaders.acceptLanguage();
   }
 
   @Override

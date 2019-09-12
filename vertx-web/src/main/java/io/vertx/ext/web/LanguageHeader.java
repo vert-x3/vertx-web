@@ -8,7 +8,7 @@ import io.vertx.codegen.annotations.VertxGen;
  * Delivers a more direct access to the individual elements of the header it represents
  */
 @VertxGen
-public interface LanguageHeader extends ParsedHeaderValue, Locale{
+public interface LanguageHeader extends ParsedHeaderValue {
 
   /**
    * The tag of the language as specified by

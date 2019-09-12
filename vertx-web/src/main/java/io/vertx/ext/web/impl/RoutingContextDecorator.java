@@ -221,11 +221,6 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
-  public List<Locale> acceptableLocales() {
-    return decoratedContext.acceptableLocales();
-  }
-
-  @Override
   public Map<String, String> pathParams() {
     return decoratedContext.pathParams();
   }
