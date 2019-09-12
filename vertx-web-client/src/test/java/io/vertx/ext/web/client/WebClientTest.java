@@ -1920,4 +1920,14 @@ public class WebClientTest extends HttpTestBase {
     });
   }
 
+  @Test
+  public void testMultipleHeaders() throws Exception {
+    testRequest(
+      client -> client
+        .get("somepath")
+        .putHeader("bla", "1")
+        .putHeader("bla", "2"),
+      req -> assertEquals(Arrays.asList("1", "2"), req.headers().getAll("bla")));
+  }
+
 }

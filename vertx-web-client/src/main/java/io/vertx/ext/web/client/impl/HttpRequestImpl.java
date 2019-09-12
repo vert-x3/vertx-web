@@ -155,7 +155,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   @Override
   public HttpRequest<T> putHeader(String name, String value) {
-    headers().set(name, value);
+    headers().add(name, value);
     return this;
   }
 
@@ -284,7 +284,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   public void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler) {
     send("multipart/form-data", body, handler);
   }
-  
+
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
     HttpContext<T> ctx = client.createContext(handler);
     ctx.prepareRequest(this, contentType, body);
