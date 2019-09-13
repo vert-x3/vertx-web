@@ -6,6 +6,7 @@ import io.vertx.codegen.doc.Text;
 import io.vertx.codegen.type.ClassTypeInfo;
 import io.vertx.codegen.type.ParameterizedTypeInfo;
 import io.vertx.codegen.type.TypeInfo;
+import io.vertx.codegen.type.TypeMirrorFactory;
 import io.vertx.ext.web.api.OperationResponse;
 import io.vertx.ext.web.api.OperationRequest;
 import io.vertx.ext.web.api.RequestParameter;
@@ -25,8 +26,8 @@ import java.util.Set;
  */
 public class WebApiProxyModel extends ProxyModel {
 
-  public WebApiProxyModel(ProcessingEnvironment env, TypeElement modelElt) {
-    super(env, modelElt);
+  public WebApiProxyModel(ProcessingEnvironment env, TypeMirrorFactory typeFactory,TypeElement modelElt) {
+    super(env, typeFactory, modelElt);
   }
 
   @Override
