@@ -4,21 +4,13 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import io.vertx.core.spi.json.JsonMapper;
 
 /**
  * Converter and mapper for {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions}.
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions} original class using Vert.x codegen.
  */
-public class GraphiQLHandlerOptionsConverter implements JsonMapper<GraphiQLHandlerOptions, JsonObject> {
+public class GraphiQLHandlerOptionsConverter {
 
-  public static final GraphiQLHandlerOptionsConverter INSTANCE = new GraphiQLHandlerOptionsConverter();
-
-  @Override public JsonObject serialize(GraphiQLHandlerOptions value) { return (value != null) ? value.toJson() : null; }
-
-  @Override public GraphiQLHandlerOptions deserialize(JsonObject value) { return (value != null) ? new GraphiQLHandlerOptions(value) : null; }
-
-  @Override public Class<GraphiQLHandlerOptions> getTargetClass() { return GraphiQLHandlerOptions.class; }
 
   public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, GraphiQLHandlerOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
