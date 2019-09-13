@@ -55,6 +55,15 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testGetSubdirectoryWithoutSlashDefaultIndex() throws Exception {
+    // in the case the file is a directory, it redirects to the root.
+    testRequest(HttpMethod.GET, "/somedir", null, res -> {
+      String location = res.headers().get("location");
+      assertEquals("/somedir/", location);
+    }, 301, "Moved Permanently", null);
+  }
+
+  @Test
   public void testGetSubdirectorySlashDefaultIndex() throws Exception {
     testRequest(HttpMethod.GET, "/somedir/", 200, "OK", "<html><body>Subdirectory index page</body></html>");
   }
@@ -68,13 +77,13 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testGetSubdirectoryOtherIndex() throws Exception {
     stat.setIndexPage("otherpage.html");
-    testRequest(HttpMethod.GET, "/somedir", 200, "OK", "<html><body>Subdirectory other page</body></html>");
+    testRequest(HttpMethod.GET, "/somedir/", 200, "OK", "<html><body>Subdirectory other page</body></html>");
   }
 
   @Test
   public void testGetSubdirectorySlashOtherIndex() throws Exception {
     stat.setIndexPage("otherpage.html");
-    testRequest(HttpMethod.GET, "/somedir", 200, "OK", "<html><body>Subdirectory other page</body></html>");
+    testRequest(HttpMethod.GET, "/somedir/", 200, "OK", "<html><body>Subdirectory other page</body></html>");
   }
 
   @Test
@@ -314,7 +323,7 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testCacheIndexPageReturnFromCache() throws Exception {
     AtomicReference<String> lastModifiedRef = new AtomicReference<>();
-    testRequest(HttpMethod.GET, "/somedir", null, res -> {
+    testRequest(HttpMethod.GET, "/somedir/", null, res -> {
       String cacheControl = res.headers().get("cache-control");
       String lastModified = res.headers().get("last-modified");
       lastModifiedRef.set(lastModified);
@@ -322,7 +331,7 @@ public class StaticHandlerTest extends WebTestBase {
       assertNotNull(lastModified);
       assertEquals("public, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
     }, 200, "OK", "<html><body>Subdirectory index page</body></html>");
-    testRequest(HttpMethod.GET, "/somedir", req -> req.putHeader("if-modified-since", lastModifiedRef.get()), null, 304, "Not Modified", null);
+    testRequest(HttpMethod.GET, "/somedir/", req -> req.putHeader("if-modified-since", lastModifiedRef.get()), null, 304, "Not Modified", null);
   }
 
   @Test
@@ -612,7 +621,7 @@ public class StaticHandlerTest extends WebTestBase {
 
     String expected = directoryTemplate.replace("{directory}", "/somedir2/").replace("{parent}", parentLink).replace("{files}", files);
 
-    testRequest(HttpMethod.GET, "/somedir2", req -> req.putHeader("accept", "text/html"), resp -> resp.bodyHandler(buff -> {
+    testRequest(HttpMethod.GET, "/somedir2/", req -> req.putHeader("accept", "text/html"), resp -> resp.bodyHandler(buff -> {
       assertEquals("text/html", resp.headers().get("content-type"));
       String sBuff = buff.toString();
       assertEquals(expected, sBuff);
