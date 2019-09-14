@@ -30,10 +30,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
-import java.util.TimeZone;
+
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -91,12 +92,33 @@ public class Utils extends io.vertx.core.impl.Utils {
     }
   }
 
-  public static DateFormat createRFC1123DateTimeFormatter() {
-    DateFormat dtf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
-    dtf.setTimeZone(TimeZone.getTimeZone("GMT"));
-    return dtf;
+  public static DateTimeFormatter createRFC1123DateTimeFormatter() {
+//    DateFormat dtf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
+//    dtf.setTimeZone(TimeZone.getTimeZone("GMT"));
+//    return dtf;
+	  return DateTimeFormatter.RFC_1123_DATE_TIME;
+  }
+  
+  private static final ZoneId ZONE_GMT = ZoneId.of("GMT");
+
+  private static String format(final long time,final DateTimeFormatter format) {
+     return format.format(Instant.ofEpochMilli(time).atZone(ZONE_GMT));
   }
 
+  public static String formatRFC1123DateTime(final long time) {
+     return format(time,DateTimeFormatter.RFC_1123_DATE_TIME);
+  }
+  
+  public static long parseRFC1123DateTime(final String header) {
+    try {
+      return header == null || header.isEmpty() ? -1 :
+        LocalDateTime.parse(header,DateTimeFormatter.RFC_1123_DATE_TIME).toInstant(ZoneOffset.UTC).toEpochMilli();
+    }catch(DateTimeParseException ex) {
+      ex.printStackTrace();
+      return -1;
+    }
+  }
+  
   public static String pathOffset(String path, RoutingContext context) {
     int prefixLen = 0;
     String mountPoint = context.mountPoint();
