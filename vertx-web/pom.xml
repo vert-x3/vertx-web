@@ -28,8 +28,6 @@
 
   <properties>
     <doc.skip>false</doc.skip>
-   <file.encoding>UTF-8</file.encoding>
-   <surefireArgLine>-Dfile.encoding=${file.encoding}</surefireArgLine>
   </properties>
 
   <dependencies>
