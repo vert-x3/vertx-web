@@ -4,21 +4,13 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import io.vertx.core.spi.json.JsonMapper;
 
 /**
  * Converter and mapper for {@link io.vertx.ext.web.handler.graphql.ApolloWSOptions}.
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.handler.graphql.ApolloWSOptions} original class using Vert.x codegen.
  */
-public class ApolloWSOptionsConverter implements JsonMapper<ApolloWSOptions, JsonObject> {
+public class ApolloWSOptionsConverter {
 
-  public static final ApolloWSOptionsConverter INSTANCE = new ApolloWSOptionsConverter();
-
-  @Override public JsonObject serialize(ApolloWSOptions value) { return (value != null) ? value.toJson() : null; }
-
-  @Override public ApolloWSOptions deserialize(JsonObject value) { return (value != null) ? new ApolloWSOptions(value) : null; }
-
-  @Override public Class<ApolloWSOptions> getTargetClass() { return ApolloWSOptions.class; }
 
   public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, ApolloWSOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {

@@ -4,21 +4,13 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import io.vertx.core.spi.json.JsonMapper;
 
 /**
  * Converter and mapper for {@link io.vertx.ext.web.api.contract.RouterFactoryOptions}.
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.api.contract.RouterFactoryOptions} original class using Vert.x codegen.
  */
-public class RouterFactoryOptionsConverter implements JsonMapper<RouterFactoryOptions, JsonObject> {
+public class RouterFactoryOptionsConverter {
 
-  public static final RouterFactoryOptionsConverter INSTANCE = new RouterFactoryOptionsConverter();
-
-  @Override public JsonObject serialize(RouterFactoryOptions value) { return (value != null) ? value.toJson() : null; }
-
-  @Override public RouterFactoryOptions deserialize(JsonObject value) { return (value != null) ? new RouterFactoryOptions(value) : null; }
-
-  @Override public Class<RouterFactoryOptions> getTargetClass() { return RouterFactoryOptions.class; }
 
    static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, RouterFactoryOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {

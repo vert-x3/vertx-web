@@ -350,8 +350,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 				resp -> assertNull(resp.headers().get("set-cookie")), 200, "OK", null);
 	}
 
-	private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
-
 	protected long doTestSessionRetryTimeout() throws Exception {
 		router.route().handler(SessionHandler.create(store));
 		AtomicReference<Session> rid = new AtomicReference<>();

@@ -4,21 +4,13 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import io.vertx.core.spi.json.JsonMapper;
 
 /**
  * Converter and mapper for {@link io.vertx.ext.web.api.OperationResponse}.
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.api.OperationResponse} original class using Vert.x codegen.
  */
-public class OperationResponseConverter implements JsonMapper<OperationResponse, JsonObject> {
+public class OperationResponseConverter {
 
-  public static final OperationResponseConverter INSTANCE = new OperationResponseConverter();
-
-  @Override public JsonObject serialize(OperationResponse value) { return (value != null) ? value.toJson() : null; }
-
-  @Override public OperationResponse deserialize(JsonObject value) { return (value != null) ? new OperationResponse(value) : null; }
-
-  @Override public Class<OperationResponse> getTargetClass() { return OperationResponse.class; }
 
    static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, OperationResponse obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
