@@ -16,10 +16,10 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.UserSessionHandler;
 
 /**
@@ -29,44 +29,14 @@ import io.vertx.ext.web.handler.UserSessionHandler;
 @Deprecated
 public class UserSessionHandlerImpl implements UserSessionHandler {
 
-  private static final String SESSION_USER_HOLDER_KEY = "__vertx.userHolder";
-
-  private final AuthProvider authProvider;
+  private static final Logger log = LoggerFactory.getLogger(UserSessionHandlerImpl.class);
 
   public UserSessionHandlerImpl(AuthProvider authProvider) {
-    this.authProvider = authProvider;
+    log.warn("This handler is not needed anymore, the SessionHandler takes care of the user session.");
   }
 
   @Override
   public void handle(RoutingContext routingContext) {
-    Session session = routingContext.session();
-    if (session != null) {
-      User user = null;
-      UserHolder holder = session.get(SESSION_USER_HOLDER_KEY);
-      if (holder != null) {
-        RoutingContext prevContext = holder.context;
-        if (prevContext != null) {
-          user = prevContext.user();
-        } else if (holder.user != null) {
-          user = holder.user;
-          user.setAuthProvider(authProvider);
-          holder.context = routingContext;
-          holder.user = null;
-        }
-        holder.context = routingContext;
-      } else {
-        // only at the time we are writing the header we should store the user to the session
-        routingContext.addHeadersEndHandler(v -> {
-          // during the request the user might have been removed
-          if (routingContext.user() != null) {
-            session.put(SESSION_USER_HOLDER_KEY, new UserHolder(routingContext));
-          }
-        });
-      }
-      if (user != null) {
-        routingContext.setUser(user);
-      }
-    }
     routingContext.next();
   }
 

@@ -31,7 +31,7 @@ import io.vertx.ext.web.handler.impl.UserSessionHandlerImpl;
  * It requires an Auth provider so, if the user is deserialized from a clustered session it knows which Auth provider
  * to associate the session with.
  *
- * @deprecated the Session Handler also manages the user session.
+ * @deprecated the Session Handler also manages the user session. This handler is now not needed.
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
