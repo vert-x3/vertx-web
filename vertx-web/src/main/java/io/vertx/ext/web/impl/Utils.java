@@ -31,9 +31,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -114,7 +112,7 @@ public class Utils extends io.vertx.core.impl.Utils {
   public static long parseRFC1123DateTime(final String header) {
     try {
       return header == null || header.isEmpty() ? -1 :
-        LocalDate.parse(header,DateTimeFormatter.RFC_1123_DATE_TIME).atStartOfDay(ZONE_GMT).toInstant().toEpochMilli();
+        LocalDateTime.parse(header,DateTimeFormatter.RFC_1123_DATE_TIME).toInstant(ZoneOffset.UTC).toEpochMilli();
     }catch(DateTimeParseException ex) {
       ex.printStackTrace();
       return -1;
