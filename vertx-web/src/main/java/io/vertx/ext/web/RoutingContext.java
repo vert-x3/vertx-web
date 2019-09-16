@@ -629,4 +629,30 @@ public interface RoutingContext {
 
     return contentType.isMatchedBy(value);
   }
+
+  /**
+   * Shortcut to the resonse end.
+   * @param chunk a chunk
+   * @return future
+   */
+  default Future<Void> end(String chunk) {
+    return response().end(chunk);
+  }
+
+  /**
+   * Shortcut to the resonse end.
+   * @param buffer a chunk
+   * @return future
+   */
+  default Future<Void> end(Buffer buffer) {
+    return response().end(buffer);
+  }
+
+  /**
+   * Shortcut to the resonse end.
+   * @return future
+   */
+  default Future<Void> end() {
+    return response().end();
+  }
 }
