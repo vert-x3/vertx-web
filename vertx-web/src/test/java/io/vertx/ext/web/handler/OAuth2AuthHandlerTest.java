@@ -19,7 +19,6 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.KeyType;
 import io.vertx.ext.auth.PubSecKeyOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2ClientOptions;
@@ -275,7 +274,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
         new OAuth2ClientOptions()
           .setClientID("dummy-client")
           .addPubSecKey(new PubSecKeyOptions()
-            .setKeyType(KeyType.PUBLIC)
             .setAlgorithm("RS256")
             .setPublicKey(
               "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmuIC9Qvwoe/3tUpHkcUp\n" +

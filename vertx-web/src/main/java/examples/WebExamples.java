@@ -671,7 +671,7 @@ public class WebExamples {
   public void example32() {
 
     // a clustered Vert.x
-    Vertx.clusteredVertx(new VertxOptions().setClustered(true), res -> {
+    Vertx.clusteredVertx(new VertxOptions(), res -> {
 
       Vertx vertx = res.result();
 

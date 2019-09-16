@@ -527,7 +527,8 @@ public class RouterTest extends WebTestBase {
       throw new RuntimeException("ouch!");
     });
     CountDownLatch latch = new CountDownLatch(1);
-    router.exceptionHandler(t -> {
+    router.errorHandler(500, ctx -> {
+      Throwable t = ctx.failure();
       assertEquals("ouch!", t.getMessage());
       latch.countDown();
     });

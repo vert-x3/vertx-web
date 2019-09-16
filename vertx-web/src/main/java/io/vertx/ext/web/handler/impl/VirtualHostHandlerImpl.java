@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 /**
  * @author <a href="http://plopes@redhat.com">Paulo Lopes</a>
  */
+@Deprecated
 public class VirtualHostHandlerImpl implements VirtualHostHandler {
 
   private final Pattern regex;

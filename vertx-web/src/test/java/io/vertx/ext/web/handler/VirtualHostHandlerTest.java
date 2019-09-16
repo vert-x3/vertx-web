@@ -22,6 +22,7 @@ import org.junit.Test;
 /**
  * @author Paulo Lopes
  */
+@Deprecated
 public class VirtualHostHandlerTest extends WebTestBase {
 
   @Test

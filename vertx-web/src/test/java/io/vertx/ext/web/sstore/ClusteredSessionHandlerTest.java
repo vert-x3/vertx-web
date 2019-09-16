@@ -46,7 +46,6 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   public void setUp() throws Exception {
     super.setUp();
     VertxOptions options = new VertxOptions();
-    options.setClustered(true);
     options.setClusterManager(getClusterManager());
     startNodes(numNodes, options);
     store = ClusteredSessionStore.create(vertices[0], 3000);

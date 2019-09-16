@@ -24,6 +24,7 @@ import org.junit.Test;
 /**
  * @author <a href="mailto:emad.albloushi@gmail.com">Emad Alblueshi</a>
  */
+@Deprecated
 public class VirtualHostHandlerHttp2Test extends WebTestBase {
 
   @Override

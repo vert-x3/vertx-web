@@ -77,7 +77,8 @@ public class TemplateTest extends WebTestBase {
   public void testTemplateEngineFail() throws Exception {
     TemplateEngine engine = new TestEngine(true);
     router.route().handler(TemplateHandler.create(engine, "somedir", "text/html"));
-    router.exceptionHandler(t -> {
+    router.errorHandler(500, ctx -> {
+      Throwable t = ctx.failure();
       assertEquals("eek", t.getMessage());
       testComplete();
     });
