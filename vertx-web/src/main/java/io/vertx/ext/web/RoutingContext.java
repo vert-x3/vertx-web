@@ -508,6 +508,50 @@ public interface RoutingContext {
   }
 
   /**
+   * Perform a 302 redirect to `url`.
+   * <p/>
+   * The string "back" is special-cased
+   * to provide Referrer support, when Referrer
+   * is not present `alt` or "/" is used.
+   * <p/>
+   * Examples:
+   * <p/>
+   * this.redirect('back');
+   * this.redirect('back', '/index.html');
+   * this.redirect('/login');
+   * this.redirect('http://google.com');
+   *
+   * @param url the target url
+   * @param alt the alt value
+   */
+  default Future<Void> redirect(String url, String alt) {
+    // location
+    if ("back".equals(url)) {
+      url = request().getHeader(HttpHeaders.REFERER);
+      if (url == null) {
+        url = alt;
+      }
+      if (url == null) {
+        url = "/";
+      }
+    }
+
+    response()
+      .putHeader(HttpHeaders.LOCATION, url);
+
+    // status
+    int status = response().getStatusCode();
+
+    if (status < 300 || status >= 400) {
+      response().setStatusCode(302);
+    }
+
+    return response()
+      .putHeader("Content-Type", "text/plain; charset=utf-8")
+      .end("Redirecting to " + url + ".");
+  }
+
+  /**
    * Encode a JsonObject and end the request.
    * The method will apply the correct content type to the response,
    * perform the encoding to buffer and end.
