@@ -184,4 +184,71 @@ public class RoutingContextImplTest extends WebTestBase {
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
   }
 
+  @Test
+  public void testAttachment() throws Exception {
+    router.route().handler(event -> {
+      event.attachment("myfile.pdf").response().end("PDF");
+    });
+    testRequest(HttpMethod.GET, "/", null, res -> {
+      assertEquals("attachment; filename=myfile.pdf", res.getHeader("Content-Disposition"));
+      assertEquals("application/pdf", res.getHeader("Content-Type"));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
+
+  @Test
+  public void testAttachmentWithoutMIME() throws Exception {
+    router.route().handler(event -> {
+      event.attachment("myfile.paulo").response().end("PDF");
+    });
+    testRequest(HttpMethod.GET, "/", null, res -> {
+      assertEquals("attachment; filename=myfile.paulo", res.getHeader("Content-Disposition"));
+      assertNull(res.getHeader("Content-Type"));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
+
+  @Test
+  public void testJsonObject() throws Exception {
+    router.route().handler(ctx -> {
+      ctx.json(new JsonObject());
+    });
+    testRequest(HttpMethod.GET, "/", null, res -> {
+      assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type"));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
+
+  @Test
+  public void testJsonArray() throws Exception {
+    router.route().handler(ctx -> {
+      ctx.json(new JsonArray());
+    });
+    testRequest(HttpMethod.GET, "/", null, res -> {
+      assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type"));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
+
+  @Test
+  public void testIs() throws Exception {
+    router.route().handler(event -> {
+      assertTrue(event.is("json"));
+      event.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.putHeader("Content-Type", "application/json");
+      req.write(Buffer.buffer("{ \"foo\": \"bar\" }"));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
+
+  @Test
+  public void testIs2() throws Exception {
+    router.route().handler(event -> {
+      assertTrue(event.is("application/json"));
+      event.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.putHeader("Content-Type", "application/json");
+      req.write(Buffer.buffer("{ \"foo\": \"bar\" }"));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
 }

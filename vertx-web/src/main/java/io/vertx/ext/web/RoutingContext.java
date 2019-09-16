@@ -17,17 +17,17 @@
 package io.vertx.ext.web;
 
 import io.vertx.codegen.annotations.*;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.Cookie;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.*;
+import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.web.impl.ParsableMIMEValue;
 
 import java.util.List;
 import java.util.Map;
@@ -483,4 +483,106 @@ public interface RoutingContext {
    * @return The list of all parameters matching the parameter name. It returns an empty list if no query parameter with {@code name} was found
    */
   List<String> queryParam(String name);
+
+  /**
+   * Set Content-Disposition get to "attachment" with optional `filename` mime type.
+   *
+   * @param filename the filename for the attachment
+   */
+  @Fluent
+  default RoutingContext attachment(String filename) {
+    if (filename != null) {
+      String contentType = MimeMapping.getMimeTypeForFilename(filename);
+
+      if (contentType != null) {
+        response()
+          .putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+      }
+
+    }
+
+    response()
+      .putHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
+
+    return this;
+  }
+
+  /**
+   * Encode a JsonObject and end the request.
+   * The method will apply the correct content type to the response,
+   * perform the encoding to buffer and end.
+   *
+   * @param json the json
+   * @return a future to handle the end of the request
+   */
+  default Future<Void> json(JsonObject json) {
+    if (json == null) {
+      return response().end();
+    } else {
+      return response()
+        .putHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8")
+        .end(json.toBuffer());
+    }
+  }
+
+  /**
+   * Encode a JsonArray and end the request.
+   * The method will apply the correct content type to the response,
+   * perform the encoding to buffer and end.
+   *
+   * @param json the json
+   * @return a future to handle the end of the request
+   */
+  default Future<Void> json(JsonArray json) {
+    if (json == null) {
+      return response().end();
+    } else {
+      return response()
+        .putHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8")
+        .end(json.toBuffer());
+    }
+  }
+
+  /**
+   * Check if the incoming getRequest contains the "Content-Type"
+   * get field, and it contains the give mime `type`.
+   * If there is no getRequest body, `false` is returned.
+   * If there is no content type, `false` is returned.
+   * Otherwise, it returns true if the `type` that matches.
+   * <p/>
+   * Examples:
+   * <p/>
+   * // With Content-Type: text/html; getCharset=utf-8
+   * this.is('html'); // => true
+   * this.is('text/html'); // => true
+   * <p/>
+   * // When Content-Type is application/json
+   * this.is('application/json'); // => true
+   * this.is('html'); // => false
+   *
+   * @param type content type
+   * @return The most close value
+   */
+  @CacheReturn
+  default boolean is(String type) {
+    MIMEHeader contentType = parsedHeaders().contentType();
+
+    if (contentType == null) {
+      return false;
+    }
+
+    ParsedHeaderValue value;
+
+
+    // if we received an incomplete CT
+    if (type.indexOf('/') == -1) {
+      // when the content is incomplete we assume */type, e.g.:
+      // json -> */json
+      value = new ParsableMIMEValue("*/" + type).forceParse();
+    } else {
+      value = new ParsableMIMEValue(type).forceParse();
+    }
+
+    return contentType.isMatchedBy(value);
+  }
 }
