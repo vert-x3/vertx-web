@@ -36,6 +36,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -90,7 +91,7 @@ class EventSourceTransport extends BaseTransport {
         // event stream data is always UTF8
         // https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format
         // no need to specify the character encoding
-        rc.response().putHeader("Content-Type", "text/event-stream");
+        rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/event-stream");
         setNoCacheHeaders(rc);
         setJSESSIONID(options, rc);
         rc.response().setChunked(true).write("\r\n");

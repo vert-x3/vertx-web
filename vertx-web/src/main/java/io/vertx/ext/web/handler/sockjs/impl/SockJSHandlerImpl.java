@@ -35,6 +35,7 @@ package io.vertx.ext.web.handler.sockjs.impl;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -105,7 +106,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
   public Router socketHandler(Handler<SockJSSocket> sockHandler) {
     router.route("/").useNormalisedPath(false).handler(rc -> {
       if (log.isTraceEnabled()) log.trace("Returning welcome response");
-      rc.response().putHeader("Content-Type", "text/plain; charset=UTF-8").end("Welcome to SockJS!\n");
+      rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8").end("Welcome to SockJS!\n");
     });
 
     // Iframe handlers
@@ -236,9 +237,12 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
         } else {
           long oneYear = 365 * 24 * 60 * 60 * 1000L;
           String expires = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").format(new Date(System.currentTimeMillis() + oneYear));
-          rc.response().putHeader("Content-Type", "text/html; charset=UTF-8")
-            .putHeader("Cache-Control", "public,max-age=31536000")
-            .putHeader("Expires", expires).putHeader("ETag", etag).end(iframeHTML);
+          rc.response()
+            .putHeader(HttpHeaders.CONTENT_TYPE, "text/html; charset=UTF-8")
+            .putHeader(HttpHeaders.CACHE_CONTROL, "public,max-age=31536000")
+            .putHeader(HttpHeaders.EXPIRES, expires)
+            .putHeader(HttpHeaders.ETAG, etag)
+            .end(iframeHTML);
         }
       } catch (Exception e) {
         log.error("Failed to server iframe", e);

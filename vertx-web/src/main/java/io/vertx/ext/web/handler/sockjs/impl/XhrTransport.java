@@ -38,6 +38,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpVersion;
@@ -139,7 +140,7 @@ class XhrTransport extends BaseTransport {
     if (!session.handleMessages(msgs)) {
       sendInvalidJSON(rc.response());
     } else {
-      rc.response().putHeader("Content-Type", "text/plain; charset=UTF-8");
+      rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8");
       setNoCacheHeaders(rc);
       setJSESSIONID(options, rc);
       setCORS(rc);
@@ -161,7 +162,7 @@ class XhrTransport extends BaseTransport {
       if (log.isTraceEnabled()) log.trace("XHR sending frame");
       if (!headersWritten) {
         HttpServerResponse resp = rc.response();
-        resp.putHeader("Content-Type", "application/javascript; charset=UTF-8");
+        resp.putHeader(HttpHeaders.CONTENT_TYPE, "application/javascript; charset=UTF-8");
         setJSESSIONID(options, rc);
         setCORS(rc);
         if (rc.request().version() != HttpVersion.HTTP_1_0) {

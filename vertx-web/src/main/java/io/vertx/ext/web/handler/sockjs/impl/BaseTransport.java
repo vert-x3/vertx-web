@@ -38,6 +38,7 @@ import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.impl.StringEscapeUtils;
@@ -150,7 +151,7 @@ class BaseTransport {
       if (cookies == null) {
         cookies = "JSESSIONID=dummy; path=/";
       }
-      rc.response().putHeader("Set-Cookie", cookies);
+      rc.response().putHeader(SET_COOKIE, cookies);
     }
   }
 
@@ -179,7 +180,7 @@ class BaseTransport {
       boolean websocket = !options.getDisabledTransports().contains(Transport.WEBSOCKET.toString());
       public void handle(RoutingContext rc) {
         if (log.isTraceEnabled()) log.trace("In Info handler");
-        rc.response().putHeader("Content-Type", "application/json; charset=UTF-8");
+        rc.response().putHeader(CONTENT_TYPE, "application/json; charset=UTF-8");
         setNoCacheHeaders(rc);
         JsonObject json = new JsonObject();
         json.put("websocket", websocket);
@@ -195,19 +196,20 @@ class BaseTransport {
   }
 
   static void setNoCacheHeaders(RoutingContext rc) {
-    rc.response().putHeader("Cache-Control", "no-store, no-cache, no-transform, must-revalidate, max-age=0");
+    rc.response().putHeader(CACHE_CONTROL, "no-store, no-cache, no-transform, must-revalidate, max-age=0");
   }
 
   static Handler<RoutingContext> createCORSOptionsHandler(SockJSHandlerOptions options, String methods) {
     return rc -> {
       if (log.isTraceEnabled()) log.trace("In CORS options handler");
-      rc.response().putHeader("Cache-Control", "public,max-age=31536000");
+      rc.response().putHeader(CACHE_CONTROL, "public,max-age=31536000");
       long oneYearSeconds = 365 * 24 * 60 * 60;
       long oneYearms = oneYearSeconds * 1000;
       String expires = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").format(new Date(System.currentTimeMillis() + oneYearms));
-      rc.response().putHeader("Expires", expires)
-        .putHeader("Access-Control-Allow-Methods", methods)
-        .putHeader("Access-Control-Max-Age", String.valueOf(oneYearSeconds));
+      rc.response()
+        .putHeader(EXPIRES, expires)
+        .putHeader(ACCESS_CONTROL_ALLOW_METHODS, methods)
+        .putHeader(ACCESS_CONTROL_MAX_AGE, String.valueOf(oneYearSeconds));
       setCORS(rc);
       setJSESSIONID(options, rc);
       rc.response().setStatusCode(204);

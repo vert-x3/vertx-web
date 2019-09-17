@@ -28,10 +28,14 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
+import io.vertx.ext.web.impl.Utils;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
 /**
  * Represents the context for the handling of a request in Vert.x-Web.
@@ -145,7 +149,7 @@ public interface RoutingContext {
   /**
    * @return all the context data as a map
    */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @GenIgnore(PERMITTED_TYPE)
   Map<String, Object> data();
 
   /**
@@ -485,7 +489,7 @@ public interface RoutingContext {
   List<String> queryParam(String name);
 
   /**
-   * Set Content-Disposition get to "attachment" with optional `filename` mime type.
+   * Set Content-Disposition get to "attachment" with optional {@code filename} mime type.
    *
    * @param filename the filename for the attachment
    */
@@ -508,7 +512,8 @@ public interface RoutingContext {
   }
 
   /**
-   * Perform a 302 redirect to `url`.
+   * Perform a 302 redirect to {@code url}. If a custom 3xx code is already defined, then that
+   * one will be preferred.
    * <p/>
    * The string "back" is special-cased
    * to provide Referrer support, when Referrer
@@ -516,10 +521,10 @@ public interface RoutingContext {
    * <p/>
    * Examples:
    * <p/>
-   * this.redirect('back');
-   * this.redirect('back', '/index.html');
-   * this.redirect('/login');
-   * this.redirect('http://google.com');
+   * redirect('back');
+   * redirect('back', '/index.html');
+   * redirect('/login');
+   * redirect('http://google.com');
    *
    * @param url the target url
    * @param alt the alt value
@@ -543,11 +548,13 @@ public interface RoutingContext {
     int status = response().getStatusCode();
 
     if (status < 300 || status >= 400) {
+      // if a custom code is in use that will be
+      // respected
       response().setStatusCode(302);
     }
 
     return response()
-      .putHeader("Content-Type", "text/plain; charset=utf-8")
+      .putHeader(HttpHeaders.CONTENT_TYPE, "text/plain; charset=utf-8")
       .end("Redirecting to " + url + ".");
   }
 
@@ -597,12 +604,12 @@ public interface RoutingContext {
    * Examples:
    * <p/>
    * // With Content-Type: text/html; getCharset=utf-8
-   * this.is('html'); // => true
-   * this.is('text/html'); // => true
+   * is("html"); // => true
+   * is("text/html"); // => true
    * <p/>
    * // When Content-Type is application/json
-   * this.is('application/json'); // => true
-   * this.is('html'); // => false
+   * is("application/json"); // => true
+   * is("html"); // => false
    *
    * @param type content type
    * @return The most close value
@@ -631,7 +638,83 @@ public interface RoutingContext {
   }
 
   /**
-   * Shortcut to the resonse end.
+   * Check if the getRequest is fresh, aka
+   * Last-Modified and/or the ETag
+   * still match.
+   *
+   * @return true if content is fresh according to the cache.
+   */
+  default boolean isFresh() {
+    final HttpMethod method = request().method();
+
+    // GET or HEAD for weak freshness validation only
+    if (method != HttpMethod.GET && method != HttpMethod.HEAD) {
+      return false;
+    }
+
+    final int s = response().getStatusCode();
+    // 2xx or 304 as per rfc2616 14.26
+    if ((s >= 200 && s < 300) || 304 == s) {
+      return Utils.fresh(this);
+    }
+
+    return false;
+  }
+
+  /**
+   * Set the ETag of a getResponse.
+   * This will normalize the quotes if necessary.
+   * <p/>
+   * this.getResponse.etag = 'md5hashsum';
+   * this.getResponse.etag = '"md5hashsum"';
+   * this.getResponse.etag = 'W/"123456789"';
+   *
+   * @param etag the etag value
+   */
+  @Fluent
+  default RoutingContext etag(String etag) {
+    boolean quoted =
+      // at least 2 characters
+      etag.length() > 2 &&
+        // either starts with " or W/"
+        (etag.charAt(0) == '\"' || etag.startsWith("W/\"")) &&
+        // ends with "
+        etag.charAt(etag.length() -1) == '\"';
+
+    if (!quoted) {
+      response().putHeader(HttpHeaders.ETAG, "\"" + etag + "\"");
+    } else {
+      response().putHeader(HttpHeaders.ETAG, etag);
+    }
+
+    return this;
+  }
+
+  /**
+   * Set the Last-Modified date using a Instant.
+   *
+   * @param instant the last modified instant
+   */
+  @Fluent
+  @GenIgnore(PERMITTED_TYPE)
+  default RoutingContext lastModified(Instant instant) {
+    response().putHeader(HttpHeaders.LAST_MODIFIED, Utils.formatRFC1123DateTime(instant.toEpochMilli()));
+    return this;
+  }
+
+  /**
+   * Set the Last-Modified date using a String.
+   *
+   * @param instant the last modified instant
+   */
+  @Fluent
+  default RoutingContext lastModified(String instant) {
+    response().putHeader(HttpHeaders.LAST_MODIFIED, instant);
+    return this;
+  }
+
+  /**
+   * Shortcut to the response end.
    * @param chunk a chunk
    * @return future
    */
@@ -640,7 +723,7 @@ public interface RoutingContext {
   }
 
   /**
-   * Shortcut to the resonse end.
+   * Shortcut to the response end.
    * @param buffer a chunk
    * @return future
    */
@@ -649,7 +732,7 @@ public interface RoutingContext {
   }
 
   /**
-   * Shortcut to the resonse end.
+   * Shortcut to the response end.
    * @return future
    */
   default Future<Void> end() {

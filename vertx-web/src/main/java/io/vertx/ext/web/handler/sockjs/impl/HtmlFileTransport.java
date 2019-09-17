@@ -36,6 +36,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -135,7 +136,7 @@ class HtmlFileTransport extends BaseTransport {
       if (log.isTraceEnabled()) log.trace("HtmlFile, sending frame");
       if (!headersWritten) {
         String htmlFile = HTML_FILE_TEMPLATE.replace("{{ callback }}", callback);
-        rc.response().putHeader("Content-Type", "text/html; charset=UTF-8");
+        rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html; charset=UTF-8");
         setNoCacheHeaders(rc);
         rc.response().setChunked(true);
         setJSESSIONID(options, rc);

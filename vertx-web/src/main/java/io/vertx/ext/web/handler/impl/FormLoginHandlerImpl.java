@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -129,7 +130,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
   }
 
   private void doRedirect(HttpServerResponse response, String url) {
-    response.putHeader("location", url).setStatusCode(302).end();
+    response.putHeader(HttpHeaders.LOCATION, url).setStatusCode(302).end();
   }
 
   private static final String DEFAULT_DIRECT_LOGGED_IN_OK_PAGE = "" +

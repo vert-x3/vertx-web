@@ -111,12 +111,12 @@ public class StaticHandlerImpl implements StaticHandler {
     if (cachingEnabled) {
       // We use cache-control and last-modified
       // We *do not use* etags and expires (since they do the same thing - redundant)
-      Utils.addToMapIfAbsent(headers, "cache-control", "public, max-age=" + maxAgeSeconds);
-      Utils.addToMapIfAbsent(headers, "last-modified", Utils.formatRFC1123DateTime(props.lastModifiedTime()));
+      Utils.addToMapIfAbsent(headers, HttpHeaders.CACHE_CONTROL, "public, max-age=" + maxAgeSeconds);
+      Utils.addToMapIfAbsent(headers, HttpHeaders.LAST_MODIFIED, Utils.formatRFC1123DateTime(props.lastModifiedTime()));
       // We send the vary header (for intermediate caches)
       // (assumes that most will turn on compression when using static handler)
-      if (sendVaryHeader && request.headers().contains("accept-encoding")) {
-        Utils.addToMapIfAbsent(headers, "vary", "accept-encoding");
+      if (sendVaryHeader && request.headers().contains(HttpHeaders.ACCEPT_ENCODING)) {
+        Utils.addToMapIfAbsent(headers, "Vary", "accept-encoding");
       }
     }
     // date header is mandatory
@@ -165,10 +165,14 @@ public class StaticHandlerImpl implements StaticHandler {
     }
 
     // Look in cache
-    CacheEntry entry = cachingEnabled ? propsCache().get(path) : null;
-    if (entry != null && (filesReadOnly || !entry.isOutOfDate()) && entry.shouldUseCached(context.request())) {
-      context.response().setStatusCode(NOT_MODIFIED.code()).end();
-      return;
+    final CacheEntry entry = cachingEnabled ? propsCache().get(path) : null;
+    if (entry != null) {
+      final long lastModified = Utils.secondsFactor(entry.props.lastModifiedTime());
+
+      if ((filesReadOnly || !entry.isOutOfDate()) && Utils.fresh(context, lastModified)) {
+        context.response().setStatusCode(NOT_MODIFIED.code()).end();
+        return;
+      }
     }
 
     final boolean dirty = cachingEnabled && entry != null;
@@ -207,9 +211,9 @@ public class StaticHandlerImpl implements StaticHandler {
             sendDirectory(context, path, sfile);
           } else {
             if (cachingEnabled) {
-              CacheEntry now = new CacheEntry(fprops, System.currentTimeMillis());
+              CacheEntry now = new CacheEntry(fprops, cacheEntryTimeout);
               propsCache().put(path, now);
-              if (now.shouldUseCached(context.request())) {
+              if (Utils.fresh(context, Utils.secondsFactor(fprops.lastModifiedTime()))) {
                 context.response().setStatusCode(NOT_MODIFIED.code()).end();
                 return;
               }
@@ -360,7 +364,7 @@ public class StaticHandlerImpl implements StaticHandler {
               }
             }
           } catch (NumberFormatException | IndexOutOfBoundsException e) {
-            context.response().putHeader("Content-Range", "bytes */" + fileProps.size());
+            context.response().putHeader(HttpHeaders.CONTENT_RANGE, "bytes */" + fileProps.size());
             context.fail(REQUESTED_RANGE_NOT_SATISFIABLE.code());
             return;
           }
@@ -369,9 +373,9 @@ public class StaticHandlerImpl implements StaticHandler {
 
       // notify client we support range requests
       headers = request.response().headers();
-      headers.set("Accept-Ranges", "bytes");
+      headers.set(HttpHeaders.ACCEPT_RANGES, "bytes");
       // send the content length even for HEAD requests
-      headers.set("Content-Length", Long.toString(end + 1 - (offset == null ? 0 : offset)));
+      headers.set(HttpHeaders.CONTENT_LENGTH, Long.toString(end + 1 - (offset == null ? 0 : offset)));
     }
 
     writeCacheHeaders(request, fileProps);
@@ -381,7 +385,7 @@ public class StaticHandlerImpl implements StaticHandler {
     } else {
       if (rangeSupport && offset != null) {
         // must return content range
-        headers.set("Content-Range", "bytes " + offset + "-" + end + "/" + fileProps.size());
+        headers.set(HttpHeaders.CONTENT_RANGE, "bytes " + offset + "-" + end + "/" + fileProps.size());
         // return a partial response
         request.response().setStatusCode(PARTIAL_CONTENT.code());
 
@@ -394,9 +398,9 @@ public class StaticHandlerImpl implements StaticHandler {
           String contentType = MimeMapping.getMimeTypeForFilename(file);
           if (contentType != null) {
             if (contentType.startsWith("text")) {
-              request.response().putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
+              request.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType + ";charset=" + defaultContentEncoding);
             } else {
-              request.response().putHeader("Content-Type", contentType);
+              request.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType);
             }
           }
 
@@ -418,9 +422,9 @@ public class StaticHandlerImpl implements StaticHandler {
           }
           if (contentType != null) {
             if (contentType.startsWith("text")) {
-              request.response().putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
+              request.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType + ";charset=" + defaultContentEncoding);
             } else {
-              request.response().putHeader("Content-Type", contentType);
+              request.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType);
             }
           }
 
@@ -442,9 +446,9 @@ public class StaticHandlerImpl implements StaticHandler {
                         final String depContentType = MimeMapping.getMimeTypeForExtension(file);
                         if (depContentType != null) {
                           if (depContentType.startsWith("text")) {
-                            res.putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
+                            res.putHeader(HttpHeaders.CONTENT_TYPE, contentType + ";charset=" + defaultContentEncoding);
                           } else {
-                            res.putHeader("Content-Type", contentType);
+                            res.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
                           }
                         }
                         res.sendFile(webRoot + "/" + dependency.getFilePath());
@@ -713,7 +717,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
           String parent = "<a href=\"" + normalizedDir.substring(0, slashPos + 1) + "\">..</a>";
 
-          request.response().putHeader("content-type", "text/html");
+          request.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
           request.response().end(
             directoryTemplate(context.vertx()).replace("{directory}", normalizedDir)
               .replace("{parent}", parent)
@@ -730,7 +734,7 @@ public class StaticHandlerImpl implements StaticHandler {
             }
             json.add(file);
           }
-          request.response().putHeader("content-type", "application/json");
+          request.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
           request.response().end(json.encode());
         } else {
           String file;
@@ -746,7 +750,7 @@ public class StaticHandlerImpl implements StaticHandler {
             buffer.append('\n');
           }
 
-          request.response().putHeader("content-type", "text/plain");
+          request.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain");
           request.response().end(buffer.toString());
         }
       }
@@ -762,34 +766,19 @@ public class StaticHandlerImpl implements StaticHandler {
     }
   }
 
-  // TODO make this static and use Java8 DateTimeFormatter
-  private final class CacheEntry {
+  private static final class CacheEntry {
+    final long createDate = System.currentTimeMillis();
+
     final FileProps props;
-    long createDate;
+    final long cacheEntryTimeout;
 
-    private CacheEntry(FileProps props, long createDate) {
+    private CacheEntry(FileProps props, long cacheEntryTimeout) {
       this.props = props;
-      this.createDate = createDate;
-    }
-
-    // return true if there are conditional headers present and they match what is in the entry
-    boolean shouldUseCached(HttpServerRequest request) {
-      String ifModifiedSince = request.headers().get("if-modified-since");
-      if (ifModifiedSince == null) {
-        // Not a conditional request
-        return false;
-      }
-      long ifModifiedSinceTime = Utils.parseRFC1123DateTime(ifModifiedSince);
-      if(ifModifiedSinceTime <= 0) {
-          return false;
-      }
-      boolean modifiedSince = Utils.secondsFactor(props.lastModifiedTime()) > ifModifiedSinceTime;
-      return !modifiedSince;
+      this.cacheEntryTimeout = cacheEntryTimeout;
     }
 
     boolean isOutOfDate() {
       return System.currentTimeMillis() - createDate > cacheEntryTimeout;
     }
-
   }
 }

@@ -35,6 +35,7 @@ package io.vertx.ext.web.handler.sockjs.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -133,7 +134,7 @@ class JsonPTransport extends BaseTransport {
         sendInvalidJSON(rc.response());
       } else {
         setJSESSIONID(options, rc);
-        rc.response().putHeader("Content-Type", "text/plain; charset=UTF-8");
+        rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8");
         setNoCacheHeaders(rc);
         rc.response().end("ok");
         if (log.isTraceEnabled()) log.trace("send handled ok");
@@ -162,7 +163,7 @@ class JsonPTransport extends BaseTransport {
           .setChunked(true)
           // protect against SWF JSONP exploit
           .putHeader("X-Content-Type-Options", "nosniff")
-          .putHeader("Content-Type", "application/javascript; charset=UTF-8");
+          .putHeader(HttpHeaders.CONTENT_TYPE, "application/javascript; charset=UTF-8");
         setNoCacheHeaders(rc);
         setJSESSIONID(options, rc);
         headersWritten = true;

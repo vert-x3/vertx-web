@@ -38,6 +38,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.net.impl.ConnectionBase;
@@ -205,7 +206,7 @@ class RawWebSocketTransport {
 
     router.get(wsRE).handler(rc -> rc.response().setStatusCode(400).end("Can \"Upgrade\" only to \"WebSocket\"."));
 
-    router.get(wsRE).handler(rc -> rc.response().putHeader("Allow", "GET").setStatusCode(405).end());
+    router.get(wsRE).handler(rc -> rc.response().putHeader(HttpHeaders.ALLOW, "GET").setStatusCode(405).end());
   }
 
 }
