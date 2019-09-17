@@ -208,7 +208,8 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     startServer();
     assertRequestOk("/test5", "test5_ok_1.json");
     assertRequestOk("/test5", "test5_ok_2.json");
-    assertRequestFail("/test5", "test5_fail.json");
+    assertRequestFail("/test5", "test5_fail_1.json");
+    assertRequestFail("/test5", "test5_fail_2.json");
   }
 
   @Test
