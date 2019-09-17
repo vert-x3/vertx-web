@@ -9,6 +9,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.web.api.RequestParameter;
+import io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils;
 import io.vertx.ext.web.api.validation.ParameterTypeValidator;
 import io.vertx.ext.web.api.validation.ValidationException;
 
@@ -57,7 +58,7 @@ public class JsonTypeValidator implements ParameterTypeValidator {
   public static class JsonTypeValidatorFactory {
 
     public static JsonTypeValidator createJsonTypeValidator(JsonNode schema) {
-      return new JsonTypeValidator(JsonSchemaFactory.getInstance().getSchema(schema));
+      return new JsonTypeValidator(JsonSchemaFactory.getInstance().getSchema(schema, OpenApi3Utils.VALIDATOR_CONFIG));
     }
 
     public static JsonTypeValidator createJsonTypeValidator(String schema) {
