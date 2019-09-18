@@ -11,10 +11,7 @@ import io.vertx.core.net.SocketAddress;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.security.cert.X509Certificate;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Map;
-import java.util.Set;
 
 class HttpServerRequestWrapper implements HttpServerRequest {
 
@@ -94,8 +91,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
 
   void setPath(String path) {
     this.path = path;
-    // when overriding the path we also need to rewrite the uri and absoluteURI
-    uri = path;
+    absoluteURI = null;
+  }
+
+  void setUri(String uri) {
+    this.uri = uri;
     absoluteURI = null;
   }
 
@@ -162,13 +162,14 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   @Override
   public String absoluteURI() {
     if (absoluteURI == null) {
-      try {
-        URL url = new URL(delegate.absoluteURI());
-        URL newUrl = new URL(url.getProtocol(), url.getHost(), url.getPort(), uri);
+      String scheme = delegate.scheme();
+      String host = delegate.host();
 
-        absoluteURI = newUrl.toExternalForm();
-      } catch (MalformedURLException e) {
-        throw new RuntimeException(e);
+      // if both are not null we can rebuild the uri
+      if (scheme != null && host != null) {
+        absoluteURI = scheme + "://" + host + uri;
+      } else {
+        absoluteURI = uri;
       }
     }
 
@@ -271,4 +272,5 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   public Map<String, Cookie> cookieMap() {
     return delegate.cookieMap();
   }
+
 }

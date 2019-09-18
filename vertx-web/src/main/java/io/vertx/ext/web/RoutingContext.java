@@ -427,7 +427,7 @@ public interface RoutingContext {
 
   /**
    * Restarts the current router with a new path and reusing the original method. All path parameters are then parsed
-   * and available on the params list.
+   * and available on the params list. Query params will also be allowed and available.
    *
    * @param path the new http path.
    */
@@ -437,7 +437,7 @@ public interface RoutingContext {
 
   /**
    * Restarts the current router with a new method and path. All path parameters are then parsed and available on the
-   * params list.
+   * params list. Query params will also be allowed and available.
    *
    * @param method the new http request
    * @param path the new http path.

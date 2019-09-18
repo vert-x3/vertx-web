@@ -136,4 +136,20 @@ public class RerouteTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/base", 200, "OK", "/other");
   }
+
+  @Test
+  public void testRerouteAbsoluteURI() throws Exception {
+    router.get("/other").handler(ctx -> {
+      assertEquals("http://localhost:8080/other?paramter1=p1&parameter2=p2", ctx.request().absoluteURI());
+      // assert the parameters have been parsed
+      assertEquals("p1", ctx.queryParam("paramter1").get(0));
+      assertEquals("p2", ctx.queryParam("parameter2").get(0));
+      ctx.response().end("/other");
+    });
+    router.get("/base").handler(ctx -> {
+      ctx.reroute("/other?paramter1=p1&parameter2=p2");
+    });
+
+    testRequest(HttpMethod.GET, "/base?p=1", 200, "OK", "/other");
+  }
 }

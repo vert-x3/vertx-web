@@ -366,6 +366,8 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void reroute(HttpMethod method, String path) {
+    ((HttpServerRequestWrapper) request).setMethod(method);
+
     int split = path.indexOf('?');
 
     if (split == -1) {
@@ -373,13 +375,15 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     }
 
     if (split != -1) {
-      log.warn("Non path segment is not considered: " + path.substring(split));
-      // reroute is path based so we trim out the non url path parts
-      path = path.substring(0, split);
+      // trim out the query and/or fragment
+      ((HttpServerRequestWrapper) request).setPath(path.substring(0, split));
+    } else {
+      ((HttpServerRequestWrapper) request).setPath(path);
     }
 
-    ((HttpServerRequestWrapper) request).setMethod(method);
-    ((HttpServerRequestWrapper) request).setPath(path);
+    // set the URI
+    ((HttpServerRequestWrapper) request).setUri(path);
+
     request.params().clear();
     // we need to reset the normalized path
     normalisedPath = null;
