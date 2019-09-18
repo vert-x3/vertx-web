@@ -590,9 +590,9 @@ public interface RoutingContext {
   }
 
   /**
-   * Check if the incoming getRequest contains the "Content-Type"
+   * Check if the incoming request contains the "Content-Type"
    * get field, and it contains the give mime `type`.
-   * If there is no getRequest body, `false` is returned.
+   * If there is no request body, `false` is returned.
    * If there is no content type, `false` is returned.
    * Otherwise, it returns true if the `type` that matches.
    * <p/>
@@ -633,7 +633,7 @@ public interface RoutingContext {
   }
 
   /**
-   * Check if the getRequest is fresh, aka
+   * Check if the request is fresh, aka
    * Last-Modified and/or the ETag
    * still match.
    *
@@ -657,12 +657,12 @@ public interface RoutingContext {
   }
 
   /**
-   * Set the ETag of a getResponse.
+   * Set the ETag of a response.
    * This will normalize the quotes if necessary.
    * <p/>
-   * this.getResponse.etag = 'md5hashsum';
-   * this.getResponse.etag = '"md5hashsum"';
-   * this.getResponse.etag = 'W/"123456789"';
+   * etag('md5hashsum');
+   * etag('"md5hashsum"');
+   * ('W/"123456789"');
    *
    * @param etag the etag value
    */

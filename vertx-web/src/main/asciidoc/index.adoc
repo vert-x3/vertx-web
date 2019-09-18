@@ -549,8 +549,57 @@ A request sent to path `/some/path/other` will match both routes.
 {@link examples.WebExamples#example21}
 ----
 
-[language, java]
 Alternatively you can access the entire context data map with {@link io.vertx.ext.web.RoutingContext#data}.
+
+== Helper functions
+
+While the routing context will allow you to access the underlying request and response objects, sometimes it will be
+more productive if a few shortcuts would be present to help with common tasks. A few helpers are present in the context
+to facilitate with this task.
+
+Serve an "attachment", an attachment is a response that will trigger the browser to open the response on the OS
+application configured to handle a specific mime type. Imagine you're generating a PDF:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example66}
+----
+
+Perform a redirect to a different page or host. One example is to redirect to an HTTPS variant of the application:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example67}
+----
+
+Send a JSON response to the client:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example68}
+----
+
+Simple content type check:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example69}
+----
+
+Verify if a request is "fresh" with respect to the cache headers and the current values of last modified/ etag.
+
+[source,$lang]
+----
+{@link examples.WebExamples#example70}
+----
+
+And a few other simple self explanatory shortcuts:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example71}
+----
+
 
 == Reroute
 

@@ -1,15 +1,13 @@
 package examples;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
+import io.vertx.codegen.annotations.CacheReturn;
+import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.Cookie;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.*;
+import io.vertx.core.http.impl.MimeMapping;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.KeyStoreOptions;
@@ -29,12 +27,17 @@ import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.handler.sockjs.BridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.ext.web.impl.ParsableMIMEValue;
+import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+
+import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
 /**
  * These are the examples used in the documentation.
@@ -1399,6 +1402,65 @@ public class WebExamples {
     router.route(HttpMethod.POST, "/").handler(ctx -> {
       // do POST stuff...
     });
+  }
+
+  public void example66(RoutingContext rc, Buffer pdfBuffer) {
+    rc
+      .attachment("weekly-report.pdf")
+      .end(pdfBuffer);
+  }
+
+  public void example67(RoutingContext rc) {
+
+    rc.redirect("https://securesite.com/");
+
+    // there is a special handling for the target "back". In this case the redirect would
+    // send the user to the referrer url or "/" if there's no referrer.
+
+    rc.redirect("back");
+  }
+
+  public void example68(RoutingContext rc) {
+    // no need to specify the content type headers
+    rc.json(new JsonObject().put("hello", "vert.x"));
+
+    rc.json(new JsonArray().add("vertx").add("web"));
+  }
+
+  public void example69(RoutingContext rc) {
+    // Check if the incoming request contains the "Content-Type"
+    // get field, and it contains the give mime `type`.
+    // If there is no request body, `false` is returned.
+    // If there is no content type, `false` is returned.
+    // Otherwise, it returns true if the `type` that matches.
+
+    // With Content-Type: text/html; getCharset=utf-8
+    rc.is("html"); // => true
+    rc.is("text/html"); // => true
+
+    // When Content-Type is application/json
+    rc.is("application/json"); // => true
+    rc.is("html"); // => false
+  }
+
+  public void example70(RoutingContext rc) {
+    if (rc.isFresh()) {
+      // client cache value is fresh perhaps we
+      // can stop and return 304?
+    }
+  }
+
+  public void example71(RoutingContext rc, Buffer buffer) {
+    // this response etag with a given value
+    rc.etag("W/123456789");
+
+    // set the last modified value
+    rc.lastModified("Wed, 13 Jul 2011 18:30:00 GMT");
+
+    // quickly end
+    rc.end();
+    rc.end("body");
+    rc.end(buffer);
   }
 }
 
