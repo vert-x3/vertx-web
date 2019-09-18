@@ -517,25 +517,20 @@ public interface RoutingContext {
    * <p/>
    * The string "back" is special-cased
    * to provide Referrer support, when Referrer
-   * is not present `alt` or "/" is used.
+   * is not present "/" is used.
    * <p/>
    * Examples:
    * <p/>
    * redirect('back');
-   * redirect('back', '/index.html');
    * redirect('/login');
    * redirect('http://google.com');
    *
    * @param url the target url
-   * @param alt the alt value
    */
-  default Future<Void> redirect(String url, String alt) {
+  default Future<Void> redirect(String url) {
     // location
     if ("back".equals(url)) {
       url = request().getHeader(HttpHeaders.REFERER);
-      if (url == null) {
-        url = alt;
-      }
       if (url == null) {
         url = "/";
       }
