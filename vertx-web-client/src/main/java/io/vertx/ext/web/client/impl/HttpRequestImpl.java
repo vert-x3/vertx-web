@@ -32,7 +32,6 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
-import io.vertx.ext.web.multipart.impl.MultipartFormImpl;
 
 import java.util.ArrayList;
 import java.util.Base64;
@@ -115,11 +114,19 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     return this;
   }
 
+  public HttpMethod method() {
+    return method;
+  }
+
   @Override
   public HttpRequest<T> rawMethod(String method) {
     rawMethod = method;
     method(HttpMethod.OTHER);
     return this;
+  }
+
+  public String rawMethod() {
+    return rawMethod;
   }
 
   @Override
@@ -128,10 +135,18 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     return this;
   }
 
+  public int port() {
+    return port;
+  }
+
   @Override
   public HttpRequest<T> host(String value) {
     host = value;
     return this;
+  }
+
+  public String host() {
+    return host;
   }
 
   @Override
@@ -140,11 +155,19 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     return this;
   }
 
+  public String virtualHost() {
+    return virtualHost;
+  }
+
   @Override
   public HttpRequest<T> uri(String value) {
     params = null;
     uri = value;
     return this;
+  }
+
+  public String uri() {
+    return uri;
   }
 
   @Override
@@ -190,10 +213,18 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     return this;
   }
 
+  public Boolean ssl() {
+    return ssl;
+  }
+
   @Override
   public HttpRequest<T> timeout(long value) {
     timeout = value;
     return this;
+  }
+
+  public long timeout() {
+    return timeout;
   }
 
   @Override
@@ -212,6 +243,10 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   public HttpRequest<T> followRedirects(boolean value) {
     followRedirects = value;
     return this;
+  }
+
+  public boolean followRedirects() {
+    return followRedirects;
   }
 
   @Override
