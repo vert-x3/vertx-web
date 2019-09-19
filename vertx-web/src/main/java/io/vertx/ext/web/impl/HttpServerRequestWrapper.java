@@ -17,17 +17,51 @@ import java.util.Map;
 class HttpServerRequestWrapper implements HttpServerRequest {
 
   private final HttpServerRequest delegate;
+
+  private boolean modified;
+
   private HttpMethod method;
+  private String rawMethod;
   private String path;
+  private String query;
   private String uri;
   private String absoluteURI;
 
   HttpServerRequestWrapper(HttpServerRequest request) {
     delegate = request;
-    method = request.method();
-    path = request.path();
-    uri = request.uri();
-    absoluteURI = null;
+  }
+
+  void changeTo(HttpMethod method, String uri) {
+    modified = true;
+    this.method = method;
+    this.uri = uri;
+    // lazy initialization
+    this.rawMethod = null;
+    this.path = null;
+    this.query = null;
+    this.absoluteURI = null;
+
+    // parse
+    int queryIndex = uri.indexOf('?');
+    int fragmentIndex = uri.indexOf('#');
+
+    // there's a query
+    if (queryIndex != -1) {
+      path = uri.substring(0, queryIndex);
+      // there's a fragment
+      if (fragmentIndex != -1) {
+        query = uri.substring(queryIndex + 1, fragmentIndex);
+      } else {
+        query = uri.substring(queryIndex + 1);
+      }
+    } else {
+      // there's a fragment
+      if (fragmentIndex != -1) {
+        path = uri.substring(0, fragmentIndex);
+      } else {
+        path = uri;
+      }
+    }
   }
 
   @Override
@@ -75,44 +109,49 @@ class HttpServerRequestWrapper implements HttpServerRequest {
     return delegate.version();
   }
 
-  HttpServerRequest setMethod(HttpMethod method) {
-    this.method = method;
-    return this;
-  }
-
   @Override
   public HttpMethod method() {
+    if (!modified) {
+      return delegate.method();
+    }
     return method;
   }
 
   @Override
   public String rawMethod() {
-    return delegate.rawMethod();
+    if (!modified) {
+      return delegate.rawMethod();
+    } else {
+      // lazy initialization
+      if (rawMethod == null) {
+        rawMethod = method.toString();
+      }
+      return rawMethod;
+    }
   }
 
   @Override
   public String uri() {
+    if (!modified) {
+      return delegate.uri();
+    }
     return uri;
-  }
-
-  void setPath(String path) {
-    this.path = path;
-    absoluteURI = null;
-  }
-
-  void setUri(String uri) {
-    this.uri = uri;
-    absoluteURI = null;
   }
 
   @Override
   public String path() {
+    if (!modified) {
+      return delegate.path();
+    }
     return path;
   }
 
   @Override
   public String query() {
-    return delegate.query();
+    if (!modified) {
+      return delegate.query();
+    }
+    return query;
   }
 
   @Override
@@ -167,19 +206,23 @@ class HttpServerRequestWrapper implements HttpServerRequest {
 
   @Override
   public String absoluteURI() {
-    if (absoluteURI == null) {
-      String scheme = delegate.scheme();
-      String host = delegate.host();
+    if (!modified) {
+      return delegate.absoluteURI();
+    } else {
+      if (absoluteURI == null) {
+        String scheme = delegate.scheme();
+        String host = delegate.host();
 
-      // if both are not null we can rebuild the uri
-      if (scheme != null && host != null) {
-        absoluteURI = scheme + "://" + host + uri;
-      } else {
-        absoluteURI = uri;
+        // if both are not null we can rebuild the uri
+        if (scheme != null && host != null) {
+          absoluteURI = scheme + "://" + host + uri;
+        } else {
+          absoluteURI = uri;
+        }
       }
-    }
 
-    return absoluteURI;
+      return absoluteURI;
+    }
   }
 
   @Override
