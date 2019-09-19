@@ -17,6 +17,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -148,6 +149,99 @@ public class RerouteTest extends WebTestBase {
     });
     router.get("/base").handler(ctx -> {
       ctx.reroute("/other?paramter1=p1&parameter2=p2");
+    });
+
+    testRequest(HttpMethod.GET, "/base?p=1", 200, "OK", "/other");
+  }
+
+
+  @Test
+  public void testRerouteChecksWithQuery() throws Exception {
+    router.get("/other").handler(ctx -> {
+      HttpServerRequest req = ctx.request();
+
+      assertEquals(HttpMethod.GET, req.method());
+      assertEquals("GET", req.rawMethod());
+      assertEquals("/other", req.path());
+      assertEquals("paramter1=p1&parameter2=p2", req.query());
+      assertEquals("/other?paramter1=p1&parameter2=p2", req.uri());
+      assertEquals("http://localhost:8080/other?paramter1=p1&parameter2=p2", req.absoluteURI());
+
+      // assert the parameters have been parsed
+      assertEquals("p1", ctx.queryParam("paramter1").get(0));
+      assertEquals("p2", ctx.queryParam("parameter2").get(0));
+      ctx.response().end("/other");
+    });
+    router.get("/base").handler(ctx -> {
+      HttpServerRequest req = ctx.request();
+      assertEquals(HttpMethod.GET, req.method());
+      assertEquals("GET", req.rawMethod());
+      assertEquals("/base", req.path());
+      assertEquals("p=1", req.query());
+      assertEquals("/base?p=1", req.uri());
+      assertEquals("http://localhost:8080/base?p=1", req.absoluteURI());
+
+      ctx.reroute("/other?paramter1=p1&parameter2=p2");
+    });
+
+    testRequest(HttpMethod.GET, "/base?p=1", 200, "OK", "/other");
+  }
+
+  @Test
+  public void testRerouteChecksWithQueryAndFragment() throws Exception {
+    router.get("/other").handler(ctx -> {
+      HttpServerRequest req = ctx.request();
+
+      assertEquals(HttpMethod.GET, req.method());
+      assertEquals("GET", req.rawMethod());
+      assertEquals("/other", req.path());
+      assertEquals("paramter1=p1&parameter2=p2", req.query());
+      assertEquals("/other?paramter1=p1&parameter2=p2#frag", req.uri());
+      assertEquals("http://localhost:8080/other?paramter1=p1&parameter2=p2#frag", req.absoluteURI());
+
+      // assert the parameters have been parsed
+      assertEquals("p1", ctx.queryParam("paramter1").get(0));
+      assertEquals("p2", ctx.queryParam("parameter2").get(0));
+      ctx.response().end("/other");
+    });
+    router.get("/base").handler(ctx -> {
+      HttpServerRequest req = ctx.request();
+      assertEquals(HttpMethod.GET, req.method());
+      assertEquals("GET", req.rawMethod());
+      assertEquals("/base", req.path());
+      assertEquals("p=1", req.query());
+      assertEquals("/base?p=1", req.uri());
+      assertEquals("http://localhost:8080/base?p=1", req.absoluteURI());
+
+      ctx.reroute("/other?paramter1=p1&parameter2=p2#frag");
+    });
+
+    testRequest(HttpMethod.GET, "/base?p=1", 200, "OK", "/other");
+  }
+
+  @Test
+  public void testRerouteChecksWithFragment() throws Exception {
+    router.get("/other").handler(ctx -> {
+      HttpServerRequest req = ctx.request();
+
+      assertEquals(HttpMethod.GET, req.method());
+      assertEquals("GET", req.rawMethod());
+      assertEquals("/other", req.path());
+      assertNull(req.query());
+      assertEquals("/other#frag", req.uri());
+      assertEquals("http://localhost:8080/other#frag", req.absoluteURI());
+      ctx.response().end("/other");
+    });
+    router.get("/base").handler(ctx -> {
+      HttpServerRequest req = ctx.request();
+      assertEquals(HttpMethod.GET, req.method());
+      assertEquals("GET", req.rawMethod());
+      assertEquals("/base", req.path());
+      assertEquals("p=1", req.query());
+      assertEquals("/base?p=1", req.uri());
+      assertEquals("http://localhost:8080/base?p=1", req.absoluteURI());
+
+      ctx.reroute("/other#frag");
     });
 
     testRequest(HttpMethod.GET, "/base?p=1", 200, "OK", "/other");

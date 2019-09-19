@@ -366,24 +366,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void reroute(HttpMethod method, String path) {
-    ((HttpServerRequestWrapper) request).setMethod(method);
-
-    int split = path.indexOf('?');
-
-    if (split == -1) {
-      split = path.indexOf('#');
+    if (path.charAt(0) != '/') {
+      throw new IllegalArgumentException("path must start with '/'");
     }
-
-    if (split != -1) {
-      // trim out the query and/or fragment
-      ((HttpServerRequestWrapper) request).setPath(path.substring(0, split));
-    } else {
-      ((HttpServerRequestWrapper) request).setPath(path);
-    }
-
-    // set the URI
-    ((HttpServerRequestWrapper) request).setUri(path);
-
+    // change the method and path of the request
+    ((HttpServerRequestWrapper) request).changeTo(method, path);
+    // clear the params
     request.params().clear();
     // we need to reset the normalized path
     normalisedPath = null;
