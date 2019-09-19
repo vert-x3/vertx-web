@@ -24,6 +24,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.MimeMapping;
+import io.vertx.core.json.EncodeException;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
@@ -554,38 +556,30 @@ public interface RoutingContext {
   }
 
   /**
-   * Encode a JsonObject and end the request.
+   * Encode an Object to JSON and end the request.
    * The method will apply the correct content type to the response,
-   * perform the encoding to buffer and end.
+   * perform the encoding and end.
    *
    * @param json the json
    * @return a future to handle the end of the request
    */
-  default Future<Void> json(JsonObject json) {
-    if (json == null) {
-      return response().end();
-    } else {
-      return response()
-        .putHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8")
-        .end(json.toBuffer());
-    }
-  }
+  default Future<Void> json(Object json) {
+    final HttpServerResponse res = response();
+    // apply the content type header
+    res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
 
-  /**
-   * Encode a JsonArray and end the request.
-   * The method will apply the correct content type to the response,
-   * perform the encoding to buffer and end.
-   *
-   * @param json the json
-   * @return a future to handle the end of the request
-   */
-  default Future<Void> json(JsonArray json) {
     if (json == null) {
-      return response().end();
+      return res.end("null");
     } else {
-      return response()
-        .putHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8")
-        .end(json.toBuffer());
+      try {
+        return res.end(Json.encodeToBuffer(json));
+      } catch (EncodeException e) {
+        // handle the failure
+        fail(e);
+        // as the operation failed return a failed future
+        // this is purely a notification
+        return Future.failedFuture(e);
+      }
     }
   }
 
@@ -598,7 +592,7 @@ public interface RoutingContext {
    * <p/>
    * Examples:
    * <p/>
-   * // With Content-Type: text/html; getCharset=utf-8
+   * // With Content-Type: text/html; charset=utf-8
    * is("html"); // => true
    * is("text/html"); // => true
    * <p/>

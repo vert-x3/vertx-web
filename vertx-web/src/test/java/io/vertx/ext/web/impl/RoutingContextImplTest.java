@@ -226,6 +226,60 @@ public class RoutingContextImplTest extends WebTestBase {
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
   }
 
+  static class Point {
+    public int x, y;
+
+    public int getX() {
+      return x;
+    }
+
+    public void setX(int x) {
+      this.x = x;
+    }
+
+    public int getY() {
+      return y;
+    }
+
+    public void setY(int y) {
+      this.y = y;
+    }
+  }
+
+  @Test
+  public void testJsonBean() throws Exception {
+    router.route().handler(ctx -> {
+      Point p = new Point();
+      p.setX(10);
+      p.setY(20);
+      ctx.json(p);
+    });
+
+    testRequest(HttpMethod.GET, "/", null, res -> {
+      assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type"));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "{\"x\":10,\"y\":20}");
+  }
+
+  @Test
+  public void testJsonPrimitive() throws Exception {
+    router.route().handler(ctx -> {
+      ctx.json(true);
+    });
+    testRequest(HttpMethod.GET, "/", null, res -> {
+      assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type"));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "true");
+  }
+
+  @Test
+  public void testJsonNull() throws Exception {
+    router.route().handler(ctx -> {
+      ctx.json(null);
+    });
+    testRequest(HttpMethod.GET, "/", null, res -> {
+      assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type"));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "null");
+  }
+
   @Test
   public void testIs() throws Exception {
     router.route().handler(event -> {

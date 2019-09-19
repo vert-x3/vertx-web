@@ -1420,11 +1420,14 @@ public class WebExamples {
     rc.redirect("back");
   }
 
-  public void example68(RoutingContext rc) {
+  public void example68(RoutingContext rc, Object someObject) {
     // no need to specify the content type headers
     rc.json(new JsonObject().put("hello", "vert.x"));
-
+    // also applies to arrays
     rc.json(new JsonArray().add("vertx").add("web"));
+    // or any object that will be converted according
+    // to the json encoder available at runtime.
+    rc.json(someObject);
   }
 
   public void example69(RoutingContext rc) {
@@ -1444,6 +1447,9 @@ public class WebExamples {
   }
 
   public void example70(RoutingContext rc) {
+    // set the response resource meta data
+    rc.lastModified("Wed, 13 Jul 2011 18:30:00 GMT");
+    // this will now be used to verify the freshness of the request
     if (rc.isFresh()) {
       // client cache value is fresh perhaps we
       // can stop and return 304?
