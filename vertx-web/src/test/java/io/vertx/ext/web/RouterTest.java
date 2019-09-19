@@ -2474,4 +2474,22 @@ public class RouterTest extends WebTestBase {
 
     testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE.reasonPhrase());
   }
+
+  @Test
+  public void testOverlappingRoutes() throws Exception {
+    router.route(HttpMethod.PUT, "/foo/:param1").order(1).handler(routingContext -> {
+      fail("Should not route to PUT");
+    });
+    router.route(HttpMethod.GET, "/foo/:param2").order(10).handler(routingContext -> {
+      if (routingContext.pathParam("param1") != null) {
+        fail("Should not have parameter from the other route.");
+      }
+      if (routingContext.pathParam("param2") == null) {
+        fail("Should have parameter from the other route.");
+      }
+      routingContext.response().end("done");
+    });
+
+    testRequest(HttpMethod.GET, "/foo/bar", HttpResponseStatus.OK);
+  }
 }

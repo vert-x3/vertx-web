@@ -309,6 +309,12 @@ public class RouteImpl implements Route {
 
       Matcher m = pattern.matcher(path);
       if (m.matches()) {
+
+        if (!methods.isEmpty() && !methods.contains(request.method())) {
+          // If I'm here path or path pattern matches, but the method is wrong
+          return 405;
+        }
+
         context.matchRest = -1;
         context.matchNormalized = useNormalisedPath;
 
@@ -360,11 +366,12 @@ public class RouteImpl implements Route {
       } else {
         return 404;
       }
-    }
-
-    if (!methods.isEmpty() && !methods.contains(request.method())) {
-      // If I'm here path or path pattern matches, but the method is wrong
-      return 405;
+    } else {
+      // no pattern check for wrong method
+      if (!methods.isEmpty() && !methods.contains(request.method())) {
+        // If I'm here path or path pattern matches, but the method is wrong
+        return 405;
+      }
     }
 
     if (!consumes.isEmpty()) {
