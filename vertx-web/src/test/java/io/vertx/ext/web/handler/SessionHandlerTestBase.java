@@ -19,13 +19,11 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.sstore.AbstractSession;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.Test;
 
-import java.text.DateFormat;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -197,13 +195,13 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 			rSetCookie.set(setCookie);
 		}, 200, "OK", null);
 		Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_INTERVAL + timeout));
-		testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
-		CountDownLatch latch1 = new CountDownLatch(1);
-		Thread.sleep(500); // FIXME -Needed because session.destroy is async :(
-		store.get(rid.get(), onSuccess(res -> {
-			assertNotNull(res);
-			latch1.countDown();
-		}));
+    CountDownLatch latch1 = new CountDownLatch(1);
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), resp -> {
+      store.get(rid.get(), onSuccess(res -> {
+        assertNotNull(res);
+        latch1.countDown();
+      }));
+    }, 200, "OK", null);
 		awaitLatch(latch1);
 		Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_INTERVAL + timeout));
 		CountDownLatch latch2 = new CountDownLatch(1);
