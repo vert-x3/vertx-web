@@ -24,12 +24,14 @@ import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.Test;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import static java.util.concurrent.TimeUnit.*;
 
@@ -195,22 +197,30 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 			rSetCookie.set(setCookie);
 		}, 200, "OK", null);
 		Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_INTERVAL + timeout));
-    CountDownLatch latch1 = new CountDownLatch(1);
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), resp -> {
-      store.get(rid.get(), onSuccess(res -> {
-        assertNotNull(res);
-        latch1.countDown();
-      }));
-    }, 200, "OK", null);
-		awaitLatch(latch1);
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
+    waitUntil(() -> testSessionBlocking(rid.get(), Objects::nonNull));
 		Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_INTERVAL + timeout));
-		CountDownLatch latch2 = new CountDownLatch(1);
-		store.get(rid.get(), onSuccess(res -> {
-			assertNull(res);
-			latch2.countDown();
-		}));
-		awaitLatch(latch2);
-	}
+    waitUntil(() -> testSessionBlocking(rid.get(), Objects::isNull));
+  }
+
+  private boolean testSessionBlocking(String sessionId, Function<Session, Boolean> test) {
+    CompletableFuture<Boolean> cf = new CompletableFuture<>();
+    store.get(sessionId, ar -> {
+      if (ar.succeeded()) {
+        cf.complete(test.apply(ar.result()));
+      } else {
+        cf.completeExceptionally(ar.cause());
+      }
+    });
+    try {
+      return cf.get();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new AssertionError(e);
+    } catch (ExecutionException e) {
+      throw new AssertionError(e);
+    }
+  }
 
 	@Test
 	public void testDestroySession() throws Exception {
