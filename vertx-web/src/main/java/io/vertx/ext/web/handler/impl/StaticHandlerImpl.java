@@ -73,16 +73,11 @@ public class StaticHandlerImpl implements StaticHandler {
   // These members are all related to auto tuning of synchronous vs asynchronous file system access
   private static int NUM_SERVES_TUNING_FS_ACCESS = 1000;
   private boolean alwaysAsyncFS = DEFAULT_ALWAYS_ASYNC_FS;
-  private long maxAvgServeTimeNanoSeconds = DEFAULT_MAX_AVG_SERVE_TIME_NS;
-  private boolean tuning = DEFAULT_ENABLE_FS_TUNING;
-  private long totalTime;
-  private long numServesBlocking;
-  private boolean useAsyncFS;
-  private long nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
   private Set<String> compressedMediaTypes = Collections.emptySet();
   private Set<String> compressedFileSuffixes = Collections.emptySet();
 
   private final ClassLoader classLoader;
+  private final FSTune tune = new FSTune();
 
   public StaticHandlerImpl(String root, ClassLoader classLoader) {
     this.classLoader = classLoader;
@@ -261,12 +256,14 @@ public class StaticHandlerImpl implements StaticHandler {
       if (classLoader == null) {
         return callable.call();
       } else {
-        final ClassLoader original = Thread.currentThread().getContextClassLoader();
-        try {
-          Thread.currentThread().setContextClassLoader(classLoader);
-          return callable.call();
-        } finally {
-          Thread.currentThread().setContextClassLoader(original);
+        synchronized (this) {
+          final ClassLoader original = Thread.currentThread().getContextClassLoader();
+          try {
+            Thread.currentThread().setContextClassLoader(classLoader);
+            return callable.call();
+          } finally {
+            Thread.currentThread().setContextClassLoader(original);
+          }
         }
       }
     } catch (Exception e) {
@@ -274,54 +271,32 @@ public class StaticHandlerImpl implements StaticHandler {
     }
   }
 
-  private synchronized void isFileExisting(RoutingContext context, String file, Handler<AsyncResult<Boolean>> resultHandler) {
+  private void isFileExisting(RoutingContext context, String file, Handler<AsyncResult<Boolean>> resultHandler) {
     FileSystem fs = context.vertx().fileSystem();
     wrapInTCCLSwitch(() -> fs.exists(file, resultHandler));
   }
 
-  private synchronized void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
+  private void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
     FileSystem fs = context.vertx().fileSystem();
-    if (alwaysAsyncFS || useAsyncFS) {
+    if (alwaysAsyncFS || tune.useAsyncFS()) {
       wrapInTCCLSwitch(() -> fs.props(file, resultHandler));
     } else {
       // Use synchronous access - it might well be faster!
       long start = 0;
-      if (tuning) {
+      if (tune.enabled()) {
         start = System.nanoTime();
       }
       try {
         FileProps props = wrapInTCCLSwitch(() -> fs.propsBlocking(file));
-
-        if (tuning) {
+        if (tune.enabled()) {
           long end = System.nanoTime();
-          long dur = end - start;
-          totalTime += dur;
-          numServesBlocking++;
-          if (numServesBlocking == Long.MAX_VALUE) {
-            // Unlikely.. but...
-            resetTuning();
-          } else if (numServesBlocking == nextAvgCheck) {
-            double avg = (double) totalTime / numServesBlocking;
-            if (avg > maxAvgServeTimeNanoSeconds) {
-              useAsyncFS = true;
-              log.info("Switching to async file system access in static file server as fs access is slow! (Average access time of " + avg + " ns)");
-              tuning = false;
-            }
-            nextAvgCheck += NUM_SERVES_TUNING_FS_ACCESS;
-          }
+          tune.update(start, end);
         }
         resultHandler.handle(Future.succeededFuture(props));
       } catch (RuntimeException e) {
         resultHandler.handle(Future.failedFuture(e.getCause()));
       }
     }
-  }
-
-  private void resetTuning() {
-    // Reset
-    nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
-    totalTime = 0;
-    numServesBlocking = 0;
   }
 
   private static final Pattern RANGE = Pattern.compile("^bytes=(\\d+)-(\\d*)$");
@@ -606,16 +581,13 @@ public class StaticHandlerImpl implements StaticHandler {
 
   @Override
   public synchronized StaticHandler setEnableFSTuning(boolean enableFSTuning) {
-    this.tuning = enableFSTuning;
-    if (!tuning) {
-      resetTuning();
-    }
+    tune.setEnabled(enableFSTuning);
     return this;
   }
 
   @Override
   public StaticHandler setMaxAvgServeTimeNs(long maxAvgServeTimeNanoSeconds) {
-    this.maxAvgServeTimeNanoSeconds = maxAvgServeTimeNanoSeconds;
+    tune.maxAvgServeTimeNanoSeconds = maxAvgServeTimeNanoSeconds;
     return this;
   }
 
@@ -779,6 +751,54 @@ public class StaticHandlerImpl implements StaticHandler {
 
     boolean isOutOfDate() {
       return System.currentTimeMillis() - createDate > cacheEntryTimeout;
+    }
+  }
+
+  private static class FSTune {
+    private boolean enabled = DEFAULT_ENABLE_FS_TUNING;
+    private long totalTime;
+    private long numServesBlocking;
+    private boolean useAsyncFS;
+    private long nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
+    private long maxAvgServeTimeNanoSeconds = DEFAULT_MAX_AVG_SERVE_TIME_NS;
+
+    boolean enabled() {
+      return enabled;
+    }
+
+    boolean useAsyncFS() {
+      return useAsyncFS;
+    }
+
+    synchronized void setEnabled(boolean enabled) {
+      this.enabled = enabled;
+      if (!enabled) {
+        reset();
+      }
+    }
+
+    synchronized void update(long start, long end) {
+      long dur = end - start;
+      totalTime += dur;
+      numServesBlocking++;
+      if (numServesBlocking == Long.MAX_VALUE) {
+        // Unlikely.. but...
+        reset();
+      } else if (numServesBlocking == nextAvgCheck) {
+        double avg = (double) totalTime / numServesBlocking;
+        if (avg > maxAvgServeTimeNanoSeconds) {
+          useAsyncFS = true;
+          log.info("Switching to async file system access in static file server as fs access is slow! (Average access time of " + avg + " ns)");
+          enabled = false;
+        }
+        nextAvgCheck += NUM_SERVES_TUNING_FS_ACCESS;
+      }
+    }
+
+    synchronized void reset() {
+      nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
+      totalTime = 0;
+      numServesBlocking = 0;
     }
   }
 }
