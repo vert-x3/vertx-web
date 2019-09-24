@@ -755,7 +755,8 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   private static class FSTune {
-    private boolean enabled = DEFAULT_ENABLE_FS_TUNING;
+    private volatile boolean enabled = DEFAULT_ENABLE_FS_TUNING;
+
     private long totalTime;
     private long numServesBlocking;
     private boolean useAsyncFS;
