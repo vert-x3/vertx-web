@@ -95,6 +95,17 @@ public interface MultiTenantHandler extends Handler<RoutingContext> {
   MultiTenantHandler addTenantHandler(String tenant, Handler<RoutingContext> handler);
 
   /**
+   * Remove a handler for a given tenant from this handler.
+   *
+   * Tenant cannot be null.
+   *
+   * @param tenant the tenant id
+   * @return a fluent reference to self.
+   */
+  @Fluent
+  MultiTenantHandler removeTenant(String tenant);
+
+  /**
    * Add a default handler for the case when no tenant was matched.
    *
    * The handler cannot be null.
