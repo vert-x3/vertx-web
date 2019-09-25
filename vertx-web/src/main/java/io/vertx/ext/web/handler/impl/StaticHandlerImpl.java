@@ -52,7 +52,6 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private static final Logger log = LoggerFactory.getLogger(StaticHandlerImpl.class);
 
-  private Map<String, CacheEntry> propsCache;
   private String webRoot = DEFAULT_WEB_ROOT;
   private long maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS; // One day
   private boolean directoryListing = DEFAULT_DIRECTORY_LISTING;
@@ -60,11 +59,8 @@ public class StaticHandlerImpl implements StaticHandler {
   private String directoryTemplate;
   private boolean includeHidden = DEFAULT_INCLUDE_HIDDEN;
   private boolean filesReadOnly = DEFAULT_FILES_READ_ONLY;
-  private boolean cachingEnabled = DEFAULT_CACHING_ENABLED;
-  private long cacheEntryTimeout = DEFAULT_CACHE_ENTRY_TIMEOUT;
   private String indexPage = DEFAULT_INDEX_PAGE;
   private List<Http2PushMapping> http2PushMappings;
-  private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
   private boolean rangeSupport = DEFAULT_RANGE_SUPPORT;
   private boolean allowRootFileSystemAccess = DEFAULT_ROOT_FILESYSTEM_ACCESS;
   private boolean sendVaryHeader = DEFAULT_SEND_VARY_HEADER;
@@ -75,6 +71,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private final ClassLoader classLoader;
   private final FSTune tune = new FSTune();
+  private final FSPropsCache cache = new FSPropsCache();
 
   public StaticHandlerImpl(String root, ClassLoader classLoader) {
     this.classLoader = classLoader;
@@ -100,7 +97,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
     MultiMap headers = request.response().headers();
 
-    if (cachingEnabled) {
+    if (cache.enabled()) {
       // We use cache-control and last-modified
       // We *do not use* etags and expires (since they do the same thing - redundant)
       Utils.addToMapIfAbsent(headers, HttpHeaders.CACHE_CONTROL, "public, max-age=" + maxAgeSeconds);
@@ -137,7 +134,6 @@ public class StaticHandlerImpl implements StaticHandler {
 
       // can be called recursive for index pages
       sendStatic(context, path);
-
     }
   }
 
@@ -157,17 +153,33 @@ public class StaticHandlerImpl implements StaticHandler {
     }
 
     // Look in cache
-    final CacheEntry entry = cachingEnabled ? propsCache().get(path) : null;
-    if (entry != null) {
-      final long lastModified = Utils.secondsFactor(entry.props.lastModifiedTime());
+    final CacheEntry entry = cache.get(path);
 
-      if ((filesReadOnly || !entry.isOutOfDate()) && Utils.fresh(context, lastModified)) {
-        context.response().setStatusCode(NOT_MODIFIED.code()).end();
-        return;
+    if (entry != null) {
+      if ((filesReadOnly || !entry.isOutOfDate())) {
+        // a cache entry can mean 2 things:
+        // 1. a miss
+        // 2. a hit
+
+        // a miss signals that we should continue the chain
+        if (entry.isMissing()) {
+          context.next();
+          return;
+        }
+
+        // a hit needs to be verified for freshness
+        final long lastModified = Utils.secondsFactor(entry.props.lastModifiedTime());
+
+        if (Utils.fresh(context, lastModified)) {
+          context.response()
+            .setStatusCode(NOT_MODIFIED.code())
+            .end();
+          return;
+        }
       }
     }
 
-    final boolean dirty = cachingEnabled && entry != null;
+    final boolean dirty = cache.enabled() && entry != null;
     final String sfile = file == null ? getFile(path, context) : file;
 
     // verify if the file exists
@@ -179,8 +191,8 @@ public class StaticHandlerImpl implements StaticHandler {
 
       // file does not exist, continue...
       if (!exists.result()) {
-        if (dirty) {
-          removeCache(path);
+        if (cache.enabled()) {
+          cache.put(path, null);
         }
         context.next();
         return;
@@ -193,18 +205,18 @@ public class StaticHandlerImpl implements StaticHandler {
           if (fprops == null) {
             // File does not exist
             if (dirty) {
-              removeCache(path);
+              cache.remove(path);
             }
             context.next();
           } else if (fprops.isDirectory()) {
             if (dirty) {
-              removeCache(path);
+              cache.remove(path);
             }
             sendDirectory(context, path, sfile);
           } else {
-            if (cachingEnabled) {
-              CacheEntry now = new CacheEntry(fprops, cacheEntryTimeout);
-              propsCache().put(path, now);
+            if (cache.enabled()) {
+              cache.put(path, fprops);
+
               if (Utils.fresh(context, Utils.secondsFactor(fprops.lastModifiedTime()))) {
                 context.response().setStatusCode(NOT_MODIFIED.code()).end();
                 return;
@@ -486,16 +498,13 @@ public class StaticHandlerImpl implements StaticHandler {
 
   @Override
   public StaticHandler setMaxCacheSize(int maxCacheSize) {
-    if (maxCacheSize < 1) {
-      throw new IllegalArgumentException("maxCacheSize must be >= 1");
-    }
-    this.maxCacheSize = maxCacheSize;
+    cache.setMaxSize(maxCacheSize);
     return this;
   }
 
   @Override
   public StaticHandler setCachingEnabled(boolean enabled) {
-    this.cachingEnabled = enabled;
+    cache.setEnabled(enabled);
     return this;
   }
 
@@ -526,10 +535,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
   @Override
   public StaticHandler setCacheEntryTimeout(long timeout) {
-    if (timeout < 1) {
-      throw new IllegalArgumentException("timeout must be >= 1");
-    }
-    this.cacheEntryTimeout = timeout;
+    cache.setCacheEntryTimeout(timeout);
     return this;
   }
 
@@ -595,19 +601,6 @@ public class StaticHandlerImpl implements StaticHandler {
   public StaticHandler setDefaultContentEncoding(String contentEncoding) {
     this.defaultContentEncoding = contentEncoding;
     return this;
-  }
-
-  private Map<String, CacheEntry> propsCache() {
-    if (propsCache == null) {
-      propsCache = new LRUCache<>(maxCacheSize);
-    }
-    return propsCache;
-  }
-
-  private void removeCache(String path) {
-    if (propsCache != null) {
-      propsCache.remove(path);
-    }
   }
 
   private String getFile(String path, RoutingContext context) {
@@ -746,6 +739,10 @@ public class StaticHandlerImpl implements StaticHandler {
     boolean isOutOfDate() {
       return System.currentTimeMillis() - createDate > cacheEntryTimeout;
     }
+
+    public boolean isMissing() {
+      return  props == null;
+    }
   }
 
   private static class FSTune {
@@ -804,6 +801,76 @@ public class StaticHandlerImpl implements StaticHandler {
       nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
       totalTime = 0;
       numServesBlocking = 0;
+    }
+  }
+
+  private static class FSPropsCache {
+    private Map<String, CacheEntry> propsCache;
+    private long cacheEntryTimeout = DEFAULT_CACHE_ENTRY_TIMEOUT;
+    private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
+
+    FSPropsCache() {
+      setEnabled(DEFAULT_CACHING_ENABLED);
+    }
+
+    boolean enabled() {
+      return propsCache != null;
+    }
+
+    synchronized void setMaxSize(int maxCacheSize) {
+      if (maxCacheSize < 1) {
+        throw new IllegalArgumentException("maxCacheSize must be >= 1");
+      }
+      if (this.maxCacheSize != maxCacheSize) {
+        this.maxCacheSize = maxCacheSize;
+        // force the creation of the cache with the correct size
+        setEnabled(enabled(), true);
+      }
+    }
+
+    void setEnabled(boolean enable) {
+      setEnabled(enable, false);
+    }
+
+    private synchronized void setEnabled(boolean enable, boolean force) {
+      if (force || enable != enabled()) {
+        if (propsCache != null) {
+          propsCache.clear();
+        }
+        if (enable) {
+          propsCache = new LRUCache<>(maxCacheSize);
+        } else {
+          propsCache = null;
+        }
+      }
+    }
+
+    void setCacheEntryTimeout(long timeout) {
+      if (timeout < 1) {
+        throw new IllegalArgumentException("timeout must be >= 1");
+      }
+      this.cacheEntryTimeout = timeout;
+    }
+
+    private void remove(String path) {
+      if (propsCache != null) {
+        propsCache.remove(path);
+      }
+    }
+
+    CacheEntry get(String key) {
+      if (propsCache != null) {
+        return propsCache.get(key);
+      }
+
+      return null;
+    }
+
+    void put(String path, FileProps props) {
+      if (propsCache != null) {
+        CacheEntry now = new CacheEntry(props, cacheEntryTimeout);
+        propsCache.put(path, now);
+      }
     }
   }
 }
