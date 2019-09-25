@@ -19,9 +19,9 @@ import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.MultiTenantHandler;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
@@ -29,7 +29,7 @@ import java.util.function.Function;
  */
 public class MultiTenantHandlerImpl implements MultiTenantHandler {
 
-  private final Map<String, Handler<RoutingContext>> handlerMap = new HashMap<>();
+  private final Map<String, Handler<RoutingContext>> handlerMap = new ConcurrentHashMap<>();
 
   private final Function<RoutingContext, String> tenantExtractor;
   private final String contextKey;
@@ -49,6 +49,14 @@ public class MultiTenantHandlerImpl implements MultiTenantHandler {
     if (handlerMap.put(tenant, handler) != null) {
       throw new IllegalStateException("tenant '" + tenant + "' already present");
     }
+    return this;
+  }
+
+  @Override
+  public MultiTenantHandler removeTenant(String tenant) {
+    Objects.requireNonNull(tenant);
+
+    handlerMap.remove(tenant);
     return this;
   }
 
