@@ -77,9 +77,6 @@ public class StaticHandlerImpl implements StaticHandler {
   private boolean sendVaryHeader = DEFAULT_SEND_VARY_HEADER;
   private String defaultContentEncoding = Charset.defaultCharset().name();
 
-  // These members are all related to auto tuning of synchronous vs asynchronous file system access
-  private static int NUM_SERVES_TUNING_FS_ACCESS = 1000;
-  private boolean alwaysAsyncFS = DEFAULT_ALWAYS_ASYNC_FS;
   private Set<String> compressedMediaTypes = Collections.emptySet();
   private Set<String> compressedFileSuffixes = Collections.emptySet();
 
@@ -275,19 +272,16 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
     FileSystem fs = context.vertx().fileSystem();
-    if (alwaysAsyncFS || tune.useAsyncFS()) {
+    if (tune.useAsyncFS()) {
       wrapInTCCLSwitch(() -> fs.props(file, resultHandler));
     } else {
       // Use synchronous access - it might well be faster!
-      long start = 0;
-      if (tune.enabled()) {
-        start = System.nanoTime();
-      }
       try {
+        final boolean tuneEnabled = tune.enabled();
+        final long start = tuneEnabled ? System.nanoTime() : 0;
         FileProps props = wrapInTCCLSwitch(() -> fs.propsBlocking(file));
-        if (tune.enabled()) {
-          long end = System.nanoTime();
-          tune.update(start, end);
+        if (tuneEnabled) {
+          tune.update(start, System.nanoTime());
         }
         resultHandler.handle(Future.succeededFuture(props));
       } catch (RuntimeException e) {
@@ -545,7 +539,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
   @Override
   public StaticHandler setAlwaysAsyncFS(boolean alwaysAsyncFS) {
-    this.alwaysAsyncFS = alwaysAsyncFS;
+    tune.setAlwaysAsyncFS(alwaysAsyncFS);
     return this;
   }
 
@@ -769,20 +763,26 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   private static class FSTune {
+    // These members are all related to auto tuning of synchronous vs asynchronous file system access
+    private static int NUM_SERVES_TUNING_FS_ACCESS = 1000;
+
+    // these variables are read often and should always represent the
+    // real value, no caching should be allowed
     private volatile boolean enabled = DEFAULT_ENABLE_FS_TUNING;
+    private volatile boolean useAsyncFS;
 
     private long totalTime;
     private long numServesBlocking;
-    private boolean useAsyncFS;
     private long nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
     private long maxAvgServeTimeNanoSeconds = DEFAULT_MAX_AVG_SERVE_TIME_NS;
+    private boolean alwaysAsyncFS = DEFAULT_ALWAYS_ASYNC_FS;
 
     boolean enabled() {
       return enabled;
     }
 
     boolean useAsyncFS() {
-      return useAsyncFS;
+      return alwaysAsyncFS || useAsyncFS;
     }
 
     synchronized void setEnabled(boolean enabled) {
@@ -790,6 +790,10 @@ public class StaticHandlerImpl implements StaticHandler {
       if (!enabled) {
         reset();
       }
+    }
+
+    void setAlwaysAsyncFS(boolean alwaysAsyncFS) {
+      this.alwaysAsyncFS = alwaysAsyncFS;
     }
 
     synchronized void update(long start, long end) {
