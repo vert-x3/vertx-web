@@ -102,6 +102,10 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
       if (encoder.isChunked()) {
         try {
           HttpContent chunk = encoder.readChunk(ALLOC);
+          if (chunk == null) {
+            ended = true;
+            continue;
+          }
           ByteBuf content = chunk.content();
           Buffer buff = Buffer.buffer(content);
           if (!pending.write(buff)) {
