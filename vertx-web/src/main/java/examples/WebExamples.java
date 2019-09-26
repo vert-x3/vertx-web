@@ -1376,6 +1376,10 @@ public class WebExamples {
     });
   }
 
+  public void example72(Router router) {
+    router.route().handler(MultiTenantHandler.create("X-Tenant"));
+  }
+
   public void example73() {
     MultiTenantHandler.create("X-Tenant")
       .addTenantHandler("tenant-A", ctx -> {
