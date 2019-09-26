@@ -1375,5 +1375,56 @@ public class WebExamples {
       // do something...
     });
   }
-}
 
+  public void example72(Router router) {
+    router.route().handler(MultiTenantHandler.create("X-Tenant"));
+  }
+
+  public void example73() {
+    MultiTenantHandler.create("X-Tenant")
+      .addTenantHandler("tenant-A", ctx -> {
+        // do something for tenant A...
+      })
+      .addTenantHandler("tenant-B", ctx -> {
+        // do something for tenant B...
+      })
+      // optionally
+      .addDefaultHandler(ctx -> {
+        // do something when no tenant matches...
+      });
+
+  }
+
+  public void example74(Vertx vertx, Router router) {
+    // create an OAuth2 provider, clientID and clientSecret should be requested to github
+    OAuth2Auth gitHubAuthProvider = GithubAuth.create(vertx, "CLIENT_ID", "CLIENT_SECRET");
+    // create a oauth2 handler on our running server
+    // the second argument is the full url to the callback as you entered in your provider management console.
+    OAuth2AuthHandler githubOAuth2 = OAuth2AuthHandler.create(gitHubAuthProvider, "https://myserver.com/github-callback");
+    // setup the callback handler for receiving the GitHub callback
+    githubOAuth2.setupCallback(router.route());
+
+    // create an OAuth2 provider, clientID and clientSecret should be requested to Google
+    OAuth2Auth googleAuthProvider = OAuth2Auth.create(vertx, new OAuth2ClientOptions()
+      .setClientID("CLIENT_ID")
+      .setClientSecret("CLIENT_SECRET")
+      .setFlow(OAuth2FlowType.AUTH_CODE)
+      .setSite("https://accounts.google.com")
+      .setTokenPath("https://www.googleapis.com/oauth2/v3/token")
+      .setAuthorizationPath("/o/oauth2/auth"));
+
+    // create a oauth2 handler on our domain: "http://localhost:8080"
+    OAuth2AuthHandler googleOAuth2 = OAuth2AuthHandler.create(googleAuthProvider, "http://localhost:8080");
+
+
+    MultiTenantHandler.create("X-Tenant")
+      // tenants using github should go this way:
+      .addTenantHandler("tenant-github", githubOAuth2)
+      // tenants using google should go this way:
+      .addTenantHandler("tenant-google", googleOAuth2)
+      // all other should be forbidden
+      .addDefaultHandler(ctx -> {
+        ctx.fail(401);
+      });
+  }
+}
