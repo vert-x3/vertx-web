@@ -123,7 +123,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static StaticHandler create() {
-    return create(null, null);
+    return create(null);
   }
 
   /**
@@ -133,16 +133,20 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static StaticHandler create(String root) {
-    return create(root, null);
+    return new StaticHandlerImpl(root);
   }
 
   /**
    * Create a handler, specifying web-root and a classloader used to load the resources.
    *
+   * @deprecated this factory will not exist on 4.0. You can load resources from the classpath, so this
+   *             makes this factory obsolete.
+   *
    * @param root        the web-root
    * @param classLoader the classloader used to load the resource
    * @return the handler
    */
+  @Deprecated
   @GenIgnore
   static StaticHandler create(String root, ClassLoader classLoader) {
     return new StaticHandlerImpl(root, classLoader);
