@@ -70,11 +70,15 @@ public class MultiTenantHandlerImpl implements MultiTenantHandler {
   @Override
   public void handle(RoutingContext ctx) {
     final String tenant = tenantExtractor.apply(ctx);
-    final Handler<RoutingContext> handler = handlerMap.getOrDefault(tenant, defaultHandler);
+    final Handler<RoutingContext> handler =
+      tenant == null ?
+        defaultHandler :
+        handlerMap.getOrDefault(tenant, defaultHandler);
 
     if (handler != null) {
-      // there's a handler for this tenant
-      ctx.put(contextKey, tenant == null ? "default" : tenant);
+      // there's a handler for this tenant and the name is default it we're
+      // falling back to the default handler
+      ctx.put(contextKey, handler == defaultHandler ? "default" : tenant);
       // continue as usual
       handler.handle(ctx);
     } else {
