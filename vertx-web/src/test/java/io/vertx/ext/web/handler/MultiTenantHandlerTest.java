@@ -144,10 +144,22 @@ public class MultiTenantHandlerTest extends WebTestBase {
         List<String> params = ctx.queryParam("tenant");
         return params.size() > 0 ? params.get(0) : null;
       })
-        .addTenantHandler("t1", ctx -> ctx.end("Hello from tenant-1"))
-        .addTenantHandler("t2", ctx -> ctx.end("Hello from tenant-2"))
-        .addTenantHandler("t3", ctx -> ctx.end("Hello from tenant-3"))
-        .addDefaultHandler(ctx -> ctx.end("No valid tenant supplied"))
+        .addTenantHandler("t1", ctx -> {
+          assertEquals("t1", ctx.get(MultiTenantHandler.TENANT));
+          ctx.end("Hello from tenant-1");
+        })
+        .addTenantHandler("t2", ctx -> {
+          assertEquals("t2", ctx.get(MultiTenantHandler.TENANT));
+          ctx.end("Hello from tenant-2");
+        })
+        .addTenantHandler("t3", ctx -> {
+          assertEquals("t3", ctx.get(MultiTenantHandler.TENANT));
+          ctx.end("Hello from tenant-3");
+        })
+        .addDefaultHandler(ctx -> {
+          assertEquals("default", ctx.get(MultiTenantHandler.TENANT));
+          ctx.end("No valid tenant supplied");
+        })
     );
 
     testRequest(
