@@ -55,7 +55,6 @@ public class StaticHandlerImpl implements StaticHandler {
   private static final Logger log = LoggerFactory.getLogger(StaticHandlerImpl.class);
 
   private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
-  private Map<String, CacheEntry> propsCache;
   private String webRoot = DEFAULT_WEB_ROOT;
   private long maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS; // One day
   private boolean directoryListing = DEFAULT_DIRECTORY_LISTING;
@@ -596,19 +595,6 @@ public class StaticHandlerImpl implements StaticHandler {
     return this;
   }
 
-  private Map<String, CacheEntry> propsCache() {
-    if (propsCache == null) {
-      propsCache = new LRUCache<>(maxCacheSize);
-    }
-    return propsCache;
-  }
-
-  private void removeCache(String path) {
-    if (propsCache != null) {
-      propsCache.remove(path);
-    }
-  }
-
   private Date parseDate(String header) {
     try {
       return dateTimeFormatter.parse(header);
@@ -741,12 +727,14 @@ public class StaticHandlerImpl implements StaticHandler {
 
   // TODO make this static and use Java8 DateTimeFormatter
   private final class CacheEntry {
-    final FileProps props;
-    long createDate;
+    final long createDate = System.currentTimeMillis();
 
-    private CacheEntry(FileProps props, long createDate) {
+    final FileProps props;
+    final long cacheEntryTimeout;
+
+    private CacheEntry(FileProps props, long cacheEntryTimeout) {
       this.props = props;
-      this.createDate = createDate;
+      this.cacheEntryTimeout = cacheEntryTimeout;
     }
 
     // return true if there are conditional headers present and they match what is in the entry
@@ -829,7 +817,7 @@ public class StaticHandlerImpl implements StaticHandler {
     }
   }
 
-  private static class FSPropsCache {
+  private class FSPropsCache {
     private Map<String, CacheEntry> propsCache;
     private long cacheEntryTimeout = DEFAULT_CACHE_ENTRY_TIMEOUT;
     private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
