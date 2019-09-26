@@ -16,6 +16,7 @@
 package io.vertx.ext.web.client;
 
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
+import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.unit.Async;
@@ -23,9 +24,11 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.impl.MultipartFormUpload;
 import io.vertx.ext.web.multipart.MultipartForm;
-import io.vertx.ext.web.multipart.impl.MultipartFormImpl;
 import io.vertx.test.core.TestUtils;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
@@ -45,13 +48,6 @@ public class MultipartFormUploadTest {
   public static TemporaryFolder testFolder = new TemporaryFolder();
 
   private Vertx vertx;
-  private static File largeFile;
-
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    largeFile = testFolder.newFile("large.dat");
-    Files.write(largeFile.toPath(), TestUtils.randomAlphaString(32 * 1024).getBytes());
-  }
 
   @Before
   public void setUp() throws Exception {
@@ -78,51 +74,53 @@ public class MultipartFormUploadTest {
   }
 
   @Test
-  public void testFileUpload1(TestContext ctx) {
-    // Create the async here to prevent the test complete successfully
-    // since testFileUpload is executing asynchronously
-    Async async = ctx.async();
-    vertx.runOnContext(v -> {
-      MultipartFormUpload upload = testFileUpload(async, ctx);
-      upload.run();
-      upload.resume();
-    });
+  public void testFileUpload(TestContext ctx) throws Exception {
+    testFileUpload(ctx, false);
   }
 
   @Test
-  public void testFileUpload2(TestContext ctx) {
-    // Create the async here to prevent the test complete successfully
-    // since testFileUpload is executing asynchronously
-    Async async = ctx.async();
-    vertx.runOnContext(v -> {
-      MultipartFormUpload upload = testFileUpload(async, ctx);
-      upload.resume();
-      upload.run();
-    });
+  public void testFileUploadPaused(TestContext ctx) throws Exception {
+    testFileUpload(ctx, true);
   }
 
-  private MultipartFormUpload testFileUpload(Async async, TestContext ctx) {
-    try {
-      MultipartFormUpload upload = new MultipartFormUpload(vertx.getOrCreateContext(), MultipartForm.create().textFileUpload(
-        "the-file",
-        largeFile.getName(),
-        largeFile.getAbsolutePath(),
-        "text/plain"), true, HttpPostRequestEncoder.EncoderMode.RFC1738);
-      List<Buffer> buffers = Collections.synchronizedList(new ArrayList<>());
-      AtomicInteger end = new AtomicInteger();
-      upload.endHandler(v -> {
-        assertEquals(0, end.getAndIncrement());
-        ctx.assertTrue(buffers.size() > 0);
-        async.complete();
-      });
-      upload.handler(buffer -> {
-        assertEquals(0, end.get());
-        buffers.add(buffer);
-      });
-      return upload;
-    } catch (Exception e) {
-      ctx.fail(e);
-      throw new AssertionError(e);
-    }
+  private void testFileUpload(TestContext ctx, boolean paused) throws Exception {
+    File file = testFolder.newFile();
+    Files.write(file.toPath(), TestUtils.randomByteArray(32 * 1024));
+
+    String filename = file.getName();
+    String pathname = file.getAbsolutePath();
+
+    Async async = ctx.async();
+    Context context = vertx.getOrCreateContext();
+    context.runOnContext(v1 -> {
+      try {
+        MultipartFormUpload upload = new MultipartFormUpload(context, MultipartForm.create().textFileUpload(
+          "the-file",
+          filename,
+          pathname,
+          "text/plain"), true, HttpPostRequestEncoder.EncoderMode.RFC1738);
+        List<Buffer> buffers = Collections.synchronizedList(new ArrayList<>());
+        AtomicInteger end = new AtomicInteger();
+        upload.endHandler(v2 -> {
+          assertEquals(0, end.getAndIncrement());
+          ctx.assertTrue(buffers.size() > 0);
+          async.complete();
+        });
+        upload.handler(buffer -> {
+          assertEquals(0, end.get());
+          buffers.add(buffer);
+        });
+        if (!paused) {
+          upload.resume();
+        }
+        upload.run();
+        if (paused) {
+          context.runOnContext(v3 -> upload.resume());
+        }
+      } catch (Exception e) {
+        ctx.fail(e);
+        throw new AssertionError(e);
+      }
+    });
   }
 }
