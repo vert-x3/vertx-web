@@ -76,8 +76,16 @@ public class StaticHandlerImpl implements StaticHandler {
   private final FSTune tune = new FSTune();
   private final FSPropsCache cache = new FSPropsCache();
 
+  @Deprecated
   public StaticHandlerImpl(String root, ClassLoader classLoader) {
     this.classLoader = classLoader;
+    if (root != null) {
+      setRoot(root);
+    }
+  }
+
+  public StaticHandlerImpl(String root) {
+    this.classLoader = null;
     if (root != null) {
       setRoot(root);
     }
@@ -260,14 +268,12 @@ public class StaticHandlerImpl implements StaticHandler {
       if (classLoader == null) {
         return callable.call();
       } else {
-        synchronized (this) {
-          final ClassLoader original = Thread.currentThread().getContextClassLoader();
-          try {
-            Thread.currentThread().setContextClassLoader(classLoader);
-            return callable.call();
-          } finally {
-            Thread.currentThread().setContextClassLoader(original);
-          }
+        final ClassLoader original = Thread.currentThread().getContextClassLoader();
+        try {
+          Thread.currentThread().setContextClassLoader(classLoader);
+          return callable.call();
+        } finally {
+          Thread.currentThread().setContextClassLoader(original);
         }
       }
     } catch (Exception e) {
