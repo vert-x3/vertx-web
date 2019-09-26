@@ -1375,7 +1375,6 @@ public class WebExamples {
       // do something...
     });
   }
-}
 
   public void example73() {
     MultiTenantHandler.create("X-Tenant")
