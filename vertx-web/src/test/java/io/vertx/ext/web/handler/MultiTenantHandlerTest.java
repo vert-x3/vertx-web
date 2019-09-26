@@ -34,9 +34,9 @@ public class MultiTenantHandlerTest extends WebTestBase {
     // assume tenants are identified by the header "X-Tenant"
     router.route().handler(
       MultiTenantHandler.create("X-Tenant")
-        .addTenantHandler("tenant-1", ctx -> ctx.end("Hello from tenant-1"))
-        .addTenantHandler("tenant-2", ctx -> ctx.end("Hello from tenant-2"))
-        .addTenantHandler("tenant-3", ctx -> ctx.end("Hello from tenant-3"))
+        .addTenantHandler("tenant-1", ctx -> ctx.response().end("Hello from tenant-1"))
+        .addTenantHandler("tenant-2", ctx -> ctx.response().end("Hello from tenant-2"))
+        .addTenantHandler("tenant-3", ctx -> ctx.response().end("Hello from tenant-3"))
     );
 
     testRequest(
@@ -87,10 +87,10 @@ public class MultiTenantHandlerTest extends WebTestBase {
     // assume tenants are identified by the header "X-Tenant"
     router.route().handler(
       MultiTenantHandler.create("X-Tenant")
-        .addTenantHandler("tenant-1", ctx -> ctx.end("Hello from tenant-1"))
-        .addTenantHandler("tenant-2", ctx -> ctx.end("Hello from tenant-2"))
-        .addTenantHandler("tenant-3", ctx -> ctx.end("Hello from tenant-3"))
-        .addDefaultHandler(ctx -> ctx.end("No valid tenant supplied"))
+        .addTenantHandler("tenant-1", ctx -> ctx.response().end("Hello from tenant-1"))
+        .addTenantHandler("tenant-2", ctx -> ctx.response().end("Hello from tenant-2"))
+        .addTenantHandler("tenant-3", ctx -> ctx.response().end("Hello from tenant-3"))
+        .addDefaultHandler(ctx -> ctx.response().end("No valid tenant supplied"))
     );
 
     testRequest(
@@ -146,19 +146,19 @@ public class MultiTenantHandlerTest extends WebTestBase {
       })
         .addTenantHandler("t1", ctx -> {
           assertEquals("t1", ctx.get(MultiTenantHandler.TENANT));
-          ctx.end("Hello from tenant-1");
+          ctx.response().end("Hello from tenant-1");
         })
         .addTenantHandler("t2", ctx -> {
           assertEquals("t2", ctx.get(MultiTenantHandler.TENANT));
-          ctx.end("Hello from tenant-2");
+          ctx.response().end("Hello from tenant-2");
         })
         .addTenantHandler("t3", ctx -> {
           assertEquals("t3", ctx.get(MultiTenantHandler.TENANT));
-          ctx.end("Hello from tenant-3");
+          ctx.response().end("Hello from tenant-3");
         })
         .addDefaultHandler(ctx -> {
           assertEquals("default", ctx.get(MultiTenantHandler.TENANT));
-          ctx.end("No valid tenant supplied");
+          ctx.response().end("No valid tenant supplied");
         })
     );
 
