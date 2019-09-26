@@ -1292,6 +1292,34 @@ Here's an example:
 TODO more CORS docs
 ////
 
+== Multi Tenant
+
+There are cases where your application needs to handle more than just 1 tenant. In this case a helper handler is
+provided that simplifies setting up the application.
+
+In the case the tenant is identified by a HTTP header, say for example `X-Tenant`, then creating the handler is as
+simple as:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example72}
+----
+
+You now should register what handler should be executed for the given tenant:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example73}
+----
+
+This is useful for security situations:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example74}
+----
+
+
 == Templates
 
 Vert.x-Web includes dynamic page generation capabilities by including out of the box support for several popular template
