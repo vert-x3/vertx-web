@@ -17,7 +17,6 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.Http2PushMapping;
@@ -123,7 +122,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static StaticHandler create() {
-    return create(null, null);
+    return new StaticHandlerImpl();
   }
 
   /**
@@ -133,19 +132,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static StaticHandler create(String root) {
-    return create(root, null);
-  }
-
-  /**
-   * Create a handler, specifying web-root and a classloader used to load the resources.
-   *
-   * @param root        the web-root
-   * @param classLoader the classloader used to load the resource
-   * @return the handler
-   */
-  @GenIgnore
-  static StaticHandler create(String root, ClassLoader classLoader) {
-    return new StaticHandlerImpl(root, classLoader);
+    return create().setWebRoot(root);
   }
 
   /**

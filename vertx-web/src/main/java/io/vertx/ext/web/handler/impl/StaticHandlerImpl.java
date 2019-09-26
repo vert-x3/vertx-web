@@ -35,7 +35,6 @@ import io.vertx.ext.web.impl.Utils;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -69,16 +68,8 @@ public class StaticHandlerImpl implements StaticHandler {
   private Set<String> compressedMediaTypes = Collections.emptySet();
   private Set<String> compressedFileSuffixes = Collections.emptySet();
 
-  private final ClassLoader classLoader;
   private final FSTune tune = new FSTune();
   private final FSPropsCache cache = new FSPropsCache();
-
-  public StaticHandlerImpl(String root, ClassLoader classLoader) {
-    this.classLoader = classLoader;
-    if (root != null) {
-      setRoot(root);
-    }
-  }
 
   private String directoryTemplate(Vertx vertx) {
     if (directoryTemplate == null) {
@@ -183,52 +174,54 @@ public class StaticHandlerImpl implements StaticHandler {
     final String sfile = file == null ? getFile(path, context) : file;
 
     // verify if the file exists
-    isFileExisting(context, sfile, exists -> {
-      if (exists.failed()) {
-        context.fail(exists.cause());
-        return;
-      }
-
-      // file does not exist, continue...
-      if (!exists.result()) {
-        if (cache.enabled()) {
-          cache.put(path, null);
+    context.vertx()
+      .fileSystem()
+      .exists(sfile, exists -> {
+        if (exists.failed()) {
+          context.fail(exists.cause());
+          return;
         }
-        context.next();
-        return;
-      }
 
-      // Need to read the props from the filesystem
-      getFileProps(context, sfile, res -> {
-        if (res.succeeded()) {
-          FileProps fprops = res.result();
-          if (fprops == null) {
-            // File does not exist
-            if (dirty) {
-              cache.remove(path);
-            }
-            context.next();
-          } else if (fprops.isDirectory()) {
-            if (dirty) {
-              cache.remove(path);
-            }
-            sendDirectory(context, path, sfile);
-          } else {
-            if (cache.enabled()) {
-              cache.put(path, fprops);
-
-              if (Utils.fresh(context, Utils.secondsFactor(fprops.lastModifiedTime()))) {
-                context.response().setStatusCode(NOT_MODIFIED.code()).end();
-                return;
-              }
-            }
-            sendFile(context, sfile, fprops);
+        // file does not exist, continue...
+        if (!exists.result()) {
+          if (cache.enabled()) {
+            cache.put(path, null);
           }
-        } else {
-          context.fail(res.cause());
+          context.next();
+          return;
         }
+
+        // Need to read the props from the filesystem
+        getFileProps(context, sfile, res -> {
+          if (res.succeeded()) {
+            FileProps fprops = res.result();
+            if (fprops == null) {
+              // File does not exist
+              if (dirty) {
+                cache.remove(path);
+              }
+              context.next();
+            } else if (fprops.isDirectory()) {
+              if (dirty) {
+                cache.remove(path);
+              }
+              sendDirectory(context, path, sfile);
+            } else {
+              if (cache.enabled()) {
+                cache.put(path, fprops);
+
+                if (Utils.fresh(context, Utils.secondsFactor(fprops.lastModifiedTime()))) {
+                  context.response().setStatusCode(NOT_MODIFIED.code()).end();
+                  return;
+                }
+              }
+              sendFile(context, sfile, fprops);
+            }
+          } else {
+            context.fail(res.cause());
+          }
+        });
       });
-    });
   }
 
   private void sendDirectory(RoutingContext context, String path, String file) {
@@ -260,41 +253,16 @@ public class StaticHandlerImpl implements StaticHandler {
     }
   }
 
-  private <T> T wrapInTCCLSwitch(Callable<T> callable) {
-    try {
-      if (classLoader == null) {
-        return callable.call();
-      } else {
-        synchronized (this) {
-          final ClassLoader original = Thread.currentThread().getContextClassLoader();
-          try {
-            Thread.currentThread().setContextClassLoader(classLoader);
-            return callable.call();
-          } finally {
-            Thread.currentThread().setContextClassLoader(original);
-          }
-        }
-      }
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private void isFileExisting(RoutingContext context, String file, Handler<AsyncResult<Boolean>> resultHandler) {
-    FileSystem fs = context.vertx().fileSystem();
-    wrapInTCCLSwitch(() -> fs.exists(file, resultHandler));
-  }
-
   private void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
     FileSystem fs = context.vertx().fileSystem();
     if (tune.useAsyncFS()) {
-      wrapInTCCLSwitch(() -> fs.props(file, resultHandler));
+      fs.props(file, resultHandler);
     } else {
       // Use synchronous access - it might well be faster!
       try {
         final boolean tuneEnabled = tune.enabled();
         final long start = tuneEnabled ? System.nanoTime() : 0;
-        FileProps props = wrapInTCCLSwitch(() -> fs.propsBlocking(file));
+        FileProps props = fs.propsBlocking(file);
         if (tuneEnabled) {
           tune.update(start, System.nanoTime());
         }
@@ -308,13 +276,14 @@ public class StaticHandlerImpl implements StaticHandler {
   private static final Pattern RANGE = Pattern.compile("^bytes=(\\d+)-(\\d*)$");
 
   private void sendFile(RoutingContext context, String file, FileProps fileProps) {
-    HttpServerRequest request = context.request();
+    final HttpServerRequest request = context.request();
+    final HttpServerResponse response = context.response();
 
     Long offset = null;
     Long end = null;
     MultiMap headers = null;
 
-    if (request.response().closed())
+    if (response.closed())
       return;
 
     if (rangeSupport) {
@@ -353,7 +322,7 @@ public class StaticHandlerImpl implements StaticHandler {
       }
 
       // notify client we support range requests
-      headers = request.response().headers();
+      headers = response.headers();
       headers.set(HttpHeaders.ACCEPT_RANGES, "bytes");
       // send the content length even for HEAD requests
       headers.set(HttpHeaders.CONTENT_LENGTH, Long.toString(end + 1 - (offset == null ? 0 : offset)));
@@ -362,108 +331,97 @@ public class StaticHandlerImpl implements StaticHandler {
     writeCacheHeaders(request, fileProps);
 
     if (request.method() == HttpMethod.HEAD) {
-      request.response().end();
+      response.end();
     } else {
       if (rangeSupport && offset != null) {
         // must return content range
         headers.set(HttpHeaders.CONTENT_RANGE, "bytes " + offset + "-" + end + "/" + fileProps.size());
         // return a partial response
-        request.response().setStatusCode(PARTIAL_CONTENT.code());
+        response.setStatusCode(PARTIAL_CONTENT.code());
 
-        // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
-        // classloader (if any).
         final long finalOffset = offset;
         final long finalLength = end + 1 - offset;
-        wrapInTCCLSwitch(() -> {
-          // guess content type
-          String contentType = MimeMapping.getMimeTypeForFilename(file);
-          if (contentType != null) {
-            if (contentType.startsWith("text")) {
-              request.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType + ";charset=" + defaultContentEncoding);
-            } else {
-              request.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType);
-            }
+        // guess content type
+        String contentType = MimeMapping.getMimeTypeForFilename(file);
+        if (contentType != null) {
+          if (contentType.startsWith("text")) {
+            response.putHeader(HttpHeaders.CONTENT_TYPE, contentType + ";charset=" + defaultContentEncoding);
+          } else {
+            response.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
           }
+        }
 
-          return request.response().sendFile(file, finalOffset, finalLength, res2 -> {
-            if (res2.failed()) {
-              context.fail(res2.cause());
-            }
-          });
+        response.sendFile(file, finalOffset, finalLength, res2 -> {
+          if (res2.failed()) {
+            context.fail(res2.cause());
+          }
         });
       } else {
-        // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
-        // classloader (if any).
-        wrapInTCCLSwitch(() -> {
-          // guess content type
-          String extension = getFileExtension(file);
-          String contentType = MimeMapping.getMimeTypeForExtension(extension);
-          if (compressedMediaTypes.contains(contentType) || compressedFileSuffixes.contains(extension)) {
-            request.response().putHeader(HttpHeaders.CONTENT_ENCODING, HttpHeaders.IDENTITY);
+        // guess content type
+        String extension = getFileExtension(file);
+        String contentType = MimeMapping.getMimeTypeForExtension(extension);
+        if (compressedMediaTypes.contains(contentType) || compressedFileSuffixes.contains(extension)) {
+          response.putHeader(HttpHeaders.CONTENT_ENCODING, HttpHeaders.IDENTITY);
+        }
+        if (contentType != null) {
+          if (contentType.startsWith("text")) {
+            response.putHeader(HttpHeaders.CONTENT_TYPE, contentType + ";charset=" + defaultContentEncoding);
+          } else {
+            response.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
           }
-          if (contentType != null) {
-            if (contentType.startsWith("text")) {
-              request.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType + ";charset=" + defaultContentEncoding);
-            } else {
-              request.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType);
-            }
-          }
+        }
 
-          // http2 pushing support
-          if (request.version() == HttpVersion.HTTP_2 && http2PushMappings != null) {
-            for (Http2PushMapping dependency : http2PushMappings) {
-              if (!dependency.isNoPush()) {
-                final String dep = webRoot + "/" + dependency.getFilePath();
-                HttpServerResponse response = request.response();
-
-                // get the file props
-                getFileProps(context, dep, filePropsAsyncResult -> {
-                  if (filePropsAsyncResult.succeeded()) {
-                    // push
-                    writeCacheHeaders(request, filePropsAsyncResult.result());
-                    response.push(HttpMethod.GET, "/" + dependency.getFilePath(), pushAsyncResult -> {
-                      if (pushAsyncResult.succeeded()) {
-                        HttpServerResponse res = pushAsyncResult.result();
-                        final String depContentType = MimeMapping.getMimeTypeForExtension(file);
-                        if (depContentType != null) {
-                          if (depContentType.startsWith("text")) {
-                            res.putHeader(HttpHeaders.CONTENT_TYPE, contentType + ";charset=" + defaultContentEncoding);
-                          } else {
-                            res.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
-                          }
-                        }
-                        res.sendFile(webRoot + "/" + dependency.getFilePath());
-                      }
-                    });
-                  }
-                });
-              }
-            }
-
-          } else if (http2PushMappings != null) {
-            //Link preload when file push is not supported
-            HttpServerResponse response = request.response();
-            List<String> links = new ArrayList<>();
-            for (Http2PushMapping dependency : http2PushMappings) {
+        // http2 pushing support
+        if (request.version() == HttpVersion.HTTP_2 && http2PushMappings != null) {
+          for (Http2PushMapping dependency : http2PushMappings) {
+            if (!dependency.isNoPush()) {
               final String dep = webRoot + "/" + dependency.getFilePath();
               // get the file props
               getFileProps(context, dep, filePropsAsyncResult -> {
                 if (filePropsAsyncResult.succeeded()) {
                   // push
                   writeCacheHeaders(request, filePropsAsyncResult.result());
-                  links.add("<" + dependency.getFilePath() + ">; rel=preload; as="
-                    + dependency.getExtensionTarget() + (dependency.isNoPush() ? "; nopush" : ""));
+                  response.push(HttpMethod.GET, "/" + dependency.getFilePath(), pushAsyncResult -> {
+                    if (pushAsyncResult.succeeded()) {
+                      HttpServerResponse res = pushAsyncResult.result();
+                      final String depContentType = MimeMapping.getMimeTypeForExtension(file);
+                      if (depContentType != null) {
+                        if (depContentType.startsWith("text")) {
+                          res.putHeader(HttpHeaders.CONTENT_TYPE, contentType + ";charset=" + defaultContentEncoding);
+                        } else {
+                          res.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+                        }
+                      }
+                      res.sendFile(webRoot + "/" + dependency.getFilePath());
+                    }
+                  });
                 }
               });
             }
-            response.putHeader("Link", links);
           }
 
-          return request.response().sendFile(file, res2 -> {
-            if (res2.failed()) {
-              context.fail(res2.cause());
-            }
-          });
+        } else if (http2PushMappings != null) {
+          //Link preload when file push is not supported
+          List<String> links = new ArrayList<>();
+          for (Http2PushMapping dependency : http2PushMappings) {
+            final String dep = webRoot + "/" + dependency.getFilePath();
+            // get the file props
+            getFileProps(context, dep, filePropsAsyncResult -> {
+              if (filePropsAsyncResult.succeeded()) {
+                // push
+                writeCacheHeaders(request, filePropsAsyncResult.result());
+                links.add("<" + dependency.getFilePath() + ">; rel=preload; as="
+                  + dependency.getExtensionTarget() + (dependency.isNoPush() ? "; nopush" : ""));
+              }
+            });
+          }
+          response.putHeader("Link", links);
+        }
+
+        response.sendFile(file, res2 -> {
+          if (res2.failed()) {
+            context.fail(res2.cause());
+          }
         });
       }
     }
@@ -622,8 +580,9 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   private void sendDirectoryListing(String dir, RoutingContext context) {
-    FileSystem fileSystem = context.vertx().fileSystem();
-    HttpServerRequest request = context.request();
+    final FileSystem fileSystem = context.vertx().fileSystem();
+    final HttpServerRequest request = context.request();
+    final HttpServerResponse response = context.response();
 
     fileSystem.readDir(dir, asyncResult -> {
       if (asyncResult.failed()) {
@@ -676,11 +635,12 @@ public class StaticHandlerImpl implements StaticHandler {
 
           String parent = "<a href=\"" + normalizedDir.substring(0, slashPos + 1) + "\">..</a>";
 
-          request.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
-          request.response().end(
-            directoryTemplate(context.vertx()).replace("{directory}", normalizedDir)
-              .replace("{parent}", parent)
-              .replace("{files}", files.toString()));
+          response
+            .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+            .end(
+              directoryTemplate(context.vertx()).replace("{directory}", normalizedDir)
+                .replace("{parent}", parent)
+                .replace("{files}", files.toString()));
         } else if (accept.contains("json")) {
           String file;
           JsonArray json = new JsonArray();
@@ -693,8 +653,9 @@ public class StaticHandlerImpl implements StaticHandler {
             }
             json.add(file);
           }
-          request.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
-          request.response().end(json.encode());
+          response
+            .putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .end(json.encode());
         } else {
           String file;
           StringBuilder buffer = new StringBuilder();
@@ -709,8 +670,9 @@ public class StaticHandlerImpl implements StaticHandler {
             buffer.append('\n');
           }
 
-          request.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain");
-          request.response().end(buffer.toString());
+          response
+            .putHeader(HttpHeaders.CONTENT_TYPE, "text/plain")
+            .end(buffer.toString());
         }
       }
     });
@@ -741,7 +703,7 @@ public class StaticHandlerImpl implements StaticHandler {
     }
 
     public boolean isMissing() {
-      return  props == null;
+      return props == null;
     }
   }
 
