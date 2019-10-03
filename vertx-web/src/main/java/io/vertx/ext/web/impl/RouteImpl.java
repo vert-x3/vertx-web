@@ -398,11 +398,13 @@ public class RouteImpl implements Route {
       MIMEHeader selectedAccept = context.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, produces);
       if (selectedAccept != null) {
         context.setAcceptableContentType(selectedAccept.rawValue());
-        return 0;
+      } else {
+        return 406;
       }
-      return 406;
     }
-    if (!virtualHostMatches(context.request.host())) return 404;
+    if (!virtualHostMatches(context.request.host())) {
+      return 404;
+    }
     return 0;
   }
 
