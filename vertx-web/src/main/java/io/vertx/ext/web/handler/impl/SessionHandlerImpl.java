@@ -29,6 +29,9 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.SessionStore;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -46,7 +49,7 @@ public class SessionHandlerImpl implements SessionHandler {
   private boolean sessionCookieSecure;
   private boolean sessionCookieHttpOnly;
   private int minLength;
-  private AuthProvider authProvider;
+  private final Map<String, AuthProvider> providers = new ConcurrentHashMap<>();
 
   public SessionHandlerImpl(String sessionCookieName, String sessionCookiePath, long sessionTimeout, boolean nagHttps,
                             boolean sessionCookieSecure, boolean sessionCookieHttpOnly, int minLength, SessionStore sessionStore) {
@@ -103,8 +106,8 @@ public class SessionHandlerImpl implements SessionHandler {
   }
 
   @Override
-  public SessionHandler setAuthProvider(AuthProvider authProvider) {
-    this.authProvider = authProvider;
+  public SessionHandler addAuthProvider(AuthProvider authProvider) {
+    providers.put(authProvider.id(), authProvider);
     return this;
   }
 
@@ -131,29 +134,28 @@ public class SessionHandlerImpl implements SessionHandler {
             if (session != null) {
               context.setSession(session);
               // attempt to load the user from the session if auth provider is known
-              if (authProvider != null) {
-                UserHolder holder = session.get(SESSION_USER_HOLDER_KEY);
-                if (holder != null) {
-                  User user = null;
-                  RoutingContext prevContext = holder.context;
-                  if (prevContext != null) {
-                    user = prevContext.user();
-                  } else if (holder.user != null) {
+              UserHolder holder = session.get(SESSION_USER_HOLDER_KEY);
+              if (holder != null) {
+                User user = null;
+                RoutingContext prevContext = holder.context;
+                if (prevContext != null) {
+                  user = prevContext.user();
+                } else if (holder.user != null) {
+                  // attempt to locate a provider for this user type
+                  AuthProvider provider = providers.get(holder.user.providerId());
+                  if (provider != null) {
                     user = holder.user;
-                    user.setAuthProvider(authProvider);
+                    user.setAuthProvider(provider);
                     holder.context = context;
                     holder.user = null;
                   }
-                  holder.context = context;
-                  if (user != null) {
-                    context.setUser(user);
-                  }
                 }
-                addStoreSessionHandler(context, holder == null);
-              } else {
-                // never store user as there's no provider for auth
-                addStoreSessionHandler(context, false);
+                holder.context = context;
+                if (user != null) {
+                  context.setUser(user);
+                }
               }
+              addStoreSessionHandler(context);
 
             } else {
               // Cannot find session - either it timed out, or was explicitly destroyed at the
@@ -202,7 +204,7 @@ public class SessionHandlerImpl implements SessionHandler {
     });
   }
 
-  private void addStoreSessionHandler(RoutingContext context, boolean storeUser) {
+  private void addStoreSessionHandler(RoutingContext context) {
     context.addHeadersEndHandler(v -> {
       Session session = context.session();
       if (!session.isDestroyed()) {
@@ -210,10 +212,10 @@ public class SessionHandlerImpl implements SessionHandler {
         // Store the session (only and only if there was no error)
         if (currentStatusCode >= 200 && currentStatusCode < 400) {
 
-          // store the current user into the session
-          if (storeUser) {
-            // during the request the user might have been removed
-            if (context.user() != null) {
+          // during the request the user might have been removed
+          if (context.user() != null) {
+            // store the current user into the session if the provider is known
+            if (providers.containsKey(context.user().providerId())) {
               session.put(SESSION_USER_HOLDER_KEY, new UserHolder(context));
             }
           }
@@ -290,7 +292,7 @@ public class SessionHandlerImpl implements SessionHandler {
     cookie.setHttpOnly(sessionCookieHttpOnly);
     // Don't set max age - it's a session cookie
     context.addCookie(cookie);
-    // only store the user if there's a auth provider
-    addStoreSessionHandler(context, authProvider != null);
+    // add the callback to store the user if there's a auth provider
+    addStoreSessionHandler(context);
   }
 }

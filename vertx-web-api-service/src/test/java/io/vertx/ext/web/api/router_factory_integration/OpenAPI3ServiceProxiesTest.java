@@ -451,6 +451,11 @@ public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
         routerFactory.addHandlerByOperationId("testUser", rc -> {
           rc.setUser(new User() {
             @Override
+            public String providerId() {
+              return "dummy";
+            }
+
+            @Override
             public User isAuthorized(String s, Handler<AsyncResult<Boolean>> handler) {
               return null;
             }

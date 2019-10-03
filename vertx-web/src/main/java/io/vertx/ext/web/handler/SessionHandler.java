@@ -164,9 +164,24 @@ public interface SessionHandler extends Handler<RoutingContext> {
   /**
    * Set an auth provider that will allow retrieving the User object from the session to the current routing context.
    *
+   * @deprecated use the {@link #addAuthProvider(AuthProvider)} instead.
    * @param authProvider any auth provider.
    * @return a reference to this, so the API can be used fluently
    */
 	@Fluent
-  SessionHandler setAuthProvider(AuthProvider authProvider);
+  @Deprecated
+  default SessionHandler setAuthProvider(AuthProvider authProvider) {
+	  return addAuthProvider(authProvider);
+  }
+
+  /**
+   * Adds an auth provider that will allow retrieving the User object from the session to the current routing context.
+   *
+   * Multiple providers can be added to the handler for applications that support multiple security providers.
+   *
+   * @param authProvider any auth provider.
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  SessionHandler addAuthProvider(AuthProvider authProvider);
 }

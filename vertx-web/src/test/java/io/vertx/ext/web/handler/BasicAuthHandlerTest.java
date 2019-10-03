@@ -90,7 +90,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
     AuthProvider authProvider = ShiroAuth.create(vertx, new ShiroAuthOptions().setType(ShiroAuthRealmType.PROPERTIES).setConfig(authConfig));
-    router.route().handler(SessionHandler.create(store).setAuthProvider(authProvider));
+    router.route().handler(SessionHandler.create(store).addAuthProvider(authProvider));
     router.route("/protected/*").handler(BasicAuthHandler.create(authProvider));
 
     AtomicReference<String> sessionID = new AtomicReference<>();

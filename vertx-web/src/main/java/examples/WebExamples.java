@@ -744,7 +744,7 @@ public class WebExamples {
 
   public void example38(Vertx vertx, AuthProvider authProvider, Router router) {
 
-    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).setAuthProvider(authProvider));
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).addAuthProvider(authProvider));
 
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
@@ -769,7 +769,7 @@ public class WebExamples {
 
   public void example39(Vertx vertx, AuthProvider authProvider, Router router) {
 
-    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).setAuthProvider(authProvider));
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).addAuthProvider(authProvider));
 
     AuthHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
@@ -1267,7 +1267,7 @@ public class WebExamples {
     // We need a user session handler too to make sure
     // the user is stored in the session between requests
     router.route()
-      .handler(SessionHandler.create(LocalSessionStore.create(vertx)).setAuthProvider(authProvider));
+      .handler(SessionHandler.create(LocalSessionStore.create(vertx)).addAuthProvider(authProvider));
     // we now protect the resource under the path "/protected"
     router.route("/protected").handler(
       OAuth2AuthHandler.create(authProvider)

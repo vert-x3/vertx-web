@@ -155,7 +155,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   public void testRedirectWithParams() throws Exception {
     router.route().handler(BodyHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
-    router.route().handler(SessionHandler.create(store).setAuthProvider(authProvider));
+    router.route().handler(SessionHandler.create(store).addAuthProvider(authProvider));
     AuthHandler authHandler = RedirectAuthHandler.create(authProvider);
 
     router.route("/protected/*").handler(authHandler);
@@ -243,7 +243,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   private void doLoginCommon(Handler<RoutingContext> handler, Set<String> authorities) throws Exception {
     router.route().handler(BodyHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
-    router.route().handler(SessionHandler.create(store).setAuthProvider(authProvider));
+    router.route().handler(SessionHandler.create(store).addAuthProvider(authProvider));
     AuthHandler authHandler = RedirectAuthHandler.create(authProvider);
     if (authorities != null) {
       authHandler.addAuthorities(authorities);
