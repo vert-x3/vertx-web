@@ -340,6 +340,11 @@ public class RouteImpl implements Route {
     }
   }
 
+  public synchronized RouteImpl setEmptyBodyPermittedWithConsumes(boolean emptyBodyPermittedWithConsumes) {
+    state = state.setEmptyBodyPermittedWithConsumes(emptyBodyPermittedWithConsumes);
+    return this;
+  }
+
   private void validateMount(Router router) {
     for (Route route : router.getRoutes()) {
       final String combinedPath;
