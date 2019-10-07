@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 
 /**
  * This class encapsulates the route state, all mutations are atomic and return a new state with the mutation.
- *
+ * <p>
  * This class is thread-safe
  *
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -37,61 +37,68 @@ final class RouteState {
 
   private final RouteImpl route;
 
-  private String path;
-  private int order;
-  private boolean enabled;
-  private Set<HttpMethod> methods;
-  private Set<MIMEHeader> consumes;
-  private boolean emptyBodyPermittedWithConsumes;
-  private Set<MIMEHeader> produces;
-  private List<Handler<RoutingContext>> contextHandlers;
-  private List<Handler<RoutingContext>> failureHandlers;
-  private boolean added;
-  private Pattern pattern;
-  private List<String> groups;
-  private boolean useNormalisedPath;
-  private Set<String> namedGroupsInRegex;
-  private Pattern virtualHostPattern;
-  private boolean pathEndsWithSlash;
-  private boolean exclusive;
-  private boolean exactPath;
+  private final String path;
+  private final int order;
+  private final boolean enabled;
+  private final Set<HttpMethod> methods;
+  private final Set<MIMEHeader> consumes;
+  private final boolean emptyBodyPermittedWithConsumes;
+  private final Set<MIMEHeader> produces;
+  private final List<Handler<RoutingContext>> contextHandlers;
+  private final List<Handler<RoutingContext>> failureHandlers;
+  private final boolean added;
+  private final Pattern pattern;
+  private final List<String> groups;
+  private final boolean useNormalisedPath;
+  private final Set<String> namedGroupsInRegex;
+  private final Pattern virtualHostPattern;
+  private final boolean pathEndsWithSlash;
+  private final boolean exclusive;
+  private final boolean exactPath;
 
-  private RouteState(RouteImpl route) {
+  private RouteState(RouteImpl route, String path, int order, boolean enabled, Set<HttpMethod> methods, Set<MIMEHeader> consumes, boolean emptyBodyPermittedWithConsumes, Set<MIMEHeader> produces, List<Handler<RoutingContext>> contextHandlers, List<Handler<RoutingContext>> failureHandlers, boolean added, Pattern pattern, List<String> groups, boolean useNormalisedPath, Set<String> namedGroupsInRegex, Pattern virtualHostPattern, boolean pathEndsWithSlash, boolean exclusive, boolean exactPath) {
     this.route = route;
-    // route defaults
-    this.enabled = true;
-    this.useNormalisedPath = true;
+    this.path = path;
+    this.order = order;
+    this.enabled = enabled;
+    this.methods = methods;
+    this.consumes = consumes;
+    this.emptyBodyPermittedWithConsumes = emptyBodyPermittedWithConsumes;
+    this.produces = produces;
+    this.contextHandlers = contextHandlers;
+    this.failureHandlers = failureHandlers;
+    this.added = added;
+    this.pattern = pattern;
+    this.groups = groups;
+    this.useNormalisedPath = useNormalisedPath;
+    this.namedGroupsInRegex = namedGroupsInRegex;
+    this.virtualHostPattern = virtualHostPattern;
+    this.pathEndsWithSlash = pathEndsWithSlash;
+    this.exclusive = exclusive;
+    this.exactPath = exactPath;
   }
 
   RouteState(RouteImpl route, int order) {
-    this(route);
-    // custom state
-    this.order = order;
-  }
-
-  RouteState copy() {
-    RouteState other = new RouteState(this.route);
-
-    other.path = this.path;
-    other.order = this.order;
-    other.enabled = this.enabled;
-    other.methods = this.methods;
-    other.consumes = this.consumes;
-    other.emptyBodyPermittedWithConsumes = this.emptyBodyPermittedWithConsumes;
-    other.produces = this.produces;
-    other.contextHandlers = this.contextHandlers;
-    other.failureHandlers = this.failureHandlers;
-    other.added = this.added;
-    other.pattern = this.pattern;
-    other.groups = this.groups;
-    other.useNormalisedPath = this.useNormalisedPath;
-    other.namedGroupsInRegex = this.namedGroupsInRegex;
-    other.virtualHostPattern = this.virtualHostPattern;
-    other.pathEndsWithSlash = this.pathEndsWithSlash;
-    other.exclusive = this.exclusive;
-    other.exactPath = this.exactPath;
-
-    return other;
+    this(
+      route,
+      null,
+      order,
+      true,
+      null,
+      null,
+      false,
+      null,
+      null,
+      null,
+      false,
+      null,
+      null,
+      true,
+      null,
+      null,
+      false,
+      false,
+      false);
   }
 
   public RouteImpl getRoute() {
@@ -107,9 +114,26 @@ final class RouteState {
   }
 
   RouteState setPath(String path) {
-    RouteState newState = copy();
-    newState.path = path;
-    return newState;
+    return new RouteState(
+      this.route,
+      path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   public int getOrder() {
@@ -117,9 +141,26 @@ final class RouteState {
   }
 
   RouteState setOrder(int order) {
-    RouteState newState = copy();
-    newState.order = order;
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   public boolean isEnabled() {
@@ -127,9 +168,26 @@ final class RouteState {
   }
 
   RouteState setEnabled(boolean enabled) {
-    RouteState newState = copy();
-    newState.enabled = enabled;
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   public Set<HttpMethod> getMethods() {
@@ -137,14 +195,50 @@ final class RouteState {
   }
 
   RouteState setMethods(Set<HttpMethod> methods) {
-    RouteState newState = copy();
-    newState.methods = new HashSet<>(methods);
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   public RouteState addMethod(HttpMethod method) {
-    RouteState newState = copy();
-    newState.methods = this.methods == null ? new HashSet<>() : new HashSet<>(this.methods);
+    RouteState newState = new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods == null ? new HashSet<>() : new HashSet<>(this.methods),
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
+
     newState.methods.add(method);
     return newState;
   }
@@ -154,14 +248,50 @@ final class RouteState {
   }
 
   RouteState setConsumes(Set<MIMEHeader> consumes) {
-    RouteState newState = copy();
-    newState.consumes = new HashSet<>(consumes);
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   RouteState addConsume(MIMEHeader mime) {
-    RouteState newState = copy();
-    newState.consumes = this.consumes == null ? new HashSet<>() : new HashSet<>(this.consumes);
+    RouteState newState = new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes == null ? new HashSet<>() : new HashSet<>(this.consumes),
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
+
     newState.consumes.add(mime);
     return newState;
   }
@@ -171,9 +301,26 @@ final class RouteState {
   }
 
   RouteState setEmptyBodyPermittedWithConsumes(boolean emptyBodyPermittedWithConsumes) {
-    RouteState newState = copy();
-    newState.emptyBodyPermittedWithConsumes = emptyBodyPermittedWithConsumes;
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   public Set<MIMEHeader> getProduces() {
@@ -181,14 +328,50 @@ final class RouteState {
   }
 
   RouteState setProduces(Set<MIMEHeader> produces) {
-    RouteState newState = copy();
-    newState.produces = new HashSet<>(produces);
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   RouteState addProduce(MIMEHeader mime) {
-    RouteState newState = copy();
-    newState.produces = this.produces == null ? new HashSet<>() : new HashSet<>(this.produces);
+    RouteState newState = new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces == null ? new HashSet<>() : new HashSet<>(this.produces),
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
+
     newState.produces.add(mime);
     return newState;
   }
@@ -202,14 +385,50 @@ final class RouteState {
   }
 
   RouteState setContextHandlers(List<Handler<RoutingContext>> contextHandlers) {
-    RouteState newState = copy();
-    newState.contextHandlers = new ArrayList<>(contextHandlers);
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   RouteState addContextHandler(Handler<RoutingContext> contextHandler) {
-    RouteState newState = copy();
-    newState.contextHandlers = this.contextHandlers == null ? new ArrayList<>() : new ArrayList<>(this.contextHandlers);
+    RouteState newState = new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers == null ? new ArrayList<>() : new ArrayList<>(this.contextHandlers),
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
+
     newState.contextHandlers.add(contextHandler);
     return newState;
   }
@@ -223,14 +442,50 @@ final class RouteState {
   }
 
   RouteState setFailureHandlers(List<Handler<RoutingContext>> failureHandlers) {
-    RouteState newState = copy();
-    newState.failureHandlers = new ArrayList<>(failureHandlers);
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   RouteState addFailureHandler(Handler<RoutingContext> failureHandler) {
-    RouteState newState = copy();
-    newState.failureHandlers = this.failureHandlers == null ? new ArrayList<>() : new ArrayList<>(this.failureHandlers);
+    RouteState newState = new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers == null ? new ArrayList<>() : new ArrayList<>(this.failureHandlers),
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
+
     newState.failureHandlers.add(failureHandler);
     return newState;
   }
@@ -240,9 +495,26 @@ final class RouteState {
   }
 
   RouteState setAdded(boolean added) {
-    RouteState newState = copy();
-    newState.added = added;
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   public Pattern getPattern() {
@@ -250,9 +522,26 @@ final class RouteState {
   }
 
   RouteState setPattern(Pattern pattern) {
-    RouteState newState = copy();
-    newState.pattern = pattern;
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   public List<String> getGroups() {
@@ -260,14 +549,50 @@ final class RouteState {
   }
 
   RouteState setGroups(List<String> groups) {
-    RouteState newState = copy();
-    newState.groups = new ArrayList<>(groups);
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   RouteState addGroup(String group) {
-    RouteState newState = copy();
-    newState.groups = this.groups == null ? new ArrayList<>() : new ArrayList<>(groups);
+    RouteState newState = new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups == null ? new ArrayList<>() : new ArrayList<>(groups),
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
+
     newState.groups.add(group);
     return newState;
   }
@@ -277,9 +602,26 @@ final class RouteState {
   }
 
   RouteState setUseNormalisedPath(boolean useNormalisedPath) {
-    RouteState newState = copy();
-    newState.useNormalisedPath = useNormalisedPath;
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   public Set<String> getNamedGroupsInRegex() {
@@ -287,14 +629,50 @@ final class RouteState {
   }
 
   RouteState setNamedGroupsInRegex(Set<String> namedGroupsInRegex) {
-    RouteState newState = copy();
-    newState.namedGroupsInRegex = new HashSet<>(namedGroupsInRegex);
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   RouteState addNamedGroupInRegex(String namedGroupInRegex) {
-    RouteState newState = copy();
-    newState.namedGroupsInRegex = this.namedGroupsInRegex == null ? new HashSet<>() : new HashSet<>(this.namedGroupsInRegex);
+    RouteState newState = new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex == null ? new HashSet<>() : new HashSet<>(this.namedGroupsInRegex),
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
+
     newState.namedGroupsInRegex.add(namedGroupInRegex);
     return newState;
   }
@@ -304,9 +682,26 @@ final class RouteState {
   }
 
   RouteState setVirtualHostPattern(Pattern virtualHostPattern) {
-    RouteState newState = copy();
-    newState.virtualHostPattern = virtualHostPattern;
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   public boolean isPathEndsWithSlash() {
@@ -314,9 +709,26 @@ final class RouteState {
   }
 
   RouteState setPathEndsWithSlash(boolean pathEndsWithSlash) {
-    RouteState newState = copy();
-    newState.pathEndsWithSlash = pathEndsWithSlash;
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
   }
 
   public boolean isExclusive() {
@@ -324,9 +736,26 @@ final class RouteState {
   }
 
   RouteState setExclusive(boolean exclusive) {
-    RouteState newState = copy();
-    newState.exclusive = exclusive;
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      exclusive,
+      this.exactPath);
   }
 
   public boolean isExactPath() {
@@ -334,9 +763,26 @@ final class RouteState {
   }
 
   RouteState setExactPath(boolean exactPath) {
-    RouteState newState = copy();
-    newState.exactPath = exactPath;
-    return newState;
+    return new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalisedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      exactPath);
   }
 
   private static <T> boolean contains(Collection<T> collection, T value) {
@@ -537,5 +983,30 @@ final class RouteState {
     failureHandlers
       .get(context.currentRouteNextFailureHandlerIndex() - 1)
       .handle(context);
+  }
+
+  @Override
+  public String toString() {
+    return "RouteState{" +
+      "route=" + route +
+      ", path='" + path + '\'' +
+      ", order=" + order +
+      ", enabled=" + enabled +
+      ", methods=" + methods +
+      ", consumes=" + consumes +
+      ", emptyBodyPermittedWithConsumes=" + emptyBodyPermittedWithConsumes +
+      ", produces=" + produces +
+      ", contextHandlers=" + contextHandlers +
+      ", failureHandlers=" + failureHandlers +
+      ", added=" + added +
+      ", pattern=" + pattern +
+      ", groups=" + groups +
+      ", useNormalisedPath=" + useNormalisedPath +
+      ", namedGroupsInRegex=" + namedGroupsInRegex +
+      ", virtualHostPattern=" + virtualHostPattern +
+      ", pathEndsWithSlash=" + pathEndsWithSlash +
+      ", exclusive=" + exclusive +
+      ", exactPath=" + exactPath +
+      '}';
   }
 }

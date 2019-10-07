@@ -338,5 +338,14 @@ public class RouterImpl implements Router {
       }
     }
   }
+
+  @Override
+  public String toString() {
+    return "RouterImpl@" + System.identityHashCode(this) +
+      "{" +
+      "vertx=" + vertx +
+      ", state=" + state +
+      '}';
+  }
 }
 

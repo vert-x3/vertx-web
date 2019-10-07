@@ -23,7 +23,7 @@ import java.util.*;
 
 /**
  * This class encapsulates the router state, all mutations are atomic and return a new state with the mutation.
- *
+ * <p>
  * This class is thread-safe
  *
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -53,14 +53,26 @@ final class RouterState {
 
   private final RouterImpl router;
 
-  private Set<RouteImpl> routes;
-  private int orderSequence;
-  private Map<Integer, Handler<RoutingContext>> errorHandlers;
-  private Handler<Router> modifiedHandler;
+  private final Set<RouteImpl> routes;
+  private final int orderSequence;
+  private final Map<Integer, Handler<RoutingContext>> errorHandlers;
+  private final Handler<Router> modifiedHandler;
 
+  public RouterState(RouterImpl router, Set<RouteImpl> routes, int orderSequence, Map<Integer, Handler<RoutingContext>> errorHandlers, Handler<Router> modifiedHandler) {
+    this.router = router;
+    this.routes = routes;
+    this.orderSequence = orderSequence;
+    this.errorHandlers = errorHandlers;
+    this.modifiedHandler = modifiedHandler;
+  }
 
   public RouterState(RouterImpl router) {
-    this.router = router;
+    this(
+      router,
+      null,
+      0,
+      null,
+      null);
   }
 
   public RouterImpl router() {
@@ -75,34 +87,54 @@ final class RouterState {
   }
 
   RouterState setRoutes(Set<RouteImpl> routes) {
-    RouterState newState = copy();
-    newState.routes = new TreeSet<>(routeComparator);
+    RouterState newState = new RouterState(
+      this.router,
+      new TreeSet<>(routeComparator),
+      this.orderSequence,
+      this.errorHandlers,
+      this.modifiedHandler);
+
     newState.routes.addAll(routes);
     return newState;
   }
 
   RouterState addRoute(RouteImpl route) {
-    RouterState newState = copy();
-    newState.routes = new TreeSet<>(routeComparator);
+    Set<RouteImpl> routes = new TreeSet<>(routeComparator);
     if (this.routes != null) {
-      newState.routes.addAll(this.routes);
+      routes.addAll(this.routes);
     }
-    newState.routes.add(route);
-    return newState;
+    routes.add(route);
+
+    return new RouterState(
+      this.router,
+      routes,
+      this.orderSequence,
+      this.errorHandlers,
+      this.modifiedHandler);
   }
 
   RouterState clearRoutes() {
-    RouterState newState = copy();
-    newState.routes = new TreeSet<>(routeComparator);
-    return newState;
+    return new RouterState(
+      this.router,
+      new TreeSet<>(routeComparator),
+      this.orderSequence,
+      this.errorHandlers,
+      this.modifiedHandler);
   }
 
   RouterState removeRoute(RouteImpl route) {
-    RouterState newState = copy();
-    newState.routes = new TreeSet<>(routeComparator);
-    newState.routes.addAll(this.routes);
-    newState.routes.remove(route);
-    return newState;
+    Set<RouteImpl> routes = new TreeSet<>(routeComparator);
+    if (this.routes != null) {
+      routes.addAll(this.routes);
+    }
+    routes.remove(route);
+
+    return new RouterState(
+      this.router,
+      routes,
+      this.orderSequence,
+      this.errorHandlers,
+      this.modifiedHandler);
   }
 
   public int getOrderSequence() {
@@ -110,15 +142,21 @@ final class RouterState {
   }
 
   RouterState incrementOrderSequence() {
-    RouterState newState = copy();
-    newState.orderSequence++;
-    return newState;
+    return new RouterState(
+      this.router,
+      this.routes,
+      this.orderSequence + 1,
+      this.errorHandlers,
+      this.modifiedHandler);
   }
 
   RouterState setOrderSequence(int orderSequence) {
-    RouterState newState = copy();
-    newState.orderSequence = orderSequence;
-    return newState;
+    return new RouterState(
+      this.router,
+      this.routes,
+      orderSequence,
+      this.errorHandlers,
+      this.modifiedHandler);
   }
 
   public Map<Integer, Handler<RoutingContext>> getErrorHandlers() {
@@ -126,9 +164,12 @@ final class RouterState {
   }
 
   RouterState setErrorHandlers(Map<Integer, Handler<RoutingContext>> errorHandlers) {
-    RouterState newState = copy();
-    newState.errorHandlers = new HashMap<>(errorHandlers);
-    return newState;
+    return new RouterState(
+      this.router,
+      this.routes,
+      this.orderSequence,
+      errorHandlers,
+      this.modifiedHandler);
   }
 
   Handler<RoutingContext> getErrorHandler(int errorCode) {
@@ -139,8 +180,13 @@ final class RouterState {
   }
 
   RouterState putErrorHandler(int errorCode, Handler<RoutingContext> errorHandler) {
-    RouterState newState = copy();
-    newState.errorHandlers = this.errorHandlers == null ? new HashMap<>() : new HashMap<>(errorHandlers);
+    RouterState newState = new RouterState(
+      this.router,
+      this.routes,
+      this.orderSequence,
+      this.errorHandlers == null ? new HashMap<>() : new HashMap<>(errorHandlers),
+      this.modifiedHandler);
+
     newState.errorHandlers.put(errorCode, errorHandler);
     return newState;
   }
@@ -150,19 +196,22 @@ final class RouterState {
   }
 
   public RouterState setModifiedHandler(Handler<Router> modifiedHandler) {
-    RouterState newState = copy();
-    newState.modifiedHandler = modifiedHandler;
-    return newState;
+    return new RouterState(
+      this.router,
+      this.routes,
+      this.orderSequence,
+      this.errorHandlers,
+      modifiedHandler);
   }
 
-  RouterState copy() {
-    RouterState newState = new RouterState(this.router);
-
-    newState.routes = this.routes;
-    newState.orderSequence = this.orderSequence;
-    newState.errorHandlers = this.errorHandlers;
-    newState.modifiedHandler = this.modifiedHandler;
-
-    return newState;
+  @Override
+  public String toString() {
+    return "RouterState{" +
+      "router=" + router +
+      ", routes=" + routes +
+      ", orderSequence=" + orderSequence +
+      ", errorHandlers=" + errorHandlers +
+      ", modifiedHandler=" + modifiedHandler +
+      '}';
   }
 }

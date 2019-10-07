@@ -225,28 +225,11 @@ public class RouteImpl implements Route {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("Route[ ");
-    sb.append("path:").append(state.getPath());
-    sb.append(" pattern:").append(state.getPattern());
-    sb.append(" handlers:").append(state.getContextHandlers());
-    sb.append(" failureHandlers:").append(state.getFailureHandlers());
-    sb.append(" order:").append(state.getOrder());
-    sb.append(" methods:[");
-    if (state.getMethods() != null) {
-      int cnt = 0;
-      for (HttpMethod method : state.getMethods()) {
-        sb.append(method);
-        cnt++;
-        if (cnt < state.getMethods().size()) {
-          sb.append(",");
-        }
-      }
-    } else {
-      sb.append("all");
-    }
-
-    sb.append("]]@").append(System.identityHashCode(this));
-    return sb.toString();
+    return "RouteImpl@" + System.identityHashCode(this) +
+      "{" +
+      "router=" + router +
+      ", state=" + state +
+      '}';
   }
 
   RouterImpl router() {
