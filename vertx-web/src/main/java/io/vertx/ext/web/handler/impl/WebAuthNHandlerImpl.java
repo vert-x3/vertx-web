@@ -5,7 +5,6 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.auth.webauthn.CredentialsChallengeType;
 import io.vertx.ext.auth.webauthn.WebAuthN;
 import io.vertx.ext.auth.webauthn.WebAuthNInfo;
 import io.vertx.ext.web.Route;
@@ -128,21 +127,7 @@ public class WebAuthNHandlerImpl implements WebAuthNHandler {
               return;
             }
 
-            CredentialsChallengeType challengeType;
-
-            switch (webauthnRegister.getString("type")) {
-              case "cross-platform":
-                challengeType = CredentialsChallengeType.CROSS_PLATFORM;
-                break;
-              case "platform":
-                challengeType = CredentialsChallengeType.PLATFORM;
-                break;
-              default:
-                ctx.fail(400);
-                return;
-            }
-
-            webAuthN.createCredentialsOptions(webauthnRegister, challengeType, createCredentialsOptions -> {
+            webAuthN.createCredentialsOptions(webauthnRegister, createCredentialsOptions -> {
               if (createCredentialsOptions.failed()) {
                 ctx.fail(createCredentialsOptions.cause());
                 return;
