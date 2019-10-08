@@ -395,9 +395,6 @@ public class RouteImpl implements Route {
         return 406;
       }
     }
-    if (!virtualHostMatches(context.request.host())) {
-      return 404;
-    }
     return 0;
   }
 
