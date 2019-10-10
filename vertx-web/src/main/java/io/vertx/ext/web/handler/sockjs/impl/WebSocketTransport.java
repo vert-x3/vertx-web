@@ -128,7 +128,7 @@ class WebSocketTransport extends BaseTransport {
       if (log.isTraceEnabled()) log.trace("WS, sending frame");
       if (!closed) {
         ws.writeTextMessage(body, handler);
-      } else {
+      } else if (handler != null) {
         handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION));
       }
     }
