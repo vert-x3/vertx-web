@@ -4,10 +4,19 @@ import {HttpLink} from 'apollo-link-http';
 import {BatchHttpLink} from 'apollo-link-batch-http';
 import {WebSocketLink} from 'apollo-link-ws';
 import {SubscriptionClient} from 'subscriptions-transport-ws';
+import {ApolloClient} from 'apollo-client';
+import {createUploadLink} from 'apollo-upload-client';
+import {InMemoryCache} from 'apollo-cache-inmemory';
+
 import gql from 'graphql-tag';
 
 const uri = 'http://localhost:8080/graphql';
 const wsUri = 'ws://localhost:8080/graphql';
+
+const client = new ApolloClient({
+  cache: new InMemoryCache(),
+  link: createUploadLink({ uri, fetch })
+});
 
 const allLinksQuery = gql`
 {
@@ -37,6 +46,14 @@ const counterSubscription = gql`
 subscription Subscription {
   counter {
     count
+  }
+}
+`;
+
+const uploadFileMutation = gql`
+mutation Mutation($file: Upload!) {
+  singleUpload(file: $file) {
+    id
   }
 }
 `;
@@ -90,3 +107,17 @@ test('ws link subscription', () => {
       });
   });
 });
+
+test('upload file mutation', async () => {
+  const file = new Blob(['Foo.'], { type: 'text/plain' })
+
+  const result = await client.mutate({
+    mutation: uploadFileMutation,
+    variables: {
+      file: file
+    }
+  });
+
+  expect(result).toHaveProperty('data.singleUpload.id');
+  expect(result.data.singleUpload.id).toEqual('blob');
+})

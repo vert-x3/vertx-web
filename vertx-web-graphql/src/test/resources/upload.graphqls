@@ -1,0 +1,10 @@
+scalar Upload
+
+type Return {
+  id: String!
+}
+
+type Mutation {
+  singleUpload(file: Upload!): Return
+  multipleUpload(files: [Upload!]!): Return
+}

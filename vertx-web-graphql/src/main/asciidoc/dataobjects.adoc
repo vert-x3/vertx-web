@@ -32,6 +32,9 @@ Set the interval in milliseconds to send <code>KEEPALIVE</code> messages to all 
 |[[requestBatchingEnabled]]`@requestBatchingEnabled`|`Boolean`|+++
 Whether request batching should be enabled. Defaults to <code>false</code>.
 +++
+|[[requestMultipartEnabled]]`@requestMultipartEnabled`|`Boolean`|+++
+Whether request multipart should be enabled. Defaults to <code>false</code>.
++++
 |===
 
 [[GraphiQLHandlerOptions]]

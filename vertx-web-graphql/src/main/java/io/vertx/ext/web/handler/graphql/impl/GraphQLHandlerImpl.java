@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler.graphql.impl;
 import graphql.ExecutionInput;
 import graphql.GraphQL;
 import io.vertx.core.Context;
+import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -26,17 +27,21 @@ import io.vertx.core.impl.NoStackTraceThrowable;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 import org.dataloader.DataLoaderRegistry;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
@@ -46,6 +51,7 @@ import static java.util.stream.Collectors.toList;
  * @author Thomas Segismont
  */
 public class GraphQLHandlerImpl implements GraphQLHandler {
+  private static final Pattern IS_NUMBER = Pattern.compile("\\d+");
 
   private static final Function<RoutingContext, Object> DEFAULT_QUERY_CONTEXT_FACTORY = rc -> rc;
   private static final Function<RoutingContext, DataLoaderRegistry> DEFAULT_DATA_LOADER_REGISTRY_FACTORY = rc -> null;
@@ -127,6 +133,9 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       case "application/json":
         handlePostJson(rc, body, rc.queryParams().get("operationName"), variables);
         break;
+      case "multipart/form-data":
+        handlePostMultipart(rc, rc.queryParams().get("operationName"), variables);
+        break;
       case "application/graphql":
         executeOne(rc, new GraphQLQuery(body.toString(), rc.queryParams().get("operationName"), variables));
         break;
@@ -196,6 +205,104 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       query.setVariables(variables);
     }
     executeOne(rc, query);
+  }
+
+  /**
+   * An "operations object" is an Apollo GraphQL POST request (or array of requests if batching).
+   * An "operations path" is an object-path string to locate a file within an operations object.
+   * <p>
+   * So operations can be resolved while the files are still uploading, the fields are ordered:
+   * <p>
+   * 1. operations: A JSON encoded operations object with files replaced with null.
+   * 2. map: A JSON encoded map of where files occurred in the operations. For each file, the key is
+   * the file multipart form field name and the value is an array of operations paths.
+   * 3. File fields: Each file extracted from the operations object with a unique, arbitrary field name.
+   *
+   * @see <a href="https://github.com/jaydenseric/graphql-multipart-request-spec">GraphQL multipart request specification</a>
+   **/
+  private void handlePostMultipart(RoutingContext rc, String operationName, Map<String, Object> variables) {
+    GraphQLInput graphQLInput;
+    if (!options.isRequestMultipartEnabled()) {
+      rc.fail(415);
+      return;
+    }
+
+    try {
+      graphQLInput = parseMultipartAttributes(rc);
+    } catch (Exception e) {
+      rc.fail(400, e);
+      return;
+    }
+
+    if (graphQLInput instanceof GraphQLBatch) {
+      handlePostBatch(rc, (GraphQLBatch) graphQLInput, operationName, variables);
+    } else if (graphQLInput instanceof GraphQLQuery) {
+      handlePostQuery(rc, (GraphQLQuery) graphQLInput, operationName, variables);
+    } else {
+      rc.fail(500);
+    }
+  }
+
+  private GraphQLInput parseMultipartAttributes(RoutingContext rc) {
+    final MultiMap attrs = rc.request().formAttributes();
+    final Map<String, Object> filesMap= new JsonObject(attrs.get("map")).getMap();
+
+  final GraphQLInput graphQLInput = Json.decodeValue(attrs.get("operations"), GraphQLInput.class);
+    final Map<String, Map<String, Object>> variablesMap = new HashMap<>();
+
+    final List<GraphQLQuery> batch = (graphQLInput instanceof GraphQLBatch)
+      ? (GraphQLBatch) graphQLInput
+      : Collections.singletonList((GraphQLQuery) graphQLInput);
+
+    for (int i = 0; i < batch.size(); ++i) {
+      final Map<String, Object> variables = new HashMap<>();
+      variables.put("variables", batch.get(i).getVariables());
+      variablesMap.put("" + i, variables);
+    }
+
+    for (final Map.Entry<String, Object> entry : filesMap.entrySet()) {
+      for (final Object fullPath : (List) entry.getValue()) {
+        final String[] path = ((String) fullPath).split("\\.");
+        int end = path.length;
+
+        int idx = -1;
+
+        if (IS_NUMBER.matcher(path[end - 1]).matches()) {
+          idx = Integer.parseInt(path[end - 1]);
+          --end;
+        }
+
+        final Map<?, ?> variables;
+
+        int start = 0;
+        if (IS_NUMBER.matcher(path[0]).matches()) {
+          variables = variablesMap.get(path[0]);
+          ++start;
+        } else {
+          variables = variablesMap.get("0");
+        }
+
+        final String attr = path[--end];
+        Map obj = variables;
+        for (; start < end; ++start) {
+          final String token = path[start];
+          obj = (Map) obj.get(token);
+        }
+
+        final FileUpload file = rc.fileUploads().stream()
+          .filter(f -> f.name().equals(entry.getKey())).findFirst().orElse(null);
+
+        if (file != null) {
+          if (idx == -1) {
+            obj.put(attr, file);
+          } else {
+            ((List) obj.get(attr)).set(idx, file);
+          }
+        }
+      }
+    }
+
+    return graphQLInput;
   }
 
   private void executeOne(RoutingContext rc, GraphQLQuery query) {
