@@ -17,6 +17,7 @@ package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
@@ -144,7 +145,7 @@ public interface HttpRequest<T> {
   HttpRequest<T> putHeaders(MultiMap headers);
 
   /**
-   * Configure the request to add a new HTTP header.
+   * Configure the request to set a new HTTP header.
    *
    * @param name the header name
    * @param value the header value
@@ -152,6 +153,17 @@ public interface HttpRequest<T> {
    */
   @Fluent
   HttpRequest<T> putHeader(String name, String value);
+
+  /**
+   * Configure the request to set a new HTTP header with multiple values.
+   *
+   * @param name the header name
+   * @param value the header value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @GenIgnore({"permitted-type"})
+  @Fluent
+  HttpRequest<T> putHeader(String name, Iterable<String> value);
 
   /**
    * @return The HTTP headers
