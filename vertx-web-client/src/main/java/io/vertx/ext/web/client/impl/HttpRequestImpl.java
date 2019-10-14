@@ -183,6 +183,12 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
+  public HttpRequest<T> putHeader(String name, Iterable<String> value) {
+    headers().set(name, value);
+    return this;
+  }
+
+  @Override
   public MultiMap headers() {
     if (headers == null) {
       headers = new CaseInsensitiveHeaders();
