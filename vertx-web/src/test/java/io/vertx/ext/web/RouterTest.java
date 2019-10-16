@@ -2542,4 +2542,13 @@ public class RouterTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/foo/bar", HttpResponseStatus.OK);
   }
+
+  @Test
+  public void testToString() {
+    // Check we can compute toString() without infinite recursion
+    assertNotNull(router.toString());
+    Route route = router.route("/foo/:param1");
+    assertNotNull(router.toString());
+    assertNotNull(route.toString());
+  }
 }

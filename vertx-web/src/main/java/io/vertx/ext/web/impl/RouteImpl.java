@@ -239,8 +239,7 @@ public class RouteImpl implements Route {
   public String toString() {
     return "RouteImpl@" + System.identityHashCode(this) +
       "{" +
-      "router=" + router +
-      ", state=" + state +
+      "state=" + state +
       '}';
   }
 

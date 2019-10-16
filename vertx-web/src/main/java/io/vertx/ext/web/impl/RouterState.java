@@ -206,7 +206,6 @@ final class RouterState {
 
   @Override
   public String toString() {
-    // We don't include the router when computing toString() otherwise it will be recursive
     return "RouterState{" +
       "routes=" + routes +
       ", orderSequence=" + orderSequence +

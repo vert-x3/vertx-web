@@ -988,8 +988,7 @@ final class RouteState {
   @Override
   public String toString() {
     return "RouteState{" +
-      "route=" + route +
-      ", path='" + path + '\'' +
+      "path='" + path + '\'' +
       ", order=" + order +
       ", enabled=" + enabled +
       ", methods=" + methods +
