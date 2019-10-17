@@ -331,6 +331,12 @@ public class RouteImpl implements Route {
     for (Route route : router.getRoutes()) {
       final String combinedPath;
 
+      if (route.getPath() == null) {
+        // This is a router with pattern and not path
+        // we cannot validate
+        continue;
+      }
+
       // this method is similar to what the pattern generation does but
       // it will not generate a pattern, it will only verify if the paths do not contain
       // colliding parameter names with the mount path
