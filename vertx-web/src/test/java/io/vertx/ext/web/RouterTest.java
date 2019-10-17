@@ -1449,6 +1449,18 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testGetWithPathBeginShouldNotMatchPrefix() throws Exception {
+    router.get("/swagger-ui/*").handler(rc -> rc.response().setStatusMessage("/swagger-ui/*").end());
+    router.get("/swagger-ui").handler(rc -> rc.response().setStatusMessage("/swagger-ui").end());
+    router.get("/swagger").handler(rc -> rc.response().setStatusMessage("/swagger").end());
+    testRequest(HttpMethod.GET, "/swagger-ui/", 200, "/swagger-ui/*");
+    testRequest(HttpMethod.GET, "/swagger-ui/whatever", 200, "/swagger-ui/*");
+    testRequest(HttpMethod.GET, "/swagger", 200, "/swagger");
+    testRequest(HttpMethod.GET, "/swagger/", 200, "/swagger"); // Is that expected ?
+    testRequest(HttpMethod.GET, "/swagger/whatever", 404, "Not Found");
+  }
+
+  @Test
   public void testGetWithRegex() throws Exception {
     router.getWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.GET, "/somepath/whatever", 200, "foo");
