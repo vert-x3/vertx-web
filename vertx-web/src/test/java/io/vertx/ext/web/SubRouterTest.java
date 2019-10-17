@@ -522,4 +522,11 @@ public class SubRouterTest extends WebTestBase {
 
     subRouter.get("/:id").handler(null);
   }
+
+  @Test
+  public void testSubRouterWithRegex() {
+    Router router = Router.router(vertx);
+    router.getWithRegex("some-regex").handler(null);
+    router.mountSubRouter("/", router);
+  }
 }
