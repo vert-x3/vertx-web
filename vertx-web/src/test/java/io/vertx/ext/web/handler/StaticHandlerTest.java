@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.Handler;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.net.PemKeyCertOptions;
@@ -32,6 +33,7 @@ import java.text.DateFormat;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -300,6 +302,25 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testCacheReturnFromCache() throws Exception {
+    testCacheReturnFromCache((lastModified, req) -> req.putHeader("if-modified-since", lastModified), 304, "Not Modified", null);
+  }
+
+  @Test
+  public void testCacheGetNew() throws Exception {
+    testCacheReturnFromCache((lastModified, req) -> req.putHeader("if-modified-since", dateTimeFormatter.format(toDateTime(lastModified) - 1)), 200, "OK", "<html><body>Other page</body></html>");
+  }
+
+  @Test
+  public void testCacheReturnFromCacheWhenNoHeader() throws Exception {
+    testCacheReturnFromCache((lastModified, req) -> { /* Do nothing */ }, 200, "OK", "<html><body>Other page</body></html>");
+  }
+
+  @Test
+  public void testCacheReturnFromCacheWhenInvalidHeader() throws Exception {
+    testCacheReturnFromCache((lastModified, req) -> req.putHeader("if-modified-since", "whatever"), 200, "OK", "<html><body>Other page</body></html>");
+  }
+
+  private void testCacheReturnFromCache(BiConsumer<String, HttpClientRequest> handler, int expectedStatusCode, String expectedStatusMessage, String expectedStatusBody) throws Exception {
     AtomicReference<String> lastModifiedRef = new AtomicReference<>();
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
       String cacheControl = res.headers().get("cache-control");
@@ -309,7 +330,7 @@ public class StaticHandlerTest extends WebTestBase {
       assertNotNull(lastModified);
       assertEquals("public, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
     }, 200, "OK", "<html><body>Other page</body></html>");
-    testRequest(HttpMethod.GET, "/otherpage.html", req -> req.putHeader("if-modified-since", lastModifiedRef.get()), null, 304, "Not Modified", null);
+    testRequest(HttpMethod.GET, "/otherpage.html", req -> handler.accept(lastModifiedRef.get(), req), null, expectedStatusCode, expectedStatusMessage, expectedStatusBody);
   }
 
   @Test
@@ -341,21 +362,6 @@ public class StaticHandlerTest extends WebTestBase {
   public void testCacheNoCacheAsNoIfModifiedSinceHeader() throws Exception {
     testRequest(HttpMethod.GET, "/otherpage.html", 200, "OK", "<html><body>Other page</body></html>");
     testRequest(HttpMethod.GET, "/otherpage.html", 200, "OK", "<html><body>Other page</body></html>");
-  }
-
-  @Test
-  public void testCacheGetNew() throws Exception {
-    AtomicReference<String> lastModifiedRef = new AtomicReference<>();
-    testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
-      String cacheControl = res.headers().get("cache-control");
-      String lastModified = res.headers().get("last-modified");
-      lastModifiedRef.set(lastModified);
-      assertNotNull(cacheControl);
-      assertNotNull(lastModified);
-      assertEquals("public, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
-    }, 200, "OK", "<html><body>Other page</body></html>");
-    testRequest(HttpMethod.GET, "/otherpage.html", req -> req.putHeader("if-modified-since", dateTimeFormatter.format(toDateTime(lastModifiedRef.get()) - 1)), res -> {
-    }, 200, "OK", "<html><body>Other page</body></html>");
   }
 
   @Test

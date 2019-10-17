@@ -601,14 +601,6 @@ public class StaticHandlerImpl implements StaticHandler {
     return this;
   }
 
-  private Date parseDate(String header) {
-    try {
-      return dateTimeFormatter.parse(header);
-    } catch (ParseException e) {
-      throw new VertxException(e);
-    }
-  }
-
   private String getFile(String path, RoutingContext context) {
     String file = webRoot + Utils.pathOffset(path, context);
     if (log.isTraceEnabled()) log.trace("File to serve is " + file);
@@ -750,7 +742,13 @@ public class StaticHandlerImpl implements StaticHandler {
         // Not a conditional request
         return false;
       }
-      Date ifModifiedSinceDate = parseDate(ifModifiedSince);
+      Date ifModifiedSinceDate;
+      try {
+        ifModifiedSinceDate = dateTimeFormatter.parse(ifModifiedSince);
+      } catch (ParseException e) {
+        // Behave like the header is not present
+        return false;
+      }
       boolean modifiedSince = Utils.secondsFactor(props.lastModifiedTime()) > ifModifiedSinceDate.getTime();
       return !modifiedSince;
     }
