@@ -436,7 +436,7 @@ public class SubRouterTest extends WebTestBase {
     router.mountSubRouter("/api/", subRouter);
     subRouter.route("/").handler(rc -> rc.response().setStatusMessage("sausages").end());
     testRequest(HttpMethod.GET, "/api/", 200, "sausages");
-    testRequest(HttpMethod.GET, "/api", 200, "sausages");
+    testRequest(HttpMethod.GET, "/api", 404, "Not Found");
     testRequest(HttpMethod.GET, "/api///", 200, "sausages");
     testRequest(HttpMethod.GET, "//api//", 200, "sausages");
   }

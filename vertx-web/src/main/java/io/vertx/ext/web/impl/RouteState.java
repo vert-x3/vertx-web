@@ -928,9 +928,16 @@ final class RouteState {
     if (exactPath) {
       return pathMatchesExact(requestPath, thePath);
     } else {
-      if (pathEndsWithSlash && (requestPath.charAt(requestPath.length() - 1) == '/'
-        ? requestPath.equals(thePath) : thePath.regionMatches(0, requestPath, 0, requestPath.length()))) {
-        return true;
+      if (pathEndsWithSlash) {
+        if (requestPath.charAt(requestPath.length() - 1) == '/') {
+          if (requestPath.equals(thePath)) {
+            return true;
+          }
+        } else {
+          if (thePath.regionMatches(0, requestPath, 0, thePath.length())) {
+            return true;
+          }
+        }
       }
       return requestPath.startsWith(thePath);
     }
