@@ -19,13 +19,11 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.sstore.AbstractSession;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.Test;
 
-import java.text.DateFormat;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -359,8 +357,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", sessionID.get()),
 				resp -> assertNull(resp.headers().get("set-cookie")), 200, "OK", null);
 	}
-
-	private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
 
 	protected long doTestSessionRetryTimeout() throws Exception {
 		router.route().handler(SessionHandler.create(store));
