@@ -911,7 +911,27 @@ final class RouteState {
   }
 
   private boolean pathMatches(String mountPoint, RoutingContext ctx) {
-    String thePath = mountPoint == null ? path : mountPoint + path;
+    final boolean rootRouter = mountPoint == null;
+    final boolean pathEndsWithSlash;
+    final String thePath;
+
+    if (rootRouter) {
+      thePath = path;
+      pathEndsWithSlash = this.pathEndsWithSlash;
+    } else {
+      // path is "/"
+      if (path.length() == 1) {
+        // mount point is always assumed to be a directory so
+        // we must ignore the final slash
+        thePath = mountPoint;
+        // so this is a special case we can't consider the configured route
+        pathEndsWithSlash = false;
+      } else {
+        thePath = mountPoint + path;
+        pathEndsWithSlash = this.pathEndsWithSlash;
+      }
+    }
+
     String requestPath;
 
     if (useNormalisedPath) {
@@ -926,7 +946,7 @@ final class RouteState {
     }
 
     if (exactPath) {
-      return pathMatchesExact(requestPath, thePath);
+      return pathMatchesExact(thePath, requestPath);
     } else {
       if (pathEndsWithSlash) {
         if (requestPath.charAt(requestPath.length() - 1) == '/') {
@@ -955,12 +975,21 @@ final class RouteState {
     return match;
   }
 
-  private boolean pathMatchesExact(String path1, String path2) {
+  private static boolean pathMatchesExact(String path1, String path2) {
     // Ignore trailing slash when matching paths
-    final int idx1 = path1.length() - 1;
-    return pathEndsWithSlash ?
-      (path1.charAt(idx1) == '/' ? path1.equals(path2) : path2.regionMatches(0, path1, 0, path1.length()))
-      : (path1.charAt(idx1) != '/' ? path1.equals(path2) : path1.regionMatches(0, path2, 0, path2.length()));
+    int len;
+
+    len = path1.length();
+    final int idx1 = path1.charAt(len - 1) != '/' ? len : len - 1;
+
+    len = path2.length();
+    final int idx2 = path2.charAt(len - 1) != '/' ? len : len - 1;
+
+    if (idx1 != idx2) {
+      return false;
+    }
+
+    return path1.regionMatches(0, path2, 0, idx2);
   }
 
   private void addPathParam(RoutingContext context, String name, String value) {
