@@ -305,6 +305,14 @@ public class WebClientTest extends HttpTestBase {
     testSendBody(body, (contentType, buff) -> assertEquals(body, buff));
   }
 
+  @Test
+  public void testSendJsonNullBody() throws Exception {
+    testSendBody(null, (contentType, buff) -> {
+      assertEquals("application/json", contentType);
+//      assertEquals(body, buff.toJsonObject());
+    });
+  }
+
   private void testSendBody(Object body, BiConsumer<String, Buffer> checker) throws Exception {
     waitFor(2);
     server.requestHandler(req -> req.bodyHandler(buff -> {
