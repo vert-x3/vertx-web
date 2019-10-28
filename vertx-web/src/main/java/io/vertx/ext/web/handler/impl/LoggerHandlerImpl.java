@@ -27,9 +27,6 @@ import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.Utils;
 
-import java.text.DateFormat;
-import java.util.Date;
-
 /** # Logger
  *
  * Logger for request. There are 3 formats included:
@@ -47,10 +44,6 @@ import java.util.Date;
 public class LoggerHandlerImpl implements LoggerHandler {
 
   private final io.vertx.core.logging.Logger logger = LoggerFactory.getLogger(this.getClass());
-
-  /** The Date formatter (UTC JS compatible format)
-   */
-  private final DateFormat dateTimeFormat = Utils.createRFC1123DateTimeFormatter();
 
   /** log before request or after
    */
@@ -119,7 +112,7 @@ public class LoggerHandlerImpl implements LoggerHandler {
 
         message = String.format("%s - - [%s] \"%s %s %s\" %d %d \"%s\" \"%s\"",
           remoteClient,
-          dateTimeFormat.format(new Date(timestamp)),
+          Utils.formatRFC1123DateTime(timestamp),
           method,
           uri,
           versionFormatted,

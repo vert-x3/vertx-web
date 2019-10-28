@@ -34,8 +34,6 @@ import io.vertx.ext.web.impl.Utils;
 
 import java.io.File;
 import java.nio.charset.Charset;
-import java.text.DateFormat;
-import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
@@ -54,7 +52,6 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private static final Logger log = LoggerFactory.getLogger(StaticHandlerImpl.class);
 
-  private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
   private String webRoot = DEFAULT_WEB_ROOT;
   private long maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS; // One day
   private boolean directoryListing = DEFAULT_DIRECTORY_LISTING;
@@ -112,7 +109,7 @@ public class StaticHandlerImpl implements StaticHandler {
       // We use cache-control and last-modified
       // We *do not use* etags and expires (since they do the same thing - redundant)
       Utils.addToMapIfAbsent(headers, "cache-control", "public, max-age=" + maxAgeSeconds);
-      Utils.addToMapIfAbsent(headers, "last-modified", dateTimeFormatter.format(props.lastModifiedTime()));
+      Utils.addToMapIfAbsent(headers, "last-modified", Utils.formatRFC1123DateTime(props.lastModifiedTime()));
       // We send the vary header (for intermediate caches)
       // (assumes that most will turn on compression when using static handler)
       if (sendVaryHeader && request.headers().contains("accept-encoding")) {
@@ -121,7 +118,7 @@ public class StaticHandlerImpl implements StaticHandler {
     }
 
     // date header is mandatory
-    headers.set("date", dateTimeFormatter.format(new Date()));
+    headers.set("date", Utils.formatRFC1123DateTime(System.currentTimeMillis()));
   }
 
   @Override
@@ -742,14 +739,8 @@ public class StaticHandlerImpl implements StaticHandler {
         // Not a conditional request
         return false;
       }
-      Date ifModifiedSinceDate;
-      try {
-        ifModifiedSinceDate = dateTimeFormatter.parse(ifModifiedSince);
-      } catch (ParseException e) {
-        // Behave like the header is not present
-        return false;
-      }
-      boolean modifiedSince = Utils.secondsFactor(props.lastModifiedTime()) > ifModifiedSinceDate.getTime();
+      long ifModifiedSinceDate = Utils.parseRFC1123DateTime(ifModifiedSince);
+      boolean modifiedSince = Utils.secondsFactor(props.lastModifiedTime()) > ifModifiedSinceDate;
       return !modifiedSince;
     }
 
