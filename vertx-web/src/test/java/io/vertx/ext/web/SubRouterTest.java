@@ -529,4 +529,17 @@ public class SubRouterTest extends WebTestBase {
     router.getWithRegex("some-regex").handler(null);
     router.mountSubRouter("/", router);
   }
+
+  @Test
+  public void testStrictSlashSubRouter() throws Exception {
+    Router subRouter = Router.router(vertx);
+
+    subRouter.get("/files/info").handler(ctx -> {
+      ctx.response().end();
+    });
+
+    router.mountSubRouter("/v/", subRouter);
+
+    testRequest(HttpMethod.GET, "/v/files/info", 200, "OK");
+  }
 }
