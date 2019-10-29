@@ -46,11 +46,15 @@ public class InterceptorTest extends HttpTestBase {
         "127.0.0.1 localhost")));
   }
 
+  private void setUpClient() {
+    super.client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080).setDefaultHost("localhost"));
+    client = (WebClientInternal) WebClient.wrap(super.client);
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    super.client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080).setDefaultHost("localhost"));
-    client = (WebClientInternal) WebClient.wrap(super.client);
+    setUpClient();
     server.close();
     server = vertx.createHttpServer(new HttpServerOptions().setPort(DEFAULT_HTTP_PORT).setHost(DEFAULT_HTTP_HOST));
   }
@@ -170,8 +174,10 @@ public class InterceptorTest extends HttpTestBase {
   @Test
   public void testPhasesThreadFromVertxThread() throws Exception {
     server.requestHandler(req -> req.response().end());
+    client.close();
     startServer();
     vertx.getOrCreateContext().runOnContext(v -> {
+      setUpClient();
       testPhasesThread((t1, t2) -> Arrays.asList(t2, t2, t2, t2));
     });
     await();
