@@ -6,7 +6,7 @@
   <parent>
     <artifactId>vertx-web-parent</artifactId>
     <groupId>io.vertx</groupId>
-    <version>3.8.4-SNAPSHOT</version>
+    <version>3.8.3-01</version>
   </parent>
 
   <artifactId>vertx-web-api-service</artifactId>
