@@ -2565,4 +2565,14 @@ public class RouterTest extends WebTestBase {
     assertNotNull(router.toString());
     assertNotNull(route.toString());
   }
+
+  @Test
+  public void testRouteMatching() throws Exception {
+    router.route("/foo/bar/").handler(rc -> rc.response().setStatusMessage("socks").end());
+    testRequest(HttpMethod.GET, "/foo/bar", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/foo/bar/", 200, "socks");
+    testRequest(HttpMethod.GET, "/foo/bar/baz", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/foo/b", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/f", 404, "Not Found");
+  }
 }
