@@ -45,11 +45,18 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
     super(mountPoint, request, iter);
     this.inner = inner;
     String parentMountPoint = inner.mountPoint();
-    if (mountPoint.charAt(mountPoint.length() - 1) == '/') {
-      // Remove the trailing slash or we won't match
-      mountPoint = mountPoint.substring(0, mountPoint.length() - 1);
+    if (parentMountPoint == null) {
+      // just use the override
+      this.mountPoint = mountPoint;
+    } else {
+      if (parentMountPoint.charAt(parentMountPoint.length() - 1) == '/') {
+        // Remove the trailing slash or we won't match
+        this.mountPoint = parentMountPoint.substring(0, parentMountPoint.length() - 1) + mountPoint;
+      } else {
+        // slashes are ok, just concat
+        this.mountPoint = parentMountPoint + mountPoint;
+      }
     }
-    this.mountPoint = parentMountPoint == null ? mountPoint : parentMountPoint + mountPoint;
   }
 
   @Override

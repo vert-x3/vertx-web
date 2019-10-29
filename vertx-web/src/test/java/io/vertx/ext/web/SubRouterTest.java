@@ -70,7 +70,7 @@ public class SubRouterTest extends WebTestBase {
     router.mountSubRouter("/subpath/", subRouter);
 
     subRouter.route("/foo").handler(rc -> {
-      assertEquals("/subpath", rc.mountPoint());
+      assertEquals("/subpath/", rc.mountPoint());
       rc.response().setStatusMessage(rc.request().path()).end();
     });
 
