@@ -1459,6 +1459,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testGetWithPathExact() throws Exception {
     router.get("/somepath/").handler(rc -> rc.response().setStatusMessage("foo").end());
+    testRequest(HttpMethod.GET, "/somepath", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/", 200, "foo");
     testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
@@ -1752,7 +1753,8 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testRouteNormalised2() throws Exception {
     router.route("/foo/").handler(rc -> rc.response().setStatusMessage("socks").end());
-    testRequest(HttpMethod.GET, "/foo", 200, "socks");
+    // note that the final slash is significant
+    testRequest(HttpMethod.GET, "/foo", 404, "Not Found");
     testRequest(HttpMethod.GET, "/foo/", 200, "socks");
     testRequest(HttpMethod.GET, "//foo/", 200, "socks");
     testRequest(HttpMethod.GET, "//foo//", 200, "socks");

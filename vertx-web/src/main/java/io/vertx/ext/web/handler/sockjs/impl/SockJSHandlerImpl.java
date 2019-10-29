@@ -66,7 +66,7 @@ import static io.vertx.core.buffer.Buffer.*;
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext> {
+public class SockJSHandlerImpl implements SockJSHandler {
 
   private static final Logger log = LoggerFactory.getLogger(SockJSHandlerImpl.class);
 

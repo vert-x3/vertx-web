@@ -811,7 +811,12 @@ final class RouteState {
     if (pattern != null) {
       String path = useNormalisedPath ? context.normalisedPath() : context.request().path();
       if (mountPoint != null) {
-        path = path.substring(mountPoint.length());
+        int strip = mountPoint.length();
+        // mount point can have significant slash
+        if (mountPoint.charAt(strip - 1)== '/') {
+          strip--;
+        }
+        path = path.substring(strip);
       }
 
       Matcher m = pattern.matcher(path);
@@ -919,15 +924,21 @@ final class RouteState {
       thePath = path;
       pathEndsWithSlash = this.pathEndsWithSlash;
     } else {
+      boolean mountPointEndsWithSlash = mountPoint.charAt(mountPoint.length() - 1) == '/';
       // path is "/"
       if (path.length() == 1) {
         // mount point is always assumed to be a directory so
         // we must ignore the final slash
         thePath = mountPoint;
-        // so this is a special case we can't consider the configured route
-        pathEndsWithSlash = false;
+        // so this is a special case we can't consider the configured route but the mount point itself
+        pathEndsWithSlash = mountPointEndsWithSlash;
       } else {
-        thePath = mountPoint + path;
+        // solve the double slash when mount point ends with slash
+        if (mountPointEndsWithSlash) {
+          thePath = mountPoint + path.substring(1);
+        } else {
+          thePath = mountPoint + path;
+        }
         pathEndsWithSlash = this.pathEndsWithSlash;
       }
     }
@@ -946,7 +957,7 @@ final class RouteState {
     }
 
     if (exactPath) {
-      return pathMatchesExact(thePath, requestPath);
+      return pathMatchesExact(thePath, requestPath, pathEndsWithSlash);
     } else {
       if (pathEndsWithSlash) {
         if (requestPath.charAt(requestPath.length() - 1) == '/') {
@@ -975,21 +986,29 @@ final class RouteState {
     return match;
   }
 
-  private static boolean pathMatchesExact(String path1, String path2) {
+  private static boolean pathMatchesExact(String base, String other, boolean significantSlash) {
     // Ignore trailing slash when matching paths
-    int len;
+    int len = other.length();
 
-    len = path1.length();
-    final int idx1 = path1.charAt(len - 1) != '/' ? len : len - 1;
+    if (significantSlash) {
+      if (other.charAt(len -1) != '/') {
+        // final slash is significant but missing
+        return false;
+      }
+    } else {
+      if (other.charAt(len -1) == '/') {
+        // final slash is not significant, ignore it
+        len--;
+      }
+    }
 
-    len = path2.length();
-    final int idx2 = path2.charAt(len - 1) != '/' ? len : len - 1;
-
-    if (idx1 != idx2) {
+    // lengths are not the same (fail)
+    if (base.length() != len) {
       return false;
     }
 
-    return path1.regionMatches(0, path2, 0, idx2);
+    // content must match
+    return other.regionMatches(0, base, 0, len);
   }
 
   private void addPathParam(RoutingContext context, String name, String value) {

@@ -112,6 +112,10 @@ public class Utils extends io.vertx.core.impl.Utils {
     String mountPoint = context.mountPoint();
     if (mountPoint != null) {
       prefixLen = mountPoint.length();
+      // special case we need to verify if a trailing slash  is present and exclude
+      if (mountPoint.charAt(mountPoint.length() - 1) == '/') {
+        prefixLen--;
+      }
     }
     String routePath = context.currentRoute().getPath();
     if (routePath != null) {
