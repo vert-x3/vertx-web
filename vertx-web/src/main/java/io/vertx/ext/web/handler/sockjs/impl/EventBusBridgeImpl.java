@@ -478,9 +478,17 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
     if (send) {
       if (awaitingReply != null) {
-        awaitingReply.reply(body, new DeliveryOptions().setSendTimeout(replyTimeout).setHeaders(mHeaders), replyHandler);
+        if (replyHandler != null) {
+          awaitingReply.replyAndRequest(body, new DeliveryOptions().setSendTimeout(replyTimeout).setHeaders(mHeaders), replyHandler);
+        } else {
+          awaitingReply.reply(body, new DeliveryOptions().setSendTimeout(replyTimeout).setHeaders(mHeaders));
+        }
       } else {
-        eb.send(address, body, new DeliveryOptions().setSendTimeout(replyTimeout).setHeaders(mHeaders), replyHandler);
+        if (replyAddress != null) {
+          eb.request(address, body, new DeliveryOptions().setSendTimeout(replyTimeout).setHeaders(mHeaders), replyHandler);
+        } else {
+          eb.send(address, body, new DeliveryOptions().setSendTimeout(replyTimeout).setHeaders(mHeaders));
+        }
       }
       if (replyAddress != null) {
         info.handlerCount++;
