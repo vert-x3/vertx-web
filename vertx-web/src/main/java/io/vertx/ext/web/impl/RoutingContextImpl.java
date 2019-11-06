@@ -272,7 +272,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public JsonObject getBodyAsJson() {
     if (body != null) {
-      return BodyCodecImpl.JSON_OBJECT_DECODER.apply(body);
+      // the minimal json is {} so we need at least 2 chars
+      if (body.length() > 1) {
+        return BodyCodecImpl.JSON_OBJECT_DECODER.apply(body);
+      }
     }
     return null;
   }
@@ -280,7 +283,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public JsonArray getBodyAsJsonArray() {
     if (body != null) {
-      return BodyCodecImpl.JSON_ARRAY_DECODER.apply(body);
+      // the minimal array is [] so we need at least 2 chars
+      if (body.length() > 1) {
+        return BodyCodecImpl.JSON_ARRAY_DECODER.apply(body);
+      }
     }
     return null;
   }
