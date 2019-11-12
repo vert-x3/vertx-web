@@ -91,6 +91,11 @@ public class ErrorHandlerImpl implements ErrorHandler {
     // does the response already set the mime type?
     String mime = context.response().headers().get(HttpHeaders.CONTENT_TYPE);
 
+    if(mime == null) {
+      // does the route have an acceptable content type?
+      mime = context.getAcceptableContentType();
+    }
+    
     return mime != null && sendError(context, mime, errorCode, errorMessage);
   }
 
