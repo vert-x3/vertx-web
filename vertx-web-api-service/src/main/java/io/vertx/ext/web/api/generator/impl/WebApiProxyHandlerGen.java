@@ -2,11 +2,13 @@ package io.vertx.ext.web.api.generator.impl;
 
 import io.vertx.codegen.ParamInfo;
 import io.vertx.codegen.annotations.ModuleGen;
-import io.vertx.codegen.type.*;
+import io.vertx.codegen.type.ClassKind;
+import io.vertx.codegen.type.ParameterizedTypeInfo;
+import io.vertx.codegen.type.TypeInfo;
+import io.vertx.codegen.writer.CodeWriter;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.generator.WebApiServiceGen;
 import io.vertx.ext.web.api.generator.impl.model.WebApiProxyMethodInfo;
-import io.vertx.codegen.writer.CodeWriter;
 import io.vertx.serviceproxy.generator.GeneratorUtils;
 import io.vertx.serviceproxy.generator.ServiceProxyHandlerGen;
 import io.vertx.serviceproxy.generator.model.ProxyMethodInfo;
@@ -51,6 +53,8 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
       super.generateActionSwitchEntry(m, writer);
       return;
     }
+    TypeInfo returnType = m.getReturnType();
+    boolean returnFuture = ProxyModel.isFuture(returnType);
     writer
       .code("case \"" + m.getName() + "\": {\n")
       .indent()
@@ -65,15 +69,28 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
       .indent()
       .code("service." + m.getName() + "(")
       .indent();
+
+    Stream<String> methodParamsTail;
+    if (returnFuture) {
+      methodParamsTail = Stream.of("context");
+    } else {
+      methodParamsTail = Stream.of("context", serviceCallHandler);
+    }
+
     writer.writeSeq(
       Stream.concat(
-        ((WebApiProxyMethodInfo)m).getParamsToExtract().stream().map(this::generateJsonParamExtractFromContext),
-        Stream.of("context", serviceCallHandler)
+        ((WebApiProxyMethodInfo) m).getParamsToExtract().stream().map(this::generateJsonParamExtractFromContext),
+        methodParamsTail
       ),
       ",\n" + writer.indentation()
     );
     writer.unindent();
-    writer.write(");\n");
+    if (returnFuture) {
+      writer.print(")");
+      writer.println(".setHandler(" + generateFutureHandler((ParameterizedTypeInfo) returnType) + ");");
+    } else {
+      writer.write(");\n");
+    }
     writer.unindent()
       .code("} catch (Exception e) {\n")
       .indent()

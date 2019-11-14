@@ -8,8 +8,8 @@ import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.api.OperationResponse;
 import io.vertx.ext.web.api.OperationRequest;
+import io.vertx.ext.web.api.OperationResponse;
 import io.vertx.ext.web.api.impl.RequestParameterImpl;
 import io.vertx.ext.web.api.impl.RequestParametersImpl;
 import io.vertx.ext.web.api.router_factory_integration.FilterData;
@@ -205,6 +205,15 @@ public class HandlerParamsTest extends VertxTestBase {
         .put("mapLong", new JsonObject().put("e", 65000l))
         .put("mapJsonObject", new JsonObject().put("f", new JsonObject().put("aaa", "a").put("bbb", "b")))
         .put("mapJsonArray", new JsonObject().put("g", new JsonArray().add("aaa").add(102)))
+    );
+  }
+
+  @Test
+  public void testFutureReturn() throws Exception {
+    mountAndTest(
+      ADDRESS,
+      "futureReturn",
+      new JsonObject().put("str", "aaa")
     );
   }
 

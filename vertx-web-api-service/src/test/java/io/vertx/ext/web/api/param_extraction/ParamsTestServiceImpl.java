@@ -11,7 +11,10 @@ import io.vertx.ext.web.api.OperationResponse;
 import io.vertx.ext.web.api.router_factory_integration.FilterData;
 import io.vertx.ext.web.api.router_factory_integration.SomeEnum;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ParamsTestServiceImpl implements ParamsTestService {
@@ -105,5 +108,12 @@ public class ParamsTestServiceImpl implements ParamsTestService {
         new JsonObject().put(mapJsonObject.keySet().iterator().next(), mapJsonObject.values().iterator().next()) +
         new JsonObject().put(mapJsonArray.keySet().iterator().next(), mapJsonArray.values().iterator().next())
     ))));
+  }
+
+  @Override
+  public Future<OperationResponse> futureReturn(String str, OperationRequest context) {
+    return Future.succeededFuture(OperationResponse.completedWithPlainText(Buffer.buffer(
+      "" + str
+    )));
   }
 }

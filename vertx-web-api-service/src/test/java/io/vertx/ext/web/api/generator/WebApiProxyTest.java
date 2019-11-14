@@ -26,6 +26,13 @@ public class WebApiProxyTest {
   }
 
   @Test
+  public void testValidFuture() throws Exception {
+    WebApiProxyModel model = generateWebApiProxyModel(ValidWebApiProxyFuture.class);
+    assertEquals(ValidWebApiProxyFuture.class.getName(), model.getIfaceFQCN());
+    assertEquals(ValidWebApiProxyFuture.class.getSimpleName(), model.getIfaceSimpleName());
+  }
+
+  @Test
   public void testMissingContext() throws Exception {
     try {
       generateWebApiProxyModel(InvalidMissingContext.class);
