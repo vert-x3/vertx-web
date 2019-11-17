@@ -18,6 +18,7 @@ package io.vertx.ext.web.client;
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
@@ -365,13 +366,13 @@ public interface HttpRequest<T> {
    *
    * @param body the body
    */
-  void sendJson(Object body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  void sendJson(@Nullable Object body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
    * @see HttpRequest#sendJson(Object, Handler)
    * @param body the body
    */
-  default Future<HttpResponse<T>> sendJson(Object body) {
+  default Future<HttpResponse<T>> sendJson(@Nullable Object body) {
     Promise<HttpResponse<T>> promise = Promise.promise();
     sendJson(body, promise);
     return promise.future();
