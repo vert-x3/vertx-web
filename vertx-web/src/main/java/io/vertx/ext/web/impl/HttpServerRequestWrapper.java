@@ -17,6 +17,7 @@ import java.util.Map;
 class HttpServerRequestWrapper implements HttpServerRequest {
 
   private final HttpServerRequest delegate;
+  private final ForwardedParser forwardedParser;
 
   private boolean modified;
 
@@ -27,8 +28,9 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   private String uri;
   private String absoluteURI;
 
-  HttpServerRequestWrapper(HttpServerRequest request) {
+  HttpServerRequestWrapper(HttpServerRequest request, boolean allowForward) {
     delegate = request;
+    forwardedParser = new ForwardedParser(delegate, allowForward);
   }
 
   void changeTo(HttpMethod method, String uri) {
@@ -186,7 +188,7 @@ class HttpServerRequestWrapper implements HttpServerRequest {
 
   @Override
   public SocketAddress remoteAddress() {
-    return delegate.remoteAddress();
+    return forwardedParser.remoteAddress();
   }
 
   @Override
@@ -207,11 +209,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   @Override
   public String absoluteURI() {
     if (!modified) {
-      return delegate.absoluteURI();
+      return forwardedParser.absoluteURI();
     } else {
       if (absoluteURI == null) {
-        String scheme = delegate.scheme();
-        String host = delegate.host();
+        String scheme = forwardedParser.scheme();
+        String host = forwardedParser.host();
 
         // if both are not null we can rebuild the uri
         if (scheme != null && host != null) {
@@ -227,12 +229,12 @@ class HttpServerRequestWrapper implements HttpServerRequest {
 
   @Override
   public String scheme() {
-    return delegate.scheme();
+    return forwardedParser.scheme();
   }
 
   @Override
   public String host() {
-    return delegate.host();
+    return forwardedParser.host();
   }
 
   @Override
@@ -293,7 +295,7 @@ class HttpServerRequestWrapper implements HttpServerRequest {
 
   @Override
   public boolean isSSL() {
-    return delegate.isSSL();
+    return forwardedParser.isSSL();
   }
 
   @Override
