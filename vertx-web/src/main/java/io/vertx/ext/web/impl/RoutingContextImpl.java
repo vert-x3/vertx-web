@@ -44,6 +44,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RoutingContextImpl extends RoutingContextImplBase {
 
   private final RouterImpl router;
+  private final HttpServerRequest request;
   private Map<String, Object> data;
   private Map<String, String> pathParams;
   private MultiMap queryParams;
@@ -61,9 +62,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Session session;
   private User user;
 
-  public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
-    super(mountPoint, request, routes);
+  public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes, boolean allowForward) {
+    super(mountPoint, routes);
     this.router = router;
+    this.request = new HttpServerRequestWrapper(request, allowForward);
 
     fillParsedHeaders(request);
     if (request.path().length() == 0) {

@@ -42,8 +42,8 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   protected final RoutingContext inner;
   private final String mountPoint;
 
-  public RoutingContextWrapper(String mountPoint, HttpServerRequest request, Set<RouteImpl> iter, RoutingContext inner) {
-    super(mountPoint, request, iter);
+  public RoutingContextWrapper(String mountPoint, Set<RouteImpl> iter, RoutingContext inner) {
+    super(mountPoint, iter);
     this.inner = inner;
     String parentMountPoint = inner.mountPoint();
     if (parentMountPoint == null) {

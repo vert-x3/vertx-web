@@ -39,7 +39,6 @@ public abstract class RoutingContextImplBase implements RoutingContext {
   private final Set<RouteImpl> routes;
 
   protected final String mountPoint;
-  protected final HttpServerRequest request;
   protected Iterator<RouteImpl> iter;
   protected RouteState currentRoute;
   private AtomicInteger currentRouteNextHandlerIndex;
@@ -51,9 +50,8 @@ public abstract class RoutingContextImplBase implements RoutingContext {
   int matchRest = -1;
   boolean matchNormalized;
 
-  RoutingContextImplBase(String mountPoint, HttpServerRequest request, Set<RouteImpl> routes) {
+  RoutingContextImplBase(String mountPoint, Set<RouteImpl> routes) {
     this.mountPoint = mountPoint;
-    this.request = new HttpServerRequestWrapper(request);
     this.routes = routes;
     this.iter = routes.iterator();
     this.currentRouteNextHandlerIndex = new AtomicInteger(0);

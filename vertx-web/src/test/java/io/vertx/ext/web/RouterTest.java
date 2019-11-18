@@ -2389,6 +2389,7 @@ public class RouterTest extends WebTestBase {
         HttpServerResponse response = mock(HttpServerResponse.class);
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.rawMethod()).thenReturn("GET");
+        when(request.scheme()).thenReturn("http");
         when(request.uri()).thenReturn("http://localhost/path");
         when(request.absoluteURI()).thenReturn("http://localhost/path");
         when(request.host()).thenReturn("localhost");
