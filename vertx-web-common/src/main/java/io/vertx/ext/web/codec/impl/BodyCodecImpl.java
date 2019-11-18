@@ -72,7 +72,7 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
   }
 
   public static <T> Function<Buffer, T> jsonDecoder(Class<T> type) {
-    return buff -> Json.decodeValue(buff.toString(), type);
+    return buff -> Json.decodeValue(buff, type);
   }
 
   private final Function<Buffer, T> decoder;
