@@ -14,32 +14,36 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.graphql;
+package io.vertx.ext.web.handler.graphql.schema;
 
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.PropertyDataFetcher;
+import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.json.JsonObject;
+
+import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
 /**
  * Extends {@link PropertyDataFetcher} so that properties can be read from a {@link JsonObject}.
  *
  * @author Thomas Segismont
- * @deprecated Use {@link io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher} factory.
  */
-@Deprecated
-public class VertxPropertyDataFetcher extends PropertyDataFetcher {
+@VertxGen
+public interface VertxPropertyDataFetcher {
 
-  public VertxPropertyDataFetcher(String propertyName) {
-    super(propertyName);
-  }
-
-  @Override
-  public Object get(DataFetchingEnvironment environment) {
-    Object source = environment.getSource();
-    if (source instanceof JsonObject) {
-      JsonObject jsonObject = (JsonObject) source;
-      return jsonObject.getValue(getPropertyName());
-    }
-    return super.get(environment);
+  @GenIgnore(PERMITTED_TYPE)
+  static PropertyDataFetcher create(String propertyName) {
+    return new PropertyDataFetcher(propertyName) {
+      @Override
+      public Object get(DataFetchingEnvironment environment) {
+        Object source = environment.getSource();
+        if (source instanceof JsonObject) {
+          JsonObject jsonObject = (JsonObject) source;
+          return jsonObject.getValue(getPropertyName());
+        }
+        return super.get(environment);
+      }
+    };
   }
 }

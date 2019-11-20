@@ -14,9 +14,12 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.graphql;
+package io.vertx.ext.web.handler.graphql.dataloader.impl;
 
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Promise;
+import io.vertx.ext.web.handler.graphql.TriConsumer;
+import io.vertx.ext.web.handler.graphql.dataloader.VertxBatchLoader;
 import org.dataloader.BatchLoaderEnvironment;
 import org.dataloader.BatchLoaderWithContext;
 
@@ -28,12 +31,10 @@ import java.util.concurrent.CompletionStage;
  * A {@link BatchLoaderWithContext} that works well with Vert.x callback-based APIs.
  *
  * @author Thomas Segismont
- * @deprecated Use {@link io.vertx.ext.web.handler.graphql.dataloader.VertxBatchLoader} factory.
  */
-@Deprecated
-public class VertxBatchLoader<K, V> implements BatchLoaderWithContext<K, V> {
+public class VertxBatchLoaderImpl<K, V> implements VertxBatchLoader<K, V> {
 
-  private final TriConsumer<List<K>, BatchLoaderEnvironment, Promise<List<V>>> batchLoader;
+  final TriConsumer<List<K>, BatchLoaderEnvironment, Promise<List<V>>> batchLoader;
 
   /**
    * Create a new batch loader.
@@ -44,7 +45,7 @@ public class VertxBatchLoader<K, V> implements BatchLoaderWithContext<K, V> {
    * <li>a future that the implementor must complete after the data objects are loaded</li>
    * </ul>
    */
-  public VertxBatchLoader(TriConsumer<List<K>, BatchLoaderEnvironment, Promise<List<V>>> batchLoader) {
+  public VertxBatchLoaderImpl(TriConsumer<List<K>, BatchLoaderEnvironment, Promise<List<V>>> batchLoader) {
     this.batchLoader = batchLoader;
   }
 

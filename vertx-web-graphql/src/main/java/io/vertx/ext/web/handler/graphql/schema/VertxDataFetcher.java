@@ -14,26 +14,28 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.graphql;
+package io.vertx.ext.web.handler.graphql.schema;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Promise;
+import io.vertx.ext.web.handler.graphql.schema.impl.VertxDataFetcherImpl;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
 
+import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
+
 /**
  * A {@link DataFetcher} that works well with Vert.x callback-based APIs.
  *
  * @author Thomas Segismont
- * @deprecated Use {@link io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher} instead.
  */
-@Deprecated
-public class VertxDataFetcher<T> implements DataFetcher<CompletionStage<T>> {
-
-  private final BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher;
+@VertxGen
+public interface VertxDataFetcher<T> extends DataFetcher<CompletionStage<T>> {
 
   /**
    * Create a new data fetcher.
@@ -43,22 +45,8 @@ public class VertxDataFetcher<T> implements DataFetcher<CompletionStage<T>> {
    * <li>a future that the implementor must complete after the data objects are fetched</li>
    * </ul>
    */
-  public VertxDataFetcher(BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher) {
-    this.dataFetcher = dataFetcher;
-  }
-
-  @Override
-  public CompletionStage<T> get(DataFetchingEnvironment environment) throws Exception {
-    CompletableFuture<T> cf = new CompletableFuture<>();
-    Promise<T> promise = Promise.promise();
-    promise.future().setHandler(ar -> {
-      if (ar.succeeded()) {
-        cf.complete(ar.result());
-      } else {
-        cf.completeExceptionally(ar.cause());
-      }
-    });
-    dataFetcher.accept(environment, promise);
-    return cf;
+  @GenIgnore(PERMITTED_TYPE)
+  static <T> VertxDataFetcher<T> create(BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher) {
+    return new VertxDataFetcherImpl<>(dataFetcher);
   }
 }

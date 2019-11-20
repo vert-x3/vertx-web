@@ -14,9 +14,13 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.graphql;
+package io.vertx.ext.web.handler.graphql.dataloader;
 
+import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Promise;
+import io.vertx.ext.web.handler.graphql.TriConsumer;
+import io.vertx.ext.web.handler.graphql.dataloader.impl.VertxBatchLoaderImpl;
 import org.dataloader.BatchLoaderEnvironment;
 import org.dataloader.BatchLoaderWithContext;
 
@@ -24,16 +28,15 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
+import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
+
 /**
  * A {@link BatchLoaderWithContext} that works well with Vert.x callback-based APIs.
  *
  * @author Thomas Segismont
- * @deprecated Use {@link io.vertx.ext.web.handler.graphql.dataloader.VertxBatchLoader} factory.
  */
-@Deprecated
-public class VertxBatchLoader<K, V> implements BatchLoaderWithContext<K, V> {
-
-  private final TriConsumer<List<K>, BatchLoaderEnvironment, Promise<List<V>>> batchLoader;
+@VertxGen
+public interface VertxBatchLoader<K, V> extends BatchLoaderWithContext<K, V> {
 
   /**
    * Create a new batch loader.
@@ -44,22 +47,8 @@ public class VertxBatchLoader<K, V> implements BatchLoaderWithContext<K, V> {
    * <li>a future that the implementor must complete after the data objects are loaded</li>
    * </ul>
    */
-  public VertxBatchLoader(TriConsumer<List<K>, BatchLoaderEnvironment, Promise<List<V>>> batchLoader) {
-    this.batchLoader = batchLoader;
-  }
-
-  @Override
-  public CompletionStage<List<V>> load(List<K> keys, BatchLoaderEnvironment environment) {
-    CompletableFuture<List<V>> cf = new CompletableFuture<>();
-    Promise<List<V>> promise = Promise.promise();
-    promise.future().setHandler(ar -> {
-      if (ar.succeeded()) {
-        cf.complete(ar.result());
-      } else {
-        cf.completeExceptionally(ar.cause());
-      }
-    });
-    batchLoader.accept(keys, environment, promise);
-    return cf;
+  @GenIgnore(PERMITTED_TYPE)
+  static <K, V> VertxBatchLoader<K, V> create(TriConsumer<List<K>, BatchLoaderEnvironment, Promise<List<V>>> batchLoader) {
+    return new VertxBatchLoaderImpl<>(batchLoader);
   }
 }

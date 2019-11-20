@@ -14,24 +14,17 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.graphql;
+package io.vertx.ext.web.handler.graphql.schema.impl;
 
-import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.vertx.core.Promise;
+import io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
 
-/**
- * A {@link DataFetcher} that works well with Vert.x callback-based APIs.
- *
- * @author Thomas Segismont
- * @deprecated Use {@link io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher} instead.
- */
-@Deprecated
-public class VertxDataFetcher<T> implements DataFetcher<CompletionStage<T>> {
+public class VertxDataFetcherImpl<T> implements VertxDataFetcher<T> {
 
   private final BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher;
 
@@ -43,12 +36,12 @@ public class VertxDataFetcher<T> implements DataFetcher<CompletionStage<T>> {
    * <li>a future that the implementor must complete after the data objects are fetched</li>
    * </ul>
    */
-  public VertxDataFetcher(BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher) {
+  public VertxDataFetcherImpl(BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher) {
     this.dataFetcher = dataFetcher;
   }
 
   @Override
-  public CompletionStage<T> get(DataFetchingEnvironment environment) throws Exception {
+  public CompletionStage<T> get(DataFetchingEnvironment environment) {
     CompletableFuture<T> cf = new CompletableFuture<>();
     Promise<T> promise = Promise.promise();
     promise.future().setHandler(ar -> {
