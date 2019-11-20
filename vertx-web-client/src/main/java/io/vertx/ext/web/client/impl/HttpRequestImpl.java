@@ -32,7 +32,6 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
-import jdk.internal.jline.internal.Nullable;
 
 import java.util.ArrayList;
 import java.util.Base64;
@@ -313,7 +312,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
-  public void sendJson(@Nullable Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+  public void sendJson(Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
     send("application/json", body, handler);
   }
 

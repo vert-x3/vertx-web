@@ -18,6 +18,7 @@ package io.vertx.ext.web.client;
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -337,7 +338,7 @@ public interface HttpRequest<T> {
    *
    * @param body the body
    */
-  void sendJson(Object body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  void sendJson(@Nullable Object body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
