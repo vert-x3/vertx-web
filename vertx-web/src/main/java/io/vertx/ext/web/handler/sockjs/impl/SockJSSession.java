@@ -279,7 +279,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   private synchronized void writePendingMessages() {
     if (listener != null) {
-      String json = JsonCodec.encode(pendingWrites.toArray());
+      String json = JsonCodec.encode(pendingWrites.toArray(new String[0]));
       pendingWrites.clear();
       if (writeAcks != null) {
         List<Handler<AsyncResult<Void>>> acks = this.writeAcks;
