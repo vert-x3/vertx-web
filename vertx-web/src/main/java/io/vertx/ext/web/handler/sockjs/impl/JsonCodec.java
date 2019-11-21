@@ -32,18 +32,20 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.io.CharTypes;
 import com.fasterxml.jackson.core.json.JsonWriteContext;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.EncodeException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *
@@ -58,6 +60,7 @@ import java.io.IOException;
 public class JsonCodec {
 
   private final static ObjectMapper mapper;
+  private final static JsonFactory factory = new JsonFactory();
 
   static {
     mapper = new ObjectMapper();
@@ -129,12 +132,23 @@ public class JsonCodec {
     }
   }
 
-  public static <T> T decodeValue(String str, Class<T> clazz) throws DecodeException {
-    try {
-      return mapper.readValue(str, clazz);
-    }
-    catch (Exception e) {
-      throw new DecodeException("Failed to decode");
+  public static List<String> decodeValues(String buffer) {
+    List<String> result = null;
+    try (JsonParser parser = factory.createParser(buffer)) {
+      JsonToken jsonToken = parser.nextToken();
+      if (jsonToken == JsonToken.START_ARRAY) {
+        while (parser.nextToken() != JsonToken.END_ARRAY) {
+          if (result == null) {
+            result = new ArrayList<>();
+          }
+          result.add(parser.getValueAsString());
+        }
+      } else if (jsonToken == JsonToken.VALUE_STRING) {
+        result = Collections.singletonList(parser.getValueAsString());
+      }
+      return result != null ? result : Collections.emptyList();
+    } catch (Exception ignore) {
+      return null;
     }
   }
 }
