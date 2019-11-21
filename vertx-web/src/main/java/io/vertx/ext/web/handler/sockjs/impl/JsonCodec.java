@@ -132,9 +132,9 @@ public class JsonCodec {
     }
   }
 
-  public static List<String> decodeValues(String buffer) {
+  public static List<String> decodeValues(String messages) {
     List<String> result = null;
-    try (JsonParser parser = factory.createParser(buffer)) {
+    try (JsonParser parser = factory.createParser(messages)) {
       JsonToken jsonToken = parser.nextToken();
       if (jsonToken == JsonToken.START_ARRAY) {
         while (parser.nextToken() != JsonToken.END_ARRAY) {
