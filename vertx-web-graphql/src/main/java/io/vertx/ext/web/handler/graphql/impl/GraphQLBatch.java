@@ -16,25 +16,50 @@
 
 package io.vertx.ext.web.handler.graphql.impl;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
 
 /**
  * @author Thomas Segismont
  */
-@JsonDeserialize(as = GraphQLBatch.class)
-public class GraphQLBatch extends ArrayList<GraphQLQuery> implements GraphQLInput {
+public class GraphQLBatch implements GraphQLInput, Iterable<GraphQLQuery> {
 
-  public GraphQLBatch(int initialCapacity) {
-    super(initialCapacity);
+  private final JsonArray value;
+
+  public GraphQLBatch(JsonArray value) {
+    this.value = value;
   }
 
-  public GraphQLBatch() {
+  @Override
+  public Iterator<GraphQLQuery> iterator() {
+    return new GraphQLQueryIterator(value.iterator());
   }
 
-  public GraphQLBatch(Collection<? extends GraphQLQuery> c) {
-    super(c);
+  @Override
+  public Spliterator<GraphQLQuery> spliterator() {
+    return Spliterators.spliterator(iterator(), value.size(), 0);
+  }
+
+  private static class GraphQLQueryIterator implements Iterator<GraphQLQuery> {
+
+    private final Iterator<Object> jsonArrayIterator;
+
+    public GraphQLQueryIterator(Iterator<Object> jsonArrayIterator) {
+      this.jsonArrayIterator = jsonArrayIterator;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return jsonArrayIterator.hasNext();
+    }
+
+    @Override
+    public GraphQLQuery next() {
+      return new GraphQLQuery((JsonObject) jsonArrayIterator.next());
+    }
   }
 }

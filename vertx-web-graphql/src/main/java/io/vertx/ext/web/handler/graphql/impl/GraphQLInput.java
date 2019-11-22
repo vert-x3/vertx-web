@@ -16,11 +16,29 @@
 
 package io.vertx.ext.web.handler.graphql.impl;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.DecodeException;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 /**
  * @author Thomas Segismont
  */
-@JsonDeserialize(using = GraphQLInputDeserializer.class)
 public interface GraphQLInput {
+
+  static GraphQLInput decode(Buffer buffer) {
+    final Object value = Json.decodeValue(buffer);
+    return decode(value);
+  }
+
+  static GraphQLInput decode(Object value) {
+    if (value instanceof JsonObject) {
+      return new GraphQLQuery((JsonObject) value);
+    } else if (value instanceof JsonArray) {
+      return new GraphQLBatch((JsonArray) value);
+    } else {
+      throw new DecodeException("Unexpected json content");
+    }
+  }
 }
