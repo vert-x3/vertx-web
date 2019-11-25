@@ -59,7 +59,6 @@
         <executions>
           <execution>
             <id>databind-itest</id>
-            <phase>integration-test</phase>
             <goals>
               <goal>integration-test</goal>
               <goal>verify</goal>
