@@ -14,10 +14,12 @@
  * under the License.
  */
 
-package io.vertx.ext.web.client;
+package io.vertx.ext.web.client.it;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.WebClientTestBase;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
 import org.junit.Test;
