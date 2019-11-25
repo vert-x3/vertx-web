@@ -33,15 +33,12 @@ import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 import org.dataloader.DataLoaderRegistry;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.StreamSupport;
 
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
@@ -147,7 +144,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   private void handlePostJson(RoutingContext rc, Buffer body, String operationName, Map<String, Object> variables) {
     GraphQLInput graphQLInput;
     try {
-      graphQLInput = Json.decodeValue(body, GraphQLInput.class);
+      graphQLInput = GraphQLInput.decode(body);
     } catch (Exception e) {
       rc.fail(400, e);
       return;
@@ -182,7 +179,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   }
 
   private void executeBatch(RoutingContext rc, GraphQLBatch batch) {
-    List<CompletableFuture<JsonObject>> results = batch.stream()
+    List<CompletableFuture<JsonObject>> results = StreamSupport.stream(batch.spliterator(), false)
       .map(q -> execute(rc, q))
       .collect(toList());
     CompletableFuture.allOf((CompletableFuture<?>[]) results.toArray(new CompletableFuture<?>[0])).whenCompleteAsync((v, throwable) -> {
@@ -244,25 +241,29 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   }
 
   private GraphQLInput parseMultipartAttributes(RoutingContext rc) {
-    final MultiMap attrs = rc.request().formAttributes();
-    final Map<String, Object> filesMap= new JsonObject(attrs.get("map")).getMap();
+    MultiMap attrs = rc.request().formAttributes();
+    @SuppressWarnings("unchecked")
+    Map<String, Object> filesMap = (Map<String, Object>) Json.decodeValue(attrs.get("map"), Map.class);
 
-  final GraphQLInput graphQLInput = Json.decodeValue(attrs.get("operations"), GraphQLInput.class);
-    final Map<String, Map<String, Object>> variablesMap = new HashMap<>();
+    GraphQLInput graphQLInput = GraphQLInput.decode(Json.decodeValue(attrs.get("operations")));
+    Map<String, Map<String, Object>> variablesMap = new HashMap<>();
 
-    final List<GraphQLQuery> batch = (graphQLInput instanceof GraphQLBatch)
+    Iterable<GraphQLQuery> batch = (graphQLInput instanceof GraphQLBatch)
       ? (GraphQLBatch) graphQLInput
       : Collections.singletonList((GraphQLQuery) graphQLInput);
 
-    for (int i = 0; i < batch.size(); ++i) {
-      final Map<String, Object> variables = new HashMap<>();
-      variables.put("variables", batch.get(i).getVariables());
-      variablesMap.put("" + i, variables);
+    int i = 0;
+    Iterator<GraphQLQuery> iterator = batch.iterator();
+    for (; iterator.hasNext(); i++) {
+      GraphQLQuery query = iterator.next();
+      Map<String, Object> variables = new HashMap<>();
+      variables.put("variables", query.getVariables());
+      variablesMap.put(String.valueOf(i), variables);
     }
 
-    for (final Map.Entry<String, Object> entry : filesMap.entrySet()) {
-      for (final Object fullPath : (List) entry.getValue()) {
-        final String[] path = ((String) fullPath).split("\\.");
+    for (Map.Entry<String, Object> entry : filesMap.entrySet()) {
+      for (Object fullPath : (List) entry.getValue()) {
+        String[] path = ((String) fullPath).split("\\.");
         int end = path.length;
 
         int idx = -1;
@@ -272,7 +273,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
           --end;
         }
 
-        final Map<?, ?> variables;
+        Map<?, ?> variables;
 
         int start = 0;
         if (IS_NUMBER.matcher(path[0]).matches()) {
@@ -282,14 +283,14 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
           variables = variablesMap.get("0");
         }
 
-        final String attr = path[--end];
+        String attr = path[--end];
         Map obj = variables;
         for (; start < end; ++start) {
-          final String token = path[start];
+          String token = path[start];
           obj = (Map) obj.get(token);
         }
 
-        final FileUpload file = rc.fileUploads().stream()
+        FileUpload file = rc.fileUploads().stream()
           .filter(f -> f.name().equals(entry.getKey())).findFirst().orElse(null);
 
         if (file != null) {

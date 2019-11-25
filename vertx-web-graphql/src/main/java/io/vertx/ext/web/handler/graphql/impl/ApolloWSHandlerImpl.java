@@ -200,7 +200,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
       stop(serverWebSocket, subscriptions, opId);
     }
 
-    GraphQLQuery payload = message.content().getJsonObject("payload").mapTo(GraphQLQuery.class);
+    GraphQLQuery payload = new GraphQLQuery(message.content().getJsonObject("payload"));
     ExecutionInput.Builder builder = ExecutionInput.newExecutionInput();
     builder.query(payload.getQuery());
 

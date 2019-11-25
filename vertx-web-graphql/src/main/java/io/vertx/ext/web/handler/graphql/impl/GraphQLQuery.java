@@ -16,23 +16,24 @@
 
 package io.vertx.ext.web.handler.graphql.impl;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.vertx.core.json.JsonObject;
 
 import java.util.Map;
 
 /**
  * @author Thomas Segismont
  */
-@JsonDeserialize(as = GraphQLQuery.class)
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class GraphQLQuery implements GraphQLInput {
 
   private String query;
   private String operationName;
   private Map<String, Object> variables;
 
-  public GraphQLQuery() {
+  public GraphQLQuery(JsonObject value) {
+    query = value.getString("query");
+    operationName = value.getString("operationName");
+    JsonObject vars = value.getJsonObject("variables");
+    this.variables = vars != null ? vars.getMap() : null;
   }
 
   public GraphQLQuery(String query, String operationName, Map<String, Object> variables) {
