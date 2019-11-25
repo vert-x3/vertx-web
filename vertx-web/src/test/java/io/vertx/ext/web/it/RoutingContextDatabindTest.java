@@ -14,7 +14,7 @@
  * under the License.
  */
 
-package io.vertx.ext.web.impl;
+package io.vertx.ext.web.it;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Vertx;
