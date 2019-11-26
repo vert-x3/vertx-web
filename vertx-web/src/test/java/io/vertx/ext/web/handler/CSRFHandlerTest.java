@@ -21,12 +21,14 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
+import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.AfterClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
@@ -197,5 +199,32 @@ public class CSRFHandlerTest extends WebTestBase {
 
     testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
       "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34="), null, 403, "Forbidden", expectedResponseBody);
+  }
+
+  @Test
+  public void testGetCookieWithSession() throws Exception {
+
+    router.route().handler(SessionHandler.create(SessionStore.create(vertx)));
+    router.route().handler(CSRFHandler.create(vertx, "Abracadabra"));
+    router.get().handler(rc -> rc.response().end());
+
+    AtomicReference<String> sessionID = new AtomicReference<>();
+
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      List<String> cookies = resp.headers().getAll("set-cookie");
+      assertEquals(2, cookies.size());
+      // save the cookie
+      for (String cookie : cookies) {
+        if (cookie.startsWith("vertx-web.session=")) {
+          sessionID.set(cookie);
+        }
+      }
+    }, 200, "OK", null);
+
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", sessionID.get()), resp -> {
+      List<String> cookies = resp.headers().getAll("set-cookie");
+      // session cookie is untouched, so not sent back
+      assertEquals(0, cookies.size());
+    }, 200, "OK", null);
   }
 }
