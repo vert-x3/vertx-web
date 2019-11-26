@@ -7,6 +7,7 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.OperationRequest;
 import io.vertx.ext.web.api.OperationResponse;
@@ -33,6 +34,16 @@ public class RouteToEBServiceHandler implements Handler<RoutingContext> {
     eventBus.request(address, buildPayload(routingContext), deliveryOptions, (AsyncResult<Message<JsonObject>> res) -> {
       if (res.succeeded()) {
         OperationResponse op = new OperationResponse(res.result().body());
+
+        op.getCookies()
+          .stream()
+          .map(operationCookie -> Cookie
+            .cookie(operationCookie.getName(), operationCookie.getValue())
+            .setPath(operationCookie.getPath())
+            .setDomain(operationCookie.getDomain())
+          )
+          .forEach(routingContext::addCookie);
+
         HttpServerResponse response = routingContext.response().setStatusCode(op.getStatusCode());
         if (op.getStatusMessage() != null)
           response.setStatusMessage(op.getStatusMessage());
@@ -50,7 +61,7 @@ public class RouteToEBServiceHandler implements Handler<RoutingContext> {
 
   private JsonObject buildPayload(RoutingContext context) {
     return new JsonObject().put("context", new OperationRequest(
-      ((RequestParameters)context.get("parsedParameters")).toJson(),
+      ((RequestParameters) context.get("parsedParameters")).toJson(),
       context.request().headers(),
       (context.user() != null) ? context.user().principal() : null,
       (this.extraOperationContextPayloadMapper != null) ? this.extraOperationContextPayloadMapper.apply(context) : null

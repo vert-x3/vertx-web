@@ -1,5 +1,19 @@
 = Cheatsheets
 
+[[OperationCookie]]
+== OperationCookie
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[domain]]`@domain`|`String`|-
+|[[name]]`@name`|`String`|-
+|[[path]]`@path`|`String`|-
+|[[value]]`@value`|`String`|-
+|===
+
 [[OperationRequest]]
 == OperationRequest
 
@@ -27,6 +41,7 @@ Get request principal user as routingContext.user().principal(), null if no user
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
+|[[cookies]]`@cookies`|`Array of link:dataobjects.html#OperationCookie[OperationCookie]`|-
 |[[payload]]`@payload`|`Buffer`|-
 |[[statusCode]]`@statusCode`|`Number (Integer)`|-
 |[[statusMessage]]`@statusMessage`|`String`|-

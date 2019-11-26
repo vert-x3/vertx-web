@@ -7,7 +7,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.OperationRequest;
 import io.vertx.ext.web.api.OperationResponse;
-import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.generator.WebApiServiceGen;
 
 @WebApiServiceGen
@@ -18,6 +17,7 @@ public interface TestService {
   void testEmptyOperationResponse(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
   void testUser(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
   void extraPayload(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
+  void testCookie(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 
   static TestService create(Vertx vertx) {
     return new TestServiceImpl(vertx);

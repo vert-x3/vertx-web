@@ -9,6 +9,9 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @DataObject(generateConverter = true, publicConverter = false)
@@ -20,6 +23,7 @@ public class OperationResponse {
   private String statusMessage;
   private Buffer payload;
   private MultiMap headers;
+  private List<OperationCookie> cookies = new ArrayList<>();
 
   public OperationResponse() {
     init();
@@ -109,6 +113,22 @@ public class OperationResponse {
 
   @Fluent public OperationResponse putHeader(String key, String value) {
     this.headers.add(key, value);
+    return this;
+  }
+
+  public List<OperationCookie> getCookies() {
+    return Collections.unmodifiableList(cookies);
+  }
+
+  @Fluent public OperationResponse setCookies(List<OperationCookie> cookies) {
+    this.cookies = cookies;
+    return this;
+  }
+
+  @Fluent public OperationResponse addCookie(OperationCookie cookie) {
+    if (cookie != null) {
+      this.cookies.add(cookie);
+    }
     return this;
   }
 
