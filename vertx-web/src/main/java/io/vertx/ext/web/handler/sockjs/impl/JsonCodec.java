@@ -32,18 +32,18 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.io.CharTypes;
-import com.fasterxml.jackson.core.json.JsonWriteContext;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.EncodeException;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *
@@ -57,54 +57,47 @@ import java.io.IOException;
  */
 public class JsonCodec {
 
-  private final static ObjectMapper mapper;
+  private static final JsonFactory factory = new JsonFactory();
 
-  static {
-    mapper = new ObjectMapper();
+  // By default, Jackson does not escape unicode characters in JSON strings
+  // This should be ok, since a valid JSON string can contain unescaped JSON
+  // characters.
+  // However, SockJS requires that many unicode chars are escaped. This may
+  // be due to browsers barfing over certain unescaped characters
+  // So... when encoding strings we make sure all unicode chars are escaped
 
-    // By default, Jackson does not escape unicode characters in JSON strings
-    // This should be ok, since a valid JSON string can contain unescaped JSON
-    // characters.
-    // However, SockJS requires that many unicode chars are escaped. This may
-    // be due to browsers barfing over certain unescaped characters
-    // So... when encoding strings we make sure all unicode chars are escaped
+  // This code was adapted from http://wiki.fasterxml.com/JacksonSampleQuoteChars
 
-    // This code adapted from http://wiki.fasterxml.com/JacksonSampleQuoteChars
-    SimpleModule simpleModule = new SimpleModule();
+  private static final char[] HEX_CHARS = "0123456789abcdef".toCharArray();
+  private static final int[] ESCAPE_CODES = CharTypes.get7BitOutputEscapes();
 
-    simpleModule.addSerializer(String.class, new JsonSerializer<String>() {
-      final char[] HEX_CHARS = "0123456789abcdef".toCharArray();
-      final int[] ESCAPE_CODES = CharTypes.get7BitOutputEscapes();
+  private static void writeUnicodeEscape(JsonGenerator gen, char c) throws IOException {
+    gen.writeRaw('\\');
+    gen.writeRaw('u');
+    gen.writeRaw(HEX_CHARS[(c >> 12) & 0xF]);
+    gen.writeRaw(HEX_CHARS[(c >> 8) & 0xF]);
+    gen.writeRaw(HEX_CHARS[(c >> 4) & 0xF]);
+    gen.writeRaw(HEX_CHARS[c & 0xF]);
+  }
 
-      private void writeUnicodeEscape(JsonGenerator gen, char c) throws IOException {
-        gen.writeRaw('\\');
-        gen.writeRaw('u');
-        gen.writeRaw(HEX_CHARS[(c >> 12) & 0xF]);
-        gen.writeRaw(HEX_CHARS[(c >> 8) & 0xF]);
-        gen.writeRaw(HEX_CHARS[(c >> 4) & 0xF]);
-        gen.writeRaw(HEX_CHARS[c & 0xF]);
-      }
+  private static void writeShortEscape(JsonGenerator gen, char c) throws IOException {
+    gen.writeRaw('\\');
+    gen.writeRaw(c);
+  }
 
-      private void writeShortEscape(JsonGenerator gen, char c) throws IOException {
-        gen.writeRaw('\\');
-        gen.writeRaw(c);
-      }
-
-      @Override
-      public void serialize(String str, JsonGenerator gen, SerializerProvider provider) throws IOException {
-        int status = ((JsonWriteContext) gen.getOutputContext()).writeValue();
-        switch (status) {
-          case JsonWriteContext.STATUS_OK_AFTER_COLON:
-            gen.writeRaw(':');
-            break;
-          case JsonWriteContext.STATUS_OK_AFTER_COMMA:
-            gen.writeRaw(',');
-            break;
-          case JsonWriteContext.STATUS_EXPECT_NAME:
-            throw new JsonGenerationException("Can not write string value here", gen);
+  public static String encode(String[] messages) throws EncodeException {
+    StringWriter sw = new StringWriter();
+    try (JsonGenerator gen = factory.createGenerator(sw)) {
+      gen.writeStartArray();
+      boolean first = true;
+      for (String message : messages) {
+        if (first) {
+          first = false;
+        } else {
+          gen.writeRaw(',');
         }
         gen.writeRaw('"');
-        for (char c : str.toCharArray()) {
+        for (char c : message.toCharArray()) {
           if (c >= 0x80) writeUnicodeEscape(gen, c); // use generic escaping for all non US-ASCII characters
           else {
             // use escape table for first 128 characters
@@ -116,25 +109,31 @@ public class JsonCodec {
         }
         gen.writeRaw('"');
       }
-    });
-    mapper.registerModule(simpleModule);
-  }
-
-  public static String encode(Object obj) throws EncodeException {
-    try {
-      return mapper.writeValueAsString(obj);
-    }
-    catch (Exception e) {
-      throw new EncodeException("Failed to encode as JSON");
+      gen.writeEndArray();
+      gen.close();
+      return sw.toString();
+    } catch (Exception e) {
+      throw new EncodeException("Failed to encode as JSON", e);
     }
   }
 
-  public static <T> T decodeValue(String str, Class<T> clazz) throws DecodeException {
-    try {
-      return mapper.readValue(str, clazz);
-    }
-    catch (Exception e) {
-      throw new DecodeException("Failed to decode");
+  public static List<String> decodeValues(String messages) {
+    List<String> result = null;
+    try (JsonParser parser = factory.createParser(messages)) {
+      JsonToken jsonToken = parser.nextToken();
+      if (jsonToken == JsonToken.START_ARRAY) {
+        while (parser.nextToken() != JsonToken.END_ARRAY) {
+          if (result == null) {
+            result = new ArrayList<>();
+          }
+          result.add(parser.getValueAsString());
+        }
+      } else if (jsonToken == JsonToken.VALUE_STRING) {
+        result = Collections.singletonList(parser.getValueAsString());
+      }
+      return result != null ? result : Collections.emptyList();
+    } catch (Exception ignore) {
+      return null;
     }
   }
 }

@@ -3,7 +3,7 @@ package io.vertx.ext.web.impl;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.WebTestBase;
@@ -224,40 +224,6 @@ public class RoutingContextImplTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", null, res -> {
       assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type"));
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
-  }
-
-  static class Point {
-    public int x, y;
-
-    public int getX() {
-      return x;
-    }
-
-    public void setX(int x) {
-      this.x = x;
-    }
-
-    public int getY() {
-      return y;
-    }
-
-    public void setY(int y) {
-      this.y = y;
-    }
-  }
-
-  @Test
-  public void testJsonBean() throws Exception {
-    router.route().handler(ctx -> {
-      Point p = new Point();
-      p.setX(10);
-      p.setY(20);
-      ctx.json(p);
-    });
-
-    testRequest(HttpMethod.GET, "/", null, res -> {
-      assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type"));
-    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "{\"x\":10,\"y\":20}");
   }
 
   @Test

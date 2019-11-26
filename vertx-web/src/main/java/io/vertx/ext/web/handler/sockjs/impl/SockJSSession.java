@@ -32,15 +32,9 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.json.DecodeException;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.SocketAddress;
@@ -285,7 +279,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   private synchronized void writePendingMessages() {
     if (listener != null) {
-      String json = JsonCodec.encode(pendingWrites.toArray());
+      String json = JsonCodec.encode(pendingWrites.toArray(new String[0]));
       pendingWrites.clear();
       if (writeAcks != null) {
         List<Handler<AsyncResult<Void>>> acks = this.writeAcks;
@@ -389,34 +383,17 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     }
   }
 
-  private String[] parseMessageString(String msgs) {
-    try {
-      String[] parts;
-      if (msgs.startsWith("[")) {
-        //JSON array
-        parts = JsonCodec.decodeValue(msgs, String[].class);
-      } else {
-        //JSON string
-        String str = JsonCodec.decodeValue(msgs, String.class);
-        parts = new String[] { str };
-      }
-      return parts;
-    } catch (DecodeException e) {
-      return null;
-    }
-  }
-
   synchronized boolean handleMessages(String messages) {
-    String[] msgArr = parseMessageString(messages);
-    if (msgArr == null) {
+    List<String> msgList = JsonCodec.decodeValues(messages);
+    if (msgList == null) {
       return false;
     }
-    handleMessages(msgArr);
+    handleMessages(msgList);
     return true;
   }
 
 
-  private synchronized void handleMessages(String[] messages) {
+  private synchronized void handleMessages(List<String> messages) {
     if (context == Vertx.currentContext()) {
       for (String msg : messages) {
         pendingReads.write(buffer(msg));
