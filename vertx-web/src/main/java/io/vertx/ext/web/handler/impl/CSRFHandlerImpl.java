@@ -98,14 +98,18 @@ public class CSRFHandlerImpl implements CSRFHandler {
     return this;
   }
 
-  private String generateToken() {
+  private String generateToken(RoutingContext ctx) {
     byte[] salt = new byte[32];
     random.nextBytes(salt);
 
-    String saltPlusToken = BASE64.encodeToString(salt) + "." + Long.toString(System.currentTimeMillis());
+    String saltPlusToken = BASE64.encodeToString(salt) + "." + System.currentTimeMillis();
     String signature = BASE64.encodeToString(mac.doFinal(saltPlusToken.getBytes()));
 
-    return saltPlusToken + "." + signature;
+    final String token = saltPlusToken + "." + signature;
+    // a new token was generated add it to the cookie
+    ctx.addCookie(Cookie.cookie(cookieName, token).setPath(cookiePath));
+
+    return token;
   }
 
   private boolean validateToken(String header, Cookie cookie) {
@@ -166,40 +170,29 @@ public class CSRFHandlerImpl implements CSRFHandler {
         Session session = ctx.session();
         // if there's no session to store values, tokens are issued on every request
         if (session == null) {
-          token = generateToken();
-          ctx.addCookie(Cookie.cookie(cookieName, token).setPath(cookiePath));
+          token = generateToken(ctx);
         } else {
           // get the token from the session
           String sessionToken = session.get(headerName);
           // when there's no token in the session, then we behave just like when there is no session
           // create a new token, but we also store it in the session for the next runs
           if (sessionToken == null) {
-            token = generateToken();
+            token = generateToken(ctx);
             // storing will include the session id too. The reason is that if a session is upgraded
             // we don't want to allow the token to be valid anymore
             session.put(headerName, session.id() + "/" + token);
-            ctx.addCookie(Cookie.cookie(cookieName, token).setPath(cookiePath));
           } else {
             // attempt to parse the value
             int idx = sessionToken.indexOf('/');
-            if (idx != -1) {
-              String sid = sessionToken.substring(0, idx);
-              if (sid.equals(session.id())) {
-                // we're still on the same session, no need to regenerate the token
-                token = sessionToken.substring(idx + 1);
-                // in this case specifically we don't issue the token as it is unchanged
-                // the user agent still has it from the previous interaction.
-              } else {
-                // session has been upgraded, don't trust the token and regenerate
-                token = generateToken();
-                session.put(headerName, session.id() + "/" + token);
-                ctx.addCookie(Cookie.cookie(cookieName, token).setPath(cookiePath));
-              }
+            if (idx != -1 && session.id() != null && session.id().equals(sessionToken.substring(0, idx))) {
+              // we're still on the same session, no need to regenerate the token
+              token = sessionToken.substring(idx + 1);
+              // in this case specifically we don't issue the token as it is unchanged
+              // the user agent still has it from the previous interaction.
             } else {
-              // cannot parse the value from the session
-              token = generateToken();
+              // session has been upgraded or there's a parsing error, don't trust the token and regenerate
+              token = generateToken(ctx);
               session.put(headerName, session.id() + "/" + token);
-              ctx.addCookie(Cookie.cookie(cookieName, token).setPath(cookiePath));
             }
           }
         }
