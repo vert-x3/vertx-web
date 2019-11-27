@@ -2174,6 +2174,10 @@ or the header name they have chosen during the instantiation of the `CSRFHandler
 {@link examples.WebExamples#example54}
 ----
 
+Note that this handler is session aware. If there is a session available the form parameter or header might be omited
+during the `POST` action as it will be read from the session. This also implies that tokens will only be regenerated
+on session upgrades.
+
 === Using AJAX
 
 When accessing protected routes via ajax both the csrf token will need to be passed in the request. Typically this is
