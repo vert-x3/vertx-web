@@ -21,6 +21,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
+import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -224,5 +225,32 @@ public class CSRFHandlerTest extends WebTestBase {
       // session cookie is untouched, so not sent back
       assertEquals(0, cookies.size());
     }, 200, "OK", null);
+  }
+
+  @Test
+  public void testGetCookieWithSessionReplay() throws Exception {
+
+    final AtomicReference<String> cookieJar = new AtomicReference<>();
+
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+    router.route().handler(CSRFHandler.create(vertx, "Abracadabra"));
+    router.route().handler(rc -> rc.response().end());
+
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      List<String> cookies = resp.headers().getAll("set-cookie");
+      assertEquals(2, cookies.size());
+      String encodedCookie = "";
+      // save the cookies
+      for (String cookie : cookies) {
+        encodedCookie += cookie.substring(0, cookie.indexOf(';'));
+        encodedCookie += "; ";
+      }
+      cookieJar.set(encodedCookie);
+    }, 200, "OK", null);
+
+    // POST shall be OK as the token is on the session
+    testRequest(HttpMethod.POST, "/", req -> req.putHeader("cookie", cookieJar.get()), null, 200, "OK", null);
+    // POST shall be Forbidded as the token is now removed from the session (can only be used once)
+    testRequest(HttpMethod.POST, "/", req -> req.putHeader("cookie", cookieJar.get()), null, 403, "Forbidden", null);
   }
 }

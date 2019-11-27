@@ -125,6 +125,8 @@ public class CSRFHandlerImpl implements CSRFHandler {
     // in this case there we don't trust the user agent for it's
     // header or form value
     String challenge = getTokenFromSession(ctx);
+    boolean invalidateSessionToken = false;
+
     if (challenge == null) {
       // fallback to header
       challenge = ctx.request().getHeader(headerName);
@@ -132,6 +134,11 @@ public class CSRFHandlerImpl implements CSRFHandler {
         // fallback to form parameter
         challenge = ctx.request().getFormAttribute(headerName);
       }
+    } else {
+      // if the token is provided by the session object
+      // we flag that we should invalidate it in case of success otherwise
+      // we will allow replay attacks
+      invalidateSessionToken = true;
     }
 
     // both the challenge and the cookie must be present, not null and equal
@@ -156,7 +163,15 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
     try {
       // validate validity
-      return !(System.currentTimeMillis() > Long.parseLong(tokens[1]) + timeout);
+      if (!(System.currentTimeMillis() > Long.parseLong(tokens[1]) + timeout)) {
+        if (invalidateSessionToken) {
+          // this token has been used and we discard it to avoid replay attacks
+          ctx.session().remove(headerName);
+        }
+        return true;
+      } else {
+        return false;
+      }
     } catch (NumberFormatException e) {
       return false;
     }
