@@ -23,7 +23,6 @@ import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.AfterClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -141,7 +140,6 @@ public class CSRFHandlerTest extends WebTestBase {
     }, null, 200, "OK", null);
   }
 
-  @Ignore
   @Test
   public void testPostWithFormAttributeWithoutCookies() throws Exception {
 
@@ -167,8 +165,8 @@ public class CSRFHandlerTest extends WebTestBase {
       });
 
       List<String> cookies = resp.headers().getAll("set-cookie");
-
-      assertEquals(0, cookies.size());
+      // there is always at least 1 cookie (csrf)
+      assertTrue(cookies.size() > 0);
     }, 200, "OK", null);
 
     // response body is known

@@ -98,7 +98,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     return this;
   }
 
-  private String generateToken(RoutingContext ctx) {
+  private String generateAndStoreToken(RoutingContext ctx) {
     byte[] salt = new byte[32];
     random.nextBytes(salt);
 
@@ -112,13 +112,34 @@ public class CSRFHandlerImpl implements CSRFHandler {
     return token;
   }
 
-  private boolean validateToken(String header, Cookie cookie) {
-    // both the header and the cookie must be present, not null and equal
-    if (header == null || cookie == null || !header.equals(cookie.getValue())) {
+  private boolean validateRequest(RoutingContext ctx) {
+
+    final Cookie cookie = ctx.getCookie(cookieName);
+
+    if (cookie == null) {
+      // quick abort
       return false;
     }
 
-    String[] tokens = header.split("\\.");
+    // the challenge may be stored on the session already
+    // in this case there we don't trust the user agent for it's
+    // header or form value
+    String challenge = getTokenFromSession(ctx);
+    if (challenge == null) {
+      // fallback to header
+      challenge = ctx.request().getHeader(headerName);
+      if (challenge == null) {
+        // fallback to form parameter
+        challenge = ctx.request().getFormAttribute(headerName);
+      }
+    }
+
+    // both the challenge and the cookie must be present, not null and equal
+    if (challenge == null || !challenge.equals(cookie.getValue())) {
+      return false;
+    }
+
+    String[] tokens = challenge.split("\\.");
     if (tokens.length != 3) {
       return false;
     }
@@ -152,6 +173,24 @@ public class CSRFHandlerImpl implements CSRFHandler {
     }
   }
 
+  private String getTokenFromSession(RoutingContext ctx) {
+    Session session = ctx.session();
+    if (session == null) {
+      return null;
+    }
+    // get the token from the session
+    String sessionToken = session.get(headerName);
+    if (sessionToken != null) {
+      // attempt to parse the value
+      int idx = sessionToken.indexOf('/');
+      if (idx != -1 && session.id() != null && session.id().equals(sessionToken.substring(0, idx))) {
+        return sessionToken.substring(idx + 1);
+      }
+    }
+    // fail
+    return null;
+  }
+
   @Override
   public void handle(RoutingContext ctx) {
 
@@ -163,37 +202,31 @@ public class CSRFHandlerImpl implements CSRFHandler {
     }
 
     HttpMethod method = ctx.request().method();
+    Session session = ctx.session();
 
     switch (method) {
       case GET:
         final String token;
-        Session session = ctx.session();
-        // if there's no session to store values, tokens are issued on every request
         if (session == null) {
-          token = generateToken(ctx);
+          // if there's no session to store values, tokens are issued on every request
+          token = generateAndStoreToken(ctx);
         } else {
-          // get the token from the session
-          String sessionToken = session.get(headerName);
+          // get the token from the session, this also considers the fact
+          // that the token might be invalid as it was issued for a previous session id
+          // session id's change on session upgrades (unauthenticated -> authenticated; role change; etc...)
+          String sessionToken = getTokenFromSession(ctx);
           // when there's no token in the session, then we behave just like when there is no session
           // create a new token, but we also store it in the session for the next runs
           if (sessionToken == null) {
-            token = generateToken(ctx);
+            token = generateAndStoreToken(ctx);
             // storing will include the session id too. The reason is that if a session is upgraded
             // we don't want to allow the token to be valid anymore
             session.put(headerName, session.id() + "/" + token);
           } else {
-            // attempt to parse the value
-            int idx = sessionToken.indexOf('/');
-            if (idx != -1 && session.id() != null && session.id().equals(sessionToken.substring(0, idx))) {
-              // we're still on the same session, no need to regenerate the token
-              token = sessionToken.substring(idx + 1);
-              // in this case specifically we don't issue the token as it is unchanged
-              // the user agent still has it from the previous interaction.
-            } else {
-              // session has been upgraded or there's a parsing error, don't trust the token and regenerate
-              token = generateToken(ctx);
-              session.put(headerName, session.id() + "/" + token);
-            }
+            // we're still on the same session, no need to regenerate the token
+            token = sessionToken;
+            // in this case specifically we don't issue the token as it is unchanged
+            // the user agent still has it from the previous interaction.
           }
         }
         // put the token in the context for users who prefer to render the token directly on the HTML
@@ -204,16 +237,14 @@ public class CSRFHandlerImpl implements CSRFHandler {
       case PUT:
       case DELETE:
       case PATCH:
-        final String header = ctx.request().getHeader(headerName);
-        final Cookie cookie = ctx.getCookie(cookieName);
-        if (validateToken(header == null ? ctx.request().getFormAttribute(headerName) : header, cookie)) {
+        if (validateRequest(ctx)) {
           ctx.next();
         } else {
           forbidden(ctx);
         }
         break;
       default:
-        // ignore these methods
+        // ignore other methods
         ctx.next();
         break;
     }
