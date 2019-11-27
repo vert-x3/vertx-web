@@ -253,4 +253,31 @@ public class CSRFHandlerTest extends WebTestBase {
     // POST shall be Forbidded as the token is now removed from the session (can only be used once)
     testRequest(HttpMethod.POST, "/", req -> req.putHeader("cookie", cookieJar.get()), null, 403, "Forbidden", null);
   }
+
+  @Test
+  public void testGetCookieWithSessionMultipleGetSameToken() throws Exception {
+
+    final AtomicReference<String> cookieJar = new AtomicReference<>();
+
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+    router.route().handler(CSRFHandler.create(vertx, "Abracadabra"));
+    router.route().handler(rc -> rc.response().end());
+
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      List<String> cookies = resp.headers().getAll("set-cookie");
+      assertEquals(2, cookies.size());
+      String encodedCookie = "";
+      // save the cookies
+      for (String cookie : cookies) {
+        encodedCookie += cookie.substring(0, cookie.indexOf(';'));
+        encodedCookie += "; ";
+      }
+      cookieJar.set(encodedCookie);
+    }, 200, "OK", null);
+
+    // GET shall not have any impact on the token as they are on the session, so we can reuse it further on...
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", cookieJar.get()), null, 200, "OK", null);
+    // POST shall be OK as the token is on the session
+    testRequest(HttpMethod.POST, "/", req -> req.putHeader("cookie", cookieJar.get()), null, 200, "OK", null);
+  }
 }
