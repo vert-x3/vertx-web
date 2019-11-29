@@ -66,6 +66,9 @@ public abstract class RoutingContextImplBase implements RoutingContext {
 
   @Override
   public Route currentRoute() {
+    if (currentRoute == null) {
+      return null;
+    }
     return currentRoute.getRoute();
   }
 
