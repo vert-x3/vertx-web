@@ -378,33 +378,32 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
    * - exploded: true & style: deepObject & type: object or allOf -> magicParameterExplodedStyleDeepObjectTypeObject
    * */
   private boolean checkSupportedAndNeedWorkaround(Parameter parameter) {
-    if (Boolean.TRUE == parameter.getAllowReserved()) {
+    boolean result = false;
+    if (Boolean.TRUE.equals(parameter.getAllowReserved())) {
       throw new SpecFeatureNotSupportedException("allowReserved field not supported!");
     } else if (parameter.getContent() != null && parameter.getContent().size() != 0) {
       handleContent(parameter);
-      return true;
-    } else /* From this moment only astonishing magic happens */ if (parameter.getExplode()) {
+      result = true;
+    } else /* From this moment only astonishing magic happens */ if (Boolean.TRUE.equals(parameter.getExplode())) {
       boolean isObject = OpenApi3Utils.isParameterObjectOrAllOfType(parameter);
       String style = OpenApi3Utils.resolveStyle(parameter);
       if (OpenApi3Utils.isParameterArrayType(parameter) && "matrix".equals(style)) {
         this.magicParameterExplodedMatrixArray(parameter);
-        return true;
+        result = true;
       }
       if (isObject && ("form".equals(style) || "matrix".equals(style) || "label".equals(style))) {
         this.magicParameterExplodedObject(parameter);
-        return true;
+        result = true;
       }
       if (isObject && "simple".equals(style)) {
         this.magicParameterExplodedStyleSimpleTypeObject(parameter);
-        return true;
+        result = true;
       } else if ("deepObject".equals(style)) {
         this.magicParameterExplodedStyleDeepObjectTypeObject(parameter);
-        return true;
-      } else {
-        return false;
-      }
+        result = true;
+      } 
     }
-    return false;
+    return result;
   }
 
   /* Function to resolve ParameterLocation from in string */

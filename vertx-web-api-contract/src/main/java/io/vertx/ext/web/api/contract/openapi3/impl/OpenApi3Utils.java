@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.networknt.schema.SchemaValidatorsConfig;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -30,6 +31,12 @@ import java.util.stream.Collectors;
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class OpenApi3Utils {
+
+  public static final SchemaValidatorsConfig VALIDATOR_CONFIG = new SchemaValidatorsConfig();
+
+  static {
+    VALIDATOR_CONFIG.setTypeLoose(false);
+  }
 
   public static ParseOptions getParseOptions() {
     ParseOptions options = new ParseOptions();
@@ -326,7 +333,7 @@ public class OpenApi3Utils {
     }
     return result.toString();
   }
-  
+
   public static Object getAndMergeServiceExtension(String extensionKey, String addressKey, String methodKey, PathItem pathModel, Operation operationModel) {
     Object pathExtension = pathModel.getExtensions() != null ? pathModel.getExtensions().get(extensionKey) : null;
     Object operationExtension = operationModel.getExtensions() != null ? operationModel.getExtensions().get(extensionKey) : null;

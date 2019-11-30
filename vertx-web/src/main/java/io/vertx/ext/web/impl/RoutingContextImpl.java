@@ -29,14 +29,11 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.http.impl.ServerCookie;
-import io.vertx.core.json.DecodeException;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Locale;
 import io.vertx.ext.web.*;
-import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 
@@ -293,10 +290,13 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public JsonObject getBodyAsJson() {
     if (body != null) {
-      if (parsedBodyAsJson == null) {
-        parsedBodyAsJson = BodyCodecImpl.JSON_OBJECT_DECODER.apply(body);
+      // the minimal json is {} so we need at least 2 chars
+      if (body.length() > 1) {
+        if (parsedBodyAsJson == null) {
+          parsedBodyAsJson = BodyCodecImpl.JSON_OBJECT_DECODER.apply(body);
+        }
+        return parsedBodyAsJson;
       }
-      return parsedBodyAsJson;
     }
     return null;
   }
@@ -305,10 +305,13 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public JsonArray getBodyAsJsonArray() {
     if (body != null) {
-      if (parsedBodyAsJsonArray == null) {
-        parsedBodyAsJsonArray = BodyCodecImpl.JSON_ARRAY_DECODER.apply(body);
+      // the minimal array is [] so we need at least 2 chars
+      if (body.length() > 1) {
+        if (parsedBodyAsJsonArray == null) {
+          parsedBodyAsJsonArray = BodyCodecImpl.JSON_ARRAY_DECODER.apply(body);
+        }
+        return parsedBodyAsJsonArray;
       }
-      return parsedBodyAsJsonArray;
     }
     return null;
   }
@@ -398,20 +401,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void reroute(HttpMethod method, String path) {
-    int split = path.indexOf('?');
-
-    if (split == -1) {
-      split = path.indexOf('#');
+    if (path.charAt(0) != '/') {
+      throw new IllegalArgumentException("path must start with '/'");
     }
-
-    if (split != -1) {
-      log.warn("Non path segment is not considered: " + path.substring(split));
-      // reroute is path based so we trim out the non url path parts
-      path = path.substring(0, split);
-    }
-
-    ((HttpServerRequestWrapper) request).setMethod(method);
-    ((HttpServerRequestWrapper) request).setPath(path);
+    // change the method and path of the request
+    ((HttpServerRequestWrapper) request).changeTo(method, path);
+    // clear the params
     request.params().clear();
     // we need to reset the normalized path
     normalisedPath = null;

@@ -32,6 +32,12 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -91,10 +97,19 @@ public class Utils extends io.vertx.core.impl.Utils {
     }
   }
 
-  public static DateFormat createRFC1123DateTimeFormatter() {
-    DateFormat dtf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
-    dtf.setTimeZone(TimeZone.getTimeZone("GMT"));
-    return dtf;
+  private static final ZoneId ZONE_GMT = ZoneId.of("GMT");
+
+  public static String formatRFC1123DateTime(final long time) {
+    return DateTimeFormatter.RFC_1123_DATE_TIME.format(Instant.ofEpochMilli(time).atZone(ZONE_GMT));
+  }
+
+  public static long parseRFC1123DateTime(final String header) {
+    try {
+      return header == null || header.isEmpty() ? -1 :
+        LocalDateTime.parse(header, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant(ZoneOffset.UTC).toEpochMilli();
+    } catch (DateTimeParseException ex) {
+      return -1;
+    }
   }
 
   public static String pathOffset(String path, RoutingContext context) {
@@ -102,6 +117,10 @@ public class Utils extends io.vertx.core.impl.Utils {
     String mountPoint = context.mountPoint();
     if (mountPoint != null) {
       prefixLen = mountPoint.length();
+      // special case we need to verify if a trailing slash  is present and exclude
+      if (mountPoint.charAt(mountPoint.length() - 1) == '/') {
+        prefixLen--;
+      }
     }
     String routePath = context.currentRoute().getPath();
     if (routePath != null) {

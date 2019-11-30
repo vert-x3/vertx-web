@@ -1,5 +1,22 @@
 = Cheatsheets
 
+[[ApolloWSOptions]]
+== ApolloWSOptions
+
+++++
+ Options for configuring the link.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[keepAlive]]`@keepAlive`|`Number (long)`|+++
+Set the interval in milliseconds to send <code>KEEPALIVE</code> messages to all clients. Defaults to <code>30000</code>.
++++
+|===
+
 [[GraphQLHandlerOptions]]
 == GraphQLHandlerOptions
 
@@ -12,16 +29,13 @@
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[graphiQLOptions]]`@graphiQLOptions`|`link:dataobjects.html#GraphiQLOptions[GraphiQLOptions]`|+++
-Configure the GraphiQL development tool.
-+++
 |[[requestBatchingEnabled]]`@requestBatchingEnabled`|`Boolean`|+++
 Whether request batching should be enabled. Defaults to <code>false</code>.
 +++
 |===
 
-[[GraphiQLOptions]]
-== GraphiQLOptions
+[[GraphiQLHandlerOptions]]
+== GraphiQLHandlerOptions
 
 ++++
  Embedded GraphiQL user interface options.

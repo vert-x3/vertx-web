@@ -15,10 +15,6 @@
  */
 package io.vertx.ext.web.handler;
 
-import static org.mockito.Mockito.*;
-
-import org.junit.Test;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -29,6 +25,9 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.AuthHandlerImpl;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
+import org.junit.Test;
+
+import static org.mockito.Mockito.*;
 
 public class CustomAuthHandlerTest extends AuthHandlerTestBase {
 
@@ -80,5 +79,39 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
     router.route("/protected/somepage").handler(handler);
 
     testRequest(HttpMethod.GET, "/protected/somepage", 401, "Unauthorized");
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testHttpStatusExceptionFailurePropagation() throws Exception {
+
+    Handler<RoutingContext> handler = rc -> {
+      fail("should not get here");
+      rc.response().end("Welcome to the protected resource!");
+    };
+
+    Throwable rootCause = new HttpStatusException(499, "bla");
+    AuthProvider authProvider = mock(AuthProvider.class);
+    doAnswer(invocation -> {
+      final Handler<AsyncResult<User>> resultHandler = invocation.getArgument(1);
+      resultHandler.handle(Future.failedFuture(rootCause));
+      return null;
+    }).when(authProvider).authenticate(any(JsonObject.class), any(Handler.class));
+
+    router.route("/protected/*").handler(newAuthHandler(authProvider, exception -> {
+      assertTrue(exception instanceof HttpStatusException);
+      assertEquals(rootCause, exception);
+    }));
+
+    router.route("/protected/somepage").handler(handler);
+
+    router.errorHandler(499, rc -> rc
+      .response()
+      .setStatusCode(((HttpStatusException)rc.failure()).getStatusCode())
+      .setStatusMessage(((HttpStatusException)rc.failure()).getPayload())
+      .end()
+    );
+
+    testRequest(HttpMethod.GET, "/protected/somepage", 499, "bla");
   }
 }

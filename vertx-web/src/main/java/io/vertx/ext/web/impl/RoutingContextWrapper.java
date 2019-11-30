@@ -41,16 +41,22 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   protected final RoutingContext inner;
   private final String mountPoint;
 
-  public RoutingContextWrapper(String mountPoint, HttpServerRequest request, Set<RouteImpl> iter,
-                               RoutingContext inner) {
+  public RoutingContextWrapper(String mountPoint, HttpServerRequest request, Set<RouteImpl> iter, RoutingContext inner) {
     super(mountPoint, request, iter);
     this.inner = inner;
     String parentMountPoint = inner.mountPoint();
-    if (mountPoint.charAt(mountPoint.length() - 1) == '/') {
-      // Remove the trailing slash or we won't match
-      mountPoint = mountPoint.substring(0, mountPoint.length() - 1);
+    if (parentMountPoint == null) {
+      // just use the override
+      this.mountPoint = mountPoint;
+    } else {
+      if (parentMountPoint.charAt(parentMountPoint.length() - 1) == '/') {
+        // Remove the trailing slash or we won't match
+        this.mountPoint = parentMountPoint.substring(0, parentMountPoint.length() - 1) + mountPoint;
+      } else {
+        // slashes are ok, just concat
+        this.mountPoint = parentMountPoint + mountPoint;
+      }
     }
-    this.mountPoint = parentMountPoint == null ? mountPoint : parentMountPoint + mountPoint;
   }
 
   @Override
@@ -126,7 +132,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
 
   @Override
   public void setSession(Session session) {
-   inner.setSession(session);
+    inner.setSession(session);
   }
 
   @Override
@@ -290,7 +296,9 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public MultiMap queryParams() { return inner.queryParams(); }
+  public MultiMap queryParams() {
+    return inner.queryParams();
+  }
 
   @Override
   public @Nullable List<String> queryParam(String query) {

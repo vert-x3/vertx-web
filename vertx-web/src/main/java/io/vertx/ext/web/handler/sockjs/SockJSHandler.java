@@ -16,10 +16,10 @@
 
 package io.vertx.ext.web.handler.sockjs;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.impl.SockJSHandlerImpl;
 
@@ -62,10 +62,9 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    * is made from a client
    *
    * @param handler  the handler
-   * @return a reference to this, so the API can be used fluently
+   * @return a router to be mounted on an existing router
    */
-  @Fluent
-  SockJSHandler socketHandler(Handler<SockJSSocket> handler);
+  Router socketHandler(Handler<SockJSSocket> handler);
 
   /**
    * Bridge the SockJS handler to the Vert.x event bus. This basically installs a built-in SockJS socket handler
@@ -73,19 +72,23 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    * Vert.x event bus to browsers
    *
    * @param bridgeOptions  options to configure the bridge with
-   * @return a reference to this, so the API can be used fluently
+   * @return a router to be mounted on an existing router
    */
-  @Fluent
-  SockJSHandler bridge(BridgeOptions bridgeOptions);
+  Router bridge(BridgeOptions bridgeOptions);
 
   /**
    * Like {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(BridgeOptions)} but specifying a handler
    * that will receive bridge events.
    * @param bridgeOptions  options to configure the bridge with
    * @param bridgeEventHandler  handler to receive bridge events
-   * @return a reference to this, so the API can be used fluently
+   * @return a router to be mounted on an existing router
    */
-  @Fluent
-  SockJSHandler bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler);
+  Router bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler);
 
+  /**
+   * @deprecated mount the router as a sub-router instead. This method will not properly handle errors.
+   * @param routingContext the rounting context
+   */
+  @Deprecated
+  void handle(RoutingContext routingContext);
 }

@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.impl;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -28,81 +27,61 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
  * This class is thread-safe
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class RouterImpl implements Router {
 
-  private static final Comparator<RouteImpl> routeComparator = (RouteImpl o1, RouteImpl o2) -> {
-    // we keep a set of handlers ordered by its "order" property
-    final int compare = Integer.compare(o1.order(), o2.order());
-    // since we are defining the comparator to order the set we must be careful because the set
-    // will use the comparator to compare the identify of the handlers and if they are the same order
-    // are assumed to be the same comparator and therefore removed from the set.
-
-    // if the 2 routes being compared by its order have the same order property value,
-    // then do a more expensive equality check and if and only if the are the same we
-    // do return 0, meaning same order and same identity.
-    if (compare == 0) {
-      if (o1.equals(o2)) {
-        return 0;
-      }
-      // otherwise we return higher so if 2 routes have the same order the second one will be considered
-      // higher so it is added after the first.
-      return 1;
-    }
-    return compare;
-  };
-
   private static final Logger log = LoggerFactory.getLogger(RouterImpl.class);
 
   private final Vertx vertx;
-  private final Set<RouteImpl> routes = new ConcurrentSkipListSet<>(routeComparator);
+
+  private volatile RouterState state;
 
   public RouterImpl(Vertx vertx) {
     this.vertx = vertx;
+    this.state = new RouterState(this);
   }
-
-  private final AtomicInteger orderSequence = new AtomicInteger();
-  private Map<Integer, Handler<RoutingContext>> errorHandlers = new ConcurrentHashMap<>();
 
   @Override
   public void handle(HttpServerRequest request) {
-    if (log.isTraceEnabled()) log.trace("Router: " + System.identityHashCode(this) +
-      " accepting request " + request.method() + " " + request.absoluteURI());
-    new RoutingContextImpl(null, this, request, routes).next();
+    if (log.isTraceEnabled()) {
+      log.trace("Router: " + System.identityHashCode(this) + " accepting request " + request.method() + " " + request.absoluteURI());
+    }
+    new RoutingContextImpl(null, this, request, state.getRoutes()).next();
   }
 
   @Override
-  public Route route() {
-    return new RouteImpl(this, orderSequence.getAndIncrement());
+  public synchronized Route route() {
+    state = state.incrementOrderSequence();
+    return new RouteImpl(this, state.getOrderSequence());
   }
 
   @Override
-  public Route route(HttpMethod method, String path) {
-    return new RouteImpl(this, orderSequence.getAndIncrement(), method, path);
+  public synchronized Route route(HttpMethod method, String path) {
+    state = state.incrementOrderSequence();
+    return new RouteImpl(this, state.getOrderSequence(), method, path);
   }
 
   @Override
-  public Route route(String path) {
-    return new RouteImpl(this, orderSequence.getAndIncrement(), path);
+  public synchronized Route route(String path) {
+    state = state.incrementOrderSequence();
+    return new RouteImpl(this, state.getOrderSequence(), path);
   }
 
   @Override
-  public Route routeWithRegex(HttpMethod method, String regex) {
-    return new RouteImpl(this, orderSequence.getAndIncrement(), method, regex, true);
+  public synchronized Route routeWithRegex(HttpMethod method, String regex) {
+    state = state.incrementOrderSequence();
+    return new RouteImpl(this, state.getOrderSequence(), method, regex, true);
   }
 
   @Override
-  public Route routeWithRegex(String regex) {
-    return new RouteImpl(this, orderSequence.getAndIncrement(), regex, true);
+  public synchronized Route routeWithRegex(String regex) {
+    state = state.incrementOrderSequence();
+    return new RouteImpl(this, state.getOrderSequence(), regex, true);
   }
 
   @Override
@@ -242,34 +221,58 @@ public class RouterImpl implements Router {
 
   @Override
   public List<Route> getRoutes() {
-    return new ArrayList<>(routes);
+    return new ArrayList<>(state.getRoutes());
   }
 
   @Override
-  public Router clear() {
-    routes.clear();
+  public synchronized Router clear() {
+    state = state.clearRoutes();
     return this;
   }
 
   @Override
   public void handleContext(RoutingContext ctx) {
-    new RoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), routes, ctx).next();
+    new RoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), state.getRoutes(), ctx).next();
   }
 
   @Override
   public void handleFailure(RoutingContext ctx) {
-    new RoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), routes, ctx).next();
+    new RoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), state.getRoutes(), ctx).next();
+  }
+
+  @Override
+  public synchronized Router modifiedHandler(Handler<Router> handler) {
+    if (state.getModifiedHandler() == null) {
+      state = state.setModifiedHandler(handler);
+    } else {
+      // chain the handler
+      final Handler<Router> previousHandler = state.getModifiedHandler();
+      state = state.setModifiedHandler(router -> {
+        try {
+          previousHandler.handle(router);
+        } catch (RuntimeException e) {
+          log.error("Router modified notification failed", e);
+        }
+        // invoke the next
+        try {
+          handler.handle(router);
+        } catch (RuntimeException e) {
+          log.error("Router modified notification failed", e);
+        }
+      });
+    }
+    return this;
   }
 
   @Override
   public Router mountSubRouter(String mountPoint, Router subRouter) {
     if (mountPoint.endsWith("*")) {
-      throw new IllegalArgumentException("Don't include * when mounting subrouter");
+      throw new IllegalArgumentException("Don't include * when mounting a sub router");
     }
-    if (mountPoint.contains(":")) {
-      throw new IllegalArgumentException("Can't use patterns in subrouter mounts");
-    }
-    route(mountPoint + "*").handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
+
+    route(mountPoint + "*")
+      .subRouter(subRouter);
+
     return this;
   }
 
@@ -283,18 +286,25 @@ public class RouterImpl implements Router {
   }
 
   @Override
-  public Router errorHandler(int statusCode, Handler<RoutingContext> errorHandler) {
-    Objects.requireNonNull(errorHandler);
-    this.errorHandlers.put(statusCode, errorHandler);
+  public synchronized Router errorHandler(int statusCode, Handler<RoutingContext> errorHandler) {
+    state = state.putErrorHandler(statusCode, errorHandler);
     return this;
   }
 
-  void add(RouteImpl route) {
-    routes.add(route);
+  synchronized void add(RouteImpl route) {
+    state = state.addRoute(route);
+    // notify the listeners as the routes are changed
+    if (state.getModifiedHandler() != null) {
+      state.getModifiedHandler().handle(this);
+    }
   }
 
-  void remove(RouteImpl route) {
-    routes.remove(route);
+  synchronized void remove(RouteImpl route) {
+    state = state.removeRoute(route);
+    // notify the listeners as the routes are changed
+    if (state.getModifiedHandler() != null) {
+      state.getModifiedHandler().handle(this);
+    }
   }
 
   Vertx vertx() {
@@ -302,21 +312,40 @@ public class RouterImpl implements Router {
   }
 
   Iterator<RouteImpl> iterator() {
-    return routes.iterator();
+    return state.getRoutes().iterator();
   }
 
   Handler<RoutingContext> getErrorHandlerByStatusCode(int statusCode) {
-    return errorHandlers.get(statusCode);
+    return state.getErrorHandler(statusCode);
   }
 
-  private String getAndCheckRoutePath(RoutingContext ctx) {
-    Route currentRoute = ctx.currentRoute();
-    String path = currentRoute.getPath();
-    if (path == null) {
-      throw new IllegalStateException("Sub routers must be mounted on constant paths (no regex or patterns)");
+  private String getAndCheckRoutePath(RoutingContext routingContext) {
+    final RoutingContextImplBase ctx = (RoutingContextImplBase) routingContext;
+    final Route route = ctx.currentRoute();
+
+    if (route.getPath() != null && !route.isRegexPath()) {
+      return route.getPath();
+    } else {
+      if (ctx.matchRest != -1) {
+        if (ctx.matchNormalized) {
+          return ctx.normalisedPath().substring(0, ctx.matchRest);
+        } else {
+          return ctx.request().path().substring(0, ctx.matchRest);
+        }
+      } else {
+        // failure did not match
+        throw new IllegalStateException("Sub routers must be mounted on paths (constant or parameterized)");
+      }
     }
-    return path;
   }
 
-
+  @Override
+  public String toString() {
+    return "RouterImpl@" + System.identityHashCode(this) +
+      "{" +
+      "vertx=" + vertx +
+      ", state=" + state +
+      '}';
+  }
 }
+

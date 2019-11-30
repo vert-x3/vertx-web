@@ -22,7 +22,6 @@ import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
-import java.text.DateFormat;
 import java.util.*;
 
 /**
@@ -137,8 +136,8 @@ public class CookieHandlerTest extends WebTestBase {
     int startPos = encoded.indexOf("Expires=");
     int endPos = encoded.indexOf(';', startPos);
     String expiresDate = encoded.substring(startPos + 8, endPos);
-    Date d = dateTimeFormat.parse(expiresDate);
-    assertTrue(d.getTime() - now >= maxAge);
+    long d = Utils.parseRFC1123DateTime(expiresDate);
+    assertTrue(d - now >= maxAge);
 
     cookie.setMaxAge(Long.MIN_VALUE);
     cookie.setSecure(true);
@@ -146,6 +145,4 @@ public class CookieHandlerTest extends WebTestBase {
     cookie.setHttpOnly(true);
     assertEquals("foo=bar; Path=/somepath; Domain=foo.com; Secure; HTTPOnly", cookie.encode());
   }
-
-  private final DateFormat dateTimeFormat = Utils.createRFC1123DateTimeFormatter();
 }

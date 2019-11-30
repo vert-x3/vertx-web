@@ -305,6 +305,14 @@ public class WebClientTest extends HttpTestBase {
     testSendBody(body, (contentType, buff) -> assertEquals(body, buff));
   }
 
+  @Test
+  public void testSendJsonNullBody() throws Exception {
+    testSendBody(null, (contentType, buff) -> {
+      assertEquals("application/json", contentType);
+//      assertEquals(body, buff.toJsonObject());
+    });
+  }
+
   private void testSendBody(Object body, BiConsumer<String, Buffer> checker) throws Exception {
     waitFor(2);
     server.requestHandler(req -> req.bodyHandler(buff -> {
@@ -1024,6 +1032,9 @@ public class WebClientTest extends HttpTestBase {
         }
         return this;
       }
+      public AsyncFile setReadLength(long readLength) {
+        throw new UnsupportedOperationException();
+      }
       public void close(Handler<AsyncResult<Void>> handler) {
         vertx.setTimer(500, id -> {
           closed.set(true);
@@ -1284,12 +1295,7 @@ public class WebClientTest extends HttpTestBase {
     testFileUploadFormMultipart(MultipartForm.create(), toUpload, true, (req, uploads) -> {
       assertEquals(2, uploads.size());
       assertEquals("test", uploads.get(0).name);
-      // This is test2.txt - it is not clear to me whether this is a bug in Netty or not as there
-      // is a test for this in Netty test suite
-      // see HttpPostRequestEncoderTest#testMultiFileUploadInMixedMode
-      // I tried using web browser and recreate an HTML4 form with the same attribute name in a form
-      // all browsers are actually not using multipart mixed encoding
-      assertEquals("test2.txt", uploads.get(0).filename);
+      assertEquals("test1.txt", uploads.get(0).filename);
       assertEquals(content1, uploads.get(0).data);
       assertEquals("test", uploads.get(1).name);
       assertEquals("test2.txt", uploads.get(1).filename);
@@ -1915,4 +1921,22 @@ public class WebClientTest extends HttpTestBase {
     });
   }
 
+  @Test
+  public void testHeaderOverwrite() throws Exception {
+    testRequest(
+      client -> client
+        .get("somepath")
+        .putHeader("bla", "1")
+        .putHeader("bla", "2"),
+      req -> assertEquals(Collections.singletonList("2"), req.headers().getAll("bla")));
+  }
+
+  @Test
+  public void testMultipleHeaders() throws Exception {
+    testRequest(
+      client -> client
+        .get("somepath")
+        .putHeader("bla", Arrays.asList("1", "2")),
+      req -> assertEquals(Arrays.asList("1", "2"), req.headers().getAll("bla")));
+  }
 }

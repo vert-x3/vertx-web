@@ -36,7 +36,7 @@ import java.util.Set;
  * Represents the context for the handling of a request in Vert.x-Web.
  * <p>
  * A new instance is created for each HTTP request that is received in the
- * {@link Router#handle(HttpServerRequest)} of the router.
+ * {@link Router#handle(Object)} of the router.
  * <p>
  * The same instance is passed to any matching request or failure handlers during the routing of the request or
  * failure.
@@ -427,7 +427,7 @@ public interface RoutingContext {
 
   /**
    * Restarts the current router with a new path and reusing the original method. All path parameters are then parsed
-   * and available on the params list.
+   * and available on the params list. Query params will also be allowed and available.
    *
    * @param path the new http path.
    */
@@ -437,7 +437,7 @@ public interface RoutingContext {
 
   /**
    * Restarts the current router with a new method and path. All path parameters are then parsed and available on the
-   * params list.
+   * params list. Query params will also be allowed and available.
    *
    * @param method the new http request
    * @param path the new http path.

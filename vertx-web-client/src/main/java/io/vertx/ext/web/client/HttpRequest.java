@@ -17,6 +17,8 @@ package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -146,7 +148,7 @@ public interface HttpRequest<T> {
   HttpRequest<T> putHeaders(MultiMap headers);
 
   /**
-   * Configure the request to add a new HTTP header.
+   * Configure the request to set a new HTTP header.
    *
    * @param name the header name
    * @param value the header value
@@ -154,6 +156,17 @@ public interface HttpRequest<T> {
    */
   @Fluent
   HttpRequest<T> putHeader(String name, String value);
+
+  /**
+   * Configure the request to set a new HTTP header with multiple values.
+   *
+   * @param name the header name
+   * @param value the header value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @GenIgnore({"permitted-type"})
+  @Fluent
+  HttpRequest<T> putHeader(String name, Iterable<String> value);
 
   /**
    * @return The HTTP headers
@@ -325,7 +338,7 @@ public interface HttpRequest<T> {
    *
    * @param body the body
    */
-  void sendJson(Object body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  void sendJson(@Nullable Object body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type

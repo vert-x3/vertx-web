@@ -19,19 +19,19 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.sstore.AbstractSession;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.Test;
 
-import java.text.DateFormat;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import static java.util.concurrent.TimeUnit.*;
 
@@ -197,22 +197,30 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 			rSetCookie.set(setCookie);
 		}, 200, "OK", null);
 		Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_INTERVAL + timeout));
-		testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
-		CountDownLatch latch1 = new CountDownLatch(1);
-		Thread.sleep(500); // FIXME -Needed because session.destroy is async :(
-		store.get(rid.get(), onSuccess(res -> {
-			assertNotNull(res);
-			latch1.countDown();
-		}));
-		awaitLatch(latch1);
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
+    waitUntil(() -> testSessionBlocking(rid.get(), Objects::nonNull));
 		Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_INTERVAL + timeout));
-		CountDownLatch latch2 = new CountDownLatch(1);
-		store.get(rid.get(), onSuccess(res -> {
-			assertNull(res);
-			latch2.countDown();
-		}));
-		awaitLatch(latch2);
-	}
+    waitUntil(() -> testSessionBlocking(rid.get(), Objects::isNull));
+  }
+
+  private boolean testSessionBlocking(String sessionId, Function<Session, Boolean> test) {
+    CompletableFuture<Boolean> cf = new CompletableFuture<>();
+    store.get(sessionId, ar -> {
+      if (ar.succeeded()) {
+        cf.complete(test.apply(ar.result()));
+      } else {
+        cf.completeExceptionally(ar.cause());
+      }
+    });
+    try {
+      return cf.get();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new AssertionError(e);
+    } catch (ExecutionException e) {
+      throw new AssertionError(e);
+    }
+  }
 
 	@Test
 	public void testDestroySession() throws Exception {
@@ -349,8 +357,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", sessionID.get()),
 				resp -> assertNull(resp.headers().get("set-cookie")), 200, "OK", null);
 	}
-
-	private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
 
 	protected long doTestSessionRetryTimeout() throws Exception {
 		router.route().handler(SessionHandler.create(store));

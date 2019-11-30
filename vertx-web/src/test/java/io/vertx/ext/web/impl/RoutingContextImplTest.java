@@ -43,7 +43,7 @@ public class RoutingContextImplTest extends WebTestBase {
   }
 
   @Test
-  public void test_empty_fails_json_types() throws Exception {
+  public void test_empty_yields_null_json_types() throws Exception {
     router.route().handler(event -> {
       assertNull(event.getBodyAsJsonArray());
       assertNull(event.getBodyAsJson());
@@ -52,7 +52,7 @@ public class RoutingContextImplTest extends WebTestBase {
     testRequest(HttpMethod.POST, "/", req -> {
       req.setChunked(true);
       req.write(Buffer.buffer(""));
-    }, HttpResponseStatus.INTERNAL_SERVER_ERROR.code(), HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase(), null);
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
   }
 
   @Test

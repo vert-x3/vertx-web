@@ -25,7 +25,9 @@ import graphql.schema.idl.WiringFactory;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.*;
@@ -56,25 +58,19 @@ public class GraphQLExamples {
   }
 
   public void handlerSetupGraphiQL(GraphQL graphQL, Router router) {
-    GraphQLHandlerOptions options = new GraphQLHandlerOptions()
-      .setGraphiQLOptions(new GraphiQLOptions()
-        .setEnabled(true)
-      );
+    GraphiQLHandlerOptions options = new GraphiQLHandlerOptions()
+      .setEnabled(true);
 
-    router.route("/graphql").handler(GraphQLHandler.create(graphQL, options));
+    router.route("/graphiql/*").handler(GraphiQLHandler.create(options));
   }
 
-  public void handlerSetupGraphiQLAuthn(GraphQL graphQL, Router router) {
-    GraphQLHandlerOptions options = new GraphQLHandlerOptions()
-      .setGraphiQLOptions(new GraphiQLOptions()
-        .setEnabled(true)
-      );
+  public void handlerSetupGraphiQLAuthn(GraphiQLHandler graphiQLHandler, Router router) {
+    graphiQLHandler.graphiQLRequestHeaders(rc -> {
+      String token = rc.get("token");
+      return MultiMap.caseInsensitiveMultiMap().add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+    });
 
-    GraphQLHandler graphQLHandler = GraphQLHandler.create(graphQL, options)
-      .graphiQLRequestHeaders(rc -> {
-        String token = rc.get("token");
-        return MultiMap.caseInsensitiveMultiMap().add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
-      });
+    router.route("/graphiql/*").handler(graphiQLHandler);
   }
 
   public void handlerSetupBatching(GraphQL graphQL) {
@@ -204,4 +200,26 @@ public class GraphQLExamples {
 
     });
   }
+
+  public void addApolloWsHandlerToRouter(Router router) {
+    GraphQL graphQL = setupGraphQLJava();
+
+    router.route("/graphql").handler(ApolloWSHandler.create(graphQL));
+  }
+
+  public void configureServerForApolloWs(Vertx vertx, Router router) {
+    HttpServerOptions httpServerOptions = new HttpServerOptions()
+      .setWebsocketSubProtocols("graphql-ws");
+    vertx.createHttpServer(httpServerOptions)
+      .requestHandler(router)
+      .listen(8080);
+  }
+
+  public void configureWebSocketLinkAndHttpLinkSamePath(Router router) {
+    GraphQL graphQL = setupGraphQLJava();
+
+    router.route("/graphql").handler(ApolloWSHandler.create(graphQL));
+    router.route("/graphql").handler(GraphQLHandler.create(graphQL));
+  }
+
 }

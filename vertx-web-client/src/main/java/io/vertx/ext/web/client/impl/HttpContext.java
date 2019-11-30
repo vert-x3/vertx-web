@@ -24,8 +24,8 @@ import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientImpl;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.spi.json.JsonCodec;
 import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
@@ -424,15 +424,15 @@ public class HttpContext<T> {
     if (request.timeout > 0) {
       req.setTimeout(request.timeout);
     }
-    if (body != null) {
-      if (contentType != null) {
-        String prev = req.headers().get(HttpHeaders.CONTENT_TYPE);
-        if (prev == null) {
-          req.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
-        } else {
-          contentType = prev;
-        }
+    if (contentType != null) {
+      String prev = req.headers().get(HttpHeaders.CONTENT_TYPE);
+      if (prev == null) {
+        req.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+      } else {
+        contentType = prev;
       }
+    }
+    if (body != null || "application/json".equals(contentType)) {
       if (body instanceof MultiMap) {
         MultipartForm parts = MultipartForm.create();
         MultiMap attributes = (MultiMap) body;
@@ -479,7 +479,7 @@ public class HttpContext<T> {
         } else if (body instanceof JsonObject) {
           buffer = Buffer.buffer(((JsonObject)body).encode());
         } else {
-          buffer = Buffer.buffer(Json.encode(body));
+          buffer = JsonCodec.INSTANCE.toBuffer(body);
         }
         req.exceptionHandler(responseFuture::tryFail);
         req.end(buffer);

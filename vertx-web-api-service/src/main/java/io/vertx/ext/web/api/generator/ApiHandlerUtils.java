@@ -1,6 +1,5 @@
 package io.vertx.ext.web.api.generator;
 
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 

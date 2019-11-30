@@ -893,9 +893,8 @@ public class WebExamples {
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
     BridgeOptions options = new BridgeOptions();
-    sockJSHandler.bridge(options);
-
-    router.route("/eventbus/*").handler(sockJSHandler);
+    // mount the bridge on the router
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(options));
   }
 
   public void example46(Vertx vertx) {
@@ -934,9 +933,8 @@ public class WebExamples {
       addOutboundPermitted(outboundPermitted1).
       addOutboundPermitted(outboundPermitted2);
 
-    sockJSHandler.bridge(options);
-
-    router.route("/eventbus/*").handler(sockJSHandler);
+    // mount the bridge on the router
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(options));
   }
 
   public void example47() {
@@ -961,8 +959,6 @@ public class WebExamples {
     inboundPermitted.setRequiredAuthority("place_orders");
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-    sockJSHandler.bridge(new BridgeOptions().
-      addInboundPermitted(inboundPermitted));
 
     // Now set up some basic auth handling:
 
@@ -972,9 +968,10 @@ public class WebExamples {
 
     router.route("/eventbus/*").handler(basicAuthHandler);
 
-
-    router.route("/eventbus/*").handler(sockJSHandler);
-
+    // mount the bridge on the router
+    router.mountSubRouter(
+      "/eventbus",
+      sockJSHandler.bridge(new BridgeOptions().addInboundPermitted(inboundPermitted)));
   }
 
   public void example48_1(Vertx vertx) {
@@ -987,20 +984,19 @@ public class WebExamples {
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
     BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
 
-    sockJSHandler.bridge(options, be -> {
-      if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.SEND) {
-        // Add some headers
-        JsonObject headers = new JsonObject().put("header1", "val").put("header2", "val2");
-        JsonObject rawMessage = be.getRawMessage();
-        rawMessage.put("headers", headers);
-        be.setRawMessage(rawMessage);
-      }
-      be.complete(true);
-    });
-
-    router.route("/eventbus/*").handler(sockJSHandler);
-
-
+    // mount the bridge on the router
+    router.mountSubRouter(
+      "/eventbus",
+      sockJSHandler.bridge(options, be -> {
+        if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.SEND) {
+          // Add some headers
+          JsonObject headers = new JsonObject().put("header1", "val").put("header2", "val2");
+          JsonObject rawMessage = be.getRawMessage();
+          rawMessage.put("headers", headers);
+          be.setRawMessage(rawMessage);
+        }
+        be.complete(true);
+      }));
   }
 
   public void example49(Vertx vertx) {
@@ -1013,7 +1009,8 @@ public class WebExamples {
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
     BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
 
-    sockJSHandler.bridge(options, be -> {
+    // mount the bridge on the router
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(options, be -> {
       if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.RECEIVE) {
         if (be.getRawMessage().getString("body").equals("armadillos")) {
           // Reject it
@@ -1022,11 +1019,7 @@ public class WebExamples {
         }
       }
       be.complete(true);
-    });
-
-    router.route("/eventbus/*").handler(sockJSHandler);
-
-
+    }));
   }
 
   public void handleSocketIdle(Vertx vertx, PermittedOptions inboundPermitted) {
@@ -1036,15 +1029,14 @@ public class WebExamples {
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
     BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted).setPingTimeout(5000);
 
-    sockJSHandler.bridge(options, be -> {
+    // mount the bridge on the router
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(options, be -> {
       if (be.type() == BridgeEventType.SOCKET_IDLE) {
         // Do some custom handling...
       }
 
       be.complete(true);
-    });
-
-    router.route("/eventbus/*").handler(sockJSHandler);
+    }));
   }
 
   public void example50(Vertx vertx) {
@@ -1281,22 +1273,22 @@ public class WebExamples {
       .putHeader("Content-Type", "text/html")
       .end(
         "<html>\n" +
-        "  <body>\n" +
-        "    <p>\n" +
-        "      Well, hello there!\n" +
-        "    </p>\n" +
-        "    <p>\n" +
-        "      We're going to the protected resource, if there is no\n" +
-        "      user in the session we will talk to the GitHub API. Ready?\n" +
-        "      <a href=\"/protected\">Click here</a> to begin!</a>\n" +
-        "    </p>\n" +
-        "    <p>\n" +
-        "      <b>If that link doesn't work</b>, remember to provide\n" +
-        "      your own <a href=\"https://github.com/settings/applications/new\">\n" +
-        "      Client ID</a>!\n" +
-        "    </p>\n" +
-        "  </body>\n" +
-        "</html>"));
+          "  <body>\n" +
+          "    <p>\n" +
+          "      Well, hello there!\n" +
+          "    </p>\n" +
+          "    <p>\n" +
+          "      We're going to the protected resource, if there is no\n" +
+          "      user in the session we will talk to the GitHub API. Ready?\n" +
+          "      <a href=\"/protected\">Click here</a> to begin!</a>\n" +
+          "    </p>\n" +
+          "    <p>\n" +
+          "      <b>If that link doesn't work</b>, remember to provide\n" +
+          "      your own <a href=\"https://github.com/settings/applications/new\">\n" +
+          "      Client ID</a>!\n" +
+          "    </p>\n" +
+          "  </body>\n" +
+          "</html>"));
     // The protected resource
     router.get("/protected").handler(ctx -> {
       // at this moment your user object should contain the info
@@ -1375,5 +1367,56 @@ public class WebExamples {
       // do something...
     });
   }
-}
 
+  public void example72(Router router) {
+    router.route().handler(MultiTenantHandler.create("X-Tenant"));
+  }
+
+  public void example73() {
+    MultiTenantHandler.create("X-Tenant")
+      .addTenantHandler("tenant-A", ctx -> {
+        // do something for tenant A...
+      })
+      .addTenantHandler("tenant-B", ctx -> {
+        // do something for tenant B...
+      })
+      // optionally
+      .addDefaultHandler(ctx -> {
+        // do something when no tenant matches...
+      });
+
+  }
+
+  public void example74(Vertx vertx, Router router) {
+    // create an OAuth2 provider, clientID and clientSecret should be requested to github
+    OAuth2Auth gitHubAuthProvider = GithubAuth.create(vertx, "CLIENT_ID", "CLIENT_SECRET");
+    // create a oauth2 handler on our running server
+    // the second argument is the full url to the callback as you entered in your provider management console.
+    OAuth2AuthHandler githubOAuth2 = OAuth2AuthHandler.create(gitHubAuthProvider, "https://myserver.com/github-callback");
+    // setup the callback handler for receiving the GitHub callback
+    githubOAuth2.setupCallback(router.route());
+
+    // create an OAuth2 provider, clientID and clientSecret should be requested to Google
+    OAuth2Auth googleAuthProvider = OAuth2Auth.create(vertx, new OAuth2ClientOptions()
+      .setClientID("CLIENT_ID")
+      .setClientSecret("CLIENT_SECRET")
+      .setFlow(OAuth2FlowType.AUTH_CODE)
+      .setSite("https://accounts.google.com")
+      .setTokenPath("https://www.googleapis.com/oauth2/v3/token")
+      .setAuthorizationPath("/o/oauth2/auth"));
+
+    // create a oauth2 handler on our domain: "http://localhost:8080"
+    OAuth2AuthHandler googleOAuth2 = OAuth2AuthHandler.create(googleAuthProvider, "http://localhost:8080");
+
+
+    MultiTenantHandler.create("X-Tenant")
+      // tenants using github should go this way:
+      .addTenantHandler("tenant-github", githubOAuth2)
+      // tenants using google should go this way:
+      .addTenantHandler("tenant-google", googleOAuth2)
+      // all other should be forbidden
+      .addDefaultHandler(ctx -> {
+        ctx.fail(401);
+      });
+  }
+}
