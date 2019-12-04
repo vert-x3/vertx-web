@@ -12,6 +12,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.KeyStoreOptions;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.jwt.JWTOptions;
@@ -735,7 +736,7 @@ public class WebExamples {
   }
 
 
-  public void example37(Vertx vertx, AuthProvider authProvider, Router router) {
+  public void example37(Vertx vertx, AuthenticationProvider authProvider, Router router) {
 
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
@@ -798,7 +799,7 @@ public class WebExamples {
 
   }
 
-  public void example40(AuthProvider authProvider, Router router) {
+  public void example40(AuthenticationProvider authProvider, Router router) {
 
     AuthHandler listProductsAuthHandler = RedirectAuthHandler.create(authProvider);
     listProductsAuthHandler.addAuthority("list_products");
@@ -951,7 +952,7 @@ public class WebExamples {
     BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
   }
 
-  public void example48(Vertx vertx, AuthProvider authProvider) {
+  public void example48(Vertx vertx, AuthenticationProvider authProvider) {
 
     Router router = Router.router(vertx);
 
@@ -1355,7 +1356,7 @@ public class WebExamples {
     }));
   }
 
-  public void example63(Router router, AuthProvider provider) {
+  public void example63(Router router, AuthenticationProvider provider) {
 
     ChainAuthHandler chain = ChainAuthHandler.create();
 

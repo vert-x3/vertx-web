@@ -20,6 +20,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.impl.AuthProviderInternal;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.auth.AuthProvider;
@@ -36,14 +37,14 @@ public class BasicAuthHandlerImpl extends AuthorizationAuthHandler {
    * This is a verification step, it can abort the instantiation by
    * throwing a RuntimeException
    */
-  private static AuthProvider verifyProvider(AuthProvider provider) {
+  private static AuthenticationProvider verifyProvider(AuthenticationProvider provider) {
     if (provider instanceof AuthProviderInternal) {
       ((AuthProviderInternal)provider).verifyIsUsingPassword();
     }
     return provider;
   }
 
-  public BasicAuthHandlerImpl(AuthProvider authProvider, String realm) {
+  public BasicAuthHandlerImpl(AuthenticationProvider authProvider, String realm) {
     super(verifyProvider(authProvider), realm, Type.BASIC);
   }
 

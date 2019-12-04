@@ -24,6 +24,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.AuthHandler;
@@ -45,14 +46,14 @@ public abstract class AuthHandlerImpl implements AuthHandler {
   static final HttpStatusException BAD_REQUEST = new HttpStatusException(400);
 
   protected final String realm;
-  protected final AuthProvider authProvider;
+  protected final AuthenticationProvider authProvider;
   protected final Set<String> authorities = new HashSet<>();
 
-  public AuthHandlerImpl(AuthProvider authProvider) {
+  public AuthHandlerImpl(AuthenticationProvider authProvider) {
     this(authProvider, "");
   }
 
-  public AuthHandlerImpl(AuthProvider authProvider, String realm) {
+  public AuthHandlerImpl(AuthenticationProvider authProvider, String realm) {
     this.authProvider = authProvider;
     this.realm = realm;
   }
@@ -246,9 +247,9 @@ public abstract class AuthHandlerImpl implements AuthHandler {
     return false;
   }
 
-  private AuthProvider getAuthProvider(RoutingContext ctx) {
+  private AuthenticationProvider getAuthProvider(RoutingContext ctx) {
     try {
-      AuthProvider provider = ctx.get(AUTH_PROVIDER_CONTEXT_KEY);
+      AuthenticationProvider provider = ctx.get(AUTH_PROVIDER_CONTEXT_KEY);
       if (provider != null) {
         // we're overruling the configured one for this request
         return provider;
