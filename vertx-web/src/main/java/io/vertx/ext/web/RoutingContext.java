@@ -565,15 +565,18 @@ public interface RoutingContext {
    */
   default Future<Void> json(Object json) {
     final HttpServerResponse res = response();
-    // apply the content type header
-    res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
 
     if (json == null) {
+      // apply the content type header
+      res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
       return res.end("null");
     } else {
       try {
-        return res.end(Json.encodeToBuffer(json));
-      } catch (EncodeException e) {
+        Buffer buffer = Json.encodeToBuffer(json);
+        // apply the content type header only if the encoding succeeds
+        res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
+        return res.end(buffer);
+      } catch (EncodeException | UnsupportedOperationException e) {
         // handle the failure
         fail(e);
         // as the operation failed return a failed future
