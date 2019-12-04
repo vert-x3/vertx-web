@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.handler.impl.FormLoginHandlerImpl;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.auth.AuthProvider;
@@ -54,7 +55,7 @@ public interface FormLoginHandler extends Handler<RoutingContext> {
    * @param authProvider  the auth service to use
    * @return the handler
    */
-  static FormLoginHandler create(AuthProvider authProvider) {
+  static FormLoginHandler create(AuthenticationProvider authProvider) {
     return new FormLoginHandlerImpl(authProvider, DEFAULT_USERNAME_PARAM, DEFAULT_PASSWORD_PARAM,
       DEFAULT_RETURN_URL_PARAM, null);
   }

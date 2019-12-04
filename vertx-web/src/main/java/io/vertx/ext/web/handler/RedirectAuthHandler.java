@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.handler.impl.RedirectAuthHandlerImpl;
 import io.vertx.ext.auth.AuthProvider;
 
@@ -44,7 +45,7 @@ public interface RedirectAuthHandler extends AuthHandler {
    * @param authProvider  the auth service to use
    * @return the handler
    */
-  static AuthHandler create(AuthProvider authProvider) {
+  static AuthHandler create(AuthenticationProvider authProvider) {
     return new RedirectAuthHandlerImpl(authProvider, DEFAULT_LOGIN_REDIRECT_URL, DEFAULT_RETURN_URL_PARAM);
   }
 
@@ -55,7 +56,7 @@ public interface RedirectAuthHandler extends AuthHandler {
    * @param loginRedirectURL  the url to redirect the user to
    * @return the handler
    */
-  static AuthHandler create(AuthProvider authProvider, String loginRedirectURL) {
+  static AuthHandler create(AuthenticationProvider authProvider, String loginRedirectURL) {
     return new RedirectAuthHandlerImpl(authProvider, loginRedirectURL, DEFAULT_RETURN_URL_PARAM);
   }
 
@@ -67,7 +68,7 @@ public interface RedirectAuthHandler extends AuthHandler {
    * @param returnURLParam  the name of param used to store return url information in session
    * @return the handler
    */
-  static AuthHandler create(AuthProvider authProvider, String loginRedirectURL, String returnURLParam) {
+  static AuthHandler create(AuthenticationProvider authProvider, String loginRedirectURL, String returnURLParam) {
     return new RedirectAuthHandlerImpl(authProvider, loginRedirectURL, returnURLParam);
   }
 }

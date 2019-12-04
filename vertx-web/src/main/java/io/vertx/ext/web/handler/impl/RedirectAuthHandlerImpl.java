@@ -20,6 +20,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.auth.AuthProvider;
@@ -33,7 +34,7 @@ public class RedirectAuthHandlerImpl extends AuthHandlerImpl {
   private final String loginRedirectURL;
   private final String returnURLParam;
 
-  public RedirectAuthHandlerImpl(AuthProvider authProvider, String loginRedirectURL, String returnURLParam) {
+  public RedirectAuthHandlerImpl(AuthenticationProvider authProvider, String loginRedirectURL, String returnURLParam) {
     super (authProvider);
     this.loginRedirectURL = loginRedirectURL;
     this.returnURLParam = returnURLParam;

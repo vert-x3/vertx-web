@@ -21,6 +21,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -61,7 +62,7 @@ abstract class AuthorizationAuthHandler extends AuthHandlerImpl {
     this.type = type;
   }
 
-  AuthorizationAuthHandler(AuthProvider authProvider, String realm, Type type) {
+  AuthorizationAuthHandler(AuthenticationProvider authProvider, String realm, Type type) {
     super(authProvider, realm);
     this.type = type;
   }
