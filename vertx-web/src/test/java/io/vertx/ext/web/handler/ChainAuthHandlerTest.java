@@ -1,11 +1,8 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.shiro.ShiroAuth;
-import io.vertx.ext.auth.shiro.ShiroAuthOptions;
-import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
+import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import org.junit.Test;
@@ -20,8 +17,7 @@ public class ChainAuthHandlerTest extends WebTestBase {
   public void setUp() throws Exception {
     super.setUp();
 
-    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, new ShiroAuthOptions().setType(ShiroAuthRealmType.PROPERTIES).setConfig(authConfig));
+    AuthProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
     // create a chain

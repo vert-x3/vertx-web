@@ -22,9 +22,7 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.shiro.ShiroAuth;
-import io.vertx.ext.auth.shiro.ShiroAuthOptions;
-import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
+import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.LocalSessionStore;
@@ -49,8 +47,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    authProvider  = ShiroAuth.create(vertx, new ShiroAuthOptions().setType(ShiroAuthRealmType.PROPERTIES).setConfig(authConfig));
+    authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     usernameParam = FormLoginHandler.DEFAULT_USERNAME_PARAM;
     passwordParam = FormLoginHandler.DEFAULT_PASSWORD_PARAM;
   }
