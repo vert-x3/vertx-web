@@ -43,20 +43,24 @@ public interface AuthHandler extends Handler<RoutingContext> {
 
   /**
    * Add a required authority for this auth handler
-   *
+   * @deprecated this functionality is now handled by the new {@link io.vertx.ext.auth.AuthorizationProvider} 
+   * 
    * @param authority  the authority
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
+  @Deprecated
   AuthHandler addAuthority(String authority);
 
   /**
    * Add a set of required authorities for this auth handler
+   * @deprecated this functionality is now handled by the new {@link io.vertx.ext.auth.AuthorizationProvider} 
    *
    * @param authorities  the set of authorities
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
+  @Deprecated
   AuthHandler addAuthorities(Set<String> authorities);
 
   /**
@@ -82,18 +86,22 @@ public interface AuthHandler extends Handler<RoutingContext> {
 
   /**
    * Authorizes the given user against all added authorities.
+   * @deprecated this functionality is now handled by the new {@link io.vertx.ext.auth.AuthorizationProvider} 
    *
    * @param user a user.
    * @param handler the handler for the result.
    */
+  @Deprecated
   void authorize(User user, Handler<AsyncResult<Void>> handler);
 
   /**
    * @see AuthHandler#authorize(User, Handler)
+   * @deprecated this functionality is now handled by the new {@link io.vertx.ext.auth.AuthorizationProvider} 
    *
    * @param user a user.
    * @return future for the result.
    */
+  @Deprecated
   default Future<Void> authorize(User user) {
     Promise<Void> promise = Promise.promise();
     authorize(user, promise);
