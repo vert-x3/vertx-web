@@ -37,14 +37,16 @@ import java.util.Set;
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
+ * @deprecated New users should use {@link AuthenticationHandler}
  */
 @VertxGen(concrete = false)
-public interface AuthHandler extends Handler<RoutingContext> {
+@Deprecated
+public interface AuthHandler extends AuthenticationHandler {
 
   /**
    * Add a required authority for this auth handler
-   * @deprecated this functionality is now handled by the new {@link io.vertx.ext.auth.AuthorizationProvider} 
-   * 
+   * @deprecated this functionality is now handled by the new {@link io.vertx.ext.auth.authorization.AuthorizationProvider}
+   *
    * @param authority  the authority
    * @return a reference to this, so the API can be used fluently
    */
@@ -54,7 +56,7 @@ public interface AuthHandler extends Handler<RoutingContext> {
 
   /**
    * Add a set of required authorities for this auth handler
-   * @deprecated this functionality is now handled by the new {@link io.vertx.ext.auth.AuthorizationProvider} 
+   * @deprecated this functionality is now handled by the new {@link io.vertx.ext.auth.authorization.AuthorizationProvider}
    *
    * @param authorities  the set of authorities
    * @return a reference to this, so the API can be used fluently
@@ -64,29 +66,8 @@ public interface AuthHandler extends Handler<RoutingContext> {
   AuthHandler addAuthorities(Set<String> authorities);
 
   /**
-   * Parses the credentials from the request into a JsonObject. The implementation should
-   * be able to extract the required info for the auth provider in the format the provider
-   * expects.
-   *
-   * @param context the routing context
-   * @param handler the handler to be called once the information is available.
-   */
-  void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler);
-
-  /**
-   * @see AuthHandler#parseCredentials(RoutingContext, Handler)
-   * @param context the routing context
-   * @return Future json
-   */
-  default Future<JsonObject> parseCredentials(RoutingContext context) {
-    Promise<JsonObject> promise = Promise.promise();
-    parseCredentials(context, promise);
-    return promise.future();
-  }
-
-  /**
    * Authorizes the given user against all added authorities.
-   * @deprecated this functionality is now handled by the new {@link io.vertx.ext.auth.AuthorizationProvider} 
+   * @deprecated this functionality is now handled by the new {@link io.vertx.ext.auth.authorization.AuthorizationProvider}
    *
    * @param user a user.
    * @param handler the handler for the result.
@@ -96,7 +77,7 @@ public interface AuthHandler extends Handler<RoutingContext> {
 
   /**
    * @see AuthHandler#authorize(User, Handler)
-   * @deprecated this functionality is now handled by the new {@link io.vertx.ext.auth.AuthorizationProvider} 
+   * @deprecated this functionality is now handled by the new {@link io.vertx.ext.auth.authorization.AuthorizationProvider}
    *
    * @param user a user.
    * @return future for the result.
