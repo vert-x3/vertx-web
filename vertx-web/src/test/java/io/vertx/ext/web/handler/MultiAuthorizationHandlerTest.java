@@ -1,14 +1,20 @@
 package io.vertx.ext.web.handler;
 
+import java.util.HashSet;
 import java.util.Set;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authorization.Authorization;
 import org.junit.Before;
 import org.junit.Test;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.AuthorizationProvider;
-import io.vertx.ext.auth.RoleBasedAuthorization;
+import io.vertx.ext.auth.authorization.AuthorizationProvider;
+import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.jwt.JWTOptions;
@@ -82,7 +88,7 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     router.route("/protected/*")
         .handler(
             AuthorizationHandler.create(RoleBasedAuthorization.create("role1"))
-            .addAuthorizationProvider(AuthorizationProvider.create("authzProvider1", Set.of(RoleBasedAuthorization.create("role1"))))
+            .addAuthorizationProvider(createProvider("authzProvider1", RoleBasedAuthorization.create("role1")))
         );
 
     router.route("/protected/page1").handler(rc -> {
@@ -109,9 +115,9 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     router.route("/protected/*")
         .handler(
             AuthorizationHandler.create(RoleBasedAuthorization.create("role3"))
-            .addAuthorizationProvider(AuthorizationProvider.create("authzProvider1", Set.of(RoleBasedAuthorization.create("role1"))))
-            .addAuthorizationProvider(AuthorizationProvider.create("authzProvider2", Set.of(RoleBasedAuthorization.create("role2"))))
-            .addAuthorizationProvider(AuthorizationProvider.create("authzProvider3", Set.of(RoleBasedAuthorization.create("role3"))))
+            .addAuthorizationProvider(createProvider("authzProvider1", RoleBasedAuthorization.create("role1")))
+            .addAuthorizationProvider(createProvider("authzProvider2", RoleBasedAuthorization.create("role2")))
+            .addAuthorizationProvider(createProvider("authzProvider3", RoleBasedAuthorization.create("role3")))
         );
 
     router.route("/protected/page1").handler(rc -> {
@@ -133,14 +139,14 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     // authentication via jwt
     // 3 authorization providers are registered
     // an authorization is required on the path
-    // => the test should fail since no authorization providers provide the correct authorization 
+    // => the test should fail since no authorization providers provide the correct authorization
     router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
     router.route("/protected/*")
         .handler(
             AuthorizationHandler.create(RoleBasedAuthorization.create("role4"))
-            .addAuthorizationProvider(AuthorizationProvider.create("authzProvider1", Set.of(RoleBasedAuthorization.create("role1"))))
-            .addAuthorizationProvider(AuthorizationProvider.create("authzProvider2", Set.of(RoleBasedAuthorization.create("role2"))))
-            .addAuthorizationProvider(AuthorizationProvider.create("authzProvider3", Set.of(RoleBasedAuthorization.create("role3"))))
+            .addAuthorizationProvider(createProvider("authzProvider1", RoleBasedAuthorization.create("role1")))
+            .addAuthorizationProvider(createProvider("authzProvider2", RoleBasedAuthorization.create("role2")))
+            .addAuthorizationProvider(createProvider("authzProvider3", RoleBasedAuthorization.create("role3")))
         );
 
     router.route("/protected/page1").handler(rc -> {
@@ -156,4 +162,20 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
         403, "Forbidden", "Forbidden");
   }
 
+  private AuthorizationProvider createProvider(String id, Authorization authorization) {
+    Set<Authorization> _authorizations = new HashSet<>();
+    _authorizations.add(authorization);
+    return new AuthorizationProvider() {
+
+      @Override
+      public String getId() {
+        return id;
+      }
+
+      @Override
+      public void getAuthorizations(User user, Handler<AsyncResult<Set<Authorization>>> handler) {
+        handler.handle(Future.succeededFuture(new HashSet<>(_authorizations)));
+      }
+    };
+  }
 }
