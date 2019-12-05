@@ -138,7 +138,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
         }
       } else {
         // attempt to decode the token and handle it as a user
-        ((OAuth2Auth) authProvider).decodeToken(token, decodeToken -> {
+        authProvider.authenticate(new JsonObject().put("access_token", token).put("token_type", "Bearer"), decodeToken -> {
           if (decodeToken.failed()) {
             handler.handle(Future.failedFuture(new HttpStatusException(401, decodeToken.cause().getMessage())));
             return;
