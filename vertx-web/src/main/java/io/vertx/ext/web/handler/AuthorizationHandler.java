@@ -70,6 +70,6 @@ public interface AuthorizationHandler extends Handler<RoutingContext> {
    * @return fluent self.
    */
   @Fluent
-  @GenIgnore(PERMITTED_TYPE)
+  @GenIgnore
   AuthorizationHandler variableConsumer(BiConsumer<RoutingContext, AuthorizationContext> handler);
 }
