@@ -22,7 +22,6 @@ import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
-import java.text.DateFormat;
 import java.util.*;
 
 /**

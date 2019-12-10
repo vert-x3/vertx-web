@@ -142,7 +142,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
       JsonObject obj = new JsonObject(jsonString);
       testRequestWithJSON(HttpMethod.POST, uri, obj.toBuffer(), 200, "OK", obj.toBuffer());
     }
-  };
+  }
 
   private void assertRequestOk(String uri, String jsonNameRequest, String jsonNameResponse) throws Exception {
     String jsonStringRequest = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonNameRequest), StandardCharsets.UTF_8));
@@ -150,7 +150,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     String jsonStringResponse = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonNameResponse), StandardCharsets.UTF_8));
     JsonObject objResponse = new JsonObject(jsonStringResponse);
     testRequestWithJSON(HttpMethod.POST, uri, objRequest.toBuffer(), 200, "OK", objResponse.toBuffer());
-  };
+  }
 
   private void assertRequestFail(String uri, String jsonName) throws Exception {
     String jsonString = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonName), StandardCharsets.UTF_8));
@@ -160,7 +160,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     } else {
       testRequestWithJSON(HttpMethod.POST, uri, new JsonObject(jsonString).toBuffer(), 400, "ValidationException");
     }
-  };
+  }
 
   @Test
   public void test1() throws Exception {

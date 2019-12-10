@@ -6,7 +6,6 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Filter;
 
 @DataObject(generateConverter = true, publicConverter = false)
 public class FilterData {

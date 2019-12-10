@@ -1,7 +1,6 @@
 package io.vertx.ext.web.api.contract.openapi3.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.networknt.schema.SchemaValidatorsConfig;
@@ -316,7 +315,7 @@ public class OpenApi3Utils {
   }
 
   public static String sanitizeOperationId(String operationId) {
-    StringBuffer result = new StringBuffer();
+    StringBuilder result = new StringBuilder();
     for (int i = 0; i < operationId.length(); i++) {
       char c = operationId.charAt(i);
       if (c == '-' || c == ' ' || c == '_') {

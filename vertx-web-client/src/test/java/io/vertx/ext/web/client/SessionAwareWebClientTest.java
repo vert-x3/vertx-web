@@ -54,7 +54,7 @@ import io.vertx.ext.web.multipart.MultipartForm;
 @RunWith(VertxUnitRunner.class)
 public class SessionAwareWebClientTest {
   private static final int PORT = 8080;
-  
+
   private WebClient plainWebClient;
   private WebClientSession client;
   private Vertx vertx;
@@ -68,7 +68,7 @@ public class SessionAwareWebClientTest {
     client = buildClient(plainWebClient, CookieStore.build());
     server = vertx.createHttpServer(new HttpServerOptions().setPort(PORT).setHost("0.0.0.0"));
   }
-  
+
   private WebClient buildPlainWebClient() {
     HttpClient vc = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(PORT).setDefaultHost("localhost"));
     return WebClient.wrap(vc);
@@ -96,7 +96,7 @@ public class SessionAwareWebClientTest {
     server.listen(context.asyncAssertSuccess(s -> async.complete()));
     async.awaitSuccess(15000);
   }
-  
+
   private Cookie getCookieValue(HttpServerRequest req, String name) {
     List<String> cookies = req.headers().getAll("cookie");
     for (String h : cookies) {
@@ -196,7 +196,7 @@ public class SessionAwareWebClientTest {
   public void testSessionHeaders(TestContext context) {
     String headerName = "x-client-header";
     String headerVal = "MY-HEADER";
-    
+
     prepareServer(context, req -> {
       req.response().setChunked(true);
       if (headerVal.equals(req.getHeader(headerName))) {
@@ -205,7 +205,7 @@ public class SessionAwareWebClientTest {
         req.response().write("ERR");
       }
     });
-    
+
     Async async = context.async();
     client.addHeader(headerName, headerVal);
     client.get("/").send(ar -> {
@@ -215,7 +215,7 @@ public class SessionAwareWebClientTest {
       context.assertEquals("OK", res.bodyAsString());
       async.complete();
     });
-    
+
   }
 
   @Test
@@ -243,14 +243,14 @@ public class SessionAwareWebClientTest {
     Async async = context.async(clients.length);
     for (WebClientSession client : clients) {
       HttpRequest<Buffer> req = client.get(PORT, "localhost", "/index.html");
-  
+
       Async waiter = context.async();
       req.send(ar -> {
         context.assertTrue(ar.succeeded());
         waiter.complete();
       });
       waiter.await();
-  
+
       req.send(ar -> {
         context.assertTrue(ar.succeeded());
         HttpResponse<Buffer> res = ar.result();
@@ -259,9 +259,9 @@ public class SessionAwareWebClientTest {
         async.countDown();
       });
     }
-    
+
     async.await();
-    
+
     cnt.set(0);
     for (WebClientSession client : clients) {
       Iterable<Cookie> cookies = client.cookieStore().get(false, "localhost", "/");
@@ -271,7 +271,7 @@ public class SessionAwareWebClientTest {
         context.assertEquals("" + cnt.getAndIncrement(), c.value());
         i++;
       }
-      
+
       context.assertEquals(i, 1);
     }
   }
@@ -302,7 +302,7 @@ public class SessionAwareWebClientTest {
     for (int i = 0; i < 3; i++) {
       req.putHeader(headerPrefix + i, String.valueOf(i));
     }
-    
+
     Async async = context.async();
     req.send(ar -> {
       context.assertTrue(ar.succeeded());
@@ -310,14 +310,14 @@ public class SessionAwareWebClientTest {
       async.complete();
     });
   }
-  
+
   @Test
   public void testHeadersAndCookies(TestContext context) {
     String headerName = "x-toolkit";
     String headerValue = "vert.x";
     String cookieName = "JSESSIONID";
     String cookieValue = "123";
-    
+
     prepareServer(context, req -> {
       if (!headerValue.equals(req.getHeader(headerName))) {
         req.response().setStatusCode(500);
@@ -346,7 +346,7 @@ public class SessionAwareWebClientTest {
       });
       async.await();
     }
-    
+
     req.queryParams().clear();
     Async async = context.async();
     req.send(ar -> {
@@ -355,7 +355,7 @@ public class SessionAwareWebClientTest {
       async.complete();
     });
   }
-  
+
   @Test
   public void testRequestIsPrepared(TestContext context) {
     prepareServer(context, req -> {
@@ -405,7 +405,7 @@ public class SessionAwareWebClientTest {
     check.accept(client.request(HttpMethod.GET, PORT, "localhost", "/"));
     check.accept(client.requestAbs(HttpMethod.GET, "http://localhost/"));
   }
-  
+
   @Test
   public void testSendRequest(TestContext context) throws IOException {
     AtomicInteger count = new AtomicInteger(0);
@@ -416,12 +416,12 @@ public class SessionAwareWebClientTest {
         return super.put(cookie);
       }
     });
-    
+
     String encodedCookie = ServerCookieEncoder.STRICT.encode(new DefaultCookie("a", "1"));
     prepareServer(context, req -> {
       req.response().headers().add("set-cookie", encodedCookie);
     });
-    
+
     int expected = 7;
     Async async = context.async(expected);
     Handler<AsyncResult<HttpResponse<Buffer>>> handler = ar -> { async.countDown(); };
@@ -432,63 +432,63 @@ public class SessionAwareWebClientTest {
     req.sendJson("", handler);
     req.sendJsonObject(new JsonObject(), handler);
     req.sendMultipartForm(MultipartForm.create().attribute("a", "b"), handler);
-    
+
     File f = File.createTempFile("vertx", ".tmp");
     f.deleteOnExit();
     AsyncFile asyncFile = vertx.fileSystem().openBlocking(f.getAbsolutePath(), new OpenOptions());
     req.sendStream(asyncFile, handler);
-    
+
     async.await();
     asyncFile.close();
-    
+
     context.assertEquals(expected, count.get());
   }
 
   @Test
   public void testMultipleVerticles(TestContext testContext) {
     String cookieName = "a";
-    
+
     prepareServer(testContext, req -> {
       req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie(cookieName, req.toString())));
     });
-    
+
     int numVerticles = 4;
     int runs = 10;
     Async async = testContext.async(numVerticles * runs);
-    
+
     String host = "localhost";
     String uri = "/";
-    
+
     Verticle v = new AbstractVerticle() {
       @Override
       public void start() throws Exception {
         vertx.eventBus().consumer("test", m -> {
           client.get(host, uri).send(ar -> {
             testContext.assertTrue(ar.succeeded());
-            async.countDown();            
+            async.countDown();
           });
         });
       }
     };
-    
+
     Async asyncDeploy = testContext.async(numVerticles);
     for (int i = 0; i < numVerticles; i++) {
       vertx.deployVerticle(v, ar -> { asyncDeploy.countDown(); });
     }
     asyncDeploy.await();
-    
+
     for (int i = 0; i < runs; i++) {
       vertx.eventBus().publish("test", "");
     }
-    
+
     async.await();
-    
+
     Async asyncEnd = testContext.async();
     vertx.undeploy(v.getClass().getName(), ar -> {
       asyncEnd.complete();
     });
     asyncEnd.await();
-    
+
     int i = 0;
     Iterable<Cookie> all = client.cookieStore().get(false, host, uri);
     for (Cookie c : all) {
@@ -497,7 +497,7 @@ public class SessionAwareWebClientTest {
     }
     assertEquals(1, i);
   }
-  
+
   @Test
   public void testCookieStore(TestContext context) {
     CookieStore store = CookieStore.build();
@@ -536,14 +536,14 @@ public class SessionAwareWebClientTest {
     validate(context, store.get(false, "www.vertx.io", "/"), new String[] { "a", "b" }, new String[] { "1", "20"} );
     validate(context, store.get(false, "a.www.vertx.io", "/"),  new String[] { "a", "b" }, new String[] { "1", "20"});
     validate(context, store.get(false, "test.vertx.io", "/"), new String[] { "a", "b" }, new String[] { "1", "2" });
-    validate(context, store.get(false, "www.vertx.io", "/web-client"), 
-        new String[] { "a", "b", "c", "d" }, 
+    validate(context, store.get(false, "www.vertx.io", "/web-client"),
+        new String[] { "a", "b", "c", "d" },
         new String[] { "1", "200", "3", "4" });
-    validate(context, store.get(true, "test.vertx.io", "/"), 
-        new String[] { "a", "b", "e" }, 
+    validate(context, store.get(true, "test.vertx.io", "/"),
+        new String[] { "a", "b", "e" },
         new String[] { "1", "2", "5" });
   }
-  
+
   @Test
   public void testCookieStoreIsFluent(TestContext context) {
     CookieStore store = CookieStore.build();
@@ -592,16 +592,14 @@ public class SessionAwareWebClientTest {
         }
       }
     }
-    
+
     assertArrayEquals(context, expectedNames, foundNames.toArray());
     if (expectedVals != null) {
       assertArrayEquals(context, expectedVals, foundVals.toArray());
     }
-    
+
     int count = 0;
-    Iterator<Cookie> iter = cookies.iterator();
-    while (iter.hasNext()) {
-      iter.next();
+    for (Cookie cookie : cookies) {
       count++;
     }
     assertEquals(expectedNames.length, count);

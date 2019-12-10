@@ -47,7 +47,7 @@ class SecurityHandlersStore {
       SecurityRequirementKey that = (SecurityRequirementKey) o;
 
       if (!name.equals(that.name)) return false;
-      return oauth2Scope != null ? oauth2Scope.equals(that.oauth2Scope) : that.oauth2Scope == null;
+      return Objects.equals(oauth2Scope, that.oauth2Scope);
     }
 
     @Override

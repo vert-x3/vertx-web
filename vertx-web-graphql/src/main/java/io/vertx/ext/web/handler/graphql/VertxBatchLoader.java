@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.handler.graphql;
 
-import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import org.dataloader.BatchLoaderEnvironment;
 import org.dataloader.BatchLoaderWithContext;

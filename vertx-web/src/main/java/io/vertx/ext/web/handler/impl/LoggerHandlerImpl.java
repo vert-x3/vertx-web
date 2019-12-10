@@ -28,9 +28,6 @@ import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.Utils;
 
-import java.text.DateFormat;
-import java.util.Date;
-
 /** # Logger
  *
  * Logger for request. There are 3 formats included:

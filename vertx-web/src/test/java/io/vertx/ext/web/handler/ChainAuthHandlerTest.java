@@ -1,7 +1,7 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
@@ -9,24 +9,22 @@ import org.junit.Test;
 
 public class ChainAuthHandlerTest extends WebTestBase {
 
-  private AuthHandler redirectAuthHandler;
-
+  private AuthenticationHandler redirectAuthHandler;
+  private AuthenticationProvider authProvider;
   protected ChainAuthHandler chain;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
 
-    AuthProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
+    authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
     // create a chain
-    chain = ChainAuthHandler.create();
-
-    chain
-      .append(JWTAuthHandler.create(null))
-      .append(BasicAuthHandler.create(authProvider))
-      .append(redirectAuthHandler);
+    chain = ChainAuthHandler.create()
+      .add(JWTAuthHandler.create(null))
+      .add(BasicAuthHandler.create(authProvider))
+      .add(redirectAuthHandler);
 
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
     router.route().handler(chain);
@@ -55,8 +53,17 @@ public class ChainAuthHandlerTest extends WebTestBase {
   @Test
   public void testWithBasicAuthAsLastHandlerInChain() throws Exception {
     // after removing the RedirectAuthHandler, we check if the chain correctly returns the WWW-Authenticate Header, since now the BasicAuthHandler is the last handler in the chain
-    chain.remove(redirectAuthHandler);
+    router.clear();
+
+    // create a chain
+    chain = ChainAuthHandler.create()
+      .add(JWTAuthHandler.create(null))
+      .add(BasicAuthHandler.create(authProvider));
+
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+    router.route().handler(chain);
+    router.route().handler(ctx -> ctx.response().end());
+
     testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="), resp -> assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWW-Authenticate")),401, "Unauthorized", "Unauthorized");
-    chain.append(redirectAuthHandler); // given we cannot guarantee test order, we append the redirectAuthHandler again
   }
 }

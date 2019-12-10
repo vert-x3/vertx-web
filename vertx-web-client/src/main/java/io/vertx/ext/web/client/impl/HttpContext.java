@@ -383,7 +383,7 @@ public class HttpContext<T> {
           if (ar2.succeeded()) {
             stream.result().setHandler(ar3 -> {
               if (ar3.succeeded()) {
-                promise.complete(new HttpResponseImpl<T>(
+                promise.complete(new HttpResponseImpl<>(
                   resp.version(),
                   resp.statusCode(),
                   resp.statusMessage(),

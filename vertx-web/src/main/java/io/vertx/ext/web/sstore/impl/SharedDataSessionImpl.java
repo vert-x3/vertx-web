@@ -26,6 +26,7 @@ import io.vertx.ext.web.sstore.AbstractSession;
 
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SharedDataSessionImpl extends AbstractSession implements ClusterSerializable, Shareable {
 
-  private static final Charset UTF8 = Charset.forName("UTF-8");
+  private static final Charset UTF8 = StandardCharsets.UTF_8;
 
   private static final byte TYPE_LONG = 1;
   private static final byte TYPE_INT = 2;

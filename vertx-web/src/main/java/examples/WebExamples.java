@@ -1,12 +1,8 @@
 package examples;
 
-import io.vertx.codegen.annotations.CacheReturn;
-import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
-import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
@@ -28,17 +24,12 @@ import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.handler.sockjs.BridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
-import io.vertx.ext.web.impl.ParsableMIMEValue;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Set;
-
-import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
 /**
  * These are the examples used in the documentation.
@@ -740,14 +731,14 @@ public class WebExamples {
 
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-    AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
+    AuthenticationHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
   }
 
   public void example38(Vertx vertx, AuthProvider authProvider, Router router) {
 
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).setAuthProvider(authProvider));
 
-    AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
+    AuthenticationHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
     // All requests to paths starting with '/private/' will be protected
     router.route("/private/*").handler(basicAuthHandler);
@@ -770,9 +761,9 @@ public class WebExamples {
 
   public void example39(Vertx vertx, AuthProvider authProvider, Router router) {
 
-    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).setAuthProvider(authProvider));
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-    AuthHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
+    AuthenticationHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
     // All requests to paths starting with '/private/' will be protected
     router.route("/private/*").handler(redirectAuthHandler);
@@ -968,7 +959,7 @@ public class WebExamples {
 
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-    AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
+    AuthenticationHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
     router.route("/eventbus/*").handler(basicAuthHandler);
 
@@ -1361,9 +1352,9 @@ public class WebExamples {
     ChainAuthHandler chain = ChainAuthHandler.create();
 
     // add http basic auth handler to the chain
-    chain.append(BasicAuthHandler.create(provider));
+    chain.add(BasicAuthHandler.create(provider));
     // add form redirect auth handler to the chain
-    chain.append(RedirectAuthHandler.create(provider));
+    chain.add(RedirectAuthHandler.create(provider));
 
     // secure your route
     router.route("/secure/resource").handler(chain);

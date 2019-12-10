@@ -25,7 +25,7 @@ import io.vertx.ext.web.handler.impl.ChainAuthHandlerImpl;
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface ChainAuthHandler extends AuthHandler {
+public interface ChainAuthHandler extends AuthenticationHandler {
 
   static ChainAuthHandler create() {
     return new ChainAuthHandlerImpl();
@@ -39,18 +39,5 @@ public interface ChainAuthHandler extends AuthHandler {
    *
    */
   @Fluent
-  ChainAuthHandler append(AuthHandler authHandler);
-
-  /**
-   * Removes a provider from the chain.
-   *
-   * @param authHandler provider to remove
-   * @return true if provider was removed, false if non existent in the chain.
-   */
-  boolean remove(AuthHandler authHandler);
-
-  /**
-   * Clears the chain.
-   */
-  void clear();
+  ChainAuthHandler add(AuthenticationHandler authHandler);
 }

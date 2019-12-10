@@ -25,12 +25,12 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.impl.ClusterSerializable;
 import io.vertx.ext.auth.PRNG;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
-import io.vertx.ext.auth.AuthProvider;
 import org.junit.Test;
 
 import java.util.Map;
@@ -61,7 +61,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       rc.response().end("Welcome to the protected resource!");
     };
 
-    AuthProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
+    AuthenticationProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     router.route("/protected/*").handler(BasicAuthHandler.create(authProvider, realm));
 
     router.route("/protected/somepage").handler(handler);
@@ -85,8 +85,8 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     router.route().handler(BodyHandler.create());
     SessionStore store = new SerializingSessionStore();
 
-    AuthProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
-    router.route().handler(SessionHandler.create(store).setAuthProvider(authProvider));
+    AuthenticationProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
+    router.route().handler(SessionHandler.create(store));
     router.route("/protected/*").handler(BasicAuthHandler.create(authProvider));
 
     AtomicReference<String> sessionID = new AtomicReference<>();
@@ -165,7 +165,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       rc.response().end("Welcome to the protected resource!");
     };
 
-    AuthProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
+    AuthenticationProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     router.route("/protected/*").handler(BasicAuthHandler.create(authProvider));
 
     router.route("/protected/somepage").handler(handler);
@@ -187,7 +187,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
   }
 
   @Override
-  protected AuthHandler createAuthHandler(AuthProvider authProvider) {
+  protected AuthenticationHandler createAuthHandler(AuthenticationProvider authProvider) {
     return BasicAuthHandler.create(authProvider);
   }
 
@@ -269,7 +269,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       rc.response().end("Welcome to the protected resource!");
     };
 
-    AuthProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
+    AuthenticationProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     router.route().pathRegex("/api/.*").handler(BasicAuthHandler.create(authProvider));
 
     router.route("/api/v1/standard-job-profiles").handler(handler);

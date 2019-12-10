@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.AuthHandlerImpl;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
@@ -32,11 +33,11 @@ import static org.mockito.Mockito.*;
 public class CustomAuthHandlerTest extends AuthHandlerTestBase {
 
   @Override
-  protected AuthHandler createAuthHandler(AuthProvider authProvider) {
+  protected AuthenticationHandler createAuthHandler(AuthenticationProvider authProvider) {
     return newAuthHandler(authProvider, null);
   }
 
-  private AuthHandler newAuthHandler(AuthProvider authProvider, Handler<Throwable> exceptionProcessor) {
+  private AuthenticationHandler newAuthHandler(AuthenticationProvider authProvider, Handler<Throwable> exceptionProcessor) {
     return new AuthHandlerImpl(authProvider) {
 
       @Override
@@ -73,7 +74,7 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
 
     router.route("/protected/*").handler(newAuthHandler(authProvider, exception -> {
       assertTrue(exception instanceof HttpStatusException);
-      assertEquals(rootCause, ((HttpStatusException) exception).getCause());
+      assertEquals(rootCause, exception.getCause());
     }));
 
     router.route("/protected/somepage").handler(handler);

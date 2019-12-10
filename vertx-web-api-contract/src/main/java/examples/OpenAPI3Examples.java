@@ -1,8 +1,6 @@
 package examples;
 
-import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.parser.core.models.AuthorizationValue;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;

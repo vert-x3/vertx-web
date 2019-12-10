@@ -104,7 +104,7 @@ public interface SessionHandler extends Handler<RoutingContext> {
 	/**
 	 * Set whether a nagging log warning should be written if the session handler is
 	 * accessed over HTTP, not HTTPS
-	 * 
+	 *
 	 * @param nag true to nag
 	 * @return a reference to this, so the API can be used fluently
 	 */
@@ -166,7 +166,9 @@ public interface SessionHandler extends Handler<RoutingContext> {
    *
    * @param authProvider any auth provider.
    * @return a reference to this, so the API can be used fluently
+   * @deprecated this method has no effect
    */
 	@Fluent
+  @Deprecated
   SessionHandler setAuthProvider(AuthProvider authProvider);
 }

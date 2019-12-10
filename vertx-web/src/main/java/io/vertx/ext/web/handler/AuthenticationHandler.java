@@ -24,8 +24,6 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
-import java.util.Set;
-
 /**
  * Base interface for auth handlers.
  * <p>

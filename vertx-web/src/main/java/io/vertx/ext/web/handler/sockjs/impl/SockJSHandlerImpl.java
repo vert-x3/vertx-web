@@ -40,6 +40,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
+import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.BridgeEvent;
@@ -93,13 +94,8 @@ public class SockJSHandlerImpl implements SockJSHandler {
   }
 
   @Override
-  public Router bridge(BridgeOptions bridgeOptions) {
-    return bridge(bridgeOptions, null);
-  }
-
-  @Override
-  public Router bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
-    return socketHandler(new EventBusBridgeImpl(vertx, bridgeOptions, bridgeEventHandler));
+  public Router bridge(AuthorizationProvider authorizationProvider, BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
+    return socketHandler(new EventBusBridgeImpl(vertx, authorizationProvider, bridgeOptions, bridgeEventHandler));
   }
 
   @Override

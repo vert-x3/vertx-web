@@ -1,6 +1,5 @@
 package io.vertx.ext.web.api.generator.impl.model;
 
-import io.vertx.codegen.MethodKind;
 import io.vertx.codegen.ParamInfo;
 import io.vertx.codegen.TypeParamInfo;
 import io.vertx.codegen.doc.Doc;

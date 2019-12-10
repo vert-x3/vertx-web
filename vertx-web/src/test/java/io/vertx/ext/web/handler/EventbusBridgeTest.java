@@ -21,8 +21,9 @@ import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.WebSocketBase;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
+import io.vertx.ext.auth.properties.PropertyFileAuthorization;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
@@ -1065,11 +1066,11 @@ public class EventbusBridgeTest extends WebTestBase {
 
   @Test
   public void testSendRequiresAuthorityHasAuthority() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredAuthority("bang_sticks")));
+    sockJSHandler.bridge(PropertyFileAuthorization.create(vertx, "login/loginusers.properties"), defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredAuthority("bang_sticks")), null);
     router.clear();
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
-    AuthProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
+    AuthenticationProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     addLoginHandler(router, authProvider);
     router.route("/eventbus/*").handler(sockJSHandler);
     testSend("foo");
@@ -1081,14 +1082,13 @@ public class EventbusBridgeTest extends WebTestBase {
     router.clear();
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
-    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
+    AuthenticationProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     addLoginHandler(router, authProvider);
     router.route("/eventbus/*").handler(sockJSHandler);
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "access_denied");
   }
 
-  private void addLoginHandler(Router router, AuthProvider authProvider) {
+  private void addLoginHandler(Router router, AuthenticationProvider authProvider) {
     router.route("/eventbus/*").handler(rc -> {
       // we need to be logged in
       if (rc.user() == null) {

@@ -19,7 +19,6 @@ package io.vertx.ext.web.handler;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.handler.impl.BasicAuthHandlerImpl;
-import io.vertx.ext.auth.AuthProvider;
 
 /**
  * An auth handler that provides HTTP Basic Authentication support.
@@ -40,7 +39,7 @@ public interface BasicAuthHandler extends AuthHandler {
    * @param authProvider  the auth provider to use
    * @return the auth handler
    */
-  static AuthHandler create(AuthenticationProvider authProvider) {
+  static BasicAuthHandler create(AuthenticationProvider authProvider) {
     return new BasicAuthHandlerImpl(authProvider, DEFAULT_REALM);
   }
 
@@ -51,7 +50,7 @@ public interface BasicAuthHandler extends AuthHandler {
    * @param realm  the realm to use
    * @return the auth handler
    */
-  static AuthHandler create(AuthenticationProvider authProvider, String realm) {
+  static BasicAuthHandler create(AuthenticationProvider authProvider, String realm) {
     return new BasicAuthHandlerImpl(authProvider, realm);
   }
 }

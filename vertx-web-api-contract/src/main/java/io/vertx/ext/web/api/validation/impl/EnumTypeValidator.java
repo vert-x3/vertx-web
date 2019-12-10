@@ -6,7 +6,6 @@ import io.vertx.ext.web.api.validation.ParameterTypeValidator;
 import io.vertx.ext.web.api.validation.ValidationException;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper

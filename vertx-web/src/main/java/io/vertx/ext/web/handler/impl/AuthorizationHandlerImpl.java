@@ -61,7 +61,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
 
   @Override
   public AuthorizationHandler variableConsumer(BiConsumer<RoutingContext, AuthorizationContext> handler) {
-    this.variableHandler = variableHandler;
+    this.variableHandler = handler;
     return this;
   }
 
@@ -94,9 +94,6 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
           if (authorizationResult.failed()) {
             LOG.warn("An error occured getting authorization - providerId: " + provider.getId(), authorizationResult.cause());
             // note that we don't 'record' the fact that we tried to fetch the authorization provider. therefore it will be re-fetched later-on
-          }
-          else {
-            routingContext.user().authorizations().add(provider.getId(), authorizationResult.result());
           }
           checkOrFetchAuthorizations(routingContext, authorizationContext, providers);
         });

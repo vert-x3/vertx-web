@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.handler;
 
-import io.vertx.core.Handler;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.net.PemKeyCertOptions;

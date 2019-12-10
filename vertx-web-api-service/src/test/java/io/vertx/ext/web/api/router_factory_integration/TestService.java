@@ -7,7 +7,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.OperationRequest;
 import io.vertx.ext.web.api.OperationResponse;
-import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.generator.WebApiServiceGen;
 
 @WebApiServiceGen

@@ -173,8 +173,9 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       }
 
       @Override
-      public void getAuthorizations(User user, Handler<AsyncResult<Set<Authorization>>> handler) {
-        handler.handle(Future.succeededFuture(new HashSet<>(_authorizations)));
+      public void getAuthorizations(User user, Handler<AsyncResult<Void>> handler) {
+        user.authorizations().add(getId(), _authorizations);
+        handler.handle(Future.succeededFuture());
       }
     };
   }

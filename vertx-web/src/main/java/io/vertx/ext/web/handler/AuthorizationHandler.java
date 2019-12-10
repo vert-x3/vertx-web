@@ -24,8 +24,6 @@ import io.vertx.ext.web.handler.impl.AuthorizationHandlerImpl;
 
 import java.util.function.BiConsumer;
 
-import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
-
 /**
  * Base interface for authorization handlers that provide authorization support.
  * <p>

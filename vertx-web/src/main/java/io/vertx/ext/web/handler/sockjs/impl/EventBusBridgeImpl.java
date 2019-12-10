@@ -41,6 +41,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authorization.Authorization;
+import io.vertx.ext.auth.authorization.AuthorizationProvider;
+import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Session;
@@ -75,10 +78,12 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   private final Map<String, Message> messagesAwaitingReply = new HashMap<>();
   private final Map<String, Pattern> compiledREs = new HashMap<>();
   private final Handler<BridgeEvent> bridgeEventHandler;
+  private final AuthorizationProvider authzProvider;
 
-  public EventBusBridgeImpl(Vertx vertx, BridgeOptions options, Handler<BridgeEvent> bridgeEventHandler) {
+  public EventBusBridgeImpl(Vertx vertx, AuthorizationProvider authzProvider, BridgeOptions options, Handler<BridgeEvent> bridgeEventHandler) {
     this.vertx = vertx;
     this.eb = vertx.eventBus();
+    this.authzProvider = authzProvider;
     this.inboundPermitted = options.getInboundPermitteds() == null ? new ArrayList<>() : options.getInboundPermitteds();
     this.outboundPermitted = options.getOutboundPermitteds() == null ? new ArrayList<>() : options.getOutboundPermitteds();
     this.maxAddressLength = options.getMaxAddressLength();
@@ -500,18 +505,31 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
   }
 
-  private void authorise(Match curMatch, User webUser,
-                         Handler<AsyncResult<Boolean>> handler) {
-
-    if (curMatch.requiredAuthority != null) {
-      webUser.isAuthorized(curMatch.requiredAuthority, res -> {
-        if (res.succeeded()) {
-          handler.handle(Future.succeededFuture(res.result()));
-        } else {
-          log.error(res.cause());
-        }
-      });
+  private void authorise(Match curMatch, User webUser, Handler<AsyncResult<Boolean>> handler) {
+    // step 1: match against the raw user, if a AuthZ handler is in the path it could have already
+    //         loaded the authorizations
+    if (curMatch.requiredAuthority.match(webUser)) {
+      handler.handle(Future.succeededFuture(true));
+      return;
     }
+
+    if (authzProvider == null) {
+      // can't load, there's no provider
+      handler.handle(Future.succeededFuture(false));
+      return;
+    }
+    // step 2: load authorizations
+    authzProvider.getAuthorizations(webUser, res -> {
+      if (res.succeeded()) {
+        if (curMatch.requiredAuthority.match(webUser)) {
+          handler.handle(Future.succeededFuture(true));
+        } else {
+          handler.handle(Future.succeededFuture(false));
+        }
+      } else {
+        handler.handle(Future.failedFuture(res.cause()));
+      }
+    });
   }
 
   /*
@@ -587,11 +605,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
 
   private static class Match {
     public final boolean doesMatch;
-    public final String requiredAuthority;
+    public final Authorization requiredAuthority;
 
     Match(boolean doesMatch, String requiredAuthority) {
       this.doesMatch = doesMatch;
-      this.requiredAuthority = requiredAuthority;
+      this.requiredAuthority = requiredAuthority == null ? null : PermissionBasedAuthorization.create(requiredAuthority);
     }
 
     Match(boolean doesMatch) {

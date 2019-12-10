@@ -20,8 +20,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -40,7 +39,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
 
   protected AtomicReference<String> sessionCookie = new AtomicReference<>();
   protected FormLoginHandler formLoginHandler;
-  protected AuthProvider authProvider;
+  protected AuthenticationProvider authProvider;
   protected String usernameParam;
   protected String passwordParam;
 
@@ -152,8 +151,8 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   public void testRedirectWithParams() throws Exception {
     router.route().handler(BodyHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
-    router.route().handler(SessionHandler.create(store).setAuthProvider(authProvider));
-    AuthHandler authHandler = RedirectAuthHandler.create(authProvider);
+    router.route().handler(SessionHandler.create(store));
+    AuthenticationHandler authHandler = RedirectAuthHandler.create(authProvider);
 
     router.route("/protected/*").handler(authHandler);
 
@@ -198,7 +197,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   }
 
   @Override
-  protected AuthHandler createAuthHandler(AuthProvider authProvider) {
+  protected AuthenticationHandler createAuthHandler(AuthenticationProvider authProvider) {
     return RedirectAuthHandler.create(authProvider);
   }
 
@@ -234,17 +233,10 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   }
 
   private void doLoginCommon(Handler<RoutingContext> handler) throws Exception {
-    doLoginCommon(handler, null);
-  }
-
-  private void doLoginCommon(Handler<RoutingContext> handler, Set<String> authorities) throws Exception {
     router.route().handler(BodyHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
-    router.route().handler(SessionHandler.create(store).setAuthProvider(authProvider));
-    AuthHandler authHandler = RedirectAuthHandler.create(authProvider);
-    if (authorities != null) {
-      authHandler.addAuthorities(authorities);
-    }
+    router.route().handler(SessionHandler.create(store));
+    AuthenticationHandler authHandler = RedirectAuthHandler.create(authProvider);
     router.route("/protected/*").handler(authHandler);
     router.route("/protected/somepage").handler(handler);
     String loginHTML = createloginHTML();
