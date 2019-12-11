@@ -25,6 +25,8 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 
+import static io.vertx.core.http.HttpHeaders.*;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -164,7 +166,27 @@ public abstract class AuthenticationHandlerImpl implements AuthenticationHandler
         for (String ctrlReq : accessControlRequestHeader.split(",")) {
           if (ctrlReq.equalsIgnoreCase("Authorization")) {
             // this request has auth in access control, so we can allow preflighs without authentication
-            ctx.next();
+
+            // if the CORS handler is in place and already took action all headers should be already be set
+            if (ctx.get(CorsHandlerImpl.CORS_HANDLED_FLAG) == null || !((boolean) ctx.get(CorsHandlerImpl.CORS_HANDLED_FLAG))) {
+              HttpServerRequest req = ctx.request();
+              String origin = req.getHeader(ORIGIN);
+              if (origin == null) {
+                origin = "*";
+              }
+              req.response().headers().set(ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+              if ("*".equals(origin)) {
+                req.response().headers().set(ACCESS_CONTROL_ALLOW_CREDENTIALS, "false");
+              } else {
+                req.response().headers().set(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+              }
+              String hdr = req.headers().get(ACCESS_CONTROL_REQUEST_HEADERS);
+              if (hdr != null) {
+                req.response().headers().set(ACCESS_CONTROL_ALLOW_HEADERS, hdr);
+              }
+            }
+            // according to MDC although the is no body the response should be OK
+            ctx.response().setStatusCode(200).end();
             return true;
           }
         }
