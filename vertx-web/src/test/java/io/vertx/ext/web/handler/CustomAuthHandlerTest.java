@@ -24,7 +24,7 @@ import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.impl.AuthHandlerImpl;
+import io.vertx.ext.web.handler.impl.AuthenticationHandlerImpl;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 import org.junit.Test;
 
@@ -38,7 +38,7 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
   }
 
   private AuthenticationHandler newAuthHandler(AuthenticationProvider authProvider, Handler<Throwable> exceptionProcessor) {
-    return new AuthHandlerImpl(authProvider) {
+    return new AuthenticationHandlerImpl(authProvider) {
 
       @Override
       public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {

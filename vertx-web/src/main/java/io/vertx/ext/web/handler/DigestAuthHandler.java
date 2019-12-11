@@ -27,7 +27,7 @@ import io.vertx.ext.web.handler.impl.DigestAuthHandlerImpl;
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface DigestAuthHandler extends AuthHandler {
+public interface DigestAuthHandler extends AuthenticationHandler {
 
   /**
    * The default nonce expire timeout to use in milliseconds.

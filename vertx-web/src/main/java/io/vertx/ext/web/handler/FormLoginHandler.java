@@ -22,7 +22,6 @@ import io.vertx.core.Handler;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.handler.impl.FormLoginHandlerImpl;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.auth.AuthProvider;
 
 /**
  * Handler that handles login from a form on a custom login page.
@@ -72,7 +71,7 @@ public interface FormLoginHandler extends Handler<RoutingContext> {
    *
    * @return the handler
    */
-  static FormLoginHandler create(AuthProvider authProvider, String usernameParam, String passwordParam,
+  static FormLoginHandler create(AuthenticationProvider authProvider, String usernameParam, String passwordParam,
                                  String returnURLParam, String directLoggedInOKURL) {
     return new FormLoginHandlerImpl(authProvider, usernameParam, passwordParam, returnURLParam, directLoggedInOKURL);
   }

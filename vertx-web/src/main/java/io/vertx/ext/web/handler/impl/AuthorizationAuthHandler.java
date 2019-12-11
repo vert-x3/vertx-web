@@ -28,7 +28,7 @@ import io.vertx.ext.web.RoutingContext;
  *
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-abstract class AuthorizationAuthHandler extends AuthHandlerImpl {
+abstract class AuthorizationAuthHandler extends AuthenticationHandlerImpl {
 
   // this should match the IANA registry: https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
   enum Type {

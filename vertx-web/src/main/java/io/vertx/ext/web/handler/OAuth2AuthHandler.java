@@ -29,7 +29,7 @@ import io.vertx.ext.web.handler.impl.OAuth2AuthHandlerImpl;
  * @author Paulo Lopes
  */
 @VertxGen
-public interface OAuth2AuthHandler extends AuthHandler {
+public interface OAuth2AuthHandler extends AuthenticationHandler {
 
   /**
    * Create a OAuth2 auth handler with host pinning

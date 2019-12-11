@@ -5,15 +5,13 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.AuthHandler;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.ChainAuthHandler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-public class ChainAuthHandlerImpl extends AuthHandlerImpl implements ChainAuthHandler {
+public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl implements ChainAuthHandler {
 
   private final List<AuthenticationHandler> handlers = new ArrayList<>();
 
@@ -24,16 +22,6 @@ public class ChainAuthHandlerImpl extends AuthHandlerImpl implements ChainAuthHa
   @Override
   public ChainAuthHandler add(AuthenticationHandler other) {
     handlers.add(other);
-    return this;
-  }
-
-  @Override
-  public AuthHandler addAuthority(String authority) {
-    return this;
-  }
-
-  @Override
-  public AuthHandler addAuthorities(Set<String> authorities) {
     return this;
   }
 
@@ -73,8 +61,8 @@ public class ChainAuthHandlerImpl extends AuthHandlerImpl implements ChainAuthHa
       }
 
       // setup the desired auth provider if we can
-      if (authHandler instanceof AuthHandlerImpl) {
-        ctx.put(AuthHandlerImpl.AUTH_PROVIDER_CONTEXT_KEY, ((AuthHandlerImpl) authHandler).authProvider);
+      if (authHandler instanceof AuthenticationHandlerImpl) {
+        ctx.put(AuthenticationHandlerImpl.AUTH_PROVIDER_CONTEXT_KEY, ((AuthenticationHandlerImpl) authHandler).authProvider);
       }
       handler.handle(Future.succeededFuture(res.result()));
     });
@@ -82,9 +70,9 @@ public class ChainAuthHandlerImpl extends AuthHandlerImpl implements ChainAuthHa
 
   @Override
   protected String authenticateHeader(RoutingContext ctx) {
-    AuthenticationHandler authHandler = handlers.get(handlers.size()-1);
-    if (authHandler instanceof AuthHandlerImpl) {
-      return ((AuthHandlerImpl) authHandler).authenticateHeader(ctx);
+    AuthenticationHandler authHandler = handlers.get(handlers.size() - 1);
+    if (authHandler instanceof AuthenticationHandlerImpl) {
+      return ((AuthenticationHandlerImpl) authHandler).authenticateHeader(ctx);
     }
     return null;
   }

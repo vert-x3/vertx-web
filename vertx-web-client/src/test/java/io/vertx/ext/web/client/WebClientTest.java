@@ -327,9 +327,9 @@ public class WebClientTest extends WebClientTestBase {
           }
         }, onFailure(err -> {
           // Should be a connection reset by peer or closed
-          assertNull(endHandler.get());
-          assertNull(dataHandler.get());
-          assertFalse(paused.get());
+          assertNotNull(endHandler.get());
+          assertNotNull(dataHandler.get());
+          assertEquals("Connection was closed", err.getMessage());
           complete();
         }));
     assertWaitUntil(() -> dataHandler.get() != null);

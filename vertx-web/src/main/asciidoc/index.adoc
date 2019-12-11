@@ -1,8 +1,8 @@
 = Vert.x-Web
 :toc: left
 
-Vert.x-Web is a set of building blocks for building web applications with Vert.x. Think of it as a Swiss Army Knife for building
-modern, scalable, web apps.
+Vert.x-Web is a set of building blocks for building web applications with Vert.x. Think of it as a Swiss Army Knife for
+building modern, scalable, web apps.
 
 Vert.x core provides a fairly low level set of functionality for handling HTTP, and for some applications
 that will be sufficient.
@@ -30,18 +30,17 @@ Some of the key features of Vert.x-Web include:
 * Content negotiation
 * Request body handling
 * Body size limits
-* Cookie parsing and handling
 * Multipart forms
 * Multipart file uploads
 * Sub routers
 * Session support - both local (for sticky sessions) and clustered (for non sticky)
 * CORS (Cross Origin Resource Sharing) support
 * Error page handler
-* Basic Authentication
+* HTTP Basic/Digest Authentication
 * Redirect based authentication
 * Authorisation handlers
-* JWT based authorization
-* User/role/permission authorisation
+* JWT/OAuth2 based authorization
+* User/role/permission authorization
 * Favicon handling
 * Template support for server side rendering, including support for the following template engines out of the box:
 ** Handlebars
@@ -59,8 +58,8 @@ Some of the key features of Vert.x-Web include:
 * CSRF Cross Site Request Forgery
 * VirtualHost
 
-Most features in Vert.x-Web are implemented as handlers so you can always write your own. We envisage many more being written
-over time.
+Most features in Vert.x-Web are implemented as handlers so you can always write your own. We envisage many more being
+written over time.
 
 We'll discuss all these features in this manual.
 
@@ -132,7 +131,7 @@ You can run this, and point your browser at `http://localhost:8080` to verify th
 Here's the 10000 foot view:
 
 A {@link io.vertx.ext.web.Router} is one of the core concepts of Vert.x-Web. It's an object which maintains zero or more
-{@link io.vertx.ext.web.Route Routes} .
+{@link io.vertx.ext.web.Route Routes}.
 
 A router takes an HTTP request and finds the first matching route for that request, and passes the request to that route.
 
@@ -986,15 +985,29 @@ You can also use {@link io.vertx.ext.web.Session#setAccessed()} to manually mark
 
 The session timeout can be configured when creating the session handler. Default timeout is 30 minutes.
 
-== Authentication / authorisation
+== Authentication / authorization
 
-Vert.x comes with some out-of-the-box handlers for handling both authentication and authorisation.
+Vert.x comes with some out-of-the-box handlers for handling both authentication and authorization. In vert.x web
+the meanings for the 2 words are:
 
-=== Creating an auth handler
+* *Authentication* - Tells who the user is
+* *Authorization* - Tells what the user is allowed to do
 
-To create an auth handler you need an instance of {@link io.vertx.ext.auth.AuthProvider}. Auth provider is
-used for authentication and authorisation of users. Vert.x provides several auth provider instances out of the box
-in the vertx-auth project. For full information on auth providers and how to use and configure them
+While *Authentication* is tightened to a well known protocol, e.g.:
+
+* HTTP Basic Authentication
+* HTTP Digest Authentication
+* OAuth2 Authentication
+* ...
+
+*Authorization* in vert.x is quite generic and can be used regardless of the prior. Yet it is also possible and a valid
+use case to use the same provider module for both cases.
+
+=== Creating an Authentication handler
+
+To create an auth handler you need an instance of {@link io.vertx.ext.auth.authentication.AuthenticationProvider}.
+Authentication provider is used for authentication of users. Vert.x provides several authentication provider instances
+out of the box in the vertx-auth project. For full information on auth providers and how to use and configure them
 please consult the auth documentation.
 
 Here's a simple example of creating a basic auth handler given an auth provider.
@@ -1004,25 +1017,24 @@ Here's a simple example of creating a basic auth handler given an auth provider.
 {@link examples.WebExamples#example37}
 ----
 
-=== Handling auth in your application
+=== Handling authentication in your application
 
-Let's say you want all requests to paths that start with `/private/` to be subject to auth. To do that you make sure
-your auth handler is before your application handlers on those paths:
+Let's say you want all requests to paths that start with `/private/` to be subject to authentication. To do that you
+make sure your authentication handler is before your application handlers on those paths:
 
 [source,$lang]
 ----
 {@link examples.WebExamples#example38}
 ----
 
-If the auth handler has successfully authenticated and authorised the user it will inject a {@link io.vertx.ext.auth.User}
+If the authentication handler has successfully authenticated the user it will inject a {@link io.vertx.ext.auth.User}
 object into the {@link io.vertx.ext.web.RoutingContext} so it's available in your handlers with:
 {@link io.vertx.ext.web.RoutingContext#user()}.
 
 If you want your User object to be stored in the session so it's available between requests so you don't have to
-authenticate on each request, then you should make sure you have a session handler and a user session handler on matching
-routes before the auth handler.
+authenticate on each request, then you should make sure you have a session handler before the authentication handler.
 
-Once you have your user object you can also programmatically use the methods on it to authorise the user.
+Once you have your user object you can also programmatically use the methods on it to authorize the user.
 
 If you want to cause the user to be logged out you can call {@link io.vertx.ext.web.RoutingContext#clearUser()}
 on the routing context.
@@ -1032,34 +1044,31 @@ on the routing context.
 http://en.wikipedia.org/wiki/Basic_access_authentication[HTTP Basic Authentication] is a simple means of authentication
 that can be appropriate for simple applications.
 
-With basic auth, credentials are sent unencrypted across the wire in HTTP headers so it's essential that you serve
-your application using HTTPS not HTTP.
+With basic authentication, credentials are sent unencrypted across the wire in HTTP headers so it's essential that you
+serve your application using HTTPS not HTTP.
 
-With basic auth, if a user requests a resource that requires authorisation, the basic auth handler will send back
-a `401` response with the header `WWW-Authenticate` set. This prompts the browser to show a log-in dialogue and
+With basic authentication, if a user requests a resource that requires authentication, the basic auth handler will send
+back a `401` response with the header `WWW-Authenticate` set. This prompts the browser to show a log-in dialogue and
 prompt the user to enter their username and password.
 
 The request is made to the resource again, this time with the `Authorization` header set, containing the username
 and password encoded in Base64.
 
-When the basic auth handler receives this information, it calls the configured {@link io.vertx.ext.auth.AuthProvider}
-with the username and password to authenticate the user. If the authentication is successful the handler attempts
-to authorise the user. If that is successful then the routing of the request is allowed to continue to the application
-handlers, otherwise a `403` response is returned to signify that access is denied.
+When the basic auth handler receives this information, it calls the configured {@link io.vertx.ext.auth.authentication.AuthenticationProvider}
+with the username and password to authenticate the user. If the authentication is successful then the routing of the
+request is allowed to continue to the application handlers, otherwise a `403` response is returned to signify that
+access is denied.
 
-The auth handler can be set-up with a set of authorities that are required for access to the resources to
-be granted.
+=== Redirect authentication handler
 
-=== Redirect auth handler
-
-With redirect auth handling the user is redirected to towards a login page in the case they are trying to access
-a protected resource and they are not logged in.
+With redirect authentication handling the user is redirected to towards a login page in the case they are trying to
+access a protected resource and they are not logged in.
 
 The user then fills in the login form and submits it. This is handled by the server which authenticates
 the user and, if authenticated redirects the user back to the original resource.
 
 To use redirect auth you configure an instance of {@link io.vertx.ext.web.handler.RedirectAuthHandler} instead of a
-basic auth handler.
+basic authentication handler.
 
 You will also need to setup handlers to serve your actual login page, and a handler to handle the actual login itself.
 To handle the login we provide a prebuilt handler {@link io.vertx.ext.web.handler.FormLoginHandler} for the purpose.
@@ -1071,7 +1080,7 @@ Here's an example of a simple app, using a redirect auth handler on the default 
 {@link examples.WebExamples#example39}
 ----
 
-=== JWT authorisation
+=== JWT authentication
 
 With JWT authorisation resources can be protected by means of permissions and users without enough rights are denied
 access. You need to add the `io.vertx:vertx-auth-jwt:${maven.version}` dependency to use `JWTAuthProvider`
@@ -1091,7 +1100,7 @@ Here's an example on how to issue tokens:
 {@link examples.WebExamples#example50}
 ----
 
-Now that your client has a token all it is required is that forall* consequent request the HTTP header
+Now that your client has a token all it is required is that *for all* consequent request the HTTP header
 `Authorization` is filled with: `Bearer <token>` e.g.:
 
 [source,$lang]
@@ -1115,12 +1124,22 @@ And the same when consuming:
 {@link examples.WebExamples#example53}
 ----
 
-=== Configuring required authorities
+=== Configuring authorization
 
-With any auth handler you can also configure required authorities to access the resource.
+Until now all examples were covering authentication. Authorization is the next logical step when dealing with user.
+While authentication was really specific to the protocol, *authorization* is independent, all information is extracted
+from the `User` object.
 
-By default, if no authorities are configured then it is sufficient to be logged in to access the resource, otherwise
-the user must be both logged in (authenticated) and have the required authorities.
+Before this is possible there is a need to load the authorizations to this same object. In order to do this the
+{@link io.vertx.ext.web.handler.AuthorizationHandler} should be used. An authorization handler will load all known
+authorizations from a given {@link io.vertx.ext.auth.authorization.AuthorizationProvider}.
+
+[source,$lang]
+----
+{@link examples.WebExamples#example40_a}
+----
+
+The lookup can be performed on more than 1 source, just keep adding `addAuthorizationProvider(provider)` to the handler.
 
 Here's an example of configuring an app so that different authorities are required for different parts of the
 app. Note that the meaning of the authorities is determined by the underlying auth provider that you use. E.g. some
@@ -1131,12 +1150,11 @@ may support a role/permission based model but others might use another model.
 {@link examples.WebExamples#example40}
 ----
 
-=== Chaining multiple auth handlers
+=== Chaining multiple authentication handlers
 
-There are times when you want to support multiple authN/authZ mechanisms in a single application. For this you can
+There are times when you want to support multiple authentication mechanisms in a single application. For this you can
 use the {@link io.vertx.ext.web.handler.ChainAuthHandler}. The chain auth handler will attempt to perform
-authentication on a chain of handlers. The chain works both for AuthN and AuthZ, so if the authentication is valid
-at a given handler of the chain, then that same handler will be used to perform authorization (if requested).
+authentication on a chain of handlers.
 
 It is important to know that some handlers require specific providers, for example:
 
@@ -1872,7 +1890,7 @@ and receive messages:
 
 [source,html]
 ----
-<script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src='vertx-eventbus.js'></script>
 
 <script>
@@ -2017,7 +2035,7 @@ Here's an example:
 {@link examples.WebExamples#example46}
 ----
 
-=== Requiring authorisation for messages
+=== Requiring authorization for messages
 
 The event bus bridge can also be configured to use the Vert.x-Web authorisation functionality to require
 authorisation for messages, either in-bound or out-bound on the bridge.
@@ -2104,7 +2122,7 @@ In client side JavaScript you use the 'vertx-eventbus.js` library to create conn
 
 [source,html]
 ----
-<script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src='vertx-eventbus.js'></script>
 
 <script>

@@ -102,6 +102,7 @@ public class SessionHandlerImpl implements SessionHandler {
   }
 
   @Override
+  @Deprecated
   public SessionHandler setAuthProvider(AuthProvider authProvider) {
     return this;
   }

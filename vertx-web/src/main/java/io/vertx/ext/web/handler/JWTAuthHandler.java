@@ -29,7 +29,7 @@ import java.util.List;
  * @author Paulo Lopes
  */
 @VertxGen
-public interface JWTAuthHandler extends AuthHandler {
+public interface JWTAuthHandler extends AuthenticationHandler {
 
   /**
    * Create a JWT auth handler

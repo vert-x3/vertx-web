@@ -9,6 +9,9 @@ import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.KeyStoreOptions;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authorization.AuthorizationProvider;
+import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
+import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.jwt.JWTOptions;
@@ -736,7 +739,7 @@ public class WebExamples {
 
   public void example38(Vertx vertx, AuthProvider authProvider, Router router) {
 
-    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).setAuthProvider(authProvider));
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
     AuthenticationHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
@@ -790,20 +793,35 @@ public class WebExamples {
 
   }
 
-  public void example40(AuthenticationProvider authProvider, Router router) {
+  public void example40_a(AuthorizationProvider authProvider, Router router) {
+    // attest that all requests on the route match the required authorization
+    router.route().handler(
+      // create the handler that will perform the attestation
+      AuthorizationHandler.create(
+        // what to attest
+        PermissionBasedAuthorization.create("can-do-work"))
+        // where to lookup the authorizations for the user
+        .addAuthorizationProvider(authProvider));
+  }
 
-    AuthHandler listProductsAuthHandler = RedirectAuthHandler.create(authProvider);
-    listProductsAuthHandler.addAuthority("list_products");
 
-    // Need "list_products" authority to list products
-    router.route("/listproducts/*").handler(listProductsAuthHandler);
-
-    AuthHandler settingsAuthHandler = RedirectAuthHandler.create(authProvider);
-    settingsAuthHandler.addAuthority("role:admin");
+  public void example40(AuthorizationProvider authProvider, Router router) {
+    // Need "list_products" authorization to list products
+    router.route("/listproducts/*").handler(
+      // create the handler that will perform the attestation
+      AuthorizationHandler.create(
+        // what to attest
+        PermissionBasedAuthorization.create("list_products"))
+        // where to lookup the authorizations for the user
+        .addAuthorizationProvider(authProvider));
 
     // Only "admin" has access to /private/settings
-    router.route("/private/settings/*").handler(settingsAuthHandler);
-
+    router.route("/private/settings/*").handler(
+      // create the handler that will perform the attestation
+      AuthorizationHandler.create(
+        // what to attest
+        RoleBasedAuthorization.create("admin"))
+        .addAuthorizationProvider(authProvider));
   }
 
   public void example41(Router router) {
@@ -1048,8 +1066,11 @@ public class WebExamples {
 
     router.route("/login").handler(ctx -> {
       // this is an example, authentication should be done with another provider...
-      if ("paulo".equals(ctx.request().getParam("username")) && "secret".equals(ctx.request().getParam("password"))) {
-        ctx.response().end(authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions()));
+      if (
+        "paulo".equals(ctx.request().getParam("username")) &&
+          "secret".equals(ctx.request().getParam("password"))) {
+            ctx.response()
+              .end(authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions()));
       } else {
         ctx.fail(401);
       }
@@ -1218,7 +1239,7 @@ public class WebExamples {
     OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
 
     // these are the scopes
-    oauth2.addAuthority("profile");
+    oauth2.extraParams(new JsonObject().put("scope", "profile"));
 
     // setup the callback handler for receiving the Google callback
     oauth2.setupCallback(router.get("/callback"));
@@ -1261,7 +1282,7 @@ public class WebExamples {
         .setupCallback(router.route("/callback"))
         // for this resource we require that users have
         // the authority to retrieve the user emails
-        .addAuthority("user:email")
+        .extraParams(new JsonObject().put("scope", "user:email"))
     );
     // Entry point to the application, this will render
     // a custom template.

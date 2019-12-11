@@ -11,6 +11,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authorization.Authorization;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.ApiWebTestBase;
@@ -453,6 +454,11 @@ public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
             @Override
             public JsonObject attributes() {
               return new JsonObject();
+            }
+
+            @Override
+            public User isAuthorized(Authorization s, Handler<AsyncResult<Boolean>> handler) {
+              return null;
             }
 
             @Override
