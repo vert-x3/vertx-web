@@ -148,6 +148,7 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testContentHeadersSet() throws Exception {
+    stat.setDefaultContentEncoding("UTF-8");
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
       String contentType = res.headers().get("content-type");
       String contentLength = res.headers().get("content-length");
