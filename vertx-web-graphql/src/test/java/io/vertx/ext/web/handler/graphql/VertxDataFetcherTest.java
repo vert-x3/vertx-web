@@ -22,6 +22,7 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher;
 import org.junit.Test;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
@@ -41,9 +42,7 @@ public class VertxDataFetcherTest extends GraphQLTestBase {
 
     RuntimeWiring runtimeWiring = newRuntimeWiring()
       .type("Query", builder -> {
-        VertxDataFetcher<Object> dataFetcher = new VertxDataFetcher<>((env, fut) -> {
-          fut.complete(getAllLinks(env));
-        });
+        VertxDataFetcher<Object> dataFetcher = VertxDataFetcher.create((env, fut) -> fut.complete(getAllLinks(env)));
         return builder.dataFetcher("allLinks", dataFetcher);
       })
       .build();

@@ -23,6 +23,7 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher;
 import org.junit.Test;
 
 import java.util.List;
@@ -46,7 +47,7 @@ public class JsonResultsTest extends GraphQLTestBase {
       .wiringFactory(new WiringFactory() {
         @Override
         public DataFetcher getDefaultDataFetcher(FieldWiringEnvironment environment) {
-          return new VertxPropertyDataFetcher(environment.getFieldDefinition().getName());
+          return VertxPropertyDataFetcher.create(environment.getFieldDefinition().getName());
         }
       })
       .type("Query", builder -> builder.dataFetcher("allLinks", this::getAllLinks))

@@ -104,7 +104,7 @@ To https://vertx.io/docs/vertx-core/java/#golden_rule[avoid blocking the event l
 Implementing a data fetcher that returns a `CompletionStage` is not a complex task.
 But when you work with Vert.x callback-based APIs, it requires a bit of boilerplate.
 
-This is where the {@link io.vertx.ext.web.handler.graphql.VertxDataFetcher} can help:
+This is where the {@link io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher} can help:
 
 [source,$lang]
 ----
@@ -126,7 +126,7 @@ You may retrieve this object by inspecting the `DataFetchingEnvironment`:
 {@link examples.GraphQLExamples#routingContextInDataFetchingEnvironment}
 ----
 
-NOTE: The routing context is available with any kind of data fetchers, not just {@link io.vertx.ext.web.handler.graphql.VertxDataFetcher}.
+NOTE: The routing context is available with any kind of data fetchers, not just {@link io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher}.
 
 If you prefer not to expose the routing context to your data fetchers, configure the GraphQL handler to customize the context object:
 
@@ -142,14 +142,14 @@ As a consequence, it will be able to read the fields of your domain objects with
 
 Nevertheless, some Vert.x data clients return {@link io.vertx.core.json.JsonArray} and {@link io.vertx.core.json.JsonObject} results.
 
-If you don't need (or don't wish to) use a domain object layer, you can configure GraphQL-Java to use {@link io.vertx.ext.web.handler.graphql.VertxPropertyDataFetcher} instead:
+If you don't need (or don't wish to) use a domain object layer, you can configure GraphQL-Java to use {@link io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher} instead:
 
 [source,$lang]
 ----
 {@link examples.GraphQLExamples#jsonData}
 ----
 
-TIP: {@link io.vertx.ext.web.handler.graphql.VertxPropertyDataFetcher} wraps a `PropertyDataFetcher` so you can still use it with domain objects.
+TIP: {@link io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher} wraps a `PropertyDataFetcher` so you can still use it with domain objects.
 
 === Using dataloaders
 
@@ -162,7 +162,7 @@ First, create a batch loader:
 {@link examples.GraphQLExamples#createBatchLoader}
 ----
 
-TIP: If you work with Vert.x callback-based APIs, you may use a {@link io.vertx.ext.web.handler.graphql.VertxBatchLoader} to simplify your code.
+TIP: If you work with Vert.x callback-based APIs, you may use a {@link io.vertx.ext.web.handler.graphql.dataloader.VertxBatchLoader} to simplify your code.
 
 Then, configure the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} to create a `DataLoaderRegistry` for each request:
 

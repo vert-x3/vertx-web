@@ -32,6 +32,8 @@ import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher;
+import io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher;
 import io.vertx.ext.web.handler.graphql.*;
 import org.dataloader.BatchLoaderEnvironment;
 import org.dataloader.BatchLoaderWithContext;
@@ -134,11 +136,7 @@ public class GraphQLExamples {
   }
 
   private void vertxDataFetcher() {
-    VertxDataFetcher<List<Link>> dataFetcher = new VertxDataFetcher<>((environment, future) -> {
-
-      retrieveLinksFromBackend(environment, future);
-
-    });
+    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create(this::retrieveLinksFromBackend);
 
     RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()
       .type("Query", builder -> builder.dataFetcher("allLinks", dataFetcher))
@@ -149,7 +147,7 @@ public class GraphQLExamples {
   }
 
   private void routingContextInDataFetchingEnvironment() {
-    VertxDataFetcher<List<Link>> dataFetcher = new VertxDataFetcher<>((environment, future) -> {
+    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((environment, future) -> {
 
       RoutingContext routingContext = environment.getContext();
 
@@ -164,7 +162,7 @@ public class GraphQLExamples {
   }
 
   private void customContextInDataFetchingEnvironment(Router router) {
-    VertxDataFetcher<List<Link>> dataFetcher = new VertxDataFetcher<>((environment, future) -> {
+    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((environment, future) -> {
 
       // User as custom context object
       User user = environment.getContext();
@@ -185,7 +183,7 @@ public class GraphQLExamples {
     router.route("/graphql").handler(handler);
   }
 
-  private GraphQL setupGraphQLJava(DataFetcher<CompletionStage<List<Link>>> dataFetcher) {
+  private GraphQL setupGraphQLJava(VertxDataFetcher<List<Link>> dataFetcher) {
     return null;
   }
 
@@ -197,7 +195,7 @@ public class GraphQLExamples {
       @Override
       public DataFetcher getDefaultDataFetcher(FieldWiringEnvironment environment) {
 
-        return new VertxPropertyDataFetcher(environment.getFieldDefinition().getName());
+        return VertxPropertyDataFetcher.create(environment.getFieldDefinition().getName());
 
       }
     });
