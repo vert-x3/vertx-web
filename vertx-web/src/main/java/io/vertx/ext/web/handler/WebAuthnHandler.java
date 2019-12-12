@@ -17,13 +17,11 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.ext.auth.webauthn.WebAuthN;
+import io.vertx.ext.auth.webauthn.WebAuthn;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.impl.WebAuthNHandlerImpl;
+import io.vertx.ext.web.handler.impl.WebAuthnHandlerImpl;
 
 /**
  * An auth handler that provides FIDO2 WebAuthN Relay Party support.
@@ -31,15 +29,15 @@ import io.vertx.ext.web.handler.impl.WebAuthNHandlerImpl;
  * @author Paulo Lopes
  */
 @VertxGen
-public interface WebAuthNHandler extends Handler<RoutingContext> {
+public interface WebAuthnHandler extends Handler<RoutingContext> {
 
   /**
    * Create a WebAuthN auth handler. This handler expects at least the response callback to be installed.
    *
    * @return the auth handler
    */
-  static WebAuthNHandler create(WebAuthN webAuthN) {
-    return new WebAuthNHandlerImpl(webAuthN);
+  static WebAuthnHandler create(WebAuthn webAuthn) {
+    return new WebAuthnHandlerImpl(webAuthn);
   }
 
   /**
@@ -49,7 +47,7 @@ public interface WebAuthNHandler extends Handler<RoutingContext> {
    * @return fluent self.
    */
   @Fluent
-  WebAuthNHandler setupCredentialsCreateCallback(Route route);
+  WebAuthnHandler setupCredentialsCreateCallback(Route route);
 
   /**
    * The callback route to create login attestations. Usually this route is <pre>/webauthn/login</pre>
@@ -58,7 +56,7 @@ public interface WebAuthNHandler extends Handler<RoutingContext> {
    * @return fluent self.
    */
   @Fluent
-  WebAuthNHandler setupCredentialsGetCallback(Route route);
+  WebAuthnHandler setupCredentialsGetCallback(Route route);
 
   /**
    * The callback route to verify attestations and assertions. Usually this route is <pre>/webauthn/response</pre>
@@ -67,5 +65,5 @@ public interface WebAuthNHandler extends Handler<RoutingContext> {
    * @return fluent self.
    */
   @Fluent
-  WebAuthNHandler setupCallback(Route route);
+  WebAuthnHandler setupCallback(Route route);
 }

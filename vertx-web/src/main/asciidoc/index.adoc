@@ -1161,6 +1161,7 @@ It is important to know that some handlers require specific providers, for examp
 * The {@link io.vertx.ext.web.handler.JWTAuthHandler} requires {@link io.vertx.ext.auth.jwt.JWTAuth}.
 * The {@link io.vertx.ext.web.handler.DigestAuthHandler} requires {@link io.vertx.ext.auth.htdigest.HtdigestAuth}.
 * The {@link io.vertx.ext.web.handler.OAuth2AuthHandler} requires {@link io.vertx.ext.auth.oauth2.OAuth2Auth}.
+* The {@link io.vertx.ext.web.handler.WebAuthnHandler} requires {@link io.vertx.ext.auth.webauthn.WebAuthn}.
 
 So it is not expected that the providers will be shared across all handlers. There are cases where one can share the
 provider across handlers, for example:
@@ -2328,6 +2329,222 @@ This is handled automatically by the handler as long as the provider is configur
 
 In real life this means that your API's can access your protected resources using the header `Authorization` with the
 value `Bearer BASE64_ACCESS_TOKEN`.
+
+=== WebAuthn
+
+Our online existence relies on an outdated and fragile idea of passwords. The password is what lies between a malicious
+user and your bank account or social media accounts. Passwords are hard to maintain; it's hard to store them on the
+server (passwords get stolen). They're hard to memorize, or not tell to others (phishing attacks).
+
+But there's a better way! A passwordless world, and it is a standard by W3C and FIDO Alliance running on your browser.
+
+WebAuthn is an API that allows servers to register and authenticate users using public-key cryptography instead of a
+password, an API that uses cryptography in a user-accessible way with the help of an authentication device, for example
+a yubikey token, or your mobile phone.
+
+The protocol requires at least the first callback to be mounted on the router:
+
+1. `/webauthn/response` the callback used to perform all the validations
+2. `/webauthn/login` the endpoint to allow users to start the login flow (optional, but without it it won't be able to login)
+3. `/webauthn/register` the endpoint to allow users to register a new identificator (optional, if the data is already stored this endpoint is not needed)
+
+An example of a protected application is:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example75}
+----
+
+The application is not secure on the backend side but there is some code needed to be performed on the client side. A bit
+of boilerplate is required, take these 2 functions:
+
+[source,javascript]
+----
+/**
+ * Converts PublicKeyCredential into serialised JSON
+ * @param  {Object} pubKeyCred
+ * @return {Object}            - JSON encoded publicKeyCredential
+ */
+var publicKeyCredentialToJSON = (pubKeyCred) => {
+  if (pubKeyCred instanceof Array) {
+    let arr = [];
+    for (let i of pubKeyCred) { arr.push(publicKeyCredentialToJSON(i)) }
+
+    return arr
+  }
+
+  if (pubKeyCred instanceof ArrayBuffer) {
+    return base64url.encode(pubKeyCred)
+  }
+
+  if (pubKeyCred instanceof Object) {
+    let obj = {};
+
+    for (let key in pubKeyCred) {
+      obj[key] = publicKeyCredentialToJSON(pubKeyCred[key])
+    }
+
+    return obj
+  }
+
+  return pubKeyCred
+};
+
+/**
+ * Generate secure random buffer
+ * @param  {Number} len - Length of the buffer (default 32 bytes)
+ * @return {Uint8Array} - random string
+ */
+var generateRandomBuffer = (len) => {
+  len = len || 32;
+
+  let randomBuffer = new Uint8Array(len);
+  window.crypto.getRandomValues(randomBuffer);
+
+  return randomBuffer
+};
+
+/**
+ * Decodes arrayBuffer required fields.
+ */
+var preformatMakeCredReq = (makeCredReq) => {
+  makeCredReq.challenge = base64url.decode(makeCredReq.challenge);
+  makeCredReq.user.id = base64url.decode(makeCredReq.user.id);
+
+  return makeCredReq
+};
+
+/**
+ * Decodes arrayBuffer required fields.
+ */
+var preformatGetAssertReq = (getAssert) => {
+  getAssert.challenge = base64url.decode(getAssert.challenge);
+
+  for (let allowCred of getAssert.allowCredentials) {
+    allowCred.id = base64url.decode(allowCred.id)
+  }
+
+  return getAssert
+};
+----
+
+These functions will help you with the interaction with the server. Nothing more. Let's start by login in a user:
+
+[source,javascript]
+----
+// using the functions defined before...
+getGetAssertionChallenge({name: 'your-user-name'})
+.then((response) => {
+  // base64 must be decoded to a JavaScript Buffer
+  let publicKey = preformatGetAssertReq(response);
+  // the response is then passed to the browser
+  // to generate an assertion by interacting with your token/phone/etc...
+  return navigator.credentials.get({publicKey})
+})
+.then((response) => {
+  // convert response buffers to base64 and json
+  let getAssertionResponse = publicKeyCredentialToJSON(response);
+  // send information to server
+  return sendWebAuthnResponse(getAssertionResponse)
+})
+.then((response) => {
+  // success!
+  alert('Login success')
+})
+.catch((error) => alert(error));
+
+// utility functions
+
+let sendWebAuthnResponse = (body) => {
+  return fetch('/webauthn/response', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Server responded with error: ${response.statusText}`);
+      }
+      return response;
+    })
+};
+
+let getGetAssertionChallenge = (formBody) => {
+  return fetch('/webauthn/login', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(formBody)
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Server responded with error: ${response.statusText}`);
+      }
+      return response;
+    })
+    .then((response) => response.json())
+};
+----
+
+The example above already covered 66% of the API, 2 out fo 3 endpoints where covered. The final endpoint is the user
+registration. User registration is the process of enrolling a new key into the server credential store and map to a user,
+and of course on the client side a private key was created and associated with the server but this key never left the
+hardware token or your phone security chip.
+
+To register a user and reusing most of the functions already defined above:
+
+[source,javascript]
+----
+/* Handle for register form submission */
+getMakeCredentialsChallenge({name: 'myalias', displayName: 'Paulo Lopes'})
+.then((response) => {
+  // convert challenge & id to buffer and perform register
+  let publicKey = preformatMakeCredReq(response);
+  // create a new secure key pair
+  return navigator.credentials.create({publicKey})
+})
+.then((response) => {
+  // convert response from buffer to json
+  let makeCredResponse = window.publicKeyCredentialToJSON(response);
+  // send to server to confirm the user
+  return sendWebAuthnResponse(makeCredResponse)
+})
+.then((response) => {
+  alert('Registration completed')
+})
+.catch((error) => alert(error));
+
+// utility functions
+
+let getMakeCredentialsChallenge = (formBody) => {
+  return fetch('/webauthn/register', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(formBody)
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Server responded with error: ${response.statusText}`);
+      }
+      return response;
+    })
+    .then((response) => response.json())
+};
+----
+
+WARNING: Due to the secure nature of the API browsers will not allow you to use this API on plain text HTTP. All requests
+must go over HTTPS.
+
+WARNING: WebAuthN requires HTTPS with a working TLS certificate, you can use self signed certiticates too during
+development.
 
 === Handling HTTP Method overriding
 

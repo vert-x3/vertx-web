@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Red Hat, Inc.
+ *
+ *  All rights reserved. This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License v1.0
+ *  and Apache License v2.0 which accompanies this distribution.
+ *
+ *  The Eclipse Public License is available at
+ *  http://www.eclipse.org/legal/epl-v10.html
+ *
+ *  The Apache License v2.0 is available at
+ *  http://www.opensource.org/licenses/apache2.0.php
+ *
+ *  You may elect to redistribute this code under either of these licenses.
+ */
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.http.HttpMethod;
@@ -5,26 +20,26 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.auth.webauthn.WebAuthN;
-import io.vertx.ext.auth.webauthn.WebAuthNInfo;
+import io.vertx.ext.auth.webauthn.WebAuthn;
+import io.vertx.ext.auth.webauthn.WebAuthnInfo;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.WebAuthNHandler;
+import io.vertx.ext.web.handler.WebAuthnHandler;
 
-public class WebAuthNHandlerImpl implements WebAuthNHandler {
+public class WebAuthnHandlerImpl implements WebAuthnHandler {
 
-  private static final Logger LOG = LoggerFactory.getLogger(WebAuthNHandlerImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(WebAuthnHandlerImpl.class);
 
-  private final WebAuthN webAuthN;
+  private final WebAuthn webAuthn;
   // the extra routes
   private Route register = null;
   private Route login = null;
   private Route response = null;
 
 
-  public WebAuthNHandlerImpl(WebAuthN webAuthN) {
-    this.webAuthN = webAuthN;
+  public WebAuthnHandlerImpl(WebAuthn webAuthN) {
+    this.webAuthn = webAuthN;
   }
 
   private static boolean isEmptyString(JsonObject json, String key) {
@@ -106,7 +121,7 @@ public class WebAuthNHandlerImpl implements WebAuthNHandler {
 
 
   @Override
-  public WebAuthNHandler setupCredentialsCreateCallback(Route route) {
+  public WebAuthnHandler setupCredentialsCreateCallback(Route route) {
     this.register = route
       // force a post if otherwise
       .method(HttpMethod.POST)
@@ -127,7 +142,7 @@ public class WebAuthNHandlerImpl implements WebAuthNHandler {
               return;
             }
 
-            webAuthN.createCredentialsOptions(webauthnRegister, createCredentialsOptions -> {
+            webAuthn.createCredentialsOptions(webauthnRegister, createCredentialsOptions -> {
               if (createCredentialsOptions.failed()) {
                 ctx.fail(createCredentialsOptions.cause());
                 return;
@@ -154,7 +169,7 @@ public class WebAuthNHandlerImpl implements WebAuthNHandler {
   }
 
   @Override
-  public WebAuthNHandler setupCredentialsGetCallback(Route route) {
+  public WebAuthnHandler setupCredentialsGetCallback(Route route) {
     this.login = route
       // force a post if otherwise
       .method(HttpMethod.POST)
@@ -181,7 +196,7 @@ public class WebAuthNHandlerImpl implements WebAuthNHandler {
           final String username = webauthnLogin.getString("name");
 
           // STEP 18 Generate assertion
-          webAuthN.getCredentialsOptions(username, generateServerGetAssertion -> {
+          webAuthn.getCredentialsOptions(username, generateServerGetAssertion -> {
             if (generateServerGetAssertion.failed()) {
               LOG.error("Unexpected exception", generateServerGetAssertion.cause());
               ctx.fail(generateServerGetAssertion.cause());
@@ -208,7 +223,7 @@ public class WebAuthNHandlerImpl implements WebAuthNHandler {
   }
 
   @Override
-  public WebAuthNHandler setupCallback(Route route) {
+  public WebAuthnHandler setupCallback(Route route) {
     this.response = route
       // force a post if otherwise
       .method(HttpMethod.POST)
@@ -239,9 +254,9 @@ public class WebAuthNHandlerImpl implements WebAuthNHandler {
             return;
           }
 
-          webAuthN.authenticate(
+          webAuthn.authenticate(
             // authInfo
-            new WebAuthNInfo()
+            new WebAuthnInfo()
               .setChallenge(session.get("challenge"))
               .setUsername(session.get("username"))
               .setWebauthn(webauthnResp), authenticate -> {

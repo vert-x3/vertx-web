@@ -14,6 +14,7 @@ import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
 import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
+import io.vertx.ext.auth.webauthn.*;
 import io.vertx.ext.jwt.JWTOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2ClientOptions;
@@ -1069,8 +1070,8 @@ public class WebExamples {
       if (
         "paulo".equals(ctx.request().getParam("username")) &&
           "secret".equals(ctx.request().getParam("password"))) {
-            ctx.response()
-              .end(authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions()));
+        ctx.response()
+          .end(authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions()));
       } else {
         ctx.fail(401);
       }
@@ -1524,5 +1525,47 @@ public class WebExamples {
       .addDefaultHandler(ctx -> {
         ctx.fail(401);
       });
+  }
+
+
+  public void example75(Vertx vertx, Router router, CredentialStore authStore) {
+    // create the webauthn security object
+    WebAuthn webAuthn = WebAuthn.create(
+      vertx,
+      new WebAuthnOptions()
+        .setOrigin("https://192.168.178.74.xip.io:8443")
+        .setRpName("Vert.x WebAuthN Demo")
+        // What kind of authentication do you want? do you care?
+        // if you care you can specify it (choose one of the 2)
+
+        // # security keys
+        .setAuthenticatorAttachment(AuthenticatorAttachment.CROSS_PLATFORM)
+        .setRequireResidentKey(false)
+        // # fingerprint
+        .setAuthenticatorAttachment(AuthenticatorAttachment.PLATFORM)
+        .setRequireResidentKey(false)
+        .setUserVerification(UserVerification.REQUIRED),
+      // where to load the credentials from?
+      authStore);
+
+    // parse the BODY
+    router.post()
+      .handler(BodyHandler.create());
+    // add a session handler
+    router.route()
+      .handler(SessionHandler
+        .create(LocalSessionStore.create(vertx)));
+
+    // security handler
+    WebAuthnHandler webAuthNHandler = WebAuthnHandler.create(webAuthn)
+      // required callback
+      .setupCallback(router.post("/webauthn/response"))
+      // optional register callback
+      .setupCredentialsCreateCallback(router.post("/webauthn/register"))
+      // optional login callback
+      .setupCredentialsGetCallback(router.post("/webauthn/login"));
+
+    // secure the remaining routes
+    router.route().handler(webAuthNHandler);
   }
 }
