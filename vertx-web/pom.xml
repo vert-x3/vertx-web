@@ -61,6 +61,11 @@
       <artifactId>vertx-auth-htdigest</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-webauthn</artifactId>
+      <optional>true</optional>
+    </dependency>
 
     <!-- Testing -->
     <dependency>
