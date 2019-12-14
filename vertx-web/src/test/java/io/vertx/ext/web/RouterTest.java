@@ -69,7 +69,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testRouteGetPathWithParamsInHandler() throws Exception {
     router.route("/foo/:id").handler(rc -> {
-      assertEquals("/foo/123", rc.normalisedPath());
+      assertEquals("/foo/123", rc.normalizedPath());
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/foo/123", 200, "OK");
@@ -1735,7 +1735,7 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testRouteNormalised1() throws Exception {
+  public void testRouteNormalized1() throws Exception {
     router.route("/foo").handler(rc -> rc.response().setStatusMessage("socks").end());
     testRequest(HttpMethod.GET, "/foo", 200, "socks");
     testRequest(HttpMethod.GET, "/foo/", 200, "socks");
@@ -1745,7 +1745,7 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testRouteNormalised2() throws Exception {
+  public void testRouteNormalized2() throws Exception {
     router.route("/foo/").handler(rc -> rc.response().setStatusMessage("socks").end());
     // note that the final slash is significant
     testRequest(HttpMethod.GET, "/foo", 404, "Not Found");
@@ -1756,7 +1756,7 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testRouteNormalised3() throws Exception {
+  public void testRouteNormalized3() throws Exception {
     router.route("/").handler(rc -> rc.response().setStatusMessage("pants").end());
     testRequest(HttpMethod.GET, "/", 200, "pants");
     testRequest(HttpMethod.GET, "//", 200, "pants");
@@ -1931,8 +1931,8 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testGetWithPlusPath2() throws Exception {
-    router.get("/:param1").useNormalisedPath(false).handler(rc -> {
-      assertEquals("/some+path", rc.normalisedPath());
+    router.get("/:param1").useNormalizedPath(false).handler(rc -> {
+      assertEquals("/some+path", rc.normalizedPath());
       assertEquals("some+path", rc.pathParam("param1"));
       assertEquals("some query", rc.request().getParam("q1"));
       rc.response().setStatusMessage("foo").end();

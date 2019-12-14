@@ -74,7 +74,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
 
   private static boolean matchesRoute(RoutingContext ctx, Route route) {
     if (route != null) {
-      return ctx.request().method() == HttpMethod.POST && ctx.normalisedPath().equals(route.getPath());
+      return ctx.request().method() == HttpMethod.POST && ctx.normalizedPath().equals(route.getPath());
     }
     return false;
   }

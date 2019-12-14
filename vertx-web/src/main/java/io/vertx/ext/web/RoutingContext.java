@@ -172,21 +172,29 @@ public interface RoutingContext {
   Route currentRoute();
 
   /**
-   * Return the normalised path for the request.
+   * Use {@link #normalizedPath} instead
+   */
+  @Deprecated()
+  default String normalisedPath() {
+    return this.normalizedPath();
+  }
+
+  /**
+   * Return the normalized path for the request.
    * <p>
-   * The normalised path is where the URI path has been decoded, i.e. any unicode or other illegal URL characters that
+   * The normalized path is where the URI path has been decoded, i.e. any unicode or other illegal URL characters that
    * were encoded in the original URL with `%` will be returned to their original form. E.g. `%20` will revert to a space.
    * Also `+` reverts to a space in a query.
    * <p>
-   * The normalised path will also not contain any `..` character sequences to prevent resources being accessed outside
+   * The normalized path will also not contain any `..` character sequences to prevent resources being accessed outside
    * of the permitted area.
    * <p>
-   * It's recommended to always use the normalised path as opposed to {@link HttpServerRequest#path()}
+   * It's recommended to always use the normalized path as opposed to {@link HttpServerRequest#path()}
    * if accessing server resources requested by a client.
    *
-   * @return the normalised path
+   * @return the normalized path
    */
-  String normalisedPath();
+  String normalizedPath();
 
   /**
    * Get the cookie with the specified name.

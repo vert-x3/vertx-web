@@ -110,7 +110,7 @@ public class StaticHandlerImpl implements StaticHandler {
       if (log.isTraceEnabled()) log.trace("Not GET or HEAD so ignoring request");
       context.next();
     } else {
-      String path = HttpUtils.removeDots(URIDecoder.decodeURIComponent(context.normalisedPath(), false));
+      String path = HttpUtils.removeDots(URIDecoder.decodeURIComponent(context.normalizedPath(), false));
       // if the normalized path is null it cannot be resolved
       if (path == null) {
         log.warn("Invalid path: " + context.request().path());
@@ -595,7 +595,7 @@ public class StaticHandlerImpl implements StaticHandler {
         }
 
         if (accept.contains("html")) {
-          String normalizedDir = context.normalisedPath();
+          String normalizedDir = context.normalizedPath();
           if (!normalizedDir.endsWith("/")) {
             normalizedDir += "/";
           }

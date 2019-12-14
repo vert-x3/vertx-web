@@ -396,7 +396,7 @@ public class SubRouterTest extends WebTestBase {
   }
 
   @Test
-  public void testNormalised1() throws Exception {
+  public void testNormalized1() throws Exception {
     Router subRouter = Router.router(vertx);
     router.mountSubRouter("/api", subRouter);
     subRouter.route("/foo").handler(rc -> rc.response().setStatusMessage("sausages").end());
@@ -408,7 +408,7 @@ public class SubRouterTest extends WebTestBase {
   }
 
   @Test
-  public void testNormalised2() throws Exception {
+  public void testNormalized2() throws Exception {
     Router subRouter = Router.router(vertx);
     router.mountSubRouter("/api/", subRouter);
     subRouter.route("/foo").handler(rc -> rc.response().setStatusMessage("sausages").end());
@@ -420,7 +420,7 @@ public class SubRouterTest extends WebTestBase {
   }
 
   @Test
-  public void testNormalised3() throws Exception {
+  public void testNormalized3() throws Exception {
     Router subRouter = Router.router(vertx);
     router.mountSubRouter("/api", subRouter);
     subRouter.route("/").handler(rc -> rc.response().setStatusMessage("sausages").end());
@@ -431,7 +431,7 @@ public class SubRouterTest extends WebTestBase {
   }
 
   @Test
-  public void testNormalised4() throws Exception {
+  public void testNormalized4() throws Exception {
     Router subRouter = Router.router(vertx);
     router.mountSubRouter("/api/", subRouter);
     subRouter.route("/").handler(rc -> rc.response().setStatusMessage("sausages").end());

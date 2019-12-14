@@ -68,7 +68,7 @@ public class GraphiQLHandlerImpl implements GraphiQLHandler {
       rc.next();
       return;
     }
-    String filename = Utils.pathOffset(rc.normalisedPath(), rc);
+    String filename = Utils.pathOffset(rc.normalizedPath(), rc);
     if (filename.isEmpty()) {
       rc.response().setStatusCode(301).putHeader(HttpHeaders.LOCATION, rc.currentRoute().getPath()).end();
       return;

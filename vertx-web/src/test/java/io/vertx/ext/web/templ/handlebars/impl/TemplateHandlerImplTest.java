@@ -20,7 +20,7 @@ public class TemplateHandlerImplTest {
   public void testDefaultIndex() {
     TemplateEngine templateEngine = mock(TemplateEngine.class);
     RoutingContext routingContext = mock(RoutingContext.class);
-    when(routingContext.normalisedPath()).thenReturn("/");
+    when(routingContext.normalizedPath()).thenReturn("/");
     Route currentRoute = mock(Route.class);
     when(currentRoute.getPath()).thenReturn("/");
     when(routingContext.currentRoute()).thenReturn(currentRoute);
@@ -35,7 +35,7 @@ public class TemplateHandlerImplTest {
   public void testSetIndex() {
     TemplateEngine templateEngine = mock(TemplateEngine.class);
     RoutingContext routingContext = mock(RoutingContext.class);
-    when(routingContext.normalisedPath()).thenReturn("/");
+    when(routingContext.normalizedPath()).thenReturn("/");
     Route currentRoute = mock(Route.class);
     when(currentRoute.getPath()).thenReturn("/");
     when(routingContext.currentRoute()).thenReturn(currentRoute);
@@ -51,7 +51,7 @@ public class TemplateHandlerImplTest {
   public void testTurnOffIndex() {
     TemplateEngine templateEngine = mock(TemplateEngine.class);
     RoutingContext routingContext = mock(RoutingContext.class);
-    when(routingContext.normalisedPath()).thenReturn("/");
+    when(routingContext.normalizedPath()).thenReturn("/");
     Route currentRoute = mock(Route.class);
     when(currentRoute.getPath()).thenReturn("/");
     when(routingContext.currentRoute()).thenReturn(currentRoute);
@@ -67,7 +67,7 @@ public class TemplateHandlerImplTest {
   public void testSimpleTemplate() {
     TemplateEngine templateEngine = mock(TemplateEngine.class);
     RoutingContext routingContext = mock(RoutingContext.class);
-    when(routingContext.normalisedPath()).thenReturn("/about");
+    when(routingContext.normalizedPath()).thenReturn("/about");
     Route currentRoute = mock(Route.class);
     when(currentRoute.getPath()).thenReturn("/");
     when(routingContext.currentRoute()).thenReturn(currentRoute);
