@@ -89,7 +89,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
         // an infinite redirect loop. In this case an exception must be raised.
         if (
           context.request().method() == HttpMethod.GET &&
-            context.normalisedPath().equals(callback.getPath())) {
+            context.normalizedPath().equals(callback.getPath())) {
 
           if (log.isWarnEnabled()) {
             log.warn("The callback route is shaded by the OAuth2AuthHandler, ensure the callback route is added BEFORE the OAuth2AuthHandler route!");

@@ -161,8 +161,8 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
-  public String normalisedPath() {
-    return decoratedContext.normalisedPath();
+  public String normalizedPath() {
+    return decoratedContext.normalizedPath();
   }
 
   @Override

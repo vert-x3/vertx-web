@@ -53,7 +53,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Map<Integer, Handler<Void>> bodyEndHandlers;
   private Throwable failure;
   private int statusCode = -1;
-  private String normalisedPath;
+  private String normalizedPath;
   private String acceptableContentType;
   private ParsableHeaderValuesContainer parsedHeaders;
 
@@ -203,16 +203,16 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public String normalisedPath() {
-    if (normalisedPath == null) {
+  public String normalizedPath() {
+    if (normalizedPath == null) {
       String path = request.path();
       if (path == null) {
-        normalisedPath = "/";
+        normalizedPath = "/";
       } else {
-        normalisedPath = HttpUtils.normalizePath(path);
+        normalizedPath = HttpUtils.normalizePath(path);
       }
     }
-    return normalisedPath;
+    return normalizedPath;
   }
 
   @Override
@@ -356,7 +356,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     // clear the params
     request.params().clear();
     // we need to reset the normalized path
-    normalisedPath = null;
+    normalizedPath = null;
     // we also need to reset any previous status
     statusCode = -1;
     // we need to reset any response headers

@@ -1534,7 +1534,7 @@ Here are some examples:
 [snip]
 <p th:text="${context.get('foo')}"></p>
 <p th:text="${context.get('bar')}"></p>
-<p th:text="${context.normalisedPath()}"></p>
+<p th:text="${context.normalizedPath()}"></p>
 <p th:text="${context.request().params().get('param1')}"></p>
 <p th:text="${context.request().params().get('param2')}"></p>
 [snip]
@@ -1562,7 +1562,7 @@ Here are some examples:
 [snip]
 <p th:text="${context.foo}"></p>
 <p th:text="${context.bar}"></p>
-<p th:text="${context.normalisedPath()}"></p>
+<p th:text="${context.normalizedPath()}"></p>
 <p th:text="${context.request().params().param1}"></p>
 <p th:text="${context.request().params().param2}"></p>
 [snip]
@@ -1590,7 +1590,7 @@ Here are some examples:
 [snip]
 <p th:text="{{context.foo}}"></p>
 <p th:text="{{context.bar}}"></p>
-<p th:text="{{context.normalisedPath()}}"></p>
+<p th:text="{{context.normalizedPath()}}"></p>
 <p th:text="{{context.request().params().param1}}"></p>
 <p th:text="{{context.request().params().param2}}"></p>
 [snip]

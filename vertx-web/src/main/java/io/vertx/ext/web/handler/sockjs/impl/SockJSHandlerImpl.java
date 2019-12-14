@@ -100,7 +100,7 @@ public class SockJSHandlerImpl implements SockJSHandler {
 
   @Override
   public Router socketHandler(Handler<SockJSSocket> sockHandler) {
-    router.route("/").useNormalisedPath(false).handler(rc -> {
+    router.route("/").useNormalizedPath(false).handler(rc -> {
       if (log.isTraceEnabled()) log.trace("Returning welcome response");
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8").end("Welcome to SockJS!\n");
     });

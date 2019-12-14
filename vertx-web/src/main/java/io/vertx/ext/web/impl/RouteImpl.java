@@ -209,8 +209,8 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public synchronized Route useNormalisedPath(boolean useNormalisedPath) {
-    state = state.setUseNormalisedPath(useNormalisedPath);
+  public synchronized Route useNormalizedPath(boolean useNormalizedPath) {
+    state = state.setUseNormalizedPath(useNormalizedPath);
     return this;
   }
 

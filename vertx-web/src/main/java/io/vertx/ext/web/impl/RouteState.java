@@ -49,14 +49,14 @@ final class RouteState {
   private final boolean added;
   private final Pattern pattern;
   private final List<String> groups;
-  private final boolean useNormalisedPath;
+  private final boolean useNormalizedPath;
   private final Set<String> namedGroupsInRegex;
   private final Pattern virtualHostPattern;
   private final boolean pathEndsWithSlash;
   private final boolean exclusive;
   private final boolean exactPath;
 
-  private RouteState(RouteImpl route, String path, int order, boolean enabled, Set<HttpMethod> methods, Set<MIMEHeader> consumes, boolean emptyBodyPermittedWithConsumes, Set<MIMEHeader> produces, List<Handler<RoutingContext>> contextHandlers, List<Handler<RoutingContext>> failureHandlers, boolean added, Pattern pattern, List<String> groups, boolean useNormalisedPath, Set<String> namedGroupsInRegex, Pattern virtualHostPattern, boolean pathEndsWithSlash, boolean exclusive, boolean exactPath) {
+  private RouteState(RouteImpl route, String path, int order, boolean enabled, Set<HttpMethod> methods, Set<MIMEHeader> consumes, boolean emptyBodyPermittedWithConsumes, Set<MIMEHeader> produces, List<Handler<RoutingContext>> contextHandlers, List<Handler<RoutingContext>> failureHandlers, boolean added, Pattern pattern, List<String> groups, boolean useNormalizedPath, Set<String> namedGroupsInRegex, Pattern virtualHostPattern, boolean pathEndsWithSlash, boolean exclusive, boolean exactPath) {
     this.route = route;
     this.path = path;
     this.order = order;
@@ -70,7 +70,7 @@ final class RouteState {
     this.added = added;
     this.pattern = pattern;
     this.groups = groups;
-    this.useNormalisedPath = useNormalisedPath;
+    this.useNormalizedPath = useNormalizedPath;
     this.namedGroupsInRegex = namedGroupsInRegex;
     this.virtualHostPattern = virtualHostPattern;
     this.pathEndsWithSlash = pathEndsWithSlash;
@@ -128,7 +128,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -155,7 +155,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -182,7 +182,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -209,7 +209,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -232,7 +232,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -262,7 +262,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -285,7 +285,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -315,7 +315,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -342,7 +342,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -365,7 +365,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -399,7 +399,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -422,7 +422,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -456,7 +456,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -479,7 +479,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -509,7 +509,7 @@ final class RouteState {
       added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -536,7 +536,7 @@ final class RouteState {
       this.added,
       pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -563,7 +563,7 @@ final class RouteState {
       this.added,
       this.pattern,
       groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -586,7 +586,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups == null ? new ArrayList<>() : new ArrayList<>(groups),
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -597,11 +597,11 @@ final class RouteState {
     return newState;
   }
 
-  public boolean isUseNormalisedPath() {
-    return useNormalisedPath;
+  public boolean isUseNormalizedPath() {
+    return useNormalizedPath;
   }
 
-  RouteState setUseNormalisedPath(boolean useNormalisedPath) {
+  RouteState setUseNormalizedPath(boolean useNormalizedPath) {
     return new RouteState(
       this.route,
       this.path,
@@ -616,7 +616,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      useNormalisedPath,
+      useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -643,7 +643,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -666,7 +666,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex == null ? new HashSet<>() : new HashSet<>(this.namedGroupsInRegex),
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -696,7 +696,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       virtualHostPattern,
       this.pathEndsWithSlash,
@@ -723,7 +723,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       pathEndsWithSlash,
@@ -750,7 +750,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -777,7 +777,7 @@ final class RouteState {
       this.added,
       this.pattern,
       this.groups,
-      this.useNormalisedPath,
+      this.useNormalizedPath,
       this.namedGroupsInRegex,
       this.virtualHostPattern,
       this.pathEndsWithSlash,
@@ -809,7 +809,7 @@ final class RouteState {
       return 404;
     }
     if (pattern != null) {
-      String path = useNormalisedPath ? context.normalisedPath() : context.request().path();
+      String path = useNormalizedPath ? context.normalizedPath() : context.request().path();
       if (mountPoint != null) {
         int strip = mountPoint.length();
         // mount point can have significant slash
@@ -828,7 +828,7 @@ final class RouteState {
         }
 
         context.matchRest = -1;
-        context.matchNormalized = useNormalisedPath;
+        context.matchNormalized = useNormalizedPath;
 
         if (m.groupCount() > 0) {
           if (!exactPath) {
@@ -945,9 +945,9 @@ final class RouteState {
 
     String requestPath;
 
-    if (useNormalisedPath) {
+    if (useNormalizedPath) {
       // never null
-      requestPath = ctx.normalisedPath();
+      requestPath = ctx.normalizedPath();
     } else {
       requestPath = ctx.request().path();
       // can be null
@@ -1055,7 +1055,7 @@ final class RouteState {
       ", added=" + added +
       ", pattern=" + pattern +
       ", groups=" + groups +
-      ", useNormalisedPath=" + useNormalisedPath +
+      ", useNormalizedPath=" + useNormalizedPath +
       ", namedGroupsInRegex=" + namedGroupsInRegex +
       ", virtualHostPattern=" + virtualHostPattern +
       ", pathEndsWithSlash=" + pathEndsWithSlash +

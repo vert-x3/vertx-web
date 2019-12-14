@@ -185,8 +185,8 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public String normalisedPath() {
-    return inner.normalisedPath();
+  public String normalizedPath() {
+    return inner.normalizedPath();
   }
 
   @Override
