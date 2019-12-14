@@ -255,8 +255,8 @@ With any path it can also be specified when creating the route:
 
 == Capturing path parameters
 
-It's possible to match paths using placeholders for parameters which are then available in the request
-{@link io.vertx.core.http.HttpServerRequest#params}.
+It's possible to match paths using placeholders for parameters which are then available in the context
+{@link io.vertx.ext.web.RoutingContext#pathParam}.
 
 Here's an example
 
@@ -269,7 +269,7 @@ The placeholders consist of `:` followed by the parameter name. Parameter names 
 numeric character or underscore.
 
 In the above example, if a POST request is made to path: `/catalogue/products/tools/drill123/` then the route will match
-and `productType` will receive the value `tools` and productID will receive the value `drill123`.
+and `productType` will receive the value `tools` and `productID` will receive the value `drill123`.
 
 == Routing with regular expressions
 
@@ -297,7 +297,7 @@ You can also capture path parameters when using regular expressions, here's an e
 ----
 
 In the above example, if a request is made to path: `/tools/drill123/` then the route will match
-and `productType` will receive the value `tools` and productID will receive the value `drill123`.
+and `productType` will receive the value `tools` and `productID` will receive the value `drill123`.
 
 Captures are denoted in regular expressions with capture groups (i.e. surrounding the capture with round brackets)
 
