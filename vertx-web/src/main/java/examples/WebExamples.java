@@ -126,12 +126,12 @@ public class WebExamples {
 
   public void example4_1(Router router) {
 
-    Route route = router.route(HttpMethod.POST, "/catalogue/products/:producttype/:productid/");
+    Route route = router.route(HttpMethod.POST, "/catalogue/products/:productType/:productID/");
 
     route.handler(routingContext -> {
 
-      String productType = routingContext.request().getParam("producttype");
-      String productID = routingContext.request().getParam("productid");
+      String productType = routingContext.pathParam("productType");
+      String productID = routingContext.pathParam("productID");
 
       // Do something with them...
     });
@@ -180,8 +180,8 @@ public class WebExamples {
     // param1
     route.pathRegex("\\/([^\\/]+)\\/([^\\/]+)").handler(routingContext -> {
 
-      String productType = routingContext.request().getParam("param0");
-      String productID = routingContext.request().getParam("param1");
+      String productType = routingContext.pathParam("param0");
+      String productID = routingContext.pathParam("param1");
 
       // Do something with them...
     });
@@ -192,10 +192,10 @@ public class WebExamples {
 
     // This regular expression matches paths that start with something like: "/foo/bar"
     // It uses named regex groups to capture path params
-    Route route = router.routeWithRegex("\\/(?<productType>[^\\/]+)\\/(?<productId>[^\\/]+)").handler(routingContext -> {
+    Route route = router.routeWithRegex("\\/(?<productType>[^\\/]+)\\/(?<productID>[^\\/]+)").handler(routingContext -> {
 
-      String productType = routingContext.request().getParam("productType");
-      String productID = routingContext.request().getParam("productId");
+      String productType = routingContext.pathParam("productType");
+      String productID = routingContext.pathParam("productID");
 
       // Do something with them...
     });
