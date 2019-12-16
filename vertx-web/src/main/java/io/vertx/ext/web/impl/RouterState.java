@@ -57,13 +57,15 @@ final class RouterState {
   private final int orderSequence;
   private final Map<Integer, Handler<RoutingContext>> errorHandlers;
   private final Handler<Router> modifiedHandler;
+  private final boolean allowForward;
 
-  public RouterState(RouterImpl router, Set<RouteImpl> routes, int orderSequence, Map<Integer, Handler<RoutingContext>> errorHandlers, Handler<Router> modifiedHandler) {
+  public RouterState(RouterImpl router, Set<RouteImpl> routes, int orderSequence, Map<Integer, Handler<RoutingContext>> errorHandlers, Handler<Router> modifiedHandler, boolean allowForward) {
     this.router = router;
     this.routes = routes;
     this.orderSequence = orderSequence;
     this.errorHandlers = errorHandlers;
     this.modifiedHandler = modifiedHandler;
+    this.allowForward = allowForward;
   }
 
   public RouterState(RouterImpl router) {
@@ -72,7 +74,8 @@ final class RouterState {
       null,
       0,
       null,
-      null);
+      null,
+      false);
   }
 
   public RouterImpl router() {
@@ -92,7 +95,8 @@ final class RouterState {
       new TreeSet<>(routeComparator),
       this.orderSequence,
       this.errorHandlers,
-      this.modifiedHandler);
+      this.modifiedHandler,
+      this.allowForward);
 
     newState.routes.addAll(routes);
     return newState;
@@ -110,7 +114,8 @@ final class RouterState {
       routes,
       this.orderSequence,
       this.errorHandlers,
-      this.modifiedHandler);
+      this.modifiedHandler,
+      this.allowForward);
   }
 
   RouterState clearRoutes() {
@@ -119,7 +124,8 @@ final class RouterState {
       new TreeSet<>(routeComparator),
       this.orderSequence,
       this.errorHandlers,
-      this.modifiedHandler);
+      this.modifiedHandler,
+      this.allowForward);
   }
 
   RouterState removeRoute(RouteImpl route) {
@@ -134,7 +140,8 @@ final class RouterState {
       routes,
       this.orderSequence,
       this.errorHandlers,
-      this.modifiedHandler);
+      this.modifiedHandler,
+      this.allowForward);
   }
 
   public int getOrderSequence() {
@@ -147,7 +154,8 @@ final class RouterState {
       this.routes,
       this.orderSequence + 1,
       this.errorHandlers,
-      this.modifiedHandler);
+      this.modifiedHandler,
+      this.allowForward);
   }
 
   RouterState setOrderSequence(int orderSequence) {
@@ -156,7 +164,8 @@ final class RouterState {
       this.routes,
       orderSequence,
       this.errorHandlers,
-      this.modifiedHandler);
+      this.modifiedHandler,
+      this.allowForward);
   }
 
   public Map<Integer, Handler<RoutingContext>> getErrorHandlers() {
@@ -169,7 +178,8 @@ final class RouterState {
       this.routes,
       this.orderSequence,
       errorHandlers,
-      this.modifiedHandler);
+      this.modifiedHandler,
+      this.allowForward);
   }
 
   Handler<RoutingContext> getErrorHandler(int errorCode) {
@@ -185,7 +195,8 @@ final class RouterState {
       this.routes,
       this.orderSequence,
       this.errorHandlers == null ? new HashMap<>() : new HashMap<>(errorHandlers),
-      this.modifiedHandler);
+      this.modifiedHandler,
+      this.allowForward);
 
     newState.errorHandlers.put(errorCode, errorHandler);
     return newState;
@@ -201,7 +212,22 @@ final class RouterState {
       this.routes,
       this.orderSequence,
       this.errorHandlers,
-      modifiedHandler);
+      modifiedHandler,
+      this.allowForward);
+  }
+
+  public RouterState setAllowForward(boolean allow) {
+    return new RouterState(
+      this.router,
+      this.routes,
+      this.orderSequence,
+      this.errorHandlers,
+      this.modifiedHandler,
+      allow);
+  }
+
+  public boolean isAllowForward() {
+    return allowForward;
   }
 
   @Override
@@ -211,6 +237,7 @@ final class RouterState {
       ", orderSequence=" + orderSequence +
       ", errorHandlers=" + errorHandlers +
       ", modifiedHandler=" + modifiedHandler +
+      ", this.allowForward=" + allowForward +
       '}';
   }
 }

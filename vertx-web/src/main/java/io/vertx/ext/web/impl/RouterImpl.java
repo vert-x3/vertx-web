@@ -40,7 +40,6 @@ public class RouterImpl implements Router {
   private final Vertx vertx;
 
   private volatile RouterState state;
-  private boolean allowForward;
 
   public RouterImpl(Vertx vertx) {
     this.vertx = vertx;
@@ -52,7 +51,7 @@ public class RouterImpl implements Router {
     if (log.isTraceEnabled()) {
       log.trace("Router: " + System.identityHashCode(this) + " accepting request " + request.method() + " " + request.absoluteURI());
     }
-    new RoutingContextImpl(null, this, request, state.getRoutes(), allowForward).next();
+    new RoutingContextImpl(null, this, request, state.getRoutes()).next();
   }
 
   @Override
@@ -266,9 +265,13 @@ public class RouterImpl implements Router {
   }
 
   @Override
-  public Router allowForward(boolean allow) {
-    this.allowForward = allow;
+  public synchronized Router allowForward(boolean allow) {
+    state = state.setAllowForward(allow);
     return this;
+  }
+
+  public boolean isAllowForward() {
+    return state.isAllowForward();
   }
 
   @Override
