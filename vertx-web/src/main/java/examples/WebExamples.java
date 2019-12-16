@@ -264,6 +264,16 @@ public class WebExamples {
 
   }
 
+  public void example9_1(Router router) {
+
+    Route route = router.route()
+      .rawMethod("MKCOL")
+      .handler(routingContext -> {
+      // This handler will be called for any MKCOL request
+    });
+
+  }
+
   public void example10(Router router) {
 
     Route route1 = router.route("/some/path/").handler(routingContext -> {

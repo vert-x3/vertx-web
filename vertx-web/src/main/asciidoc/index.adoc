@@ -350,6 +350,17 @@ multiple times:
 {@link examples.WebExamples#example9}
 ----
 
+If you are creating an application that require custom HTTP verbs, for example, an `WebDav` server, then you can specify
+custom verbs like:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example9_1}
+----
+
+NOTE: It is important to notice that features such as rerouting will not accept custom http methods and inspecting the
+route verbs will yield the enumeration value `OTHER` instead of the custom name.
+
 == Route order
 
 By default routes are matched in the order they are added to the router.
