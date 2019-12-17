@@ -266,7 +266,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
         .createValidationRuleWithCustomTypeValidator(parameter.getName(), JsonTypeValidator.JsonTypeValidatorFactory
           .createJsonTypeValidator(OpenApi3Utils.generateSanitizedJsonSchemaNode(jsonsContents.get(0).getSchema(), this.spec)),
-          !parameter.getRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter), location), location);
+          !OpenApi3Utils.isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), location), location);
     } else if (contents.size() > 1 && jsonsContents.size() >= 1) {
       // Mount anyOf
       List<ParameterTypeValidator> validators =
@@ -275,13 +275,12 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       validators.add(CONTENT_TYPE_VALIDATOR);
       AnyOfTypeValidator validator = new AnyOfTypeValidator(validators);
       this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-        .createValidationRuleWithCustomTypeValidator(parameter.getName(), validator, !parameter.getRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter)
+        .createValidationRuleWithCustomTypeValidator(parameter.getName(), validator, !OpenApi3Utils.isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter)
           , location), location);
     } else {
       this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-        .createValidationRuleWithCustomTypeValidator(parameter.getName(), CONTENT_TYPE_VALIDATOR, !parameter
-            .getRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter),
-          location), location);
+        .createValidationRuleWithCustomTypeValidator(parameter.getName(), CONTENT_TYPE_VALIDATOR, !OpenApi3Utils.isRequiredParam(parameter), 
+                OpenApi3Utils.resolveAllowEmptyValue(parameter), location), location);
     }
   }
 
@@ -291,7 +290,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       .getMinItems());
 
     this.addPathParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-      .createValidationRuleWithCustomTypeValidator(parameter.getName(), validator, parameter.getRequired(), false, ParameterLocation.PATH));
+      .createValidationRuleWithCustomTypeValidator(parameter.getName(), validator, OpenApi3Utils.isRequiredParam(parameter), false, ParameterLocation.PATH));
   }
 
   private void magicParameterExplodedObject(Parameter parameter) {
@@ -428,7 +427,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       ParameterLocation location = resolveLocation(parameter.getIn());
       this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
         .createValidationRuleWithCustomTypeValidator(parameter.getName(), this.resolveTypeValidator(parameter),
-          !parameter.getRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter), location), location);
+          !OpenApi3Utils.isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), location), location);
     }
   }
 
