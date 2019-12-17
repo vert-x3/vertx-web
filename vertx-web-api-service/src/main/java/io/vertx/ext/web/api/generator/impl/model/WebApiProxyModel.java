@@ -49,9 +49,9 @@ public class WebApiProxyModel extends ProxyModel {
       if (mParams.size() < 2) {
         throw new GenException(this.modelElt, "Method should have second to last parameter of type io.vertx.ext.web.api.OperationRequest and last parameter of type Handler<AsyncResult<io.vertx.ext.web.api.OperationResponse>>");
       }
-      ParamInfo shouldBeRequestContextParam = mParams.get(mParams.size() - 2);
-      if (shouldBeRequestContextParam == null || !shouldBeRequestContextParam.getType().getName().equals(OperationRequest.class.getName())) {
-        throw new GenException(this.modelElt, "Method " + methodName + "should have the second to last parameter with type io.vertx.ext.web.api.RequestContext");
+      ParamInfo shouldBeOperationRequestParam = mParams.get(mParams.size() - 2);
+      if (shouldBeOperationRequestParam == null || !shouldBeOperationRequestParam.getType().getName().equals(OperationRequest.class.getName())) {
+        throw new GenException(this.modelElt, "Method " + methodName + "should have the second to last parameter with type io.vertx.ext.web.api.OperationRequest");
       }
       ParamInfo shouldBeHandler = mParams.get(mParams.size() - 1);
       if (baseInfo.getKind() != MethodKind.HANDLER || shouldBeHandler == null) {
