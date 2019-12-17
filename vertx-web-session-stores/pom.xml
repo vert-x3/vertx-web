@@ -19,6 +19,7 @@
 
   <modules>
     <module>vertx-web-sstore-cookie</module>
+    <module>vertx-web-sstore-redis</module>
   </modules>
 
 </project>
