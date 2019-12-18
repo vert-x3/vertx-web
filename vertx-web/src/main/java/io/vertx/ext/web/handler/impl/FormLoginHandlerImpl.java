@@ -81,7 +81,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
   public void handle(RoutingContext context) {
     HttpServerRequest req = context.request();
     if (req.method() != HttpMethod.POST) {
-      context.fail(405); // Must be a POST
+      context.fail(new HttpStatusException(405)); // Must be a POST
     } else {
       if (!req.isExpectMultipart()) {
         throw new IllegalStateException("HttpServerRequest should have setExpectMultipart set to true, but it is currently set to false.");
@@ -91,7 +91,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
       String password = params.get(passwordParam);
       if (username == null || password == null) {
         log.warn("No username or password provided in form - did you forget to include a BodyHandler?");
-        context.fail(400);
+        context.fail(new HttpStatusException(400));
       } else {
         Session session = context.session();
         JsonObject authInfo = new JsonObject().put("username", username).put("password", password);
@@ -122,7 +122,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
               req.response().end(DEFAULT_DIRECT_LOGGED_IN_OK_PAGE);
             }
           } else {
-            context.fail(403);  // Failed login
+            context.fail(new HttpStatusException(401));  // Failed login
           }
         });
       }
