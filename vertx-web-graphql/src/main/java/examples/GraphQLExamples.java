@@ -209,7 +209,7 @@ public class GraphQLExamples {
 
   public void configureServerForApolloWs(Vertx vertx, Router router) {
     HttpServerOptions httpServerOptions = new HttpServerOptions()
-      .setWebsocketSubProtocols("graphql-ws");
+      .addWebSocketSubProtocol("graphql-ws");
     vertx.createHttpServer(httpServerOptions)
       .requestHandler(router)
       .listen(8080);

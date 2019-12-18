@@ -333,8 +333,8 @@ public class WebClientOptions extends HttpClientOptions {
   }
 
   @Override
-  public WebClientOptions setMaxWebsocketFrameSize(int maxWebsocketFrameSize) {
-    return (WebClientOptions) super.setMaxWebsocketFrameSize(maxWebsocketFrameSize);
+  public WebClientOptions setMaxWebSocketFrameSize(int maxWebsocketFrameSize) {
+    return (WebClientOptions) super.setMaxWebSocketFrameSize(maxWebsocketFrameSize);
   }
 
   @Override
@@ -478,8 +478,8 @@ public class WebClientOptions extends HttpClientOptions {
   }
 
   @Override
-  public WebClientOptions setMaxWebsocketMessageSize(int maxWebsocketMessageSize) {
-    return (WebClientOptions) super.setMaxWebsocketMessageSize(maxWebsocketMessageSize);
+  public WebClientOptions setMaxWebSocketMessageSize(int maxWebsocketMessageSize) {
+    return (WebClientOptions) super.setMaxWebSocketMessageSize(maxWebsocketMessageSize);
   }
 
   @Override
@@ -492,7 +492,40 @@ public class WebClientOptions extends HttpClientOptions {
     return (WebClientOptions) super.setInitialSettings(settings);
   }
 
+  @Override
+  public WebClientOptions setSslHandshakeTimeout(long sslHandshakeTimeout) {
+    return (WebClientOptions) super.setSslHandshakeTimeout(sslHandshakeTimeout);
+  }
 
+  @Override
+  public WebClientOptions setSslHandshakeTimeoutUnit(TimeUnit sslHandshakeTimeoutUnit) {
+    return (WebClientOptions) super.setSslHandshakeTimeoutUnit(sslHandshakeTimeoutUnit);
+  }
+
+  @Override
+  public WebClientOptions setTryUsePerFrameWebSocketCompression(boolean offer) {
+    return (WebClientOptions) super.setTryUsePerFrameWebSocketCompression(offer);
+  }
+
+  @Override
+  public WebClientOptions setTryUsePerMessageWebSocketCompression(boolean offer) {
+    return (WebClientOptions) super.setTryUsePerMessageWebSocketCompression(offer);
+  }
+
+  @Override
+  public WebClientOptions setWebSocketCompressionLevel(int compressionLevel) {
+    return (WebClientOptions) super.setWebSocketCompressionLevel(compressionLevel);
+  }
+
+  @Override
+  public WebClientOptions setWebSocketCompressionAllowClientNoContext(boolean offer) {
+    return (WebClientOptions) super.setWebSocketCompressionAllowClientNoContext(offer);
+  }
+
+  @Override
+  public WebClientOptions setWebSocketCompressionRequestServerNoContext(boolean offer) {
+    return (WebClientOptions) super.setWebSocketCompressionRequestServerNoContext(offer);
+  }
 
   public static String loadUserAgent() {
     String userAgent = "Vert.x-WebClient";
