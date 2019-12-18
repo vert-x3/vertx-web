@@ -676,7 +676,17 @@ We can now mount the sub router on the main router, against a mount point, in th
 {@link examples.WebExamples#example24}
 ----
 
-This means the REST API is now accessible via paths like: `/productsAPI/products/product1234`
+This means the REST API is now accessible via paths like: `/productsAPI/products/product1234`.
+
+There are a couple of rules that must be fulfilled before sub routers can be used:
+
+* The route path must end with a wild card
+* Parameters are allowed but full regex patterns not
+* Only 1 handler can be registered before or after this call (but they can on a new route object for the same path)
+* Only 1 router per path object
+
+Validation happens at the time the router is added to the http server. This means that you cannot get any validation
+error during the build time because of the dynamic nature of sub routers. They depend on the context to be validated.
 
 == Localization
 
