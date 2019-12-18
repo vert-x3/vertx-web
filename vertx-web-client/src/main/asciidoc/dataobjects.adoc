@@ -44,8 +44,8 @@ Configure the default behavior of the client to follow HTTP <code>30x</code> red
 |[[maxPoolSize]]`@maxPoolSize`|`Number (int)`|-
 |[[maxRedirects]]`@maxRedirects`|`Number (int)`|-
 |[[maxWaitQueueSize]]`@maxWaitQueueSize`|`Number (int)`|-
-|[[maxWebsocketFrameSize]]`@maxWebsocketFrameSize`|`Number (int)`|-
-|[[maxWebsocketMessageSize]]`@maxWebsocketMessageSize`|`Number (int)`|-
+|[[maxWebSocketFrameSize]]`@maxWebSocketFrameSize`|`Number (int)`|-
+|[[maxWebSocketMessageSize]]`@maxWebSocketMessageSize`|`Number (int)`|-
 |[[metricsName]]`@metricsName`|`String`|-
 |[[openSslEngineOptions]]`@openSslEngineOptions`|`link:dataobjects.html#OpenSSLEngineOptions[OpenSSLEngineOptions]`|-
 |[[pemKeyCertOptions]]`@pemKeyCertOptions`|`link:dataobjects.html#PemKeyCertOptions[PemKeyCertOptions]`|-
@@ -75,9 +75,9 @@ Configure the default behavior of the client to follow HTTP <code>30x</code> red
 |[[trustAll]]`@trustAll`|`Boolean`|-
 |[[trustStoreOptions]]`@trustStoreOptions`|`link:dataobjects.html#JksOptions[JksOptions]`|-
 |[[tryUseCompression]]`@tryUseCompression`|`Boolean`|-
-|[[tryUsePerFrameWebsocketCompression]]`@tryUsePerFrameWebsocketCompression`|`Boolean`|-
-|[[tryUsePerMessageWebsocketCompression]]`@tryUsePerMessageWebsocketCompression`|`Boolean`|-
-|[[tryWebsocketDeflateFrameCompression]]`@tryWebsocketDeflateFrameCompression`|`Boolean`|-
+|[[tryUsePerFrameWebSocketCompression]]`@tryUsePerFrameWebSocketCompression`|`Boolean`|-
+|[[tryUsePerMessageWebSocketCompression]]`@tryUsePerMessageWebSocketCompression`|`Boolean`|-
+|[[tryWebSocketDeflateFrameCompression]]`@tryWebSocketDeflateFrameCompression`|`Boolean`|-
 |[[useAlpn]]`@useAlpn`|`Boolean`|-
 |[[userAgent]]`@userAgent`|`String`|+++
 Sets the Web Client user agent header. Defaults to Vert.x-WebClient/&lt;version&gt;.
@@ -86,8 +86,8 @@ Sets the Web Client user agent header. Defaults to Vert.x-WebClient/&lt;version&
 Sets whether the Web Client should send a user agent header. Defaults to true.
 +++
 |[[verifyHost]]`@verifyHost`|`Boolean`|-
-|[[websocketCompressionAllowClientNoContext]]`@websocketCompressionAllowClientNoContext`|`Boolean`|-
-|[[websocketCompressionLevel]]`@websocketCompressionLevel`|`Number (int)`|-
-|[[websocketCompressionRequestServerNoContext]]`@websocketCompressionRequestServerNoContext`|`Boolean`|-
+|[[webSocketCompressionAllowClientNoContext]]`@webSocketCompressionAllowClientNoContext`|`Boolean`|-
+|[[webSocketCompressionLevel]]`@webSocketCompressionLevel`|`Number (int)`|-
+|[[webSocketCompressionRequestServerNoContext]]`@webSocketCompressionRequestServerNoContext`|`Boolean`|-
 |===
 
