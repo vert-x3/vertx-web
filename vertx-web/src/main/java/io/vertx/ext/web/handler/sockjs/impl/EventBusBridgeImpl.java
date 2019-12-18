@@ -412,7 +412,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
               }
             } else {
               replyError(sock, "auth_error");
-              log.error("Error in performing authorisation", res.cause());
+              log.error("Error in performing authorization", res.cause());
             }
           });
         } else {

@@ -38,7 +38,7 @@ Some of the key features of Vert.x-Web include:
 * Error page handler
 * HTTP Basic/Digest Authentication
 * Redirect based authentication
-* Authorisation handlers
+* Authorization handlers
 * JWT/OAuth2 based authorization
 * User/role/permission authorization
 * Favicon handling
@@ -1082,7 +1082,7 @@ Here's an example of a simple app, using a redirect auth handler on the default 
 
 === JWT authentication
 
-With JWT authorisation resources can be protected by means of permissions and users without enough rights are denied
+With JWT authentication resources can be protected by means of permissions and users without enough rights are denied
 access. You need to add the `io.vertx:vertx-auth-jwt:${maven.version}` dependency to use `JWTAuthProvider`
 
 To use this handler there are 2 steps involved:
@@ -2038,8 +2038,8 @@ Here's an example:
 
 === Requiring authorization for messages
 
-The event bus bridge can also be configured to use the Vert.x-Web authorisation functionality to require
-authorisation for messages, either in-bound or out-bound on the bridge.
+The event bus bridge can also be configured to use the Vert.x-Web authorization functionality to require
+authorization for messages, either in-bound or out-bound on the bridge.
 
 To do this, you can add extra fields to the match described in the previous section that determine what authority is
 required for the match.
@@ -2101,7 +2101,7 @@ complete the future with `true` to enable further processing.
 
 If you don't want the event to be processed you can complete the future with `false`. This is a useful feature that
 enables you to do your own filtering on messages passing through the bridge, or perhaps apply some fine grained
-authorisation or metrics.
+authorization or metrics.
 
 Here's an example where we reject all messages flowing through the bridge if they contain the word "Armadillos".
 

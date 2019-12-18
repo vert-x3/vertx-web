@@ -46,12 +46,12 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
 
   @Test
   public void testAuthAuthorities() throws Exception {
-    testAuthorisation("tim", false, PermissionBasedAuthorization.create("dance"));
+    testAuthorization("tim", false, PermissionBasedAuthorization.create("dance"));
   }
 
   @Test
   public void testAuthAuthoritiesFail() throws Exception {
-    testAuthorisation("tim", true, PermissionBasedAuthorization.create("knitter"));
+    testAuthorization("tim", true, PermissionBasedAuthorization.create("knitter"));
   }
 
   protected abstract AuthenticationHandler createAuthHandler(AuthenticationProvider authProvider);
@@ -64,7 +64,7 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
     return LocalSessionStore.create(vertx);
   }
 
-  protected void testAuthorisation(String username, boolean fail, Authorization authority) throws Exception {
+  protected void testAuthorization(String username, boolean fail, Authorization authority) throws Exception {
     if (requiresSession()) {
       router.route().handler(BodyHandler.create());
       SessionStore store = getSessionStore();
