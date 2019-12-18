@@ -22,7 +22,9 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
@@ -208,7 +210,12 @@ public class BodyHandlerImpl implements BodyHandler {
 
       context.request().exceptionHandler(t -> {
         deleteFileUploads();
-        context.fail(t);
+        if (t instanceof DecoderException) {
+          // bad request
+          context.fail(400, t.getCause());
+        } else {
+          context.fail(t);
+        }
       });
     }
 
