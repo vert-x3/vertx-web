@@ -542,4 +542,20 @@ public class SubRouterTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/v/files/info", 200, "OK");
   }
+
+  @Test
+  public void testMountOnRoot() throws Exception {
+    Router subRouter = Router.router(vertx);
+
+    subRouter.get("/primary").handler(ctx -> {
+      ctx.response().setStatusMessage("Hi").end();
+    });
+
+    router.mountSubRouter("/", subRouter);
+
+    testRequest(HttpMethod.GET, "/primary", 200, "Hi");
+    testRequest(HttpMethod.GET, "/primary?query=1", 200, "Hi");
+    testRequest(HttpMethod.GET, "/primary/", 200, "Hi");
+    testRequest(HttpMethod.GET, "/primary/random", 404, "Not Found");
+  }
 }
