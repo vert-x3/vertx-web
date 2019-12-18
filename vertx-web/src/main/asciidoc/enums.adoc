@@ -21,6 +21,9 @@
 |[[TINY]]`TINY`|+++
 <i>method</i> <i>uri</i> <i>status</i> - <i>content-length</i> <i>duration</i>
 +++
+|[[CUSTOM]]`CUSTOM`|+++
+Will use user defined formatter function.
++++
 |===
 
 [[Transport]]

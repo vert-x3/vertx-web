@@ -28,6 +28,8 @@ import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.Utils;
 
+import java.util.function.Function;
+
 /** # Logger
  *
  * Logger for request. There are 3 formats included:
@@ -53,6 +55,8 @@ public class LoggerHandlerImpl implements LoggerHandler {
   /** the current choosen format
    */
   private final LoggerFormat format;
+
+  private Function<HttpServerRequest, String> customFormatter;
 
   public LoggerHandlerImpl(boolean immediate, LoggerFormat format) {
     this.immediate = immediate;
@@ -140,6 +144,14 @@ public class LoggerHandlerImpl implements LoggerHandler {
           contentLength,
           (System.currentTimeMillis() - timestamp));
         break;
+      case CUSTOM:
+        try {
+          message = customFormatter.apply(request);
+        } catch (RuntimeException e) {
+          // if an error happens at the user side
+          // log it instead
+          message = e.getMessage();
+        }
     }
     doLog(status, message);
   }
@@ -171,5 +183,16 @@ public class LoggerHandlerImpl implements LoggerHandler {
 
     context.next();
 
+  }
+
+  @Override
+  public LoggerHandler customFormatter(Function<HttpServerRequest, String> formatter) {
+    if (format != LoggerFormat.CUSTOM) {
+      throw new IllegalStateException("Setting a formatter requires the handler to be set to CUSTOM format");
+    }
+
+    this.customFormatter = formatter;
+
+    return this;
   }
 }
