@@ -47,7 +47,7 @@ public interface VertxBatchLoader<K, V> extends BatchLoaderWithContext<K, V> {
    * <li>a future that the implementor must complete after the data objects are loaded</li>
    * </ul>
    */
-  @GenIgnore(PERMITTED_TYPE)
+  @GenIgnore
   static <K, V> VertxBatchLoader<K, V> create(TriConsumer<List<K>, BatchLoaderEnvironment, Promise<List<V>>> batchLoader) {
     return new VertxBatchLoaderImpl<>(batchLoader);
   }
