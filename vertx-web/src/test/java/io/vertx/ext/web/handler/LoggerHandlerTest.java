@@ -20,6 +20,8 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
+import java.util.concurrent.CountDownLatch;
+
 /**
  *
  * Kind of hard to test this!
@@ -50,6 +52,17 @@ public class LoggerHandlerTest extends WebTestBase {
   public void testLogger3() throws Exception {
     LoggerHandler logger = LoggerHandler.create(true, LoggerFormat.TINY);
     testLogger(logger);
+  }
+
+  @Test
+  public void testLogger4() throws Exception {
+    final CountDownLatch latch = new CountDownLatch(1);
+    LoggerHandler logger = LoggerHandler.create(true, LoggerFormat.CUSTOM).customFormatter(req -> {
+      latch.countDown();
+      return "custom log message";
+    });
+    testLogger(logger);
+    latch.await();
   }
 
   private void testLogger(LoggerHandler logger) throws Exception {

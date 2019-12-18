@@ -38,5 +38,10 @@ public enum LoggerFormat {
   /**
    * <i>method</i> <i>uri</i> <i>status</i> - <i>content-length</i> <i>duration</i>
    */
-  TINY
+  TINY,
+
+  /**
+   * Will use user defined formatter function.
+   */
+  CUSTOM
 }
