@@ -179,7 +179,8 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
       // validate the state
       if (ctx.session() != null) {
-        String ctxState = ctx.session().get("state");
+        // remove the nonce
+        String ctxState = ctx.session().remove("state");
         if (ctxState != null) {
           // if there's a state in the context they must match
           if (!ctxState.equals(state)) {
