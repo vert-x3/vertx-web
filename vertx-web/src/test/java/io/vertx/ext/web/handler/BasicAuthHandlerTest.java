@@ -24,7 +24,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.impl.ClusterSerializable;
-import io.vertx.ext.auth.PRNG;
+import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.RoutingContext;
@@ -194,7 +194,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
   private class SerializingSessionStore implements SessionStore {
 
     private Map<String, Buffer> sessions = new ConcurrentHashMap<>();
-    private final PRNG prng = new PRNG(vertx);
+    private final VertxContextPRNG prng = VertxContextPRNG.current(vertx);
 
     @Override
     public SessionStore init(Vertx vertx, JsonObject options) {

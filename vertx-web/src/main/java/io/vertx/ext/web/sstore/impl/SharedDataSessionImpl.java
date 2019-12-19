@@ -20,7 +20,7 @@ import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.shareddata.Shareable;
 import io.vertx.core.shareddata.impl.ClusterSerializable;
-import io.vertx.ext.auth.PRNG;
+import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.sstore.AbstractSession;
 
@@ -58,11 +58,11 @@ public class SharedDataSessionImpl extends AbstractSession implements ClusterSer
     super();
   }
 
-  public SharedDataSessionImpl(PRNG random) {
+  public SharedDataSessionImpl(VertxContextPRNG random) {
     super(random);
   }
 
-  public SharedDataSessionImpl(PRNG random, long timeout, int length) {
+  public SharedDataSessionImpl(VertxContextPRNG random, long timeout, int length) {
     super(random, timeout, length);
   }
 

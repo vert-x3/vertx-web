@@ -22,7 +22,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.AsyncMap;
-import io.vertx.ext.auth.PRNG;
+import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.AbstractSession;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
@@ -45,7 +45,7 @@ public class ClusteredSessionStoreImpl implements SessionStore, ClusteredSession
 
 
   private Vertx vertx;
-  private PRNG random;
+  private VertxContextPRNG random;
   private String sessionMapName;
   private long retryTimeout;
 
@@ -57,7 +57,7 @@ public class ClusteredSessionStoreImpl implements SessionStore, ClusteredSession
     this.vertx = vertx;
     this.sessionMapName = options.getString("mapName", DEFAULT_SESSION_MAP_NAME);
     this.retryTimeout = options.getLong("retryTimeout", DEFAULT_RETRY_TIMEOUT);
-    this.random = new PRNG(vertx);
+    this.random = VertxContextPRNG.current(vertx);
 
     return this;
   }
@@ -192,8 +192,6 @@ public class ClusteredSessionStoreImpl implements SessionStore, ClusteredSession
 
   @Override
   public void close() {
-    // stop seeding the PRNG
-    random.close();
   }
 
   private void getMap(Handler<AsyncResult<AsyncMap<String, Session>>> resultHandler) {

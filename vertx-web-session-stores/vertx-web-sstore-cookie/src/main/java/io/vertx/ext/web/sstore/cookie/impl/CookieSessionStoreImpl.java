@@ -21,7 +21,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.PRNG;
+import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.sstore.cookie.CookieSessionStore;
@@ -45,12 +45,12 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
   }
 
   private Mac mac;
-  private PRNG random;
+  private VertxContextPRNG random;
 
   @Override
   public SessionStore init(Vertx vertx, JsonObject options) {
     // initialize a secure random
-    this.random = new PRNG(vertx);
+    this.random = VertxContextPRNG.current(vertx);
 
     try {
       mac = Mac.getInstance("HmacSHA256");
@@ -134,6 +134,6 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
 
   @Override
   public void close() {
-    random.close();
+    // nothing to close
   }
 }

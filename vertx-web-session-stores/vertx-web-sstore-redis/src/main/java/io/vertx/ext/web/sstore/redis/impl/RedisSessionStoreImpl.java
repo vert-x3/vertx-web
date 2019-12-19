@@ -21,7 +21,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.PRNG;
+import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.AbstractSession;
 import io.vertx.ext.web.sstore.SessionStore;
@@ -39,11 +39,11 @@ import static io.vertx.redis.client.Request.cmd;
  */
 public class RedisSessionStoreImpl implements RedisSessionStore {
   private final Redis redis;
-  private final PRNG random;
+  private final VertxContextPRNG random;
   private final long retryTimeout;
 
   public RedisSessionStoreImpl(Vertx vertx, long retryTimeout, Redis redis) {
-    random = new PRNG(vertx);
+    random = VertxContextPRNG.current(vertx);
     this.retryTimeout = retryTimeout;
     this.redis = redis;
   }
@@ -177,6 +177,5 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
   @Override
   public void close() {
     redis.close();
-    random.close();
   }
 }

@@ -83,7 +83,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     latch.await();
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
-    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth2, "http://localhost:8080/callback");
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/callback");
 
     // setup the callback handler for receiving the callback
     oauth2Handler.setupCallback(router.route());
@@ -142,7 +142,12 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // protect everything. This has the bad sideffect that it will also shade the callback route which is computed
     // after this handler, the proper way to fix this would be create the route before
-    router.route().handler(OAuth2AuthHandler.create(oauth2, "http://localhost:8080/callback").setupCallback(router.route()));
+    router.route()
+      .handler(
+        OAuth2AuthHandler
+          .create(vertx, oauth2, "http://localhost:8080/callback")
+          .setupCallback(router.route()));
+
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
       assertNotNull(rc.user());
@@ -164,7 +169,10 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.clear();
 
     // protect everything.
-    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth2, "http://localhost:8080/callback").setupCallback(router.route());
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
+      .create(vertx, oauth2, "http://localhost:8080/callback")
+      .setupCallback(router.route());
+
     // now the callback is registered before as it should
     router.route().handler(oauth2Handler);
     // mount some handler under the protected zone
@@ -249,7 +257,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2ClientOptions().setFlow(OAuth2FlowType.AUTH_CODE).setClientID("client-id"));
-    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth2);
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2);
 
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2Handler);
@@ -276,7 +284,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
           .addPubSecKey(new PubSecKeyOptions()
             .setAlgorithm("RS256")
             .setBuffer(
-                "-----BEGIN PUBLIC KEY-----\n" +
+              "-----BEGIN PUBLIC KEY-----\n" +
                 "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmuIC9Qvwoe/3tUpHkcUp\n" +
                 "vWmzQqnZtz3HBKbxzc/jBTxUHefJDs88Xjw5nNXhl4tXkHzFRAZHtDnwX074/2oc\n" +
                 "PRSWaBjHYXB771af91UPrc9fb4lh3W1a8hmQU6sgKlQVwDnUuePDkCmwKCsuyX0M\n" +
@@ -292,42 +300,42 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     JWT jwt = new JWT().addJWK(
       new JWK(new PubSecKeyOptions()
-      .setAlgorithm("RS256")
+        .setAlgorithm("RS256")
         .setBuffer(
           "-----BEGIN PRIVATE KEY-----\n" +
-          "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCa4gL1C/Ch7/e1\n" +
-          "SkeRxSm9abNCqdm3PccEpvHNz+MFPFQd58kOzzxePDmc1eGXi1eQfMVEBke0OfBf\n" +
-          "Tvj/ahw9FJZoGMdhcHvvVp/3VQ+tz19viWHdbVryGZBTqyAqVBXAOdS548OQKbAo\n" +
-          "Ky7JfQzDG7A7ARSjivXk0GH8fsW+4dU+epYrX+SWJi1C6QXey9CSllPr+m5DRsQ5\n" +
-          "59E4sH4QA8zQ4BoPKSePEJkl6eT0UjILqyQ4pVrFbsJwTniUhSNLUYoVBzjj/5P6\n" +
-          "7RUpKaGtF0E1wCFeZ2nCMugNPL8jzP66qQqK10RVzMJ2V42p5vpvWSM9ZLdVstfF\n" +
-          "j8shiXO5AgMBAAECggEAIriwOQcoNuV4/qdcTA2LQe9ERJmXOUEcMKrMYntMRYw0\n" +
-          "v0+K/0ruGaIeuE4qeLLAOp/+CTXvNTQX8wXdREUhd3/6B/QmHm39GrasveHP1gM7\n" +
-          "PeHqkp1FWijo9hjS6SpYhfNxAQtSeCsgVqD3qCvkhIjchR3E5rTsUxN0JAq3ggb9\n" +
-          "WCJ2LUxOOTHAWL4cv7FIKfwU/bwjBdHbSLuh7em4IE8tzcFgh49281APprGb4a3d\n" +
-          "CPlIZC+CQmTFKPGzT0WDNc3EbPPKcx8ECRf1Zo94Tqnzv7FLgCmr0o4O9e6E3yss\n" +
-          "Uwp7EKPUQyAwBkc+pHwqUmOPqHB+z28JUOwqoD0vQQKBgQDNiXSydWh9BUWAleQU\n" +
-          "fgSF0bjlt38HVcyMKGC1xQhi8VeAfLJxGCGbdxsPFNCtMPDLRRyd4xHBmsCmPPli\n" +
-          "CFHD1UbfNuKma6azl6A86geuTolgrHoxp57tZwoBpG9JHoTA53pfBPxb8q39YXKh\n" +
-          "DSXsJVldxsHwzFAklj3ZqzWq3QKBgQDA6M/VW3SXEt1NWwMI+WGa/QKHDjLDhZzF\n" +
-          "F3iQTtzDDmA4louAzX1cykNo6Y7SpORi0ralml65iwT2HZtE8w9vbw4LNmBiHmlX\n" +
-          "AvpZSHT6/7nQeiFtxZu9cyw4GGpNSaeqp4Cq6TGYmfbq4nIdryzUU2AgsqSZyrra\n" +
-          "xh7K+2I4jQKBgGjC8xQy+7sdgLt1qvc29B8xMkkEKl8WwFeADSsY7plf4fW/mURD\n" +
-          "xH11S/l35pUgKNuysk9Xealws1kIIyRwkRx8DM+hLg0dOa64Thg+QQP7S9JWl0HP\n" +
-          "6hWfO15y7bYbNBcO5TShWe+T1lMb5E1qYjXnI5HEyP1vZjn/yi60MXqRAoGAe6F4\n" +
-          "+QLIwL1dSOMoGctBS4QU55so23e41fNJ2CpCf1uqPPn2Y9DOI/aYpxbv6n20xMTI\n" +
-          "O2+of37h6h1lUhX38XGZ7YOm15sn5ZTJ/whZuDbFzh9HZ0N6oTq7vyOelPO8WblJ\n" +
-          "077pgyRBQ51mhzGqKFVayPnUVZ/Ais7oEyxycU0CgYEAzEUhmN22ykywh0My83z/\n" +
-          "7yl2tyrlv2hcZbaP7+9eHdUafGG8jMTVD7jxhzAbiSo2UeyHUnAItDnLetLh89K6\n" +
-          "0oF3/rZLqugtb+f48dgRE/SDF4Itgp5fDqWHLhEW7ZhWCFlFgZ3sq0XryIxzFof0\n" +
-          "O/Fd1NnotirzTnob5ReblIM=\n" +
-          "-----END PRIVATE KEY-----\n")));
+            "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCa4gL1C/Ch7/e1\n" +
+            "SkeRxSm9abNCqdm3PccEpvHNz+MFPFQd58kOzzxePDmc1eGXi1eQfMVEBke0OfBf\n" +
+            "Tvj/ahw9FJZoGMdhcHvvVp/3VQ+tz19viWHdbVryGZBTqyAqVBXAOdS548OQKbAo\n" +
+            "Ky7JfQzDG7A7ARSjivXk0GH8fsW+4dU+epYrX+SWJi1C6QXey9CSllPr+m5DRsQ5\n" +
+            "59E4sH4QA8zQ4BoPKSePEJkl6eT0UjILqyQ4pVrFbsJwTniUhSNLUYoVBzjj/5P6\n" +
+            "7RUpKaGtF0E1wCFeZ2nCMugNPL8jzP66qQqK10RVzMJ2V42p5vpvWSM9ZLdVstfF\n" +
+            "j8shiXO5AgMBAAECggEAIriwOQcoNuV4/qdcTA2LQe9ERJmXOUEcMKrMYntMRYw0\n" +
+            "v0+K/0ruGaIeuE4qeLLAOp/+CTXvNTQX8wXdREUhd3/6B/QmHm39GrasveHP1gM7\n" +
+            "PeHqkp1FWijo9hjS6SpYhfNxAQtSeCsgVqD3qCvkhIjchR3E5rTsUxN0JAq3ggb9\n" +
+            "WCJ2LUxOOTHAWL4cv7FIKfwU/bwjBdHbSLuh7em4IE8tzcFgh49281APprGb4a3d\n" +
+            "CPlIZC+CQmTFKPGzT0WDNc3EbPPKcx8ECRf1Zo94Tqnzv7FLgCmr0o4O9e6E3yss\n" +
+            "Uwp7EKPUQyAwBkc+pHwqUmOPqHB+z28JUOwqoD0vQQKBgQDNiXSydWh9BUWAleQU\n" +
+            "fgSF0bjlt38HVcyMKGC1xQhi8VeAfLJxGCGbdxsPFNCtMPDLRRyd4xHBmsCmPPli\n" +
+            "CFHD1UbfNuKma6azl6A86geuTolgrHoxp57tZwoBpG9JHoTA53pfBPxb8q39YXKh\n" +
+            "DSXsJVldxsHwzFAklj3ZqzWq3QKBgQDA6M/VW3SXEt1NWwMI+WGa/QKHDjLDhZzF\n" +
+            "F3iQTtzDDmA4louAzX1cykNo6Y7SpORi0ralml65iwT2HZtE8w9vbw4LNmBiHmlX\n" +
+            "AvpZSHT6/7nQeiFtxZu9cyw4GGpNSaeqp4Cq6TGYmfbq4nIdryzUU2AgsqSZyrra\n" +
+            "xh7K+2I4jQKBgGjC8xQy+7sdgLt1qvc29B8xMkkEKl8WwFeADSsY7plf4fW/mURD\n" +
+            "xH11S/l35pUgKNuysk9Xealws1kIIyRwkRx8DM+hLg0dOa64Thg+QQP7S9JWl0HP\n" +
+            "6hWfO15y7bYbNBcO5TShWe+T1lMb5E1qYjXnI5HEyP1vZjn/yi60MXqRAoGAe6F4\n" +
+            "+QLIwL1dSOMoGctBS4QU55so23e41fNJ2CpCf1uqPPn2Y9DOI/aYpxbv6n20xMTI\n" +
+            "O2+of37h6h1lUhX38XGZ7YOm15sn5ZTJ/whZuDbFzh9HZ0N6oTq7vyOelPO8WblJ\n" +
+            "077pgyRBQ51mhzGqKFVayPnUVZ/Ais7oEyxycU0CgYEAzEUhmN22ykywh0My83z/\n" +
+            "7yl2tyrlv2hcZbaP7+9eHdUafGG8jMTVD7jxhzAbiSo2UeyHUnAItDnLetLh89K6\n" +
+            "0oF3/rZLqugtb+f48dgRE/SDF4Itgp5fDqWHLhEW7ZhWCFlFgZ3sq0XryIxzFof0\n" +
+            "O/Fd1NnotirzTnob5ReblIM=\n" +
+            "-----END PRIVATE KEY-----\n")));
 
     assertNotNull(jwt);
 
 
     // lets mock a oauth2 server using code auth code flow
-    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth);
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth);
 
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2Handler);

@@ -17,7 +17,7 @@ package io.vertx.ext.web.sstore.cookie.impl;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.PRNG;
+import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.sstore.AbstractSession;
 
 import javax.crypto.Mac;
@@ -37,12 +37,12 @@ public class CookieSession extends AbstractSession {
   // track the original crc
   private int oldCrc = 0;
 
-  public CookieSession(Mac mac, PRNG prng, long timeout, int length) {
+  public CookieSession(Mac mac, VertxContextPRNG prng, long timeout, int length) {
     super(prng, timeout, length);
     this.mac = mac;
   }
 
-  public CookieSession(Mac mac, PRNG prng) {
+  public CookieSession(Mac mac, VertxContextPRNG prng) {
     super(prng);
     this.mac = mac;
   }
