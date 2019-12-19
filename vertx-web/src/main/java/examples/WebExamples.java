@@ -1211,7 +1211,7 @@ public class WebExamples {
 
     // create a oauth2 handler on our running server
     // the second argument is the full url to the callback as you entered in your provider management console.
-    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "https://myserver.com/callback");
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(vertx, authProvider, "https://myserver.com/callback");
 
     // setup the callback handler for receiving the GitHub callback
     oauth2.setupCallback(router.route());
@@ -1237,7 +1237,7 @@ public class WebExamples {
       .setAuthorizationPath("/o/oauth2/auth"));
 
     // create a oauth2 handler on our domain: "http://localhost:8080"
-    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(vertx, authProvider, "http://localhost:8080");
 
     // these are the scopes
     oauth2.extraParams(new JsonObject().put("scope", "profile"));
@@ -1256,7 +1256,7 @@ public class WebExamples {
 
   public void example61(Vertx vertx, Router router, OAuth2Auth provider) {
     // create a oauth2 handler pinned to myserver.com: "https://myserver.com:8447/callback"
-    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(provider, "https://myserver.com:8447/callback");
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(vertx, provider, "https://myserver.com:8447/callback");
     // now allow the handler to setup the callback url for you
     oauth2.setupCallback(router.route());
   }
@@ -1276,7 +1276,7 @@ public class WebExamples {
       .handler(SessionHandler.create(LocalSessionStore.create(vertx)));
     // we now protect the resource under the path "/protected"
     router.route("/protected").handler(
-      OAuth2AuthHandler.create(authProvider)
+      OAuth2AuthHandler.create(vertx, authProvider)
         // we now configure the oauth2 handler, it will
         // setup the callback handler
         // as expected by your oauth2 provider.
@@ -1499,7 +1499,7 @@ public class WebExamples {
     OAuth2Auth gitHubAuthProvider = GithubAuth.create(vertx, "CLIENT_ID", "CLIENT_SECRET");
     // create a oauth2 handler on our running server
     // the second argument is the full url to the callback as you entered in your provider management console.
-    OAuth2AuthHandler githubOAuth2 = OAuth2AuthHandler.create(gitHubAuthProvider, "https://myserver.com/github-callback");
+    OAuth2AuthHandler githubOAuth2 = OAuth2AuthHandler.create(vertx, gitHubAuthProvider, "https://myserver.com/github-callback");
     // setup the callback handler for receiving the GitHub callback
     githubOAuth2.setupCallback(router.route());
 
@@ -1513,7 +1513,7 @@ public class WebExamples {
       .setAuthorizationPath("/o/oauth2/auth"));
 
     // create a oauth2 handler on our domain: "http://localhost:8080"
-    OAuth2AuthHandler googleOAuth2 = OAuth2AuthHandler.create(googleAuthProvider, "http://localhost:8080");
+    OAuth2AuthHandler googleOAuth2 = OAuth2AuthHandler.create(vertx, googleAuthProvider, "http://localhost:8080");
 
 
     MultiTenantHandler.create("X-Tenant")

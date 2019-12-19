@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.Route;
@@ -34,12 +35,13 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
   /**
    * Create a OAuth2 auth handler with host pinning
    *
+   * @param vertx  the vertx instance
    * @param authProvider  the auth provider to use
    * @param callbackURL the callback URL you entered in your provider admin console, usually it should be something like: `https://myserver:8888/callback`
    * @return the auth handler
    */
-  static OAuth2AuthHandler create(OAuth2Auth authProvider, String callbackURL) {
-    return new OAuth2AuthHandlerImpl(authProvider, callbackURL);
+  static OAuth2AuthHandler create(Vertx vertx, OAuth2Auth authProvider, String callbackURL) {
+    return new OAuth2AuthHandlerImpl(vertx, authProvider, callbackURL);
   }
 
   /**
@@ -47,11 +49,12 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
    * Most providers will not look to the redirect url but always redirect to
    * the preconfigured callback. So this factory does not provide a callback url.
    *
+   * @param vertx  the vertx instance
    * @param authProvider  the auth provider to use
    * @return the auth handler
    */
-  static OAuth2AuthHandler create(OAuth2Auth authProvider) {
-    return new OAuth2AuthHandlerImpl(authProvider, null);
+  static OAuth2AuthHandler create(Vertx vertx, OAuth2Auth authProvider) {
+    return create(vertx, authProvider, null);
   }
 
   /**

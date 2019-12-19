@@ -19,11 +19,13 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
@@ -40,6 +42,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
   private static final Logger log = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
 
+  private final VertxContextPRNG prng;
   private final String host;
   private final String callbackPath;
 
@@ -48,8 +51,10 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
   // explicit signal that tokens are handled as bearer only (meaning, no backend server known)
   private boolean bearerOnly = true;
 
-  public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String callbackURL) {
+  public OAuth2AuthHandlerImpl(Vertx vertx, OAuth2Auth authProvider, String callbackURL) {
     super(authProvider, Type.BEARER);
+    // get a reference to the prng
+    this.prng = VertxContextPRNG.current(vertx);
 
     try {
       if (callbackURL != null) {
@@ -97,7 +102,20 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
           handler.handle(Future.failedFuture(new HttpStatusException(500, "Infinite redirect loop [oauth2 callback]")));
         } else {
           // the redirect is processed as a failure to abort the chain
-          handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(context.request().uri()))));
+          String redirectUri = context.request().uri();
+          String state = null;
+
+          if (context.session() != null) {
+            // there's a session we can make this request comply to the Oauth2 spec and add an opaque state
+            context.session()
+              .put("redirect_uri", context.request().uri());
+
+            state = prng.nextString(6);
+            // store the state in the session
+            context.session()
+              .put("state", state);
+          }
+          handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(redirectUri, state))));
         }
       } else {
         // attempt to decode the token and handle it as a user
@@ -115,9 +133,9 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
     });
   }
 
-  private String authURI(String redirectURL) {
+  private String authURI(String redirectURL, String state) {
     final JsonObject config = new JsonObject()
-      .put("state", redirectURL);
+      .put("state", state != null ? state : redirectURL);
 
     if (host != null) {
       config.put("redirect_uri", host + callback.getPath());
@@ -157,6 +175,24 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
       }
 
       final String state = ctx.request().getParam("state");
+      final String redirectUri;
+
+      // validate the state
+      if (ctx.session() != null) {
+        String ctxState = ctx.session().get("state");
+        if (ctxState != null) {
+          // if there's a state in the context they must match
+          if (!ctxState.equals(state)) {
+            // forbidden, the state is not valid (this is a replay attack
+            ctx.fail(401);
+            return;
+          }
+        }
+        // state is valid, extract the redirectUri from the session
+        redirectUri = ctx.session().get("redirect_uri");
+      } else {
+        redirectUri = state;
+      }
 
       final JsonObject config = new JsonObject()
         .put("code", code);
@@ -186,12 +222,12 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
               .putHeader("Pragma", "no-cache")
               .putHeader(HttpHeaders.EXPIRES, "0")
               // redirect (when there is no state, redirect to home
-              .putHeader(HttpHeaders.LOCATION, state != null ? state : "/")
+              .putHeader(HttpHeaders.LOCATION, redirectUri != null ? redirectUri : "/")
               .setStatusCode(302)
-              .end("Redirecting to " + (state != null ? state : "/") + ".");
+              .end("Redirecting to " + (redirectUri != null ? redirectUri : "/") + ".");
           } else {
             // there is no session object so we cannot keep state
-            ctx.reroute(state != null ? state : "/");
+            ctx.reroute(redirectUri != null ? redirectUri : "/");
           }
         }
       });

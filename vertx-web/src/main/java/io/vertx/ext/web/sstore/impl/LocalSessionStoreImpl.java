@@ -22,7 +22,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
-import io.vertx.ext.auth.PRNG;
+import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.AbstractSession;
 import io.vertx.ext.web.sstore.LocalSessionStore;
@@ -49,7 +49,7 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
 
   private LocalMap<String, Session> localMap;
   private long reaperInterval;
-  private PRNG random;
+  private VertxContextPRNG random;
 
   private long timerID = -1;
   private boolean closed;
@@ -69,7 +69,7 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
   @Override
   public SessionStore init(Vertx vertx, JsonObject options) {
     // initialize a secure random
-    this.random = new PRNG(vertx);
+    this.random = VertxContextPRNG.current(vertx);
     this.vertx = vertx;
     this.reaperInterval = options.getLong("reaperInterval", DEFAULT_REAPER_INTERVAL);
     localMap = vertx.sharedData().getLocalMap(options.getString("mapName", DEFAULT_SESSION_MAP_NAME));
@@ -129,8 +129,6 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
     if (timerID != -1) {
       vertx.cancelTimer(timerID);
     }
-    // stop seeding the PRNG
-    random.close();
     closed = true;
   }
 

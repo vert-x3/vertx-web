@@ -17,7 +17,7 @@
 package io.vertx.ext.web.sstore;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.PRNG;
+import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.Session;
 
 import java.util.*;
@@ -39,7 +39,7 @@ public abstract class AbstractSession implements Session {
 
   private static final char[] HEX = "0123456789abcdef".toCharArray();
 
-  private PRNG prng;
+  private VertxContextPRNG prng;
 
   private String id;
   private long timeout;
@@ -90,18 +90,18 @@ public abstract class AbstractSession implements Session {
   public AbstractSession() {
   }
 
-  public AbstractSession(PRNG random) {
+  public AbstractSession(VertxContextPRNG random) {
     this.prng = random;
   }
 
-  public AbstractSession(PRNG random, long timeout, int length) {
+  public AbstractSession(VertxContextPRNG random, long timeout, int length) {
     this.prng = random;
     this.id = generateId(prng, length);
     this.timeout = timeout;
     this.lastAccessed = System.currentTimeMillis();
   }
 
-  public void setPRNG(PRNG prng) {
+  public void setPRNG(VertxContextPRNG prng) {
     this.prng = prng;
   }
 
@@ -230,7 +230,7 @@ public abstract class AbstractSession implements Session {
     }
   }
 
-  private static String generateId(PRNG rng, int length) {
+  private static String generateId(VertxContextPRNG rng, int length) {
     final byte[] bytes = new byte[length];
     rng.nextBytes(bytes);
 
