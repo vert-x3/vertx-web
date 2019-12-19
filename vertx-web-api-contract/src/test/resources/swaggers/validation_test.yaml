@@ -17,7 +17,6 @@ paths:
         - name: limit
           in: query
           description: How many items to return at one time (max 100)
-          required: false
           schema:
             type: integer
             format: int32
@@ -375,8 +374,8 @@ paths:
           in: query
           required: true
           schema:
-            - type: string
-              format: byte
+            type: string
+            format: byte
       responses:
         default:
           description: ok
@@ -411,7 +410,7 @@ paths:
               properties:
                 param1:
                   type: string
-                param1binary:
+                param1Binary:
                   type: string
                   format: binary
                 param2:
@@ -464,7 +463,7 @@ paths:
                   items:
                     type: number
                     format: float
-                param1binary:
+                param1Binary:
                   type: string
                   format: binary
             encoding:

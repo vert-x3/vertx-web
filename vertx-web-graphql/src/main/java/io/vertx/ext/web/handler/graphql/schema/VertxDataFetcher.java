@@ -45,7 +45,7 @@ public interface VertxDataFetcher<T> extends DataFetcher<CompletionStage<T>> {
    * <li>a future that the implementor must complete after the data objects are fetched</li>
    * </ul>
    */
-  @GenIgnore(PERMITTED_TYPE)
+  @GenIgnore
   static <T> VertxDataFetcher<T> create(BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher) {
     return new VertxDataFetcherImpl<>(dataFetcher);
   }

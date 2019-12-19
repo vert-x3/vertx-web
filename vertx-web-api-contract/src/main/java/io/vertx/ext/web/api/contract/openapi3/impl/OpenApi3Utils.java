@@ -72,7 +72,7 @@ public class OpenApi3Utils {
   }
 
   public static boolean isRequiredParam(Parameter param) {
-    return (param != null) ? param.getRequired() : false;
+    return Boolean.TRUE.equals(param.getRequired());
   }
 
   public static String resolveStyle(Parameter param) {
