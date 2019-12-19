@@ -328,8 +328,8 @@ public class WebClientOptions extends HttpClientOptions {
   }
 
   @Override
-  public WebClientOptions setMaxWebsocketFrameSize(int maxWebsocketFrameSize) {
-    return (WebClientOptions) super.setMaxWebsocketFrameSize(maxWebsocketFrameSize);
+  public WebClientOptions setMaxWebSocketFrameSize(int maxWebsocketFrameSize) {
+    return (WebClientOptions) super.setMaxWebSocketFrameSize(maxWebsocketFrameSize);
   }
 
   @Override
@@ -473,8 +473,8 @@ public class WebClientOptions extends HttpClientOptions {
   }
 
   @Override
-  public WebClientOptions setMaxWebsocketMessageSize(int maxWebsocketMessageSize) {
-    return (WebClientOptions) super.setMaxWebsocketMessageSize(maxWebsocketMessageSize);
+  public WebClientOptions setMaxWebSocketMessageSize(int maxWebsocketMessageSize) {
+    return (WebClientOptions) super.setMaxWebSocketMessageSize(maxWebsocketMessageSize);
   }
 
   @Override
