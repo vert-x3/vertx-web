@@ -12,7 +12,7 @@
   <artifactId>vertx-web-templ-rocker</artifactId>
 
   <properties>
-    <rocker.version>1.2.1</rocker.version>
+    <rocker.version>1.2.2</rocker.version>
     <!-- Force Java 8, see https://github.com/fizzed/rocker/issues/90 -->
     <rocker.javaVersion>1.8</rocker.javaVersion>
   </properties>
