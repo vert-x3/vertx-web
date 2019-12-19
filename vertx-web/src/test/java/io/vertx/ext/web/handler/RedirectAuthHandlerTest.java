@@ -275,7 +275,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
       req.putHeader("cookie", sessionCookie.get());
       req.write(buffer);
     }, resp -> {
-    }, 403, "Forbidden", null);
+    }, 401, "Unauthorized", null);
     testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
       String location = resp.headers().get("location");
       assertNotNull(location);

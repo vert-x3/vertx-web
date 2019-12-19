@@ -122,7 +122,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
               req.response().end(DEFAULT_DIRECT_LOGGED_IN_OK_PAGE);
             }
           } else {
-            context.fail(403);  // Failed login
+            context.fail(401);  // Failed login
           }
         });
       }
