@@ -49,6 +49,7 @@ public class WebTestBase extends VertxTestBase {
   protected HttpServer server;
   protected HttpClient client;
   protected Router router;
+  protected String rawMethod;
 
   @Override
   public void setUp() throws Exception {
@@ -56,6 +57,7 @@ public class WebTestBase extends VertxTestBase {
     router = Router.router(vertx);
     server = vertx.createHttpServer(getHttpServerOptions());
     client = vertx.createHttpClient(getHttpClientOptions());
+    rawMethod = null;
     CountDownLatch latch = new CountDownLatch(1);
     server.requestHandler(router).listen(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
@@ -172,6 +174,9 @@ public class WebTestBase extends VertxTestBase {
     }));
     if (requestAction != null) {
       requestAction.accept(req);
+    }
+    if (method == HttpMethod.OTHER && rawMethod != null) {
+      req.setRawMethod(rawMethod);
     }
     req.end();
     awaitLatch(latch);

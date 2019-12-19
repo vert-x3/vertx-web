@@ -2570,4 +2570,14 @@ public class RouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/foo/b", 404, "Not Found");
     testRequest(HttpMethod.GET, "/f", 404, "Not Found");
   }
+
+  @Test
+  public void testRouteCustomVerb() throws Exception {
+    router
+      .route()
+      .rawMethod("MKCOL")
+      .handler(rc -> rc.response().setStatusMessage("socks").end());
+    rawMethod = "MKCOL";
+    testRequest(HttpMethod.OTHER, "/", 200, "socks");
+  }
 }

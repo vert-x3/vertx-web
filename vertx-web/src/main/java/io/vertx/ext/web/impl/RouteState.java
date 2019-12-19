@@ -41,6 +41,7 @@ final class RouteState {
   private final int order;
   private final boolean enabled;
   private final Set<HttpMethod> methods;
+  private final Set<String> rawMethods;
   private final Set<MIMEHeader> consumes;
   private final boolean emptyBodyPermittedWithConsumes;
   private final Set<MIMEHeader> produces;
@@ -56,12 +57,13 @@ final class RouteState {
   private final boolean exclusive;
   private final boolean exactPath;
 
-  private RouteState(RouteImpl route, String path, int order, boolean enabled, Set<HttpMethod> methods, Set<MIMEHeader> consumes, boolean emptyBodyPermittedWithConsumes, Set<MIMEHeader> produces, List<Handler<RoutingContext>> contextHandlers, List<Handler<RoutingContext>> failureHandlers, boolean added, Pattern pattern, List<String> groups, boolean useNormalizedPath, Set<String> namedGroupsInRegex, Pattern virtualHostPattern, boolean pathEndsWithSlash, boolean exclusive, boolean exactPath) {
+  private RouteState(RouteImpl route, String path, int order, boolean enabled, Set<HttpMethod> methods, Set<String> rawMethods, Set<MIMEHeader> consumes, boolean emptyBodyPermittedWithConsumes, Set<MIMEHeader> produces, List<Handler<RoutingContext>> contextHandlers, List<Handler<RoutingContext>> failureHandlers, boolean added, Pattern pattern, List<String> groups, boolean useNormalizedPath, Set<String> namedGroupsInRegex, Pattern virtualHostPattern, boolean pathEndsWithSlash, boolean exclusive, boolean exactPath) {
     this.route = route;
     this.path = path;
     this.order = order;
     this.enabled = enabled;
     this.methods = methods;
+    this.rawMethods = rawMethods;
     this.consumes = consumes;
     this.emptyBodyPermittedWithConsumes = emptyBodyPermittedWithConsumes;
     this.produces = produces;
@@ -84,6 +86,7 @@ final class RouteState {
       null,
       order,
       true,
+      null,
       null,
       null,
       false,
@@ -120,6 +123,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -147,6 +151,7 @@ final class RouteState {
       order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -174,6 +179,7 @@ final class RouteState {
       this.order,
       enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -201,6 +207,7 @@ final class RouteState {
       this.order,
       this.enabled,
       methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -224,6 +231,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods == null ? new HashSet<>() : new HashSet<>(this.methods),
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -243,6 +251,33 @@ final class RouteState {
     return newState;
   }
 
+  public RouteState addRawMethod(String method) {
+    RouteState newState = new RouteState(
+      this.route,
+      this.path,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.rawMethods == null ? new HashSet<>() : new HashSet<>(this.rawMethods),
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalizedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
+
+    newState.rawMethods.add(method);
+    return newState;
+  }
+
   public Set<MIMEHeader> getConsumes() {
     return consumes;
   }
@@ -254,6 +289,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -277,6 +313,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes == null ? new HashSet<>() : new HashSet<>(this.consumes),
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -307,6 +344,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       emptyBodyPermittedWithConsumes,
       this.produces,
@@ -334,6 +372,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       produces,
@@ -357,6 +396,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces == null ? new HashSet<>() : new HashSet<>(this.produces),
@@ -391,6 +431,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -414,6 +455,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -448,6 +490,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -471,6 +514,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -501,6 +545,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -528,6 +573,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -555,6 +601,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -578,6 +625,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -608,6 +656,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -635,6 +684,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -658,6 +708,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -688,6 +739,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -715,6 +767,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -742,6 +795,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -769,6 +823,7 @@ final class RouteState {
       this.order,
       this.enabled,
       this.methods,
+      this.rawMethods,
       this.consumes,
       this.emptyBodyPermittedWithConsumes,
       this.produces,
@@ -785,8 +840,22 @@ final class RouteState {
       exactPath);
   }
 
-  private static <T> boolean contains(Collection<T> collection, T value) {
-    return collection != null && !collection.isEmpty() && collection.contains(value);
+  private boolean containsMethod(HttpServerRequest request) {
+    if (!isEmpty(methods)) {
+      HttpMethod method = request.method();
+      if (methods.contains(method)) {
+        if (method == HttpMethod.OTHER) {
+          // if the method is OTHER the lookup happens on the raw methods set
+          if (!isEmpty(rawMethods)) {
+            return rawMethods.contains(request.rawMethod());
+          }
+        } else {
+          // it's not an extended verb
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   private static <T> boolean isEmpty(Collection<T> collection) {
@@ -822,7 +891,7 @@ final class RouteState {
       Matcher m = pattern.matcher(path);
       if (m.matches()) {
 
-        if (!isEmpty(methods) && !contains(methods, request.method())) {
+        if (!isEmpty(methods) && !containsMethod(request)) {
           // If I'm here path or path pattern matches, but the method is wrong
           return 405;
         }
@@ -882,7 +951,7 @@ final class RouteState {
       }
     } else {
       // no pattern check for wrong method
-      if (!isEmpty(methods) && !contains(methods, request.method())) {
+      if (!isEmpty(methods) && !containsMethod(request)) {
         // If I'm here path or path pattern matches, but the method is wrong
         return 405;
       }
@@ -1047,6 +1116,7 @@ final class RouteState {
       ", order=" + order +
       ", enabled=" + enabled +
       ", methods=" + methods +
+      ", rawMethods=" + rawMethods +
       ", consumes=" + consumes +
       ", emptyBodyPermittedWithConsumes=" + emptyBodyPermittedWithConsumes +
       ", produces=" + produces +
