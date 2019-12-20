@@ -233,6 +233,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
         subscribe(serverWebSocket, subscriptions, opId, executionResult);
       } else {
         sendMessage(serverWebSocket, opId, DATA, new JsonObject(executionResult.toSpecification()));
+        sendMessage(serverWebSocket, opId, COMPLETE, null);
       }
     });
   }

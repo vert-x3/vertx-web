@@ -31,10 +31,13 @@ import org.reactivestreams.Publisher;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static io.vertx.core.http.HttpMethod.GET;
+import static io.vertx.ext.web.handler.graphql.ApolloWSMessageType.COMPLETE;
+import static io.vertx.ext.web.handler.graphql.ApolloWSMessageType.DATA;
 
 /**
  * @author Rogelio Orts
@@ -80,34 +83,43 @@ public class ApolloWSHandlerTest extends WebTestBase {
   }
 
   private Publisher<Map<String, Object>> getCounter(DataFetchingEnvironment env) {
-    return subscriber -> IntStream.range(0, 5).forEach(num -> {
-      Map<String, Object> counter = new HashMap<>();
-      counter.put("count", num);
-
-      subscriber.onNext(counter);
-    });
+    return subscriber -> {
+      IntStream.range(0, 5).forEach(num -> {
+        Map<String, Object> counter = new HashMap<>();
+        counter.put("count", num);
+        subscriber.onNext(counter);
+      });
+      subscriber.onComplete();
+    };
   }
 
   @Test
   public void testSubscriptionWsCall() {
+    waitFor(MAX_COUNT + 1);
     client.webSocket("/graphql", onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
 
-      AtomicInteger counter = new AtomicInteger(0);
+      AtomicReference<String> id = new AtomicReference<>();
+      AtomicInteger counter = new AtomicInteger();
       websocket.handler(buffer -> {
-        try {
-          JsonObject obj = buffer.toJsonObject();
-          int num = obj.getJsonObject("payload")
-            .getJsonObject("data")
-            .getJsonObject("counter")
-            .getInteger("count");
-
-          assertEquals(counter.getAndIncrement(), num);
-          if (num == MAX_COUNT) {
-            complete();
+        JsonObject obj = buffer.toJsonObject();
+        int current = counter.getAndIncrement();
+        if (current >= 0 && current <= MAX_COUNT) {
+          if (current == 0) {
+            assertTrue(id.compareAndSet(null, obj.getString("id")));
+          } else {
+            assertEquals(id.get(), obj.getString("id"));
           }
-        } catch (Exception e) {
-          fail(e);
+          assertEquals(DATA, ApolloWSMessageType.from(obj.getString("type")));
+          int val = obj.getJsonObject("payload").getJsonObject("data").getJsonObject("counter").getInteger("count");
+          assertEquals(current, val);
+          complete();
+        } else if (current == MAX_COUNT + 1) {
+          assertEquals(id.get(), obj.getString("id"));
+          assertEquals(COMPLETE, ApolloWSMessageType.from(obj.getString("type")));
+          complete();
+        } else {
+          fail();
         }
       });
 
@@ -123,21 +135,27 @@ public class ApolloWSHandlerTest extends WebTestBase {
 
   @Test
   public void testQueryWsCall() {
+    waitFor(2);
     client.webSocket("/graphql", onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
 
+      AtomicReference<String> id = new AtomicReference<>();
+      AtomicInteger counter = new AtomicInteger();
       websocket.handler(buffer -> {
-        try {
-          JsonObject obj = buffer.toJsonObject();
-          int num = obj.getJsonObject("payload")
-            .getJsonObject("data")
-            .getJsonObject("staticCounter")
-            .getInteger("count");
-
-          assertEquals(STATIC_COUNT, num);
+        JsonObject obj = buffer.toJsonObject();
+        int current = counter.getAndIncrement();
+        if (current == 0) {
+          assertTrue(id.compareAndSet(null, obj.getString("id")));
+          assertEquals(DATA, ApolloWSMessageType.from(obj.getString("type")));
+          int val = obj.getJsonObject("payload").getJsonObject("data").getJsonObject("staticCounter").getInteger("count");
+          assertEquals(STATIC_COUNT, val);
           complete();
-        } catch (Exception e) {
-          fail(e);
+        } else if (current == 1) {
+          assertEquals(id.get(), obj.getString("id"));
+          assertEquals(COMPLETE, ApolloWSMessageType.from(obj.getString("type")));
+          complete();
+        } else {
+          fail();
         }
       });
 
