@@ -28,7 +28,9 @@ Or, if you use Gradle:
 compile 'io.vertx:vertx-web-graphql:${maven.version}'
 ----
 
-== Handler setup
+== Handlers setup
+
+=== HTTP
 
 Create a Vert.x Web {@link io.vertx.ext.web.Route} and a {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} for it:
 
@@ -47,7 +49,19 @@ However you can restrict the service to one type of HTTP method:
 
 TIP: The {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} does not require a {@link io.vertx.ext.web.handler.BodyHandler} to read `POST` requests content.
 
-=== GraphiQL client
+==== Query batching
+
+Query batching consists in posting an array instead of a single object to the GraphQL endpoint.
+
+Vert.x Web GraphQL can handle such requests but by default the feature is disabled.
+To enable it, create the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} with options:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#handlerSetupBatching}
+----
+
+=== GraphiQL IDE
 
 As you are building your application, testing your GraphQL queries in https://github.com/graphql/graphiql[GraphiQL] can be handy.
 
@@ -76,19 +90,35 @@ If your application is protected by authentication, you can customize the header
 
 Please refer to the {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions} documentation for further details.
 
-=== Enable query batching
+=== Apollo WebSocketLink
 
-Query batching consists in posting an array instead of a single object to the GraphQL endpoint.
-
-Vert.x Web GraphQL can handle such requests but by default the feature is disabled.
-To enable it, create the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} with options:
+You can use an https://www.apollographql.com/docs/link/links/ws/[Apollo WebSocketLink] which connects over a websocket.
+This is specially useful if you want to add subscriptions to your GraphQL schema, but you can also use the websocket for queries and mutations.
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#handlerSetupBatching}
+{@link examples.GraphQLExamples#addApolloWsHandlerToRouter}
 ----
 
-== Building a GraphQL server
+IMPORTANT: To support the `graphql-ws` websocket subprotocol, it has to be added to the server configuration:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#configureServerForApolloWs}
+----
+
+NOTE: If you want to support a WebSocketLink and a HttpLink in the same path, you can add the ApolloWSHandler in first place and then the GraphQLHandler.
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#configureWebSocketLinkAndHttpLinkSamePath}
+----
+
+Here you can find how to configure the Apollo SubscriptionClient: https://github.com/apollographql/subscriptions-transport-ws
+
+IMPORTANT: A subscription `DataFetcher` has to return a `org.reactivestreams.Publisher` instance.
+
+== Fetching data
 
 The GraphQL-Java API is very well suited for the asynchronous world: the asynchronous execution strategy is the default for queries (serial asynchronous for mutations).
 
@@ -99,7 +129,7 @@ To https://vertx.io/docs/vertx-core/java/#golden_rule[avoid blocking the event l
 {@link examples.GraphQLExamples#completionStageDataFetcher}
 ----
 
-=== Fetching data with callback-based APIs
+=== Working with callback-based APIs
 
 Implementing a data fetcher that returns a `CompletionStage` is not a complex task.
 But when you work with Vert.x callback-based APIs, it requires a bit of boilerplate.
@@ -151,7 +181,7 @@ If you don't need (or don't wish to) use a domain object layer, you can configur
 
 TIP: {@link io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher} wraps a `PropertyDataFetcher` so you can still use it with domain objects.
 
-=== Using dataloaders
+=== Batch loading
 
 Dataloaders help you to load data efficiently by batching fetch requests and caching results.
 
@@ -171,35 +201,7 @@ Then, configure the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} to c
 {@link examples.GraphQLExamples#dataLoaderRegistry}
 ----
 
-=== Apollo WebSocketLink
-
-You can use an https://www.apollographql.com/docs/link/links/ws/[Apollo WebSocketLink] which connects over a websocket.
-This is specially useful if you want to add subscriptions to your GraphQL schema, but you can also use the websocket for queries and mutations.
-
-[source,$lang]
-----
-{@link examples.GraphQLExamples#addApolloWsHandlerToRouter}
-----
-
-IMPORTANT: To support the `graphql-ws` websocket subprotocol, it has to be added to the server configuration:
-
-[source,$lang]
-----
-{@link examples.GraphQLExamples#configureServerForApolloWs}
-----
-
-NOTE: If you want to support a WebSocketLink and a HttpLink in the same path, you can add the ApolloWSHandler in first place and then the GraphQLHandler.
-
-[source,$lang]
-----
-{@link examples.GraphQLExamples#configureWebSocketLinkAndHttpLinkSamePath}
-----
-
-Here you can find how to configure the Apollo SubscriptionClient: https://github.com/apollographql/subscriptions-transport-ws
-
-IMPORTANT: A subscription `DataFetcher` has to return a `org.reactivestreams.Publisher` instance.
-
-=== GraphQL multipart request
+=== File uploads
 
 https://github.com/jaydenseric/graphql-multipart-request-spec[GraphQL multipart request] is an interoperable multipart form field structure for `GraphQL` requests.
 By enabling this functionality, GraphQL clients will be able to upload files using a single mutation call.
