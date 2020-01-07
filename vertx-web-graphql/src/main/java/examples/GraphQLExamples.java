@@ -22,19 +22,16 @@ import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.idl.FieldWiringEnvironment;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.WiringFactory;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.graphql.*;
 import io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher;
 import io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher;
-import io.vertx.ext.web.handler.graphql.*;
 import org.dataloader.BatchLoaderEnvironment;
 import org.dataloader.BatchLoaderWithContext;
 import org.dataloader.DataLoader;
@@ -111,7 +108,7 @@ public class GraphQLExamples {
   class Link {
   }
 
-  private void completionStageDataFetcher() {
+  public void completionStageDataFetcher() {
     DataFetcher<CompletionStage<List<Link>>> dataFetcher = environment -> {
 
       CompletableFuture<List<Link>> completableFuture = new CompletableFuture<>();
@@ -132,7 +129,18 @@ public class GraphQLExamples {
       .build();
   }
 
+  public void completionStageInterop() {
+    DataFetcher<CompletionStage<List<Link>>> dataFetcher = environment -> {
+      Future<List<Link>> future = retrieveLinksFromBackend(environment);
+      return future.toCompletionStage();
+    };
+  }
+
   private void retrieveLinksFromBackend(DataFetchingEnvironment environment, Handler<AsyncResult<List<Link>>> handler) {
+  }
+
+  private Future<List<Link>> retrieveLinksFromBackend(DataFetchingEnvironment environment) {
+    return null;
   }
 
   private void vertxDataFetcher() {

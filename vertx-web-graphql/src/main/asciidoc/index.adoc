@@ -141,6 +141,15 @@ This is where the {@link io.vertx.ext.web.handler.graphql.schema.VertxDataFetche
 {@link examples.GraphQLExamples#vertxDataFetcher}
 ----
 
+=== Working with Vert.x Futures
+
+Vert.x {@link io.vertx.core.Future} can be converted to `CompletionStage`:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#completionStageInterop}
+----
+
 === Providing data fetchers with some context
 
 Very often, the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} will be declared after other route handlers.
