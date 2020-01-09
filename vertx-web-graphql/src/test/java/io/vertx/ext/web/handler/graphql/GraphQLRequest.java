@@ -39,7 +39,7 @@ import static java.util.stream.Collectors.joining;
 /**
  * @author Thomas Segismont
  */
-class GraphQLRequest {
+public class GraphQLRequest {
   static final String JSON = "application/json";
   static final String GRAPHQL = "application/graphql";
 
