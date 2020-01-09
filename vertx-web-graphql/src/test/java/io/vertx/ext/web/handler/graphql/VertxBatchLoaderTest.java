@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2020 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -24,35 +24,39 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
-import org.dataloader.BatchLoader;
+import io.vertx.ext.web.handler.graphql.dataloader.impl.VertxBatchLoaderImpl;
+import org.dataloader.BatchLoaderWithContext;
 import org.dataloader.DataLoader;
 import org.dataloader.DataLoaderRegistry;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static java.util.stream.Collectors.toList;
 
-public class BatchLoaderTest extends GraphQLTestBase {
+public class VertxBatchLoaderTest extends GraphQLTestBase {
 
   private AtomicBoolean batchloaderInvoked = new AtomicBoolean();
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    BatchLoader<String, User> userBatchLoader = keys -> {
-      CompletableFuture<List<User>> result;
-      if (batchloaderInvoked.compareAndSet(false, true)) {
-        result = CompletableFuture.completedFuture(keys.stream().map(testData.users::get).collect(toList()));
-      } else {
-        result = new CompletableFuture<>();
-        result.completeExceptionally(new IllegalStateException());
+
+    BatchLoaderWithContext<String, User> userBatchLoader = new VertxBatchLoaderImpl<>(
+      (keys, environment, listPromise) -> {
+        if (batchloaderInvoked.compareAndSet(false, true)) {
+          listPromise.complete(keys
+            .stream()
+            .map(testData.users::get)
+            .collect(toList())
+          );
+        } else {
+          listPromise.fail(new IllegalStateException());
+        }
       }
-      return result;
-    };
+    );
+
     graphQLHandler.dataLoaderRegistry(rc -> {
       DataLoader<String, User> userDataLoader = DataLoader.newDataLoader(userBatchLoader);
       return new DataLoaderRegistry().register("user", userDataLoader);
@@ -73,7 +77,6 @@ public class BatchLoaderTest extends GraphQLTestBase {
 
     SchemaGenerator schemaGenerator = new SchemaGenerator();
     GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
-
     DataLoaderDispatcherInstrumentation dispatcherInstrumentation = new DataLoaderDispatcherInstrumentation();
 
     return GraphQL.newGraphQL(graphQLSchema)
@@ -91,6 +94,7 @@ public class BatchLoaderTest extends GraphQLTestBase {
   public void testSimplePost() throws Exception {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { url, postedBy { name } } }");
+
     request.send(client, onSuccess(body -> {
       if (testData.checkLinkPosters(testData.posters(), body)) {
         testComplete();
@@ -98,6 +102,7 @@ public class BatchLoaderTest extends GraphQLTestBase {
         fail(body.toString());
       }
     }));
+
     await();
   }
 }
