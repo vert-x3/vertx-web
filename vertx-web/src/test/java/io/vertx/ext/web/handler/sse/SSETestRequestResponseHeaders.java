@@ -1,0 +1,52 @@
+package io.vertx.ext.web.handler.sse;
+
+import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.HttpHeaders;
+import org.junit.Test;
+
+import java.util.concurrent.CountDownLatch;
+
+public class SSETestRequestResponseHeaders extends SSETestBase {
+
+	@Test
+	public void noHeaderTextEventStreamHttpRequest() throws InterruptedException {
+    CountDownLatch latch = new CountDownLatch(1);
+    client().get("/sse", ar -> {
+      assertTrue(ar.succeeded());
+      HttpClientResponse response = ar.result();
+      assertEquals(406, response.statusCode());
+      latch.countDown();
+		}).putHeader("Accept", "foo").end();
+		awaitLatch(latch);
+	}
+
+	@Test
+	public void noHeaderHttpRequest() throws InterruptedException {
+    CountDownLatch latch = new CountDownLatch(1);
+    client().getNow("/sse", ar -> {
+      assertTrue(ar.succeeded());
+      HttpClientResponse response = ar.result();
+			assertSSEHeaders(response);
+			latch.countDown();
+		});
+    awaitLatch(latch);
+	}
+
+	@Test
+	public void correctResponseHeaders() throws InterruptedException {
+    CountDownLatch latch = new CountDownLatch(1);
+		client().get("/sse", ar -> {
+      assertTrue(ar.succeeded());
+      HttpClientResponse response = ar.result();
+			assertSSEHeaders(response);
+			latch.countDown();
+		}).putHeader("Accept", "text/event-stream").end();
+		awaitLatch(latch);
+	}
+
+	private void assertSSEHeaders(HttpClientResponse response) {
+    assertEquals("text/event-stream", response.getHeader(HttpHeaders.CONTENT_TYPE));
+    assertEquals("no-cache", response.getHeader(HttpHeaders.CACHE_CONTROL));
+    assertEquals("keep-alive", response.getHeader(HttpHeaders.CONNECTION));
+	}
+}
