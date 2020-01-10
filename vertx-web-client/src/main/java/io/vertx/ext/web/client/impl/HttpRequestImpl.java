@@ -47,7 +47,6 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   SocketAddress serverAddress;
   MultiMap params;
   HttpMethod method;
-  String rawMethod;
   String protocol;
   int port;
   String host;
@@ -116,17 +115,6 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   public HttpMethod method() {
     return method;
-  }
-
-  @Override
-  public HttpRequest<T> rawMethod(String method) {
-    rawMethod = method;
-    method(HttpMethod.OTHER);
-    return this;
-  }
-
-  public String rawMethod() {
-    return rawMethod;
   }
 
   @Override
@@ -325,7 +313,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   public void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler) {
     send("multipart/form-data", body, handler);
   }
-  
+
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
     HttpContext<T> ctx = client.createContext(handler);
     ctx.prepareRequest(this, contentType, body);

@@ -2382,7 +2382,6 @@ public class RouterTest extends WebTestBase {
         HttpServerRequest request = mock(HttpServerRequest.class);
         HttpServerResponse response = mock(HttpServerResponse.class);
         when(request.method()).thenReturn(HttpMethod.GET);
-        when(request.rawMethod()).thenReturn("GET");
         when(request.scheme()).thenReturn("http");
         when(request.uri()).thenReturn("http://localhost/path");
         when(request.absoluteURI()).thenReturn("http://localhost/path");
@@ -2575,9 +2574,9 @@ public class RouterTest extends WebTestBase {
   public void testRouteCustomVerb() throws Exception {
     router
       .route()
-      .rawMethod("MKCOL")
+      .method(HttpMethod.valueOf("MKCOL"))
       .handler(rc -> rc.response().setStatusMessage("socks").end());
-    rawMethod = "MKCOL";
-    testRequest(HttpMethod.OTHER, "/", 200, "socks");
+
+    testRequest(HttpMethod.MKCOL, "/", 200, "socks");
   }
 }

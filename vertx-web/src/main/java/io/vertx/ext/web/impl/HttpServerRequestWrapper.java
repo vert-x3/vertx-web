@@ -22,7 +22,6 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   private boolean modified;
 
   private HttpMethod method;
-  private String rawMethod;
   private String path;
   private String query;
   private String uri;
@@ -38,7 +37,6 @@ class HttpServerRequestWrapper implements HttpServerRequest {
     this.method = method;
     this.uri = uri;
     // lazy initialization
-    this.rawMethod = null;
     this.path = null;
     this.query = null;
     this.absoluteURI = null;
@@ -117,19 +115,6 @@ class HttpServerRequestWrapper implements HttpServerRequest {
       return delegate.method();
     }
     return method;
-  }
-
-  @Override
-  public String rawMethod() {
-    if (!modified) {
-      return delegate.rawMethod();
-    } else {
-      // lazy initialization
-      if (rawMethod == null) {
-        rawMethod = method.toString();
-      }
-      return rawMethod;
-    }
   }
 
   @Override

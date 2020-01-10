@@ -267,7 +267,7 @@ public class WebExamples {
   public void example9_1(Router router) {
 
     Route route = router.route()
-      .rawMethod("MKCOL")
+      .method(HttpMethod.valueOf("MKCOL"))
       .handler(routingContext -> {
       // This handler will be called for any MKCOL request
     });

@@ -36,12 +36,12 @@ public class MethodOverrideHandlerImpl implements MethodOverrideHandler {
 
   private interface HttpMethodTraits {
     static boolean isIdempotent(HttpMethod method) {
-      switch (method) {
-        case GET:
-        case HEAD:
-        case PUT:
-        case PATCH:
-        case DELETE:
+      switch (method.name()) {
+        case "GET":
+        case "HEAD":
+        case "PUT":
+        case "PATCH":
+        case "DELETE":
           return true;
         default:
           return false;
@@ -49,9 +49,9 @@ public class MethodOverrideHandlerImpl implements MethodOverrideHandler {
     }
 
     static boolean isSafe(HttpMethod method) {
-      switch (method) {
-        case GET:
-        case HEAD:
+      switch (method.name()) {
+        case "GET":
+        case "HEAD":
           return true;
         default:
           return false;

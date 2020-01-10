@@ -20,7 +20,6 @@ import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
-import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.tls.Cert;
 import org.junit.Test;
@@ -142,12 +141,12 @@ public class WebClientTest extends WebClientTestBase {
 
   private void testRequest(HttpMethod method) throws Exception {
     testRequest(client -> {
-      switch (method) {
-        case GET:
+      switch (method.name()) {
+        case "GET":
           return client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-        case HEAD:
+        case "HEAD":
           return client.head(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-        case DELETE:
+        case "DELETE":
           return client.delete(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
         default:
           fail("Invalid HTTP method");
@@ -216,14 +215,14 @@ public class WebClientTest extends WebClientTestBase {
 
       HttpRequest<Buffer> builder = null;
 
-      switch (method) {
-        case POST:
+      switch (method.name()) {
+        case "POST":
           builder = webClient.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
           break;
-        case PUT:
+        case "PUT":
           builder = webClient.put(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
           break;
-        case PATCH:
+        case "PATCH":
           builder = webClient.patch(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
           break;
         default:
@@ -1829,10 +1828,10 @@ public class WebClientTest extends WebClientTestBase {
   @Test
   public void testRawMethod() throws Exception {
     testRequest(
-      client -> client.raw("MY_METHOD", "/"),
+      client -> client.request(HttpMethod.valueOf("MY_METHOD"), "/"),
       req -> {
-        assertEquals(HttpMethod.OTHER, req.method());
-        assertEquals("MY_METHOD", req.rawMethod());
+        assertEquals(HttpMethod.valueOf("MY_METHOD"), req.method());
+        assertEquals("MY_METHOD", req.method().name());
     });
   }
 
