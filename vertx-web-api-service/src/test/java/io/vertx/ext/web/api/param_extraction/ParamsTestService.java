@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.param_extraction;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -44,5 +45,7 @@ public interface ParamsTestService {
   void setParams(Set<String> setString, Set<Byte> setByte, Set<Short> setShort, Set<Integer> setInt, Set<Long> setLong, Set<JsonObject> setJsonObject, Set<JsonArray> setJsonArray, Set<FilterData> setDataObject, OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 
   void mapParams(Map<String, String> mapString, Map<String, Byte> mapByte, Map<String, Short> mapShort, Map<String, Integer> mapInt, Map<String, Long> mapLong, Map<String, JsonObject> mapJsonObject, Map<String, JsonArray> mapJsonArray, OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
+
+  Future<OperationResponse> futureReturn(String str, OperationRequest context);
 
 }

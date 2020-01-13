@@ -7,6 +7,7 @@ import io.vertx.codegen.doc.Text;
 import io.vertx.codegen.type.ClassTypeInfo;
 import io.vertx.codegen.type.TypeInfo;
 import io.vertx.serviceproxy.generator.model.ProxyMethodInfo;
+import io.vertx.serviceproxy.generator.model.ProxyModel;
 
 import java.util.List;
 import java.util.Set;
@@ -21,8 +22,13 @@ public class WebApiProxyMethodInfo extends ProxyMethodInfo {
 
   public WebApiProxyMethodInfo(Set<ClassTypeInfo> ownerTypes, String name, TypeInfo returnType, Text returnDescription, boolean fluent, boolean cacheReturn, List<ParamInfo> params, String comment, Doc doc, boolean staticMethod, boolean defaultMethod, List<TypeParamInfo.Method> typeParams, boolean proxyIgnore, boolean proxyClose, boolean deprecated, Text deprecatedDesc) {
     super(ownerTypes, name, returnType, returnDescription, fluent, cacheReturn, params, comment, doc, staticMethod, defaultMethod, typeParams, proxyIgnore, proxyClose, deprecated, deprecatedDesc);
-    paramsToExtract = params.subList(0, params.size() - 2);
-    requestContextName = params.get(params.size() - 2).getName();
+    if (ProxyModel.isFuture(returnType)) {
+      paramsToExtract = params.subList(0, params.size() - 1);
+      requestContextName = params.get(params.size() - 1).getName();
+    } else {
+      paramsToExtract = params.subList(0, params.size() - 2);
+      requestContextName = params.get(params.size() - 2).getName();
+    }
   }
 
   public WebApiProxyMethodInfo(ProxyMethodInfo info) {
