@@ -1544,7 +1544,7 @@ public class WebExamples {
       vertx,
       new WebAuthnOptions()
         .setOrigin("https://192.168.178.74.xip.io:8443")
-        .setRpName("Vert.x WebAuthN Demo")
+        .setRelayParty(new RelayParty().setName("Vert.x WebAuthN Demo"))
         // What kind of authentication do you want? do you care?
         // if you care you can specify it (choose one of the 2)
 
