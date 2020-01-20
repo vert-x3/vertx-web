@@ -1,0 +1,10 @@
+{
+  "name": "Francesco",
+  "surname": "Guardiani",
+  "id_card":  "FG01",
+  "father": {
+    "name": "Francesco",
+    "surname": "Guardiani",
+    "id_card":  "FG02"
+  }
+}

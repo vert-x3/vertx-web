@@ -1,0 +1,35 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Local inner ref spec
+paths:
+  /simple:
+    post:
+      summary: Simple
+      operationId: simple
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/Simple"
+      responses:
+        201:
+          description: Created
+        default:
+          $ref: "#/components/responses/DefaultError"
+
+components:
+  schemas:
+    Simple:
+      type: object
+      properties:
+        fileName:
+          type: string
+          format: binary
+  responses:
+    DefaultError:
+      description: unexpected error
+      content:
+        text/plain:
+          schema:
+            type: string

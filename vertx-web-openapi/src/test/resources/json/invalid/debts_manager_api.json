@@ -1,0 +1,528 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "Debts Manager API",
+        "contact": {
+            "name": "Francesco Guardiani",
+            "url": "https://slinkydeveloper.github.io"
+        },
+        "license": {
+            "name": "MIT License",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/transactions": {
+            "summary": "Path used to manage the list of Transactions.",
+            "description": "The REST endpoint/path used to list and create zero or more `Transaction`\nentities.  This path contains a `GET` and `POST` operation to perform the list\nand create tasks, respectively.",
+            "get": {
+                "summary": "List All Transactions",
+                "description": "Gets a list of all `Transaction` entities where logged user is involved",
+                "operationId": "getTransactions",
+                "responses": {
+                    "200": {
+                        "description": "Successful response - returns an array of `Transaction` entities.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "allOf": [
+                                            {
+                                                "allOf": [
+                                                    {
+                                                        "properties": {
+                                                            "to": {
+                                                                "$ref": "#/paths/~1transactions/get/responses/200/content/application~1json/schema/items/allOf/1/properties/from",
+                                                                "x-miro": "/home/slinkydeveloper/IdeaProjects/Debts_Manager_API/spec/schemas/Username.yaml"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "to",
+                                                            "description",
+                                                            "value"
+                                                        ],
+                                                        "type": "object"
+                                                    },
+                                                    {
+                                                        "$ref": "#/paths/~1transactions/post/requestBody/content/application~1json/schema/allOf/1",
+                                                        "x-miro": "/home/slinkydeveloper/IdeaProjects/Debts_Manager_API/spec/schemas/UpdateTransaction.yaml"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "required": [
+                                                    "from",
+                                                    "to",
+                                                    "id",
+                                                    "description",
+                                                    "value",
+                                                    "at"
+                                                ],
+                                                "type": "object",
+                                                "properties": {
+                                                    "from": {
+                                                        "type": "string",
+                                                        "minLength": "aaa"
+                                                    },
+                                                    "id": {
+                                                        "type": "string"
+                                                    },
+                                                    "at": {
+                                                        "description": "Insertion datetime",
+                                                        "format": "date-time",
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Expired token"
+                    }
+                },
+                "security": [
+                    {
+                        "loggedUserToken": []
+                    }
+                ],
+                "x-vertx-event-bus": "transactions.debts_manager"
+            },
+            "post": {
+                "summary": "Create a Transaction",
+                "description": "Creates a new instance of a `Transaction`.",
+                "operationId": "createTransaction",
+                "requestBody": {
+                    "description": "A new `Transaction` to be created.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "allOf": [
+                                    {
+                                        "properties": {
+                                            "to": {
+                                                "$ref": "#/paths/~1transactions/get/responses/200/content/application~1json/schema/items/allOf/1/properties/from",
+                                                "x-miro": "/home/slinkydeveloper/IdeaProjects/Debts_Manager_API/spec/schemas/Username.yaml"
+                                            }
+                                        },
+                                        "required": [
+                                            "to",
+                                            "description",
+                                            "value"
+                                        ],
+                                        "type": "object"
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "value": {
+                                                "type": "number"
+                                            },
+                                            "description": {
+                                                "minLength": 1,
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successful response."
+                    },
+                    "401": {
+                        "description": "Expired Token"
+                    },
+                    "403": {
+                        "description": "Trying to create a transaction to a user not connected to logged user"
+                    }
+                },
+                "security": [
+                    {
+                        "loggedUserToken": []
+                    }
+                ],
+                "x-vertx-event-bus": "transactions.debts_manager"
+            }
+        },
+        "/transactions/{transactionId}": {
+            "summary": "Path used to manage a single Transaction.",
+            "description": "The REST endpoint/path used to get, update, and delete single instances\nof an `Transaction`.  This path contains `GET`, `PUT`, and `DELETE` operations\nused to perform the get, update, and delete tasks, respectively.",
+            "get": {
+                "summary": "Get a Transaction",
+                "description": "Gets the details of a single instance of a `Transaction`.",
+                "operationId": "getTransaction",
+                "responses": {
+                    "200": {
+                        "description": "Successful response - returns a single `Transaction`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/paths/~1transactions/get/responses/200/content/application~1json/schema/items",
+                                    "x-miro": "schemas/Transaction.yaml"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Expired Token"
+                    },
+                    "403": {
+                        "description": "Trying to get a transaction where `from` or `to` is not actual\nuser"
+                    }
+                },
+                "security": [
+                    {
+                        "loggedUserToken": []
+                    }
+                ],
+                "x-vertx-event-bus": "transactions.debts_manager"
+            },
+            "put": {
+                "summary": "Update a Transaction",
+                "description": "Updates an existing `Transaction`.",
+                "operationId": "updateTransaction",
+                "requestBody": {
+                    "description": "Updated `Transaction` information.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "value": {
+                                        "type": "number"
+                                    },
+                                    "description": {
+                                        "minLength": 1,
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "202": {
+                        "description": "Successful response."
+                    },
+                    "401": {
+                        "description": "Expired Token"
+                    },
+                    "403": {
+                        "description": "Trying to update a transaction where `from` is not the logged user"
+                    }
+                },
+                "security": [
+                    {
+                        "loggedUserToken": []
+                    }
+                ],
+                "x-vertx-event-bus": "transactions.debts_manager"
+            },
+            "delete": {
+                "summary": "Delete a Transaction",
+                "description": "Deletes an existing `Transaction`.",
+                "operationId": "deleteTransaction",
+                "responses": {
+                    "204": {
+                        "description": "Successful response."
+                    },
+                    "401": {
+                        "description": "Expired Token "
+                    },
+                    "403": {
+                        "description": "Trying to remove a transaction where `from` is not the logged user"
+                    }
+                },
+                "security": [
+                    {
+                        "loggedUserToken": []
+                    }
+                ],
+                "x-vertx-event-bus": "transactions.debts_manager"
+            },
+            "parameters": [
+                {
+                    "name": "transactionId",
+                    "in": "path",
+                    "description": "A unique identifier for a `Transaction`.",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/status": {
+            "get": {
+                "summary": "Get status of the logged user",
+                "operationId": "getUserStatus",
+                "parameters": [
+                    {
+                        "name": "till",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status of logged user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "description": "Map with users id as keys and debt as value",
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "number"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Expired token"
+                    }
+                },
+                "security": [
+                    {
+                        "loggedUserToken": []
+                    }
+                ],
+                "x-vertx-event-bus": "status.debts_manager"
+            }
+        },
+        "/login": {
+            "post": {
+                "summary": "Login",
+                "operationId": "login",
+                "x-vertx-event-bus": "users.debts_manager",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username",
+                                    "password"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "minLength": 5
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Returns the JWT token",
+                        "content": {
+                            "text/plain": {}
+                        }
+                    },
+                    "400": {
+                        "description": "Wrong username or password",
+                        "content": {
+                            "text/plain": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/register": {
+            "post": {
+                "summary": "Register",
+                "operationId": "register",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username",
+                                    "password"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                    "username": {
+                                        "$ref": "#/paths/~1login/post/requestBody/content/application~1json/schema/properties/username",
+                                        "x-miro": "schemas/Username.yaml"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Returns the JWT Token",
+                        "content": {
+                            "text/plain": {
+                                "x-description": "Login token"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Username already exists",
+                        "content": {
+                            "text/plain": {}
+                        }
+                    }
+                },
+                "x-vertx-event-bus": "users.debts_manager"
+            }
+        },
+        "/users/connected": {
+            "get": {
+                "summary": "Get Connected Users List",
+                "operationId": "getConnectedUsers",
+                "responses": {
+                    "200": {
+                        "description": "All connected users",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "allowedTo": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/paths/~1login/post/requestBody/content/application~1json/schema/properties/username",
+                                                "x-miro": "schemas/Username.yaml"
+                                            }
+                                        },
+                                        "allowedFrom": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/paths/~1login/post/requestBody/content/application~1json/schema/properties/username",
+                                                "x-miro": "schemas/Username.yaml"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Expired token"
+                    }
+                },
+                "security": [
+                    {
+                        "loggedUserToken": []
+                    }
+                ],
+                "x-vertx-event-bus": "users.debts_manager"
+            }
+        },
+        "/users/connected/{userToConnect}": {
+            "post": {
+                "summary": "Connect user",
+                "description": "Connect user: when you connect to another user, he will be able to send transactions to you. If you want to send transactions from you to userX, userX must connect to you calling this endpoint",
+                "operationId": "connectUser",
+                "x-vertx-event-bus": "users.debts_manager",
+                "parameters": [
+                    {
+                        "name": "userToConnect",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "$ref": "#/paths/~1login/post/requestBody/content/application~1json/schema/properties/username",
+                            "x-miro": "schemas/Username.yaml"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User connected"
+                    },
+                    "401": {
+                        "description": "Expired token"
+                    }
+                },
+                "security": [
+                    {
+                        "loggedUserToken": []
+                    }
+                ]
+            }
+        },
+        "/users": {
+            "get": {
+                "summary": "Get all users",
+                "operationId": "getUsers",
+                "parameters": [
+                    {
+                        "name": "filter",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/paths/~1login/post/requestBody/content/application~1json/schema/properties/username",
+                                        "x-miro": "schemas/Username.yaml"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Expired token"
+                    }
+                },
+                "security": [
+                    {
+                        "loggedUserToken": []
+                    }
+                ],
+                "x-vertx-event-bus": "users.debts_manager"
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "loggedUserToken": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        },
+        "x-vertx-service-gen": {
+            "transactions.debts_manager": "TransactionsService",
+            "users.debts_manager": "UsersService",
+            "status.debts_manager": "StatusService"
+        }
+    }
+}

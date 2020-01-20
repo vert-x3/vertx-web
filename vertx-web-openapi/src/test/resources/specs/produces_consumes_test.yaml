@@ -1,0 +1,61 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Test spec for OpenAPI3RouterFactoryTest consumes and produces tests
+  license:
+    name: Apache 2.0 License
+paths:
+  /consumesTest:
+    post:
+      operationId: consumesTest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+      responses:
+        default:
+          description: ok
+  /producesTest:
+    get:
+      operationId: producesTest
+      parameters:
+        - name: fail
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        default:
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - name
+                properties:
+                  name:
+                    type: string
+        500:
+          description: Error
+          content:
+            text/plain:
+              schema:
+                type: string
+components: {}
