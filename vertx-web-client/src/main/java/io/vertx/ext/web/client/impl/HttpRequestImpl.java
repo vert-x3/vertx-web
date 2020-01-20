@@ -48,8 +48,8 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   MultiMap params;
   HttpMethod method;
   String protocol;
-  int port;
-  String host;
+  private Integer port;
+  private String host;
   String virtualHost;
   String uri;
   MultiMap headers;
@@ -60,12 +60,12 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   boolean multipartMixed = true;
   public List<ResponsePredicate> expectations;
 
-  HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, Boolean ssl, int port, String host, String uri, BodyCodec<T>
+  HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, Boolean ssl, Integer port, String host, String uri, BodyCodec<T>
           codec, WebClientOptions options) {
     this(client, method, serverAddress, null, ssl, port, host, uri, codec, options);
   }
 
-  HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, String protocol, Boolean ssl, int port, String host, String
+  HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, String protocol, Boolean ssl, Integer port, String host, String
           uri, BodyCodec<T> codec, WebClientOptions options) {
     this.client = client;
     this.method = method;
@@ -124,7 +124,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   public int port() {
-    return port;
+    return port != null ? port : options.getDefaultPort();
   }
 
   @Override
@@ -134,7 +134,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   public String host() {
-    return host;
+    return host != null ? host : options.getDefaultHost();
   }
 
   @Override

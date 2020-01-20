@@ -1592,7 +1592,7 @@ public class WebClientTest extends WebClientTestBase {
     options.setProxyOptions(new ProxyOptions().setPort(proxy.getPort()));
     WebClient client = WebClient.create(vertx, options);
     client
-    .getAbs("ftp://ftp.gnu.org/gnu/")
+    .get("ftp://ftp.gnu.org/gnu/")
     .send(ar -> {
       if (ar.succeeded()) {
         // Obtain response
