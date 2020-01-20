@@ -1,0 +1,42 @@
+= Cheatsheets
+
+[[ServiceRequest]]
+== ServiceRequest
+
+++++
+ Data object that encapsulates all informations about an HTTP Request
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[extra]]`@extra`|`Json object`|+++
+Get extra payload
++++
+|[[params]]`@params`|`Json object`|+++
+Get request parsedParameters as JSON
++++
+|[[user]]`@user`|`Json object`|+++
+Get request principal user as routingContext.user().principal(), null if no user is authenticated
++++
+|===
+
+[[ServiceResponse]]
+== ServiceResponse
+
+++++
+ Data object that encapsulates all informations about an HTTP Response
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[payload]]`@payload`|`Buffer`|-
+|[[statusCode]]`@statusCode`|`Number (Integer)`|-
+|[[statusMessage]]`@statusMessage`|`String`|-
+|===
+
