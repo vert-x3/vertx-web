@@ -47,7 +47,7 @@ public class SockJSSessionTest extends SockJSTestBase {
       };
     };
     startServers();
-    client.getNow("/test/400/8ne8e94a/eventsource", onSuccess(resp -> {
+    client.get("/test/400/8ne8e94a/eventsource", onSuccess(resp -> {
       AtomicInteger count = new AtomicInteger();
       resp.handler(msg -> {
         if (count.incrementAndGet() == 400) {

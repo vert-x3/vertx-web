@@ -202,16 +202,17 @@ public class StaticHandlerTest extends WebTestBase {
       .setProtocolVersion(HttpVersion.HTTP_2)
       .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem"));
     HttpClient client = vertx.createHttpClient(options);
-    HttpClientRequest request = client.get(8443, "localhost", "/testLinkPreload.html", onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
-      assertEquals(HttpVersion.HTTP_2, resp.version());
-      resp.bodyHandler(this::assertNotNull);
-      testComplete();
-    }));
-    request.pushHandler(pushedReq -> pushedReq.setHandler(pushedResp -> {
-      fail();
-    }));
-    request.end();
+    client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
+      .setHandler(onSuccess(resp -> {
+        assertEquals(200, resp.statusCode());
+        assertEquals(HttpVersion.HTTP_2, resp.version());
+        resp.bodyHandler(this::assertNotNull);
+        testComplete();
+      }))
+      .pushHandler(pushedReq -> pushedReq.setHandler(pushedResp -> {
+        fail();
+      }))
+      .end();
     await();
   }
 
@@ -235,18 +236,19 @@ public class StaticHandlerTest extends WebTestBase {
       .setProtocolVersion(HttpVersion.HTTP_2)
       .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem"));
     HttpClient client = vertx.createHttpClient(options);
-    HttpClientRequest request = client.get(8443, "localhost", "/testLinkPreload.html", onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
-      assertEquals(HttpVersion.HTTP_2, resp.version());
-      resp.bodyHandler(this::assertNotNull);
-    }));
     CountDownLatch latch = new CountDownLatch(2);
-    request.pushHandler(pushedReq -> pushedReq.setHandler(onSuccess(pushedResp -> {
-      assertNotNull(pushedResp);
-      pushedResp.bodyHandler(this::assertNotNull);
-      latch.countDown();
-    })));
-    request.end();
+    client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
+      .setHandler(onSuccess(resp -> {
+        assertEquals(200, resp.statusCode());
+        assertEquals(HttpVersion.HTTP_2, resp.version());
+        resp.bodyHandler(this::assertNotNull);
+      }))
+      .pushHandler(pushedReq -> pushedReq.setHandler(onSuccess(pushedResp -> {
+        assertNotNull(pushedResp);
+        pushedResp.bodyHandler(this::assertNotNull);
+        latch.countDown();
+      })))
+      .end();
     latch.await();
   }
 
@@ -283,13 +285,11 @@ public class StaticHandlerTest extends WebTestBase {
     List<String> contentEncodings = Collections.synchronizedList(new ArrayList<>());
     for (String uri : uris) {
       CountDownLatch responseReceived = new CountDownLatch(1);
-      client.get(server.actualPort(), getHttpClientOptions().getDefaultHost(), uri, onSuccess(resp -> {
+      client.get(server.actualPort(), getHttpClientOptions().getDefaultHost(), uri, HttpHeaders.set(HttpHeaders.ACCEPT_ENCODING, String.join(", ", "gzip", "jpg", "jpeg", "png")), onSuccess(resp -> {
         assertEquals(200, resp.statusCode());
         contentEncodings.add(resp.getHeader(HttpHeaders.CONTENT_ENCODING));
         responseReceived.countDown();
-      }))
-        .putHeader(HttpHeaders.ACCEPT_ENCODING, String.join(", ", "gzip", "jpg", "jpeg", "png"))
-        .end();
+      }));
       awaitLatch(responseReceived);
     }
     assertEquals(expectedContentEncodings, contentEncodings);

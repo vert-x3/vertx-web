@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.graphql;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -164,12 +165,14 @@ public class PostRequestsTest extends GraphQLTestBase {
 
   @Test
   public void testUnsupportedMediaType() throws Exception {
-    client.post("/graphql")
-      .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
-      .setHandler(onSuccess(response -> {
+    client.post(
+      "/graphql",
+      HttpHeaders.set(HttpHeaders.CONTENT_TYPE, "text/html"),
+      Buffer.buffer("<h1>Hello world!</h1>"),
+      onSuccess(response -> {
         assertEquals(415, response.statusCode());
         testComplete();
-      })).end("<h1>Hello world!</h1>");
+      }));
     await();
   }
 

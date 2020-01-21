@@ -2,9 +2,9 @@ package io.vertx.ext.web.api;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.client.HttpRequest;
@@ -51,8 +51,16 @@ public class ApiWebTestBase extends WebTestBase {
 
   public void testRequestWithBufferResponse(HttpMethod method, String path, String contentType, Buffer obj, int statusCode, String statusMessage, String expectedContentType, Consumer<Buffer> checkResult) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    HttpClientRequest req = client
-      .request(method, 8080, "localhost", path, onSuccess(res -> {
+    RequestOptions options = new RequestOptions()
+      .setMethod(method)
+      .setPort(8080)
+      .setHost("localhost")
+      .setURI(path);
+    if (contentType != null) {
+      options.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
+    }
+    client
+      .send(options, obj, onSuccess(res -> {
         if (checkResult != null) {
           assertEquals(statusCode, res.statusCode());
           assertEquals(statusMessage, res.statusMessage());
@@ -68,9 +76,6 @@ public class ApiWebTestBase extends WebTestBase {
           latch.countDown();
         }
       }));
-    if (contentType != null) req.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
-    if (obj != null) req.end(obj);
-    else req.end();
     awaitLatch(latch);
   }
 
@@ -117,13 +122,11 @@ public class ApiWebTestBase extends WebTestBase {
   public void testRequestWithResponseContentTypeCheck(HttpMethod method, String path, int statusCode, String contentType, List<String> acceptableContentTypes) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     client
-      .request(method, 8080, "localhost", path, onSuccess(res -> {
+      .send(method, 8080, "localhost", path, HttpHeaders.set("Accept", String.join(", ", acceptableContentTypes)), onSuccess(res -> {
         assertEquals(statusCode, res.statusCode());
         assertEquals(contentType, res.getHeader(HttpHeaders.CONTENT_TYPE));
         latch.countDown();
-      }))
-      .putHeader("Accept", String.join(", ", acceptableContentTypes))
-      .end();
+      }));
     awaitLatch(latch);
   }
 

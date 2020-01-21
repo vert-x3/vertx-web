@@ -68,7 +68,7 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   private void testGreeting(String uri) {
-    client.getNow(uri, onSuccess(resp -> {
+    client.get(uri, onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals("text/plain; charset=UTF-8", resp.getHeader("content-type"));
       resp.bodyHandler(buff -> {
@@ -352,7 +352,7 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   private void testNotFound(String uri) {
-    client.getNow(uri, onSuccess(resp -> {
+    client.get(uri, onSuccess(resp -> {
       assertEquals(404, resp.statusCode());
       complete();
     }));

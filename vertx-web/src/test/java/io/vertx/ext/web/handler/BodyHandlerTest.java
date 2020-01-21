@@ -326,7 +326,7 @@ public class BodyHandlerTest extends WebTestBase {
       .setUploadsDirectory(uploadsDirectory));
 
     assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
-    io.vertx.core.http.HttpClientRequest req = client.request(HttpMethod.POST, "/", ctx -> {});
+    io.vertx.core.http.HttpClientRequest req = client.request(HttpMethod.POST, "/");
 
     String name = "somename";
     String fileName = "somefile.dat";

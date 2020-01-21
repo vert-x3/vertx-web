@@ -2451,7 +2451,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testErrorHandlingResponseClosed() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path", h -> { });
+    HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path");
     router.route().handler(rc -> {
       req.connection().close();
       rc.response().closeHandler(v -> rc.next());
@@ -2521,7 +2521,7 @@ public class RouterTest extends WebTestBase {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(HttpMethod.GET, "/", req -> req.setHost("www.mysite.com"), 200, "OK", null);
+    testRequest(HttpMethod.GET, "/", req -> req.setAuthority("www.mysite.com"), 200, "OK", null);
   }
 
   @Test
@@ -2530,7 +2530,7 @@ public class RouterTest extends WebTestBase {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(HttpMethod.GET, "/", req -> req.setHost("www.mysite.net"), 500, "Internal Server Error", null);
+    testRequest(HttpMethod.GET, "/", req -> req.setAuthority("www.mysite.net"), 500, "Internal Server Error", null);
   }
 
   @Test

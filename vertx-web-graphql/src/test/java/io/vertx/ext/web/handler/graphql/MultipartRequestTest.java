@@ -6,8 +6,10 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.WebTestBase;
@@ -65,17 +67,19 @@ public class MultipartRequestTest extends WebTestBase {
   public void testSingleUploadMutation() {
     final HttpClient client = vertx.createHttpClient(getHttpClientOptions());
 
-    final HttpClientRequest req = client.post("/graphql", response -> response.result().bodyHandler(buffer -> {
+    final Buffer bodyBuffer = vertx.fileSystem().readFileBlocking("singleUpload.txt");
+
+    client.post(new RequestOptions()
+      .setURI("/graphql")
+      .setTimeout(10000)
+      .addHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryBpwmk50wSJmsTPAH")
+      .addHeader("accept", "application/json"),
+      bodyBuffer,
+      response -> response.result().bodyHandler(buffer -> {
       final JsonObject json = ((JsonObject) buffer.toJson()).getJsonObject("data").getJsonObject("singleUpload");
       assertEquals("a.txt", json.getString("id"));
       complete();
-    })).setChunked(false).setTimeout(10000);
-
-    final String bodyBuffer = vertx.fileSystem().readFileBlocking("singleUpload.txt").toString();
-
-    req.putHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryBpwmk50wSJmsTPAH");
-    req.putHeader("accept", "application/json");
-    req.end(bodyBuffer);
+    }));
 
     await();
   }
@@ -84,17 +88,16 @@ public class MultipartRequestTest extends WebTestBase {
   public void testMultipleUploadMutation() {
     final HttpClient client = vertx.createHttpClient(getHttpClientOptions());
 
-    final HttpClientRequest req = client.post("/graphql", response -> response.result().bodyHandler(buffer -> {
+    final Buffer bodyBuffer = vertx.fileSystem().readFileBlocking("multipleUpload.txt");
+    client.post(new RequestOptions()
+      .setURI("/graphql")
+      .addHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryhvb6BzAACEqQKt0Z")
+      .addHeader("accept", "application/json")
+      .setTimeout(10000), bodyBuffer, response -> response.result().bodyHandler(buffer -> {
       final JsonObject json = ((JsonObject) buffer.toJson()).getJsonObject("data").getJsonObject("multipleUpload");
       assertEquals("b.txt c.txt", json.getString("id"));
       complete();
-    })).setChunked(false).setTimeout(10000);
-
-    final String bodyBuffer = vertx.fileSystem().readFileBlocking("multipleUpload.txt").toString();
-
-    req.putHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryhvb6BzAACEqQKt0Z");
-    req.putHeader("accept", "application/json");
-    req.end(bodyBuffer);
+    }));
 
     await();
   }
@@ -103,26 +106,27 @@ public class MultipartRequestTest extends WebTestBase {
   public void testBatchUploadMutation() {
     final HttpClient client = vertx.createHttpClient(getHttpClientOptions());
 
-    final HttpClientRequest req = client.post("/graphql", response -> response.result().bodyHandler(buffer -> {
-      final JsonObject result = new JsonObject("{ \"array\":" + buffer.toString() + "}");
-      assertEquals("a.txt", result.getJsonArray("array")
-        .getJsonObject(0).getJsonObject("data")
-        .getJsonObject("singleUpload").getString("id")
-      );
+    final Buffer bodyBuffer = vertx.fileSystem().readFileBlocking("batchUpload.txt");
+    client.post(new RequestOptions()
+        .setURI("/graphql")
+        .addHeader("Content-Type", "multipart/form-data; boundary=------------------------560b6209af099a26")
+        .addHeader("accept", "application/json")
+        .setTimeout(10000),
+      bodyBuffer,
+      response -> response.result().bodyHandler(buffer -> {
+        final JsonObject result = new JsonObject("{ \"array\":" + buffer.toString() + "}");
+        assertEquals("a.txt", result.getJsonArray("array")
+          .getJsonObject(0).getJsonObject("data")
+          .getJsonObject("singleUpload").getString("id")
+        );
 
-      assertEquals("b.txt c.txt", result.getJsonArray("array")
-        .getJsonObject(1).getJsonObject("data")
-        .getJsonObject("multipleUpload").getString("id")
-      );
+        assertEquals("b.txt c.txt", result.getJsonArray("array")
+          .getJsonObject(1).getJsonObject("data")
+          .getJsonObject("multipleUpload").getString("id")
+        );
 
-      complete();
-    })).setChunked(false).setTimeout(10000);
-
-    final String bodyBuffer = vertx.fileSystem().readFileBlocking("batchUpload.txt").toString();
-
-    req.putHeader("Content-Type", "multipart/form-data; boundary=------------------------560b6209af099a26");
-    req.putHeader("accept", "application/json");
-    req.end(bodyBuffer);
+        complete();
+      }));
 
     await();
   }

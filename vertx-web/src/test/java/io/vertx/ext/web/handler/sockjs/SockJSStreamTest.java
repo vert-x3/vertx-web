@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import org.junit.Test;
 
@@ -66,7 +67,7 @@ public class SockJSStreamTest extends SockJSTestBase {
   }
 
   private void fetchMessages(List<String> messages) {
-    client.post("/test/400/8ne8e94a/xhr", onSuccess(resp -> {
+    client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       resp.bodyHandler(buffer -> {
         String body = buffer.toString();
@@ -81,6 +82,6 @@ public class SockJSStreamTest extends SockJSTestBase {
           testComplete();
         }
       });
-    })).end();
+    }));
   }
 }
