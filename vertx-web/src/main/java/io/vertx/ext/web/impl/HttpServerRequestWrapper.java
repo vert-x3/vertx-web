@@ -8,8 +8,8 @@ import io.vertx.core.http.*;
 import io.vertx.core.net.NetSocket;
 import io.vertx.core.net.SocketAddress;
 
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSession;
 import javax.security.cert.X509Certificate;
 import java.util.Map;
 
@@ -70,32 +70,38 @@ class HttpServerRequestWrapper implements HttpServerRequest {
 
   @Override
   public HttpServerRequest exceptionHandler(Handler<Throwable> handler) {
-    return delegate.exceptionHandler(handler);
+    delegate.exceptionHandler(handler);
+    return this;
   }
 
   @Override
   public HttpServerRequest handler(Handler<Buffer> handler) {
-    return delegate.handler(handler);
+    delegate.handler(handler);
+    return this;
   }
 
   @Override
   public HttpServerRequest pause() {
-    return delegate.pause();
+    delegate.pause();
+    return this;
   }
 
   @Override
   public HttpServerRequest resume() {
-    return delegate.resume();
+    delegate.resume();
+    return this;
   }
 
   @Override
   public HttpServerRequest fetch(long amount) {
-    return delegate.fetch(amount);
+    delegate.fetch(amount);
+    return this;
   }
 
   @Override
   public HttpServerRequest endHandler(Handler<Void> handler) {
-    return delegate.endHandler(handler);
+    delegate.endHandler(handler);
+    return this;
   }
 
   @Override
@@ -242,7 +248,8 @@ class HttpServerRequestWrapper implements HttpServerRequest {
 
   @Override
   public HttpServerRequest bodyHandler(Handler<Buffer> handler) {
-    return delegate.bodyHandler(handler);
+    delegate.bodyHandler(handler);
+    return this;
   }
 
   @Override
@@ -252,7 +259,8 @@ class HttpServerRequestWrapper implements HttpServerRequest {
 
   @Override
   public HttpServerRequest setExpectMultipart(boolean b) {
-    return delegate.setExpectMultipart(b);
+    delegate.setExpectMultipart(b);
+    return this;
   }
 
   @Override
@@ -262,7 +270,8 @@ class HttpServerRequestWrapper implements HttpServerRequest {
 
   @Override
   public HttpServerRequest uploadHandler(Handler<HttpServerFileUpload> handler) {
-    return delegate.uploadHandler(handler);
+    delegate.uploadHandler(handler);
+    return this;
   }
 
   @Override
