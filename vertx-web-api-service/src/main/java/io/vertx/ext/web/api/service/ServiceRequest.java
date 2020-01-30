@@ -3,7 +3,7 @@ package io.vertx.ext.web.api.service;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.core.MultiMap;
-import io.vertx.core.http.CaseInsensitiveHeaders;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Map;
@@ -41,7 +41,7 @@ public class ServiceRequest {
     ServiceRequestConverter.fromJson(json, this);
     JsonObject hdrs = json.getJsonObject("headers", null);
     if (hdrs != null) {
-      headers = new CaseInsensitiveHeaders();
+      headers = HttpHeaders.headers();
       for (Map.Entry<String, Object> entry: hdrs) {
         if (!(entry.getValue() instanceof String)) {
           throw new IllegalStateException("Invalid type for message header value " + entry.getValue().getClass());

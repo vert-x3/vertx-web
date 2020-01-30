@@ -28,7 +28,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.impl.HeadersAdaptor;
+import io.vertx.core.http.impl.headers.HeadersAdaptor;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.impl.InboundBuffer;
 import io.vertx.ext.web.multipart.FormDataPart;

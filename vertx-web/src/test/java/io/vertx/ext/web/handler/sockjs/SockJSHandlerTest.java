@@ -18,7 +18,7 @@ package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.CaseInsensitiveHeaders;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.http.WebSocketFrame;
@@ -368,7 +368,7 @@ public class SockJSHandlerTest extends WebTestBase {
         assertEquals("JSESSIONID=wibble", cookieHeader);
         testComplete();
       }));
-    MultiMap headers = new CaseInsensitiveHeaders();
+    MultiMap headers = HttpHeaders.headers();
     headers.add("cookie", "JSESSIONID=wibble");
     headers.add("cookie", "flibble=floob");
 

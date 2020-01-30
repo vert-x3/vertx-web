@@ -35,7 +35,7 @@ package io.vertx.ext.web.handler.sockjs.impl;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.*;
-import io.vertx.core.http.CaseInsensitiveHeaders;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.impl.logging.Logger;
@@ -478,7 +478,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
     MultiMap mHeaders;
     if (headers != null) {
-      mHeaders = new CaseInsensitiveHeaders();
+      mHeaders = HttpHeaders.headers();
       headers.forEach(entry -> mHeaders.add(entry.getKey(), entry.getValue().toString()));
     } else {
       mHeaders = null;

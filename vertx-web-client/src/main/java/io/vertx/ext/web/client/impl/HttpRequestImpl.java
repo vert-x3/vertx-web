@@ -20,7 +20,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -79,7 +78,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.followRedirects = options.isFollowRedirects();
     this.options = options;
     if (options.isUserAgentEnabled()) {
-      headers = new CaseInsensitiveHeaders().add(HttpHeaders.USER_AGENT, options.getUserAgent());
+      headers = HttpHeaders.set(HttpHeaders.USER_AGENT, options.getUserAgent());
     }
   }
 
@@ -93,8 +92,8 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.host = other.host;
     this.timeout = other.timeout;
     this.uri = other.uri;
-    this.headers = other.headers != null ? new CaseInsensitiveHeaders().addAll(other.headers) : null;
-    this.params = other.params != null ? new CaseInsensitiveHeaders().addAll(other.params) : null;
+    this.headers = other.headers != null ? HttpHeaders.headers().addAll(other.headers) : null;
+    this.params = other.params != null ? HttpHeaders.headers().addAll(other.params) : null;
     this.codec = other.codec;
     this.followRedirects = other.followRedirects;
     this.ssl = other.ssl;
@@ -179,7 +178,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public MultiMap headers() {
     if (headers == null) {
-      headers = new CaseInsensitiveHeaders();
+      headers = HttpHeaders.headers();
     }
     return headers;
   }
@@ -255,7 +254,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public MultiMap queryParams() {
     if (params == null) {
-      params = new CaseInsensitiveHeaders();
+      params = HttpHeaders.headers();
     }
     if (params.isEmpty()) {
       int idx = uri.indexOf('?');

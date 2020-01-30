@@ -8,8 +8,8 @@ import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.client.spi.CookieStore;
 
 /**
@@ -45,7 +45,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
 
     MultiMap headers = context.get(HEADERS_CONTEXT_KEY);
     if (headers == null) {
-      headers = new CaseInsensitiveHeaders().addAll(request.headers());
+      headers = HttpHeaders.headers().addAll(request.headers());
       context.set(SessionAwareInterceptor.HEADERS_CONTEXT_KEY, headers);
     }
 
@@ -105,7 +105,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
 
     MultiMap headers = context.get(HEADERS_CONTEXT_KEY);
     if (headers == null) {
-      headers = new CaseInsensitiveHeaders().addAll(redirectRequest.headers());
+      headers = HttpHeaders.headers().addAll(redirectRequest.headers());
       context.set(SessionAwareInterceptor.HEADERS_CONTEXT_KEY, headers);
     }
 

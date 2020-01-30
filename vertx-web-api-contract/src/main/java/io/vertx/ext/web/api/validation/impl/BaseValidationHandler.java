@@ -2,7 +2,6 @@ package io.vertx.ext.web.api.validation.impl;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.MultiMap;
-import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
@@ -178,7 +177,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
   private Map<String, RequestParameter> validateQueryParams(RoutingContext routingContext) throws ValidationException {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
     Map<String, RequestParameter> parsedParams = new HashMap<>();
-    MultiMap queryParams = new CaseInsensitiveHeaders().addAll(routingContext.queryParams());
+    MultiMap queryParams = MultiMap.caseInsensitiveMultiMap().addAll(routingContext.queryParams());
     for (ParameterValidationRule rule : queryParamsRules.values()) {
       String name = rule.getName();
       if (queryParams.contains(name)) {

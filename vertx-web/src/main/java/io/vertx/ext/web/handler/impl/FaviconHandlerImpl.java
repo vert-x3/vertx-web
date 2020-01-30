@@ -20,7 +20,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
-import io.vertx.core.http.CaseInsensitiveHeaders;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -64,7 +64,7 @@ public class FaviconHandlerImpl implements FaviconHandler {
      * @param buffer buffer containing the image data for this icon.
      */
     private Icon(Buffer buffer) {
-      headers = new CaseInsensitiveHeaders();
+      headers = HttpHeaders.headers();
       body = buffer;
 
       headers.add(CONTENT_TYPE, "image/x-icon");
