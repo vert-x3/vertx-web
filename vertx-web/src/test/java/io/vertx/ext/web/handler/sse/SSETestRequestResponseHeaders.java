@@ -1,3 +1,19 @@
+/*
+ * Copyright 2020 Red Hat, Inc.
+ *
+ * Red Hat licenses this file to you under the Apache License, version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License.  You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.vertx.ext.web.handler.sse;
 
 import io.vertx.core.http.HttpClientResponse;
@@ -8,45 +24,45 @@ import java.util.concurrent.CountDownLatch;
 
 public class SSETestRequestResponseHeaders extends SSETestBase {
 
-	@Test
-	public void noHeaderTextEventStreamHttpRequest() throws InterruptedException {
+  @Test
+  public void noHeaderTextEventStreamHttpRequest() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
     client().get("/sse", ar -> {
       assertTrue(ar.succeeded());
       HttpClientResponse response = ar.result();
       assertEquals(406, response.statusCode());
       latch.countDown();
-		}).putHeader("Accept", "foo").end();
-		awaitLatch(latch);
-	}
+    }).putHeader("Accept", "foo").end();
+    awaitLatch(latch);
+  }
 
-	@Test
-	public void noHeaderHttpRequest() throws InterruptedException {
+  @Test
+  public void noHeaderHttpRequest() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
     client().getNow("/sse", ar -> {
       assertTrue(ar.succeeded());
       HttpClientResponse response = ar.result();
-			assertSSEHeaders(response);
-			latch.countDown();
-		});
+      assertSSEHeaders(response);
+      latch.countDown();
+    });
     awaitLatch(latch);
-	}
+  }
 
-	@Test
-	public void correctResponseHeaders() throws InterruptedException {
+  @Test
+  public void correctResponseHeaders() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
-		client().get("/sse", ar -> {
+    client().get("/sse", ar -> {
       assertTrue(ar.succeeded());
       HttpClientResponse response = ar.result();
-			assertSSEHeaders(response);
-			latch.countDown();
-		}).putHeader("Accept", "text/event-stream").end();
-		awaitLatch(latch);
-	}
+      assertSSEHeaders(response);
+      latch.countDown();
+    }).putHeader("Accept", "text/event-stream").end();
+    awaitLatch(latch);
+  }
 
-	private void assertSSEHeaders(HttpClientResponse response) {
+  private void assertSSEHeaders(HttpClientResponse response) {
     assertEquals("text/event-stream", response.getHeader(HttpHeaders.CONTENT_TYPE));
     assertEquals("no-cache", response.getHeader(HttpHeaders.CACHE_CONTROL));
     assertEquals("keep-alive", response.getHeader(HttpHeaders.CONNECTION));
-	}
+  }
 }
