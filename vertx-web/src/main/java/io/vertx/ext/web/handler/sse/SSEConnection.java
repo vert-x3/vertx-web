@@ -1,3 +1,19 @@
+/*
+ * Copyright 2020 Red Hat, Inc.
+ *
+ * Red Hat licenses this file to you under the Apache License, version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License.  You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.vertx.ext.web.handler.sse;
 
 import io.vertx.codegen.annotations.Fluent;
@@ -12,57 +28,57 @@ import java.util.List;
 @VertxGen
 public interface SSEConnection {
 
-	static SSEConnection create(RoutingContext context) {
-		return new SSEConnectionImpl(context);
-	}
+  static SSEConnection create(RoutingContext context) {
+    return new SSEConnectionImpl(context);
+  }
 
-	@Fluent
+  @Fluent
   SSEConnection forward(String address);
 
-	@Fluent
+  @Fluent
   SSEConnection forward(List<String> addresses);
 
-	@Fluent
+  @Fluent
   SSEConnection reject(int code);
 
-	@Fluent
+  @Fluent
   SSEConnection reject(int code, String reason);
 
-	@Fluent
+  @Fluent
   SSEConnection comment(String comment);
 
-	@Fluent
+  @Fluent
   SSEConnection retry(Long delay, List<String> data);
 
-	@Fluent
+  @Fluent
   SSEConnection retry(Long delay, String data);
 
-	@Fluent
+  @Fluent
   SSEConnection data(List<String> data);
 
-	@Fluent
+  @Fluent
   SSEConnection data(String data);
 
-	@Fluent
+  @Fluent
   SSEConnection event(String eventName, List<String> data);
 
-	@Fluent
+  @Fluent
   SSEConnection event(String eventName, String data);
 
-	@Fluent
+  @Fluent
   SSEConnection id(String id, List<String> data);
 
-	@Fluent
+  @Fluent
   SSEConnection id(String id, String data);
 
-	@Fluent
+  @Fluent
   SSEConnection close();
 
-	boolean rejected();
+  boolean rejected();
 
-	String lastId();
+  String lastId();
 
-	@GenIgnore
+  @GenIgnore
   HttpServerRequest request();
 
 }
