@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
+import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.http.impl.ServerCookie;
 import io.vertx.ext.web.Cookie;
 
@@ -102,6 +103,12 @@ public class CookieImpl implements Cookie, ServerCookie {
   @Override
   public Cookie setHttpOnly(final boolean httpOnly) {
     delegate.setHttpOnly(httpOnly);
+    return this;
+  }
+
+  @Override
+  public Cookie setSameSite(final CookieSameSite policy) {
+    delegate.setSameSite(policy);
     return this;
   }
 

@@ -5,10 +5,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.*;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
@@ -694,6 +691,11 @@ public class WebExamples {
     SessionStore store = ClusteredSessionStore.create(vertx);
 
     SessionHandler sessionHandler = SessionHandler.create(store);
+
+    // the session handler controls the cookie used for the session
+    // this includes configuring, for example, the same site policy
+    // like this, for strict same site policy.
+    sessionHandler.setCookieSameSite(CookieSameSite.STRICT);
 
     // Make sure all requests are routed through the session handler too
     router.route().handler(sessionHandler);
