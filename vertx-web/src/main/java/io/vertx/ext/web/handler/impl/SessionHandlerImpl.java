@@ -20,6 +20,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.Cookie;
+import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.AuthProvider;
@@ -46,6 +47,7 @@ public class SessionHandlerImpl implements SessionHandler {
   private boolean sessionCookieSecure;
   private boolean sessionCookieHttpOnly;
   private int minLength;
+  private CookieSameSite cookieSameSite;
 
   public SessionHandlerImpl(String sessionCookieName, String sessionCookiePath, long sessionTimeout, boolean nagHttps,
                             boolean sessionCookieSecure, boolean sessionCookieHttpOnly, int minLength, SessionStore sessionStore) {
@@ -98,6 +100,12 @@ public class SessionHandlerImpl implements SessionHandler {
   @Override
   public SessionHandler setMinLength(int minLength) {
     this.minLength = minLength;
+    return this;
+  }
+
+  @Override
+  public SessionHandler setCookieSameSite(CookieSameSite policy) {
+    this.cookieSameSite = policy;
     return this;
   }
 
@@ -280,6 +288,7 @@ public class SessionHandlerImpl implements SessionHandler {
     cookie.setPath(sessionCookiePath);
     cookie.setSecure(sessionCookieSecure);
     cookie.setHttpOnly(sessionCookieHttpOnly);
+    cookie.setSameSite(cookieSameSite);
     // Don't set max age - it's a session cookie
     context.addCookie(cookie);
     addStoreSessionHandler(context, true);
