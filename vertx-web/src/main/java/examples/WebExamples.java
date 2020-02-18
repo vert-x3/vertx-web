@@ -704,6 +704,11 @@ public class WebExamples {
 
     SessionHandler sessionHandler = SessionHandler.create(store);
 
+    // the session handler controls the cookie used for the session
+    // this includes configuring, for example, the same site policy
+    // like this, for strict same site policy.
+    sessionHandler.setCookieSameSite(CookieSameSite.STRICT);
+
     // Make sure all requests are routed through the session handler too
     router.route().handler(sessionHandler);
 
