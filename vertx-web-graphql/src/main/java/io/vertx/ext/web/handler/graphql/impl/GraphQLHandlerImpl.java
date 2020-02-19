@@ -28,6 +28,7 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
+import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
@@ -52,12 +53,23 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
 
   private static final Function<RoutingContext, Object> DEFAULT_QUERY_CONTEXT_FACTORY = rc -> rc;
   private static final Function<RoutingContext, DataLoaderRegistry> DEFAULT_DATA_LOADER_REGISTRY_FACTORY = rc -> null;
+  private static final Function<RoutingContext, Locale> DEFAULT_LOCALE_FACTORY = routingContext -> {
+    for (LanguageHeader acceptableLocale : routingContext.acceptableLanguages()) {
+      try {
+        return Locale.forLanguageTag(acceptableLocale.value());
+      } catch (RuntimeException e) {
+        // we couldn't parse the locale so it's not valid or unknown
+      }
+    }
+    return null;
+  };
 
   private final GraphQL graphQL;
   private final GraphQLHandlerOptions options;
 
   private Function<RoutingContext, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
   private Function<RoutingContext, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
+  private Function<RoutingContext, Locale> localeFactory = DEFAULT_LOCALE_FACTORY;
 
   public GraphQLHandlerImpl(GraphQL graphQL, GraphQLHandlerOptions options) {
     Objects.requireNonNull(graphQL, "graphQL");
@@ -75,6 +87,12 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   @Override
   public synchronized GraphQLHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory) {
     dataLoaderRegistryFactory = factory != null ? factory : DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
+    return this;
+  }
+
+  @Override
+  public synchronized GraphQLHandler locale(Function<RoutingContext, Locale> factory) {
+    localeFactory = factory != null ? factory : DEFAULT_LOCALE_FACTORY;
     return this;
   }
 
@@ -338,6 +356,16 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     DataLoaderRegistry registry = dlr.apply(rc);
     if (registry != null) {
       builder.dataLoaderRegistry(registry);
+    }
+
+
+    Function<RoutingContext, Locale> l;
+    synchronized (this) {
+      l = localeFactory;
+    }
+    Locale locale = l.apply(rc);
+    if (locale != null) {
+      builder.locale(locale);
     }
 
     return graphQL.executeAsync(builder.build()).thenApplyAsync(executionResult -> {

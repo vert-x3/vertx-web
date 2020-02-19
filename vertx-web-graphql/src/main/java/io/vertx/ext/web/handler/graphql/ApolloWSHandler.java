@@ -26,6 +26,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.impl.ApolloWSHandlerImpl;
 import org.dataloader.DataLoaderRegistry;
 
+import java.util.Locale;
 import java.util.function.Function;
 
 /**
@@ -103,4 +104,16 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
   @Fluent
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   ApolloWSHandler dataLoaderRegistry(Function<ApolloWSMessage, DataLoaderRegistry> factory);
+
+  /**
+   * Customize the locale passed to graphql execution engine
+   * The provided {@code factory} method will be invoked for each incoming GraphQL request.
+   *
+   * If a {@code factory} is not provided the first language found in Accept-Language header will be used
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  ApolloWSHandler locale(Function<ApolloWSMessage, Locale> factory);
 }
