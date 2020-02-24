@@ -117,6 +117,14 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
     String name = param.getName();
     TypeInfo type = param.getType();
     String typeName = type.getName();
+    if (type.isDataObjectHolder()) {
+      switch (type.getDataObject().getDeserializer().getKind()) {
+        case SELF:
+          return "searchOptionalInJson(params, \"" + name + "\").map(j -> (" + type.getDataObject().getJsonType().getName() + ")j).map(j -> new " + type.getName() + "(j)).orElse(null)";
+        case STATIC_METHOD:
+          return "searchOptionalInJson(params, \"" + name + "\").map(j -> (" + type.getDataObject().getJsonType().getName() + ")j).map(j -> " + type.getDataObject().getDeserializer().getQualifiedName() + "(j)).orElse(null)";
+      }
+    }
     if (typeName.equals(RequestParameter.class.getName()))
       return "io.vertx.ext.web.validation.RequestParameter.create(searchInJson(params, \"" + name + "\"))";
     if (typeName.equals("char") || typeName.equals("java.lang.Character"))
@@ -134,8 +142,14 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
     if (type.getKind() == ClassKind.LIST || type.getKind() == ClassKind.SET) {
       String coll = type.getKind() == ClassKind.LIST ? "List" : "Set";
       TypeInfo typeArg = ((ParameterizedTypeInfo)type).getArg(0);
-      if (typeArg.getKind() == ClassKind.DATA_OBJECT)
-        return "searchOptionalJsonArrayInJson(params, \"" + name + "\").map(a -> a.stream().map(o -> new " + typeArg.getName() + "((JsonObject)o)).collect(Collectors.to" + coll + "())).orElse(null)";
+      if (typeArg.isDataObjectHolder()) {
+        switch (typeArg.getDataObject().getDeserializer().getKind()) {
+          case SELF:
+            return "searchOptionalJsonArrayInJson(params, \"" + name + "\").map(a -> a.stream().map(o -> new " + typeArg.getName() + "((" + typeArg.getDataObject().getJsonType().getName() + ")o)).collect(Collectors.to" + coll + "())).orElse(null)";
+          case STATIC_METHOD:
+            return "searchOptionalJsonArrayInJson(params, \"" + name + "\").map(a -> a.stream().map(o -> " + typeArg.getDataObject().getDeserializer().getQualifiedName() + "((" + typeArg.getDataObject().getJsonType().getName() + ")o)).collect(Collectors.to" + coll + "())).orElse(null)";
+        }
+      }
       if (typeArg.getName().equals("java.lang.Byte") || typeArg.getName().equals("java.lang.Short") ||
         typeArg.getName().equals("java.lang.Integer") || typeArg.getName().equals("java.lang.Long"))
         return "searchOptionalJsonArrayInJson(params, \"" + name + "\").map(a -> a.stream().map(o -> ((Number)o)." + numericMapping.get(typeArg.getName()) + "Value()).collect(Collectors.to" + coll + "())).orElse(null)";
@@ -149,8 +163,6 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
         return "searchOptionalJsonObjectInJson(params, \"" + name + "\").map(m -> m.getMap().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> ((java.lang.Number)entry.getValue())." + numericMapping.get(typeArg.getName()) + "Value()))).orElse(null)";
       return "HelperUtils.convertMap(searchOptionalJsonObjectInJson(params, \"" + name + "\").map(JsonObject::getMap).orElse(null))";
     }
-    if (type.getKind() == ClassKind.DATA_OBJECT)
-      return "searchOptionalJsonObjectInJson(params, \"" + name + "\").map(j -> new " + type.getName() + "(j)).orElse(null)";
     return "(" + type.getName() + ")searchInJson(params, \"" + name + "\")";
   }
 
