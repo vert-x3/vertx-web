@@ -18,6 +18,7 @@ package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -64,6 +65,9 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Set<FileUpload> fileUploads;
   private Session session;
   private User user;
+  private JsonArray parsedBodyAsJsonArray;
+  private JsonObject parsedBodyAsJson;
+  private Map<String, String> parsedBodyAsString;
 
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
     super(mountPoint, request, routes);
@@ -259,33 +263,54 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return request.cookieMap();
   }
 
+  @CacheReturn
   @Override
   public String getBodyAsString() {
-    return body != null ? body.toString() : null;
+    return getBodyAsString(null);
   }
 
+  @CacheReturn
   @Override
   public String getBodyAsString(String encoding) {
-    return body != null ? body.toString(encoding) : null;
+    if (body != null) {
+      if (parsedBodyAsString == null) {
+        parsedBodyAsString = new HashMap<>();
+      }
+      String encodedString = parsedBodyAsString.get(encoding);
+      if (encodedString == null) {
+        encodedString = encoding == null ? body.toString() : body.toString(encoding);
+        parsedBodyAsString.put(encoding, encodedString);
+      }
+      return encodedString;
+    }
+    return null;
   }
 
+  @CacheReturn
   @Override
   public JsonObject getBodyAsJson() {
     if (body != null) {
       // the minimal json is {} so we need at least 2 chars
       if (body.length() > 1) {
-        return BodyCodecImpl.JSON_OBJECT_DECODER.apply(body);
+        if (parsedBodyAsJson == null) {
+          parsedBodyAsJson = BodyCodecImpl.JSON_OBJECT_DECODER.apply(body);
+        }
+        return parsedBodyAsJson;
       }
     }
     return null;
   }
 
+  @CacheReturn
   @Override
   public JsonArray getBodyAsJsonArray() {
     if (body != null) {
       // the minimal array is [] so we need at least 2 chars
       if (body.length() > 1) {
-        return BodyCodecImpl.JSON_ARRAY_DECODER.apply(body);
+        if (parsedBodyAsJsonArray == null) {
+          parsedBodyAsJsonArray = BodyCodecImpl.JSON_ARRAY_DECODER.apply(body);
+        }
+        return parsedBodyAsJsonArray;
       }
     }
     return null;
@@ -298,6 +323,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void setBody(Buffer body) {
+    // reset previously cached values
+    this.parsedBodyAsJson = null;
+    this.parsedBodyAsJsonArray = null;
+    this.parsedBodyAsString = null;
     this.body = body;
   }
 
