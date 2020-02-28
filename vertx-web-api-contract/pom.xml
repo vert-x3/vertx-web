@@ -47,11 +47,11 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <!-- Force to 20.0 as that's the stack version -->
+    <!-- Force stack version -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>20.0</version>
+      <version>25.1-jre</version>
     </dependency>
 
     <dependency>
