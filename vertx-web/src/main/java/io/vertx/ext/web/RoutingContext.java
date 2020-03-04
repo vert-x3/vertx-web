@@ -294,6 +294,14 @@ public interface RoutingContext {
   @Nullable Session session();
 
   /**
+   * Whether the {@link RoutingContext#session()} has been already called or not. This is usually used by the
+   * {@link io.vertx.ext.web.handler.SessionHandler}.
+   *
+   * @return true if the session has been accessed.
+   */
+  boolean isSessionAccessed();
+
+  /**
    * Get the authenticated user (if any). This will usually be injected by an auth handler if authentication if successful.
    * @return  the user, or null if the current user is not authenticated.
    */
