@@ -115,9 +115,9 @@ public class GraphQLRequest {
 
   void send(HttpClient client, int expectedStatus, Handler<AsyncResult<JsonObject>> handler) throws Exception {
     Promise<JsonObject> promise = Promise.promise();
-    promise.future().setHandler(handler);
+    promise.future().onComplete(handler);
     HttpClientRequest request = client.request(method, 8080, "localhost", getUri());
-    request.setHandler(ar -> {
+    request.onComplete(ar -> {
       if (ar.succeeded()) {
         HttpClientResponse response = ar.result();
         if (expectedStatus != response.statusCode()) {

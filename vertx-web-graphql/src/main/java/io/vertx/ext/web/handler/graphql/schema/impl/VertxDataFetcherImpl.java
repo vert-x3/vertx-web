@@ -44,7 +44,7 @@ public class VertxDataFetcherImpl<T> implements VertxDataFetcher<T> {
   public CompletionStage<T> get(DataFetchingEnvironment environment) {
     CompletableFuture<T> cf = new CompletableFuture<>();
     Promise<T> promise = Promise.promise();
-    promise.future().setHandler(ar -> {
+    promise.future().onComplete(ar -> {
       if (ar.succeeded()) {
         cf.complete(ar.result());
       } else {

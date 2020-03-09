@@ -53,7 +53,7 @@ public class VertxMappedBatchLoaderImpl<K, V> implements VertxMappedBatchLoader<
   public CompletionStage<Map<K, V>> load(Set<K> keys, BatchLoaderEnvironment environment) {
     CompletableFuture<Map<K, V>> cf = new CompletableFuture<>();
     Promise<Map<K, V>> promise = Promise.promise();
-    promise.future().setHandler(ar -> {
+    promise.future().onComplete(ar -> {
       if (ar.succeeded()) {
         cf.complete(ar.result());
       } else {

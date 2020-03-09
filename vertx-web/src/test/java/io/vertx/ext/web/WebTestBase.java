@@ -153,7 +153,7 @@ public class WebTestBase extends VertxTestBase {
                                    Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     HttpClientRequest req = client.request(method, port, "localhost", path);
-    req.setHandler(onSuccess(resp -> {
+    req.onComplete(onSuccess(resp -> {
       assertEquals(statusCode, resp.statusCode());
       assertEquals(statusMessage, resp.statusMessage());
       if (responseAction != null) {

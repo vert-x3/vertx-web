@@ -71,7 +71,7 @@ public class ApolloTestsServer extends AbstractVerticle {
       .requestHandler(router)
       .listen(8080)
       .<Void>mapEmpty()
-      .setHandler(ar -> {
+      .onComplete(ar -> {
         if (ar.succeeded()) {
           System.out.println("Apollo tests server started");
         }

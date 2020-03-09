@@ -265,7 +265,7 @@ public class WebClientBase implements WebClientInternal {
   @Override
   public <T> HttpContext<T> createContext(Handler<AsyncResult<HttpResponse<T>>> handler) {
     HttpClientImpl client = (HttpClientImpl) this.client;
-    return new HttpContext<>(client.context(), client, interceptors, handler);
+    return new HttpContext<>(client, interceptors, handler);
   }
 
   @Override
