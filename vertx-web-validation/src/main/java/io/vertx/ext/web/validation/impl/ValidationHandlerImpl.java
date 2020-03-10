@@ -157,7 +157,7 @@ public class ValidationHandlerImpl implements ValidationHandler {
         }
       }
 
-      waitingFut.setHandler(ar -> {
+      waitingFut.onComplete(ar -> {
         if (ar.failed()) routingContext.fail(400, ar.cause());
         else {
           if (routingContext.data().containsKey("parsedParameters")) {

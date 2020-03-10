@@ -78,7 +78,7 @@ public class ParameterProcessorUnitTest {
 
     when(mockedParser.parseParameter(any())).thenReturn(null);
 
-    processor.process(new HashMap<>()).setHandler(testContext.succeeding(value -> {
+    processor.process(new HashMap<>()).onComplete(testContext.succeeding(value -> {
       testContext.verify(() ->
         assertThat(value).isNull()
       );
@@ -100,7 +100,7 @@ public class ParameterProcessorUnitTest {
     when(mockedParser.parseParameter(any())).thenReturn(null);
     when(mockedValidator.getDefault()).thenReturn("bla");
 
-    processor.process(new HashMap<>()).setHandler(testContext.succeeding(value -> {
+    processor.process(new HashMap<>()).onComplete(testContext.succeeding(value -> {
       testContext.verify(() ->
         assertThat(value.getString()).isEqualTo("bla")
       );
@@ -141,7 +141,7 @@ public class ParameterProcessorUnitTest {
     when(mockedParser.parseParameter(any())).thenReturn("aaa");
     when(mockedValidator.validate(any())).thenReturn(Future.succeededFuture(RequestParameter.create("aaa")));
 
-    processor.process(new HashMap<>()).setHandler(testContext.succeeding(rp -> {
+    processor.process(new HashMap<>()).onComplete(testContext.succeeding(rp -> {
       testContext.verify(() -> {
         assertThat(rp.isString()).isTrue();
         assertThat(rp.getString()).isEqualTo("aaa");
@@ -163,7 +163,7 @@ public class ParameterProcessorUnitTest {
     when(mockedParser.parseParameter(any())).thenReturn("aaa");
     when(mockedValidator.validate(any())).thenReturn(Future.failedFuture(ValidationException.createException("aaa", "aaa", "aaa")));
 
-    processor.process(new HashMap<>()).setHandler(testContext.failing(throwable -> {
+    processor.process(new HashMap<>()).onComplete(testContext.failing(throwable -> {
       testContext.verify(() -> {
         assertThat(throwable)
           .isInstanceOf(ParameterProcessorException.class)
