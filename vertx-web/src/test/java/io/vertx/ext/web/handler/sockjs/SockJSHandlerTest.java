@@ -360,13 +360,14 @@ public class SockJSHandlerTest extends WebTestBase {
 
   @Test
   public void testCookiesRemoved() throws Exception {
+    waitFor(2);
     router.mountSubRouter("/cookiesremoved", SockJSHandler.create(vertx)
       .socketHandler(sock -> {
         MultiMap headers = sock.headers();
         String cookieHeader = headers.get("cookie");
         assertNotNull(cookieHeader);
         assertEquals("JSESSIONID=wibble", cookieHeader);
-        testComplete();
+        complete();
       }));
     MultiMap headers = HttpHeaders.headers();
     headers.add("cookie", "JSESSIONID=wibble");
@@ -376,8 +377,7 @@ public class SockJSHandlerTest extends WebTestBase {
       .setPort(8080)
       .setURI("/cookiesremoved/websocket")
       .setHeaders(headers), onSuccess(ws -> {
-      String frame = "foo";
-      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(frame, true));
+        complete();
     }));
 
     await();
