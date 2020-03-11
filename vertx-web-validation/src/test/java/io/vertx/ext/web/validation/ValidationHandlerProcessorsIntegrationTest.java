@@ -29,9 +29,9 @@ import java.util.stream.Collectors;
 import static io.vertx.ext.json.schema.draft7.dsl.Keywords.multipleOf;
 import static io.vertx.ext.json.schema.draft7.dsl.Schemas.*;
 import static io.vertx.ext.web.validation.builder.Parameters.*;
+import static io.vertx.ext.web.validation.testutils.TestRequest.*;
 import static io.vertx.ext.web.validation.testutils.ValidationTestUtils.badBodyResponse;
 import static io.vertx.ext.web.validation.testutils.ValidationTestUtils.badParameterResponse;
-import static io.vertx.junit5.web.TestRequest.*;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -523,7 +523,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     QueryStringEncoder successParams = new QueryStringEncoder("/");
     successParams.addParam("param1", "true");
     successParams.addParam("param2", "10");
-    
+
     testRequest(client, HttpMethod.GET, "/testCookieParams")
       .with(cookie(successParams))
       .expect(statusCode(200), statusMessage("true10"))

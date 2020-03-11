@@ -12,6 +12,8 @@
   <artifactId>vertx-web-api-service</artifactId>
 
   <properties>
+    <junit5.version>5.6.0</junit5.version>
+    <assertj.version>3.15.0</assertj.version>
     <doc.skip>false</doc.skip>
   </properties>
 
@@ -49,12 +51,6 @@
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-junit5-web-client</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
       <artifactId>vertx-web-client</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
@@ -62,12 +58,13 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>5.5.2</version>
+      <version>${junit5.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <version>3.11.1</version>
+      <version>${assertj.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

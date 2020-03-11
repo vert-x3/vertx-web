@@ -58,7 +58,7 @@ class JsonBodyProcessorImplTest {
 
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER).create(parser);
 
-    processor.process(mockedContext).setHandler(testContext.succeeding(rp -> {
+    processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
       testContext.verify(() -> {
         assertThat(rp.isJsonObject()).isTrue();
         assertThat(rp.getJsonObject())
@@ -78,7 +78,7 @@ class JsonBodyProcessorImplTest {
 
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER).create(parser);
 
-    processor.process(mockedContext).setHandler(testContext.failing(err -> {
+    processor.process(mockedContext).onComplete(testContext.failing(err -> {
       testContext.verify(() -> {
         assertThat(err)
           .isInstanceOf(BodyProcessorException.class)
@@ -95,7 +95,7 @@ class JsonBodyProcessorImplTest {
 
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_ARRAY_SCHEMA_BUILDER).create(parser);
 
-    processor.process(mockedContext).setHandler(testContext.succeeding(rp -> {
+    processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
       testContext.verify(() -> {
         assertThat(rp.isJsonArray()).isTrue();
         assertThat(rp.getJsonArray())
@@ -115,7 +115,7 @@ class JsonBodyProcessorImplTest {
 
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_ARRAY_SCHEMA_BUILDER).create(parser);
 
-    processor.process(mockedContext).setHandler(testContext.failing(err -> {
+    processor.process(mockedContext).onComplete(testContext.failing(err -> {
       testContext.verify(() -> {
         assertThat(err)
           .isInstanceOf(BodyProcessorException.class)
@@ -146,7 +146,7 @@ class JsonBodyProcessorImplTest {
 
     BodyProcessor processor = Bodies.json(schema().withKeyword("type", "null")).create(parser);
 
-    processor.process(mockedContext).setHandler(testContext.succeeding(rp -> {
+    processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
       testContext.verify(() -> {
         assertThat(rp.isNull()).isTrue();
       });

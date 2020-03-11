@@ -28,7 +28,7 @@ import java.net.URI;
 import static io.vertx.ext.json.schema.draft7.dsl.Schemas.*;
 import static io.vertx.ext.web.validation.builder.Bodies.json;
 import static io.vertx.ext.web.validation.builder.Parameters.param;
-import static io.vertx.junit5.web.TestRequest.*;
+import static io.vertx.ext.web.validation.testutils.TestRequest.*;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
