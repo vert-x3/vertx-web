@@ -51,6 +51,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
   private Route callback;
   private JsonObject extraParams;
   private List<String> scopes = new ArrayList<>();
+  private String prompt;
 
   // explicit signal that tokens are handled as bearer only (meaning, no backend server known)
   private boolean bearerOnly = true;
@@ -149,8 +150,9 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
       config.mergeIn(extraParams);
     }
 
-    if (scopes.size() > 0) {
-      config.put("scopes", scopes);
+    config.put("scopes", scopes);
+    if (prompt != null) {
+      config.put("prompt", prompt);
     }
 
     return ((OAuth2Auth) authProvider).authorizeURL(config);
@@ -165,6 +167,12 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
   @Override
   public OAuth2AuthHandler withScope(String scope) {
     this.scopes.add(scope);
+    return this;
+  }
+
+  @Override
+  public OAuth2AuthHandler prompt(String prompt) {
+    this.prompt = prompt;
     return this;
   }
 

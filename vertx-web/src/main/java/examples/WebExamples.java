@@ -14,6 +14,7 @@ import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
 import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
+import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.webauthn.*;
 import io.vertx.ext.jwt.JWTOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
@@ -1243,7 +1244,7 @@ public class WebExamples {
   public void example59(Vertx vertx, Router router) {
 
     // create an OAuth2 provider, clientID and clientSecret should be requested to Google
-    OAuth2Auth authProvider = OAuth2Auth.create(vertx, new OAuth2ClientOptions()
+    OAuth2Auth authProvider = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientID("CLIENT_ID")
       .setClientSecret("CLIENT_SECRET")
       .setFlow(OAuth2FlowType.AUTH_CODE)
@@ -1255,7 +1256,7 @@ public class WebExamples {
     OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(vertx, authProvider, "http://localhost:8080");
 
     // these are the scopes
-    oauth2.extraParams(new JsonObject().put("scope", "profile"));
+    oauth2.withScope("profile");
 
     // setup the callback handler for receiving the Google callback
     oauth2.setupCallback(router.get("/callback"));
@@ -1298,7 +1299,7 @@ public class WebExamples {
         .setupCallback(router.route("/callback"))
         // for this resource we require that users have
         // the authority to retrieve the user emails
-        .extraParams(new JsonObject().put("scope", "user:email"))
+        .withScope("user:email")
     );
     // Entry point to the application, this will render
     // a custom template.
@@ -1519,7 +1520,7 @@ public class WebExamples {
     githubOAuth2.setupCallback(router.route());
 
     // create an OAuth2 provider, clientID and clientSecret should be requested to Google
-    OAuth2Auth googleAuthProvider = OAuth2Auth.create(vertx, new OAuth2ClientOptions()
+    OAuth2Auth googleAuthProvider = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientID("CLIENT_ID")
       .setClientSecret("CLIENT_SECRET")
       .setFlow(OAuth2FlowType.AUTH_CODE)
