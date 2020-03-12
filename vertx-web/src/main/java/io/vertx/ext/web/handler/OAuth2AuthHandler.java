@@ -67,6 +67,15 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
   OAuth2AuthHandler extraParams(JsonObject extraParams);
 
   /**
+   * scopes to be requested while requesting a token.
+   *
+   * @param scope scope.
+   * @return self
+   */
+  @Fluent
+  OAuth2AuthHandler withScope(String scope);
+
+  /**
    * add the callback handler to a given route.
    * @param route a given route e.g.: `/callback`
    * @return self
