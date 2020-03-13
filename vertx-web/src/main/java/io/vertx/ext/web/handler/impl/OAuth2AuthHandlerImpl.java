@@ -42,7 +42,7 @@ import java.util.List;
  */
 public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements OAuth2AuthHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
 
   private final VertxContextPRNG prng;
   private final String host;
@@ -101,8 +101,8 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
           context.request().method() == HttpMethod.GET &&
             context.normalizedPath().equals(callback.getPath())) {
 
-          if (log.isWarnEnabled()) {
-            log.warn("The callback route is shaded by the OAuth2AuthHandler, ensure the callback route is added BEFORE the OAuth2AuthHandler route!");
+          if (LOG.isWarnEnabled()) {
+            LOG.warn("The callback route is shaded by the OAuth2AuthHandler, ensure the callback route is added BEFORE the OAuth2AuthHandler route!");
           }
           handler.handle(Future.failedFuture(new HttpStatusException(500, "Infinite redirect loop [oauth2 callback]")));
         } else {
@@ -146,13 +146,14 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
       config.put("redirect_uri", host + callback.getPath());
     }
 
-    if (extraParams != null) {
-      config.mergeIn(extraParams);
-    }
-
     config.put("scopes", scopes);
+
     if (prompt != null) {
       config.put("prompt", prompt);
+    }
+
+    if (extraParams != null) {
+      config.mergeIn(extraParams);
     }
 
     return ((OAuth2Auth) authProvider).authorizeURL(config);
@@ -181,6 +182,9 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
     if (callbackPath != null && !"".equals(callbackPath)) {
       // no matter what path was provided we will make sure it is the correct one
+      if (LOG.isWarnEnabled()) {
+        LOG.warn("route path changed to match callback URL");
+      }
       route.path(callbackPath);
     }
 
@@ -220,7 +224,13 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
       final JsonObject config = new JsonObject()
         .put("code", code);
 
-      if (host != null) {
+      if (host == null) {
+        // warn that the setup is wrong, if this route is called
+        // we most likely needed a host to redirect to
+        if (LOG.isWarnEnabled()) {
+          LOG.warn("Cannot compute: 'redirect_uri' variable. OAuth2AuthHandler was created without a origin/callback URL.");
+        }
+      } else {
         config.put("redirect_uri", host + route.getPath());
       }
 
