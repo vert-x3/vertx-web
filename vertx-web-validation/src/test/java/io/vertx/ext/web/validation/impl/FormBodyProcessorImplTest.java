@@ -64,7 +64,7 @@ class FormBodyProcessorImplTest {
 
     assertThat(processor.canProcess("application/x-www-form-urlencoded")).isTrue();
 
-    processor.process(mockedContext).setHandler(testContext.succeeding(rp -> {
+    processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
       testContext.verify(() -> {
         assertThat(rp.isJsonObject())
           .isTrue();
@@ -104,7 +104,7 @@ class FormBodyProcessorImplTest {
 
     assertThat(processor.canProcess("application/x-www-form-urlencoded")).isTrue();
 
-    processor.process(mockedContext).setHandler(testContext.failing(err -> {
+    processor.process(mockedContext).onComplete(testContext.failing(err -> {
       testContext.verify(() -> {
         assertThat(err)
           .isInstanceOf(BodyProcessorException.class)

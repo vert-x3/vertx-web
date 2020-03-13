@@ -42,7 +42,7 @@ public class TextPlainBodyProcessorTest {
 
     BodyProcessor processor = Bodies.textPlain(TestSchemas.SAMPLE_STRING_SCHEMA_BUILDER).create(parser);
 
-    processor.process(mockedContext).setHandler(testContext.succeeding(rp -> {
+    processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
       testContext.verify(() -> {
         assertThat(rp.isString()).isTrue();
         assertThat(rp.getString())

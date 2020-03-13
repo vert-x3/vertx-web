@@ -97,7 +97,7 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
     writer.unindent();
     if (returnFuture) {
       writer.print(")");
-      writer.println(".setHandler(" + generateFutureHandler((ParameterizedTypeInfo) returnType) + ");");
+      writer.println(".onComplete(" + generateFutureHandler((ParameterizedTypeInfo) returnType) + ");");
     } else {
       writer.write(");\n");
     }

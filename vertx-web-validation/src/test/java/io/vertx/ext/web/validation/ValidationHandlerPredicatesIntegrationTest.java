@@ -14,9 +14,9 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
 
+import static io.vertx.ext.web.validation.testutils.TestRequest.statusCode;
+import static io.vertx.ext.web.validation.testutils.TestRequest.testRequest;
 import static io.vertx.ext.web.validation.testutils.ValidationTestUtils.failurePredicateResponse;
-import static io.vertx.junit5.web.TestRequest.statusCode;
-import static io.vertx.junit5.web.TestRequest.testRequest;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper

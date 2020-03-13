@@ -46,7 +46,7 @@ public class ParameterProcessorIntegrationTest {
     Map<String, List<String>> map = new HashMap<>();
     map.put("myParam", Collections.singletonList(TestSchemas.VALID_OBJECT.encode()));
 
-    processor.process(map).setHandler(testContext.succeeding(rp -> {
+    processor.process(map).onComplete(testContext.succeeding(rp -> {
       testContext.verify(() -> {
         assertThat(rp.isJsonObject()).isTrue();
         assertThat(rp.getJsonObject())
@@ -67,7 +67,7 @@ public class ParameterProcessorIntegrationTest {
     Map<String, List<String>> map = new HashMap<>();
     map.put("myParam", Collections.singletonList(TestSchemas.INVALID_OBJECT.encode()));
 
-    processor.process(map).setHandler(testContext.failing(throwable -> {
+    processor.process(map).onComplete(testContext.failing(throwable -> {
       testContext.verify(() -> {
         assertThat(throwable)
           .isInstanceOf(ParameterProcessorException.class)
