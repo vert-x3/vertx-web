@@ -22,6 +22,7 @@ import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.tls.Cert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -1159,6 +1160,7 @@ public class WebClientTest extends WebClientTestBase {
   }
 
   @Test
+  @Ignore("This test is flaky on Travis and should be reviewed before 4.0.0")
   public void testFileUploadFormMultipart32M() throws Exception {
     testFileUploadFormMultipart(32 * 1024 * 1024);
   }
