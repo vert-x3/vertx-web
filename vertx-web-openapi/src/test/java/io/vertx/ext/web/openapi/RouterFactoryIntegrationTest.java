@@ -7,7 +7,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
@@ -652,6 +651,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
       testContext.verify(() -> {
         assertThat(routerFactory.createRouter().getRoutes().get(0))
+          .extracting("state")
           .extracting("contextHandlers")
           .asList()
           .hasOnlyOneElementSatisfying(b -> assertThat(b).isSameAs(bodyHandler));
