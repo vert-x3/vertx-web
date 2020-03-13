@@ -203,7 +203,7 @@ public interface RouterFactory {
                      OpenAPILoaderOptions options,
                      Handler<AsyncResult<RouterFactory>> handler) {
     OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx.createHttpClient(), vertx.fileSystem(), options);
-    loader.loadOpenAPI(url).setHandler(ar -> {
+    loader.loadOpenAPI(url).onComplete(ar -> {
       if (ar.failed()) {
         if (ar.cause() instanceof ValidationException) {
           handler.handle(Future.failedFuture(RouterFactoryException.createInvalidSpecException(ar.cause())));

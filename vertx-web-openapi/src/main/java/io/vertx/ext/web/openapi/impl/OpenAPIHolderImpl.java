@@ -4,10 +4,9 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.netty.handler.codec.http.QueryStringEncoder;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.*;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -15,13 +14,13 @@ import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.json.schema.Schema;
 import io.vertx.ext.json.schema.SchemaParser;
 import io.vertx.ext.json.schema.SchemaRouter;
-import io.vertx.ext.json.schema.common.ObservableFuture;
 import io.vertx.ext.json.schema.common.SchemaURNId;
 import io.vertx.ext.json.schema.common.URIUtils;
 import io.vertx.ext.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.ext.web.openapi.OpenAPIHolder;
 import io.vertx.ext.web.openapi.OpenAPILoaderOptions;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -40,7 +39,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   private final OpenAPILoaderOptions options;
   private URI initialScope;
   private String initialScopeDirectory;
-  private final Map<URI, ObservableFuture<JsonObject>> externalSolvingRefs;
+  private final Map<URI, Future<JsonObject>> externalSolvingRefs;
   private final YAMLMapper yamlMapper;
   private JsonObject openapiRoot;
 
@@ -248,80 +247,81 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     }
   }
 
-  private ObservableFuture<JsonObject> resolveExternalRef(final URI ref) {
+  private Future<JsonObject> resolveExternalRef(final URI ref) {
     return externalSolvingRefs.computeIfAbsent(ref,
         uri ->
-          ObservableFuture.wrap(
               ((URIUtils.isRemoteURI(uri)) ? solveRemoteRef(uri) : solveLocalRef(uri))
                   .compose(j -> {
                     absolutePaths.put(uri, j); // Circular refs hell!
                     return walkAndSolve(j, uri).map(j);
                   })
-          )
+
     );
   }
 
   private Future<JsonObject> solveRemoteRef(final URI ref) {
-    Future<JsonObject> fut = Future.future();
     String uri = ref.toString();
     if (!options.getAuthQueryParams().isEmpty()) {
       QueryStringEncoder encoder = new QueryStringEncoder(uri);
       options.getAuthQueryParams().forEach(encoder::addParam);
       uri = encoder.toString();
     }
-    HttpClientRequest req = client.getAbs(uri, res -> {
-      if (res.failed()) fut.fail(res.cause());
-      else {
-        res.result().exceptionHandler(fut::fail);
-        if (res.result().statusCode() == 200) {
-          res.result().bodyHandler(buf -> {
-            try {
-              fut.complete(buf.toJsonObject());
-            } catch (DecodeException e) {
-              // Maybe it's yaml
-              try {
-                fut.complete(new JsonObject(
-                  yamlMapper.readTree(buf.toString()).toString()
-                ));
-              } catch (Exception e1) {
-                fut.fail(e1);
-              }
-            }
-          });
-        } else {
-          fut.fail(new IllegalStateException(
-            "Wrong status code " + res.result().statusCode() + " " + res.result().statusMessage() + " received while resolving remote ref"
-          ));
-        }
+
+    RequestOptions reqOptions = new RequestOptions()
+      .setMethod(HttpMethod.GET)
+      .setAbsoluteURI(uri)
+      .setFollowRedirects(true)
+      .addHeader(HttpHeaders.ACCEPT.toString(), "application/json, application/yaml, application/x-yaml");
+    options.getAuthHeaders().forEach(reqOptions::addHeader);
+
+    return client.get(reqOptions).compose(res -> {
+      if (res.statusCode() != 200) {
+        return Future.failedFuture(new IllegalStateException("Wrong status " + res.statusCode() + " " + res.statusMessage() + " received while resolving remote ref"));
       }
-    }).putHeader(HttpHeaders.ACCEPT.toString(), "application/json, application/yaml, application/x-yaml");
-    options.getAuthHeaders().forEach(req::putHeader);
-    req.end();
-    return fut;
+
+      String contentType = res.getHeader("Content-Type");
+      if ("application/json".equals(contentType)) {
+        return res.body().compose(buf -> {
+          try {
+            return Future.succeededFuture(buf.toJsonObject());
+          } catch (DecodeException e) {
+            return Future.failedFuture(new RuntimeException("Cannot decode the received Json Response: ", e));
+          }
+        });
+      } else {
+        return res.body().compose(buf -> {
+          try {
+            return Future.succeededFuture(yamlToJson(buf));
+          } catch (DecodeException e) {
+            return Future.failedFuture(new RuntimeException("Cannot decode the received Json Response: ", e));
+          }
+        });
+      }
+    });
   }
 
   private Future<JsonObject> solveLocalRef(final URI ref) {
-    Future<JsonObject> fut = Future.future();
     String filePath = sanitizeLocalRef(ref);
-    fs.readFile(filePath, res -> {
-      if (res.succeeded()) {
+    return fs.readFile(filePath).compose(buf -> {
+      try {
+        return Future.succeededFuture(buf.toJsonObject());
+      } catch (DecodeException e) {
+        // Maybe it's yaml
         try {
-          fut.complete(res.result().toJsonObject());
-        } catch (DecodeException e) {
-          // Maybe it's yaml
-          try {
-            fut.complete(new JsonObject(
-                yamlMapper.readTree(res.result().toString()).toString()
-            ));
-          } catch (Exception e1) {
-            fut.fail(e1);
-          }
+          return Future.succeededFuture(this.yamlToJson(buf));
+        } catch (Exception e1) {
+          return Future.failedFuture(new RuntimeException("File " + filePath + " is not a valid YAML or JSON", e1));
         }
-      } else {
-        fut.fail(res.cause());
       }
     });
-    return fut;
+  }
+
+  private JsonObject yamlToJson(Buffer buf) {
+    try {
+      return JsonObject.mapFrom(yamlMapper.readTree(buf.getBytes()));
+    } catch (IOException e) {
+      throw new RuntimeException("Cannot decode YAML", e);
+    }
   }
 
   private URI resolveRefResolutionURIWithoutFragment(URI ref, URI scope) {

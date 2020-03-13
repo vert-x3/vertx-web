@@ -1,6 +1,7 @@
 package io.vertx.ext.web.openapi;
 
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.json.schema.SchemaParser;
@@ -43,7 +44,6 @@ public abstract class BaseRouterFactoryTest {
   }
 
   protected Future<Void> startServer(Vertx vertx, RouterFactory factory) {
-    Future<Void> fut = Future.future();
     try {
       router = factory.createRouter();
     } catch (Throwable e) {
@@ -57,28 +57,23 @@ public abstract class BaseRouterFactoryTest {
     });
     server = vertx
       .createHttpServer()
-      .requestHandler(router)
-      .listen(9000, h -> {
-        if (h.failed()) fut.fail(h.cause());
-        else {
-          fut.complete();
-        }
-      });
-    return fut;
+      .requestHandler(router);
+    return server.listen(9000).mapEmpty();
   }
 
   protected Future<Void> loadFactoryAndStartServer(Vertx vertx, String specUri, VertxTestContext testContext, Consumer<RouterFactory> configurator) {
-    Future<Void> f = Future.future();
+    Promise<Void> f = Promise.promise();
     RouterFactory.create(vertx, specUri, testContext.succeeding(rf -> {
       try {
         configurator.accept(rf);
-        startServer(vertx, rf).setHandler(testContext.succeeding(v -> f.complete()));
+        startServer(vertx, rf).
+          onComplete(testContext.succeeding(v -> f.complete()));
       } catch (Exception e) {
         testContext.failNow(e);
         f.fail(e);
       }
     }));
-    return f;
+    return f.future();
   }
 
 }

@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.vertx.junit5.web.TestRequest.*;
+import static io.vertx.ext.web.validation.testutils.TestRequest.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -59,7 +59,7 @@ public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTes
       routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
 
       routerFactory.operation("testA").routeToEventBus("someAddress");
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.POST, "/testA")
         .expect(statusCode(200))
         .expect(jsonBodyResponse(new JsonObject().put("result", "Ciao Francesco!")))
@@ -78,7 +78,7 @@ public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTes
     loadFactoryAndStartServer(vertx, "src/test/resources/specs/service_proxy_test.yaml", testContext, routerFactory -> {
       routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
       routerFactory.mountServiceInterface(service.getClass(), "someAddress");
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       testRequest(client, HttpMethod.POST, "/testA")
         .expect(statusCode(200))
         .expect(jsonBodyResponse(new JsonObject().put("result", "Ciao Francesco!")))
@@ -105,7 +105,7 @@ public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTes
     loadFactoryAndStartServer(vertx, "src/test/resources/specs/extension_test.yaml", testContext, routerFactory -> {
       routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
       routerFactory.mountServicesFromExtensions();
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       testRequest(client, HttpMethod.POST, "/testA")
         .expect(jsonBodyResponse(new JsonObject().put("result", "Ciao Francesco!")), statusCode(200))
         .sendJson(new JsonObject().put("hello", "Ciao").put("name", "Francesco"), testContext, checkpoint);
@@ -135,7 +135,7 @@ public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTes
     loadFactoryAndStartServer(vertx, "src/test/resources/specs/extension_test.yaml", testContext, routerFactory -> {
       routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
       routerFactory.mountServicesFromExtensions();
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       testRequest(client, HttpMethod.GET, "/testPathLevel")
         .expect(statusCode(200), statusMessage("pathLevelGet"))
         .send(testContext, checkpoint);
@@ -156,7 +156,7 @@ public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTes
     loadFactoryAndStartServer(vertx, "src/test/resources/specs/extension_test.yaml", testContext, routerFactory -> {
       routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
       routerFactory.mountServicesFromExtensions();
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       testRequest(client, HttpMethod.GET, "/testMerge")
         .expect(statusCode(200), statusMessage("getPathLevel"))
         .send(testContext, checkpoint);
@@ -177,7 +177,7 @@ public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTes
     loadFactoryAndStartServer(vertx, "src/test/resources/specs/extension_test.yaml", testContext, routerFactory -> {
       routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
       routerFactory.mountServicesFromExtensions();
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       testRequest(client, HttpMethod.GET, "/testMerge2")
         .expect(statusCode(200), statusMessage("getPathLevel"))
         .send(testContext, checkpoint);

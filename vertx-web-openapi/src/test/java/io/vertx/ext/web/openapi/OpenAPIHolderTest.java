@@ -10,6 +10,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.auth.AbstractUser;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authorization.Authorization;
 import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
@@ -54,6 +56,16 @@ public class OpenAPIHolderTest {
         }
 
         @Override
+        public JsonObject attributes() {
+          return null;
+        }
+
+        @Override
+        public User isAuthorized(Authorization authorization, Handler<AsyncResult<Boolean>> handler) {
+          return null;
+        }
+
+        @Override
         public JsonObject principal() {
           return jsonObject;
         }
@@ -74,7 +86,7 @@ public class OpenAPIHolderTest {
   public void loadFromFileNoRef(Vertx vertx, VertxTestContext testContext) {
     OpenAPIHolderImpl parser = new OpenAPIHolderImpl(vertx.createHttpClient(), vertx.fileSystem(), new OpenAPILoaderOptions());
 
-    parser.loadOpenAPI("yaml/valid/simple_spec.yaml").setHandler(testContext.succeeding(container -> {
+    parser.loadOpenAPI("yaml/valid/simple_spec.yaml").onComplete(testContext.succeeding(container -> {
       testContext.verify(() -> {
         assertThat(container)
             .extracting(JsonPointer.from("/info/title"))
@@ -113,7 +125,7 @@ public class OpenAPIHolderTest {
   public void loadInvalidFromFileNoRef(Vertx vertx, VertxTestContext testContext) {
     OpenAPIHolderImpl parser = new OpenAPIHolderImpl(vertx.createHttpClient(), vertx.fileSystem(), new OpenAPILoaderOptions());
 
-    parser.loadOpenAPI("yaml/invalid/simple_spec.yaml").setHandler(testContext.failing(err -> {
+    parser.loadOpenAPI("yaml/invalid/simple_spec.yaml").onComplete(testContext.failing(err -> {
       testContext.verify(() -> {
         assertThat(err).isInstanceOf(ValidationException.class);
       });
@@ -125,7 +137,7 @@ public class OpenAPIHolderTest {
   public void loadFromFile(Vertx vertx, VertxTestContext testContext) {
     OpenAPIHolderImpl parser = new OpenAPIHolderImpl(vertx.createHttpClient(), vertx.fileSystem(), new OpenAPILoaderOptions());
 
-    parser.loadOpenAPI("yaml/valid/inner_refs.yaml").setHandler(testContext.succeeding(openapi -> {
+    parser.loadOpenAPI("yaml/valid/inner_refs.yaml").onComplete(testContext.succeeding(openapi -> {
       testContext.verify(() -> {
         assertThat(openapi)
             .extracting(JsonPointer.create()
@@ -183,7 +195,7 @@ public class OpenAPIHolderTest {
   public void loadInvalidFromFile(Vertx vertx, VertxTestContext testContext) {
     OpenAPIHolderImpl parser = new OpenAPIHolderImpl(vertx.createHttpClient(), vertx.fileSystem(), new OpenAPILoaderOptions());
 
-    parser.loadOpenAPI("yaml/invalid/inner_refs.yaml").setHandler(testContext.failing(err -> {
+    parser.loadOpenAPI("yaml/invalid/inner_refs.yaml").onComplete(testContext.failing(err -> {
       testContext.verify(() -> {
         assertThat(err)
             .isInstanceOf(ValidationException.class);
@@ -196,7 +208,7 @@ public class OpenAPIHolderTest {
   public void loadFromFileLocalRelativeRef(Vertx vertx, VertxTestContext testContext) {
     OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx.createHttpClient(), vertx.fileSystem(), new OpenAPILoaderOptions());
 
-    loader.loadOpenAPI("yaml/valid/local_refs.yaml").setHandler(testContext.succeeding(openapi -> {
+    loader.loadOpenAPI("yaml/valid/local_refs.yaml").onComplete(testContext.succeeding(openapi -> {
       testContext.verify(() -> {
         assertThat(openapi)
             .extracting(JsonPointer.create()
@@ -249,7 +261,7 @@ public class OpenAPIHolderTest {
   public void loadInvalidFromFileLocalRelativeRef(Vertx vertx, VertxTestContext testContext) {
     OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx.createHttpClient(), vertx.fileSystem(), new OpenAPILoaderOptions());
 
-    loader.loadOpenAPI("yaml/invalid/local_refs.yaml").setHandler(testContext.failing(err -> {
+    loader.loadOpenAPI("yaml/invalid/local_refs.yaml").onComplete(testContext.failing(err -> {
       testContext.verify(() -> {
         assertThat(err)
             .isInstanceOf(ValidationException.class);
@@ -262,7 +274,7 @@ public class OpenAPIHolderTest {
   public void debtsManagerTest(Vertx vertx, VertxTestContext testContext) {
     OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx.createHttpClient(), vertx.fileSystem(), new OpenAPILoaderOptions());
 
-    loader.loadOpenAPI("json/valid/debts_manager_api.json").setHandler(testContext.succeeding(openapi -> {
+    loader.loadOpenAPI("json/valid/debts_manager_api.json").onComplete(testContext.succeeding(openapi -> {
       testContext.verify(() -> {
         assertThat(loader)
             .extractingWithRefSolveFrom(openapi, JsonPointer.create()
@@ -292,7 +304,7 @@ public class OpenAPIHolderTest {
   public void debtsManagerFailureTest(Vertx vertx, VertxTestContext testContext) {
     OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx.createHttpClient(), vertx.fileSystem(), new OpenAPILoaderOptions());
 
-    loader.loadOpenAPI("json/invalid/debts_manager_api.json").setHandler(testContext.failing(err -> {
+    loader.loadOpenAPI("json/invalid/debts_manager_api.json").onComplete(testContext.failing(err -> {
       testContext.verify(() -> {
         assertThat(err)
             .isInstanceOf(ValidationException.class);
@@ -305,7 +317,7 @@ public class OpenAPIHolderTest {
   public void loadFromFileLocalCircularRef(Vertx vertx, VertxTestContext testContext) {
     OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx.createHttpClient(), vertx.fileSystem(), new OpenAPILoaderOptions());
 
-    loader.loadOpenAPI("yaml/valid/local_circular_refs.yaml").setHandler(testContext.succeeding(openapi -> {
+    loader.loadOpenAPI("yaml/valid/local_circular_refs.yaml").onComplete(testContext.succeeding(openapi -> {
       testContext.verify(() -> {
         assertThat(loader)
             .hasCached(URI.create("yaml/valid/refs/Circular.yaml"));
@@ -344,7 +356,7 @@ public class OpenAPIHolderTest {
     testContext.assertFailure(
         startSchemaServer(vertx, "src/test/resources/yaml/invalid", Collections.emptyList(), 9000)
             .compose(v -> loader.loadOpenAPI("http://localhost:9000/local_refs.yaml"))
-    ).setHandler(ar -> {
+    ).onComplete(ar -> {
       testContext.verify(() -> {
         assertThat(ar.cause())
             .isInstanceOf(ValidationException.class);
@@ -390,7 +402,7 @@ public class OpenAPIHolderTest {
     testContext.assertComplete(
         startSchemaServer(vertx, "src/test/resources/yaml/valid", authHandlers, 9000)
             .compose(v -> loader.loadOpenAPI("http://localhost:9000/local_circular_refs.yaml"))
-    ).setHandler(ar -> {
+    ).onComplete(ar -> {
       testContext.verify(() -> {
         assertThat(loader)
             .hasCached(URI.create("http://localhost:9000/local_circular_refs.yaml"));
@@ -428,7 +440,7 @@ public class OpenAPIHolderTest {
     testContext.assertComplete(
       startSchemaServer(vertx, "./src/test/resources/specs/schemas", Collections.emptyList(), 8081)
         .compose(v -> loader.loadOpenAPI("specs/schemas_test_spec.yaml"))
-    ).setHandler(l -> {
+    ).onComplete(l -> {
       testContext.verify(() -> {
         JsonPointer schemaPointer = JsonPointer.create().append(Arrays.asList(
           "paths", "/test10", "post", "requestBody", "content", "application/json", "schema"
@@ -464,7 +476,7 @@ public class OpenAPIHolderTest {
     testContext.assertComplete(
       startSchemaServer(vertx, "./src/test/resources/specs/schemas", Collections.emptyList(), 8081)
         .compose(v -> loader.loadOpenAPI("specs/schemas_test_spec.yaml"))
-    ).setHandler(l -> {
+    ).onComplete(l -> {
       testContext.verify(() -> {
         JsonPointer schemaPointer = JsonPointer.fromURI(URI.create("specs/schemas_test_spec.yaml#")).append(Arrays.asList(
           "paths", "/test8", "post", "requestBody", "content", "application/json", "schema"
@@ -500,11 +512,9 @@ public class OpenAPIHolderTest {
     authHandlers.forEach(route::handler);
     route.handler(StaticHandler.create(path).setCachingEnabled(true));
 
-    Future<Void> fut = Future.future();
     schemaServer = vertx.createHttpServer(new HttpServerOptions().setPort(port))
-        .requestHandler(r)
-        .listen(l -> fut.complete());
-    return fut;
+        .requestHandler(r);
+    return schemaServer.listen().mapEmpty();
   }
 
   private void stopSchemaServer(Handler<AsyncResult<Void>> completion) {

@@ -22,7 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.nio.file.Paths;
 
-import static io.vertx.junit5.web.TestRequest.*;
+import static io.vertx.ext.web.validation.testutils.TestRequest.*;
 
 /**
  * This tests check the building of JSON schemas from OAS schemas and validation of JSON
@@ -61,17 +61,18 @@ public class RouterFactoryBodyValidationIntegrationTest extends BaseRouterFactor
           .getSchemaParser()
           .withStringFormatValidator("phone", s -> s.matches("^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\\s\\./0-9]*$"));
       })
-    ).setHandler(testContext.succeeding(t -> testContext.completeNow()));
+    ).onComplete(testContext.succeeding(t -> testContext.completeNow()));
   }
 
   private Future<Void> startFileServer(Vertx vertx, VertxTestContext testContext) {
-    Future<Void> f = Future.future();
     Router router = Router.router(vertx);
     router.route().handler(StaticHandler.create("./src/test/resources/specs/schemas"));
-    vertx.createHttpServer(new HttpServerOptions().setPort(8081))
-      .requestHandler(router)
-      .listen(testContext.succeeding(h -> f.complete()));
-    return f;
+    return testContext.assertComplete(
+      vertx.createHttpServer()
+        .requestHandler(router)
+        .listen(8081)
+        .mapEmpty()
+    );
   }
 
   private void assertRequestOk(String uri, String jsonName, Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) {

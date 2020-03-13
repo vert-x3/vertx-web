@@ -6,6 +6,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
@@ -33,7 +35,7 @@ import java.util.stream.Stream;
 
 import static io.vertx.ext.web.validation.testutils.ValidationTestUtils.*;
 import static io.vertx.ext.web.validation.testutils.ValidationTestUtils.badParameterResponse;
-import static io.vertx.junit5.web.TestRequest.*;
+import static io.vertx.ext.web.validation.testutils.TestRequest.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
@@ -50,17 +52,17 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   public static final String VALIDATION_SPEC = "src/test/resources/specs/validation_test.yaml";
 
   private Future<Void> startFileServer(Vertx vertx, VertxTestContext testContext) {
-    Future<Void> f = Future.future();
     Router router = Router.router(vertx);
     router.route().handler(StaticHandler.create("src/test/resources"));
-    vertx.createHttpServer(new HttpServerOptions().setPort(9001))
-      .requestHandler(router)
-      .listen(testContext.succeeding(h -> f.complete()));
-    return f;
+    return testContext.assertComplete(
+      vertx.createHttpServer()
+        .requestHandler(router)
+        .listen(9001)
+        .mapEmpty()
+    );
   }
 
   private Future<Void> startSecuredFileServer(Vertx vertx, VertxTestContext testContext) {
-    Future<Void> f = Future.future();
     Router router = Router.router(vertx);
     router.route()
       .handler((RoutingContext ctx) -> {
@@ -68,10 +70,12 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
         else ctx.next();
       })
       .handler(StaticHandler.create("src/test/resources"));
-    vertx.createHttpServer(new HttpServerOptions().setPort(9001))
-      .requestHandler(router)
-      .listen(testContext.succeeding(h -> f.complete()));
-    return f;
+    return testContext.assertComplete(
+      vertx.createHttpServer()
+        .requestHandler(router)
+        .listen(9001)
+        .mapEmpty()
+    );
   }
 
   @Test
@@ -112,7 +116,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void loadSpecFromURL(Vertx vertx, VertxTestContext testContext) {
-    startFileServer(vertx, testContext).setHandler(h -> {
+    startFileServer(vertx, testContext).onComplete(h -> {
       RouterFactory.create(vertx, "http://localhost:9001/specs/router_factory_test.yaml",
         routerFactoryAsyncResult -> {
           testContext.verify(() -> {
@@ -128,7 +132,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void loadSpecFromURLWithAuthorizationValues(Vertx vertx, VertxTestContext testContext) {
-    startSecuredFileServer(vertx, testContext).setHandler(h -> {
+    startSecuredFileServer(vertx, testContext).onComplete(h -> {
       RouterFactory.create(
         vertx,
         "http://localhost:9001/specs/router_factory_test.yaml",
@@ -144,7 +148,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void failLoadSpecFromURL(Vertx vertx, VertxTestContext testContext) {
-    startFileServer(vertx, testContext).setHandler(h -> {
+    startFileServer(vertx, testContext).onComplete(h -> {
       RouterFactory.create(vertx, "http://localhost:9001/specs/does_not_exist.yaml",
         routerFactoryAsyncResult -> {
           assertThat(routerFactoryAsyncResult.failed()).isTrue();
@@ -171,7 +175,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
           .setStatusCode(200)
           .end()
       );
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(200))
         .send(testContext, checkpoint)
@@ -193,7 +197,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
           .setStatusMessage("ERROR")
           .end()
         );
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(500), statusMessage("ERROR"))
         .send(testContext, checkpoint)
@@ -227,7 +231,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             .setStatusMessage(routingContext.get("message"))
             .end()
         );
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(500), statusMessage("ABE"))
         .send(testContext, checkpoint)
@@ -267,7 +271,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
       routerFactory.securityHandler("third_api_key", "super_admin",
         routingContext -> routingContext.put("third_level_two", "SuperAdmin").next()
       );
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets_security_test")
         .expect(statusCode(200), statusMessage("User-Moderator-Admin-SuperAdmin-Done"))
         .send(testContext, checkpoint)
@@ -294,7 +298,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
       routerFactory.securityHandler("second_api_key", routingContext -> routingContext.put("secondApiKey", "OK").next());
       routerFactory.securityHandler("third_api_key", routingContext -> routingContext.put("thirdApiKey", "OK").next());
 
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets_security_test")
         .expect(statusCode(200), statusMessage("First handler: OK, Second handler: OK, Second api key: OK, Third api key: OK"))
         .send(testContext, checkpoint)
@@ -371,7 +375,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
         routingContext -> routingContext.put("message", "Local").next()
       );
 
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       testRequest(client, HttpMethod.GET, "/petsWithoutSecurity")
         .expect(statusCode(200), statusMessage("OK"))
         .send(testContext, checkpoint);
@@ -415,7 +419,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
           .setMountNotImplementedHandler(true)
       );
       routerFactory.operation("showPetById").handler(RoutingContext::next);
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(501), statusMessage("Not Implemented"))
         .send(testContext, checkpoint)
@@ -435,7 +439,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
       routerFactory.operation("deletePets").handler(RoutingContext::next);
       routerFactory.operation("createPets").handler(RoutingContext::next);
-    }).setHandler(rc ->
+    }).onComplete(rc ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(405), statusMessage("Method Not Allowed"))
         .expect(resp ->
@@ -466,7 +470,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
         .setStatusCode(200)
         .setStatusMessage("OK")
         .end());
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(200))
         .expect(responseHeader("header-from-global-handler", "some more dummy data"))
@@ -490,7 +494,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             .setStatusMessage(operation.getString("operationId"))
             .end();
         });
-    }).setHandler(h ->
+    }).onComplete(h ->
         testRequest(client, HttpMethod.GET, "/pets")
           .expect(statusCode(200), statusMessage("listPets"))
           .send(testContext, checkpoint)
@@ -519,7 +523,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
               .end();
           }
         });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       JsonObject obj = new JsonObject().put("name", "francesco");
       testRequest(client, HttpMethod.POST, "/consumesTest")
         .expect(statusCode(200))
@@ -564,7 +568,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
           else
             routingContext.response().setStatusCode(200).end("{}"); // ResponseContentTypeHandler does the job for me
         });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       String acceptableContentTypes = String.join(", ", "application/json", "text/plain");
       testRequest(client, HttpMethod.GET, "/producesTest")
         .with(requestHeader("Accept", acceptableContentTypes))
@@ -594,7 +598,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
         });
 
         testContext.completeNow();
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       testRequest(client, HttpMethod.GET, "/product/special")
         .expect(statusCode(200), statusMessage("special"))
         .send(testContext, checkpoint);
@@ -623,7 +627,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
         });
 
         testContext.completeNow();
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/foo/a%3Ab?p2=a%3Ab")
         .expect(statusCode(200), statusMessage("a:b"))
         .send(testContext, checkpoint)
@@ -649,7 +653,6 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
       testContext.verify(() -> {
         assertThat(routerFactory.createRouter().getRoutes().get(0))
           .extracting("contextHandlers")
-          .element(0)
           .asList()
           .hasOnlyOneElementSatisfying(b -> assertThat(b).isSameAs(bodyHandler));
       });
@@ -680,7 +683,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
         routerFactory.operation("thisWayWorks").handler(handler);
         routerFactory.operation("thisWayBroken").handler(handler);
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       JsonObject obj = new JsonObject().put("id", "aaa").put("name", "bla");
       testRequest(client, HttpMethod.POST, "/v1/working")
         .expect(statusCode(200))
@@ -732,7 +735,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
         });
 
         testContext.completeNow();
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.POST, "/jsonBody/empty")
         .expect(statusCode(200), jsonBodyResponse(new JsonObject().put("bodyEmpty", true)))
         .send(testContext)
@@ -752,7 +755,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
           .setStatusMessage(params.body().getJsonObject().getString("type"))
           .end();
       });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       MultipartForm form1 = MultipartForm
         .create()
         .binaryFileUpload("file1", "random-file", "src/test/resources/random-file", "application/octet-stream")
@@ -795,7 +798,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
           .setStatusMessage(params.body().getJsonObject().getString("type"))
           .end();
       });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       MultipartForm form1 =
         MultipartForm
           .create()
@@ -831,7 +834,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
       routerFactory
         .operation("listPets")
         .handler(routingContext -> routingContext.response().setStatusMessage("ok").end());
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(200), statusMessage("ok"))
         .send(testContext)
@@ -848,7 +851,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
           RequestParameters params = routingContext.get("parsedParameters");
           routingContext.response().setStatusMessage(params.pathParameter("petId").toString()).end();
         });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       testRequest(client, HttpMethod.GET, "/pets/3")
         .expect(statusCode(200), statusMessage("3"))
         .send(testContext, checkpoint);
@@ -874,7 +877,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             .collect(Collectors.joining(","));
           routingContext.response().setStatusMessage(serialized).end();
         });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       QueryStringEncoder encoder = new QueryStringEncoder("/queryTests/arrayTests/formExploded");
       List<String> values = new ArrayList<>();
       values.add("4");
@@ -908,7 +911,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             .collect(Collectors.joining(","));
           routingContext.response().setStatusMessage(serialized).end();
         });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       String serialized = String.join(",", "4", "2", "26");
       testRequest(client, HttpMethod.GET, "/queryTests/arrayTests/default?parameter=" + serialized)
         .expect(statusCode(200), statusMessage(serialized))
@@ -930,7 +933,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             ((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").getString()
           ).end()
         );
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/queryTests/defaultString")
         .expect(statusCode(200), statusMessage("aString"))
         .send(testContext)
@@ -948,7 +951,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             ((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").getInteger().toString()
           ).end()
         );
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/queryTests/defaultInt")
         .expect(statusCode(200), statusMessage("1"))
         .send(testContext)
@@ -965,7 +968,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             ((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").getFloat().toString()
           ).end()
         );
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/queryTests/defaultFloat")
         .expect(statusCode(200), statusMessage("1.0"))
         .send(testContext)
@@ -982,7 +985,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             ((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").getDouble().toString()
           ).end()
         );
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/queryTests/defaultDouble")
         .expect(statusCode(200), statusMessage("1.0"))
         .send(testContext)
@@ -999,7 +1002,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             "" + ((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").getString().length()
           ).end()
         );
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/queryTests/defaultString?parameter")
         .expect(statusCode(200), statusMessage("0"))
         .send(testContext)
@@ -1017,7 +1020,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             "" + ((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").toString()
           ).end()
         );
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       testRequest(client, HttpMethod.GET, "/queryTests/defaultBoolean?parameter")
         .expect(statusCode(200), statusMessage("false"))
         .send(testContext, checkpoint);
@@ -1040,7 +1043,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             "" + ((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").toString()
           ).end()
         );
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/queryTests/byteFormat?parameter=Zm9vYmFyCg==")
         .expect(statusCode(200), statusMessage("Zm9vYmFyCg=="))
         .send(testContext)
@@ -1067,7 +1070,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             params.body().getJsonObject().getString("id") + serialized
           ).end();
         });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       testRequest(client, HttpMethod.POST, "/formTests/arraytest")
         .expect(statusCode(200), statusMessage("a+b+c" + "10,8,4"))
         .sendURLEncodedForm(MultiMap.caseInsensitiveMultiMap().add("id", "a+b+c").add("values", (Iterable<String>) Arrays.asList("10", "8", "4")), testContext, checkpoint);
@@ -1094,7 +1097,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             .putHeader("Content-Type", "application/json")
             .end(params.body().getJsonObject().encode());
         });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       JsonObject valid = new JsonObject().put("id", "anId").put("values", new JsonArray().add(5).add(10).add(2));
 
       testRequest(client, HttpMethod.POST, "/jsonBodyTest/sampleTest")
@@ -1133,7 +1136,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             .setStatusCode(200)
             .end()
         );
-    }).setHandler(h ->
+    }).onComplete(h ->
       testRequest(client, HttpMethod.POST, "/pets")
         .expect(statusCode(400))
         .expect(failurePredicateResponse())
@@ -1157,7 +1160,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
               params.queryParameter("parameter").getJsonObject().getBoolean("b")
             ).end();
         });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
 
       testRequest(client, HttpMethod.GET, "/queryTests/allOfTest?parameter=a,5,b,true")
         .expect(statusCode(200), statusMessage("5true"))
@@ -1192,7 +1195,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             .setStatusMessage(((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").toString())
             .end()
         );
-    }).setHandler(h -> {
+    }).onComplete(h -> {
 
       testRequest(client, HttpMethod.GET, "/queryTests/anyOfTest?parameter=true")
         .expect(statusCode(200), statusMessage("true"))
@@ -1239,7 +1242,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
               .end(params.body().getJsonObject().toBuffer());
           }
         });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
 
       JsonObject pet = new JsonObject();
       pet.put("id", 14612);
@@ -1285,7 +1288,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
               params.cookieParametersNames().size() + params.headerParametersNames().size()
           ).end();
         });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       testRequest(client, HttpMethod.POST, "/pets")
         .expect(statusCode(200), statusMessage("0000"))
         .sendJson(new JsonObject().put("id", 1).put("name", "Willy"), testContext);
@@ -1311,7 +1314,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
           });
           routingContext.response().setStatusCode(200).end();
         });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       testRequest(client, HttpMethod.GET, "/queryTests/objectTests/onlyAdditionalProperties?param1=1&param2=2&wellKnownParam=hello")
         .expect(statusCode(200))
         .send(testContext, checkpoint);
@@ -1342,7 +1345,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             .putHeader("Content-Type", "application/json")
             .end(params.body().getJsonObject().encode());
         });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       JsonObject obj = new JsonObject();
       obj.put("date", "2018-02-18");
       obj.put("dateTime1", "2018-01-01T10:00:00.0000000000000000000000Z");
@@ -1374,7 +1377,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
             .putHeader("content-type", "application/json")
             .end(params.queryParameter("color").getJsonObject().encode());
         });
-    }).setHandler(h -> {
+    }).onComplete(h -> {
       testRequest(client, HttpMethod.GET, "/query/form/explode/object?R=100&G=200&B=150&alpha=50")
         .expect(statusCode(200))
         .expect(jsonBodyResponse(new JsonObject("{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\",\"alpha\":50}")))
