@@ -67,6 +67,34 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
   OAuth2AuthHandler extraParams(JsonObject extraParams);
 
   /**
+   * scopes to be requested while requesting a token.
+   *
+   * @param scope scope.
+   * @return self
+   */
+  @Fluent
+  OAuth2AuthHandler withScope(String scope);
+
+  /**
+   * Indicates the type of user interaction that is required. Not all providers support this or the full list.
+   *
+   * Well known values are:
+   *
+   * <ul>
+   *   <li><b>login</b> will force the user to enter their credentials on that request, negating single-sign on.</li>
+   *   <li><b>none</b> is the opposite - it will ensure that the user isn't presented with any interactive prompt whatsoever. If the request can't be completed silently via single-sign on, the Microsoft identity platform endpoint will return an interaction_required error.</li>
+   *   <li><b>consent</b> will trigger the OAuth consent dialog after the user signs in, asking the user to grant permissions to the app.</li>
+   *   <li><b>select_account</b> will interrupt single sign-on providing account selection experience listing all the accounts either in session or any remembered account or an option to choose to use a different account altogether.</li>
+   *   <li><b></b></li>
+   * </ul>
+   *
+   * @param prompt the prompt choice.
+   * @return self
+   */
+  @Fluent
+  OAuth2AuthHandler prompt(String prompt);
+
+  /**
    * add the callback handler to a given route.
    * @param route a given route e.g.: `/callback`
    * @return self

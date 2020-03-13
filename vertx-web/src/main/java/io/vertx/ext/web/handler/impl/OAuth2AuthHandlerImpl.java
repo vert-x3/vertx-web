@@ -34,6 +34,8 @@ import io.vertx.ext.web.handler.OAuth2AuthHandler;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -48,6 +50,9 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
   private Route callback;
   private JsonObject extraParams;
+  private List<String> scopes = new ArrayList<>();
+  private String prompt;
+
   // explicit signal that tokens are handled as bearer only (meaning, no backend server known)
   private boolean bearerOnly = true;
 
@@ -145,12 +150,29 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
       config.mergeIn(extraParams);
     }
 
+    config.put("scopes", scopes);
+    if (prompt != null) {
+      config.put("prompt", prompt);
+    }
+
     return ((OAuth2Auth) authProvider).authorizeURL(config);
   }
 
   @Override
   public OAuth2AuthHandler extraParams(JsonObject extraParams) {
     this.extraParams = extraParams;
+    return this;
+  }
+
+  @Override
+  public OAuth2AuthHandler withScope(String scope) {
+    this.scopes.add(scope);
+    return this;
+  }
+
+  @Override
+  public OAuth2AuthHandler prompt(String prompt) {
+    this.prompt = prompt;
     return this;
   }
 
