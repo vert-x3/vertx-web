@@ -26,17 +26,13 @@
     <dependency>
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
-      <version>1.0.4</version>
+      <version>1.0.31</version>
     </dependency>
     <dependency>
       <groupId>io.swagger.parser.v3</groupId>
       <artifactId>swagger-parser-v3</artifactId>
       <version>2.0.14</version>
       <exclusions>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-        </exclusion>
         <exclusion>
           <groupId>com.fasterxml.jackson.dataformat</groupId>
           <artifactId>jackson-dataformat-yaml</artifactId>
@@ -46,12 +42,6 @@
           <artifactId>jsr305</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <!-- Force stack version -->
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>25.1-jre</version>
     </dependency>
 
     <dependency>
