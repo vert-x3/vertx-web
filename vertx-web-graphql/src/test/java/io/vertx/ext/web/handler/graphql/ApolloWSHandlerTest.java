@@ -23,13 +23,21 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.NetClientOptions;
+import io.vertx.core.net.NetServer;
+import io.vertx.core.net.NetSocket;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscription;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
@@ -48,6 +56,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
   private static final int STATIC_COUNT = 5;
 
   private ApolloWSOptions apolloWSOptions = new ApolloWSOptions();
+  private AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
 
   @Override
   public void setUp() throws Exception {
@@ -83,13 +92,35 @@ public class ApolloWSHandlerTest extends WebTestBase {
   }
 
   private Publisher<Map<String, Object>> getCounter(DataFetchingEnvironment env) {
+    boolean finite = env.getArgument("finite");
     return subscriber -> {
+      Subscription subscription = new Subscription() {
+        @Override
+        public void request(long n) {
+        }
+
+        @Override
+        public void cancel() {
+          if (!subscriptionRef.compareAndSet(this, null)) {
+            fail();
+          }
+        }
+      };
+      if (!subscriptionRef.compareAndSet(null, subscription)) {
+        fail();
+      }
+      subscriber.onSubscribe(subscription);
       IntStream.range(0, 5).forEach(num -> {
         Map<String, Object> counter = new HashMap<>();
         counter.put("count", num);
         subscriber.onNext(counter);
       });
-      subscriber.onComplete();
+      if (finite) {
+        subscriber.onComplete();
+        if (!subscriptionRef.compareAndSet(subscription, null)) {
+          fail();
+        }
+      }
     };
   }
 
@@ -215,4 +246,89 @@ public class ApolloWSHandlerTest extends WebTestBase {
     await();
   }
 
+  @Test
+  public void testSubscriptionCanceledOnAbruptClose() throws Exception {
+    HttpClientOptions clientOptions = getHttpClientOptions();
+    int backendPort = clientOptions.getDefaultPort();
+    int proxyPort = backendPort + 101;
+
+    Proxy proxy = new Proxy(clientOptions.getDefaultHost(), proxyPort, backendPort);
+    proxy.start();
+    client.close();
+    client = vertx.createHttpClient(clientOptions.setDefaultPort(proxyPort));
+
+    client.webSocket("/graphql", onSuccess(websocket -> {
+      websocket.exceptionHandler(this::fail);
+
+      AtomicInteger counter = new AtomicInteger();
+      websocket.handler(buffer -> {
+        if (counter.getAndIncrement() == MAX_COUNT) {
+          if (subscriptionRef.get() == null) {
+            fail("Expected a live subscription");
+          } else {
+            proxy.closeAbruptly(onSuccess(v -> {
+              testComplete();
+            }));
+          }
+        }
+      });
+
+      JsonObject message = new JsonObject()
+        .put("payload", new JsonObject()
+          .put("query", "subscription Subscription { counter(finite: false) { count } }"))
+        .put("type", "start")
+        .put("id", "1");
+      websocket.write(message.toBuffer());
+    }));
+    await();
+
+    assertWaitUntil(() -> subscriptionRef.get() == null);
+  }
+
+  // We need this proxy to make sure the connection to the backend is reset abruptly
+  // Otherwise the Vert.x HttpClient closes the websocket properly before closing the TCP connection
+  private class Proxy {
+    final String host;
+    final int serverPort, clientPort;
+
+    volatile NetServer server;
+    volatile NetSocket client;
+
+    Proxy(String host, int serverPort, int clientPort) {
+      this.host = host;
+      this.serverPort = serverPort;
+      this.clientPort = clientPort;
+    }
+
+    void start() throws Exception {
+      CountDownLatch latch = new CountDownLatch(1);
+      vertx.createNetServer()
+        .exceptionHandler(Throwable::printStackTrace)
+        .connectHandler(socket -> {
+          socket.pause();
+          vertx.createNetClient(new NetClientOptions().setSoLinger(0))
+            .connect(clientPort, host)
+            .onSuccess(client -> {
+              this.client = client;
+              socket.pipeTo(client, v -> socket.close());
+              client.pipeTo(socket, v -> socket.close());
+              socket.resume();
+            });
+        })
+        .listen(serverPort, host)
+        .onFailure(cause -> fail(cause))
+        .onSuccess(server -> {
+          this.server = server;
+          latch.countDown();
+        });
+      awaitLatch(latch);
+    }
+
+    void closeAbruptly(Handler<AsyncResult<Void>> handler) {
+      client.close().onComplete(ar -> {
+        server.close();
+        handler.handle(ar);
+      });
+    }
+  }
 }
