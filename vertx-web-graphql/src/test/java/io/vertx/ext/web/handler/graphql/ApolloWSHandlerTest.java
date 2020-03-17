@@ -95,7 +95,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
 
   @Test
   public void testSubscriptionWsCall() {
-    waitFor(MAX_COUNT + 1);
+    waitFor(MAX_COUNT + 2);
     client.webSocket("/graphql", onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
 
