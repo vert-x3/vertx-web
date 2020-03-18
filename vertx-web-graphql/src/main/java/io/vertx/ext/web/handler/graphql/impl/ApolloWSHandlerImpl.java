@@ -164,7 +164,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
       }
     });
 
-    serverWebSocket.endHandler(v -> {
+    serverWebSocket.closeHandler(v -> {
       subscriptions.values().forEach(Subscription::cancel);
 
       Handler<ServerWebSocket> eh;
