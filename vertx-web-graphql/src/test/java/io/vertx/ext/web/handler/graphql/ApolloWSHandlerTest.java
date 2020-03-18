@@ -307,25 +307,22 @@ public class ApolloWSHandlerTest extends WebTestBase {
         .connectHandler(socket -> {
           socket.pause();
           vertx.createNetClient(new NetClientOptions().setSoLinger(0))
-            .connect(clientPort, host)
-            .onSuccess(client -> {
+            .connect(clientPort, host, onSuccess(client -> {
               this.client = client;
               socket.pipeTo(client, v -> socket.close());
               client.pipeTo(socket, v -> socket.close());
               socket.resume();
-            });
+            }));
         })
-        .listen(serverPort, host)
-        .onFailure(cause -> fail(cause))
-        .onSuccess(server -> {
+        .listen(serverPort, host, onSuccess(server -> {
           this.server = server;
           latch.countDown();
-        });
+        }));
       awaitLatch(latch);
     }
 
     void closeAbruptly(Handler<AsyncResult<Void>> handler) {
-      client.close().onComplete(ar -> {
+      client.close(ar -> {
         server.close();
         handler.handle(ar);
       });
