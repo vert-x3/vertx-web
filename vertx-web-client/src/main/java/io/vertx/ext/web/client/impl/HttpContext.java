@@ -25,11 +25,13 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.streams.Pump;
 import io.vertx.core.spi.json.JsonCodec;
 import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.ext.web.multipart.MultipartForm;
 
@@ -360,7 +362,8 @@ public class HttpContext<T> {
     HttpClientResponse resp = clientResponse;
     Context context = Vertx.currentContext();
     Promise<HttpResponse<T>> promise = Promise.promise();
-    promise.future().setHandler(r -> {
+    Future<HttpResponse<T>> fut = promise.future();
+    fut.setHandler(r -> {
       // We are running on a context (the HTTP client mandates it)
       context.runOnContext(v -> {
         if (r.succeeded()) {
@@ -370,19 +373,17 @@ public class HttpContext<T> {
         }
       });
     });
-    resp.exceptionHandler(err -> {
-      if (!promise.future().isComplete()) {
-        promise.fail(err);
-      }
-    });
-    Pipe<Buffer> pipe = resp.pipe();
-    request.codec.create(ar1 -> {
-      if (ar1.succeeded()) {
-        BodyStream<T> stream = ar1.result();
-        pipe.to(stream, ar2 -> {
-          if (ar2.succeeded()) {
-            stream.result().setHandler(ar3 -> {
-              if (ar3.succeeded()) {
+    resp.exceptionHandler(promise::tryFail);
+    request.codec.create(ar2 -> {
+      resp.resume();
+      if (ar2.succeeded()) {
+        BodyStream<T> stream = ar2.result();
+        stream.exceptionHandler(promise::tryFail);
+        resp.endHandler(v -> {
+          if (!fut.isComplete()) {
+            stream.end();
+            stream.result().setHandler(ar -> {
+              if (ar.succeeded()) {
                 promise.complete(new HttpResponseImpl<T>(
                   resp.version(),
                   resp.statusCode(),
@@ -394,16 +395,15 @@ public class HttpContext<T> {
                   redirectedLocations
                 ));
               } else {
-                promise.fail(ar3.cause());
+                promise.fail(ar.cause());
               }
             });
-          } else {
-            promise.fail(ar2.cause());
           }
         });
+        Pump responsePump = Pump.pump(resp, stream);
+        responsePump.start();
       } else {
-        pipe.close();
-        fail(ar1.cause());
+        fail(ar2.cause());
       }
     });
   }
@@ -466,12 +466,25 @@ public class HttpContext<T> {
         if (request.headers == null || !request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
           req.setChunked(true);
         }
-        stream.pipeTo(req, ar -> {
-          if (ar.failed()) {
-            responseFuture.tryFail(ar.cause());
-            req.reset();
-          }
+        Pump pump = Pump.pump(stream, req);
+        req.exceptionHandler(err -> {
+          pump.stop();
+          stream.endHandler(null);
+          stream.resume();
+          responseFuture.tryFail(err);
         });
+        stream.exceptionHandler(err -> {
+          // Notify before closing the connection otherwise the future could be failed with connection closed exception
+          responseFuture.tryFail(err);
+          req.reset();
+        });
+        stream.endHandler(v -> {
+          req.exceptionHandler(responseFuture::tryFail);
+          req.end();
+          pump.stop();
+        });
+        pump.start();
+        stream.resume();
       } else {
         Buffer buffer;
         if (body instanceof Buffer) {
