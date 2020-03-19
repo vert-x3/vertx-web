@@ -16,6 +16,7 @@
 package io.vertx.ext.web.impl;
 
 import io.vertx.core.Handler;
+import io.vertx.ext.web.AllowForwardHeaders;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
@@ -57,9 +58,9 @@ final class RouterState {
   private final int orderSequence;
   private final Map<Integer, Handler<RoutingContext>> errorHandlers;
   private final Handler<Router> modifiedHandler;
-  private final boolean allowForward;
+  private final AllowForwardHeaders allowForward;
 
-  public RouterState(RouterImpl router, Set<RouteImpl> routes, int orderSequence, Map<Integer, Handler<RoutingContext>> errorHandlers, Handler<Router> modifiedHandler, boolean allowForward) {
+  public RouterState(RouterImpl router, Set<RouteImpl> routes, int orderSequence, Map<Integer, Handler<RoutingContext>> errorHandlers, Handler<Router> modifiedHandler, AllowForwardHeaders allowForward) {
     this.router = router;
     this.routes = routes;
     this.orderSequence = orderSequence;
@@ -75,7 +76,7 @@ final class RouterState {
       0,
       null,
       null,
-      false);
+      AllowForwardHeaders.NONE);
   }
 
   public RouterImpl router() {
@@ -216,7 +217,7 @@ final class RouterState {
       this.allowForward);
   }
 
-  public RouterState setAllowForward(boolean allow) {
+  public RouterState setAllowForward(AllowForwardHeaders allow) {
     return new RouterState(
       this.router,
       this.routes,
@@ -226,7 +227,7 @@ final class RouterState {
       allow);
   }
 
-  public boolean isAllowForward() {
+  public AllowForwardHeaders getAllowForward() {
     return allowForward;
   }
 

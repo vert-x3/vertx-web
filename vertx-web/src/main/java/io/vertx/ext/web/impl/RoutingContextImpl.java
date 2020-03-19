@@ -66,7 +66,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
     super(mountPoint, routes);
     this.router = router;
-    this.request = new HttpServerRequestWrapper(request, router.isAllowForward());
+    this.request = new HttpServerRequestWrapper(request, router.getAllowForward());
 
     fillParsedHeaders(request);
     if (request.path().length() == 0) {

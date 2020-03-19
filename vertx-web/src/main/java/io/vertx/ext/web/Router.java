@@ -394,9 +394,9 @@ public interface Router extends Handler<HttpServerRequest> {
   /**
    * Set whether the router should parse "forwarded"-type headers
    *
-   * @param allow to enable parsing of "forwarded"-type headers
+   * @param allowForwardHeaders to enable parsing of "forwarded"-type headers
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  Router allowForward(boolean allow);
+  Router allowForward(AllowForwardHeaders allowForwardHeaders);
 }
