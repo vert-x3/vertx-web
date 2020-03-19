@@ -207,7 +207,7 @@ public class HttpContext<T> {
       Future<HttpClientRequest> next = client.redirectHandler().apply(clientResponse);
       if (next != null) {
         redirectedLocations.add(clientResponse.getHeader(HttpHeaders.LOCATION));
-        next.setHandler(ar -> {
+        next.onComplete(ar -> {
           if (ar.succeeded()) {
             HttpClientRequest nextRequest = ar.result();
             if (request.headers != null) {
@@ -363,7 +363,7 @@ public class HttpContext<T> {
     Context context = Vertx.currentContext();
     Promise<HttpResponse<T>> promise = Promise.promise();
     Future<HttpResponse<T>> fut = promise.future();
-    fut.setHandler(r -> {
+    fut.onComplete(r -> {
       // We are running on a context (the HTTP client mandates it)
       context.runOnContext(v -> {
         if (r.succeeded()) {
@@ -382,7 +382,7 @@ public class HttpContext<T> {
         resp.endHandler(v -> {
           if (!fut.isComplete()) {
             stream.end();
-            stream.result().setHandler(ar -> {
+            stream.result().onComplete(ar -> {
               if (ar.succeeded()) {
                 promise.complete(new HttpResponseImpl<T>(
                   resp.version(),
@@ -410,7 +410,7 @@ public class HttpContext<T> {
 
   private void handleSendRequest() {
     Promise<HttpClientResponse> responseFuture = Promise.<HttpClientResponse>promise();
-    responseFuture.future().setHandler(ar -> {
+    responseFuture.future().onComplete(ar -> {
       if (ar.succeeded()) {
         HttpClientResponse resp = ar.result();
         resp.pause();
