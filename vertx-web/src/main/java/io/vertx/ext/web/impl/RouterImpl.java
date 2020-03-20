@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.ext.web.AllowForwardHeaders;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -265,13 +266,13 @@ public class RouterImpl implements Router {
   }
 
   @Override
-  public synchronized Router allowForward(boolean allow) {
-    state = state.setAllowForward(allow);
+  public synchronized Router allowForward(AllowForwardHeaders allowForwardHeaders) {
+    state = state.setAllowForward(allowForwardHeaders);
     return this;
   }
 
-  public boolean isAllowForward() {
-    return state.isAllowForward();
+  public AllowForwardHeaders getAllowForward() {
+    return state.getAllowForward();
   }
 
   @Override

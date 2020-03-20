@@ -8,6 +8,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.net.NetSocket;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.ext.web.AllowForwardHeaders;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
@@ -27,7 +28,7 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   private String uri;
   private String absoluteURI;
 
-  HttpServerRequestWrapper(HttpServerRequest request, boolean allowForward) {
+  HttpServerRequestWrapper(HttpServerRequest request, AllowForwardHeaders allowForward) {
     delegate = request;
     forwardedParser = new ForwardedParser(delegate, allowForward);
   }
