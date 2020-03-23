@@ -34,6 +34,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,8 +51,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   private static final Function<ApolloWSMessage, Object> DEFAULT_QUERY_CONTEXT_FACTORY = context -> context;
   private static final Function<ApolloWSMessage, DataLoaderRegistry> DEFAULT_DATA_LOADER_REGISTRY_FACTORY = rc -> null;
-
-  private final static String HEADER_CONNECTION_UPGRADE_VALUE = "upgrade";
+  private static final Function<ApolloWSMessage, Locale> DEFAULT_LOCALE_FACTORY = rc -> null;
 
   private final GraphQL graphQL;
   private final long keepAlive;
@@ -59,6 +59,8 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   private Function<ApolloWSMessage, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
 
   private Function<ApolloWSMessage, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
+
+  private Function<ApolloWSMessage, Locale> localeFactory = DEFAULT_LOCALE_FACTORY;
 
   private Handler<ServerWebSocket> connectionHandler;
 
@@ -100,6 +102,12 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   @Override
   public synchronized ApolloWSHandler dataLoaderRegistry(Function<ApolloWSMessage, DataLoaderRegistry> factory) {
     dataLoaderRegistryFactory = factory != null ? factory : DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
+    return this;
+  }
+
+  @Override
+  public synchronized ApolloWSHandler locale(Function<ApolloWSMessage, Locale> factory) {
+    localeFactory = factory != null ? factory : DEFAULT_LOCALE_FACTORY;
     return this;
   }
 
@@ -217,6 +225,15 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     DataLoaderRegistry registry = dlr.apply(message);
     if (registry != null) {
       builder.dataLoaderRegistry(registry);
+    }
+
+    Function<ApolloWSMessage, Locale> l;
+    synchronized (this) {
+      l = localeFactory;
+    }
+    Locale locale = l.apply(message);
+    if (locale != null) {
+      builder.locale(locale);
     }
 
     String operationName = payload.getOperationName();
