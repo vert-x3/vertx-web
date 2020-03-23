@@ -25,6 +25,8 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.ext.web.WebTestBase;
 
+import java.util.Locale;
+
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static java.util.stream.Collectors.toList;
 
@@ -48,13 +50,21 @@ public class GraphQLTestBase extends WebTestBase {
   }
 
   protected GraphQL graphQL() {
-    String schema = vertx.fileSystem().readFileBlocking("links.graphqls").toString();
+    String linksSchema = vertx.fileSystem().readFileBlocking("links.graphqls").toString();
+    String localeSchema = vertx.fileSystem().readFileBlocking("locale.graphqls").toString();
 
     SchemaParser schemaParser = new SchemaParser();
-    TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
+    TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(linksSchema)
+      .merge(schemaParser.parse(localeSchema));
 
     RuntimeWiring runtimeWiring = newRuntimeWiring()
-      .type("Query", builder -> builder.dataFetcher("allLinks", this::getAllLinks))
+      .type("Query", builder -> builder.dataFetcher("allLinks", this::getAllLinks)
+        .dataFetcher("locale", env -> {
+          Locale locale = env.getLocale();
+          if (locale == null)
+            return null;
+          return locale.toLanguageTag();
+        }))
       .build();
 
     SchemaGenerator schemaGenerator = new SchemaGenerator();

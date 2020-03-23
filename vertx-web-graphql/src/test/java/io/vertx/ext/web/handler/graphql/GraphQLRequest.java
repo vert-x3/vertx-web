@@ -50,6 +50,7 @@ public class GraphQLRequest {
   private boolean variablesAsParam;
   private String contentType = JSON;
   private Buffer requestBody;
+  private String locale;
 
   GraphQLRequest setMethod(HttpMethod method) {
     this.method = method;
@@ -109,6 +110,11 @@ public class GraphQLRequest {
     return this;
   }
 
+  GraphQLRequest setLocale(String locale) {
+    this.locale = locale;
+    return this;
+  }
+
   void send(HttpClient client, Handler<AsyncResult<JsonObject>> handler) throws Exception {
     send(client, 200, handler);
   }
@@ -117,6 +123,8 @@ public class GraphQLRequest {
     Promise<JsonObject> promise = Promise.promise();
     promise.future().onComplete(handler);
     HttpClientRequest request = client.request(method, 8080, "localhost", getUri());
+    if (locale != null)
+      request.putHeader("Accept-Language", locale);
     request.onComplete(ar -> {
       if (ar.succeeded()) {
         HttpClientResponse response = ar.result();
