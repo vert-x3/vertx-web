@@ -28,7 +28,6 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
-import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
@@ -53,16 +52,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
 
   private static final Function<RoutingContext, Object> DEFAULT_QUERY_CONTEXT_FACTORY = rc -> rc;
   private static final Function<RoutingContext, DataLoaderRegistry> DEFAULT_DATA_LOADER_REGISTRY_FACTORY = rc -> null;
-  private static final Function<RoutingContext, Locale> DEFAULT_LOCALE_FACTORY = routingContext -> {
-    for (LanguageHeader acceptableLocale : routingContext.acceptableLanguages()) {
-      try {
-        return Locale.forLanguageTag(acceptableLocale.value());
-      } catch (RuntimeException e) {
-        // we couldn't parse the locale so it's not valid or unknown
-      }
-    }
-    return null;
-  };
+  private static final Function<RoutingContext, Locale> DEFAULT_LOCALE_FACTORY = rc -> null;
 
   private final GraphQL graphQL;
   private final GraphQLHandlerOptions options;
@@ -357,7 +347,6 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     if (registry != null) {
       builder.dataLoaderRegistry(registry);
     }
-
 
     Function<RoutingContext, Locale> l;
     synchronized (this) {

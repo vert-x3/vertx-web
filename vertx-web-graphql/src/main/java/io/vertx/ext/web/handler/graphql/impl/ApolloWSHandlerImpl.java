@@ -24,7 +24,6 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
@@ -52,6 +51,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   private static final Function<ApolloWSMessage, Object> DEFAULT_QUERY_CONTEXT_FACTORY = context -> context;
   private static final Function<ApolloWSMessage, DataLoaderRegistry> DEFAULT_DATA_LOADER_REGISTRY_FACTORY = rc -> null;
+  private static final Function<ApolloWSMessage, Locale> DEFAULT_LOCALE_FACTORY = rc -> null;
 
   private final GraphQL graphQL;
   private final long keepAlive;
@@ -60,7 +60,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   private Function<ApolloWSMessage, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
 
-  private Function<ApolloWSMessage, Locale> localeFactory = null;
+  private Function<ApolloWSMessage, Locale> localeFactory = DEFAULT_LOCALE_FACTORY;
 
   private Handler<ServerWebSocket> connectionHandler;
 
@@ -107,7 +107,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   @Override
   public synchronized ApolloWSHandler locale(Function<ApolloWSMessage, Locale> factory) {
-    localeFactory = factory;
+    localeFactory = factory != null ? factory : DEFAULT_LOCALE_FACTORY;
     return this;
   }
 
@@ -115,23 +115,14 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   public void handle(RoutingContext routingContext) {
     MultiMap headers = routingContext.request().headers();
     if (headers.contains(CONNECTION) && headers.contains(UPGRADE, WEBSOCKET, true)) {
-      Locale defaultLocale = null;
-      for (LanguageHeader acceptableLocale : routingContext.acceptableLanguages()) {
-        try {
-          defaultLocale = Locale.forLanguageTag(acceptableLocale.value());
-          break;
-        } catch (RuntimeException e) {
-          // we couldn't parse the locale so it's not valid or unknown
-        }
-      }
       ServerWebSocket serverWebSocket = routingContext.request().upgrade();
-      handleConnection(routingContext.vertx(), serverWebSocket, defaultLocale);
+      handleConnection(routingContext.vertx(), serverWebSocket);
     } else {
       routingContext.next();
     }
   }
 
-  private void handleConnection(Vertx vertx, ServerWebSocket serverWebSocket, Locale defaultLocale) {
+  private void handleConnection(Vertx vertx, ServerWebSocket serverWebSocket) {
     Map<String, Subscription> subscriptions = new ConcurrentHashMap<>();
 
     Handler<ServerWebSocket> ch;
@@ -170,7 +161,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
           serverWebSocket.close();
           break;
         case START:
-          start(serverWebSocket, subscriptions, message, defaultLocale);
+          start(serverWebSocket, subscriptions, message);
           break;
         case STOP:
           stop(serverWebSocket, subscriptions, opId);
@@ -209,7 +200,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     }
   }
 
-  private void start(ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions, ApolloWSMessage message, Locale locale) {
+  private void start(ServerWebSocket serverWebSocket, Map<String, Subscription> subscriptions, ApolloWSMessage message) {
     String opId = message.content().getString("id");
 
     // Unsubscribe if it's subscribed
@@ -240,12 +231,10 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     synchronized (this) {
       l = localeFactory;
     }
-    if (l != null) {
-      locale = l.apply(message);
-    }
-
-    if (locale != null)
+    Locale locale = l.apply(message);
+    if (locale != null) {
       builder.locale(locale);
+    }
 
     String operationName = payload.getOperationName();
     if (operationName != null) {

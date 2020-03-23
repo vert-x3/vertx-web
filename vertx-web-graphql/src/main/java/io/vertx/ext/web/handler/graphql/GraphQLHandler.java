@@ -78,10 +78,8 @@ public interface GraphQLHandler extends Handler<RoutingContext> {
   GraphQLHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory);
 
   /**
-   * Customize the locale passed to graphql execution engine
+   * Customize the {@link Locale} passed to the GraphQL execution engine.
    * The provided {@code factory} method will be invoked for each incoming GraphQL request.
-   * <p>
-   * If a {@code factory} is not provided the first language found in Accept-Language header will be used
    *
    * @return a reference to this, so the API can be used fluently
    */

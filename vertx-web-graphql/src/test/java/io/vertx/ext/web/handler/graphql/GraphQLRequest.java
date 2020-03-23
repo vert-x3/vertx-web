@@ -123,8 +123,9 @@ public class GraphQLRequest {
     Promise<JsonObject> promise = Promise.promise();
     promise.future().onComplete(handler);
     HttpClientRequest request = client.request(method, 8080, "localhost", getUri());
-    if (locale != null)
+    if (locale != null) {
       request.putHeader("Accept-Language", locale);
+    }
     request.onComplete(ar -> {
       if (ar.succeeded()) {
         HttpClientResponse response = ar.result();
