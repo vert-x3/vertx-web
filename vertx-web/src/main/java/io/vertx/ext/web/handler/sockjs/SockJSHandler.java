@@ -75,29 +75,29 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    * @param bridgeOptions  options to configure the bridge with
    * @return a router to be mounted on an existing router
    */
-  default Router bridge(BridgeOptions bridgeOptions) {
+  default Router bridge(SockJSBridgeOptions bridgeOptions) {
     return bridge(null, bridgeOptions, null);
 
   }
 
   /**
-   * Like {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(BridgeOptions)} but specifying a handler
+   * Like {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(SockJSBridgeOptions)} but specifying a handler
    * that will receive bridge events.
    * @param authorizationProvider authorization provider to be used on the bridge
    * @param bridgeOptions  options to configure the bridge with
    * @param bridgeEventHandler  handler to receive bridge events
    * @return a router to be mounted on an existing router
    */
-  Router bridge(AuthorizationProvider authorizationProvider, BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler);
+  Router bridge(AuthorizationProvider authorizationProvider, SockJSBridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler);
 
   /**
-   * Like {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(BridgeOptions)} but specifying a handler
+   * Like {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(SockJSBridgeOptions)} but specifying a handler
    * that will receive bridge events.
    * @param bridgeOptions  options to configure the bridge with
    * @param bridgeEventHandler  handler to receive bridge events
    * @return a router to be mounted on an existing router
    */
-  default Router bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
+  default Router bridge(SockJSBridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
     return bridge(null, bridgeOptions, bridgeEventHandler);
   }
 

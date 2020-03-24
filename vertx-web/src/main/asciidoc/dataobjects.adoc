@@ -1,7 +1,20 @@
 = Cheatsheets
 
-[[BridgeOptions]]
-== BridgeOptions
+[[Http2PushMapping]]
+== Http2PushMapping
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[extensionTarget]]`@extensionTarget`|`String`|-
+|[[filePath]]`@filePath`|`String`|-
+|[[noPush]]`@noPush`|`Boolean`|-
+|===
+
+[[SockJSBridgeOptions]]
+== SockJSBridgeOptions
 
 ++++
  Options for configuring the event bus bridge.
@@ -16,19 +29,6 @@
 |[[maxHandlersPerSocket]]`@maxHandlersPerSocket`|`Number (int)`|-
 |[[pingTimeout]]`@pingTimeout`|`Number (long)`|-
 |[[replyTimeout]]`@replyTimeout`|`Number (long)`|-
-|===
-
-[[Http2PushMapping]]
-== Http2PushMapping
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[extensionTarget]]`@extensionTarget`|`String`|-
-|[[filePath]]`@filePath`|`String`|-
-|[[noPush]]`@noPush`|`Boolean`|-
 |===
 
 [[SockJSHandlerOptions]]

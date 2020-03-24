@@ -18,7 +18,6 @@ import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.webauthn.*;
 import io.vertx.ext.jwt.JWTOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
-import io.vertx.ext.auth.oauth2.OAuth2ClientOptions;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
 import io.vertx.ext.bridge.BridgeEventType;
@@ -26,7 +25,7 @@ import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.handler.sockjs.BridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
@@ -922,7 +921,7 @@ public class WebExamples {
     Router router = Router.router(vertx);
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-    BridgeOptions options = new BridgeOptions();
+    SockJSBridgeOptions options = new SockJSBridgeOptions();
     // mount the bridge on the router
     router.mountSubRouter("/eventbus", sockJSHandler.bridge(options));
   }
@@ -956,7 +955,7 @@ public class WebExamples {
     PermittedOptions outboundPermitted2 = new PermittedOptions().setAddressRegex("news\\..+");
 
     // Let's define what we're going to allow from client -> server
-    BridgeOptions options = new BridgeOptions().
+    SockJSBridgeOptions options = new SockJSBridgeOptions().
       addInboundPermitted(inboundPermitted1).
       addInboundPermitted(inboundPermitted1).
       addInboundPermitted(inboundPermitted3).
@@ -975,7 +974,7 @@ public class WebExamples {
     // But only if the user is logged in and has the authority "place_orders"
     inboundPermitted.setRequiredAuthority("place_orders");
 
-    BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
+    SockJSBridgeOptions options = new SockJSBridgeOptions().addInboundPermitted(inboundPermitted);
   }
 
   public void example48(Vertx vertx, AuthenticationProvider authProvider) {
@@ -1001,7 +1000,7 @@ public class WebExamples {
     // mount the bridge on the router
     router.mountSubRouter(
       "/eventbus",
-      sockJSHandler.bridge(new BridgeOptions().addInboundPermitted(inboundPermitted)));
+      sockJSHandler.bridge(new SockJSBridgeOptions().addInboundPermitted(inboundPermitted)));
   }
 
   public void example48_1(Vertx vertx) {
@@ -1012,7 +1011,7 @@ public class WebExamples {
     PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.orderService");
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-    BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
+    SockJSBridgeOptions options = new SockJSBridgeOptions().addInboundPermitted(inboundPermitted);
 
     // mount the bridge on the router
     router.mountSubRouter(
@@ -1037,7 +1036,7 @@ public class WebExamples {
     PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.someService");
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-    BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
+    SockJSBridgeOptions options = new SockJSBridgeOptions().addInboundPermitted(inboundPermitted);
 
     // mount the bridge on the router
     router.mountSubRouter("/eventbus", sockJSHandler.bridge(options, be -> {
@@ -1057,7 +1056,7 @@ public class WebExamples {
 
     // Initialize SockJS handler
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-    BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted).setPingTimeout(5000);
+    SockJSBridgeOptions options = new SockJSBridgeOptions().addInboundPermitted(inboundPermitted).setPingTimeout(5000);
 
     // mount the bridge on the router
     router.mountSubRouter("/eventbus", sockJSHandler.bridge(options, be -> {
