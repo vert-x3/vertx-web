@@ -1899,7 +1899,7 @@ A special SockJS socket handler is then installed on the {@link io.vertx.ext.web
 handles the SockJS data and bridges it to and from the server side event bus.
 
 To activate the bridge you simply call
-{@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions)} on the
+{@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions)} on the
 SockJS handler.
 
 [source,$lang]
@@ -2022,7 +2022,7 @@ In other words the bridge acts like a kind of firewall which has a default _deny
 Configuring the bridge to tell it what messages it should pass through is easy.
 
 You can specify which _matches_ you want to allow for inbound and outbound traffic using the
-{@link io.vertx.ext.web.handler.sockjs.BridgeOptions} that you pass in when calling bridge.
+{@link io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions} that you pass in when calling bridge.
 
 Each match is a {@link io.vertx.ext.bridge.PermittedOptions} object:
 
@@ -2087,7 +2087,7 @@ To handle the login and actually auth you can configure the normal Vert.x auth h
 === Handling event bus bridge events
 
 If you want to be notified when an event occurs on the bridge you can provide a handler when calling
-{@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions, io.vertx.core.Handler)}.
+{@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions, io.vertx.core.Handler)}.
 
 Whenever an event occurs on the bridge it will be passed to the handler. The event is described by an instance of
 {@link io.vertx.ext.web.handler.sockjs.BridgeEvent}.

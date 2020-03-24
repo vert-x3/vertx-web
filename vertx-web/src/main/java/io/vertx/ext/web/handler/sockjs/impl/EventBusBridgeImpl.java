@@ -80,7 +80,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   private final Handler<BridgeEvent> bridgeEventHandler;
   private final AuthorizationProvider authzProvider;
 
-  public EventBusBridgeImpl(Vertx vertx, AuthorizationProvider authzProvider, BridgeOptions options, Handler<BridgeEvent> bridgeEventHandler) {
+  public EventBusBridgeImpl(Vertx vertx, AuthorizationProvider authzProvider, SockJSBridgeOptions options, Handler<BridgeEvent> bridgeEventHandler) {
     this.vertx = vertx;
     this.eb = vertx.eventBus();
     this.authzProvider = authzProvider;
