@@ -43,12 +43,8 @@ import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.sockjs.BridgeEvent;
-import io.vertx.ext.web.handler.sockjs.BridgeOptions;
-import io.vertx.ext.web.handler.sockjs.SockJSHandler;
-import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
-import io.vertx.ext.web.handler.sockjs.SockJSSocket;
-import io.vertx.ext.web.handler.sockjs.Transport;
+import io.vertx.ext.web.handler.sockjs.*;
+import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -94,7 +90,7 @@ public class SockJSHandlerImpl implements SockJSHandler {
   }
 
   @Override
-  public Router bridge(AuthorizationProvider authorizationProvider, BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
+  public Router bridge(AuthorizationProvider authorizationProvider, SockJSBridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
     return socketHandler(new EventBusBridgeImpl(vertx, authorizationProvider, bridgeOptions, bridgeEventHandler));
   }
 

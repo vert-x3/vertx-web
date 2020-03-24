@@ -16,12 +16,11 @@
 package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.codegen.annotations.DataObject;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import io.vertx.ext.bridge.BridgeOptions;
 import io.vertx.ext.bridge.PermittedOptions;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,8 +28,8 @@ import java.util.List;
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@DataObject
-public class BridgeOptions {
+@DataObject(generateConverter = true)
+public class SockJSBridgeOptions extends BridgeOptions {
 
   /**
    * Default value for max address length = 200
@@ -57,27 +56,24 @@ public class BridgeOptions {
   private long pingTimeout;
   private long replyTimeout;
 
-  private List<PermittedOptions> inboundPermitted = new ArrayList<>();
-  private List<PermittedOptions> outboundPermitted = new ArrayList<>();
-
   /**
    * Copy constructor
    *
    * @param other  the options to copy
    */
-  public BridgeOptions(BridgeOptions other) {
+  public SockJSBridgeOptions(SockJSBridgeOptions other) {
+    super(other);
     this.maxAddressLength = other.maxAddressLength;
     this.maxHandlersPerSocket = other.maxHandlersPerSocket;
     this.pingTimeout = other.pingTimeout;
     this.replyTimeout = other.replyTimeout;
-    this.inboundPermitted = new ArrayList<>(other.inboundPermitted);
-    this.outboundPermitted = new ArrayList<>(other.outboundPermitted);
   }
 
   /**
    * Default constructor
    */
-  public BridgeOptions() {
+  public SockJSBridgeOptions() {
+    super();
     this.maxAddressLength = DEFAULT_MAX_ADDRESS_LENGTH;
     this.maxHandlersPerSocket = DEFAULT_MAX_HANDLERS_PER_SOCKET;
     this.pingTimeout = DEFAULT_PING_TIMEOUT;
@@ -89,41 +85,17 @@ public class BridgeOptions {
    *
    * @param json  the JSON
    */
-  public BridgeOptions(JsonObject json) {
-    this.maxAddressLength = json.getInteger("maxAddressLength", DEFAULT_MAX_ADDRESS_LENGTH);
-    this.maxHandlersPerSocket = json.getInteger("maxHandlersPerSocket", DEFAULT_MAX_HANDLERS_PER_SOCKET);
-    this.pingTimeout = json.getLong("pingTimeout", DEFAULT_PING_TIMEOUT);
-    this.replyTimeout = json.getLong("replyTimeout", DEFAULT_REPLY_TIMEOUT);
-    //TODO simplify common code
-    JsonArray arr = json.getJsonArray("inboundPermitteds");
-    if (arr != null) {
-      for (Object obj: arr) {
-        if (obj instanceof JsonObject) {
-          JsonObject jobj = (JsonObject)obj;
-          inboundPermitted.add(new PermittedOptions(jobj));
-        } else {
-          throw new IllegalArgumentException("Invalid type " + obj.getClass() + " in inboundPermitteds array");
-        }
-      }
-    }
-    arr = json.getJsonArray("outboundPermitteds");
-    if (arr != null) {
-      for (Object obj: arr) {
-        if (obj instanceof JsonObject) {
-          JsonObject jobj = (JsonObject)obj;
-          outboundPermitted.add(new PermittedOptions(jobj));
-        } else {
-          throw new IllegalArgumentException("Invalid type " + obj.getClass() + " in outboundPermitteds array");
-        }
-      }
-    }
+  public SockJSBridgeOptions(JsonObject json) {
+    // init defaults
+    this();
+    SockJSBridgeOptionsConverter.fromJson(json, this);
   }
 
   public int getMaxAddressLength() {
     return maxAddressLength;
   }
 
-  public BridgeOptions setMaxAddressLength(int maxAddressLength) {
+  public SockJSBridgeOptions setMaxAddressLength(int maxAddressLength) {
     if (maxAddressLength < 1) {
       throw new IllegalArgumentException("maxAddressLength must be > 0");
     }
@@ -135,7 +107,7 @@ public class BridgeOptions {
     return maxHandlersPerSocket;
   }
 
-  public BridgeOptions setMaxHandlersPerSocket(int maxHandlersPerSocket) {
+  public SockJSBridgeOptions setMaxHandlersPerSocket(int maxHandlersPerSocket) {
     if (maxHandlersPerSocket < 1) {
       throw new IllegalArgumentException("maxHandlersPerSocket must be > 0");
     }
@@ -147,7 +119,7 @@ public class BridgeOptions {
     return pingTimeout;
   }
 
-  public BridgeOptions setPingTimeout(long pingTimeout) {
+  public SockJSBridgeOptions setPingTimeout(long pingTimeout) {
     if (pingTimeout < 1) {
       throw new IllegalArgumentException("pingTimeout must be > 0");
     }
@@ -159,7 +131,7 @@ public class BridgeOptions {
     return replyTimeout;
   }
 
-  public BridgeOptions setReplyTimeout(long replyTimeout) {
+  public SockJSBridgeOptions setReplyTimeout(long replyTimeout) {
     if (replyTimeout < 1) {
       throw new IllegalArgumentException("replyTimeout must be > 0");
     }
@@ -167,29 +139,34 @@ public class BridgeOptions {
     return this;
   }
 
-  public BridgeOptions addInboundPermitted(PermittedOptions permitted) {
-    inboundPermitted.add(permitted);
+  @Override
+  public SockJSBridgeOptions addInboundPermitted(PermittedOptions permitted) {
+    super.addInboundPermitted(permitted);
     return this;
   }
 
-  public List<PermittedOptions> getInboundPermitteds() {
-    return inboundPermitted;
-  }
-
-  public void setInboundPermitted(List<PermittedOptions> inboundPermitted) {
-    this.inboundPermitted = inboundPermitted;
-  }
-
-  public BridgeOptions addOutboundPermitted(PermittedOptions permitted) {
-    outboundPermitted.add(permitted);
+  @Override
+  public SockJSBridgeOptions setInboundPermitteds(List<PermittedOptions> inboundPermitted) {
+    super.setInboundPermitteds(inboundPermitted);
     return this;
   }
 
-  public List<PermittedOptions> getOutboundPermitteds() {
-    return outboundPermitted;
+  @Override
+  public SockJSBridgeOptions addOutboundPermitted(PermittedOptions permitted) {
+    super.addOutboundPermitted(permitted);
+    return this;
   }
 
-  public void setOutboundPermitted(List<PermittedOptions> outboundPermitted) {
-    this.outboundPermitted = outboundPermitted;
+  @Override
+  public SockJSBridgeOptions setOutboundPermitteds(List<PermittedOptions> outboundPermitted) {
+    super.setOutboundPermitteds(outboundPermitted);
+    return this;
+  }
+
+  @Override
+  public JsonObject toJson() {
+    JsonObject json = new JsonObject();
+    SockJSBridgeOptionsConverter.toJson(this, json);
+    return json;
   }
 }
