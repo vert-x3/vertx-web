@@ -58,8 +58,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private String acceptableContentType;
   private ParsableHeaderValuesContainer parsedHeaders;
 
-  // We use Cookie as the key too so we can return keySet in cookies() without copying
-  private Map<String, Cookie> cookies;
   private Buffer body;
   private Set<FileUpload> fileUploads;
   private Session session;
@@ -385,10 +383,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     statusCode = -1;
     // we need to reset any response headers
     response().headers().clear();
-    // special header case cookies are parsed and cached
-    if (cookies != null) {
-      cookies.clear();
-    }
     // reset the end handlers
     if (headersEndHandlers != null) {
       headersEndHandlers.clear();
