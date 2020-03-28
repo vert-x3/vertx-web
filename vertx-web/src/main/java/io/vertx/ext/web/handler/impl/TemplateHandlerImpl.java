@@ -69,7 +69,9 @@ public class TemplateHandlerImpl implements TemplateHandler {
       }
     }
     // render using the engine
-    engine.render(new JsonObject(context.data()), templateDirectory + file, res -> {
+	JsonObject obj = new JsonObject(context.data());
+	obj.put("context", context) // follow the docs: can access RoutingContext as `context`
+    engine.render(obj, templateDirectory + file, res -> {
       if (res.succeeded()) {
         context.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType).end(res.result());
       } else {
