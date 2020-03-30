@@ -156,14 +156,14 @@ class ApolloWSConnectionHandler {
       builder.variables(variables);
     }
 
-    apolloWSHandler.getGraphQL().executeAsync(builder).thenAccept(executionResult -> {
+    apolloWSHandler.getGraphQL().executeAsync(builder).thenAcceptAsync(executionResult -> {
       if (executionResult.getData() instanceof Publisher) {
         subscribe(opId, executionResult);
       } else {
         sendMessage(opId, DATA, new JsonObject(executionResult.toSpecification()));
         sendMessage(opId, COMPLETE, null);
       }
-    });
+    }, context);
   }
 
   private void subscribe(String opId, ExecutionResult executionResult) {
