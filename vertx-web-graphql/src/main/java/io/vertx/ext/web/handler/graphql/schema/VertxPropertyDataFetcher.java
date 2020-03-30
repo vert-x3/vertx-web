@@ -33,8 +33,8 @@ import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 public interface VertxPropertyDataFetcher {
 
   @GenIgnore(PERMITTED_TYPE)
-  static PropertyDataFetcher create(String propertyName) {
-    return new PropertyDataFetcher(propertyName) {
+  static PropertyDataFetcher<Object> create(String propertyName) {
+    return new PropertyDataFetcher<Object>(propertyName) {
       @Override
       public Object get(DataFetchingEnvironment environment) {
         Object source = environment.getSource();
