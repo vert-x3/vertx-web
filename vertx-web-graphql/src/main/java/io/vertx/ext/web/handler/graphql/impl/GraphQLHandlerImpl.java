@@ -18,11 +18,11 @@ package io.vertx.ext.web.handler.graphql.impl;
 
 import graphql.ExecutionInput;
 import graphql.GraphQL;
-import io.vertx.core.Context;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.NoStackTraceThrowable;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -389,7 +389,6 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   }
 
   private Executor contextExecutor(RoutingContext rc) {
-    Context ctx = rc.vertx().getOrCreateContext();
-    return command -> ctx.runOnContext(v -> command.run());
+    return (ContextInternal) rc.vertx().getOrCreateContext();
   }
 }
