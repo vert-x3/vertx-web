@@ -18,11 +18,13 @@ package io.vertx.ext.web.handler.graphql.impl;
 
 import graphql.ExecutionInput;
 import graphql.GraphQL;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.NoStackTraceThrowable;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -34,14 +36,13 @@ import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 import org.dataloader.DataLoaderRegistry;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.StreamSupport;
 
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
+import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -187,17 +188,12 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   }
 
   private void executeBatch(RoutingContext rc, GraphQLBatch batch) {
-    List<CompletableFuture<JsonObject>> results = StreamSupport.stream(batch.spliterator(), false)
-      .map(q -> execute(rc, q))
-      .collect(toList());
-    CompletableFuture.allOf(results.toArray(new CompletableFuture<?>[0]))
-      .thenApply(v -> {
-        JsonArray jsonArray = results.stream()
-          .map(CompletableFuture::join)
-          .collect(JsonArray::new, JsonArray::add, JsonArray::addAll);
-        return jsonArray.toBuffer();
-      })
-      .whenComplete((buffer, throwable) -> sendResponse(rc, buffer, throwable));
+    @SuppressWarnings("rawtypes")
+    CompositeFuture all = StreamSupport.stream(batch.spliterator(), false)
+      .map(q -> (Future) execute(rc, q))
+      .collect(collectingAndThen(toList(), CompositeFuture::all));
+    all.map(cf -> new JsonArray(cf.list()).toBuffer())
+      .onComplete(ar -> sendResponse(rc, ar));
   }
 
   private void handlePostQuery(RoutingContext rc, GraphQLQuery query, String operationName, Map<String, Object> variables) {
@@ -318,11 +314,11 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
 
   private void executeOne(RoutingContext rc, GraphQLQuery query) {
     execute(rc, query)
-      .thenApply(JsonObject::toBuffer)
-      .whenComplete((buffer, throwable) -> sendResponse(rc, buffer, throwable));
+      .map(JsonObject::toBuffer)
+      .onComplete(ar -> sendResponse(rc, ar));
   }
 
-  private CompletableFuture<JsonObject> execute(RoutingContext rc, GraphQLQuery query) {
+  private Future<JsonObject> execute(RoutingContext rc, GraphQLQuery query) {
     ExecutionInput.Builder builder = ExecutionInput.newExecutionInput();
 
     builder.query(query.getQuery());
@@ -359,9 +355,8 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       builder.locale(locale);
     }
 
-    return graphQL.executeAsync(builder.build()).thenApplyAsync(executionResult -> {
-      return new JsonObject(executionResult.toSpecification());
-    }, contextExecutor(rc));
+    return Future.fromCompletionStage(graphQL.executeAsync(builder.build()), rc.vertx().getOrCreateContext())
+      .map(executionResult -> new JsonObject(executionResult.toSpecification()));
   }
 
   private String getContentType(RoutingContext rc) {
@@ -378,19 +373,15 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     }
   }
 
-  private void sendResponse(RoutingContext rc, Buffer buffer, Throwable throwable) {
-    if (throwable == null) {
-      rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json").end(buffer);
+  private void sendResponse(RoutingContext rc, AsyncResult<Buffer> ar) {
+    if (ar.succeeded()) {
+      rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json").end(ar.result());
     } else {
-      rc.fail(throwable);
+      rc.fail(ar.cause());
     }
   }
 
   private void failQueryMissing(RoutingContext rc) {
     rc.fail(400, new NoStackTraceThrowable("Query is missing"));
-  }
-
-  private Executor contextExecutor(RoutingContext rc) {
-    return (ContextInternal) rc.vertx().getOrCreateContext();
   }
 }
