@@ -190,12 +190,14 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     List<CompletableFuture<JsonObject>> results = StreamSupport.stream(batch.spliterator(), false)
       .map(q -> execute(rc, q))
       .collect(toList());
-    CompletableFuture.allOf((CompletableFuture<?>[]) results.toArray(new CompletableFuture<?>[0])).whenCompleteAsync((v, throwable) -> {
-      JsonArray jsonArray = results.stream()
-        .map(CompletableFuture::join)
-        .collect(JsonArray::new, JsonArray::add, JsonArray::addAll);
-      sendResponse(rc, jsonArray.toBuffer(), throwable);
-    }, contextExecutor(rc));
+    CompletableFuture.allOf(results.toArray(new CompletableFuture<?>[0]))
+      .thenApply(v -> {
+        JsonArray jsonArray = results.stream()
+          .map(CompletableFuture::join)
+          .collect(JsonArray::new, JsonArray::add, JsonArray::addAll);
+        return jsonArray.toBuffer();
+      })
+      .whenComplete((buffer, throwable) -> sendResponse(rc, buffer, throwable));
   }
 
   private void handlePostQuery(RoutingContext rc, GraphQLQuery query, String operationName, Map<String, Object> variables) {

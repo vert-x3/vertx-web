@@ -21,7 +21,10 @@ import graphql.ExecutionResult;
 import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.impl.ContextInternal;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.common.WebEnvironment;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessageType;
 import org.dataloader.DataLoaderRegistry;
@@ -29,6 +32,8 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -42,6 +47,8 @@ import static io.vertx.ext.web.handler.graphql.ApolloWSMessageType.*;
  * @author Rogelio Orts
  */
 class ApolloWSConnectionHandler {
+
+  private static final Logger log = LoggerFactory.getLogger(ApolloWSConnectionHandler.class);
 
   private final ApolloWSHandlerImpl apolloWSHandler;
   private final ServerWebSocket serverWebSocket;
@@ -156,12 +163,19 @@ class ApolloWSConnectionHandler {
       builder.variables(variables);
     }
 
-    apolloWSHandler.getGraphQL().executeAsync(builder).thenAcceptAsync(executionResult -> {
-      if (executionResult.getData() instanceof Publisher) {
-        subscribe(opId, executionResult);
+    apolloWSHandler.getGraphQL().executeAsync(builder).whenCompleteAsync((executionResult, throwable) -> {
+      if (throwable == null) {
+        if (executionResult.getData() instanceof Publisher) {
+          subscribe(opId, executionResult);
+        } else {
+          sendMessage(opId, DATA, new JsonObject(executionResult.toSpecification()));
+          sendMessage(opId, COMPLETE, null);
+        }
       } else {
-        sendMessage(opId, DATA, new JsonObject(executionResult.toSpecification()));
-        sendMessage(opId, COMPLETE, null);
+        if (log.isDebugEnabled()) {
+          log.debug("Failed to execute GraphQL query, opId=" + opId, throwable);
+        }
+        sendMessage(opId, ERROR, toJsonObject(throwable));
       }
     }, context);
   }
@@ -186,7 +200,10 @@ class ApolloWSConnectionHandler {
 
       @Override
       public void onError(Throwable t) {
-        sendMessage(opId, ERROR, new JsonObject().put("message", t.getMessage()));
+        if (log.isDebugEnabled()) {
+          log.debug("GraphQL subscription terminated with error, opId=" + opId, t);
+        }
+        sendMessage(opId, ERROR, toJsonObject(t));
         subscriptions.remove(opId);
       }
 
@@ -204,6 +221,21 @@ class ApolloWSConnectionHandler {
       subscription.cancel();
       subscriptions.remove(opId);
     }
+  }
+
+  private JsonObject toJsonObject(Throwable t) {
+    JsonObject res = new JsonObject().put("message", t.toString());
+    if (WebEnvironment.development()) {
+      StringWriter sw = new StringWriter();
+      try (PrintWriter writer = new PrintWriter(sw)) {
+        t.printStackTrace(writer);
+        writer.flush();
+      }
+      res.put("extension", new JsonObject()
+        .put("exception", new JsonObject()
+          .put("stacktrace", sw.toString())));
+    }
+    return res;
   }
 
   private void sendMessage(String opId, ApolloWSMessageType type, Object payload) {
