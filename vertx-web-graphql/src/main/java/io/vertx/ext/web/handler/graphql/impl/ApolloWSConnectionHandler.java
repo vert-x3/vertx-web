@@ -18,9 +18,10 @@ package io.vertx.ext.web.handler.graphql.impl;
 
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
+import io.vertx.core.Context;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.ServerWebSocket;
-import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessageType;
@@ -34,6 +35,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.vertx.ext.web.handler.graphql.ApolloWSMessageType.*;
@@ -45,12 +47,14 @@ class ApolloWSConnectionHandler {
 
   private final ApolloWSHandlerImpl apolloWSHandler;
   private final ServerWebSocket serverWebSocket;
-  private final ContextInternal context;
+  private final Vertx vertx;
+  private final Executor ctxExecutor;
   private final ConcurrentMap<String, Subscription> subscriptions;
 
-  ApolloWSConnectionHandler(ApolloWSHandlerImpl apolloWSHandler, ContextInternal context, ServerWebSocket serverWebSocket) {
+  ApolloWSConnectionHandler(ApolloWSHandlerImpl apolloWSHandler, Context context, ServerWebSocket serverWebSocket) {
     this.apolloWSHandler = apolloWSHandler;
-    this.context = context;
+    this.vertx = context.owner();
+    this.ctxExecutor = command -> context.runOnContext(v -> command.run());
     this.serverWebSocket = serverWebSocket;
     subscriptions = new ConcurrentHashMap<>();
   }
@@ -113,9 +117,9 @@ class ApolloWSConnectionHandler {
     long keepAlive = apolloWSHandler.getKeepAlive();
     if (keepAlive > 0) {
       sendMessage(null, CONNECTION_KEEP_ALIVE, null);
-      context.owner().setPeriodic(keepAlive, timerId -> {
+      vertx.setPeriodic(keepAlive, timerId -> {
         if (serverWebSocket.isClosed()) {
-          context.owner().cancelTimer(timerId);
+          vertx.cancelTimer(timerId);
         } else {
           sendMessage(null, CONNECTION_KEEP_ALIVE, null);
         }
@@ -163,7 +167,7 @@ class ApolloWSConnectionHandler {
         sendMessage(opId, DATA, new JsonObject(executionResult.toSpecification()));
         sendMessage(opId, COMPLETE, null);
       }
-    }, context);
+    }, ctxExecutor);
   }
 
   private void subscribe(String opId, ExecutionResult executionResult) {

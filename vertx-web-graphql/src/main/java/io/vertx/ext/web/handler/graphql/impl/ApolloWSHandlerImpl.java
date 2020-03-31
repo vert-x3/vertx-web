@@ -17,10 +17,10 @@
 package io.vertx.ext.web.handler.graphql.impl;
 
 import graphql.GraphQL;
+import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.ServerWebSocket;
-import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
@@ -131,7 +131,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   public void handle(RoutingContext routingContext) {
     MultiMap headers = routingContext.request().headers();
     if (headers.contains(CONNECTION) && headers.contains(UPGRADE, WEBSOCKET, true)) {
-      ContextInternal context = (ContextInternal) routingContext.vertx().getOrCreateContext();
+      Context context = routingContext.vertx().getOrCreateContext();
       ServerWebSocket serverWebSocket = routingContext.request().upgrade();
       ApolloWSConnectionHandler connectionHandler = new ApolloWSConnectionHandler(this, context, serverWebSocket);
       connectionHandler.handleConnection();
