@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
@@ -25,6 +26,12 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Consumer;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -76,6 +83,17 @@ public class CORSHandlerTest extends WebTestBase {
       // Make sure the '.' doesn't match like a regex
       req.headers().add("origin", "fooxio");
     }, resp -> checkHeaders(resp, null, null, null, null), 403, "Forbidden", null);
+  }
+
+  @Test
+  @SuppressWarnings ("unchecked")
+  public void testAcceptConstantOriginDeniedErrorHandler() throws Exception {
+    Consumer<RoutingContext> handler = mock(Consumer.class);
+
+    router.route().handler(CorsHandler.create("vertx\\.io"));
+    router.route().handler(context -> context.response().end());
+    router.errorHandler(403, handler::accept);
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "foo.io"), resp -> verify(handler, never()).accept(any()), 403, "Forbidden", null);
   }
 
   @Test
