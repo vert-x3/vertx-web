@@ -76,7 +76,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   private final Map<String, Pattern> compiledREs = new HashMap<>();
   private final Handler<BridgeEvent> bridgeEventHandler;
 
-  public EventBusBridgeImpl(Vertx vertx, BridgeOptions options, Handler<BridgeEvent> bridgeEventHandler) {
+  public EventBusBridgeImpl(Vertx vertx, SockJSBridgeOptions options, Handler<BridgeEvent> bridgeEventHandler) {
     this.vertx = vertx;
     this.eb = vertx.eventBus();
     this.inboundPermitted = options.getInboundPermitteds() == null ? new ArrayList<>() : options.getInboundPermitteds();

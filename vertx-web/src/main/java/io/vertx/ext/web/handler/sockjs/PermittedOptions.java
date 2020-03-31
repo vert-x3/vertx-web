@@ -5,7 +5,7 @@ import io.vertx.core.json.JsonObject;
 
 /**
  * Specify a match to allow for inbound and outbound traffic using the
- * {@link BridgeOptions}.
+ * {@link SockJSBridgeOptions}.
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
