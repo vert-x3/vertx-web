@@ -383,7 +383,7 @@ public class SockJSHandlerTest extends WebTestBase {
   public void testTimeoutCloseCode() {
     router.mountSubRouter("/ws-timeout", SockJSHandler
       .create(vertx)
-      .bridge(new BridgeOptions().setPingTimeout(1))
+      .bridge(new SockJSBridgeOptions().setPingTimeout(1))
     );
 
     client.websocket("/ws-timeout/websocket", ws -> ws.frameHandler(frame -> {
@@ -400,7 +400,7 @@ public class SockJSHandlerTest extends WebTestBase {
   public void testInvalidMessageCode() {
     router.mountSubRouter("/ws-timeout", SockJSHandler
       .create(vertx)
-      .bridge(new BridgeOptions().addInboundPermitted(new PermittedOptions().setAddress("SockJSHandlerTest.testInvalidMessageCode")))
+      .bridge(new SockJSBridgeOptions().addInboundPermitted(new PermittedOptions().setAddress("SockJSHandlerTest.testInvalidMessageCode")))
     );
 
     vertx.eventBus().consumer("SockJSHandlerTest.testInvalidMessageCode", msg -> msg.reply(new JsonObject()));

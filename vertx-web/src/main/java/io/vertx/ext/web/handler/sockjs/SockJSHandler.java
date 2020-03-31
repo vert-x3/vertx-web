@@ -74,16 +74,16 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    * @param bridgeOptions  options to configure the bridge with
    * @return a router to be mounted on an existing router
    */
-  Router bridge(BridgeOptions bridgeOptions);
+  Router bridge(SockJSBridgeOptions bridgeOptions);
 
   /**
-   * Like {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(BridgeOptions)} but specifying a handler
+   * Like {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(SockJSBridgeOptions)} but specifying a handler
    * that will receive bridge events.
    * @param bridgeOptions  options to configure the bridge with
    * @param bridgeEventHandler  handler to receive bridge events
    * @return a router to be mounted on an existing router
    */
-  Router bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler);
+  Router bridge(SockJSBridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler);
 
   /**
    * @deprecated mount the router as a sub-router instead. This method will not properly handle errors.

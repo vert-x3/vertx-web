@@ -45,9 +45,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class EventbusBridgeTest extends WebTestBase {
 
   protected SockJSHandler sockJSHandler;
-  protected BridgeOptions defaultOptions = new BridgeOptions();
-  protected BridgeOptions allAccessOptions =
-    new BridgeOptions().addInboundPermitted(new PermittedOptions()).addOutboundPermitted(new PermittedOptions());
+  protected SockJSBridgeOptions defaultOptions = new SockJSBridgeOptions();
+  protected SockJSBridgeOptions allAccessOptions =
+    new SockJSBridgeOptions().addInboundPermitted(new PermittedOptions()).addOutboundPermitted(new PermittedOptions());
 
   protected String websocketURI = "/eventbus/websocket";
   protected String addr = "someaddress";
@@ -943,7 +943,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(1);
 
-    sockJSHandler.bridge(new BridgeOptions(allAccessOptions).setMaxHandlersPerSocket(maxHandlers));
+    sockJSHandler.bridge(new SockJSBridgeOptions(allAccessOptions).setMaxHandlersPerSocket(maxHandlers));
 
     client.websocket(websocketURI, ws -> {
 
@@ -987,7 +987,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(1);
 
-    sockJSHandler.bridge(new BridgeOptions(allAccessOptions).setMaxAddressLength(10));
+    sockJSHandler.bridge(new SockJSBridgeOptions(allAccessOptions).setMaxAddressLength(10));
 
     client.websocket(websocketURI, ws -> {
 
