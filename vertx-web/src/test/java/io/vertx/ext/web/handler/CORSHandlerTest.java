@@ -30,7 +30,6 @@ import java.util.function.Consumer;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -93,7 +92,7 @@ public class CORSHandlerTest extends WebTestBase {
     router.route().handler(CorsHandler.create("vertx\\.io"));
     router.route().handler(context -> context.response().end());
     router.errorHandler(403, handler::accept);
-    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "foo.io"), resp -> verify(handler, never()).accept(any()), 403, "Forbidden", null);
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "foo.io"), resp -> verify(handler).accept(any()), 403, "Forbidden", null);
   }
 
   @Test
