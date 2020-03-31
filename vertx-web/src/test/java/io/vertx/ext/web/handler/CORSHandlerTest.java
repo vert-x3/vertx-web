@@ -65,7 +65,7 @@ public class CORSHandlerTest extends WebTestBase {
   public void testAcceptConstantOriginDenied1() throws Exception {
     router.route().handler(CorsHandler.create("vertx\\.io"));
     router.route().handler(context -> context.response().end());
-    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "foo.io"), resp -> checkHeaders(resp, null, null, null, null), 403, "CORS Rejected - Invalid origin", null);
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "foo.io"), resp -> checkHeaders(resp, null, null, null, null), 403, "Forbidden", null);
   }
 
   @Test
@@ -75,7 +75,7 @@ public class CORSHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", req -> {
       // Make sure the '.' doesn't match like a regex
       req.headers().add("origin", "fooxio");
-    }, resp -> checkHeaders(resp, null, null, null, null), 403, "CORS Rejected - Invalid origin", null);
+    }, resp -> checkHeaders(resp, null, null, null, null), 403, "Forbidden", null);
   }
 
   @Test
@@ -107,8 +107,8 @@ public class CORSHandlerTest extends WebTestBase {
     // Any subdomains of vertx.io
     router.route().handler(CorsHandler.create(".*\\.vertx\\.io"));
     router.route().handler(context -> context.response().end());
-    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "foo.vertx.com"), resp -> checkHeaders(resp, null, null, null, null), 403, "CORS Rejected - Invalid origin", null);
-    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "barxvertxxio"), resp -> checkHeaders(resp, null, null, null, null), 403, "CORS Rejected - Invalid origin", null);
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "foo.vertx.com"), resp -> checkHeaders(resp, null, null, null, null), 403, "Forbidden", null);
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "barxvertxxio"), resp -> checkHeaders(resp, null, null, null, null), 403, "Forbidden", null);
   }
 
   @Test

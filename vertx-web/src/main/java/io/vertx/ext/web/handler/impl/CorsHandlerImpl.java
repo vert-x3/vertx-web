@@ -163,7 +163,7 @@ public class CorsHandlerImpl implements CorsHandler {
   }
 
   private void sendInvalid(HttpServerResponse resp) {
-    resp.setStatusCode(403).setStatusMessage("CORS Rejected - Invalid origin").end();
+    resp.setStatusCode(403).end();
   }
 
   private boolean isValidOrigin(String origin) {
