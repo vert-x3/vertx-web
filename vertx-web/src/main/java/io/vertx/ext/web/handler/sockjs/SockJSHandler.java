@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.sockjs;
 
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -76,6 +77,12 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    */
   Router bridge(SockJSBridgeOptions bridgeOptions);
 
+  @GenIgnore
+  @Deprecated
+  default Router bridge(BridgeOptions bridgeOptions) {
+    return bridge((SockJSBridgeOptions) bridgeOptions);
+  }
+
   /**
    * Like {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(SockJSBridgeOptions)} but specifying a handler
    * that will receive bridge events.
@@ -84,6 +91,12 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    * @return a router to be mounted on an existing router
    */
   Router bridge(SockJSBridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler);
+
+  @GenIgnore
+  @Deprecated
+  default Router bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
+    return bridge((SockJSBridgeOptions) bridgeOptions, bridgeEventHandler);
+  }
 
   /**
    * @deprecated mount the router as a sub-router instead. This method will not properly handle errors.
