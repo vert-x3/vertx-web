@@ -17,41 +17,39 @@
 package io.vertx.ext.web.handler.graphql.schema.impl;
 
 import graphql.schema.DataFetchingEnvironment;
+import io.vertx.core.Context;
 import io.vertx.core.Promise;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
 
-public class VertxDataFetcherImpl<T> implements VertxDataFetcher<T> {
+public class CallbackDataFetcherImpl<T> implements VertxDataFetcher<T> {
 
   private final BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher;
+  private final ContextInternal context;
 
-  /**
-   * Create a new data fetcher.
-   * The provided function will be invoked with the following arguments:
-   * <ul>
-   * <li>the {@link DataFetchingEnvironment}</li>
-   * <li>a future that the implementor must complete after the data objects are fetched</li>
-   * </ul>
-   */
-  public VertxDataFetcherImpl(BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher) {
-    this.dataFetcher = dataFetcher;
+  public CallbackDataFetcherImpl(BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher, Context context) {
+    this.dataFetcher = Objects.requireNonNull(dataFetcher, "dataFetcher is null");
+    this.context = (ContextInternal) context;
   }
 
   @Override
-  public CompletionStage<T> get(DataFetchingEnvironment environment) {
-    CompletableFuture<T> cf = new CompletableFuture<>();
-    Promise<T> promise = Promise.promise();
-    promise.future().onComplete(ar -> {
-      if (ar.succeeded()) {
-        cf.complete(ar.result());
-      } else {
-        cf.completeExceptionally(ar.cause());
-      }
-    });
-    dataFetcher.accept(environment, promise);
-    return cf;
+  public CompletionStage<T> get(DataFetchingEnvironment env) {
+    Promise<T> promise;
+    if (context == null) {
+      promise = Promise.promise();
+      invokeDataFetcher(env, promise);
+    } else {
+      promise = context.promise();
+      context.runOnContext(v -> invokeDataFetcher(env, promise));
+    }
+    return promise.future().toCompletionStage();
+  }
+
+  private void invokeDataFetcher(DataFetchingEnvironment env, Promise<T> promise) {
+    dataFetcher.accept(env, promise);
   }
 }

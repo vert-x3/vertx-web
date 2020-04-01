@@ -24,7 +24,7 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
-import io.vertx.ext.web.handler.graphql.dataloader.impl.VertxMappedBatchLoaderImpl;
+import io.vertx.ext.web.handler.graphql.dataloader.VertxMappedBatchLoader;
 import org.dataloader.DataLoader;
 import org.dataloader.DataLoaderRegistry;
 import org.dataloader.MappedBatchLoaderWithContext;
@@ -44,7 +44,7 @@ public class VertxMappedBatchLoaderTest extends GraphQLTestBase {
   public void setUp() throws Exception {
     super.setUp();
 
-    MappedBatchLoaderWithContext<String, User> userBatchLoader = new VertxMappedBatchLoaderImpl<>(
+    MappedBatchLoaderWithContext<String, User> userBatchLoader = VertxMappedBatchLoader.create(
       (keys, environment, mapPromise) -> {
         if (batchloaderInvoked.compareAndSet(false, true)) {
           mapPromise.complete(keys
