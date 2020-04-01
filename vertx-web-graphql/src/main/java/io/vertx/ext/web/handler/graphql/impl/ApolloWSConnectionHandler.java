@@ -231,7 +231,7 @@ class ApolloWSConnectionHandler {
         t.printStackTrace(writer);
         writer.flush();
       }
-      res.put("extension", new JsonObject()
+      res.put("extensions", new JsonObject()
         .put("exception", new JsonObject()
           .put("stacktrace", sw.toString())));
     }
