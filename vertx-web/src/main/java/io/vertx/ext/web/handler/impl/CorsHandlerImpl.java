@@ -147,7 +147,11 @@ public class CorsHandlerImpl implements CorsHandler {
         context.next();
       }
     } else {
-      sendInvalid(request.response());
+      context
+        .response()
+        .setStatusMessage("CORS Rejected - Invalid origin");
+      context
+        .fail(403);
     }
   }
 
@@ -160,10 +164,6 @@ public class CorsHandlerImpl implements CorsHandler {
       // Can be '*' too
       response.putHeader(ACCESS_CONTROL_ALLOW_ORIGIN, getAllowedOrigin(origin));
     }
-  }
-
-  private void sendInvalid(HttpServerResponse resp) {
-    resp.setStatusCode(403).setStatusMessage("CORS Rejected - Invalid origin").end();
   }
 
   private boolean isValidOrigin(String origin) {
