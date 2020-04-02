@@ -334,19 +334,25 @@ public class RouterImpl implements Router {
     final RoutingContextImplBase ctx = (RoutingContextImplBase) routingContext;
     final Route route = ctx.currentRoute();
 
-    if (route.getPath() != null && !route.isRegexPath()) {
-      return route.getPath();
-    } else {
-      if (ctx.matchRest != -1) {
-        if (ctx.matchNormalized) {
-          return ctx.normalizedPath().substring(0, ctx.matchRest);
-        } else {
-          return ctx.request().path().substring(0, ctx.matchRest);
-        }
+    if (!route.isRegexPath()) {
+      if (route.getPath() == null) {
+        // null route
+        return "/";
       } else {
-        // failure did not match
-        throw new IllegalStateException("Sub routers must be mounted on paths (constant or parameterized)");
+        // static route e.g.: /foo
+        return route.getPath();
       }
+    }
+    // regex
+    if (ctx.matchRest != -1) {
+      if (ctx.matchNormalized) {
+        return ctx.normalizedPath().substring(0, ctx.matchRest);
+      } else {
+        return ctx.request().path().substring(0, ctx.matchRest);
+      }
+    } else {
+      // failure did not match
+      throw new IllegalStateException("Sub routers must be mounted on paths (constant or parameterized)");
     }
   }
 
