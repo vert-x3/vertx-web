@@ -147,7 +147,11 @@ public class CorsHandlerImpl implements CorsHandler {
         context.next();
       }
     } else {
-      context.fail(403);
+      context
+        .response()
+        .setStatusMessage("CORS Rejected - Invalid origin");
+      context
+        .fail(403);
     }
   }
 
