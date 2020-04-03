@@ -25,19 +25,24 @@ import io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher;
 import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class CallbackDataFetcherImpl<T> implements VertxDataFetcher<T> {
 
   private final BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher;
-  private final ContextInternal context;
+  private final Function<DataFetchingEnvironment, Context> contextProvider;
 
-  public CallbackDataFetcherImpl(BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher, Context context) {
+  public CallbackDataFetcherImpl(
+    BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher,
+    Function<DataFetchingEnvironment, Context> contextProvider
+  ) {
     this.dataFetcher = Objects.requireNonNull(dataFetcher, "dataFetcher is null");
-    this.context = (ContextInternal) context;
+    this.contextProvider = Objects.requireNonNull(contextProvider, "contextProvider is null");
   }
 
   @Override
   public CompletionStage<T> get(DataFetchingEnvironment env) {
+    ContextInternal context = (ContextInternal) contextProvider.apply(env);
     Promise<T> promise;
     if (context == null) {
       promise = Promise.promise();

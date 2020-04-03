@@ -31,6 +31,7 @@ import org.dataloader.MappedBatchLoaderWithContext;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * A {@link MappedBatchLoaderWithContext} that works well with Vert.x callback and {@link Future} based APIs.
@@ -49,21 +50,18 @@ public interface VertxMappedBatchLoader<K, V> extends MappedBatchLoaderWithConte
    * <li>the {@link BatchLoaderEnvironment}</li>
    * <li>a {@link Promise} that the implementor must complete after the data objects are loaded</li>
    * </ul>
-   * <p>
-   * If called from a Vert.x thread, this method will capture the current {@link Context}.
-   * The provided {@code batchLoader} will then be executed on this {@link Context}.
    */
   @GenIgnore
   static <K, V> VertxMappedBatchLoader<K, V> create(TriConsumer<Set<K>, BatchLoaderEnvironment, Promise<Map<K, V>>> batchLoader) {
-    return create(batchLoader, Vertx.currentContext());
+    return create(batchLoader, env -> Vertx.currentContext());
   }
 
   /**
-   * Like {@link #create(TriConsumer)}, except the method uses the provided {@code context} instead of capturing the current one.
+   * Like {@link #create(TriConsumer)}, except the method uses the provided {@code contextProvider} instead of capturing the current one.
    */
   @GenIgnore
-  static <K, V> VertxMappedBatchLoader<K, V> create(TriConsumer<Set<K>, BatchLoaderEnvironment, Promise<Map<K, V>>> batchLoader, Context context) {
-    return new CallbackMappedBatchLoaderImpl<>(batchLoader, Vertx.currentContext());
+  static <K, V> VertxMappedBatchLoader<K, V> create(TriConsumer<Set<K>, BatchLoaderEnvironment, Promise<Map<K, V>>> batchLoader, Function<BatchLoaderEnvironment, Context> contextProvider) {
+    return new CallbackMappedBatchLoaderImpl<>(batchLoader, contextProvider);
   }
 
   /**
@@ -74,20 +72,17 @@ public interface VertxMappedBatchLoader<K, V> extends MappedBatchLoaderWithConte
    * <li>the keys for the data objects that should be loaded</li>
    * <li>the {@link BatchLoaderEnvironment}</li>
    * </ul>
-   * <p>
-   * If called from a Vert.x thread, this method will capture the current {@link Context}.
-   * The provided {@code batchLoader} will then be executed on this {@link Context}.
    */
   @GenIgnore
   static <K, V> VertxMappedBatchLoader<K, V> create(BiFunction<Set<K>, BatchLoaderEnvironment, Future<Map<K, V>>> batchLoader) {
-    return create(batchLoader, Vertx.currentContext());
+    return create(batchLoader, env -> Vertx.currentContext());
   }
 
   /**
-   * Like {@link #create(BiFunction)}, except the method uses the provided {@code context} instead of capturing the current one.
+   * Like {@link #create(BiFunction)}, except the method uses the provided {@code contextProvider} instead of capturing the current one.
    */
   @GenIgnore
-  static <K, V> VertxMappedBatchLoader<K, V> create(BiFunction<Set<K>, BatchLoaderEnvironment, Future<Map<K, V>>> batchLoader, Context context) {
-    return new FutureMappedBatchLoaderImpl<>(batchLoader, Vertx.currentContext());
+  static <K, V> VertxMappedBatchLoader<K, V> create(BiFunction<Set<K>, BatchLoaderEnvironment, Future<Map<K, V>>> batchLoader, Function<BatchLoaderEnvironment, Context> contextProvider) {
+    return new FutureMappedBatchLoaderImpl<>(batchLoader, contextProvider);
   }
 }

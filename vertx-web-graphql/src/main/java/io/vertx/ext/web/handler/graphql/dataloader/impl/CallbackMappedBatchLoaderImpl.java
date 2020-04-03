@@ -24,8 +24,10 @@ import io.vertx.ext.web.handler.graphql.dataloader.VertxMappedBatchLoader;
 import org.dataloader.BatchLoaderEnvironment;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
 /**
  * @author Craig Day
@@ -33,15 +35,19 @@ import java.util.concurrent.CompletionStage;
 public class CallbackMappedBatchLoaderImpl<K, V> implements VertxMappedBatchLoader<K, V> {
 
   private final TriConsumer<Set<K>, BatchLoaderEnvironment, Promise<Map<K, V>>> batchLoader;
-  private final ContextInternal context;
+  private final Function<BatchLoaderEnvironment, Context> contextProvider;
 
-  public CallbackMappedBatchLoaderImpl(TriConsumer<Set<K>, BatchLoaderEnvironment, Promise<Map<K, V>>> batchLoader, Context context) {
-    this.batchLoader = batchLoader;
-    this.context = (ContextInternal) context;
+  public CallbackMappedBatchLoaderImpl(
+    TriConsumer<Set<K>, BatchLoaderEnvironment, Promise<Map<K, V>>> batchLoader,
+    Function<BatchLoaderEnvironment, Context> contextProvider
+  ) {
+    this.batchLoader = Objects.requireNonNull(batchLoader, "batchLoader is null");
+    this.contextProvider = Objects.requireNonNull(contextProvider, "contextProvider is null");
   }
 
   @Override
   public CompletionStage<Map<K, V>> load(Set<K> keys, BatchLoaderEnvironment env) {
+    ContextInternal context = (ContextInternal) contextProvider.apply(env);
     Promise<Map<K, V>> promise;
     if (context == null) {
       promise = Promise.promise();

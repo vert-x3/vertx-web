@@ -47,21 +47,18 @@ public interface VertxDataFetcher<T> extends DataFetcher<CompletionStage<T>> {
    * <li>the {@link DataFetchingEnvironment}</li>
    * <li>a {@link Promise} that the implementor must complete after the data objects are fetched</li>
    * </ul>
-   * <p>
-   * If called from a Vert.x thread, this method will capture the current {@link Context}.
-   * The provided {@code dataFetcher} will then be executed on this {@link Context}.
    */
   @GenIgnore
   static <T> VertxDataFetcher<T> create(BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher) {
-    return create(dataFetcher, Vertx.currentContext());
+    return create(dataFetcher, env -> Vertx.currentContext());
   }
 
   /**
-   * Like {@link #create(BiConsumer)}, except the method uses the provided {@code context} instead of capturing the current one.
+   * Like {@link #create(BiConsumer)}, except the method uses the provided {@code contextProvider} instead of capturing the current one.
    */
   @GenIgnore
-  static <T> VertxDataFetcher<T> create(BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher, Context context) {
-    return new CallbackDataFetcherImpl<>(dataFetcher, context);
+  static <T> VertxDataFetcher<T> create(BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher, Function<DataFetchingEnvironment, Context> contextProvider) {
+    return new CallbackDataFetcherImpl<>(dataFetcher, contextProvider);
   }
 
   /**
@@ -71,20 +68,17 @@ public interface VertxDataFetcher<T> extends DataFetcher<CompletionStage<T>> {
    * <ul>
    * <li>the {@link DataFetchingEnvironment}</li>
    * </ul>
-   * <p>
-   * If called from a Vert.x thread, this method will capture the current {@link Context}.
-   * The provided {@code dataFetcher} will then be executed on this {@link Context}.
    */
   @GenIgnore
   static <T> VertxDataFetcher<T> create(Function<DataFetchingEnvironment, Future<T>> dataFetcher) {
-    return create(dataFetcher, Vertx.currentContext());
+    return create(dataFetcher, env -> Vertx.currentContext());
   }
 
   /**
-   * Like {@link #create(Function)}, except the method uses the provided {@code context} instead of capturing the current one.
+   * Like {@link #create(Function)}, except the method uses the provided {@code contextProvider} instead of capturing the current one.
    */
   @GenIgnore
-  static <T> VertxDataFetcher<T> create(Function<DataFetchingEnvironment, Future<T>> dataFetcher, Context context) {
-    return new FutureDataFetcherImpl<>(dataFetcher, context);
+  static <T> VertxDataFetcher<T> create(Function<DataFetchingEnvironment, Future<T>> dataFetcher, Function<DataFetchingEnvironment, Context> contextProvider) {
+    return new FutureDataFetcherImpl<>(dataFetcher, contextProvider);
   }
 }

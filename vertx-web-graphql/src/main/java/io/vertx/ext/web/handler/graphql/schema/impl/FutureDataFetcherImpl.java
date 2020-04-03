@@ -30,15 +30,19 @@ import java.util.function.Function;
 public class FutureDataFetcherImpl<T> implements VertxDataFetcher<T> {
 
   private final Function<DataFetchingEnvironment, Future<T>> dataFetcher;
-  private final ContextInternal context;
+  private final Function<DataFetchingEnvironment, Context> contextProvider;
 
-  public FutureDataFetcherImpl(Function<DataFetchingEnvironment, Future<T>> dataFetcher, Context context) {
+  public FutureDataFetcherImpl(
+    Function<DataFetchingEnvironment, Future<T>> dataFetcher,
+    Function<DataFetchingEnvironment, Context> contextProvider
+  ) {
     this.dataFetcher = Objects.requireNonNull(dataFetcher, "dataFetcher is null");
-    this.context = (ContextInternal) context;
+    this.contextProvider = Objects.requireNonNull(contextProvider, "contextProvider is null");
   }
 
   @Override
   public CompletionStage<T> get(DataFetchingEnvironment env) {
+    ContextInternal context = (ContextInternal) contextProvider.apply(env);
     Promise<T> promise;
     if (context == null) {
       promise = Promise.promise();
