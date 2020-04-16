@@ -192,7 +192,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
                               opEntry.getValue(),
                               pathEntry.getValue()
                           ));
-          } else {
+          } else if (LOG.isWarnEnabled()) {
               LOG.warn("The operation '"+ opEntry.getKey() + "' from path '" + 
                       pathEntry.getKey()+"' is being ignored because it doesn't have an operationId");
           }
