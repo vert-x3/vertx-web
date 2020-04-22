@@ -9,6 +9,8 @@ import io.swagger.v3.parser.ResolverCache;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
@@ -28,6 +30,13 @@ import java.util.*;
  */
 public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implements
   OpenAPI3RouterFactory {
+
+    /**
+    * The class Logger
+    */
+  private final static Logger LOG = LoggerFactory
+        .getLogger(OpenAPI3RouterFactoryImpl.class);
+
 
   private final static String OPENAPI_EXTENSION = "x-vertx-event-bus";
   private final static String OPENAPI_EXTENSION_ADDRESS = "address";
@@ -158,12 +167,18 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     /* --- Initialization of all arrays and maps --- */
     for (Map.Entry<String, ? extends PathItem> pathEntry : spec.getPaths().entrySet()) {
       for (Map.Entry<PathItem.HttpMethod, ? extends Operation> opEntry : pathEntry.getValue().readOperationsMap().entrySet()) {
-        this.operations.put(opEntry.getValue().getOperationId(), new OperationValue(
-          HttpMethod.valueOf(opEntry.getKey().name()),
-          pathEntry.getKey(),
-          opEntry.getValue(),
-          pathEntry.getValue()
-        ));
+          if (opEntry.getValue().getOperationId() != null) {
+              this.operations.put(opEntry.getValue().getOperationId(),
+                      new OperationValue(
+                              HttpMethod.valueOf(opEntry.getKey().name()),
+                              pathEntry.getKey(),
+                              opEntry.getValue(),
+                              pathEntry.getValue()
+                          ));
+          } else if (LOG.isWarnEnabled()) {
+              LOG.warn("The operation '"+ opEntry.getKey() + "' from path '" +
+                      pathEntry.getKey()+"' is being ignored because it doesn't have an operationId");
+          }
       }
     }
   }

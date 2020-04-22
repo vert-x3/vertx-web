@@ -26,6 +26,8 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -658,6 +660,23 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
     startServer();
 
     testRequest(HttpMethod.GET, "/pets", 404, "Not Found");
+  }
+
+  @Test
+  public void notMountMissingOperationId() throws Exception {
+      CountDownLatch latch = new CountDownLatch(1);
+      OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/operation_without_operationId.yaml",
+              openAPI3RouterFactoryAsyncResult -> {
+                  routerFactory = openAPI3RouterFactoryAsyncResult.result();
+                  routerFactory.mountServicesFromExtensions();
+                  assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
+                  latch.countDown();
+              });
+      awaitLatch(latch);
+
+      startServer();
+
+      testRequest(HttpMethod.GET, "/test1", 404, "Not Found");
   }
 
   @Test
