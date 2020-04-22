@@ -25,7 +25,7 @@ import java.util.Set;
  */
 public class WebApiProxyModel extends ProxyModel {
 
-  private static final String SIGNATURE_CONSTRAINT_ERROR = "Method must respect signature Future<io.vertx.ext.web.api.OperationResponse> foo(extractedParams..., io.vertx.ext.web.api.OperationRequest request) or foo(extractedParams..., io.vertx.ext.web.api.OperationRequest request, Handler<AsyncResult<io.vertx.ext.web.api.OperationResponse>> handler)";
+  private static final String SIGNATURE_CONSTRAINT_ERROR = "Method must respect signature Future<io.vertx.ext.web.api.ServiceResponse> foo(extractedParams..., io.vertx.ext.web.api.ServiceRequest request) or foo(extractedParams..., io.vertx.ext.web.api.ServiceRequest request, Handler<AsyncResult<io.vertx.ext.web.api.ServiceResponse>> handler)";
 
   public WebApiProxyModel(ProcessingEnvironment env, TypeMirrorFactory typeFactory,TypeElement modelElt) {
     super(env, typeFactory, modelElt);
@@ -62,19 +62,19 @@ public class WebApiProxyModel extends ProxyModel {
         throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);
       }
 
-      TypeInfo shouldBeOperationRequest;
+      TypeInfo shouldBeServiceRequest;
       if (baseInfo.getKind() == MethodKind.FUTURE) {
         if (mParams.size() <= 1) {
           throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);
         }
-        shouldBeOperationRequest = mParams.get(mParams.size() - 2).getType();
+        shouldBeServiceRequest = mParams.get(mParams.size() - 2).getType();
       } else {
         if (mParams.size() == 0) {
           throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);
         }
-        shouldBeOperationRequest = mParams.get(mParams.size() - 1).getType();
+        shouldBeServiceRequest = mParams.get(mParams.size() - 1).getType();
       }
-      if (!ServiceRequest.class.getName().equals(shouldBeOperationRequest.getName())) {
+      if (!ServiceRequest.class.getName().equals(shouldBeServiceRequest.getName())) {
         throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);
       }
 
