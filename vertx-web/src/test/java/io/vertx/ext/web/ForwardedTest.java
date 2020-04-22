@@ -16,9 +16,13 @@
 
 package io.vertx.ext.web;
 
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.MultiMap;
+import io.vertx.core.http.*;
 import org.junit.Test;
 
+import java.util.concurrent.CountDownLatch;
+
+import static io.vertx.core.http.HttpHeaders.*;
 import static io.vertx.ext.web.AllowForwardHeaders.*;
 
 public class ForwardedTest extends WebTestBase {
@@ -57,6 +61,7 @@ public class ForwardedTest extends WebTestBase {
 
     testRequest("X-Forwarded-Ssl", "On");
   }
+
   @Test
   public void testForwardedProto() throws Exception {
     router.allowForward(ALL).route("/").handler(rc -> {
@@ -330,6 +335,31 @@ public class ForwardedTest extends WebTestBase {
       while (i < headers.length)
         req.putHeader(headers[i++], headers[i++]);
     }, 200, "OK", null);
+  }
+
+  @Test
+  public void testForwardedForAndWebSocket() throws Exception {
+    CountDownLatch latch = new CountDownLatch(2);
+    String host = "vertx.io:1234";
+    String address = "1.2.3.4";
+    router.allowForward(ALL).route("/ws").handler(rc -> {
+      HttpServerRequest request = rc.request();
+      MultiMap headers = request.headers();
+      if (headers.contains(CONNECTION) && headers.contains(UPGRADE, WEBSOCKET, true)) {
+        ServerWebSocket socket = request.upgrade();
+        assertTrue(socket.host().equals(host));
+        assertTrue(socket.isSsl());
+        assertTrue(socket.remoteAddress().host().equals(address));
+        latch.countDown();
+      } else {
+        fail("Expected websocket connection");
+      }
+    });
+
+    client.webSocket(new WebSocketConnectOptions().setURI("/ws").addHeader("Forwarded", "host=" + host + ";proto=https" + ";for=" + address), onSuccess(e -> {
+      latch.countDown();
+    }));
+    awaitLatch(latch);
   }
 
 }

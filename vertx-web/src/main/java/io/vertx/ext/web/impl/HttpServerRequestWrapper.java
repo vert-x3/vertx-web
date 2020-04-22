@@ -280,7 +280,7 @@ class HttpServerRequestWrapper implements HttpServerRequest {
 
   @Override
   public ServerWebSocket upgrade() {
-    return delegate.upgrade();
+    return new ServerWebSocketWrapper(delegate.upgrade(), host(), scheme(), isSSL(), remoteAddress());
   }
 
   @Override
