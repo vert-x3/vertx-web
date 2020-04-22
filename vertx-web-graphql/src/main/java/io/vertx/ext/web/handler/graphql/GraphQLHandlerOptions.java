@@ -47,7 +47,6 @@ public class GraphQLHandlerOptions {
    */
   public GraphQLHandlerOptions(GraphQLHandlerOptions other) {
     requestBatchingEnabled = other.requestBatchingEnabled;
-    requestMultipartEnabled = other.requestMultipartEnabled;
   }
 
   /**
