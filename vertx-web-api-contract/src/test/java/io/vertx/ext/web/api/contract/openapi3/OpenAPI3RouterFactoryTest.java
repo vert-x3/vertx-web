@@ -715,6 +715,29 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
   }
 
   @Test
+  public void mountWithArrayParameter() throws Exception {
+	  CountDownLatch latch = new CountDownLatch(1);
+	    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/scenario_with_array_parameter.yaml",
+	      openAPI3RouterFactoryAsyncResult -> {
+	        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+	        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
+
+	        routerFactory.addHandlerByOperationId("getThings", routingContext -> routingContext
+	          .response()
+	          .setStatusCode(200)
+	          .setStatusMessage("OK")
+	          .end());
+
+	        latch.countDown();
+	      });
+	    awaitLatch(latch);
+
+	    startServer();
+
+	    testRequest(HttpMethod.GET, "/things?filter=[{\"field\":\"size\",\"operator\":\"gt\",\"value\":\"20\"},]", 200, "OK");
+  }
+  
+  @Test
   public void addGlobalHandlersTest() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
