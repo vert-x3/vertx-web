@@ -1,42 +1,33 @@
 package io.vertx.ext.web.validation;
 
-import io.vertx.codegen.annotations.DataObject;
-import io.vertx.core.json.JsonObject;
+import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.ext.web.validation.impl.RequestPredicateResultImpl;
 
 /**
- * Data object representing a Request predicate result
+ * Result of a {@link RequestPredicate}
  */
-@DataObject
-public class RequestPredicateResult {
+@VertxGen
+public interface RequestPredicateResult {
 
-  private String errorMessage;
+  /**
+   * Predicate succeeded
+   *
+   * @return
+   */
+  boolean succeeded();
 
-  public RequestPredicateResult(JsonObject obj) {
-    this(obj.getString("errorMessage"));
+  /**
+   * Get error of failure
+   *
+   * @return
+   */
+  String getErrorMessage();
+
+  static RequestPredicateResult success() {
+    return new RequestPredicateResultImpl(null);
   }
 
-  private RequestPredicateResult(String exception) {
-    this.errorMessage = exception;
+  static RequestPredicateResult failed(String message) {
+    return new RequestPredicateResultImpl(message);
   }
-
-  public JsonObject toJson() {
-    return new JsonObject().put("errorMessage", errorMessage);
-  }
-
-  public boolean succeeded() {
-    return errorMessage == null;
-  }
-
-  public String getErrorMessage() {
-    return errorMessage;
-  }
-
-  public static RequestPredicateResult success() {
-    return new RequestPredicateResult((String)null);
-  }
-
-  public static RequestPredicateResult failed(String message) {
-    return new RequestPredicateResult(message);
-  }
-
 }
