@@ -51,6 +51,9 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private AtomicInteger handlerSeq = new AtomicInteger();
   private Map<Integer, Handler<Void>> headersEndHandlers;
   private Map<Integer, Handler<Void>> bodyEndHandlers;
+  private Map<Integer, Handler<Void>> exceptionHandlers;
+  private Map<Integer, Handler<Void>> closeHandlers;
+  private Map<Integer, Handler<Void>> endHandlers;
   private Throwable failure;
   private int statusCode = -1;
   private String normalizedPath;
@@ -62,6 +65,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Session session;
   private User user;
   private boolean isSessionAccessed = false;
+  private boolean endHandlerCalled = false;
 
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
     super(mountPoint, routes);
@@ -354,6 +358,44 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
+  public int addExceptionHandler(Handler<Void> handler) {
+    int seq = nextHandlerSeq();
+    getExceptionHandlers().put(seq, handler);
+    return seq;
+  }
+
+  @Override
+  public boolean removeExceptionHandler(int handlerID) {
+    return getExceptionHandlers().remove(handlerID) != null;
+  }
+
+  @Override
+  public int addCloseHandler(Handler<Void> handler) {
+    int seq = nextHandlerSeq();
+    getCloseHandlers().put(seq, handler);
+    return seq;
+  }
+
+  @Override
+  public boolean removeCloseHandler(int handlerID) {
+    return getCloseHandlers().remove(handlerID) != null;
+  }
+
+  @Override
+  public int addEndHandler(Handler<Void> handler) {
+    int seq = nextHandlerSeq();
+    getEndHandlers().put(seq, handler);
+    return seq;
+  }
+
+  @Override
+  public boolean removeEndHandler(int handlerID) {
+    return getExceptionHandlers().remove(handlerID) != null &&
+      getCloseHandlers().remove(handlerID) != null &&
+      getEndHandlers().remove(handlerID) != null;
+  }
+
+  @Override
   public void reroute(HttpMethod method, String path) {
     if (path.charAt(0) != '/') {
       throw new IllegalArgumentException("path must start with '/'");
@@ -440,6 +482,43 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       response().bodyEndHandler(v -> bodyEndHandlers.values().forEach(handler -> handler.handle(null)));
     }
     return bodyEndHandlers;
+  }
+
+  private Map<Integer, Handler<Void>> getExceptionHandlers() {
+    if (exceptionHandlers == null) {
+      // order is important we we should traverse backwards
+      exceptionHandlers = new TreeMap<>(Collections.reverseOrder());
+      response().exceptionHandler(v -> exceptionHandlers.values().forEach(handler -> handler.handle(null)));
+    }
+    return exceptionHandlers;
+  }
+
+  private Map<Integer, Handler<Void>> getCloseHandlers() {
+    if (closeHandlers == null) {
+      // order is important we we should traverse backwards
+      closeHandlers = new TreeMap<>(Collections.reverseOrder());
+      response().closeHandler(v -> closeHandlers.values().forEach(handler -> handler.handle(null)));
+    }
+    return closeHandlers;
+  }
+
+  private Map<Integer, Handler<Void>> getEndHandlers() {
+    if (endHandlers == null) {
+      // order is important we we should traverse backwards
+      endHandlers = new TreeMap<>(Collections.reverseOrder());
+
+      final Handler<Void> endHandler = v -> {
+        if (!endHandlerCalled) {
+          endHandlers.values().forEach(handler -> handler.handle(null));
+        }
+        endHandlerCalled = true;
+      };
+
+      response().endHandler(endHandler);
+      addExceptionHandler(endHandler);
+      addCloseHandler(endHandler);
+    }
+    return endHandlers;
   }
 
   private Set<FileUpload> getFileUploads() {

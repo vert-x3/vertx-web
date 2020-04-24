@@ -132,6 +132,36 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public int addExceptionHandler(Handler<Void> handler) {
+    return inner.addExceptionHandler(handler);
+  }
+
+  @Override
+  public boolean removeExceptionHandler(int handlerID) {
+    return inner.removeExceptionHandler(handlerID);
+  }
+
+  @Override
+  public int addCloseHandler(Handler<Void> handler) {
+    return inner.addCloseHandler(handler);
+  }
+
+  @Override
+  public boolean removeCloseHandler(int handlerID) {
+    return inner.removeCloseHandler(handlerID);
+  }
+
+  @Override
+  public int addEndHandler(Handler<Void> handler) {
+    return inner.addEndHandler(handler);
+  }
+
+  @Override
+  public boolean removeEndHandler(int handlerID) {
+    return inner.removeEndHandler(handlerID);
+  }
+
+  @Override
   public void setSession(Session session) {
     inner.setSession(session);
   }
