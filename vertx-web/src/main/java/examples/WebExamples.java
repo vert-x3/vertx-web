@@ -1583,4 +1583,27 @@ public class WebExamples {
     // secure the remaining routes
     router.route().handler(webAuthNHandler);
   }
+
+  public void example76(Vertx vertx, Router router) {
+    // we can now allow forward header parsing
+    // and in this case only the "Forward" header will be considered
+    router.allowForward(AllowForwardHeaders.FORWARD);
+
+    // we can now allow forward header parsing
+    // and in this case only the "X-Forward" headers will be considered
+    router.allowForward(AllowForwardHeaders.X_FORWARD);
+
+    // we can now allow forward header parsing
+    // and in this case both the "Forward" header and "X-Forward" headers
+    // will be considered, yet the values from "Forward" take precedence
+    // this means if case of a conflict (2 headers for the same value)
+    // the "Forward" value will be taken and the "X-Forward" ignored.
+    router.allowForward(AllowForwardHeaders.ALL);
+  }
+
+  public void example77(Vertx vertx, Router router) {
+    // we explicitly not allow forward header parsing
+    // of any kind
+    router.allowForward(AllowForwardHeaders.NONE);
+  }
 }

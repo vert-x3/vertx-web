@@ -542,6 +542,44 @@ You can disable a route with {@link io.vertx.ext.web.Route#disable}. A disabled 
 
 You can re-enable a disabled route with {@link io.vertx.ext.web.Route#enable}
 
+== Forward Support
+
+Your application may be behind a proxy server, `HAProxy` for example. When working under this setup accessing the
+client connection details will not properly return the expected results. For example the client host ip address will
+be the proxy server ip address, not the client's one.
+
+In order to get the right connection information, a special header `Forward` has been standardized to include the right
+information. However this standard is not very old, so many proxies out there have been using other headers that usually
+start with the prefix: `X-Forward`. Vert.x web allows the usage and parsing of these headers but not by default.
+
+The reason why these headers are disabled by default is to prevent malicious applications to forge their origin and hide
+where they are really coming from.
+
+As previously mentioned forward is disabled by default, to enable you should use:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example76}
+----
+
+Same rule applies to explicitly disable the parsing of the headers:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example77}
+----
+
+To read more about the format of the header format, please consult:
+
+* https://tools.ietf.org/html/rfc7239#section-4
+* https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded
+
+Behind the scenes, what this feature does is changing the following values of your connection (either HTTP or WebSocket):
+
+* protocol
+* host name
+* host port
+
 == Context data
 
 You can use the context data in the {@link io.vertx.ext.web.RoutingContext} to maintain any data that you
