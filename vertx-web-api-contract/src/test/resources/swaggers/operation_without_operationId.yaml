@@ -1,0 +1,18 @@
+# https://swagger.io/docs/specification/using-ref/
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: JSON Schemas test spec
+  license:
+    name: MIT
+paths:
+  /test1:
+    x-vertx-event-bus:
+     address: test.admin
+     timeout: 1000
+
+    get:
+      responses:
+        default:
+          description: "OK"
+

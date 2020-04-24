@@ -1,5 +1,15 @@
 package io.vertx.ext.web.api.contract.openapi3.impl;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -9,6 +19,8 @@ import io.swagger.v3.parser.ResolverCache;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
@@ -20,15 +32,19 @@ import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.impl.RouteImpl;
 
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.stream.Collectors;
-
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implements
   OpenAPI3RouterFactory {
+    
+
+    /**
+    * The class Logger
+    */
+  private final static Logger LOG = LoggerFactory
+        .getLogger(OpenAPI3RouterFactoryImpl.class);
+  
 
   private final static String OPENAPI_EXTENSION = "x-vertx-event-bus";
   private final static String OPENAPI_EXTENSION_ADDRESS = "address";
@@ -168,12 +184,18 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     /* --- Initialization of all arrays and maps --- */
     for (Map.Entry<String, ? extends PathItem> pathEntry : spec.getPaths().entrySet()) {
       for (Map.Entry<PathItem.HttpMethod, ? extends Operation> opEntry : pathEntry.getValue().readOperationsMap().entrySet()) {
-        this.operations.put(opEntry.getValue().getOperationId(), new OperationValue(
-          HttpMethod.valueOf(opEntry.getKey().name()),
-          pathEntry.getKey(),
-          opEntry.getValue(),
-          pathEntry.getValue()
-        ));
+          if (opEntry.getValue().getOperationId() != null) {
+              this.operations.put(opEntry.getValue().getOperationId(), 
+                      new OperationValue(
+                              HttpMethod.valueOf(opEntry.getKey().name()),
+                              pathEntry.getKey(),
+                              opEntry.getValue(),
+                              pathEntry.getValue()
+                          ));
+          } else if (LOG.isWarnEnabled()) {
+              LOG.warn("The operation '"+ opEntry.getKey() + "' from path '" + 
+                      pathEntry.getKey()+"' is being ignored because it doesn't have an operationId");
+          }
       }
     }
   }

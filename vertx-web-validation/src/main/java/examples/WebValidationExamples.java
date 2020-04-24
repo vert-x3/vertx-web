@@ -16,7 +16,7 @@ import static io.vertx.ext.json.schema.draft7.dsl.Schemas.intSchema;
 import static io.vertx.ext.web.validation.builder.Parameters.param;
 
 @Source
-public class Examples {
+public class WebValidationExamples {
 
   public void withoutWebValidation(Router router) {
     router
