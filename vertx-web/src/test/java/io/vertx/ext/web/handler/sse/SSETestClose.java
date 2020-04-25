@@ -35,9 +35,7 @@ public class SSETestClose extends SSETestBase {
     eventSource.connect("/sse?token=" + TOKEN, handler -> {
       assertTrue(handler.succeeded());
       assertNotNull(connection);
-      sseHandler.closeHandler(sse -> {
-        latch.countDown();
-      });
+      connection.closeHandler(sse -> latch.countDown());
       waitSafely();
       eventSource.close(); /* closed by client */
     });

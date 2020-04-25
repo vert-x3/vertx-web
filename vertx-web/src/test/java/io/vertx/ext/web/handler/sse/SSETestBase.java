@@ -61,7 +61,7 @@ abstract class SSETestBase extends VertxTestBase {
     sseHandler.connectHandler(connection -> {
       this.connection = connection; // accept
     });
-    sseHandler.closeHandler(connection -> {
+    connection.closeHandler(connection -> {
       if (this.connection != null) {
         this.connection = null;
       }
