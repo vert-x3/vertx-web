@@ -24,7 +24,6 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sse.SSEConnection;
-import io.vertx.ext.web.handler.sse.SSEHeaders;
 
 import java.util.ArrayList;
 import java.util.List;
