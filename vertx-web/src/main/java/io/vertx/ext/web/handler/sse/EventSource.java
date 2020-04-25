@@ -46,6 +46,11 @@ public interface EventSource {
   EventSource onEvent(String eventName, Handler<String> handler);
 
   @Fluent
+  default EventSource addEventListener(String eventName, Handler<String> handler) {
+    return onEvent(eventName, handler);
+  }
+
+  @Fluent
   default EventSource onClose(Handler<Void> handler) {
     return this;
   }
