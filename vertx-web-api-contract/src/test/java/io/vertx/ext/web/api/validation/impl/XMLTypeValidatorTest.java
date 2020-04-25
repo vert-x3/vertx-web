@@ -37,10 +37,12 @@ public class XMLTypeValidatorTest {
       if (e.getCause() instanceof SAXParseException) {
         SAXParseException xxe = (SAXParseException) e.getCause();
         // here comes the nasty XXE verification
-        if (xxe.getSystemId() == null && xxe.getMessage().contains("Failed to read external document")) {
+        String message = xxe.getMessage();
+
+        if (xxe.getSystemId() == null && message.contains(tempFile.getName()) && message.contains("accessExternalDTD")) {
           // we're safe, the parsed failed to load the XXE
         } else {
-          fail("XML got access to FS: " + xxe.getMessage());
+          fail("XML got access to FS: " + message);
         }
       }
     }

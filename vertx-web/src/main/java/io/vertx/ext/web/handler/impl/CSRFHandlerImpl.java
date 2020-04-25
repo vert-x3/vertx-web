@@ -219,8 +219,8 @@ public class CSRFHandlerImpl implements CSRFHandler {
     HttpMethod method = ctx.request().method();
     Session session = ctx.session();
 
-    switch (method) {
-      case GET:
+    switch (method.name()) {
+      case "GET":
         final String token;
         if (session == null) {
           // if there's no session to store values, tokens are issued on every request
@@ -248,10 +248,10 @@ public class CSRFHandlerImpl implements CSRFHandler {
         ctx.put(headerName, token);
         ctx.next();
         break;
-      case POST:
-      case PUT:
-      case DELETE:
-      case PATCH:
+      case "POST":
+      case "PUT":
+      case "DELETE":
+      case "PATCH":
         if (validateRequest(ctx)) {
           ctx.next();
         } else {

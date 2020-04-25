@@ -53,7 +53,7 @@ public class VertxBatchLoaderImpl<K, V> implements VertxBatchLoader<K, V> {
   public CompletionStage<List<V>> load(List<K> keys, BatchLoaderEnvironment environment) {
     CompletableFuture<List<V>> cf = new CompletableFuture<>();
     Promise<List<V>> promise = Promise.promise();
-    promise.future().setHandler(ar -> {
+    promise.future().onComplete(ar -> {
       if (ar.succeeded()) {
         cf.complete(ar.result());
       } else {

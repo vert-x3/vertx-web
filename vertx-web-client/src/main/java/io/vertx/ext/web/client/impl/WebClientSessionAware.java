@@ -10,7 +10,8 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import io.vertx.core.http.CaseInsensitiveHeaders;
+import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientSession;
 import io.vertx.ext.web.client.spi.CookieStore;
@@ -21,7 +22,7 @@ import io.vertx.ext.web.client.spi.CookieStore;
 public class WebClientSessionAware extends WebClientBase implements WebClientSession {
 
   private final CookieStore cookieStore;
-  private CaseInsensitiveHeaders headers;
+  private MultiMap headers;
 
   public WebClientSessionAware(WebClient webClient, CookieStore cookieStore) {
     super((WebClientBase) webClient);
@@ -33,9 +34,9 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
     return cookieStore;
   }
 
-  protected CaseInsensitiveHeaders headers() {
+  protected MultiMap headers() {
     if (headers == null) {
-      headers = new CaseInsensitiveHeaders();
+      headers = HttpHeaders.headers();
     }
     return headers;
   }

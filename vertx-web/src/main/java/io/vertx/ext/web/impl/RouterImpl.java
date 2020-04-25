@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.ext.web.AllowForwardHeaders;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -265,13 +266,13 @@ public class RouterImpl implements Router {
   }
 
   @Override
-  public synchronized Router allowForward(boolean allow) {
-    state = state.setAllowForward(allow);
+  public synchronized Router allowForward(AllowForwardHeaders allowForwardHeaders) {
+    state = state.setAllowForward(allowForwardHeaders);
     return this;
   }
 
-  public boolean isAllowForward() {
-    return state.isAllowForward();
+  public AllowForwardHeaders getAllowForward() {
+    return state.getAllowForward();
   }
 
   @Override
@@ -333,19 +334,25 @@ public class RouterImpl implements Router {
     final RoutingContextImplBase ctx = (RoutingContextImplBase) routingContext;
     final Route route = ctx.currentRoute();
 
-    if (route.getPath() != null && !route.isRegexPath()) {
-      return route.getPath();
-    } else {
-      if (ctx.matchRest != -1) {
-        if (ctx.matchNormalized) {
-          return ctx.normalizedPath().substring(0, ctx.matchRest);
-        } else {
-          return ctx.request().path().substring(0, ctx.matchRest);
-        }
+    if (!route.isRegexPath()) {
+      if (route.getPath() == null) {
+        // null route
+        return "/";
       } else {
-        // failure did not match
-        throw new IllegalStateException("Sub routers must be mounted on paths (constant or parameterized)");
+        // static route e.g.: /foo
+        return route.getPath();
       }
+    }
+    // regex
+    if (ctx.matchRest != -1) {
+      if (ctx.matchNormalized) {
+        return ctx.normalizedPath().substring(0, ctx.matchRest);
+      } else {
+        return ctx.request().path().substring(0, ctx.matchRest);
+      }
+    } else {
+      // failure did not match
+      throw new IllegalStateException("Sub routers must be mounted on paths (constant or parameterized)");
     }
   }
 

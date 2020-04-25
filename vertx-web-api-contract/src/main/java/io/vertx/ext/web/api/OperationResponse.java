@@ -4,7 +4,6 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -30,7 +29,7 @@ public class OperationResponse {
     OperationResponseConverter.fromJson(json, this);
     JsonObject hdrs = json.getJsonObject("headers", null);
     if (hdrs != null) {
-      headers = new CaseInsensitiveHeaders();
+      headers = HttpHeaders.headers();
       for (Map.Entry<String, Object> entry: hdrs) {
         if (!(entry.getValue() instanceof String)) {
           throw new IllegalStateException("Invalid type for message header value " + entry.getValue().getClass());

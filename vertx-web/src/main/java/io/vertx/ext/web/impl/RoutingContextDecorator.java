@@ -206,6 +206,11 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
+  public boolean isSessionAccessed() {
+    return decoratedContext.isSessionAccessed();
+  }
+
+  @Override
   public ParsedHeaderValues parsedHeaders() {
     return decoratedContext.parsedHeaders();
   }

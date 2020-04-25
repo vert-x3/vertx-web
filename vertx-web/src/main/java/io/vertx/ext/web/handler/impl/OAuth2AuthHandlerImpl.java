@@ -34,13 +34,15 @@ import io.vertx.ext.web.handler.OAuth2AuthHandler;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements OAuth2AuthHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
 
   private final VertxContextPRNG prng;
   private final String host;
@@ -48,6 +50,9 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
   private Route callback;
   private JsonObject extraParams;
+  private List<String> scopes = new ArrayList<>();
+  private String prompt;
+
   // explicit signal that tokens are handled as bearer only (meaning, no backend server known)
   private boolean bearerOnly = true;
 
@@ -96,8 +101,8 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
           context.request().method() == HttpMethod.GET &&
             context.normalizedPath().equals(callback.getPath())) {
 
-          if (log.isWarnEnabled()) {
-            log.warn("The callback route is shaded by the OAuth2AuthHandler, ensure the callback route is added BEFORE the OAuth2AuthHandler route!");
+          if (LOG.isWarnEnabled()) {
+            LOG.warn("The callback route is shaded by the OAuth2AuthHandler, ensure the callback route is added BEFORE the OAuth2AuthHandler route!");
           }
           handler.handle(Future.failedFuture(new HttpStatusException(500, "Infinite redirect loop [oauth2 callback]")));
         } else {
@@ -141,6 +146,12 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
       config.put("redirect_uri", host + callback.getPath());
     }
 
+    config.put("scopes", scopes);
+
+    if (prompt != null) {
+      config.put("prompt", prompt);
+    }
+
     if (extraParams != null) {
       config.mergeIn(extraParams);
     }
@@ -155,10 +166,25 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
   }
 
   @Override
+  public OAuth2AuthHandler withScope(String scope) {
+    this.scopes.add(scope);
+    return this;
+  }
+
+  @Override
+  public OAuth2AuthHandler prompt(String prompt) {
+    this.prompt = prompt;
+    return this;
+  }
+
+  @Override
   public OAuth2AuthHandler setupCallback(final Route route) {
 
     if (callbackPath != null && !"".equals(callbackPath)) {
       // no matter what path was provided we will make sure it is the correct one
+      if (LOG.isWarnEnabled()) {
+        LOG.warn("route path changed to match callback URL");
+      }
       route.path(callbackPath);
     }
 
@@ -198,7 +224,13 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
       final JsonObject config = new JsonObject()
         .put("code", code);
 
-      if (host != null) {
+      if (host == null) {
+        // warn that the setup is wrong, if this route is called
+        // we most likely needed a host to redirect to
+        if (LOG.isWarnEnabled()) {
+          LOG.warn("Cannot compute: 'redirect_uri' variable. OAuth2AuthHandler was created without a origin/callback URL.");
+        }
+      } else {
         config.put("redirect_uri", host + route.getPath());
       }
 

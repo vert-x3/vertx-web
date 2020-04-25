@@ -16,15 +16,6 @@
 
 package io.vertx.ext.web.handler;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Set;
-
-import org.junit.AfterClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -37,6 +28,14 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.test.core.TestUtils;
+import org.junit.AfterClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -313,8 +312,7 @@ public class BodyHandlerTest extends WebTestBase {
 
       sendFileUploadRequest(TestUtils.randomBuffer(20000), 413, "Request Entity Too Large");
 
-      Thread.sleep(100); // wait until file is removed
-      assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+      assertWaitUntil(() -> vertx.fileSystem().readDirBlocking(uploadsDirectory).isEmpty());
   }
 
   @Test
@@ -326,7 +324,7 @@ public class BodyHandlerTest extends WebTestBase {
       .setUploadsDirectory(uploadsDirectory));
 
     assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
-    io.vertx.core.http.HttpClientRequest req = client.request(HttpMethod.POST, "/", ctx -> {});
+    io.vertx.core.http.HttpClientRequest req = client.request(HttpMethod.POST, "/");
 
     String name = "somename";
     String fileName = "somefile.dat";

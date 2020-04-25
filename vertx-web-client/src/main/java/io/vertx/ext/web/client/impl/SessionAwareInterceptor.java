@@ -8,8 +8,8 @@ import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.client.spi.CookieStore;
 
 /**
@@ -45,7 +45,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
 
     MultiMap headers = context.get(HEADERS_CONTEXT_KEY);
     if (headers == null) {
-      headers = new CaseInsensitiveHeaders().addAll(request.headers());
+      headers = HttpHeaders.headers().addAll(request.headers());
       context.set(SessionAwareInterceptor.HEADERS_CONTEXT_KEY, headers);
     }
 
@@ -53,9 +53,9 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     // either by the server (that sent new ones) or by the user.
     request.headers().clear().addAll(headers).addAll(webclient.headers());
 
-    String domain = request.virtualHost;
+    String domain = request.virtualHost();
     if (domain == null) {
-      domain = request.host;
+      domain = request.host();
     }
 
     Iterable<Cookie> cookies = webclient.cookieStore().get(request.ssl, domain, request.uri);
@@ -80,7 +80,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     HttpRequestImpl<?> originalRequest = (HttpRequestImpl<?>) context.request();
     CookieStore cookieStore = webclient.cookieStore();
     String domain = URI.create(context.clientResponse().request().absoluteURI()).getHost();
-    if (domain.equals(originalRequest.host) && originalRequest.virtualHost != null) {
+    if (domain.equals(originalRequest.host()) && originalRequest.virtualHost != null) {
       domain = originalRequest.virtualHost;
     }
     final String finalDomain = domain;
@@ -105,13 +105,13 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
 
     MultiMap headers = context.get(HEADERS_CONTEXT_KEY);
     if (headers == null) {
-      headers = new CaseInsensitiveHeaders().addAll(redirectRequest.headers());
+      headers = HttpHeaders.headers().addAll(redirectRequest.headers());
       context.set(SessionAwareInterceptor.HEADERS_CONTEXT_KEY, headers);
     }
 
     String redirectHost = URI.create(redirectRequest.absoluteURI()).getHost();
     String domain;
-    if (redirectHost.equals(originalRequest.host) && originalRequest.virtualHost != null) {
+    if (redirectHost.equals(originalRequest.host()) && originalRequest.virtualHost != null) {
       domain = originalRequest.virtualHost;
     } else {
       domain = redirectHost;
@@ -138,7 +138,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
         if (cookie.domain() == null) {
           // Set the domain if missing, because we need to send cookies
           // only to the domains we received them from.
-          cookie.setDomain(request.virtualHost != null ? request.virtualHost : request.host);
+          cookie.setDomain(request.virtualHost != null ? request.virtualHost : request.host());
         }
         cookieStore.put(cookie);
       }

@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "properties": {
+    "childs": {
+      "type": "array",
+      "items": {
+        "$ref": "#"
+      }
+    }
+  },
+  "required": [
+    "value"
+  ]
+}

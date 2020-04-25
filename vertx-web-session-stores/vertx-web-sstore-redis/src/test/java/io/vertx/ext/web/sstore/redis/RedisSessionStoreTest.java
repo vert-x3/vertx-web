@@ -58,7 +58,7 @@ public class RedisSessionStoreTest {
 
     Session session = store.createSession(30_000);
 
-    store.put(session).setHandler(res -> {
+    store.put(session).onComplete(res -> {
       should.assertTrue(res.succeeded());
       test.complete();
     });
@@ -77,7 +77,7 @@ public class RedisSessionStoreTest {
         should.assertEquals(value, sessionGet.value());
         return null;
       })
-      .setHandler(res -> {
+      .onComplete(res -> {
         should.assertTrue(res.succeeded());
         test.complete();
       });
@@ -91,7 +91,7 @@ public class RedisSessionStoreTest {
 
     store.put(session)
       .compose(aVoid -> store.clear())
-      .setHandler(res -> {
+      .onComplete(res -> {
         should.assertTrue(res.succeeded());
         test.complete();
       });
@@ -111,7 +111,7 @@ public class RedisSessionStoreTest {
       })
       .compose(size -> store.clear())
       .compose(atrVoid -> store.size())
-      .setHandler(res -> {
+      .onComplete(res -> {
         should.assertTrue(res.succeeded());
         should.assertEquals(0, res.result());
         test.complete();
@@ -133,7 +133,7 @@ public class RedisSessionStoreTest {
       })
       .compose(size -> store.delete(value))
       .compose(atrVoid -> store.size())
-      .setHandler(res -> {
+      .onComplete(res -> {
         should.assertTrue(res.succeeded());
         should.assertEquals(0, res.result());
         test.complete();
@@ -154,7 +154,7 @@ public class RedisSessionStoreTest {
       store.put(session),
       store.put(session),
       store.put(session)
-    ).setHandler(res -> {
+    ).onComplete(res -> {
       should.assertTrue(res.succeeded());
       test.complete();
     });

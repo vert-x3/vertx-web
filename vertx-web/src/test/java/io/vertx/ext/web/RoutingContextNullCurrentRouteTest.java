@@ -35,7 +35,7 @@ public class RoutingContextNullCurrentRouteTest {
                 vertx.createHttpClient(new HttpClientOptions()
                         .setConnectTimeout(10000));
         Async async = testContext.async();
-        client.getNow(PORT, "127.0.0.1", "/test", testContext.asyncAssertSuccess(httpClientResponse -> {
+        client.get(PORT, "127.0.0.1", "/test", testContext.asyncAssertSuccess(httpClientResponse -> {
           testContext.assertEquals(HttpURLConnection.HTTP_NO_CONTENT, httpClientResponse.statusCode());
           async.complete();
         }));

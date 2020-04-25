@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.sockjs;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.Test;
 
@@ -49,13 +50,11 @@ public class SockJSAsyncHandlerTest extends SockJSTestBase {
 
     startServers();
 
-    client.post("/test/400/8ne8e94a/xhr", onSuccess(resp -> {
+    client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
 
-      client.post("/test/400/8ne8e94a/xhr_send", onSuccess(respSend -> assertEquals(204, respSend.statusCode())))
-        .putHeader("content-length", "13")
-        .end("\"Hello World\"");
-    })).end();
+      client.post("/test/400/8ne8e94a/xhr_send", Buffer.buffer("\"Hello World\""), onSuccess(respSend -> assertEquals(204, respSend.statusCode())));
+    }));
 
     await();
   }

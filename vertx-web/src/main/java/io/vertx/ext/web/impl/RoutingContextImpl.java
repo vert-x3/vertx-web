@@ -61,11 +61,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Set<FileUpload> fileUploads;
   private Session session;
   private User user;
+  private boolean isSessionAccessed = false;
 
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
     super(mountPoint, routes);
     this.router = router;
-    this.request = new HttpServerRequestWrapper(request, router.isAllowForward());
+    this.request = new HttpServerRequestWrapper(request, router.getAllowForward());
 
     fillParsedHeaders(request);
     if (request.path().length() == 0) {
@@ -289,7 +290,13 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public Session session() {
+    this.isSessionAccessed = true;
     return session;
+  }
+
+  @Override
+  public boolean isSessionAccessed(){
+    return isSessionAccessed;
   }
 
   @Override

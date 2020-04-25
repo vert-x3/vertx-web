@@ -79,14 +79,6 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public synchronized Route rawMethod(String method) {
-    state = state
-      .addMethod(HttpMethod.OTHER)
-      .addRawMethod(method);
-    return this;
-  }
-
-  @Override
   public Route path(String path) {
     checkPath(path);
     setPath(path);

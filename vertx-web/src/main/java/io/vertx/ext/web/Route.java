@@ -45,21 +45,6 @@ public interface Route {
   Route method(HttpMethod method);
 
   /**
-   * Add an HTTP method for this route that is not defined on the core enum. Adding methods this way will have a few
-   * extra limitations:
-   *
-   * <ol>
-   *   <li>the return method will be shown as {@code OTHER}</li>
-   *   <li>router reroute will not allow custom methods, so this will not be directly visible</li>
-   * </ol>
-   *
-   * @param method  the HTTP method to add
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  Route rawMethod(String method);
-
-  /**
    * Set the path prefix for this route. If set then this route will only match request URI paths which start with this
    * path prefix. Only a single path or path regex can be set for a route.
    *

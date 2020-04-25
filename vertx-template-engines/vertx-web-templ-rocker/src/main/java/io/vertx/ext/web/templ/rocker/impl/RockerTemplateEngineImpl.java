@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.templ.rocker.impl;
 
-import com.fizzed.rocker.BindableRockerModel;
 import com.fizzed.rocker.Rocker;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -40,21 +39,12 @@ public class RockerTemplateEngineImpl implements RockerTemplateEngine {
   @Override
   public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
-      String templatePath = adjustLocation(templateFile);
-
-      BindableRockerModel model = Rocker.template(templatePath);
-      // we need to exclude some keys as rocker requires explicit knowledge on the binded keys
-      context.forEach((k, v) -> {
-        // all keys starting with __ are considered private and will not be exposed
-        if (!k.startsWith("__")) {
-          model.bind(k, v);
-        }
-      });
-
-      VertxBufferOutput output = model.render(VertxBufferOutput.FACTORY);
-
-      handler.handle(Future.succeededFuture(output.getBuffer()));
-    } catch (final Exception ex) {
+      handler.handle(Future.succeededFuture(
+        Rocker.template(adjustLocation(templateFile))
+          .relaxedBind(context)
+          .render(VertxBufferOutput.FACTORY)
+          .getBuffer()));
+    } catch (final RuntimeException ex) {
       handler.handle(Future.failedFuture(ex));
     }
   }

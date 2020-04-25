@@ -49,7 +49,6 @@ public class WebTestBase extends VertxTestBase {
   protected HttpServer server;
   protected HttpClient client;
   protected Router router;
-  protected String rawMethod;
 
   @Override
   public void setUp() throws Exception {
@@ -57,7 +56,6 @@ public class WebTestBase extends VertxTestBase {
     router = Router.router(vertx);
     server = vertx.createHttpServer(getHttpServerOptions());
     client = vertx.createHttpClient(getHttpClientOptions());
-    rawMethod = null;
     CountDownLatch latch = new CountDownLatch(1);
     server.requestHandler(router).listen(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
@@ -154,7 +152,8 @@ public class WebTestBase extends VertxTestBase {
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    HttpClientRequest req = client.request(method, port, "localhost", path, onSuccess(resp -> {
+    HttpClientRequest req = client.request(method, port, "localhost", path);
+    req.onComplete(onSuccess(resp -> {
       assertEquals(statusCode, resp.statusCode());
       assertEquals(statusMessage, resp.statusMessage());
       if (responseAction != null) {
@@ -174,9 +173,6 @@ public class WebTestBase extends VertxTestBase {
     }));
     if (requestAction != null) {
       requestAction.accept(req);
-    }
-    if (method == HttpMethod.OTHER && rawMethod != null) {
-      req.setRawMethod(rawMethod);
     }
     req.end();
     awaitLatch(latch);

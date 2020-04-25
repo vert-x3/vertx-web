@@ -69,9 +69,10 @@
     <module>vertx-web-client</module>
     <module>vertx-template-engines</module>
     <module>vertx-web-api-contract</module>
-    <module>vertx-web-api-service</module>
     <module>vertx-web-graphql</module>
     <module>vertx-web-session-stores</module>
+    <module>vertx-web-api-service</module>
+    <module>vertx-web-validation</module>
   </modules>
 
   <profiles>

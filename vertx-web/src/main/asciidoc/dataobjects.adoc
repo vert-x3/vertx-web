@@ -1,27 +1,5 @@
 = Cheatsheets
 
-[[BridgeOptions]]
-== BridgeOptions
-
-++++
- Options for configuring the event bus bridge.
-++++
-'''
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[inboundPermitted]]`@inboundPermitted`|`Array of link:dataobjects.html#PermittedOptions[PermittedOptions]`|-
-|[[inboundPermitteds]]`@inboundPermitteds`|`Array of link:dataobjects.html#PermittedOptions[PermittedOptions]`|-
-|[[maxAddressLength]]`@maxAddressLength`|`Number (int)`|-
-|[[maxHandlersPerSocket]]`@maxHandlersPerSocket`|`Number (int)`|-
-|[[outboundPermitted]]`@outboundPermitted`|`Array of link:dataobjects.html#PermittedOptions[PermittedOptions]`|-
-|[[outboundPermitteds]]`@outboundPermitteds`|`Array of link:dataobjects.html#PermittedOptions[PermittedOptions]`|-
-|[[pingTimeout]]`@pingTimeout`|`Number (long)`|-
-|[[replyTimeout]]`@replyTimeout`|`Number (long)`|-
-|===
-
 [[Http2PushMapping]]
 == Http2PushMapping
 
@@ -33,6 +11,24 @@
 |[[extensionTarget]]`@extensionTarget`|`String`|-
 |[[filePath]]`@filePath`|`String`|-
 |[[noPush]]`@noPush`|`Boolean`|-
+|===
+
+[[SockJSBridgeOptions]]
+== SockJSBridgeOptions
+
+++++
+ Options for configuring the event bus bridge.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[maxAddressLength]]`@maxAddressLength`|`Number (int)`|-
+|[[maxHandlersPerSocket]]`@maxHandlersPerSocket`|`Number (int)`|-
+|[[pingTimeout]]`@pingTimeout`|`Number (long)`|-
+|[[replyTimeout]]`@replyTimeout`|`Number (long)`|-
 |===
 
 [[SockJSHandlerOptions]]

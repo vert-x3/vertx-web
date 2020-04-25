@@ -31,11 +31,8 @@ Configure the default behavior of the client to follow HTTP <code>30x</code> red
 |[[http2MultiplexingLimit]]`@http2MultiplexingLimit`|`Number (int)`|-
 |[[idleTimeout]]`@idleTimeout`|`Number (int)`|-
 |[[idleTimeoutUnit]]`@idleTimeoutUnit`|`link:enums.html#TimeUnit[TimeUnit]`|-
-|[[initialSettings]]`@initialSettings`|`link:dataobjects.html#Http2Settings[Http2Settings]`|-
-|[[jdkSslEngineOptions]]`@jdkSslEngineOptions`|`link:dataobjects.html#JdkSSLEngineOptions[JdkSSLEngineOptions]`|-
 |[[keepAlive]]`@keepAlive`|`Boolean`|-
 |[[keepAliveTimeout]]`@keepAliveTimeout`|`Number (int)`|-
-|[[keyStoreOptions]]`@keyStoreOptions`|`link:dataobjects.html#JksOptions[JksOptions]`|-
 |[[localAddress]]`@localAddress`|`String`|-
 |[[logActivity]]`@logActivity`|`Boolean`|-
 |[[maxChunkSize]]`@maxChunkSize`|`Number (int)`|-
@@ -47,16 +44,10 @@ Configure the default behavior of the client to follow HTTP <code>30x</code> red
 |[[maxWebSocketFrameSize]]`@maxWebSocketFrameSize`|`Number (int)`|-
 |[[maxWebSocketMessageSize]]`@maxWebSocketMessageSize`|`Number (int)`|-
 |[[metricsName]]`@metricsName`|`String`|-
-|[[openSslEngineOptions]]`@openSslEngineOptions`|`link:dataobjects.html#OpenSSLEngineOptions[OpenSSLEngineOptions]`|-
-|[[pemKeyCertOptions]]`@pemKeyCertOptions`|`link:dataobjects.html#PemKeyCertOptions[PemKeyCertOptions]`|-
-|[[pemTrustOptions]]`@pemTrustOptions`|`link:dataobjects.html#PemTrustOptions[PemTrustOptions]`|-
-|[[pfxKeyCertOptions]]`@pfxKeyCertOptions`|`link:dataobjects.html#PfxOptions[PfxOptions]`|-
-|[[pfxTrustOptions]]`@pfxTrustOptions`|`link:dataobjects.html#PfxOptions[PfxOptions]`|-
 |[[pipelining]]`@pipelining`|`Boolean`|-
 |[[pipeliningLimit]]`@pipeliningLimit`|`Number (int)`|-
 |[[poolCleanerPeriod]]`@poolCleanerPeriod`|`Number (int)`|-
 |[[protocolVersion]]`@protocolVersion`|`link:enums.html#HttpVersion[HttpVersion]`|-
-|[[proxyOptions]]`@proxyOptions`|`link:dataobjects.html#ProxyOptions[ProxyOptions]`|-
 |[[receiveBufferSize]]`@receiveBufferSize`|`Number (int)`|-
 |[[reuseAddress]]`@reuseAddress`|`Boolean`|-
 |[[reusePort]]`@reusePort`|`Boolean`|-
@@ -73,7 +64,6 @@ Configure the default behavior of the client to follow HTTP <code>30x</code> red
 |[[tcpQuickAck]]`@tcpQuickAck`|`Boolean`|-
 |[[trafficClass]]`@trafficClass`|`Number (int)`|-
 |[[trustAll]]`@trustAll`|`Boolean`|-
-|[[trustStoreOptions]]`@trustStoreOptions`|`link:dataobjects.html#JksOptions[JksOptions]`|-
 |[[tryUseCompression]]`@tryUseCompression`|`Boolean`|-
 |[[tryUsePerFrameWebSocketCompression]]`@tryUsePerFrameWebSocketCompression`|`Boolean`|-
 |[[tryUsePerMessageWebSocketCompression]]`@tryUsePerMessageWebSocketCompression`|`Boolean`|-

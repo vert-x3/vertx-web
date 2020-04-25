@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -697,6 +698,23 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
   }
 
   @Test
+  public void notMountMissingOperationId() throws Exception {
+      CountDownLatch latch = new CountDownLatch(1);
+      OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/operation_without_operationId.yaml",
+              openAPI3RouterFactoryAsyncResult -> {
+                  routerFactory = openAPI3RouterFactoryAsyncResult.result();
+                  routerFactory.mountServicesFromExtensions();
+                  assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
+                  latch.countDown();
+              });
+      awaitLatch(latch, 5, TimeUnit.SECONDS);
+      
+      startServer();
+      
+      testRequest(HttpMethod.GET, "/test1", 404, "Not Found");
+  }
+
+  @Test
   public void addGlobalHandlersTest() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
@@ -1111,7 +1129,7 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
 
     CountDownLatch requestLatch = new CountDownLatch(1);
     client
-      .request(HttpMethod.POST, 8080, "localhost", "/jsonBody/empty", onSuccess(res -> {
+      .send(HttpMethod.POST, 8080, "localhost", "/jsonBody/empty", onSuccess(res -> {
         assertEquals(200, res.statusCode());
         assertEquals("application/json", res.getHeader(HttpHeaders.CONTENT_TYPE));
         res.bodyHandler(buff -> {
@@ -1119,8 +1137,7 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
           assertEquals(new JsonObject().put("bodyEmpty", true), result);
           requestLatch.countDown();
         });
-      }))
-      .end();
+      }));
     awaitLatch(requestLatch);
   }
 }

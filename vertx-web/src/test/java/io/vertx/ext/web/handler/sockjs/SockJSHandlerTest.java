@@ -18,7 +18,7 @@ package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.CaseInsensitiveHeaders;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.http.WebSocketFrame;
@@ -68,7 +68,7 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   private void testGreeting(String uri) {
-    client.getNow(uri, onSuccess(resp -> {
+    client.get(uri, onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals("text/plain; charset=UTF-8", resp.getHeader("content-type"));
       resp.bodyHandler(buff -> {
@@ -352,7 +352,7 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   private void testNotFound(String uri) {
-    client.getNow(uri, onSuccess(resp -> {
+    client.get(uri, onSuccess(resp -> {
       assertEquals(404, resp.statusCode());
       complete();
     }));
@@ -360,15 +360,16 @@ public class SockJSHandlerTest extends WebTestBase {
 
   @Test
   public void testCookiesRemoved() throws Exception {
+    waitFor(2);
     router.mountSubRouter("/cookiesremoved", SockJSHandler.create(vertx)
       .socketHandler(sock -> {
         MultiMap headers = sock.headers();
         String cookieHeader = headers.get("cookie");
         assertNotNull(cookieHeader);
         assertEquals("JSESSIONID=wibble", cookieHeader);
-        testComplete();
+        complete();
       }));
-    MultiMap headers = new CaseInsensitiveHeaders();
+    MultiMap headers = HttpHeaders.headers();
     headers.add("cookie", "JSESSIONID=wibble");
     headers.add("cookie", "flibble=floob");
 
@@ -376,8 +377,7 @@ public class SockJSHandlerTest extends WebTestBase {
       .setPort(8080)
       .setURI("/cookiesremoved/websocket")
       .setHeaders(headers), onSuccess(ws -> {
-      String frame = "foo";
-      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(frame, true));
+        complete();
     }));
 
     await();
@@ -387,7 +387,7 @@ public class SockJSHandlerTest extends WebTestBase {
   public void testTimeoutCloseCode() {
     router.mountSubRouter("/ws-timeout", SockJSHandler
       .create(vertx)
-      .bridge(new BridgeOptions().setPingTimeout(1))
+      .bridge(new SockJSBridgeOptions().setPingTimeout(1))
     );
 
     client.webSocket("/ws-timeout/websocket", onSuccess(ws -> ws.frameHandler(frame -> {
@@ -404,7 +404,7 @@ public class SockJSHandlerTest extends WebTestBase {
   public void testInvalidMessageCode() {
     router.mountSubRouter("/ws-timeout", SockJSHandler
       .create(vertx)
-      .bridge(new BridgeOptions().addInboundPermitted(new PermittedOptions().setAddress("SockJSHandlerTest.testInvalidMessageCode")))
+      .bridge(new SockJSBridgeOptions().addInboundPermitted(new PermittedOptions().setAddress("SockJSHandlerTest.testInvalidMessageCode")))
     );
 
     vertx.eventBus().consumer("SockJSHandlerTest.testInvalidMessageCode", msg -> msg.reply(new JsonObject()));

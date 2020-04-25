@@ -12,6 +12,8 @@
   <artifactId>vertx-web-api-service</artifactId>
 
   <properties>
+    <junit5.version>5.6.0</junit5.version>
+    <assertj.version>3.15.0</assertj.version>
     <doc.skip>false</doc.skip>
   </properties>
 
@@ -22,7 +24,7 @@
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web-api-contract</artifactId>
+      <artifactId>vertx-web-validation</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -31,19 +33,19 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-codegen</artifactId>
       <type>test-jar</type>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web-api-contract</artifactId>
+      <artifactId>vertx-web-validation</artifactId>
       <type>test-jar</type>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
-      <type>test-jar</type>
+      <artifactId>vertx-junit5</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -53,6 +55,18 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit5.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -60,13 +74,22 @@
       <plugins>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.8.1</version>
           <executions>
             <execution>
               <id>default-compile</id>
               <configuration>
-                <compilerArgs>
-                  <arg>-proc:none</arg>
-                </compilerArgs>
+                <annotationProcessorPaths>
+                  <path>
+                    <groupId>io.vertx</groupId>
+                    <artifactId>vertx-codegen</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>processor</classifier>
+                  </path>
+                </annotationProcessorPaths>
+                <annotationProcessors>
+                  <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
+                </annotationProcessors>
               </configuration>
             </execution>
             <execution>
@@ -98,7 +121,7 @@
       <plugin>
         <groupId>org.bsc.maven</groupId>
         <artifactId>maven-processor-plugin</artifactId>
-        <version>3.2.0</version>
+        <version>3.3.3</version>
         <executions>
           <execution>
             <id>generate-sources</id>
@@ -116,6 +139,7 @@
               </processors>
               <excludes>
                 <exclude>**/Invalid*.java</exclude>
+                <exclude>**/*Test.java</exclude>
               </excludes>
             </configuration>
           </execution>
@@ -124,7 +148,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.0.0-M4</version>
         <configuration>
+          <trimStackTrace>false</trimStackTrace>
           <additionalClasspathElements>
             <additionalClasspathElement>${project.build.testSourceDirectory}</additionalClasspathElement>
           </additionalClasspathElements>

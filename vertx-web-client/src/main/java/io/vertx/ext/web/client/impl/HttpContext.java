@@ -42,10 +42,10 @@ import java.util.*;
  */
 public class HttpContext<T> {
 
-  private final Context context;
   private final Handler<AsyncResult<HttpResponse<T>>> handler;
   private final HttpClientImpl client;
   private final List<Handler<HttpContext<?>>> interceptors;
+  private Context context;
   private HttpRequestImpl<T> request;
   private Object body;
   private String contentType;
@@ -59,8 +59,7 @@ public class HttpContext<T> {
   private int redirects;
   private List<String> redirectedLocations = new ArrayList<>();
 
-  HttpContext(Context context, HttpClientImpl client, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    this.context = context;
+  HttpContext(HttpClientImpl client, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.handler = handler;
     this.client = client;
     this.interceptors = interceptors;
@@ -205,7 +204,7 @@ public class HttpContext<T> {
       Future<HttpClientRequest> next = client.redirectHandler().apply(clientResponse);
       if (next != null) {
         redirectedLocations.add(clientResponse.getHeader(HttpHeaders.LOCATION));
-        next.setHandler(ar -> {
+        next.onComplete(ar -> {
           if (ar.succeeded()) {
             HttpClientRequest nextRequest = ar.result();
             if (request.headers != null) {
@@ -309,6 +308,7 @@ public class HttpContext<T> {
   }
 
   private void handlePrepareRequest() {
+    context = client.getVertx().getOrCreateContext();
     HttpClientRequest req;
     String requestURI;
     if (request.params != null && request.params.size() > 0) {
@@ -318,10 +318,10 @@ public class HttpContext<T> {
     } else {
       requestURI = request.uri;
     }
-    int port = request.port;
-    String host = request.host;
+    int port = request.port();
+    String host = request.host();
     if (request.ssl != null && request.ssl != request.options.isSsl()) {
-      req = client.request(request.method, request.serverAddress, new RequestOptions().setSsl(request.ssl).setHost(host).setPort
+      req = client.request(request.serverAddress, new RequestOptions().setMethod(request.method).setSsl(request.ssl).setHost(host).setPort
         (port)
         .setURI
           (requestURI));
@@ -330,7 +330,7 @@ public class HttpContext<T> {
         // we have to create an abs url again to parse it in HttpClient
         try {
           URI uri = new URI(request.protocol, null, host, port, requestURI, null, null);
-          req = client.requestAbs(request.method, request.serverAddress, uri.toString());
+          req = client.request(request.serverAddress, new RequestOptions().setMethod(request.method).setAbsoluteURI(uri.toString()));
         } catch (URISyntaxException ex) {
           fail(ex);
           return;
@@ -344,14 +344,11 @@ public class HttpContext<T> {
       if (port != 80) {
         virtalHost += ":" + port;
       }
-      req.setHost(virtalHost);
+      req.setAuthority(virtalHost);
     }
     redirects = 0;
     if (request.headers != null) {
       req.headers().addAll(request.headers);
-    }
-    if (request.rawMethod != null) {
-      req.setRawMethod(request.rawMethod);
     }
     sendRequest(req);
   }
@@ -360,7 +357,7 @@ public class HttpContext<T> {
     HttpClientResponse resp = clientResponse;
     Context context = Vertx.currentContext();
     Promise<HttpResponse<T>> promise = Promise.promise();
-    promise.future().setHandler(r -> {
+    promise.future().onComplete(r -> {
       // We are running on a context (the HTTP client mandates it)
       context.runOnContext(v -> {
         if (r.succeeded()) {
@@ -381,7 +378,7 @@ public class HttpContext<T> {
         BodyStream<T> stream = ar1.result();
         pipe.to(stream, ar2 -> {
           if (ar2.succeeded()) {
-            stream.result().setHandler(ar3 -> {
+            stream.result().onComplete(ar3 -> {
               if (ar3.succeeded()) {
                 promise.complete(new HttpResponseImpl<>(
                   resp.version(),
@@ -410,7 +407,7 @@ public class HttpContext<T> {
 
   private void handleSendRequest() {
     Promise<HttpClientResponse> responseFuture = Promise.<HttpClientResponse>promise();
-    responseFuture.future().setHandler(ar -> {
+    responseFuture.future().onComplete(ar -> {
       if (ar.succeeded()) {
         HttpClientResponse resp = ar.result();
         resp.pause();
@@ -420,7 +417,7 @@ public class HttpContext<T> {
       }
     });
     HttpClientRequest req = clientRequest;
-    req.setHandler(ar -> {
+    req.onComplete(ar -> {
       if (ar.succeeded()) {
         responseFuture.tryComplete(ar.result());
       } else {

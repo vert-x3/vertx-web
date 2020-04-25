@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.http.CookieSameSite;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.SessionHandlerImpl;
@@ -80,6 +81,11 @@ public interface SessionHandler extends Handler<RoutingContext> {
 	 */
 	int DEFAULT_SESSIONID_MIN_LENGTH = 16;
 
+  /**
+   * Default of whether the session should be created lazily.
+   */
+	boolean DEFAULT_LAZY_SESSION = false;
+
 	/**
 	 * Create a session handler
 	 *
@@ -89,7 +95,7 @@ public interface SessionHandler extends Handler<RoutingContext> {
 	static SessionHandler create(SessionStore sessionStore) {
 		return new SessionHandlerImpl(DEFAULT_SESSION_COOKIE_NAME, DEFAULT_SESSION_COOKIE_PATH, DEFAULT_SESSION_TIMEOUT,
 				DEFAULT_NAG_HTTPS, DEFAULT_COOKIE_SECURE_FLAG, DEFAULT_COOKIE_HTTP_ONLY_FLAG,
-				DEFAULT_SESSIONID_MIN_LENGTH, sessionStore);
+				DEFAULT_SESSIONID_MIN_LENGTH, DEFAULT_LAZY_SESSION, sessionStore);
 	}
 
 	/**
@@ -160,6 +166,22 @@ public interface SessionHandler extends Handler<RoutingContext> {
 	 */
 	@Fluent
 	SessionHandler setMinLength(int minLength);
+
+  /**
+   * Set the session cookie SameSite policy to use.
+   * @param policy to use, {@code null} for no policy.
+   * @return a reference to this, so the API can be used fluently
+   */
+	SessionHandler setCookieSameSite(CookieSameSite policy);
+
+  /**
+   * Use a lazy session creation mechanism. The session will only be created when accessed from the context. Thus the
+   * session cookie is set only if the session was accessed.
+   *
+   * @param lazySession true to have a lazy session creation.
+   * @return a reference to this, so the API can be used fluently
+   */
+	SessionHandler setLazySession(boolean lazySession);
 
   /**
    * Set an auth provider that will allow retrieving the User object from the session to the current routing context.

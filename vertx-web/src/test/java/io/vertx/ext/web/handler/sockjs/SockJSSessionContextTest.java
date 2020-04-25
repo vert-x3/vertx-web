@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.sockjs;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import org.junit.Test;
 
@@ -46,16 +47,16 @@ public class SockJSSessionContextTest extends SockJSTestBase {
 
     startServers();
 
-    client.post("/test/400/8ne8e94a/xhr", onSuccess(resp -> {
+    client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
 
-      client.post("/test/400/8ne8e94a/xhr", onSuccess(resp2 -> {
+      client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp2 -> {
         assertEquals(200, resp.statusCode());
 
-        client.post("/test/400/8ne8e94a/xhr_send", onSuccess(respSend -> {
+        client.post("/test/400/8ne8e94a/xhr_send", Buffer.buffer('"' + msg + '"'), onSuccess(respSend -> {
           assertEquals(204, respSend.statusCode());
 
-          client.post("/test/400/8ne8e94a/xhr", onSuccess(resp3 -> {
+          client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp3 -> {
             assertEquals(200, resp.statusCode());
             resp3.bodyHandler(buffer -> {
               String body = buffer.toString();
@@ -65,13 +66,13 @@ public class SockJSSessionContextTest extends SockJSTestBase {
               assertEquals(msg, content.getValue(0));
               complete();
             });
-          })).end();
+          }));
 
-        })).end('"' + msg + '"');
+        }));
 
-      })).end();
+      }));
 
-    })).end();
+    }));
 
     await();
   }

@@ -1,5 +1,40 @@
 = Enums
 
+[[AllowForwardHeaders]]
+== AllowForwardHeaders
+
+++++
+ What kind of forward header parsing are we allowing.
+++++
+'''
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[NONE]]`NONE`|+++
+No parsing shall be performed.
++++
+|[[FORWARD]]`FORWARD`|+++
+Only process the standard <code>Forward</code> header as defined by <a href="https://tools.ietf.org/html/rfc7239#section-4>RFC 7239, section 4: Forwarded</a>.
+
+ For more info see: <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded">https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded</a>
++++
+|[[X_FORWARD]]`X_FORWARD`|+++
+Only process the non standard but widely used <code>X-Forward-*</code> headers.
+
+ These headers are not official standards but widely used. Users are advised to avoid them for new applications.
++++
+|[[ALL]]`ALL`|+++
+Will process both  and . Be aware that mixing the 2 headers can open
+ security holes has specially crafted requests that are not validated as proxy level can allow bypassing
+ the proxy desired forward value.
+
+ For example, a proxy will add the <code>X-Forward-*</code> headers to a request but not filter out if the original
+ request includes the <code>Forward</code> header.
++++
+|===
+
 [[LoggerFormat]]
 == LoggerFormat
 

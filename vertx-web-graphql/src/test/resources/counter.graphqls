@@ -7,5 +7,5 @@ type Query {
 }
 
 type Subscription {
-  counter: Counter
+  counter(finite: Boolean = true): Counter
 }

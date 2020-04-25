@@ -427,7 +427,7 @@ public class SessionAwareWebClientTest {
     HttpRequest<Buffer> req = client.post("/");
     req.send(handler);
     req.sendBuffer(Buffer.buffer(), handler);
-    req.sendForm(new CaseInsensitiveHeaders().add("a", "b"), handler);
+    req.sendForm(HttpHeaders.set("a", "b"), handler);
     req.sendJson("", handler);
     req.sendJsonObject(new JsonObject(), handler);
     req.sendMultipartForm(MultipartForm.create().attribute("a", "b"), handler);

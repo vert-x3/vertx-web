@@ -14,10 +14,10 @@ import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
 import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
+import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.webauthn.*;
 import io.vertx.ext.jwt.JWTOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
-import io.vertx.ext.auth.oauth2.OAuth2ClientOptions;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
 import io.vertx.ext.bridge.BridgeEventType;
@@ -25,7 +25,7 @@ import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.handler.sockjs.BridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
@@ -267,7 +267,7 @@ public class WebExamples {
   public void example9_1(Router router) {
 
     Route route = router.route()
-      .rawMethod("MKCOL")
+      .method(HttpMethod.valueOf("MKCOL"))
       .handler(routingContext -> {
       // This handler will be called for any MKCOL request
     });
@@ -704,6 +704,11 @@ public class WebExamples {
 
     SessionHandler sessionHandler = SessionHandler.create(store);
 
+    // the session handler controls the cookie used for the session
+    // this includes configuring, for example, the same site policy
+    // like this, for strict same site policy.
+    sessionHandler.setCookieSameSite(CookieSameSite.STRICT);
+
     // Make sure all requests are routed through the session handler too
     router.route().handler(sessionHandler);
 
@@ -916,7 +921,7 @@ public class WebExamples {
     Router router = Router.router(vertx);
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-    BridgeOptions options = new BridgeOptions();
+    SockJSBridgeOptions options = new SockJSBridgeOptions();
     // mount the bridge on the router
     router.mountSubRouter("/eventbus", sockJSHandler.bridge(options));
   }
@@ -950,7 +955,7 @@ public class WebExamples {
     PermittedOptions outboundPermitted2 = new PermittedOptions().setAddressRegex("news\\..+");
 
     // Let's define what we're going to allow from client -> server
-    BridgeOptions options = new BridgeOptions().
+    SockJSBridgeOptions options = new SockJSBridgeOptions().
       addInboundPermitted(inboundPermitted1).
       addInboundPermitted(inboundPermitted1).
       addInboundPermitted(inboundPermitted3).
@@ -969,7 +974,7 @@ public class WebExamples {
     // But only if the user is logged in and has the authority "place_orders"
     inboundPermitted.setRequiredAuthority("place_orders");
 
-    BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
+    SockJSBridgeOptions options = new SockJSBridgeOptions().addInboundPermitted(inboundPermitted);
   }
 
   public void example48(Vertx vertx, AuthenticationProvider authProvider) {
@@ -995,7 +1000,7 @@ public class WebExamples {
     // mount the bridge on the router
     router.mountSubRouter(
       "/eventbus",
-      sockJSHandler.bridge(new BridgeOptions().addInboundPermitted(inboundPermitted)));
+      sockJSHandler.bridge(new SockJSBridgeOptions().addInboundPermitted(inboundPermitted)));
   }
 
   public void example48_1(Vertx vertx) {
@@ -1006,7 +1011,7 @@ public class WebExamples {
     PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.orderService");
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-    BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
+    SockJSBridgeOptions options = new SockJSBridgeOptions().addInboundPermitted(inboundPermitted);
 
     // mount the bridge on the router
     router.mountSubRouter(
@@ -1031,7 +1036,7 @@ public class WebExamples {
     PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.someService");
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-    BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
+    SockJSBridgeOptions options = new SockJSBridgeOptions().addInboundPermitted(inboundPermitted);
 
     // mount the bridge on the router
     router.mountSubRouter("/eventbus", sockJSHandler.bridge(options, be -> {
@@ -1051,7 +1056,7 @@ public class WebExamples {
 
     // Initialize SockJS handler
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-    BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted).setPingTimeout(5000);
+    SockJSBridgeOptions options = new SockJSBridgeOptions().addInboundPermitted(inboundPermitted).setPingTimeout(5000);
 
     // mount the bridge on the router
     router.mountSubRouter("/eventbus", sockJSHandler.bridge(options, be -> {
@@ -1238,7 +1243,7 @@ public class WebExamples {
   public void example59(Vertx vertx, Router router) {
 
     // create an OAuth2 provider, clientID and clientSecret should be requested to Google
-    OAuth2Auth authProvider = OAuth2Auth.create(vertx, new OAuth2ClientOptions()
+    OAuth2Auth authProvider = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientID("CLIENT_ID")
       .setClientSecret("CLIENT_SECRET")
       .setFlow(OAuth2FlowType.AUTH_CODE)
@@ -1250,7 +1255,7 @@ public class WebExamples {
     OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(vertx, authProvider, "http://localhost:8080");
 
     // these are the scopes
-    oauth2.extraParams(new JsonObject().put("scope", "profile"));
+    oauth2.withScope("profile");
 
     // setup the callback handler for receiving the Google callback
     oauth2.setupCallback(router.get("/callback"));
@@ -1293,7 +1298,7 @@ public class WebExamples {
         .setupCallback(router.route("/callback"))
         // for this resource we require that users have
         // the authority to retrieve the user emails
-        .extraParams(new JsonObject().put("scope", "user:email"))
+        .withScope("user:email")
     );
     // Entry point to the application, this will render
     // a custom template.
@@ -1514,7 +1519,7 @@ public class WebExamples {
     githubOAuth2.setupCallback(router.route());
 
     // create an OAuth2 provider, clientID and clientSecret should be requested to Google
-    OAuth2Auth googleAuthProvider = OAuth2Auth.create(vertx, new OAuth2ClientOptions()
+    OAuth2Auth googleAuthProvider = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientID("CLIENT_ID")
       .setClientSecret("CLIENT_SECRET")
       .setFlow(OAuth2FlowType.AUTH_CODE)
@@ -1544,7 +1549,7 @@ public class WebExamples {
       vertx,
       new WebAuthnOptions()
         .setOrigin("https://192.168.178.74.xip.io:8443")
-        .setRpName("Vert.x WebAuthN Demo")
+        .setRelayParty(new RelayParty().setName("Vert.x WebAuthN Demo"))
         // What kind of authentication do you want? do you care?
         // if you care you can specify it (choose one of the 2)
 
@@ -1577,5 +1582,28 @@ public class WebExamples {
 
     // secure the remaining routes
     router.route().handler(webAuthNHandler);
+  }
+
+  public void example76(Vertx vertx, Router router) {
+    // we can now allow forward header parsing
+    // and in this case only the "Forward" header will be considered
+    router.allowForward(AllowForwardHeaders.FORWARD);
+
+    // we can now allow forward header parsing
+    // and in this case only the "X-Forward" headers will be considered
+    router.allowForward(AllowForwardHeaders.X_FORWARD);
+
+    // we can now allow forward header parsing
+    // and in this case both the "Forward" header and "X-Forward" headers
+    // will be considered, yet the values from "Forward" take precedence
+    // this means if case of a conflict (2 headers for the same value)
+    // the "Forward" value will be taken and the "X-Forward" ignored.
+    router.allowForward(AllowForwardHeaders.ALL);
+  }
+
+  public void example77(Vertx vertx, Router router) {
+    // we explicitly not allow forward header parsing
+    // of any kind
+    router.allowForward(AllowForwardHeaders.NONE);
   }
 }

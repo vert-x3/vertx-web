@@ -33,9 +33,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import org.reactivestreams.Publisher;
 
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static io.vertx.core.http.HttpMethod.GET;
@@ -59,7 +57,7 @@ public class ApolloTestsServer extends AbstractVerticle {
   public void start(Promise<Void> startPromise) throws Exception {
     Router router = Router.router(vertx);
 
-    router.route().handler(CorsHandler.create("*").allowedMethods(EnumSet.of(GET, POST)));
+    router.route().handler(CorsHandler.create("*").allowedMethod(GET).allowedMethod(POST));
     router.route().handler(BodyHandler.create());
     router.route("/graphql").handler(ApolloWSHandler.create(setupWsGraphQL()));
 
@@ -73,7 +71,7 @@ public class ApolloTestsServer extends AbstractVerticle {
       .requestHandler(router)
       .listen(8080)
       .<Void>mapEmpty()
-      .setHandler(ar -> {
+      .onComplete(ar -> {
         if (ar.succeeded()) {
           System.out.println("Apollo tests server started");
         }

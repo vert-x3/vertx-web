@@ -161,7 +161,7 @@ public class RerouteTest extends WebTestBase {
       HttpServerRequest req = ctx.request();
 
       assertEquals(HttpMethod.GET, req.method());
-      assertEquals("GET", req.rawMethod());
+      assertEquals("GET", req.method().name());
       assertEquals("/other", req.path());
       assertEquals("paramter1=p1&parameter2=p2", req.query());
       assertEquals("/other?paramter1=p1&parameter2=p2", req.uri());
@@ -175,7 +175,7 @@ public class RerouteTest extends WebTestBase {
     router.get("/base").handler(ctx -> {
       HttpServerRequest req = ctx.request();
       assertEquals(HttpMethod.GET, req.method());
-      assertEquals("GET", req.rawMethod());
+      assertEquals("GET", req.method().name());
       assertEquals("/base", req.path());
       assertEquals("p=1", req.query());
       assertEquals("/base?p=1", req.uri());
@@ -193,7 +193,7 @@ public class RerouteTest extends WebTestBase {
       HttpServerRequest req = ctx.request();
 
       assertEquals(HttpMethod.GET, req.method());
-      assertEquals("GET", req.rawMethod());
+      assertEquals("GET", req.method().name());
       assertEquals("/other", req.path());
       assertEquals("paramter1=p1&parameter2=p2", req.query());
       assertEquals("/other?paramter1=p1&parameter2=p2#frag", req.uri());
@@ -207,7 +207,7 @@ public class RerouteTest extends WebTestBase {
     router.get("/base").handler(ctx -> {
       HttpServerRequest req = ctx.request();
       assertEquals(HttpMethod.GET, req.method());
-      assertEquals("GET", req.rawMethod());
+      assertEquals("GET", req.method().name());
       assertEquals("/base", req.path());
       assertEquals("p=1", req.query());
       assertEquals("/base?p=1", req.uri());
@@ -225,7 +225,7 @@ public class RerouteTest extends WebTestBase {
       HttpServerRequest req = ctx.request();
 
       assertEquals(HttpMethod.GET, req.method());
-      assertEquals("GET", req.rawMethod());
+      assertEquals("GET", req.method().name());
       assertEquals("/other", req.path());
       assertNull(req.query());
       assertEquals("/other#frag", req.uri());
@@ -235,7 +235,7 @@ public class RerouteTest extends WebTestBase {
     router.get("/base").handler(ctx -> {
       HttpServerRequest req = ctx.request();
       assertEquals(HttpMethod.GET, req.method());
-      assertEquals("GET", req.rawMethod());
+      assertEquals("GET", req.method().name());
       assertEquals("/base", req.path());
       assertEquals("p=1", req.query());
       assertEquals("/base?p=1", req.uri());
