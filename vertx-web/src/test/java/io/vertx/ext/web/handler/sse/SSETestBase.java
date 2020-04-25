@@ -47,16 +47,19 @@ abstract class SSETestBase extends VertxTestBase {
     server = vertx.createHttpServer(options);
     Router router = Router.router(vertx);
     sseHandler = SSEHandler.create();
-    sseHandler.connectHandler(connection -> {
-      final HttpServerRequest request = connection.request();
+    router.route().handler(rc -> {
+      final HttpServerRequest request = rc.request();
       final String token = request.getParam("token");
       if (token == null) {
-        connection.reject(401);
+        rc.fail(401);
       } else if (!TOKEN.equals(token)) {
-        connection.reject(403);
+        rc.fail(403);
       } else {
-        this.connection = connection; // accept
+        rc.next();
       }
+    });
+    sseHandler.connectHandler(connection -> {
+      this.connection = connection; // accept
     });
     sseHandler.closeHandler(connection -> {
       if (this.connection != null) {
