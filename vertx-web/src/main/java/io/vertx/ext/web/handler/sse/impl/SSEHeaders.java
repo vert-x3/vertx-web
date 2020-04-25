@@ -14,19 +14,15 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.sse;
+package io.vertx.ext.web.handler.sse.impl;
 
 import io.vertx.codegen.annotations.VertxGen;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-/**
- * This is a final class to match io.vertx.core.HttpHeaders
- * Since maybe enums can cause trouble with codegen ? idk
- */
 @VertxGen
-public enum SSEHeaders {
+enum SSEHeaders {
   EVENT("event"),
   ID("id"),
   RETRY("retry"),

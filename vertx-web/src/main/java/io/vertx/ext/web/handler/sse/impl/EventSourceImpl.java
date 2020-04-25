@@ -28,7 +28,6 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.sse.EventSource;
-import io.vertx.ext.web.handler.sse.SSEHeaders;
 
 import java.util.HashMap;
 import java.util.Map;

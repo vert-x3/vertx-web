@@ -34,7 +34,6 @@ public interface EventSource {
   @Fluent
   EventSource connect(String path, Handler<AsyncResult<Void>> handler);
 
-  @Fluent
   default void close() {}
 
   @Fluent
