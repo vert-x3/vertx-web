@@ -66,13 +66,13 @@ public class SSEConnectionImpl implements SSEConnection {
   }
 
   @Override
-  public SSEConnection retry(Long delay, List<String> data) {
-    return withHeader(SSEHeaders.RETRY.toString(), delay.toString(), data);
+  public SSEConnection retry(long delay, List<String> data) {
+    return withHeader(SSEHeaders.RETRY.toString(), Long.toString(delay), data);
   }
 
   @Override
-  public SSEConnection retry(Long delay, String data) {
-    return withHeader(SSEHeaders.RETRY.toString(), delay.toString(), data);
+  public SSEConnection retry(long delay, String data) {
+    return withHeader(SSEHeaders.RETRY.toString(), Long.toString(delay), data);
   }
 
   @Override
