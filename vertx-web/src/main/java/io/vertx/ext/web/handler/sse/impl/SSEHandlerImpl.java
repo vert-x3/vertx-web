@@ -30,11 +30,9 @@ import java.util.List;
 public class SSEHandlerImpl implements SSEHandler {
 
   private final List<Handler<SSEConnection>> connectHandlers;
-  private final List<Handler<SSEConnection>> closeHandlers;
 
   public SSEHandlerImpl() {
     connectHandlers = new ArrayList<>();
-    closeHandlers = new ArrayList<>();
   }
 
   @Override
@@ -47,10 +45,6 @@ public class SSEHandlerImpl implements SSEHandler {
       return;
     }
     SSEConnection connection = SSEConnection.create(context);
-    response.closeHandler(aVoid -> {
-      closeHandlers.forEach(closeHandler -> closeHandler.handle(connection));
-      connection.close();
-    });
     response.headers().add("Content-Type", "text/event-stream");
     response.headers().add("Cache-Control", "no-cache");
     response.headers().add("Connection", "keep-alive");
@@ -63,9 +57,4 @@ public class SSEHandlerImpl implements SSEHandler {
     return this;
   }
 
-  @Override
-  public SSEHandler closeHandler(Handler<SSEConnection> handler) {
-    closeHandlers.add(handler);
-    return this;
-  }
 }

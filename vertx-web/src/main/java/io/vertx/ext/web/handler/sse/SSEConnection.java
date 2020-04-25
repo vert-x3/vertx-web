@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler.sse;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sse.impl.SSEConnectionImpl;
@@ -68,7 +69,11 @@ public interface SSEConnection {
   @Fluent
   SSEConnection close();
 
+  @Fluent
+  SSEConnection closeHandler(Handler<SSEConnection> connection);
+
   String lastId();
+
 
   @GenIgnore
   HttpServerRequest request();

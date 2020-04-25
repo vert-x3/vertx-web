@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.sse.impl;
 
+import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.VertxException;
 import io.vertx.core.eventbus.Message;
@@ -24,6 +25,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sse.SSEConnection;
+import io.vertx.ext.web.handler.sse.SSEHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +38,8 @@ public class SSEConnectionImpl implements SSEConnection {
   private static final String PACKET_SEPARATOR = "\n\n";
 
   private final RoutingContext context;
-  private boolean rejected;
   private List<MessageConsumer<?>> consumers = new ArrayList<>();
+  private List<Handler<SSEConnection>> closeHandlers = new ArrayList<>();
 
   public SSEConnectionImpl(RoutingContext context) {
     this.context = context;
@@ -111,9 +113,14 @@ public class SSEConnectionImpl implements SSEConnection {
       // connection has already been closed by the browser
       // do not log to avoid performance issues (ddos issue if client opening and closing alot of connections abruptly)
     }
-    if (!consumers.isEmpty()) {
-      consumers.forEach(MessageConsumer::unregister);
-    }
+    consumers.forEach(MessageConsumer::unregister);
+    closeHandlers.forEach(consumer -> consumer.handle(this));
+    return this;
+  }
+
+  @Override
+  public SSEConnection closeHandler(Handler<SSEConnection> connection) {
+    closeHandlers.add(connection);
     return this;
   }
 
