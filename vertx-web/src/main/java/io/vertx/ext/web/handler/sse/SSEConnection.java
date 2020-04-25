@@ -43,10 +43,10 @@ public interface SSEConnection {
   SSEConnection comment(String comment);
 
   @Fluent
-  SSEConnection retry(Long delay, List<String> data);
+  SSEConnection retry(long delay, List<String> data);
 
   @Fluent
-  SSEConnection retry(Long delay, String data);
+  SSEConnection retry(long delay, String data);
 
   @Fluent
   SSEConnection data(List<String> data);
