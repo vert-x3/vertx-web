@@ -58,23 +58,6 @@ public class SSEConnectionImpl implements SSEConnection {
   }
 
   @Override
-  public SSEConnection reject(int code) {
-    return reject(code, null);
-  }
-
-  @Override
-  public SSEConnection reject(int code, String reason) {
-    rejected = true;
-    HttpServerResponse response = context.response();
-    response.setStatusCode(code);
-    if (reason != null) {
-      response.setStatusMessage(reason);
-    }
-    response.end();
-    return this;
-  }
-
-  @Override
   public SSEConnection comment(String comment) {
     context.response().write("comment: " + comment + PACKET_SEPARATOR);
     return this;
@@ -142,11 +125,6 @@ public class SSEConnectionImpl implements SSEConnection {
   @Override
   public String lastId() {
     return request().getHeader(SSEHeaders.LAST_EVENT_ID.toString());
-  }
-
-  @Override
-  public boolean rejected() {
-    return rejected;
   }
 
   private SSEConnection withHeader(String headerName, String headerValue, String data) {

@@ -39,12 +39,6 @@ public interface SSEConnection {
   SSEConnection forward(List<String> addresses);
 
   @Fluent
-  SSEConnection reject(int code);
-
-  @Fluent
-  SSEConnection reject(int code, String reason);
-
-  @Fluent
   SSEConnection comment(String comment);
 
   @Fluent
@@ -73,8 +67,6 @@ public interface SSEConnection {
 
   @Fluent
   SSEConnection close();
-
-  boolean rejected();
 
   String lastId();
 
