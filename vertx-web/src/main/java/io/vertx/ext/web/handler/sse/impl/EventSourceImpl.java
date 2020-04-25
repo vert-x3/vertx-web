@@ -25,7 +25,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.sse.EventSource;
@@ -81,7 +80,7 @@ public class EventSourceImpl implements EventSource {
       }
     });
     if (lastEventId != null) {
-      request.headers().add("Last-Event-ID", lastEventId);
+      request.headers().add(SSEHeaders.LAST_EVENT_ID.toString(), lastEventId);
     }
     request.setChunked(true);
     request.headers().add(HttpHeaders.ACCEPT, "text/event-stream");
@@ -132,14 +131,12 @@ public class EventSourceImpl implements EventSource {
       if (header == null) {
         messageHandler.handle(currentPacket.toString());
       } else {
-        switch (currentPacket.headerName) {
-          case SSEHeaders.EVENT:
-            handler = eventHandlers.get(currentPacket.headerValue);
-            break;
-          case SSEHeaders.ID:
-            lastId = currentPacket.headerValue;
-            break;
-          case SSEHeaders.RETRY:
+        final String headerName = currentPacket.headerName;
+        if (headerName.equalsIgnoreCase(SSEHeaders.EVENT.toString())) {
+          handler = eventHandlers.get(currentPacket.headerValue);
+        }
+        if (headerName.equalsIgnoreCase(SSEHeaders.ID.toString())) {
+          lastId = currentPacket.headerValue;
         }
         if (handler != null) {
           handler.handle(currentPacket.toString());

@@ -16,18 +16,34 @@
 
 package io.vertx.ext.web.handler.sse;
 
+import io.vertx.codegen.annotations.VertxGen;
+
+import java.util.Arrays;
+import java.util.Optional;
+
 /**
  * This is a final class to match io.vertx.core.HttpHeaders
  * Since maybe enums can cause trouble with codegen ? idk
  */
-public final class SSEHeaders {
+@VertxGen
+public enum SSEHeaders {
+  EVENT("event"),
+  ID("id"),
+  RETRY("retry"),
+  LAST_EVENT_ID("Last-Event-ID");
 
-  private SSEHeaders() {
+  private final String name;
+
+  SSEHeaders(String name) {
+    this.name = name;
   }
 
-  public static final String EVENT = "event";
-  public static final String ID = "id";
-  public static final String RETRY = "retry";
-  public static final String LAST_EVENT_ID = "Last-Event-ID";
+  public static Optional<SSEHeaders> fromString(String name) {
+    return Arrays.stream(values()).filter(sseHeader -> sseHeader.name.equalsIgnoreCase(name)).findFirst();
+  }
 
+  @Override
+  public String toString() {
+    return name;
+  }
 }

@@ -38,7 +38,7 @@ public class SSEConnectionImpl implements SSEConnection {
 
   private final RoutingContext context;
   private boolean rejected;
-  private List<MessageConsumer> consumers = new ArrayList<>();
+  private List<MessageConsumer<?>> consumers = new ArrayList<>();
 
   public SSEConnectionImpl(RoutingContext context) {
     this.context = context;
@@ -83,12 +83,12 @@ public class SSEConnectionImpl implements SSEConnection {
 
   @Override
   public SSEConnection retry(Long delay, List<String> data) {
-    return withHeader(SSEHeaders.RETRY, delay.toString(), data);
+    return withHeader(SSEHeaders.RETRY.toString(), delay.toString(), data);
   }
 
   @Override
   public SSEConnection retry(Long delay, String data) {
-    return withHeader(SSEHeaders.RETRY, delay.toString(), data);
+    return withHeader(SSEHeaders.RETRY.toString(), delay.toString(), data);
   }
 
   @Override
@@ -103,22 +103,22 @@ public class SSEConnectionImpl implements SSEConnection {
 
   @Override
   public SSEConnection event(String eventName, List<String> data) {
-    return withHeader(SSEHeaders.EVENT, eventName, data);
+    return withHeader(SSEHeaders.EVENT.toString(), eventName, data);
   }
 
   @Override
   public SSEConnection event(String eventName, String data) {
-    return withHeader(SSEHeaders.EVENT, eventName, data);
+    return withHeader(SSEHeaders.EVENT.toString(), eventName, data);
   }
 
   @Override
   public SSEConnection id(String id, List<String> data) {
-    return withHeader(SSEHeaders.ID, id, data);
+    return withHeader(SSEHeaders.ID.toString(), id, data);
   }
 
   @Override
   public SSEConnection id(String id, String data) {
-    return withHeader(SSEHeaders.ID, id, data);
+    return withHeader(SSEHeaders.ID.toString(), id, data);
   }
 
   @Override
@@ -142,7 +142,7 @@ public class SSEConnectionImpl implements SSEConnection {
 
   @Override
   public String lastId() {
-    return request().getHeader("Last-Event-ID");
+    return request().getHeader(SSEHeaders.LAST_EVENT_ID.toString());
   }
 
   @Override
@@ -182,8 +182,8 @@ public class SSEConnectionImpl implements SSEConnection {
 
   private void ebMsgHandler(Message<?> msg) {
     MultiMap headers = msg.headers();
-    String eventName = headers.get(SSEHeaders.EVENT);
-    String id = headers.get(SSEHeaders.ID);
+    String eventName = headers.get(SSEHeaders.EVENT.toString());
+    String id = headers.get(SSEHeaders.ID.toString());
     String data = msg.body() == null ? "" : msg.body().toString();
     if (eventName != null) {
       this.event(eventName, data);

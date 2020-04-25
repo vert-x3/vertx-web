@@ -61,6 +61,25 @@ Will use user defined formatter function.
 +++
 |===
 
+[[SSEHeaders]]
+== SSEHeaders
+
+++++
+ This is a final class to match io.vertx.core.HttpHeaders
+ Since maybe enums can cause trouble with codegen ? idk
+++++
+'''
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[EVENT]]`EVENT`|-
+|[[ID]]`ID`|-
+|[[RETRY]]`RETRY`|-
+|[[LAST_EVENT_ID]]`LAST_EVENT_ID`|-
+|===
+
 [[Transport]]
 == Transport
 
