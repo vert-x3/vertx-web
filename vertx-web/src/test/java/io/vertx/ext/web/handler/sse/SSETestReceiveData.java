@@ -101,10 +101,10 @@ public class SSETestReceiveData extends SSETestBase {
       assertFalse(handler.failed());
       assertNull(handler.cause());
       assertNotNull(connection);
-      eventSource.onEvent("wrong", msg -> {
+      eventSource.addEventListener("wrong", msg -> {
         throw new RuntimeException("this handler should not be called, at all !");
       });
-      eventSource.onEvent(eventName, msg -> {
+      eventSource.addEventListener(eventName, msg -> {
         final StringJoiner joiner = new StringJoiner("\n");
         quotes.forEach(joiner::add);
         assertEquals(joiner.toString() + "\n", msg);
