@@ -17,12 +17,14 @@
 package io.vertx.ext.web.handler.sse;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.ext.web.handler.sse.impl.EventSourceImpl;
 
+@VertxGen
 public interface EventSource {
 
   static EventSource create(Vertx vertx, HttpClientOptions options) {

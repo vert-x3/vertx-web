@@ -30,8 +30,8 @@ public interface SSEHandler extends Handler<RoutingContext> {
   }
 
   @Fluent
-  public SSEHandler connectHandler(Handler<SSEConnection> connection);
+  SSEHandler connectHandler(Handler<SSEConnection> connection);
 
   @Fluent
-  public SSEHandler closeHandler(Handler<SSEConnection> connection);
+  SSEHandler closeHandler(Handler<SSEConnection> connection);
 }
