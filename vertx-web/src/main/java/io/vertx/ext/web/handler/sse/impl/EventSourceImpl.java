@@ -89,11 +89,10 @@ public class EventSourceImpl implements EventSource {
   }
 
   @Override
-  public EventSource close() {
+  public void close() {
     client.close();
     client = null;
     connected = false;
-    return this;
   }
 
   @Override

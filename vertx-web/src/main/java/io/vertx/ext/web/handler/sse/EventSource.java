@@ -35,9 +35,7 @@ public interface EventSource {
   EventSource connect(String path, Handler<AsyncResult<Void>> handler);
 
   @Fluent
-  default EventSource close() {
-    return null;
-  }
+  default void close() {}
 
   @Fluent
   EventSource connect(String path, String lastEventId, Handler<AsyncResult<Void>> handler);
@@ -50,7 +48,7 @@ public interface EventSource {
 
   @Fluent
   default EventSource onClose(Handler<Void> handler) {
-    return null;
+    return this;
   }
 
   String lastId();
