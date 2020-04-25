@@ -27,6 +27,7 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.sse.EventSource;
 import io.vertx.ext.web.handler.sse.SSEHeaders;
 
@@ -65,12 +66,9 @@ public class EventSourceImpl implements EventSource {
     if (client == null) {
       client = vertx.createHttpClient(options);
     }
-    HttpClientRequest request = client.get(path, result -> {
-      if (result.failed()) {
-        handler.handle(Future.failedFuture(result.cause()));
-        return;
-      }
-      HttpClientResponse response = result.result();
+    HttpClientRequest request = client.request(HttpMethod.GET, path);
+    request.onFailure(cause -> handler.handle(Future.failedFuture(cause)));
+    request.onSuccess(response -> {
       if (response.statusCode() != 200) {
         handler.handle(Future.failedFuture(new VertxException("Could not connect EventSource, the server answered with status " + response.statusCode())));
       } else {
