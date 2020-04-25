@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.sse;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import org.junit.Test;
@@ -27,19 +28,20 @@ public class SSETestRequestResponseHeaders extends SSETestBase {
   @Test
   public void noHeaderTextEventStreamHttpRequest() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
-    client().get("/sse", ar -> {
+    MultiMap headers = MultiMap.caseInsensitiveMultiMap().add("Accept", "foo");
+    client().get("/sse", headers, ar -> {
       assertTrue(ar.succeeded());
       HttpClientResponse response = ar.result();
       assertEquals(406, response.statusCode());
       latch.countDown();
-    }).putHeader("Accept", "foo").end();
+    });
     awaitLatch(latch);
   }
 
   @Test
   public void noHeaderHttpRequest() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
-    client().getNow("/sse", ar -> {
+    client().get("/sse", ar -> {
       assertTrue(ar.succeeded());
       HttpClientResponse response = ar.result();
       assertSSEHeaders(response);
@@ -51,12 +53,13 @@ public class SSETestRequestResponseHeaders extends SSETestBase {
   @Test
   public void correctResponseHeaders() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
-    client().get("/sse", ar -> {
+    MultiMap headers = MultiMap.caseInsensitiveMultiMap().add("Accept", "text/event-stream");
+    client().get("/sse", headers, ar -> {
       assertTrue(ar.succeeded());
       HttpClientResponse response = ar.result();
       assertSSEHeaders(response);
       latch.countDown();
-    }).putHeader("Accept", "text/event-stream").end();
+    });
     awaitLatch(latch);
   }
 
