@@ -29,7 +29,7 @@ public class SSETestRequestResponseHeaders extends SSETestBase {
   public void noHeaderTextEventStreamHttpRequest() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
     MultiMap headers = MultiMap.caseInsensitiveMultiMap().add("Accept", "foo");
-    client().get("/sse", headers, ar -> {
+    client().get("/sse?token=" + TOKEN, headers, ar -> {
       assertTrue(ar.succeeded());
       HttpClientResponse response = ar.result();
       assertEquals(406, response.statusCode());
@@ -41,7 +41,7 @@ public class SSETestRequestResponseHeaders extends SSETestBase {
   @Test
   public void noHeaderHttpRequest() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
-    client().get("/sse", ar -> {
+    client().get("/sse?token=" + TOKEN, ar -> {
       assertTrue(ar.succeeded());
       HttpClientResponse response = ar.result();
       assertSSEHeaders(response);
@@ -54,7 +54,7 @@ public class SSETestRequestResponseHeaders extends SSETestBase {
   public void correctResponseHeaders() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
     MultiMap headers = MultiMap.caseInsensitiveMultiMap().add("Accept", "text/event-stream");
-    client().get("/sse", headers, ar -> {
+    client().get("/sse?token=" + TOKEN, headers, ar -> {
       assertTrue(ar.succeeded());
       HttpClientResponse response = ar.result();
       assertSSEHeaders(response);
