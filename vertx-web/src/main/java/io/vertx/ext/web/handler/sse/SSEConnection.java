@@ -46,9 +46,6 @@ public interface SSEConnection {
   SSEConnection retry(long delay);
 
   @Fluent
-  SSEConnection data(List<String> data);
-
-  @Fluent
   SSEConnection data(String data);
 
   @Fluent
