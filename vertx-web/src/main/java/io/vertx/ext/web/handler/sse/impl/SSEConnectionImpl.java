@@ -69,11 +69,6 @@ public class SSEConnectionImpl implements SSEConnection {
   }
 
   @Override
-  public SSEConnection data(List<String> data) {
-    return appendData(data);
-  }
-
-  @Override
   public SSEConnection data(String data) {
     return writeData(data);
   }
@@ -123,14 +118,6 @@ public class SSEConnectionImpl implements SSEConnection {
 
   private SSEConnection writeData(String data) {
     context.response().write("data: " + data + PACKET_SEPARATOR);
-    return this;
-  }
-
-  private SSEConnection appendData(List<String> data) {
-    for (int i = 0; i < data.size(); i++) {
-      String separator = i == data.size() - 1 ? PACKET_SEPARATOR : MSG_SEPARATOR;
-      context.response().write("data: " + data.get(i) + separator);
-    }
     return this;
   }
 

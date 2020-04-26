@@ -45,27 +45,6 @@ public class SSETestReceiveData extends SSETestBase {
   }
 
   @Test
-  public void testMultipleDataHandler() throws InterruptedException {
-    CountDownLatch latch = new CountDownLatch(1);
-    final List<String> quotes = createData();
-    final EventSource eventSource = eventSource();
-    eventSource.connect("/sse?token=" + TOKEN, handler -> {
-      assertTrue(handler.succeeded());
-      assertFalse(handler.failed());
-      assertNull(handler.cause());
-      assertNotNull(connection);
-      eventSource.onMessage(msg -> {
-        final StringJoiner joiner = new StringJoiner("\n");
-        quotes.forEach(joiner::add);
-        assertEquals(joiner.toString() + "\n", msg);
-        latch.countDown();
-      });
-      connection.data(quotes);
-    });
-    awaitLatch(latch);
-  }
-
-  @Test
   public void testConsecutiveDataHandler() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
     final List<String> quotes = createData();
@@ -101,17 +80,16 @@ public class SSETestReceiveData extends SSETestBase {
       assertFalse(handler.failed());
       assertNull(handler.cause());
       assertNotNull(connection);
+      String quote = quotes.get(0);
       eventSource.addEventListener("wrong", msg -> {
         throw new RuntimeException("this handler should not be called, at all !");
       });
       eventSource.addEventListener(eventName, msg -> {
-        final StringJoiner joiner = new StringJoiner("\n");
-        quotes.forEach(joiner::add);
-        assertEquals(joiner.toString() + "\n", msg);
+        assertEquals(quote + "\n", msg);
         latch.countDown();
       });
       connection.event(eventName);
-      connection.data(quotes);
+      connection.data(quote);
     });
     awaitLatch(latch);
   }
@@ -127,10 +105,9 @@ public class SSETestReceiveData extends SSETestBase {
       assertFalse(handler.failed());
       assertNull(handler.cause());
       assertNotNull(connection);
+      String quote = quotes.get(2);
       eventSource.onMessage(msg -> {
-        final StringJoiner joiner = new StringJoiner("\n");
-        quotes.forEach(joiner::add);
-        assertEquals(joiner.toString() + "\n", msg);
+        assertEquals(quote + "\n", msg);
         assertEquals(id, eventSource.lastId());
         eventSource.close();
         eventSource.connect("/sse?token=" + TOKEN, eventSource.lastId(), secondHandler -> {
@@ -143,7 +120,7 @@ public class SSETestReceiveData extends SSETestBase {
         });
       });
       connection.id(id);
-      connection.data(quotes);
+      connection.data(quote);
     });
     awaitLatch(latch);
   }
