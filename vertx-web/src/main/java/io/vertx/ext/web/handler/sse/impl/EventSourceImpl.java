@@ -42,7 +42,6 @@ public class EventSourceImpl implements EventSource {
   private SSEPacket currentPacket;
   private final Vertx vertx;
   private final HttpClientOptions options;
-  private Handler<Void> closeHandler;
 
   public EventSourceImpl(Vertx vertx, HttpClientOptions options) {
     options.setKeepAlive(true);
@@ -65,24 +64,23 @@ public class EventSourceImpl implements EventSource {
       client = vertx.createHttpClient(options);
     }
     HttpClientRequest request = client.request(HttpMethod.GET, path);
-    request.onFailure(cause -> handler.handle(Future.failedFuture(cause)));
+    request.onFailure(cause -> {
+      handler.handle(Future.failedFuture(cause));
+    });
     request.onSuccess(response -> {
       if (response.statusCode() != 200) {
         handler.handle(Future.failedFuture(new VertxException("Could not connect EventSource, the server answered with status " + response.statusCode())));
       } else {
         connected = true;
         response.handler(this::handleMessage);
-        if (closeHandler != null) {
-          response.endHandler(closeHandler);
-        }
         handler.handle(Future.succeededFuture());
       }
     });
     if (lastEventId != null) {
       request.headers().add(SSEHeaders.LAST_EVENT_ID.toString(), lastEventId);
     }
-    request.setChunked(true);
     request.headers().add(HttpHeaders.ACCEPT, "text/event-stream");
+    request.setChunked(true);
     request.end();
     return this;
   }
@@ -103,12 +101,6 @@ public class EventSourceImpl implements EventSource {
   @Override
   public EventSource onEvent(String eventName, Handler<String> handler) {
     eventHandlers.put(eventName, handler);
-    return this;
-  }
-
-  @Override
-  public EventSource onClose(Handler<Void> closeHandler) {
-    this.closeHandler = closeHandler;
     return this;
   }
 

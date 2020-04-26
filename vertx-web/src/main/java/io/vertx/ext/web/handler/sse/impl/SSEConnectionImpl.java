@@ -107,8 +107,7 @@ public class SSEConnectionImpl implements SSEConnection {
 
   @Override
   public SSEConnection close() {
-    try {
-      context.response().end(); // best effort
+    try {context.response().end(); // best effort
     } catch(VertxException | IllegalStateException e) {
       // connection has already been closed by the browser
       // do not log to avoid performance issues (ddos issue if client opening and closing alot of connections abruptly)
