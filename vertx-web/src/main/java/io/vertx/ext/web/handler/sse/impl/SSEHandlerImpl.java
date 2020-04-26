@@ -25,41 +25,38 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sse.SSEConnection;
 import io.vertx.ext.web.handler.sse.SSEHandler;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class SSEHandlerImpl implements SSEHandler {
 
-  private final List<Handler<SSEConnection>> connectHandlers;
-
-  public SSEHandlerImpl() {
-    connectHandlers = new ArrayList<>();
-  }
+  private Handler<SSEConnection> connectHandler;
 
   @Override
   public synchronized void handle(RoutingContext context) {
     HttpServerRequest request = context.request();
     HttpServerResponse response = context.response();
-    if (!request.headers().contains(HttpHeaders.ACCEPT.toString(), "text/event-stream", true)) {
+    List<String> acceptHeader = request.headers().getAll(HttpHeaders.ACCEPT.toString());
+    if (acceptHeader != null && !acceptHeader.isEmpty() &&
+      !(acceptHeader.contains("*") || acceptHeader.stream().anyMatch(h -> h.equalsIgnoreCase("text/event-stream")))) {
       response.setStatusCode(406).end();
       return;
     }
     response.setChunked(true);
-    MultiMap headers = request.headers();
+    MultiMap headers = response.headers();
     SSEConnection connection = SSEConnection.create(context);
     request.connection().closeHandler(v -> connection.close());
     headers.add(HttpHeaders.CONTENT_TYPE.toString(), "text/event-stream");
     headers.add(HttpHeaders.CACHE_CONTROL.toString(), "no-cache");
     headers.add(HttpHeaders.CONNECTION.toString(), "keep-alive");
-    connectHandlers.forEach(handler -> {
-      handler.handle(connection);
-    });
+    if (connectHandler != null) {
+      connectHandler.handle(connection);
+    }
     response.write("");
   }
 
   @Override
   public synchronized SSEHandler connectHandler(Handler<SSEConnection> handler) {
-    connectHandlers.add(handler);
+    connectHandler = handler;
     return this;
   }
 

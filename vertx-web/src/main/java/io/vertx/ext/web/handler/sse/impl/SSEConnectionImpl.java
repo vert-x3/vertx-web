@@ -35,7 +35,7 @@ public class SSEConnectionImpl implements SSEConnection {
 
   private final RoutingContext context;
   private final List<MessageConsumer<?>> consumers = new ArrayList<>();
-  private final List<Handler<SSEConnection>> closeHandlers = new ArrayList<>();
+  private Handler<SSEConnection> closeHandler;
 
   public SSEConnectionImpl(RoutingContext context) {
     this.context = context;
@@ -81,13 +81,15 @@ public class SSEConnectionImpl implements SSEConnection {
       // do not log to avoid performance issues (ddos issue if client opening and closing alot of connections abruptly)
     }
     consumers.forEach(MessageConsumer::unregister);
-    closeHandlers.forEach(consumer -> consumer.handle(this));
+    if (closeHandler != null) {
+      closeHandler.handle(this);
+    }
     return this;
   }
 
   @Override
-  public synchronized SSEConnection closeHandler(Handler<SSEConnection> connection) {
-    closeHandlers.add(connection);
+  public synchronized SSEConnection closeHandler(Handler<SSEConnection> handler) {
+    closeHandler = handler;
     return this;
   }
 
