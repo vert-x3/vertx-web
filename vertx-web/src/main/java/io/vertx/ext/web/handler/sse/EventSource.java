@@ -50,10 +50,5 @@ public interface EventSource {
     return onEvent(eventName, handler);
   }
 
-  @Fluent
-  default EventSource onClose(Handler<Void> handler) {
-    return this;
-  }
-
   String lastId();
 }

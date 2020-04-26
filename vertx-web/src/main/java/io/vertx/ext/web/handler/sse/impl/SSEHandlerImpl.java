@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler.sse.impl;
 
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -39,16 +40,21 @@ public class SSEHandlerImpl implements SSEHandler {
   public void handle(RoutingContext context) {
     HttpServerRequest request = context.request();
     HttpServerResponse response = context.response();
-    response.setChunked(true);
-    if (request.headers().contains(HttpHeaders.ACCEPT.toString(), "text/event-stream", true)) {
+    if (!request.headers().contains(HttpHeaders.ACCEPT.toString(), "text/event-stream", true)) {
       response.setStatusCode(406).end();
       return;
     }
+    response.setChunked(true);
+    MultiMap headers = request.headers();
     SSEConnection connection = SSEConnection.create(context);
-    response.headers().add("Content-Type", "text/event-stream");
-    response.headers().add("Cache-Control", "no-cache");
-    response.headers().add("Connection", "keep-alive");
-    connectHandlers.forEach(handler -> handler.handle(connection));
+    request.connection().closeHandler(v -> connection.close());
+    headers.add(HttpHeaders.CONTENT_TYPE.toString(), "text/event-stream");
+    headers.add(HttpHeaders.CACHE_CONTROL.toString(), "no-cache");
+    headers.add(HttpHeaders.CONNECTION.toString(), "keep-alive");
+    connectHandlers.forEach(handler -> {
+      handler.handle(connection);
+    });
+    response.write("");
   }
 
   @Override

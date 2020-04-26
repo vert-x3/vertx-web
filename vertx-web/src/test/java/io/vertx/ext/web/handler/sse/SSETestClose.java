@@ -42,16 +42,4 @@ public class SSETestClose extends SSETestBase {
     awaitLatch(latch);
   }
 
-  @Test
-  public void closeHandlerOnClient() throws InterruptedException {
-    CountDownLatch latch = new CountDownLatch(1);
-    final EventSource eventSource = eventSource();
-    eventSource.onClose(handler -> latch.countDown());
-    eventSource.connect("/sse?token=" + TOKEN, handler -> {
-      assertNotNull(connection);
-      connection.close();
-    });
-    awaitLatch(latch);
-  }
-
 }
