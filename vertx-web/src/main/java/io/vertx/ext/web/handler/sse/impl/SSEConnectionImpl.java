@@ -22,10 +22,8 @@ import io.vertx.core.VertxException;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sse.SSEConnection;
-import io.vertx.ext.web.handler.sse.SSEHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +37,7 @@ public class SSEConnectionImpl implements SSEConnection {
 
   private final RoutingContext context;
   private List<MessageConsumer<?>> consumers = new ArrayList<>();
-  private List<Handler<SSEConnection>> closeHandlers = new ArrayList<>();
+  private final List<Handler<SSEConnection>> closeHandlers = new ArrayList<>();
 
   public SSEConnectionImpl(RoutingContext context) {
     this.context = context;
@@ -66,13 +64,8 @@ public class SSEConnectionImpl implements SSEConnection {
   }
 
   @Override
-  public SSEConnection retry(long delay, List<String> data) {
-    return withHeader(SSEHeaders.RETRY.toString(), Long.toString(delay), data);
-  }
-
-  @Override
-  public SSEConnection retry(long delay, String data) {
-    return withHeader(SSEHeaders.RETRY.toString(), Long.toString(delay), data);
+  public SSEConnection retry(long delay) {
+    return writeHeader(SSEHeaders.RETRY, Long.toString(delay));
   }
 
   @Override
@@ -86,23 +79,13 @@ public class SSEConnectionImpl implements SSEConnection {
   }
 
   @Override
-  public SSEConnection event(String eventName, List<String> data) {
-    return withHeader(SSEHeaders.EVENT.toString(), eventName, data);
+  public SSEConnection event(String eventName) {
+    return writeHeader(SSEHeaders.EVENT, eventName);
   }
 
   @Override
-  public SSEConnection event(String eventName, String data) {
-    return withHeader(SSEHeaders.EVENT.toString(), eventName, data);
-  }
-
-  @Override
-  public SSEConnection id(String id, List<String> data) {
-    return withHeader(SSEHeaders.ID.toString(), id, data);
-  }
-
-  @Override
-  public SSEConnection id(String id, String data) {
-    return withHeader(SSEHeaders.ID.toString(), id, data);
+  public SSEConnection id(String id) {
+    return writeHeader(SSEHeaders.ID, id);
   }
 
   @Override
@@ -133,19 +116,7 @@ public class SSEConnectionImpl implements SSEConnection {
     return request().getHeader(SSEHeaders.LAST_EVENT_ID.toString());
   }
 
-  private SSEConnection withHeader(String headerName, String headerValue, String data) {
-    writeHeader(headerName, headerValue);
-    writeData(data);
-    return this;
-  }
-
-  private SSEConnection withHeader(String headerName, String headerValue, List<String> data) {
-    writeHeader(headerName, headerValue);
-    appendData(data);
-    return this;
-  }
-
-  private SSEConnection writeHeader(String headerName, String headerValue) {
+  private SSEConnection writeHeader(SSEHeaders headerName, String headerValue) {
     context.response().write(headerName + ": " + headerValue + MSG_SEPARATOR);
     return this;
   }
@@ -169,13 +140,15 @@ public class SSEConnectionImpl implements SSEConnection {
     String id = headers.get(SSEHeaders.ID.toString());
     String data = msg.body() == null ? "" : msg.body().toString();
     if (eventName != null) {
-      this.event(eventName, data);
+      event(eventName);
+      data(data);
     }
     if (id != null) {
-      this.id(id, data);
+      id(id);
+      data(data);
     }
     if (eventName == null && id == null) {
-      this.data(data);
+      data(data);
     }
   }
 }

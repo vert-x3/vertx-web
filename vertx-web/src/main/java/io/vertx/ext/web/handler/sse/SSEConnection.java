@@ -43,10 +43,7 @@ public interface SSEConnection {
   SSEConnection comment(String comment);
 
   @Fluent
-  SSEConnection retry(long delay, List<String> data);
-
-  @Fluent
-  SSEConnection retry(long delay, String data);
+  SSEConnection retry(long delay);
 
   @Fluent
   SSEConnection data(List<String> data);
@@ -55,16 +52,10 @@ public interface SSEConnection {
   SSEConnection data(String data);
 
   @Fluent
-  SSEConnection event(String eventName, List<String> data);
+  SSEConnection event(String eventName);
 
   @Fluent
-  SSEConnection event(String eventName, String data);
-
-  @Fluent
-  SSEConnection id(String id, List<String> data);
-
-  @Fluent
-  SSEConnection id(String id, String data);
+  SSEConnection id(String id);
 
   @Fluent
   SSEConnection close();
@@ -73,7 +64,6 @@ public interface SSEConnection {
   SSEConnection closeHandler(Handler<SSEConnection> connection);
 
   String lastId();
-
 
   @GenIgnore
   HttpServerRequest request();

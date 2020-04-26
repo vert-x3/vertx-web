@@ -110,7 +110,8 @@ public class SSETestReceiveData extends SSETestBase {
         assertEquals(joiner.toString() + "\n", msg);
         latch.countDown();
       });
-      connection.event(eventName, quotes);
+      connection.event(eventName);
+      connection.data(quotes);
     });
     awaitLatch(latch);
   }
@@ -141,7 +142,8 @@ public class SSETestReceiveData extends SSETestBase {
           latch.countDown();
         });
       });
-      connection.id(id, quotes);
+      connection.id(id);
+      connection.data(quotes);
     });
     awaitLatch(latch);
   }
