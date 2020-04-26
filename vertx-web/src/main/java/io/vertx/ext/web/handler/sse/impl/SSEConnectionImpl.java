@@ -42,39 +42,39 @@ public class SSEConnectionImpl implements SSEConnection {
   }
 
   @Override
-  public SSEConnection forward(String address) {
+  public synchronized SSEConnection forward(String address) {
     consumers.add(context.vertx().eventBus().consumer(address, this::ebMsgHandler));
     return this;
   }
 
   @Override
-  public SSEConnection comment(String comment) {
+  public synchronized SSEConnection comment(String comment) {
     context.response().write("comment: " + comment + PACKET_SEPARATOR);
     return this;
   }
 
   @Override
-  public SSEConnection retry(long delay) {
+  public synchronized SSEConnection retry(long delay) {
     return writeHeader(SSEHeaders.RETRY, Long.toString(delay));
   }
 
   @Override
-  public SSEConnection data(String data) {
+  public synchronized SSEConnection data(String data) {
     return writeData(data);
   }
 
   @Override
-  public SSEConnection event(String eventName) {
+  public synchronized SSEConnection event(String eventName) {
     return writeHeader(SSEHeaders.EVENT, eventName);
   }
 
   @Override
-  public SSEConnection id(String id) {
+  public synchronized SSEConnection id(String id) {
     return writeHeader(SSEHeaders.ID, id);
   }
 
   @Override
-  public SSEConnection close() {
+  public synchronized SSEConnection close() {
     try {context.response().end(); // best effort
     } catch(VertxException | IllegalStateException e) {
       // connection has already been closed by the browser
@@ -86,32 +86,32 @@ public class SSEConnectionImpl implements SSEConnection {
   }
 
   @Override
-  public SSEConnection closeHandler(Handler<SSEConnection> connection) {
+  public synchronized SSEConnection closeHandler(Handler<SSEConnection> connection) {
     closeHandlers.add(connection);
     return this;
   }
 
   @Override
-  public HttpServerRequest request() {
+  public synchronized HttpServerRequest request() {
     return context.request();
   }
 
   @Override
-  public String lastId() {
+  public synchronized String lastId() {
     return request().getHeader(SSEHeaders.LAST_EVENT_ID.toString());
   }
 
-  private SSEConnection writeHeader(SSEHeaders headerName, String headerValue) {
+  private synchronized SSEConnection writeHeader(SSEHeaders headerName, String headerValue) {
     context.response().write(headerName + ": " + headerValue + MSG_SEPARATOR);
     return this;
   }
 
-  private SSEConnection writeData(String data) {
+  private synchronized SSEConnection writeData(String data) {
     context.response().write("data: " + data + PACKET_SEPARATOR);
     return this;
   }
 
-  private void ebMsgHandler(Message<?> msg) {
+  private synchronized void ebMsgHandler(Message<?> msg) {
     MultiMap headers = msg.headers();
     String eventName = headers.get(SSEHeaders.EVENT.toString());
     String id = headers.get(SSEHeaders.ID.toString());

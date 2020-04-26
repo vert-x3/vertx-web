@@ -37,7 +37,7 @@ public class SSEHandlerImpl implements SSEHandler {
   }
 
   @Override
-  public void handle(RoutingContext context) {
+  public synchronized void handle(RoutingContext context) {
     HttpServerRequest request = context.request();
     HttpServerResponse response = context.response();
     if (!request.headers().contains(HttpHeaders.ACCEPT.toString(), "text/event-stream", true)) {
@@ -58,7 +58,7 @@ public class SSEHandlerImpl implements SSEHandler {
   }
 
   @Override
-  public SSEHandler connectHandler(Handler<SSEConnection> handler) {
+  public synchronized SSEHandler connectHandler(Handler<SSEConnection> handler) {
     connectHandlers.add(handler);
     return this;
   }

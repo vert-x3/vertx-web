@@ -51,12 +51,12 @@ public class EventSourceImpl implements EventSource {
   }
 
   @Override
-  public EventSource connect(String path, Handler<AsyncResult<Void>> handler) {
+  public synchronized EventSource connect(String path, Handler<AsyncResult<Void>> handler) {
     return connect(path, null, handler);
   }
 
   @Override
-  public EventSource connect(String path, String lastEventId, Handler<AsyncResult<Void>> handler) {
+  public synchronized EventSource connect(String path, String lastEventId, Handler<AsyncResult<Void>> handler) {
     if (connected) {
       throw new VertxException("SSEConnection already connected");
     }
@@ -86,30 +86,30 @@ public class EventSourceImpl implements EventSource {
   }
 
   @Override
-  public void close() {
+  public synchronized void close() {
     client.close();
     client = null;
     connected = false;
   }
 
   @Override
-  public EventSource onMessage(Handler<String> messageHandler) {
+  public synchronized EventSource onMessage(Handler<String> messageHandler) {
     this.messageHandler = messageHandler;
     return this;
   }
 
   @Override
-  public EventSource onEvent(String eventName, Handler<String> handler) {
+  public synchronized EventSource onEvent(String eventName, Handler<String> handler) {
     eventHandlers.put(eventName, handler);
     return this;
   }
 
   @Override
-  public String lastId() {
+  public synchronized String lastId() {
     return lastId;
   }
 
-  private void handleMessage(Buffer buffer) {
+  private synchronized void handleMessage(Buffer buffer) {
     if (currentPacket == null) {
       currentPacket = new SSEPacket();
     }
