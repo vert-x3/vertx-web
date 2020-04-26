@@ -24,8 +24,6 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sse.impl.SSEConnectionImpl;
 
-import java.util.List;
-
 @VertxGen
 public interface SSEConnection {
 
@@ -35,9 +33,6 @@ public interface SSEConnection {
 
   @Fluent
   SSEConnection forward(String address);
-
-  @Fluent
-  SSEConnection forward(List<String> addresses);
 
   @Fluent
   SSEConnection comment(String comment);

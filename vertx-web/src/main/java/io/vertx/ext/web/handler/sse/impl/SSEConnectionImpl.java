@@ -28,15 +28,13 @@ import io.vertx.ext.web.handler.sse.SSEConnection;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
-
 public class SSEConnectionImpl implements SSEConnection {
 
   private static final String MSG_SEPARATOR = "\n";
   private static final String PACKET_SEPARATOR = "\n\n";
 
   private final RoutingContext context;
-  private List<MessageConsumer<?>> consumers = new ArrayList<>();
+  private final List<MessageConsumer<?>> consumers = new ArrayList<>();
   private final List<Handler<SSEConnection>> closeHandlers = new ArrayList<>();
 
   public SSEConnectionImpl(RoutingContext context) {
@@ -46,14 +44,6 @@ public class SSEConnectionImpl implements SSEConnection {
   @Override
   public SSEConnection forward(String address) {
     consumers.add(context.vertx().eventBus().consumer(address, this::ebMsgHandler));
-    return this;
-  }
-
-  @Override
-  public SSEConnection forward(List<String> addresses) {
-    consumers = addresses.stream().map(address ->
-      context.vertx().eventBus().consumer(address, this::ebMsgHandler)
-    ).collect(toList());
     return this;
   }
 
