@@ -15,6 +15,7 @@ import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.openapi.impl.OpenAPI3RouterFactoryImpl;
 import io.vertx.ext.web.openapi.impl.OpenAPIHolderImpl;
 
@@ -104,16 +105,14 @@ public interface RouterFactory {
   RouterFactory securityHandler(String securitySchemaName, Handler<RoutingContext> handler);
 
   /**
-   * Add a particular scope validator. The main security schema will not be called if a specific scope validator is
-   * configured
+   * Mount to paths that have to follow a security schema a security handler
    *
    * @param securitySchemaName
-   * @param scopeName
    * @param handler
    * @return this factory
    */
   @Fluent
-  RouterFactory securityHandler(String securitySchemaName, String scopeName, Handler<RoutingContext> handler);
+  RouterFactory securityHandler(String securitySchemaName, OAuth2AuthHandler handler);
 
   /**
    * Introspect the OpenAPI spec to mount handlers for all operations that specifies a x-vertx-event-bus annotation. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-service/java/">vertx-web-api-service documentation</a> for more informations

@@ -15,6 +15,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.service.RouteToEBServiceHandler;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.impl.RouteImpl;
 import io.vertx.ext.web.openapi.*;
@@ -158,11 +159,11 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
   }
 
   @Override
-  public RouterFactory securityHandler(String securitySchemaName, String scopeName, Handler<RoutingContext> handler) {
+  public RouterFactory securityHandler(String securitySchemaName, OAuth2AuthHandler handler) {
     Objects.requireNonNull(securitySchemaName);
-    Objects.requireNonNull(scopeName);
     Objects.requireNonNull(handler);
-    securityHandlers.addSecurityRequirement(securitySchemaName, scopeName, handler);
+    //TODO
+    securityHandlers.addSecurityRequirement(securitySchemaName, handler);
     return this;
   }
 
