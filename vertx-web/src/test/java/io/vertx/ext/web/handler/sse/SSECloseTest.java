@@ -20,7 +20,7 @@ import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 
-public class SSETestClose extends SSETestBase {
+public class SSECloseTest extends SSEBaseTest {
 
   private void waitSafely() {
     try {

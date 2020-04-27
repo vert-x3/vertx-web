@@ -21,7 +21,7 @@ import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 
-public class SSETestEstablishConnection extends SSETestBase {
+public class SSEEstablishConnectionTest extends SSEBaseTest {
 
   @Test
   public void noToken() throws InterruptedException {

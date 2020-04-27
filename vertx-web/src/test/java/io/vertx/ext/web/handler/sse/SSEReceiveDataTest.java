@@ -20,10 +20,9 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.concurrent.CountDownLatch;
 
-public class SSETestReceiveData extends SSETestBase {
+public class SSEReceiveDataTest extends SSEBaseTest {
 
   @Test
   public void testSimpleDataHandler() throws InterruptedException {
