@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 
-public class SSETestRequestResponseHeaders extends SSETestBase {
+public class SSERequestResponseHeadersTest extends SSEBaseTest {
 
   @Test
   public void noHeaderTextEventStreamHttpRequest() throws InterruptedException {

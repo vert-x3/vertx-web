@@ -26,7 +26,7 @@ import io.vertx.test.core.VertxTestBase;
 
 import java.util.concurrent.CountDownLatch;
 
-abstract class SSETestBase extends VertxTestBase {
+abstract class SSEBaseTest extends VertxTestBase {
 
   protected final String TOKEN = "test";
 
