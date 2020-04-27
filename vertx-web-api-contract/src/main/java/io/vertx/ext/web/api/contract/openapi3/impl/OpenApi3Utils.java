@@ -23,6 +23,7 @@ import io.vertx.ext.web.api.validation.SpecFeatureNotSupportedException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -367,5 +368,7 @@ public class OpenApi3Utils {
     if (operationExtension == null) return pathExtension;
     return null;
   }
+
+public static final UnaryOperator<Boolean> safeBoolean = in -> in == null? Boolean.FALSE: in.booleanValue();
 
 }
