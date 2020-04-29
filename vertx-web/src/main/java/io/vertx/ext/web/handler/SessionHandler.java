@@ -172,6 +172,7 @@ public interface SessionHandler extends Handler<RoutingContext> {
    * @param policy to use, {@code null} for no policy.
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
 	SessionHandler setCookieSameSite(CookieSameSite policy);
 
   /**
@@ -181,6 +182,7 @@ public interface SessionHandler extends Handler<RoutingContext> {
    * @param lazySession true to have a lazy session creation.
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
 	SessionHandler setLazySession(boolean lazySession);
 
   /**

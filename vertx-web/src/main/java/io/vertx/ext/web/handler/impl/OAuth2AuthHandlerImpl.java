@@ -181,11 +181,13 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
   public OAuth2AuthHandler setupCallback(final Route route) {
 
     if (callbackPath != null && !"".equals(callbackPath)) {
-      // no matter what path was provided we will make sure it is the correct one
-      if (LOG.isWarnEnabled()) {
-        LOG.warn("route path changed to match callback URL");
+      if (!callbackPath.equals(route.getPath())) {
+        if (LOG.isWarnEnabled()) {
+          LOG.warn("route path changed to match callback URL");
+        }
+        // no matter what path was provided we will make sure it is the correct one
+        route.path(callbackPath);
       }
-      route.path(callbackPath);
     }
 
     route.method(HttpMethod.GET);

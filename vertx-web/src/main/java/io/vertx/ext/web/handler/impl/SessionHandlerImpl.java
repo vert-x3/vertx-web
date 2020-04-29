@@ -48,7 +48,7 @@ public class SessionHandlerImpl implements SessionHandler {
   private boolean sessionCookieHttpOnly;
   private int minLength;
   private CookieSameSite cookieSameSite;
-  private boolean lazySession = false;
+  private boolean lazySession;
 
   public SessionHandlerImpl(String sessionCookieName, String sessionCookiePath, long sessionTimeout, boolean nagHttps,
                             boolean sessionCookieSecure, boolean sessionCookieHttpOnly, int minLength, boolean lazySession,
@@ -239,7 +239,10 @@ public class SessionHandlerImpl implements SessionHandler {
             final Cookie cookie = sessionCookie(context, session);
             // restore defaults
             session.setAccessed();
-            cookie.setValue(session.value()).setPath("/").setSecure(sessionCookieSecure)
+            cookie
+              .setValue(session.value())
+              .setPath(sessionCookiePath)
+              .setSecure(sessionCookieSecure)
               .setHttpOnly(sessionCookieHttpOnly);
 
             // we must invalidate the old id
