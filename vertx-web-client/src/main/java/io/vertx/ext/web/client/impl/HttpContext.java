@@ -469,7 +469,10 @@ public class HttpContext<T> {
         if (request.headers == null || !request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
           req.setChunked(true);
         }
-        stream.pipeTo(req, ar -> {
+        Pipe<Buffer> pipe = stream.pipe();
+        // Don't end the stream on a failure as it will be reset after
+        pipe.endOnFailure(false);
+        pipe.to(req, ar -> {
           if (ar.failed()) {
             responseFuture.tryFail(ar.cause());
             req.reset();
