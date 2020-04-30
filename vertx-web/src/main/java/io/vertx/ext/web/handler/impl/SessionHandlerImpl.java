@@ -149,11 +149,7 @@ public class SessionHandlerImpl implements SessionHandler {
               // attempt to load the user from the session
               UserHolder holder = session.get(SESSION_USER_HOLDER_KEY);
               if (holder != null) {
-                User user = holder.refresh(context);
-                // only set if user is available
-                if (user != null) {
-                  context.setUser(user);
-                }
+                holder.refresh(context);
               }
               addStoreSessionHandler(context, holder == null);
             } else {
