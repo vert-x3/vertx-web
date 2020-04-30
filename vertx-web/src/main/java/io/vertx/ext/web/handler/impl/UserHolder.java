@@ -32,14 +32,28 @@ import java.nio.charset.StandardCharsets;
  */
 public class UserHolder implements ClusterSerializable {
 
-  public RoutingContext context;
-  public User user;
+  private RoutingContext context;
+  private User user;
 
   public UserHolder() {
   }
 
   public UserHolder(RoutingContext context) {
     this.context = context;
+  }
+
+  public synchronized User refresh(RoutingContext context) {
+    User user = null;
+    if (this.context != null) {
+      // this is a new object instance or already refreshed
+      user = this.context.user();
+    } else if (this.user != null) {
+      // this is a loaded from the session instance
+      user = this.user;
+    }
+    // refresh the context
+    this.context = context;
+    return user;
   }
 
   @Override
