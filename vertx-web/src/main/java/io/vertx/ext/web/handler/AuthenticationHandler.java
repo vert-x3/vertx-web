@@ -57,4 +57,13 @@ public interface AuthenticationHandler extends Handler<RoutingContext> {
     parseCredentials(context, promise);
     return promise.future();
   }
+
+  /**
+   * Returns
+   * @param context
+   * @return
+   */
+  default String authenticateHeader(RoutingContext context) {
+    return null;
+  }
 }
