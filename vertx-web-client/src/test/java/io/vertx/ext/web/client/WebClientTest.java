@@ -708,9 +708,8 @@ public class WebClientTest extends WebClientTestBase {
     CompletableFuture<Void> resume = new CompletableFuture<>();
     AtomicInteger size = new AtomicInteger();
     AtomicBoolean ended = new AtomicBoolean();
-    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
+    WriteStream<Buffer> stream = new WriteStreamBase() {
       boolean paused = true;
-      Handler<Void> drainHandler;
       {
         resume.thenAccept(v -> {
           paused = false;
@@ -720,41 +719,18 @@ public class WebClientTest extends WebClientTestBase {
         });
       }
       @Override
-      public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
-        return this;
-      }
-      @Override
-      public Future<Void> write(Buffer data) {
-        Promise<Void> promise = Promise.promise();
-        write(data, promise);
-        return promise.future();
-      }
-      @Override
       public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         size.addAndGet(data.length());
-        if (handler != null) {
-          handler.handle(Future.succeededFuture());
-        }
+        super.write(data, handler);
       }
       @Override
       public void end(Handler<AsyncResult<Void>> handler) {
         ended.set(true);
-        if (handler != null) {
-          handler.handle(Future.succeededFuture());
-        }
-      }
-      @Override
-      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
-        return this;
+        super.end(handler);
       }
       @Override
       public boolean writeQueueFull() {
         return paused;
-      }
-      @Override
-      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
-        drainHandler = handler;
-        return this;
       }
     };
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
@@ -782,47 +758,11 @@ public class WebClientTest extends WebClientTestBase {
     });
     startServer();
     AtomicInteger received = new AtomicInteger();
-    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
-      @Override
-      public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
-        return this;
-      }
-      @Override
-      public Future<Void> write(Buffer data) {
-        Promise<Void> promise = Promise.promise();
-        write(data, promise);
-        return promise.future();
-      }
+    WriteStream<Buffer> stream = new WriteStreamBase() {
       @Override
       public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         received.addAndGet(data.length());
-        if (handler != null) {
-          handler.handle(Future.succeededFuture());
-        }
-      }
-      @Override
-      public Future<Void> end() {
-        Promise<Void> promise = Promise.promise();
-        end(promise);
-        return promise.future();
-      }
-      @Override
-      public void end(Handler<AsyncResult<Void>> handler) {
-        if (handler != null) {
-          handler.handle(Future.succeededFuture());
-        }
-      }
-      @Override
-      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
-        return this;
-      }
-      @Override
-      public boolean writeQueueFull() {
-        return false;
-      }
-      @Override
-      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
-        return this;
+        super.write(data, handler);
       }
     };
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
@@ -843,7 +783,7 @@ public class WebClientTest extends WebClientTestBase {
     });
     startServer();
     RuntimeException cause = new RuntimeException();
-    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
+    WriteStream<Buffer> stream = new WriteStreamBase() {
       Handler<Throwable> exceptionHandler;
       @Override
       public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
@@ -851,43 +791,37 @@ public class WebClientTest extends WebClientTestBase {
         return this;
       }
       @Override
-      public Future<Void> write(Buffer data) {
-        Promise<Void> promise = Promise.promise();
-        write(data, promise);
-        return promise.future();
-      }
-      @Override
       public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         exceptionHandler.handle(cause);
-        if (handler != null) {
-          handler.handle(Future.failedFuture(cause));
-        }
-      }
-      @Override
-      public Future<Void> end() {
-        throw new AssertionError();
-      }
-      @Override
-      public void end(Handler<AsyncResult<Void>> handler) {
-        throw new AssertionError();
-      }
-      @Override
-      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
-        return this;
-      }
-      @Override
-      public boolean writeQueueFull() {
-        return false;
-      }
-      @Override
-      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
-        return this;
+        handler.handle(Future.failedFuture(cause));
       }
     };
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
       .as(BodyCodec.pipe(stream))
       .send(onFailure(err -> {
+      assertSame(cause, err);
+      testComplete();
+    }));
+    await();
+  }
+
+  @Test
+  public void testResponseBodyCodecErrorBeforeResponseIsReceived() throws Exception {
+    server.requestHandler(req -> {
+      HttpServerResponse resp = req.response();
+      resp.setChunked(true);
+      resp.end(TestUtils.randomBuffer(2048));
+    });
+    startServer();
+    RuntimeException cause = new RuntimeException();
+    WriteStreamBase stream = new WriteStreamBase() {
+    };
+    HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequest<Void> request = get.as(BodyCodec.pipe(stream));
+    assertNotNull(stream.exceptionHandler);
+    stream.exceptionHandler.handle(cause);
+    request.send(onFailure(err -> {
       assertSame(cause, err);
       testComplete();
     }));
@@ -981,42 +915,16 @@ public class WebClientTest extends WebClientTestBase {
   public void testResponseWriteStreamMissingBody() throws Exception {
     AtomicInteger length = new AtomicInteger();
     AtomicBoolean ended = new AtomicBoolean();
-    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
-      @Override
-      public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
-        return this;
-      }
-      @Override
-      public Future<Void> write(Buffer data) {
-        Promise<Void> promise = Promise.promise();
-        write(data, promise);
-        return promise.future();
-      }
+    WriteStream<Buffer> stream = new WriteStreamBase() {
       @Override
       public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         length.addAndGet(data.length());
-        if (handler != null) {
-          handler.handle(Future.succeededFuture());
-        }
+        super.write(data, handler);
       }
       @Override
       public void end(Handler<AsyncResult<Void>> handler) {
         ended.set(true);
-        if (handler != null) {
-          handler.handle(Future.succeededFuture());
-        }
-      }
-      @Override
-      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
-        return this;
-      }
-      @Override
-      public boolean writeQueueFull() {
-        return false;
-      }
-      @Override
-      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
-        return this;
+        super.end(handler);
       }
     };
     testResponseMissingBody(BodyCodec.pipe(stream));
@@ -1854,5 +1762,50 @@ public class WebClientTest extends WebClientTestBase {
         .get("somepath")
         .putHeader("bla", Arrays.asList("1", "2")),
       req -> assertEquals(Arrays.asList("1", "2"), req.headers().getAll("bla")));
+  }
+
+  private abstract static class WriteStreamBase implements WriteStream<Buffer> {
+
+    protected Handler<Throwable> exceptionHandler;
+    protected Handler<Void> drainHandler;
+
+    @Override
+    public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
+      exceptionHandler = handler;
+      return this;
+    }
+
+    @Override
+    public Future<Void> write(Buffer data) {
+      Promise<Void> promise = Promise.promise();
+      write(data, promise);
+      return promise.future();
+    }
+
+    @Override
+    public void write(Buffer buffer, Handler<AsyncResult<Void>> handler) {
+      handler.handle(Future.succeededFuture());
+    }
+
+    @Override
+    public void end(Handler<AsyncResult<Void>> handler) {
+      handler.handle(Future.succeededFuture());
+    }
+
+    @Override
+    public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
+      return this;
+    }
+
+    @Override
+    public boolean writeQueueFull() {
+      return false;
+    }
+
+    @Override
+    public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
+      drainHandler = handler;
+      return this;
+    }
   }
 }
