@@ -1,6 +1,7 @@
 package io.vertx.ext.web.client;
 
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.dns.AddressResolverOptions;
@@ -802,9 +803,8 @@ public class WebClientTest extends HttpTestBase {
     CompletableFuture<Void> resume = new CompletableFuture<>();
     AtomicInteger size = new AtomicInteger();
     AtomicBoolean ended = new AtomicBoolean();
-    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
+    WriteStream<Buffer> stream = new WriteStreamBase() {
       boolean paused = true;
-      Handler<Void> drainHandler;
       {
         resume.thenAccept(v -> {
           paused = false;
@@ -812,14 +812,6 @@ public class WebClientTest extends HttpTestBase {
             drainHandler.handle(null);
           }
         });
-      }
-      @Override
-      public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
-        return this;
-      }
-      @Override
-      public WriteStream<Buffer> write(Buffer data) {
-        return write(data, null);
       }
       @Override
       public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
@@ -830,10 +822,6 @@ public class WebClientTest extends HttpTestBase {
         return this;
       }
       @Override
-      public void end() {
-        end((Handler<AsyncResult<Void>>) null);
-      }
-      @Override
       public void end(Handler<AsyncResult<Void>> handler) {
         ended.set(true);
         if (handler != null) {
@@ -841,17 +829,8 @@ public class WebClientTest extends HttpTestBase {
         }
       }
       @Override
-      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
-        return this;
-      }
-      @Override
       public boolean writeQueueFull() {
         return paused;
-      }
-      @Override
-      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
-        drainHandler = handler;
-        return this;
       }
     };
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
@@ -879,15 +858,7 @@ public class WebClientTest extends HttpTestBase {
     });
     startServer();
     AtomicInteger received = new AtomicInteger();
-    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
-      @Override
-      public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
-        return this;
-      }
-      @Override
-      public WriteStream<Buffer> write(Buffer data) {
-        return write(data, null);
-      }
+    WriteStream<Buffer> stream = new WriteStreamBase() {
       @Override
       public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
         received.addAndGet(data.length());
@@ -897,26 +868,10 @@ public class WebClientTest extends HttpTestBase {
         return this;
       }
       @Override
-      public void end() {
-        end((Handler<AsyncResult<Void>>) null);
-      }
-      @Override
       public void end(Handler<AsyncResult<Void>> handler) {
         if (handler != null) {
           handler.handle(Future.succeededFuture());
         }
-      }
-      @Override
-      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
-        return this;
-      }
-      @Override
-      public boolean writeQueueFull() {
-        return false;
-      }
-      @Override
-      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
-        return this;
       }
     };
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
@@ -937,17 +892,7 @@ public class WebClientTest extends HttpTestBase {
     });
     startServer();
     RuntimeException cause = new RuntimeException();
-    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
-      Handler<Throwable> exceptionHandler;
-      @Override
-      public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
-        exceptionHandler = handler;
-        return this;
-      }
-      @Override
-      public WriteStream<Buffer> write(Buffer data) {
-        return write(data, null);
-      }
+    WriteStream<Buffer> stream = new WriteStreamBase() {
       @Override
       public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
         exceptionHandler.handle(cause);
@@ -957,24 +902,8 @@ public class WebClientTest extends HttpTestBase {
         return this;
       }
       @Override
-      public void end() {
-        throw new AssertionError();
-      }
-      @Override
       public void end(Handler<AsyncResult<Void>> handler) {
         throw new AssertionError();
-      }
-      @Override
-      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
-        return this;
-      }
-      @Override
-      public boolean writeQueueFull() {
-        return false;
-      }
-      @Override
-      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
-        return this;
       }
     };
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
@@ -984,6 +913,35 @@ public class WebClientTest extends HttpTestBase {
       assertSame(cause, err);
       testComplete();
     }));
+    await();
+  }
+
+  @Test
+  public void testResponseBodyCodecErrorBeforeResponseIsReceived() throws Exception {
+    server.requestHandler(req -> {
+      HttpServerResponse resp = req.response();
+      resp.setChunked(true);
+      resp.end(TestUtils.randomBuffer(2048));
+    });
+    startServer();
+    RuntimeException cause = new RuntimeException();
+    WriteStreamBase stream = new WriteStreamBase() {
+      @Override
+      public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
+        return this;
+      }
+      @Override
+      public void end(Handler<AsyncResult<Void>> handler) {
+      }
+    };
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequest<Void> request = get.as(BodyCodec.pipe(stream));
+    assertNotNull(stream.exceptionHandler);
+    stream.exceptionHandler.handle(cause);
+    request.send(onFailure(err -> {
+        assertSame(cause, err);
+        testComplete();
+      }));
     await();
   }
 
@@ -1068,15 +1026,7 @@ public class WebClientTest extends HttpTestBase {
   public void testResponseWriteStreamMissingBody() throws Exception {
     AtomicInteger length = new AtomicInteger();
     AtomicBoolean ended = new AtomicBoolean();
-    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
-      @Override
-      public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
-        return this;
-      }
-      @Override
-      public WriteStream<Buffer> write(Buffer data) {
-        return write(data, null);
-      }
+    WriteStream<Buffer> stream = new WriteStreamBase() {
       @Override
       public WriteStream<Buffer> write(Buffer data, Handler<AsyncResult<Void>> handler) {
         length.addAndGet(data.length());
@@ -1086,27 +1036,11 @@ public class WebClientTest extends HttpTestBase {
         return this;
       }
       @Override
-      public void end() {
-        end((Handler<AsyncResult<Void>>) null);
-      }
-      @Override
       public void end(Handler<AsyncResult<Void>> handler) {
         ended.set(true);
         if (handler != null) {
           handler.handle(Future.succeededFuture());
         }
-      }
-      @Override
-      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
-        return this;
-      }
-      @Override
-      public boolean writeQueueFull() {
-        return false;
-      }
-      @Override
-      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
-        return this;
       }
     };
     testResponseMissingBody(BodyCodec.pipe(stream));
@@ -1939,5 +1873,42 @@ public class WebClientTest extends HttpTestBase {
         .get("somepath")
         .putHeader("bla", Arrays.asList("1", "2")),
       req -> assertEquals(Arrays.asList("1", "2"), req.headers().getAll("bla")));
+  }
+
+  private abstract static class WriteStreamBase implements WriteStream<Buffer> {
+
+    protected Handler<Throwable> exceptionHandler;
+    protected Handler<Void> drainHandler;
+
+    @Override
+    public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
+      exceptionHandler = handler;
+      return this;
+    }
+    @Override
+    public WriteStream<Buffer> write(Buffer data) {
+      return write(data, null);
+    }
+
+    @Override
+    public void end() {
+      end((Handler<AsyncResult<Void>>) null);
+    }
+
+    @Override
+    public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
+      return this;
+    }
+
+    @Override
+    public boolean writeQueueFull() {
+      return false;
+    }
+
+    @Override
+    public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
+      drainHandler = handler;
+      return this;
+    }
   }
 }

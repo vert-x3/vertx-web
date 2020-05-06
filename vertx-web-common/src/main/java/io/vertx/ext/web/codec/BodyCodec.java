@@ -121,7 +121,9 @@ public interface BodyCodec<T> {
    * @return the body codec for a write stream
    */
   static BodyCodec<Void> pipe(WriteStream<Buffer> stream, boolean close) {
-	return new StreamingBodyCodec(stream, close);
+    StreamingBodyCodec bodyCodec = new StreamingBodyCodec(stream, close);
+    bodyCodec.init();
+    return bodyCodec;
   }
 
   /**
