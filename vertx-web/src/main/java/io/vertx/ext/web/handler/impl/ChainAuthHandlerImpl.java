@@ -35,6 +35,10 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl implements C
     if (other instanceof RedirectAuthHandler || other instanceof OAuth2AuthHandler) {
       willRedirect = true;
     }
+    // special case, when chaining a chain, we must take the redirect in consideration too
+    if (other instanceof ChainAuthHandler) {
+      willRedirect &= ((ChainAuthHandlerImpl) other).willRedirect;
+    }
     return this;
   }
 
