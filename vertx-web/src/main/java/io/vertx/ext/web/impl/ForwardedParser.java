@@ -179,13 +179,19 @@ class ForwardedParser {
   }
 
   private void setHostAndPort(String hostToParse, int defaultPort) {
-    int portSeparatorIdx = hostToParse.lastIndexOf(':');
-    if (portSeparatorIdx > hostToParse.lastIndexOf(']')) {
-      host = hostToParse.substring(0, portSeparatorIdx);
-      port = parsePort(hostToParse.substring(portSeparatorIdx + 1), defaultPort);
-    } else {
-      host = hostToParse;
+    if (hostToParse == null) {
+      // no header is provided
+      host = null;
       port = -1;
+    } else {
+      int portSeparatorIdx = hostToParse.lastIndexOf(':');
+      if (portSeparatorIdx > hostToParse.lastIndexOf(']')) {
+        host = hostToParse.substring(0, portSeparatorIdx);
+        port = parsePort(hostToParse.substring(portSeparatorIdx + 1), defaultPort);
+      } else {
+        host = hostToParse;
+        port = -1;
+      }
     }
   }
 
