@@ -244,7 +244,20 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public String getBodyAsString() {
-    return body != null ? body.toString() : null;
+    if (body != null) {
+      ParsableHeaderValuesContainer parsedHeaders = parsedHeaders();
+      if (parsedHeaders != null) {
+        ParsableMIMEValue contentType = parsedHeaders.contentType();
+        if (contentType != null) {
+          String charset = contentType.parameter("charset");
+          if (charset != null) {
+            return body.toString(charset);
+          }
+        }
+      }
+      return body.toString();
+    }
+    return null;
   }
 
   @Override

@@ -243,8 +243,9 @@ public interface RoutingContext {
   Map<String, io.vertx.core.http.Cookie> cookieMap();
 
   /**
-   * @return  the entire HTTP request body as a string, assuming UTF-8 encoding. The context must have first been routed to a
-   * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
+   * @return  the entire HTTP request body as a string, assuming UTF-8 encoding if the request does not provide the
+   * content type charset attribute. If a charset is provided in the request that it shall be respected. The context
+   * must have first been routed to a {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    */
   @Nullable String getBodyAsString();
 

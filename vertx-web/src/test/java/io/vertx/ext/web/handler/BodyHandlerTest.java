@@ -35,6 +35,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 /**
@@ -100,6 +101,23 @@ public class BodyHandlerTest extends WebTestBase {
     testRequest(HttpMethod.POST, "/", req -> {
       req.setChunked(true);
       req.write(str);
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testBodyStringWithEncoding() throws Exception {
+    String str = "\u00FF";
+    router.route().handler(rc -> {
+      assertEquals(1, rc.getBody().length());
+      String decoded = rc.getBodyAsString();
+      assertEquals(str, decoded);
+      rc.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.putHeader("content-type", "text/plain;charset=ISO-8859-1");
+      byte b = str.getBytes(StandardCharsets.ISO_8859_1)[0];
+      req.write(Buffer.buffer(new byte[] { b }));
     }, 200, "OK", null);
   }
 
