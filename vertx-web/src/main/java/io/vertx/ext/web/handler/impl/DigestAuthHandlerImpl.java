@@ -153,12 +153,6 @@ public class DigestAuthHandlerImpl extends AuthorizationAuthHandler implements D
           nonces.put(nonce, new Nonce(n.createdAt, nc));
         }
 
-        final String uri = authInfo.getString("uri");
-
-        if (!uri.equalsIgnoreCase(context.request().uri())) {
-          handler.handle(Future.failedFuture(UNAUTHORIZED));
-          return;
-        }
       } catch (RuntimeException e) {
         handler.handle(Future.failedFuture(e));
       }
