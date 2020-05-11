@@ -9,6 +9,8 @@ import io.vertx.docgen.Source;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.AuthenticationHandler;
+import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.openapi.OpenAPILoaderOptions;
 import io.vertx.ext.web.openapi.RouterFactory;
@@ -83,8 +85,8 @@ public class OpenAPI3Examples {
       });
   }
 
-  public void addSecurityHandler(RouterFactory routerFactory, Handler securityHandler) {
-    routerFactory.securityHandler("security_scheme_name", securityHandler);
+  public void addSecurityHandler(RouterFactory routerFactory, AuthenticationHandler authenticationHandler) {
+    routerFactory.securityHandler("security_scheme_name", authenticationHandler);
   }
 
   public void addJWT(RouterFactory routerFactory, JWTAuth jwtAuthProvider) {
@@ -119,7 +121,7 @@ public class OpenAPI3Examples {
     server.requestHandler(router).listen();
   }
 
-  public void mainExample(Vertx vertx) {
+  public void mainExample(Vertx vertx, JWTAuth jwtAuth) {
     // Load the api spec. This operation is asynchronous
     RouterFactory.create(vertx, "src/main/resources/petstore.yaml",
       routerFactoryAsyncResult -> {
@@ -148,7 +150,10 @@ public class OpenAPI3Examples {
 
         // Add a security handler
         // Handle security here
-        routerFactory.securityHandler("api_key", RoutingContext::next);
+        routerFactory.securityHandler(
+          "api_key",
+          JWTAuthHandler.create(jwtAuth)
+        );
 
         // Now you have to generate the router
         Router router = routerFactory.createRouter();

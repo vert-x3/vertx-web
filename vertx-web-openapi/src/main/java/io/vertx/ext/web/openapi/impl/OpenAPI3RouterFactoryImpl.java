@@ -14,6 +14,7 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.service.RouteToEBServiceHandler;
+import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
@@ -54,7 +55,7 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
   private RouterFactoryOptions options;
   private Map<String, OperationImpl> operations;
   private BodyHandler bodyHandler;
-  private SecurityHandlersStore securityHandlers;
+  private AuthenticationHandlersStore securityHandlers;
   private List<Handler<RoutingContext>> globalHandlers;
   private Function<RoutingContext, JsonObject> serviceExtraPayloadMapper;
   private SchemaRouter schemaRouter;
@@ -89,7 +90,7 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
       .addBodyProcessorGenerator(new MultipartFormBodyProcessorGenerator());
 
     this.operations = new LinkedHashMap<>();
-    this.securityHandlers = new SecurityHandlersStore();
+    this.securityHandlers = new AuthenticationHandlersStore();
 
     /* --- Initialization of operations --- */
     spec.solveIfNeeded(spec.getOpenAPI().getJsonObject("paths")).forEach(pathEntry -> {
@@ -151,10 +152,11 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
   }
 
   @Override
-  public RouterFactory securityHandler(String securitySchemaName, Handler<RoutingContext> handler) {
+  public RouterFactory securityHandler(String securitySchemaName, AuthenticationHandler handler) {
     Objects.requireNonNull(securitySchemaName);
     Objects.requireNonNull(handler);
-    securityHandlers.addSecurityRequirement(securitySchemaName, handler);
+    //TODO
+    securityHandlers.addAuthnRequirement(securitySchemaName, handler);
     return this;
   }
 
@@ -163,7 +165,7 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
     Objects.requireNonNull(securitySchemaName);
     Objects.requireNonNull(handler);
     //TODO
-    securityHandlers.addSecurityRequirement(securitySchemaName, handler);
+    securityHandlers.addAuthnRequirement(securitySchemaName, handler);
     return this;
   }
 
@@ -243,30 +245,25 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
     Route globalRoute = router.route();
     globalRoute.handler(bodyHandler);
 
-    globalHandlers.forEach(globalRoute::handler);
-
-    List<Handler<RoutingContext>> globalSecurityHandlers = securityHandlers
-      .solveSecurityHandlers(openapi.getOpenAPI().getJsonArray("security", new JsonArray()), this.getOptions().isRequireSecurityHandlers());
     for (OperationImpl operation : operations.values()) {
       // If user don't want 501 handlers and the operation is not configured, skip it
       if (!options.isMountNotImplementedHandler() && !operation.isConfigured())
         continue;
 
-      List<Handler> handlersToLoad = new ArrayList<>();
-      List<Handler> failureHandlersToLoad = new ArrayList<>();
+      List<Handler<RoutingContext>> handlersToLoad = new ArrayList<>();
+      List<Handler<RoutingContext>> failureHandlersToLoad = new ArrayList<>();
 
-      // Resolve security handlers
-      // As https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#fixed-fields-8 says:
-      // Operation specific security requirement overrides global security requirement, even if local security requirement is an empty array
-//TODO still missing stuff in vertx web
-//      if (operation.getOperationModel().getSecurity() != null) {
-//        handlersToLoad.addAll(securityHandlers.solveSecurityHandlers(
-//          operation.getOperationModel().getSecurity(),
-//          this.getOptions().isRequireSecurityHandlers()
-//        ));
-//      } else {
-//        handlersToLoad.addAll(globalSecurityHandlers);
-//      }
+      // Authentication Handler
+      AuthenticationHandler authnHandler = this.securityHandlers.solveAuthenticationHandler(
+        OpenApi3Utils.mergeSecurityRequirements(
+          this.openapi.getOpenAPI().getJsonArray("security"),
+          operation.getOperationModel().getJsonArray("security")
+        ),
+        this.options.isRequireSecurityHandlers()
+      );
+      if (authnHandler != null) {
+        handlersToLoad.add(authnHandler);
+      }
 
       // Generate ValidationHandler
       ValidationHandlerImpl validationHandler = validationHandlerGenerator.create(operation);

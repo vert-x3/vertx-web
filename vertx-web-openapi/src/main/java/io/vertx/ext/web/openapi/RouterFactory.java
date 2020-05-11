@@ -14,6 +14,8 @@ import io.vertx.ext.json.schema.SchemaRouter;
 import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.AuthenticationHandler;
+import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.openapi.impl.OpenAPI3RouterFactoryImpl;
@@ -102,7 +104,7 @@ public interface RouterFactory {
    * @return this factory
    */
   @Fluent
-  RouterFactory securityHandler(String securitySchemaName, Handler<RoutingContext> handler);
+  RouterFactory securityHandler(String securitySchemaName, AuthenticationHandler handler);
 
   /**
    * Mount to paths that have to follow a security schema a security handler

@@ -1,0 +1,73 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Test spec for RouterFactorySecurityTest
+  license:
+    name: Apache 2.0 License
+paths:
+  /pets_single_security:
+    get:
+      operationId: listPetsSingleSecurity
+      tags:
+        - pets
+      security:
+        - api_key: []
+      responses:
+        200:
+          description: Something
+  /pets_and_security:
+    get:
+      operationId: listPetsAndSecurity
+      tags:
+        - pets
+      security:
+        - api_key: []
+          second_api_key: []
+          third_api_key: []
+      responses:
+        200:
+          description: Something
+  /pets_or_security:
+    get:
+      operationId: listPetsOrSecurity
+      tags:
+        - pets
+      security:
+        - api_key: []
+        - second_api_key: []
+        - third_api_key: []
+      responses:
+        200:
+          description: Something
+  /pets_or_and_security:
+    get:
+      operationId: listPetsOrAndSecurity
+      tags:
+        - pets
+      security:
+        - api_key: []
+        - second_api_key: []
+          sibling_second_api_key: []
+        - third_api_key: []
+      responses:
+        200:
+          description: Something
+components:
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
+    second_api_key:
+      type: apiKey
+      name: second_api_key
+      in: header
+    sibling_second_api_key:
+      type: apiKey
+      name: second_api_key
+      in: header
+    third_api_key:
+      type: apiKey
+      name: third_api_key
+      in: header
+

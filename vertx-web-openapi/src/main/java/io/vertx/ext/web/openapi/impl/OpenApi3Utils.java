@@ -58,6 +58,10 @@ public class OpenApi3Utils {
     return param.getBoolean("explode", "form".equals(style));
   }
 
+  public static JsonArray mergeSecurityRequirements(JsonArray globalSecurityRequirements, JsonArray localSecurityRequirements) {
+    return null;
+  }
+
 //
 //  public static boolean resolveAllowEmptyValue(JsonObject parameter) {
 //    if (parameter.getAllowEmptyValue() != null) {

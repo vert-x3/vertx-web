@@ -2,18 +2,18 @@ package io.vertx.ext.web.openapi;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringEncoder;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.handler.impl.AuthenticationHandlerImpl;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.ext.web.validation.*;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
@@ -235,177 +235,6 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
         .expect(statusCode(500), statusMessage("ABE"))
         .send(testContext, checkpoint)
     );
-  }
-
-  @Test
-  public void mountSecurityHandlers(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint();
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
-
-      routerFactory.operation("listPetsSecurity").handler(routingContext -> routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.get("first_level") + "-" +
-          routingContext.get("second_level") + "-" + routingContext.get("third_level_one") +
-          "-" + routingContext.get("third_level_two") + "-Done")
-        .end());
-
-      routerFactory.securityHandler("api_key",
-        routingContext -> routingContext.put("first_level", "User").next()
-      );
-
-      routerFactory.securityHandler("second_api_key", "moderator",
-        routingContext -> routingContext.put("second_level", "Moderator").next()
-      );
-
-      routerFactory.securityHandler("third_api_key", "admin",
-        routingContext -> routingContext.put("third_level_one", "Admin").next()
-      );
-
-      routerFactory.securityHandler("third_api_key", "useless",
-        routingContext -> routingContext.put("third_level_one", "Wrong!").next()
-      );
-
-      routerFactory.securityHandler("third_api_key", "super_admin",
-        routingContext -> routingContext.put("third_level_two", "SuperAdmin").next()
-      );
-    }).onComplete(h ->
-      testRequest(client, HttpMethod.GET, "/pets_security_test")
-        .expect(statusCode(200), statusMessage("User-Moderator-Admin-SuperAdmin-Done"))
-        .send(testContext, checkpoint)
-    );
-  }
-
-  @Test
-  public void mountMultipleSecurityHandlers(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint();
-
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
-
-      routerFactory.operation("listPetsSecurity").handler(routingContext ->
-        routingContext
-          .response()
-          .setStatusCode(200)
-          .setStatusMessage("First handler: " + routingContext.get("firstHandler") + ", Second handler: " + routingContext.get("secondHandler") + ", Second api key: " + routingContext.get("secondApiKey") + ", Third api key: " + routingContext.get("thirdApiKey"))
-          .end()
-      );
-
-      routerFactory.securityHandler("api_key", routingContext -> routingContext.put("firstHandler", "OK").next());
-      routerFactory.securityHandler("api_key", routingContext -> routingContext.put("secondHandler", "OK").next());
-      routerFactory.securityHandler("second_api_key", routingContext -> routingContext.put("secondApiKey", "OK").next());
-      routerFactory.securityHandler("third_api_key", routingContext -> routingContext.put("thirdApiKey", "OK").next());
-
-    }).onComplete(h ->
-      testRequest(client, HttpMethod.GET, "/pets_security_test")
-        .expect(statusCode(200), statusMessage("First handler: OK, Second handler: OK, Second api key: OK, Third api key: OK"))
-        .send(testContext, checkpoint)
-    );
-  }
-
-  @Test
-  public void requireSecurityHandler(Vertx vertx, VertxTestContext testContext) {
-    RouterFactory.create(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext.succeeding(routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
-
-      routerFactory.operation("listPets").handler(routingContext -> routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.get("message") + "OK")
-        .end()
-      );
-
-      testContext.verify(() ->
-        assertThatCode(routerFactory::createRouter)
-          .isInstanceOfSatisfying(RouterFactoryException.class, rfe ->
-            assertThat(rfe.type())
-              .isEqualTo(RouterFactoryException.ErrorType.MISSING_SECURITY_HANDLER)
-          )
-      );
-
-      routerFactory.securityHandler("api_key", RoutingContext::next);
-      routerFactory.securityHandler("second_api_key", RoutingContext::next);
-      routerFactory.securityHandler("third_api_key", RoutingContext::next);
-
-      testContext.verify(() ->
-        assertThatCode(routerFactory::createRouter)
-          .doesNotThrowAnyException()
-      );
-      testContext.completeNow();
-
-    }));
-
-  }
-
-
-  @Test
-  public void testGlobalSecurityHandler(Vertx vertx, VertxTestContext testContext) {
-    final Handler<RoutingContext> handler = routingContext -> {
-      routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(((routingContext.get("message") != null) ? routingContext.get("message") + "-OK" : "OK"))
-        .end();
-    };
-
-    Checkpoint checkpoint = testContext.checkpoint(3);
-
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/global_security_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
-
-      routerFactory.operation("listPetsWithoutSecurity").handler(handler);
-      routerFactory.operation("listPetsWithOverride").handler(handler);
-      routerFactory.operation("listPetsWithoutOverride").handler(handler);
-
-      testContext.verify(() ->
-        assertThatCode(routerFactory::createRouter)
-          .isInstanceOfSatisfying(RouterFactoryException.class, rfe ->
-            assertThat(rfe.type())
-              .isEqualTo(RouterFactoryException.ErrorType.MISSING_SECURITY_HANDLER)
-          )
-      );
-
-      routerFactory.securityHandler("global_api_key",
-        routingContext -> routingContext.put("message", "Global").next()
-      );
-
-      routerFactory.securityHandler("api_key",
-        routingContext -> routingContext.put("message", "Local").next()
-      );
-
-    }).onComplete(h -> {
-      testRequest(client, HttpMethod.GET, "/petsWithoutSecurity")
-        .expect(statusCode(200), statusMessage("OK"))
-        .send(testContext, checkpoint);
-      testRequest(client, HttpMethod.GET, "/petsWithOverride")
-        .expect(statusCode(200), statusMessage("Local-OK"))
-        .send(testContext, checkpoint);
-      testRequest(client, HttpMethod.GET, "/petsWithoutOverride")
-        .expect(statusCode(200), statusMessage("Global-OK"))
-        .send(testContext, checkpoint);
-    });
-  }
-
-  @Test
-  public void notRequireSecurityHandler(Vertx vertx, VertxTestContext testContext) {
-    RouterFactory.create(vertx, "src/test/resources/specs/router_factory_test.yaml",
-      routerFactoryAsyncResult -> {
-        RouterFactory routerFactory = routerFactoryAsyncResult.result();
-
-        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
-
-        routerFactory.operation("listPets").handler(routingContext -> routingContext
-          .response()
-          .setStatusCode(200)
-          .setStatusMessage(routingContext.get("message") + "OK")
-          .end()
-        );
-
-        testContext.verify(() -> assertThatCode(routerFactory::createRouter).doesNotThrowAnyException());
-
-        testContext.completeNow();
-      });
   }
 
   @Test
@@ -1388,4 +1217,5 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
         .send(testContext, checkpoint);
     });
   }
+
 }
