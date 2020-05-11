@@ -142,14 +142,14 @@ public class SockJSProtocolTest {
   @Test
   public void testProtocol() throws Exception {
     // does this system have python 2.x?
-    Process p = Runtime.getRuntime().exec("python2 pythonversion.py", null, new File("src/test"));
+    Process p = Runtime.getRuntime().exec("python pythonversion.py", null, new File("src/test"));
     int res = p.waitFor();
 
     if (res == 0) {
       File dir = new File("src/test/sockjs-protocol");
       p = Runtime
         .getRuntime()
-        .exec("python2 sockjs-protocol.py", new String[]{"SOCKJS_URL=http://localhost:8081"}, dir);
+        .exec("python sockjs-protocol.py", new String[]{"SOCKJS_URL=http://localhost:8081"}, dir);
 
       try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
         String line;
@@ -174,14 +174,14 @@ public class SockJSProtocolTest {
   @Test
   public void testQuirks() throws Exception {
     // does this system have python 2.x?
-    Process p = Runtime.getRuntime().exec("python2 pythonversion.py", null, new File("src/test"));
+    Process p = Runtime.getRuntime().exec("python pythonversion.py", null, new File("src/test"));
     int res = p.waitFor();
 
     if (res == 0) {
       File dir = new File("src/test/sockjs-protocol");
       p = Runtime
         .getRuntime()
-        .exec("python2 http-quirks.py", new String[]{"SOCKJS_URL=http://localhost:8081"}, dir);
+        .exec("python http-quirks.py", new String[]{"SOCKJS_URL=http://localhost:8081"}, dir);
 
       try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
         String line;
