@@ -1386,7 +1386,7 @@ public class WebExamples {
 
   public void example63(Router router, AuthenticationProvider provider) {
 
-    ChainAuthHandler chain = ChainAuthHandler.create();
+    ChainAuthHandler chain = ChainAuthHandler.any();
 
     // add http basic auth handler to the chain
     chain.add(BasicAuthHandler.create(provider));
