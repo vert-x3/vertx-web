@@ -175,7 +175,7 @@ public class DigestAuthHandlerImpl extends AuthorizationAuthHandler implements D
   }
 
   @Override
-  protected String authenticateHeader(RoutingContext context) {
+  public String authenticateHeader(RoutingContext context) {
     final byte[] bytes = new byte[32];
     random.nextBytes(bytes);
     // generate nonce

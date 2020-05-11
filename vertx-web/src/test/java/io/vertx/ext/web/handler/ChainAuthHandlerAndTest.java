@@ -7,7 +7,7 @@ import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import org.junit.Test;
 
-public class ChainAuthHandlerTest extends WebTestBase {
+public class ChainAuthHandlerAndTest extends WebTestBase {
 
   private AuthenticationProvider authProvider;
   protected ChainAuthHandler chain;
@@ -20,7 +20,7 @@ public class ChainAuthHandlerTest extends WebTestBase {
     AuthenticationHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
     // create a chain
-    chain = ChainAuthHandler.any()
+    chain = ChainAuthHandler.all()
       .add(JWTAuthHandler.create(null))
       .add(BasicAuthHandler.create(authProvider))
       .add(redirectAuthHandler);
@@ -32,15 +32,16 @@ public class ChainAuthHandlerTest extends WebTestBase {
 
   @Test
   public void testWithoutAuthorization() throws Exception {
-    // since there is no authorization header the final status code will be 302 because it was
-    // the last appended handler
-    testRequest(HttpMethod.GET, "/", 302, "Found", "Redirecting to /loginpage.");
+    // since there is no authorization header the final status code will be 401 since all handlers are required it will
+    // fail at the very first one.
+    testRequest(HttpMethod.GET, "/", 401, "Unauthorized");
   }
 
   @Test
   public void testWithAuthorization() throws Exception {
     // there is an authorization header, so it should be handled properly
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="),200, "OK", "");
+    // however it will not be accepted as first we required a jwt and that is enough to fail
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="),401, "Unauthorized", "Unauthorized");
   }
 
   @Test
@@ -55,7 +56,7 @@ public class ChainAuthHandlerTest extends WebTestBase {
     router.clear();
 
     // create a chain
-    chain = ChainAuthHandler.any()
+    chain = ChainAuthHandler.all()
       .add(JWTAuthHandler.create(null))
       .add(BasicAuthHandler.create(authProvider));
 

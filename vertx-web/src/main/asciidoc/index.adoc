@@ -1249,6 +1249,13 @@ this case the basic auth handler will attempt to authenticate and if it is suces
 vertx-web will continue to process your handlers. If the token is not valid, for example bad username/password, then
 the chain will continue to the following entry. In this specific case the redirect auth handler.
 
+Complex chaining is also possible, for example, building logic sequences such as: `HandlerA` OR (`HandlerB` AND `HandlerC`).
+
+[source,$lang]
+----
+{@link examples.WebExamples#example78}
+----
+
 == Serving static resources
 
 Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers

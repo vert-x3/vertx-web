@@ -1386,7 +1386,7 @@ public class WebExamples {
 
   public void example63(Router router, AuthenticationProvider provider) {
 
-    ChainAuthHandler chain = ChainAuthHandler.create();
+    ChainAuthHandler chain = ChainAuthHandler.any();
 
     // add http basic auth handler to the chain
     chain.add(BasicAuthHandler.create(provider));
@@ -1605,5 +1605,23 @@ public class WebExamples {
     // we explicitly not allow forward header parsing
     // of any kind
     router.allowForward(AllowForwardHeaders.NONE);
+  }
+
+  public void example78(Router router, AuthenticationHandler authNHandlerA, AuthenticationHandler authNHandlerB, AuthenticationHandler authNHandlerC) {
+
+    // Chain will verify (A Or (B And C))
+    ChainAuthHandler chain =
+      ChainAuthHandler.any()
+        .add(authNHandlerA)
+        .add(ChainAuthHandler.all()
+          .add(authNHandlerB)
+          .add(authNHandlerC));
+
+    // secure your route
+    router.route("/secure/resource").handler(chain);
+    // your app
+    router.route("/secure/resource").handler(ctx -> {
+      // do something...
+    });
   }
 }

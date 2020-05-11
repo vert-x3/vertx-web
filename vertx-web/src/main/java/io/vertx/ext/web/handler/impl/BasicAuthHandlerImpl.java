@@ -71,7 +71,7 @@ public class BasicAuthHandlerImpl extends AuthorizationAuthHandler implements Ba
   }
 
   @Override
-  protected String authenticateHeader(RoutingContext context) {
+  public String authenticateHeader(RoutingContext context) {
     return "Basic realm=\"" + realm + "\"";
   }
 }
