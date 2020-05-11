@@ -170,7 +170,7 @@ public abstract class AuthenticationHandlerImpl implements AuthenticationHandler
     return false;
   }
 
-  private AuthenticationProvider getAuthProvider(RoutingContext ctx) {
+  protected AuthenticationProvider getAuthProvider(RoutingContext ctx) {
     try {
       AuthenticationProvider provider = ctx.get(AUTH_PROVIDER_CONTEXT_KEY);
       if (provider != null) {

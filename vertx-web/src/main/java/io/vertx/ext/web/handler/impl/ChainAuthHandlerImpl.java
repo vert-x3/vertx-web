@@ -101,7 +101,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl implements C
 
       // setup the desired auth provider if we can
       if (authHandler instanceof AuthenticationHandlerImpl) {
-        ctx.put(AuthenticationHandlerImpl.AUTH_PROVIDER_CONTEXT_KEY, ((AuthenticationHandlerImpl) authHandler).authProvider);
+        ctx.put(AuthenticationHandlerImpl.AUTH_PROVIDER_CONTEXT_KEY, ((AuthenticationHandlerImpl) authHandler).getAuthProvider(ctx));
       }
 
       if (all) {
