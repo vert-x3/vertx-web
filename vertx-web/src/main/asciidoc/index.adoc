@@ -992,6 +992,15 @@ distributing different requests from the same browser to different servers.
 
 As the session is stored in the Cookie, this means sessions survive server crashes too.
 
+A second known implementation is the Redis session store. This store works just like the normal cluster store, however
+just like it's name suggests, it uses a redis backend to keep the session data centralized.
+
+These stores are available with the coordinates:
+
+* groupId: `io.vertx`
+* artifactId: `vertx-web-sstore-{cookie|redis}`
+
+
 === Creating the session handler
 
 Once you've created a session store you can create a session handler, and add it to a route. You should make sure
