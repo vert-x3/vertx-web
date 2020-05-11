@@ -141,6 +141,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public boolean isSessionAccessed() {
+    return inner.isSessionAccessed();
+  }
+
+  @Override
   public void setUser(User user) {
     inner.setUser(user);
   }

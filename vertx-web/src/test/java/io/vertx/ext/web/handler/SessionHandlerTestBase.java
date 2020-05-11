@@ -532,4 +532,29 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 		await();
 	}
+
+  @Test
+  public void testLazySessionNotAccessed() throws Exception {
+    String sessionCookieName = "acme.sillycookie";
+    router.route().handler(SessionHandler.create(store).setSessionCookieName(sessionCookieName).setLazySession(true));
+    router.route().handler(rc -> rc.response().end());
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      assertTrue(setCookie == null);
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testLazySessionAccessed() throws Exception {
+    String sessionCookieName = "acme.sillycookie";
+    router.route().handler(SessionHandler.create(store).setSessionCookieName(sessionCookieName).setLazySession(true));
+    router.route().handler(rc -> {
+      rc.session();
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      assertTrue(setCookie.startsWith(sessionCookieName + "="));
+    }, 200, "OK", null);
+  }
 }

@@ -184,4 +184,14 @@ public class RoutingContextImplTest extends WebTestBase {
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
   }
 
+  @Test
+  public void testSessionAccessed() throws Exception {
+    router.route().handler(event -> {
+      assertFalse(event.isSessionAccessed());
+      event.session();
+      assertTrue(event.isSessionAccessed());
+      event.response().end();
+    });
+    testRequest(HttpMethod.GET, "/", null, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
 }

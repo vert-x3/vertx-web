@@ -62,6 +62,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Set<FileUpload> fileUploads;
   private Session session;
   private User user;
+  private boolean isSessionAccessed = false;
 
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
     super(mountPoint, request, routes);
@@ -311,7 +312,13 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public Session session() {
+    this.isSessionAccessed = true;
     return session;
+  }
+
+  @Override
+  public boolean isSessionAccessed(){
+    return isSessionAccessed;
   }
 
   @Override

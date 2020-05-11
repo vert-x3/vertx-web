@@ -49,9 +49,11 @@ public class SessionHandlerImpl implements SessionHandler {
   private int minLength;
   private AuthProvider authProvider;
   private CookieSameSite cookieSameSite;
+  private boolean lazySession = false;
 
   public SessionHandlerImpl(String sessionCookieName, String sessionCookiePath, long sessionTimeout, boolean nagHttps,
-                            boolean sessionCookieSecure, boolean sessionCookieHttpOnly, int minLength, SessionStore sessionStore) {
+                            boolean sessionCookieSecure, boolean sessionCookieHttpOnly, int minLength, boolean lazySession,
+                            SessionStore sessionStore) {
     this.sessionCookieName = sessionCookieName;
     this.sessionCookiePath = sessionCookiePath;
     this.sessionTimeout = sessionTimeout;
@@ -60,6 +62,7 @@ public class SessionHandlerImpl implements SessionHandler {
     this.sessionCookieSecure = sessionCookieSecure;
     this.sessionCookieHttpOnly = sessionCookieHttpOnly;
     this.minLength = minLength;
+    this.lazySession = lazySession;
   }
 
   @Override
@@ -107,6 +110,12 @@ public class SessionHandlerImpl implements SessionHandler {
   @Override
   public SessionHandler setCookieSameSite(CookieSameSite policy) {
     this.cookieSameSite = policy;
+    return this;
+  }
+
+  @Override
+  public SessionHandler setLazySession(boolean lazySession) {
+    this.lazySession = lazySession;
     return this;
   }
 
@@ -213,12 +222,12 @@ public class SessionHandlerImpl implements SessionHandler {
 
   private void addStoreSessionHandler(RoutingContext context, boolean storeUser) {
     context.addHeadersEndHandler(v -> {
+      boolean sessionUsed = context.isSessionAccessed();
       Session session = context.session();
       if (!session.isDestroyed()) {
         final int currentStatusCode = context.response().getStatusCode();
         // Store the session (only and only if there was no error)
         if (currentStatusCode >= 200 && currentStatusCode < 400) {
-
           // store the current user into the session
           if (storeUser) {
             // during the request the user might have been removed
@@ -227,7 +236,6 @@ public class SessionHandlerImpl implements SessionHandler {
             }
           }
 
-          session.setAccessed();
           if (session.isRegenerated()) {
             // this means that a session id has been changed, usually it means a session
             // upgrade
@@ -237,8 +245,9 @@ public class SessionHandlerImpl implements SessionHandler {
             // https://www.owasp.org/index.php/Session_Management_Cheat_Sheet#Session_ID_Life_Cycle
 
             // the session cookie needs to be updated to the new id
-            final Cookie cookie = context.getCookie(sessionCookieName);
+            final Cookie cookie = sessionCookie(context, session);
             // restore defaults
+            session.setAccessed();
             cookie.setValue(session.value()).setPath("/").setSecure(sessionCookieSecure)
               .setHttpOnly(sessionCookieHttpOnly);
 
@@ -255,17 +264,16 @@ public class SessionHandlerImpl implements SessionHandler {
                 });
               }
             });
-          } else {
+          } else if (! lazySession || sessionUsed) {
+            // if lazy mode activated, no need to store the session nor to create the session cookie if not used.
+            sessionCookie(context, session);
+            session.setAccessed();
             sessionStore.put(session, res -> {
               if (res.failed()) {
                 log.error("Failed to store session", res.cause());
               }
             });
           }
-        } else {
-          // don't send a cookie if status is not 2xx or 3xx
-          // remove it from the set (do not invalidate)
-          context.removeCookie(sessionCookieName, false);
         }
       } else {
         // invalidate the cookie as the session has been destroyed
@@ -283,14 +291,23 @@ public class SessionHandlerImpl implements SessionHandler {
   private void createNewSession(RoutingContext context) {
     Session session = sessionStore.createSession(sessionTimeout, minLength);
     context.setSession(session);
-    Cookie cookie = Cookie.cookie(sessionCookieName, session.value());
+    context.removeCookie(sessionCookieName, false);
+    // only store the user if there's a auth provider
+    addStoreSessionHandler(context, authProvider != null);
+  }
+
+  private Cookie sessionCookie(final RoutingContext context, final Session session){
+    Cookie cookie = context.getCookie(sessionCookieName);
+    if(cookie != null) {
+      return cookie;
+    }
+    cookie = Cookie.cookie(sessionCookieName, session.value());
     cookie.setPath(sessionCookiePath);
     cookie.setSecure(sessionCookieSecure);
     cookie.setHttpOnly(sessionCookieHttpOnly);
     cookie.setSameSite(cookieSameSite);
     // Don't set max age - it's a session cookie
     context.addCookie(cookie);
-    // only store the user if there's a auth provider
-    addStoreSessionHandler(context, authProvider != null);
+    return cookie;
   }
 }
