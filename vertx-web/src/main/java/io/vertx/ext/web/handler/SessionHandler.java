@@ -18,7 +18,10 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.http.CookieSameSite;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.RoutingContext;
@@ -195,4 +198,24 @@ public interface SessionHandler extends Handler<RoutingContext> {
 	@Fluent
   @Deprecated
   SessionHandler setAuthProvider(AuthProvider authProvider);
+
+  /**
+   * Flush a context session earlier to the store, this will allow the end user to have full control on the event of
+   * a failure at the store level. Once a session is flushed no automatic save will be performed at end of request.
+   *
+   * @param ctx the current context
+   * @param handler the event handler to signal a asynchronous response.
+   * @return fluent self
+   */
+	@Fluent
+  SessionHandler flush(RoutingContext ctx, Handler<AsyncResult<Void>> handler);
+
+  /**
+   * Promisified flush. See {@link #flush(RoutingContext, Handler)}.
+   */
+	default Future<Void> flush(RoutingContext ctx) {
+	  Promise<Void> promise = Promise.promise();
+	  flush(ctx, promise);
+	  return promise.future();
+  }
 }

@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.Cookie;
@@ -24,7 +25,6 @@ import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.SessionHandler;
@@ -36,6 +36,8 @@ import io.vertx.ext.web.sstore.SessionStore;
 public class SessionHandlerImpl implements SessionHandler {
 
   private static final String SESSION_USER_HOLDER_KEY = "__vertx.userHolder";
+  private static final String SESSION_FLUSHED_KEY = "__vertx.session-flushed";
+  private static final String SESSION_STOREUSER_KEY = "__vertx.session-storeuser";
 
   private static final Logger log = LoggerFactory.getLogger(SessionHandlerImpl.class);
 
@@ -125,6 +127,108 @@ public class SessionHandlerImpl implements SessionHandler {
   }
 
   @Override
+  public SessionHandler flush(RoutingContext context, Handler<AsyncResult<Void>> handler) {
+    boolean sessionUsed = context.isSessionAccessed();
+    Session session = context.session();
+    if (!session.isDestroyed()) {
+      final int currentStatusCode = context.response().getStatusCode();
+      // Store the session (only and only if there was no error)
+      if (currentStatusCode >= 200 && currentStatusCode < 400) {
+        // store the current user into the session
+        Boolean storeUser = context.get(SESSION_STOREUSER_KEY);
+        if (storeUser != null && storeUser) {
+          // during the request the user might have been removed
+          if (context.user() != null) {
+            session.put(SESSION_USER_HOLDER_KEY, new UserHolder(context));
+          }
+        }
+
+        if (session.isRegenerated()) {
+          // this means that a session id has been changed, usually it means a session
+          // upgrade
+          // (e.g.: anonymous to authenticated) or that the security requirements have
+          // changed
+          // see:
+          // https://www.owasp.org/index.php/Session_Management_Cheat_Sheet#Session_ID_Life_Cycle
+
+          // the session cookie needs to be updated to the new id
+          final Cookie cookie = sessionCookie(context, session);
+          // restore defaults
+          session.setAccessed();
+          cookie
+            .setValue(session.value())
+            .setPath(sessionCookiePath)
+            .setSecure(sessionCookieSecure)
+            .setHttpOnly(sessionCookieHttpOnly);
+
+          // we must invalidate the old id
+          sessionStore.delete(session.oldId(), delete -> {
+            if (delete.failed()) {
+              handler.handle(Future.failedFuture(delete.cause()));
+            } else {
+              // we must wait for the result of the previous call in order to save the new one
+              sessionStore.put(session, put -> {
+                if (put.failed()) {
+                  handler.handle(Future.failedFuture(put.cause()));
+                } else {
+                  context.put(SESSION_FLUSHED_KEY, true);
+                  handler.handle(Future.succeededFuture());
+                }
+              });
+            }
+          });
+        } else if (!lazySession || sessionUsed) {
+          // if lazy mode activated, no need to store the session nor to create the session cookie if not used.
+          sessionCookie(context, session);
+          session.setAccessed();
+          sessionStore.put(session, put -> {
+            if (put.failed()) {
+              handler.handle(Future.failedFuture(put.cause()));
+            } else {
+              context.put(SESSION_FLUSHED_KEY, true);
+              handler.handle(Future.succeededFuture());
+            }
+          });
+        }
+      }
+    } else {
+      // invalidate the cookie as the session has been destroyed
+      context.removeCookie(sessionCookieName);
+
+      // if the session was regenerated in the request
+      // the old id must also be removed
+      if (session.isRegenerated()) {
+        sessionStore.delete(session.oldId(), delete -> {
+          if (delete.failed()) {
+            handler.handle(Future.failedFuture(delete.cause()));
+          } else {
+            // delete from the storage
+            sessionStore.delete(session.id(), delete2 -> {
+              if (delete2.failed()) {
+                handler.handle(Future.failedFuture(delete2.cause()));
+              } else {
+                context.put(SESSION_FLUSHED_KEY, true);
+                handler.handle(Future.succeededFuture());
+              }
+            });
+          }
+        });
+      } else {
+        // delete from the storage
+        sessionStore.delete(session.id(), delete -> {
+          if (delete.failed()) {
+            handler.handle(Future.failedFuture(delete.cause()));
+          } else {
+            context.put(SESSION_FLUSHED_KEY, true);
+            handler.handle(Future.succeededFuture());
+          }
+        });
+      }
+    }
+    return this;
+  }
+
+  @Override
   public void handle(RoutingContext context) {
     if (nagHttps && log.isDebugEnabled()) {
       String uri = context.request().absoluteURI();
@@ -150,8 +254,12 @@ public class SessionHandlerImpl implements SessionHandler {
               UserHolder holder = session.get(SESSION_USER_HOLDER_KEY);
               if (holder != null) {
                 holder.refresh(context);
+              } else {
+                // signal we must store the user to link it to the
+                // session as it wasn't found
+                context.put(SESSION_STOREUSER_KEY, true);
               }
-              addStoreSessionHandler(context, holder == null);
+              addStoreSessionHandler(context);
             } else {
               // Cannot find session - either it timed out, or was explicitly destroyed at the
               // server side on a
@@ -199,81 +307,14 @@ public class SessionHandlerImpl implements SessionHandler {
     });
   }
 
-  private void addStoreSessionHandler(RoutingContext context, boolean storeUser) {
+  private void addStoreSessionHandler(RoutingContext context) {
     context.addHeadersEndHandler(v -> {
-      boolean sessionUsed = context.isSessionAccessed();
-      Session session = context.session();
-      if (!session.isDestroyed()) {
-        final int currentStatusCode = context.response().getStatusCode();
-        // Store the session (only and only if there was no error)
-        if (currentStatusCode >= 200 && currentStatusCode < 400) {
-          // store the current user into the session
-          if (storeUser) {
-            // during the request the user might have been removed
-            if (context.user() != null) {
-              session.put(SESSION_USER_HOLDER_KEY, new UserHolder(context));
-            }
-          }
-
-          if (session.isRegenerated()) {
-            // this means that a session id has been changed, usually it means a session
-            // upgrade
-            // (e.g.: anonymous to authenticated) or that the security requirements have
-            // changed
-            // see:
-            // https://www.owasp.org/index.php/Session_Management_Cheat_Sheet#Session_ID_Life_Cycle
-
-            // the session cookie needs to be updated to the new id
-            final Cookie cookie = sessionCookie(context, session);
-            // restore defaults
-            session.setAccessed();
-            cookie
-              .setValue(session.value())
-              .setPath(sessionCookiePath)
-              .setSecure(sessionCookieSecure)
-              .setHttpOnly(sessionCookieHttpOnly);
-
-            // we must invalidate the old id
-            sessionStore.delete(session.oldId(), delete -> {
-              if (delete.failed()) {
-                log.error("Failed to delete previous session", delete.cause());
-              } else {
-                // we must wait for the result of the previous call in order to save the new one
-                sessionStore.put(session, res -> {
-                  if (res.failed()) {
-                    log.error("Failed to store session", res.cause());
-                  }
-                });
-              }
-            });
-          } else if (! lazySession || sessionUsed) {
-            // if lazy mode activated, no need to store the session nor to create the session cookie if not used.
-            sessionCookie(context, session);
-            session.setAccessed();
-            sessionStore.put(session, res -> {
-              if (res.failed()) {
-                log.error("Failed to store session", res.cause());
-              }
-            });
-          }
-        }
-      } else {
-        // invalidate the cookie as the session has been destroyed
-        context.removeCookie(sessionCookieName);
-
-        // if the session was regenerated in the request
-        // the old id must also be removed
-        if (session.isRegenerated()) {
-          sessionStore.delete(session.oldId(), res -> {
-            if (res.failed()) {
-              log.error("Failed to delete old session", res.cause());
-            }
-          });
-        }
-        // delete from the storage
-        sessionStore.delete(session.id(), res -> {
-          if (res.failed()) {
-            log.error("Failed to delete session", res.cause());
+      // skip flush if we already flushed
+      Boolean flushed = context.get(SESSION_FLUSHED_KEY);
+      if (flushed == null || !flushed) {
+        flush(context, flush -> {
+          if (flush.failed()) {
+            log.warn("Failed to flush the session to the underlying store", flush.cause());
           }
         });
       }
@@ -284,12 +325,14 @@ public class SessionHandlerImpl implements SessionHandler {
     Session session = sessionStore.createSession(sessionTimeout, minLength);
     context.setSession(session);
     context.removeCookie(sessionCookieName, false);
-    addStoreSessionHandler(context, true);
+    // it's a new session we must store the user too otherwise it won't be linked
+    context.put(SESSION_STOREUSER_KEY, true);
+    addStoreSessionHandler(context);
   }
 
-  private Cookie sessionCookie(final RoutingContext context, final Session session){
+  private Cookie sessionCookie(final RoutingContext context, final Session session) {
     Cookie cookie = context.getCookie(sessionCookieName);
-    if(cookie != null) {
+    if (cookie != null) {
       return cookie;
     }
     cookie = Cookie.cookie(sessionCookieName, session.value());
