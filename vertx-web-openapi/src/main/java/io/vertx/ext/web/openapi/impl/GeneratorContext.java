@@ -61,7 +61,7 @@ public class GeneratorContext {
   }
 
   public JsonObject fakeSchema(JsonObject schema) {
-    return OpenApi3Utils.generateFakeSchema(schema, holder);
+    return OpenAPI3Utils.generateFakeSchema(schema, holder);
   }
 
   private Map.Entry<JsonPointer, JsonObject> normalizeSchema(JsonObject schema, JsonPointer schemaLocation) {

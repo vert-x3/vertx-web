@@ -54,7 +54,7 @@ public class OpenAPI3ValidationHandlerGenerator {
     // Parse parameter processors
     for (Map.Entry<JsonPointer, JsonObject> pe : operation.getParameters().entrySet()) {
       ParameterLocation parsedLocation = ParameterLocation.valueOf(pe.getValue().getString("in").toUpperCase());
-      String parsedStyle = OpenApi3Utils.resolveStyle(pe.getValue());
+      String parsedStyle = OpenAPI3Utils.resolveStyle(pe.getValue());
 
       if (pe.getValue().getBoolean("allowReserved", false))
         throw RouterFactoryException

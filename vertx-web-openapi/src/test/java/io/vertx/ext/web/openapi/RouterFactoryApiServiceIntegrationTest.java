@@ -4,7 +4,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.openapi.impl.OpenApi3Utils;
+import io.vertx.ext.web.openapi.impl.OpenAPI3Utils;
 import io.vertx.ext.web.openapi.service.*;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
@@ -33,14 +33,14 @@ public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTes
 
   @Test
   public void testOperationIdSanitizer() {
-    assertThat(OpenApi3Utils.sanitizeOperationId("operationId")).isEqualTo("operationId");
-    assertThat(OpenApi3Utils.sanitizeOperationId("operation id")).isEqualTo("operationId");
-    assertThat(OpenApi3Utils.sanitizeOperationId("operation Id")).isEqualTo("operationId");
-    assertThat(OpenApi3Utils.sanitizeOperationId("operation-id")).isEqualTo("operationId");
-    assertThat(OpenApi3Utils.sanitizeOperationId("operation_id")).isEqualTo("operationId");
-    assertThat(OpenApi3Utils.sanitizeOperationId("operation__id-")).isEqualTo("operationId");
-    assertThat(OpenApi3Utils.sanitizeOperationId("operation_- id ")).isEqualTo("operationId");
-    assertThat(OpenApi3Utils.sanitizeOperationId("operation_- A B")).isEqualTo("operationAB");
+    assertThat(OpenAPI3Utils.sanitizeOperationId("operationId")).isEqualTo("operationId");
+    assertThat(OpenAPI3Utils.sanitizeOperationId("operation id")).isEqualTo("operationId");
+    assertThat(OpenAPI3Utils.sanitizeOperationId("operation Id")).isEqualTo("operationId");
+    assertThat(OpenAPI3Utils.sanitizeOperationId("operation-id")).isEqualTo("operationId");
+    assertThat(OpenAPI3Utils.sanitizeOperationId("operation_id")).isEqualTo("operationId");
+    assertThat(OpenAPI3Utils.sanitizeOperationId("operation__id-")).isEqualTo("operationId");
+    assertThat(OpenAPI3Utils.sanitizeOperationId("operation_- id ")).isEqualTo("operationId");
+    assertThat(OpenAPI3Utils.sanitizeOperationId("operation_- A B")).isEqualTo("operationAB");
   }
 
   @AfterEach

@@ -4,7 +4,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.json.schema.SchemaParser;
@@ -196,12 +195,12 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
   @Override
   public RouterFactory mountServiceInterface(Class interfaceClass, String address) {
     for (Method m : interfaceClass.getMethods()) {
-      if (OpenApi3Utils.serviceProxyMethodIsCompatibleHandler(m)) {
+      if (OpenAPI3Utils.serviceProxyMethodIsCompatibleHandler(m)) {
         String methodName = m.getName();
         OperationImpl op = Optional
           .ofNullable(this.operations.get(methodName))
           .orElseGet(() ->
-            this.operations.entrySet().stream().filter(e -> OpenApi3Utils.sanitizeOperationId(e.getKey()).equals(methodName)).map(Map.Entry::getValue).findFirst().orElse(null)
+            this.operations.entrySet().stream().filter(e -> OpenAPI3Utils.sanitizeOperationId(e.getKey()).equals(methodName)).map(Map.Entry::getValue).findFirst().orElse(null)
           );
         if (op != null) {
           op.mountRouteToService(address, methodName);
@@ -215,7 +214,7 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
   public RouterFactory mountServicesFromExtensions() {
     for (Map.Entry<String, OperationImpl> opEntry : operations.entrySet()) {
       OperationImpl operation = opEntry.getValue();
-      Object extensionVal = OpenApi3Utils.getAndMergeServiceExtension(OPENAPI_EXTENSION, OPENAPI_EXTENSION_ADDRESS, OPENAPI_EXTENSION_METHOD_NAME, operation.getPathModel(), operation.getOperationModel());
+      Object extensionVal = OpenAPI3Utils.getAndMergeServiceExtension(OPENAPI_EXTENSION, OPENAPI_EXTENSION_ADDRESS, OPENAPI_EXTENSION_METHOD_NAME, operation.getPathModel(), operation.getOperationModel());
 
       if (extensionVal != null) {
         if (extensionVal instanceof String) {
@@ -224,7 +223,7 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
           JsonObject extensionMap = (JsonObject) extensionVal;
           String address = extensionMap.getString(OPENAPI_EXTENSION_ADDRESS);
           String methodName = extensionMap.getString(OPENAPI_EXTENSION_METHOD_NAME);
-          JsonObject sanitizedMap = OpenApi3Utils.sanitizeDeliveryOptionsExtension(extensionMap);
+          JsonObject sanitizedMap = OpenAPI3Utils.sanitizeDeliveryOptionsExtension(extensionMap);
           if (address == null)
             throw RouterFactoryException.createWrongExtension("Extension " + OPENAPI_EXTENSION + " must define " + OPENAPI_EXTENSION_ADDRESS); //TODO specify where
           if (methodName == null)
@@ -255,7 +254,7 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
 
       // Authentication Handler
       AuthenticationHandler authnHandler = this.securityHandlers.solveAuthenticationHandler(
-        OpenApi3Utils.mergeSecurityRequirements(
+        OpenAPI3Utils.mergeSecurityRequirements(
           this.openapi.getOpenAPI().getJsonArray("security"),
           operation.getOperationModel().getJsonArray("security")
         ),

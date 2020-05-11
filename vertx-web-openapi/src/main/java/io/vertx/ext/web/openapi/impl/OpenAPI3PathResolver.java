@@ -78,11 +78,11 @@ public class OpenAPI3PathResolver {
           // For every parameter style I have to generate a different regular expression
           JsonObject parameter = parameterOptional.get();
 
-          JsonObject fakeSchema = OpenApi3Utils.generateFakeSchema(parameter.getJsonObject("schema", new JsonObject()), openAPIHolder);
+          JsonObject fakeSchema = OpenAPI3Utils.generateFakeSchema(parameter.getJsonObject("schema", new JsonObject()), openAPIHolder);
           String style = parameter.getString("style", "simple");
           boolean explode = parameter.getBoolean("explode", false);
-          boolean isObject = OpenApi3Utils.isSchemaObjectOrCombinators(fakeSchema);
-          boolean isArray = OpenApi3Utils.isSchemaArray(fakeSchema);
+          boolean isObject = OpenAPI3Utils.isSchemaObjectOrCombinators(fakeSchema);
+          boolean isArray = OpenAPI3Utils.isSchemaArray(fakeSchema);
 
           String groupName = "p" + i;
 
@@ -120,7 +120,7 @@ public class OpenAPI3PathResolver {
             mappedGroups.put(groupName, paramName);
           } else if (style.equals("label")) {
             if (isObject && explode) {
-              Map<String, JsonObject> properties = OpenApi3Utils.solveObjectParameters(fakeSchema);
+              Map<String, JsonObject> properties = OpenAPI3Utils.solveObjectParameters(fakeSchema);
               List<RegexBuilder> regexBuilders = new ArrayList<>();
               for (Map.Entry<String, JsonObject> entry : properties.entrySet()) {
                 groupName = "p" + i;
@@ -158,7 +158,7 @@ public class OpenAPI3PathResolver {
             }
           } else if (style.equals("matrix")) {
             if (isObject && explode) {
-              Map<String, JsonObject> properties = OpenApi3Utils.solveObjectParameters(fakeSchema);
+              Map<String, JsonObject> properties = OpenAPI3Utils.solveObjectParameters(fakeSchema);
               List<RegexBuilder> regexBuilders = new ArrayList<>();
               for (Map.Entry<String, JsonObject> entry : properties.entrySet()) {
                 groupName = "p" + i;

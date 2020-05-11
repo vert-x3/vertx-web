@@ -38,7 +38,7 @@ public class DefaultParameterProcessorGenerator implements ParameterProcessorGen
         ),
         schemas.getValidator()
       );
-    } else if (OpenApi3Utils.isFakeSchemaAnyOfOrOneOf(fakeSchema)) {
+    } else if (OpenAPI3Utils.isFakeSchemaAnyOfOrOneOf(fakeSchema)) {
       // anyOf or oneOf
       List<ValueParser<String>> valueParsers = fakeSchema.getJsonArray("x-anyOf", fakeSchema.getJsonArray("x-oneOf"))
         .stream()
@@ -92,9 +92,9 @@ public class DefaultParameterProcessorGenerator implements ParameterProcessorGen
   }
 
   private ValueParser<String> generateValueParser(JsonObject fakeSchema, String parsedStyle) {
-    if (OpenApi3Utils.isSchemaObjectOrCombinators(fakeSchema)) {
+    if (OpenAPI3Utils.isSchemaObjectOrCombinators(fakeSchema)) {
       return generateValueParserForObjectParameter(fakeSchema, parsedStyle);
-    } else if (OpenApi3Utils.isSchemaArray(fakeSchema)) {
+    } else if (OpenAPI3Utils.isSchemaArray(fakeSchema)) {
       return generateForArrayParameter(fakeSchema, parsedStyle);
     } else {
       return generateForPrimitiveParameter(fakeSchema);

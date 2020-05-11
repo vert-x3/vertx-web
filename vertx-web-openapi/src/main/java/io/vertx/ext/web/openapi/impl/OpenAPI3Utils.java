@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class OpenApi3Utils {
+public class OpenAPI3Utils {
 
   public static boolean isSchemaArray(JsonObject schema) {
     return "array".equals(schema.getString("type")) || schema.containsKey("items");

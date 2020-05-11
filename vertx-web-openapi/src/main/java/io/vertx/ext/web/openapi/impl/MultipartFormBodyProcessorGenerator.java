@@ -40,9 +40,9 @@ public class MultipartFormBodyProcessorGenerator implements BodyProcessorGenerat
       String encoding = (String) JsonPointer.create().append("encoding").append(pe.getKey()).append("contentType").queryJson(mediaTypeObject);
 
       if (encoding == null) {
-        if (OpenApi3Utils.isSchemaObjectOrCombinators(propSchema) ||
-          (OpenApi3Utils.isSchemaArray(propSchema) &&
-            OpenApi3Utils.isSchemaObjectOrAllOfType((propSchema.getJsonObject("items", new JsonObject()))))) {
+        if (OpenAPI3Utils.isSchemaObjectOrCombinators(propSchema) ||
+          (OpenAPI3Utils.isSchemaArray(propSchema) &&
+            OpenAPI3Utils.isSchemaObjectOrAllOfType((propSchema.getJsonObject("items", new JsonObject()))))) {
           propertiesValueParsers.put(pe.getKey(), new FormValueParser(false, ValueParser.JSON_PARSER));
         } else if ("string".equals(propSchema.getString("type")) &&
           ("binary".equals(propSchema.getString("format")) || "base64".equals(propSchema.getString("format")))) {
@@ -54,7 +54,7 @@ public class MultipartFormBodyProcessorGenerator implements BodyProcessorGenerat
         }
       } else {
         context.addPredicate(
-          RequestPredicate.multipartFileUploadExists(pe.getKey(), OpenApi3Utils.resolveContentTypeRegex(encoding))
+          RequestPredicate.multipartFileUploadExists(pe.getKey(), OpenAPI3Utils.resolveContentTypeRegex(encoding))
         );
         propertiesValueParsers.remove(pe.getKey());
         searchPropAndRemoveInSchema(schemas.getNormalizedSchema(), pe.getKey());

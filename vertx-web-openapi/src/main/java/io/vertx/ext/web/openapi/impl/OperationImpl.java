@@ -149,23 +149,23 @@ public class OperationImpl implements Operation {
 
   protected void mountRouteToService(String address) {
     this.ebServiceAddress = address;
-    this.ebServiceMethodName = OpenApi3Utils.sanitizeOperationId(operationId);
+    this.ebServiceMethodName = OpenAPI3Utils.sanitizeOperationId(operationId);
   }
 
   protected void mountRouteToService(String address, String methodName) {
     this.ebServiceAddress = address;
-    this.ebServiceMethodName = OpenApi3Utils.sanitizeOperationId(methodName);
+    this.ebServiceMethodName = OpenAPI3Utils.sanitizeOperationId(methodName);
   }
 
   protected void mountRouteToService(String address, DeliveryOptions deliveryOptions) {
     this.ebServiceAddress = address;
-    this.ebServiceMethodName = OpenApi3Utils.sanitizeOperationId(operationId);
+    this.ebServiceMethodName = OpenAPI3Utils.sanitizeOperationId(operationId);
     this.ebServiceDeliveryOptions = deliveryOptions;
   }
 
   protected void mountRouteToService(String address, String methodName, DeliveryOptions deliveryOptions) {
     this.ebServiceAddress = address;
-    this.ebServiceMethodName = OpenApi3Utils.sanitizeOperationId(methodName);
+    this.ebServiceMethodName = OpenAPI3Utils.sanitizeOperationId(methodName);
     this.ebServiceDeliveryOptions = deliveryOptions;
   }
 

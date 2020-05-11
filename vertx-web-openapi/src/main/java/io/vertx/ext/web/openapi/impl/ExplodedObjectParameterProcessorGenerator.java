@@ -12,8 +12,8 @@ public class ExplodedObjectParameterProcessorGenerator implements ParameterProce
 
   @Override
   public boolean canGenerate(JsonObject parameter, JsonObject fakeSchema, ParameterLocation parsedLocation, String parsedStyle) {
-    return OpenApi3Utils.isSchemaObjectOrCombinators(fakeSchema) &&
-      OpenApi3Utils.resolveExplode(parameter) &&
+    return OpenAPI3Utils.isSchemaObjectOrCombinators(fakeSchema) &&
+      OpenAPI3Utils.resolveExplode(parameter) &&
       ("form".equals(parsedStyle) || "matrix".equals(parsedStyle) || "label".equals(parsedStyle));
   }
 

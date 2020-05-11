@@ -52,8 +52,8 @@ public class ExplodedMatrixArrayParameterProcessorGenerator implements Parameter
   @Override
   public boolean canGenerate(JsonObject parameter, JsonObject fakeSchema, ParameterLocation parsedLocation, String parsedStyle) {
     return parsedStyle.equals("matrix") &&
-      OpenApi3Utils.resolveExplode(parameter) &&
-      OpenApi3Utils.isSchemaArray(fakeSchema);
+      OpenAPI3Utils.resolveExplode(parameter) &&
+      OpenAPI3Utils.isSchemaArray(fakeSchema);
   }
 
   @Override

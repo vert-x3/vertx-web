@@ -12,8 +12,8 @@ public class ExplodedArrayParameterProcessorGenerator implements ParameterProces
 
   @Override
   public boolean canGenerate(JsonObject parameter, JsonObject fakeSchema, ParameterLocation parsedLocation, String parsedStyle) {
-    return OpenApi3Utils.isSchemaArray(fakeSchema) &&
-      OpenApi3Utils.resolveExplode(parameter) &&
+    return OpenAPI3Utils.isSchemaArray(fakeSchema) &&
+      OpenAPI3Utils.resolveExplode(parameter) &&
       ("form".equals(parsedStyle) ||
         ("label".equals(parsedStyle) && !parsedLocation.equals(ParameterLocation.PATH)) ||
         ("simple".equals(parsedStyle) && !parsedLocation.equals(ParameterLocation.PATH) && !parsedLocation.equals(ParameterLocation.HEADER))

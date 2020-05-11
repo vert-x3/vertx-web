@@ -133,7 +133,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
 
         if (refPointer.isParent(schemaRootScope)) {
           // If it's a circular $ref, I need to remove $ref URI component and replace with newRef = scope - refPointer
-          JsonPointer newRef = OpenApi3Utils.pointerDifference(schemaRootScope, refPointer);
+          JsonPointer newRef = OpenAPI3Utils.pointerDifference(schemaRootScope, refPointer);
           schemaObject.put("$ref", newRef.toURI().toString());
         } else if (refPointer.equals(schemaRootScope)) {
           // If it's a circular $ref that points to schema root, I need to remove $ref URI component and replace with newRef = scope - refPointer

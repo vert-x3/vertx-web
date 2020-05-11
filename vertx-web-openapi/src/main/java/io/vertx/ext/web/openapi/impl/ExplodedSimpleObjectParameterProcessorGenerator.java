@@ -56,8 +56,8 @@ public class ExplodedSimpleObjectParameterProcessorGenerator implements Paramete
   @Override
   public boolean canGenerate(JsonObject parameter, JsonObject fakeSchema, ParameterLocation parsedLocation, String parsedStyle) {
     return parsedStyle.equals("simple") &&
-      OpenApi3Utils.resolveExplode(parameter) &&
-      OpenApi3Utils.isSchemaObjectOrCombinators(fakeSchema);
+      OpenAPI3Utils.resolveExplode(parameter) &&
+      OpenAPI3Utils.isSchemaObjectOrCombinators(fakeSchema);
   }
 
   @Override
