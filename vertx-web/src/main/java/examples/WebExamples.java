@@ -1606,4 +1606,22 @@ public class WebExamples {
     // of any kind
     router.allowForward(AllowForwardHeaders.NONE);
   }
+
+  public void example78(Router router, AuthenticationHandler authNHandlerA, AuthenticationHandler authNHandlerB, AuthenticationHandler authNHandlerC) {
+
+    // Chain will verify (A Or (B And C))
+    ChainAuthHandler chain =
+      ChainAuthHandler.any()
+        .add(authNHandlerA)
+        .add(ChainAuthHandler.all()
+          .add(authNHandlerB)
+          .add(authNHandlerC));
+
+    // secure your route
+    router.route("/secure/resource").handler(chain);
+    // your app
+    router.route("/secure/resource").handler(ctx -> {
+      // do something...
+    });
+  }
 }
