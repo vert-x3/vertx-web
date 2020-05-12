@@ -913,7 +913,8 @@ on a matching route before your application logic.
 The session handler handles the creation of session cookies and the lookup of the session so you don't have to do
 that yourself.
 
-Sessions are saved in a best effort, there are occasions when it can make sense to have guarantees that the sessions
+Sessions data is saved to a session store automatically after the response headers have been sent to the client.
+But note that, with this mechanism, there is no guarantee the data is fully persisted before the client receives the response.
 have been flushed to the underlying store before completing the response. In this case you can force a flush. Note that
 doing this will disable the automatic save at the end only and only if the flush was successful. This will allow you
 to control the the state before completing the response like:
