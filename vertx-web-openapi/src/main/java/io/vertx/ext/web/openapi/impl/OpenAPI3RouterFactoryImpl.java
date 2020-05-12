@@ -243,6 +243,7 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
     Router router = Router.router(vertx);
     Route globalRoute = router.route();
     globalRoute.handler(bodyHandler);
+    globalHandlers.forEach(globalRoute::handler);
 
     for (OperationImpl operation : operations.values()) {
       // If user don't want 501 handlers and the operation is not configured, skip it

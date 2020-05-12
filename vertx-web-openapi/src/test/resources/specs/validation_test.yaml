@@ -11,8 +11,6 @@ paths:
       operationId: listPets
       tags:
         - pets
-      security:
-        - api_key: []
       parameters:
         - name: limit
           in: query
@@ -519,8 +517,3 @@ components:
         - R
         - G
         - B
-  securitySchemes:
-    api_key:
-      type: apiKey
-      name: api_key
-      in: header

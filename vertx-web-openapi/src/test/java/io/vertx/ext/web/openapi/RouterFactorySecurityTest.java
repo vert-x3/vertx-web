@@ -7,16 +7,26 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.oauth2.OAuth2Auth;
+import io.vertx.ext.auth.oauth2.OAuth2FlowType;
+import io.vertx.ext.auth.oauth2.OAuth2Options;
+import io.vertx.ext.web.Route;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
+import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.impl.AuthenticationHandlerImpl;
+import io.vertx.ext.web.handler.impl.HttpStatusException;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.assertj.core.api.Condition;
+import org.assertj.core.data.Index;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -32,11 +42,15 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
   private static final String SECURITY_TESTS = "src/test/resources/specs/security_test.yaml";
   private static final String GLOBAL_SECURITY_TESTS = "src/test/resources/specs/global_security_test.yaml";
 
+  private static final RouterFactoryOptions FACTORY_OPTIONS = new RouterFactoryOptions()
+    .setRequireSecurityHandlers(true)
+    .setMountNotImplementedHandler(false);
+
   @Test
   public void mountSingle(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
     loadFactoryAndStartServer(vertx, SECURITY_TESTS, testContext, routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
+      routerFactory.setOptions(FACTORY_OPTIONS);
 
       routerFactory.operation("listPetsSingleSecurity").handler(routingContext -> routingContext
         .response()
@@ -59,7 +73,7 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
   public void mountAnd(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
     loadFactoryAndStartServer(vertx, SECURITY_TESTS, testContext, routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
+      routerFactory.setOptions(FACTORY_OPTIONS);
 
       routerFactory.operation("listPetsAndSecurity").handler(routingContext -> routingContext
         .response()
@@ -90,7 +104,7 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
   public void mountAndFirstOneFailing(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
     loadFactoryAndStartServer(vertx, SECURITY_TESTS, testContext, routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
+      routerFactory.setOptions(FACTORY_OPTIONS);
 
       routerFactory.operation("listPetsAndSecurity").handler(routingContext -> routingContext
         .response()
@@ -110,9 +124,16 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
       routerFactory.securityHandler("third_api_key",
         mockSuccessfulAuthHandler(routingContext -> routingContext.put("third_api_key", "3"))
       );
-    }).onComplete(h ->
+      }, new AbstractMap.SimpleImmutableEntry<>(401, routingContext ->
+        routingContext
+          .response()
+          .setStatusCode(401)
+          .setStatusMessage(concatenateRoutingContextEntries(routingContext, "api_key", "second_api_key", "third_api_key"))
+          .end()
+      )
+    ).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets_and_security")
-        .expect(statusCode(200), statusMessage("null-null-null"))
+        .expect(statusCode(401), statusMessage("1-null-null"))
         .send(testContext, checkpoint)
     );
   }
@@ -121,7 +142,7 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
   public void mountOrWithFirstSuccessful(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
     loadFactoryAndStartServer(vertx, SECURITY_TESTS, testContext, routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
+      routerFactory.setOptions(FACTORY_OPTIONS);
 
       routerFactory.operation("listPetsOrSecurity").handler(routingContext -> routingContext
         .response()
@@ -152,7 +173,7 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
   public void mountOrWithLastSuccessful(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
     loadFactoryAndStartServer(vertx, SECURITY_TESTS, testContext, routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
+      routerFactory.setOptions(FACTORY_OPTIONS);
 
       routerFactory.operation("listPetsOrSecurity").handler(routingContext -> routingContext
         .response()
@@ -183,7 +204,7 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
   public void mountOrWithAllFailing(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
     loadFactoryAndStartServer(vertx, SECURITY_TESTS, testContext, routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
+      routerFactory.setOptions(FACTORY_OPTIONS);
 
       routerFactory.operation("listPetsOrSecurity").handler(routingContext -> routingContext
         .response()
@@ -203,9 +224,16 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
       routerFactory.securityHandler("third_api_key",
         mockFailingAuthHandler(routingContext -> routingContext.put("third_api_key", "3"))
       );
-    }).onComplete(h ->
+    }, new AbstractMap.SimpleImmutableEntry<>(401, routingContext ->
+      routingContext
+        .response()
+        .setStatusCode(401)
+        .setStatusMessage(concatenateRoutingContextEntries(routingContext, "api_key", "second_api_key", "third_api_key"))
+        .end()
+      )
+    ).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets_or_security")
-        .expect(statusCode(200), statusMessage("1-2-3"))
+        .expect(statusCode(401), statusMessage("1-2-3"))
         .send(testContext, checkpoint)
     );
   }
@@ -214,7 +242,7 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
   public void mountOrAndMixed(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
     loadFactoryAndStartServer(vertx, SECURITY_TESTS, testContext, routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
+      routerFactory.setOptions(FACTORY_OPTIONS);
 
       routerFactory.operation("listPetsOrAndSecurity").handler(routingContext -> routingContext
         .response()
@@ -245,10 +273,49 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
         mockFailingAuthHandler(routingContext -> routingContext.put("third_api_key", "4"))
       );
     }).onComplete(h ->
-      testRequest(client, HttpMethod.GET, "/pets_and_security")
+      testRequest(client, HttpMethod.GET, "/pets_or_and_security")
         .expect(statusCode(200), statusMessage("1-2-3-null"))
         .send(testContext, checkpoint)
     );
+  }
+
+  @Test
+  public void mountOauth2WithScopes(Vertx vertx, VertxTestContext testContext) {
+    RouterFactory.create(vertx, SECURITY_TESTS, testContext.succeeding(routerFactory -> {
+      routerFactory.setOptions(FACTORY_OPTIONS);
+
+      routerFactory.operation("listPetsOauth2").handler(routingContext -> routingContext
+        .response()
+        .setStatusCode(200)
+        .end()
+      );
+
+      // Some oauth2 configuration
+      OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+        .setClientID("client-id")
+        .setFlow(OAuth2FlowType.AUTH_CODE)
+        .setClientSecret("client-secret")
+        .setSite("http://localhost:10000"));
+
+      routerFactory.securityHandler("oauth2", OAuth2AuthHandler.create(vertx, oauth2));
+
+      testContext.verify(() -> {
+        Router router = routerFactory.createRouter();
+        Route route = router.getRoutes().get(router.getRoutes().size() - 1);
+
+        assertThat(route)
+          .extracting("state")
+          .extracting("contextHandlers")
+          .asList()
+          .filteredOn(new Condition<>(o -> o instanceof OAuth2AuthHandler, "Handler is an OAuth2Handler"))
+          .first()
+          .extracting("scopes")
+          .asList()
+          .containsExactlyInAnyOrder("write:pets", "read:pets");
+      });
+      testContext.completeNow();
+
+    }));
   }
 
   @Test
@@ -264,7 +331,7 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
     Checkpoint checkpoint = testContext.checkpoint(3);
 
     loadFactoryAndStartServer(vertx, GLOBAL_SECURITY_TESTS, testContext, routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
+      routerFactory.setOptions(FACTORY_OPTIONS);
 
       routerFactory.operation("listPetsWithoutSecurity").handler(handler);
       routerFactory.operation("listPetsWithOverride").handler(handler);
@@ -300,7 +367,7 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
   @Test
   public void requireSecurityHandler(Vertx vertx, VertxTestContext testContext) {
     RouterFactory.create(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext.succeeding(routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
+      routerFactory.setOptions(FACTORY_OPTIONS);
 
       routerFactory.operation("listPets").handler(routingContext -> routingContext
         .response()
@@ -346,7 +413,10 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
           .end()
         );
 
-        testContext.verify(() -> assertThatCode(routerFactory::createRouter).doesNotThrowAnyException());
+        testContext.verify(() ->
+          assertThatCode(routerFactory::createRouter)
+            .doesNotThrowAnyException()
+        );
 
         testContext.completeNow();
       });
@@ -367,7 +437,7 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
       @Override
       public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
         mockHandler.handle(context);
-        handler.handle(Future.failedFuture("error"));
+        handler.handle(Future.failedFuture(new HttpStatusException(401)));
       }
     };
   }

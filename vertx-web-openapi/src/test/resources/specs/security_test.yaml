@@ -52,6 +52,19 @@ paths:
       responses:
         200:
           description: Something
+  /pets_oauth2:
+    get:
+      operationId: listPetsOauth2
+      tags:
+        - pets
+      security:
+        - oauth2: [
+          "write:pets",
+          "read:pets"
+        ]
+      responses:
+        200:
+          description: Something
 components:
   securitySchemes:
     api_key:
@@ -70,4 +83,18 @@ components:
       type: apiKey
       name: third_api_key
       in: header
+    oauth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://example.com/api/oauth/dialog
+          scopes:
+            write:pets: modify pets in your account
+            read:pets: read your pets
+        authorizationCode:
+          authorizationUrl: https://example.com/api/oauth/dialog
+          tokenUrl: https://example.com/api/oauth/token
+          scopes:
+            write:pets: modify pets in your account
+            read:pets: read your pets
 

@@ -1,6 +1,7 @@
 package io.vertx.ext.web.openapi;
 
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
@@ -9,8 +10,10 @@ import io.vertx.ext.json.schema.SchemaRouter;
 import io.vertx.ext.json.schema.SchemaRouterOptions;
 import io.vertx.ext.json.schema.openapi3.OpenAPI3SchemaParser;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.handler.ErrorHandler;
 import io.vertx.ext.web.validation.testutils.ValidationTestUtils;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -18,6 +21,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Arrays;
+import java.util.Map;
 import java.util.function.Consumer;
 
 @ExtendWith(VertxExtension.class)
@@ -43,7 +48,7 @@ public abstract class BaseRouterFactoryTest {
     else testContext.completeNow();
   }
 
-  protected Future<Void> startServer(Vertx vertx, RouterFactory factory) {
+  protected Future<Void> startServer(Vertx vertx, RouterFactory factory, Map.Entry<Integer, Handler<RoutingContext>>... additionalErrorHandlers) {
     try {
       router = factory.createRouter();
     } catch (Throwable e) {
@@ -55,18 +60,20 @@ public abstract class BaseRouterFactoryTest {
         .setStatusCode(404)
         .end();
     });
+    Arrays.stream(additionalErrorHandlers)
+      .forEach(e -> router.errorHandler(e.getKey(), e.getValue()));
     server = vertx
       .createHttpServer()
       .requestHandler(router);
     return server.listen(9000).mapEmpty();
   }
 
-  protected Future<Void> loadFactoryAndStartServer(Vertx vertx, String specUri, VertxTestContext testContext, Consumer<RouterFactory> configurator) {
+  protected Future<Void> loadFactoryAndStartServer(Vertx vertx, String specUri, VertxTestContext testContext, Consumer<RouterFactory> configurator, Map.Entry<Integer, Handler<RoutingContext>>... additionalErrorHandlers) {
     Promise<Void> f = Promise.promise();
     RouterFactory.create(vertx, specUri, testContext.succeeding(rf -> {
       try {
         configurator.accept(rf);
-        startServer(vertx, rf).
+        startServer(vertx, rf, additionalErrorHandlers).
           onComplete(testContext.succeeding(v -> f.complete()));
       } catch (Exception e) {
         testContext.failNow(e);

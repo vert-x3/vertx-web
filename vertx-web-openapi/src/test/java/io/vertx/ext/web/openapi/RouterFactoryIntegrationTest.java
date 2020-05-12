@@ -279,8 +279,6 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void addGlobalHandlersTest(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint();
-
     loadFactoryAndStartServer(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext, routerFactory -> {
       routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
 
@@ -297,7 +295,8 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
         .response()
         .setStatusCode(200)
         .setStatusMessage("OK")
-        .end());
+        .end()
+      );
     }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(200))

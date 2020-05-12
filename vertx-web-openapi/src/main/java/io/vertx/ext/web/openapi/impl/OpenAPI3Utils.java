@@ -59,7 +59,7 @@ public class OpenAPI3Utils {
   }
 
   public static JsonArray mergeSecurityRequirements(JsonArray globalSecurityRequirements, JsonArray localSecurityRequirements) {
-    return null;
+    return localSecurityRequirements != null ? localSecurityRequirements : globalSecurityRequirements ;
   }
 
 //
