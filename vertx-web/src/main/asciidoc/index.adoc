@@ -917,7 +917,7 @@ Sessions data is saved to a session store automatically after the response heade
 But note that, with this mechanism, there is no guarantee the data is fully persisted before the client receives the response.
 There are occasions though when this guarantee is needed.
 doing this will disable the automatic save at the end only and only if the flush was successful. This will allow you
-to control the the state before completing the response like:
+This allows to control the state before completing the response like:
 
 [source,$lang]
 ----
