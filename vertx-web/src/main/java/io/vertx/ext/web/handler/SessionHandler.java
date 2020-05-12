@@ -23,6 +23,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.http.CookieSameSite;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.SessionHandlerImpl;
@@ -214,7 +215,7 @@ public interface SessionHandler extends Handler<RoutingContext> {
    * Promisified flush. See {@link #flush(RoutingContext, Handler)}.
    */
 	default Future<Void> flush(RoutingContext ctx) {
-	  Promise<Void> promise = Promise.promise();
+	  Promise<Void> promise = ((VertxInternal)ctx.vertx()).promise();
 	  flush(ctx, promise);
 	  return promise.future();
   }
