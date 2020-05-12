@@ -913,6 +913,19 @@ on a matching route before your application logic.
 The session handler handles the creation of session cookies and the lookup of the session so you don't have to do
 that yourself.
 
+Sessions data is saved to a session store automatically after the response headers have been sent to the client.
+But note that, with this mechanism, there is no guarantee the data is fully persisted before the client receives the response.
+There are occasions though when this guarantee is needed.
+In this case you can force a flush.
+This will disable the automatic saving process, unless the flushing operation failed.
+This allows to control the state before completing the response like:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example78}
+----
+
+
 === Session stores
 
 To create a session handler you need to have a session store instance. The session store is the object that
