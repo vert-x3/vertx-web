@@ -41,19 +41,13 @@ public class UserSessionHandlerImpl implements UserSessionHandler {
   public void handle(RoutingContext routingContext) {
     Session session = routingContext.session();
     if (session != null) {
-      User user = null;
       UserHolder holder = session.get(SESSION_USER_HOLDER_KEY);
       if (holder != null) {
-        RoutingContext prevContext = holder.context;
-        if (prevContext != null) {
-          user = prevContext.user();
-        } else if (holder.user != null) {
-          user = holder.user;
+        holder.refresh(routingContext);
+        User user = routingContext.user();
+        if (user != null) {
           user.setAuthProvider(authProvider);
-          holder.context = routingContext;
-          holder.user = null;
         }
-        holder.context = routingContext;
       } else {
         // only at the time we are writing the header we should store the user to the session
         routingContext.addHeadersEndHandler(v -> {
@@ -62,9 +56,6 @@ public class UserSessionHandlerImpl implements UserSessionHandler {
             session.put(SESSION_USER_HOLDER_KEY, new UserHolder(routingContext));
           }
         });
-      }
-      if (user != null) {
-        routingContext.setUser(user);
       }
     }
     routingContext.next();

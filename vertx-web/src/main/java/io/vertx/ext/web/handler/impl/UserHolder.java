@@ -32,8 +32,8 @@ import java.nio.charset.StandardCharsets;
  */
 public class UserHolder implements ClusterSerializable {
 
-  public RoutingContext context;
-  public User user;
+  private RoutingContext context;
+  private User user;
 
   public UserHolder() {
   }
@@ -42,10 +42,29 @@ public class UserHolder implements ClusterSerializable {
     this.context = context;
   }
 
+  public synchronized void refresh(RoutingContext context) {
+    if (this.context != null) {
+      // this is a new object instance or already refreshed
+      user = this.context.user();
+    }
+    // refresh the context
+    this.context = context;
+    if (user != null) {
+      this.context.setUser(user);
+    }
+  }
+
   @Override
   public void writeToBuffer(Buffer buffer) {
     // try to get the user from the context otherwise fall back to any cached version
-    User user = context != null ? context.user() : this.user;
+    final User user;
+
+    synchronized (this) {
+      user = context != null ? context.user() : this.user;
+      // clear the context as this holder is not in a request anymore
+      context = null;
+    }
+
     if (user instanceof ClusterSerializable) {
       buffer.appendByte((byte)1);
       String className = user.getClass().getName();
@@ -78,12 +97,18 @@ public class UserHolder implements ClusterSerializable {
         }
         ClusterSerializable obj = (ClusterSerializable) clazz.getDeclaredConstructor().newInstance();
         pos = obj.readFromBuffer(pos, buffer);
-        user = (User) obj;
+        synchronized (this) {
+          user = (User) obj;
+          context = null;
+        }
       } catch (Exception e) {
         throw new VertxException(e);
       }
     } else {
-      user = null;
+      synchronized (this) {
+        user = null;
+        context = null;
+      }
     }
     return pos;
   }

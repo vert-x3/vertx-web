@@ -1421,4 +1421,18 @@ public class WebExamples {
         ctx.fail(401);
       });
   }
+
+  public void example78(Router router, SessionHandler sessionHandler) {
+
+    router.route().handler(ctx -> {
+      sessionHandler.flush(ctx, flush -> {
+        if (flush.succeeded()) {
+          ctx.response().end("Success!");
+        } else {
+          // session wasn't saved...
+          // go for plan B
+        }
+      });
+    });
+  }
 }
