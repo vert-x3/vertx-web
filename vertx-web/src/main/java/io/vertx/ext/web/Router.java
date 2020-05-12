@@ -338,8 +338,7 @@ public interface Router extends Handler<HttpServerRequest> {
    * @param subRouter  the router to mount as a sub router
    * @return a reference to this, so the API can be used fluently
    */
-  @Fluent
-  Router mountSubRouter(String mountPoint, Router subRouter);
+  Route mountSubRouter(String mountPoint, Router subRouter);
 
   /**
    * Specify a handler for any unhandled exceptions on this router. The handler will be called for exceptions thrown
