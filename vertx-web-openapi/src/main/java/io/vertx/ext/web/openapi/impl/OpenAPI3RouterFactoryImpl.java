@@ -154,16 +154,6 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
   public RouterFactory securityHandler(String securitySchemaName, AuthenticationHandler handler) {
     Objects.requireNonNull(securitySchemaName);
     Objects.requireNonNull(handler);
-    //TODO
-    securityHandlers.addAuthnRequirement(securitySchemaName, handler);
-    return this;
-  }
-
-  @Override
-  public RouterFactory securityHandler(String securitySchemaName, OAuth2AuthHandler handler) {
-    Objects.requireNonNull(securitySchemaName);
-    Objects.requireNonNull(handler);
-    //TODO
     securityHandlers.addAuthnRequirement(securitySchemaName, handler);
     return this;
   }

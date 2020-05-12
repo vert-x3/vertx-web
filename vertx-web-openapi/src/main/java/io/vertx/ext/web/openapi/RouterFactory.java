@@ -107,16 +107,6 @@ public interface RouterFactory {
   RouterFactory securityHandler(String securitySchemaName, AuthenticationHandler handler);
 
   /**
-   * Mount to paths that have to follow a security schema a security handler
-   *
-   * @param securitySchemaName
-   * @param handler
-   * @return this factory
-   */
-  @Fluent
-  RouterFactory securityHandler(String securitySchemaName, OAuth2AuthHandler handler);
-
-  /**
    * Introspect the OpenAPI spec to mount handlers for all operations that specifies a x-vertx-event-bus annotation. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-service/java/">vertx-web-api-service documentation</a> for more informations
    *
    * @return this factory
