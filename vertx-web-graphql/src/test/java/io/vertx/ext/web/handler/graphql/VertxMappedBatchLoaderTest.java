@@ -50,7 +50,7 @@ public class VertxMappedBatchLoaderTest extends GraphQLTestBase {
           mapPromise.complete(keys
             .stream()
             .map(testData.users::get)
-            .collect(toMap(u -> u.getId(), Function.identity()))
+            .collect(toMap(User::getId, Function.identity()))
           );
         } else {
           mapPromise.fail(new IllegalStateException());

@@ -518,12 +518,11 @@ public class BodyHandlerTest extends WebTestBase {
         assertEquals(3, params.size());
         assertEquals("Tim", params.get("attr1"));
         assertEquals("Julien", params.get("attr2"));
-        assertEquals("foo", params.get("p1"));
       } else {
         assertNotNull(params);
         assertEquals(1, params.size());
-        assertEquals("foo", params.get("p1"));
       }
+      assertEquals("foo", params.get("p1"));
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/?p1=foo", req -> {

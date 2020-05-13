@@ -61,7 +61,7 @@ public class OpenAPI3PathResolverTest {
         .readOperations()
         .stream().map(e2 -> new AbstractMap.SimpleImmutableEntry<>(e.getKey(), e2)))
       .filter(e -> e.getValue().getOperationId().equals(operationId))
-      .map(e -> e.getKey())
+      .map(AbstractMap.SimpleImmutableEntry::getKey)
       .findFirst().orElse(null);
   }
 

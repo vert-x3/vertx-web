@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.handler.graphql.dataloader.impl;
 
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Promise;
 import io.vertx.ext.web.handler.graphql.TriConsumer;
 import io.vertx.ext.web.handler.graphql.dataloader.VertxBatchLoader;

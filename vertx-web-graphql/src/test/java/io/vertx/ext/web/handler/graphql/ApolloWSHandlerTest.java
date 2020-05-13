@@ -316,7 +316,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
             });
         })
         .listen(serverPort, host)
-        .onFailure(cause -> fail(cause))
+        .onFailure(ApolloWSHandlerTest.this::fail)
         .onSuccess(server -> {
           this.server = server;
           latch.countDown();

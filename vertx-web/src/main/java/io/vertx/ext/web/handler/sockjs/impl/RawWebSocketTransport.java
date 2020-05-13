@@ -42,7 +42,6 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.net.impl.ConnectionBase;
-import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.Session;
@@ -88,7 +87,7 @@ class RawWebSocketTransport {
     }
 
     @Override
-    public ReadStream<Buffer> fetch(long amount) {
+    public SockJSSocket fetch(long amount) {
       ws.fetch(amount);
       return this;
     }

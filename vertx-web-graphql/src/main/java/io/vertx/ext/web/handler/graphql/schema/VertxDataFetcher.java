@@ -23,11 +23,8 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Promise;
 import io.vertx.ext.web.handler.graphql.schema.impl.VertxDataFetcherImpl;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
-
-import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
 /**
  * A {@link DataFetcher} that works well with Vert.x callback-based APIs.
