@@ -12,6 +12,10 @@
 
   <artifactId>vertx-web-templ-thymeleaf</artifactId>
 
+  <properties>
+    <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.thymeleaf</groupId>
