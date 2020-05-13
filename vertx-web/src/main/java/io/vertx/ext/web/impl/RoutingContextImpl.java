@@ -146,7 +146,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
           // If it's a 404 let's send a body too
           this.response()
             .putHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
-            .end("<html><body><h1>Resource not found</h1></body></html>");
+            .end(DEFAULT_404);
         } else {
           this.response().end();
         }
