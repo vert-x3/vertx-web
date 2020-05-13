@@ -391,6 +391,64 @@ public interface RoutingContext {
   boolean removeBodyEndHandler(int handlerID);
 
   /**
+   * Adds an exception handler that will be called if an exception occurs. The handler is called asynchronously of
+   * when the response has been received by the client.
+   *
+   * @param handler  the handler
+   * @return  the id of the handler. This can be used if you later want to remove the handler.
+   */
+  int addExceptionHandler(Handler<Void> handler);
+
+  /**
+   * Remove an exception handler
+   *
+   * @param handlerID  the id as returned from {@link io.vertx.ext.web.RoutingContext#addExceptionHandler(Handler)}.
+   * @return true if the handler existed and was removed, false otherwise
+   */
+  boolean removeExceptionHandler(int handlerID);
+
+  /**
+   * Adds a handler that will be called when the underlying connection is closed and the response
+   * was still using the connection. The handler is called asynchronously of when the response has been received by
+   * the client.
+   * <p>
+   * For HTTP/1.x it is called when the connection is closed before {@code end()} is called, therefore it is not
+   * guaranteed to be called.
+   * <p>
+   * For HTTP/2 it is called when the related stream is closed, and therefore it will be always be called.
+   *
+   * @param handler  the handler
+   * @return  the id of the handler. This can be used if you later want to remove the handler.
+   */
+  int addCloseHandler(Handler<Void> handler);
+
+  /**
+   * Remove a close handler
+   *
+   * @param handlerID  the id as returned from {@link io.vertx.ext.web.RoutingContext#addCloseHandler(Handler)}.
+   * @return true if the handler existed and was removed, false otherwise
+   */
+  boolean removeCloseHandler(int handlerID);
+
+  /**
+   * Add an end handler for the response. This will be called when the response is disposed or an exception has been
+   * encountered to allow consistent cleanup. The handler is called asynchronously of when the response has been received
+   * by the client.
+   *
+   * @param handler  the handler
+   * @return  the id of the handler. This can be used if you later want to remove the handler.
+   */
+  int addEndHandler(Handler<Void> handler);
+
+  /**
+   * Remove an end handler
+   *
+   * @param handlerID  the id as returned from {@link io.vertx.ext.web.RoutingContext#addEndHandler(Handler)}.
+   * @return true if the handler existed and was removed, false otherwise
+   */
+  boolean removeEndHandler(int handlerID);
+
+  /**
    * @return true if the context is being routed to failure handlers.
    */
   boolean failed();
