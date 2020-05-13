@@ -17,6 +17,7 @@
 package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -128,6 +129,16 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public boolean removeBodyEndHandler(int handlerID) {
     return inner.removeBodyEndHandler(handlerID);
+  }
+
+  @Override
+  public int addEndHandler(Handler<AsyncResult<Void>> handler) {
+    return inner.addEndHandler(handler);
+  }
+
+  @Override
+  public boolean removeEndHandler(int handlerID) {
+    return inner.removeEndHandler(handlerID);
   }
 
   @Override

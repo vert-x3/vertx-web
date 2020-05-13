@@ -1408,6 +1408,142 @@ public class RouterTest extends WebTestBase {
     assertWaitUntil(() -> cnt.get() == 1);
   }
 
+  // Test that adding an endHandler doesn't overwrite other ones
+  @Test
+  public void testEndHandler() throws Exception {
+    AtomicInteger cnt = new AtomicInteger();
+    router.route().handler(rc -> {
+      rc.addEndHandler(v -> cnt.incrementAndGet());
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(v -> cnt.incrementAndGet());
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(v -> cnt.incrementAndGet());
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+    assertWaitUntil(() -> cnt.get() == 3);
+  }
+
+  // Test that adding an exceptionHandler doesn't overwrite other ones
+  @Test
+  public void testExceptionHandler() throws Exception {
+    HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path");
+    AtomicInteger cnt = new AtomicInteger();
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        if (done.failed()) {
+          cnt.incrementAndGet();
+        }
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        if (done.failed()) {
+          cnt.incrementAndGet();
+        }
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        if (done.failed()) {
+          cnt.incrementAndGet();
+        }
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      req.connection().close();
+    });
+
+    req
+      .handler(resp -> {
+        // we don't really care
+      })
+      .end();
+    assertWaitUntil(() -> cnt.get() == 3);
+  }
+
+  // Test that adding a closeHandler doesn't overwrite other ones
+  @Test
+  public void testCloseHandler() throws Exception {
+    HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path");
+    AtomicInteger cnt = new AtomicInteger();
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        cnt.incrementAndGet();
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        cnt.incrementAndGet();
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        cnt.incrementAndGet();
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      req.connection().close();
+    });
+
+    req
+      .handler(resp -> {
+        // we don't really care
+      })
+      .end();
+    assertWaitUntil(() -> cnt.get() == 3);
+  }
+
+  // Test that the endHandler is called once for an exception
+  @Test
+  public void testEndHandlerCalledOnce() throws Exception {
+    HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path");
+    AtomicInteger endCnt = new AtomicInteger();
+    AtomicInteger excCnt = new AtomicInteger();
+    AtomicInteger closeCnt = new AtomicInteger();
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        excCnt.incrementAndGet();
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        endCnt.incrementAndGet();
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        closeCnt.incrementAndGet();
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      req.connection().close();
+    });
+
+    req
+      .handler(resp -> {
+        // we don't really care
+      })
+      .end();
+
+    assertWaitUntil(() -> endCnt.get() == 1);
+    assertWaitUntil(() -> excCnt.get() == 1);
+    assertWaitUntil(() -> closeCnt.get() == 1);
+  }
+
   @Test
   public void testNoRoutes() throws Exception {
     testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");

@@ -1,6 +1,7 @@
 package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -49,6 +50,11 @@ public class RoutingContextDecorator implements RoutingContext {
   @Override
   public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
     return decoratedContext.addCookie(cookie);
+  }
+
+  @Override
+  public int addEndHandler(Handler<AsyncResult<Void>> handler) {
+    return decoratedContext.addEndHandler(handler);
   }
 
   @Override
@@ -187,6 +193,11 @@ public class RoutingContextDecorator implements RoutingContext {
   @Override
   public Cookie removeCookie(String name, boolean invalidate) {
     return decoratedContext.removeCookie(name, invalidate);
+  }
+
+  @Override
+  public boolean removeEndHandler(int handlerID) {
+    return decoratedContext.removeEndHandler(handlerID);
   }
 
   @Override
