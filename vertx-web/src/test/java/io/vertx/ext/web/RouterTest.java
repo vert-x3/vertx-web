@@ -1460,15 +1460,27 @@ public class RouterTest extends WebTestBase {
     HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path");
     AtomicInteger cnt = new AtomicInteger();
     router.route().handler(rc -> {
-      rc.addExceptionHandler(v -> cnt.incrementAndGet());
+      rc.addEndHandler(done -> {
+        if (done.failed()) {
+          cnt.incrementAndGet();
+        }
+      });
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addExceptionHandler(v -> cnt.incrementAndGet());
+      rc.addEndHandler(done -> {
+        if (done.failed()) {
+          cnt.incrementAndGet();
+        }
+      });
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addExceptionHandler(v -> cnt.incrementAndGet());
+      rc.addEndHandler(done -> {
+        if (done.failed()) {
+          cnt.incrementAndGet();
+        }
+      });
       rc.next();
     });
     router.route().handler(rc -> {
@@ -1484,15 +1496,21 @@ public class RouterTest extends WebTestBase {
     HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path");
     AtomicInteger cnt = new AtomicInteger();
     router.route().handler(rc -> {
-      rc.addCloseHandler(v -> cnt.incrementAndGet());
+      rc.addEndHandler(done -> {
+        cnt.incrementAndGet();
+      });
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addCloseHandler(v -> cnt.incrementAndGet());
+      rc.addEndHandler(done -> {
+        cnt.incrementAndGet();
+      });
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addCloseHandler(v -> cnt.incrementAndGet());
+      rc.addEndHandler(done -> {
+        cnt.incrementAndGet();
+      });
       rc.next();
     });
     router.route().handler(rc -> {
@@ -1510,15 +1528,21 @@ public class RouterTest extends WebTestBase {
     AtomicInteger excCnt = new AtomicInteger();
     AtomicInteger closeCnt = new AtomicInteger();
     router.route().handler(rc -> {
-      rc.addExceptionHandler(v -> excCnt.incrementAndGet());
+      rc.addEndHandler(done -> {
+        excCnt.incrementAndGet();
+      });
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addEndHandler(v -> endCnt.incrementAndGet());
+      rc.addEndHandler(done -> {
+        endCnt.incrementAndGet();
+      });
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addCloseHandler(v -> closeCnt.incrementAndGet());
+      rc.addEndHandler(done -> {
+        closeCnt.incrementAndGet();
+      });
       rc.next();
     });
     router.route().handler(rc -> {

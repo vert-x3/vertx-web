@@ -17,6 +17,7 @@
 package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -132,27 +133,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public int addExceptionHandler(Handler<Void> handler) {
-    return inner.addExceptionHandler(handler);
-  }
-
-  @Override
-  public boolean removeExceptionHandler(int handlerID) {
-    return inner.removeExceptionHandler(handlerID);
-  }
-
-  @Override
-  public int addCloseHandler(Handler<Void> handler) {
-    return inner.addCloseHandler(handler);
-  }
-
-  @Override
-  public boolean removeCloseHandler(int handlerID) {
-    return inner.removeCloseHandler(handlerID);
-  }
-
-  @Override
-  public int addEndHandler(Handler<Void> handler) {
+  public int addEndHandler(Handler<AsyncResult<Void>> handler) {
     return inner.addEndHandler(handler);
   }
 

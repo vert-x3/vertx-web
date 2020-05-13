@@ -19,9 +19,7 @@ package io.vertx.ext.web.impl;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
@@ -45,15 +43,16 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private final RouterImpl router;
   private final HttpServerRequest request;
+  private final AtomicInteger handlerSeq = new AtomicInteger();
+
   private Map<String, Object> data;
   private Map<String, String> pathParams;
   private MultiMap queryParams;
-  private AtomicInteger handlerSeq = new AtomicInteger();
   private Map<Integer, Handler<Void>> headersEndHandlers;
   private Map<Integer, Handler<Void>> bodyEndHandlers;
-  private Map<Integer, Handler<Void>> exceptionHandlers;
-  private Map<Integer, Handler<Void>> closeHandlers;
-  private Map<Integer, Handler<Void>> endHandlers;
+  // clean up handlers
+  private Map<Integer, Handler<AsyncResult<Void>>> endHandlers;
+
   private Throwable failure;
   private int statusCode = -1;
   private String normalizedPath;
@@ -64,8 +63,9 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Set<FileUpload> fileUploads;
   private Session session;
   private User user;
-  private boolean isSessionAccessed = false;
-  private boolean endHandlerCalled = false;
+
+  private volatile boolean isSessionAccessed = false;
+  private volatile boolean endHandlerCalled = false;
 
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
     super(mountPoint, routes);
@@ -371,31 +371,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public int addExceptionHandler(Handler<Void> handler) {
-    int seq = nextHandlerSeq();
-    getExceptionHandlers().put(seq, handler);
-    return seq;
-  }
-
-  @Override
-  public boolean removeExceptionHandler(int handlerID) {
-    return getExceptionHandlers().remove(handlerID) != null;
-  }
-
-  @Override
-  public int addCloseHandler(Handler<Void> handler) {
-    int seq = nextHandlerSeq();
-    getCloseHandlers().put(seq, handler);
-    return seq;
-  }
-
-  @Override
-  public boolean removeCloseHandler(int handlerID) {
-    return getCloseHandlers().remove(handlerID) != null;
-  }
-
-  @Override
-  public int addEndHandler(Handler<Void> handler) {
+  public int addEndHandler(Handler<AsyncResult<Void>> handler) {
     int seq = nextHandlerSeq();
     getEndHandlers().put(seq, handler);
     return seq;
@@ -403,9 +379,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public boolean removeEndHandler(int handlerID) {
-    return getExceptionHandlers().remove(handlerID) != null &&
-      getCloseHandlers().remove(handlerID) != null &&
-      getEndHandlers().remove(handlerID) != null;
+    return getEndHandlers().remove(handlerID) != null;
   }
 
   @Override
@@ -497,40 +471,38 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return bodyEndHandlers;
   }
 
-  private Map<Integer, Handler<Void>> getExceptionHandlers() {
-    if (exceptionHandlers == null) {
-      // order is important we we should traverse backwards
-      exceptionHandlers = new TreeMap<>(Collections.reverseOrder());
-      response().exceptionHandler(v -> exceptionHandlers.values().forEach(handler -> handler.handle(null)));
-    }
-    return exceptionHandlers;
-  }
-
-  private Map<Integer, Handler<Void>> getCloseHandlers() {
-    if (closeHandlers == null) {
-      // order is important we we should traverse backwards
-      closeHandlers = new TreeMap<>(Collections.reverseOrder());
-      response().closeHandler(v -> closeHandlers.values().forEach(handler -> handler.handle(null)));
-    }
-    return closeHandlers;
-  }
-
-  private Map<Integer, Handler<Void>> getEndHandlers() {
+  private Map<Integer, Handler<AsyncResult<Void>>> getEndHandlers() {
     if (endHandlers == null) {
       // order is important we we should traverse backwards
       endHandlers = new TreeMap<>(Collections.reverseOrder());
 
       final Handler<Void> endHandler = v -> {
         if (!endHandlerCalled) {
-          endHandlers.values().forEach(handler -> handler.handle(null));
+          endHandlerCalled = true;
+          endHandlers.values().forEach(handler -> handler.handle(Future.succeededFuture()));
         }
-        endHandlerCalled = true;
       };
 
-      response().endHandler(endHandler);
-      addExceptionHandler(endHandler);
-      addCloseHandler(endHandler);
+      final Handler<Throwable> exceptionHandler = cause -> {
+        if (!endHandlerCalled) {
+          endHandlerCalled = true;
+          endHandlers.values().forEach(handler -> handler.handle(Future.failedFuture(cause)));
+        }
+      };
+
+      final Handler<Void> closeHandler = cause -> {
+        if (!endHandlerCalled) {
+          endHandlerCalled = true;
+          endHandlers.values().forEach(handler -> handler.handle(Future.failedFuture("Connection closed")));
+        }
+      };
+
+      response()
+        .endHandler(endHandler)
+        .exceptionHandler(exceptionHandler)
+        .closeHandler(closeHandler);
     }
+
     return endHandlers;
   }
 
