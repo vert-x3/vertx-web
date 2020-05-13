@@ -925,6 +925,36 @@ This allows to control the state before completing the response like:
 {@link examples.WebExamples#example78}
 ----
 
+Vert.x Session Handler state by default uses a cookie to store session ID. Session ID is a unique string, used to
+recognize individual visitor between visits. But, if client's web browser doesn't support cookies or visitor has
+disabled cookies in web browser's settings, we can't store session id on client's machine. In this case, new session
+will be created for every request. This behavior is useless because we can't remember information for certain visitor
+between two requests. We can say that, by default, sessions can't work if browser doesn't support cookies.
+
+Vert.x Web supports sessions without cookies, known as "cookieless" sessions. As an alternative, Vert.x Web can embed
+session id inside of page URL. On this way, all page links will contain session id string. When visitor clicks on some
+of these links, it will read session id from page URL, so we don't need cookies support to have functional sessions.
+
+To enable cookieless sessions:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example79}
+----
+
+It is important to know that in this mode the session ID should be passed by the application to the end user, usually by
+rendering it on the HTML page or script. There are some important rules. The session id is identified by the following
+pattern on the path `/optional/path/prefix/'('sessionId')'/path/suffix`.
+
+As an example, given the path: `http://localhost:2677/WebSite1/(S(3abhbgwjg33aqrt3uat2kh4d))/api/` the session Id will
+be: `3abhbgwjg33aqrt3uat2kh4d`.
+
+Main security problem when working with sessions is a possibility that malicious user will find out others' session id.
+If two users share same session id, they share same session variables too and website is considering them as one
+visitor. This could be a security risk if session is used for any private or sensitive data, or to allow access to
+restricted areas of web site. When cookies are used, session id can be protected using SSL and by marking a cookie as
+secure. But, in case of cookieless session, session id is part of URL and is much more vulnerable.
+
 
 === Session stores
 

@@ -97,9 +97,7 @@ public interface SessionHandler extends Handler<RoutingContext> {
 	 * @return the handler
 	 */
 	static SessionHandler create(SessionStore sessionStore) {
-		return new SessionHandlerImpl(DEFAULT_SESSION_COOKIE_NAME, DEFAULT_SESSION_COOKIE_PATH, DEFAULT_SESSION_TIMEOUT,
-				DEFAULT_NAG_HTTPS, DEFAULT_COOKIE_SECURE_FLAG, DEFAULT_COOKIE_HTTP_ONLY_FLAG,
-				DEFAULT_SESSIONID_MIN_LENGTH, DEFAULT_LAZY_SESSION, sessionStore);
+		return new SessionHandlerImpl(sessionStore);
 	}
 
 	/**
@@ -219,4 +217,15 @@ public interface SessionHandler extends Handler<RoutingContext> {
 	  flush(ctx, promise);
 	  return promise.future();
   }
+
+  /**
+   * Use sessions based on url paths instead of cookies. This is an potential less safe alternative to cookies
+   * but offers an alternative when Cookies are not desired, for example, to avoid showing banners on a website
+   * due to cookie laws, or doing machine to machine operations where state is required to maintain.
+   *
+   * @param cookieless true if a cookieless session should be used
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  SessionHandler setCookieless(boolean cookieless);
 }
