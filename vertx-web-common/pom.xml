@@ -13,4 +13,8 @@
 
   <artifactId>vertx-web-common</artifactId>
 
+  <properties>
+    <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
+  </properties>
+
 </project>
