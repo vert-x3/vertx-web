@@ -1068,7 +1068,6 @@ public class WebClientTest extends WebClientTestBase {
   }
 
   @Test
-  @Ignore("This test is flaky on Travis and should be reviewed before 4.0.0")
   public void testFileUploadFormMultipart32M() throws Exception {
     testFileUploadFormMultipart(32 * 1024 * 1024);
   }
@@ -1159,7 +1158,6 @@ public class WebClientTest extends WebClientTestBase {
       AtomicInteger idx = new AtomicInteger();
       List<Upload> uploads = new ArrayList<>();
       req.uploadHandler(upload -> {
-        int val = idx.getAndIncrement();
         Buffer fileBuffer = Buffer.buffer();
         assertEquals("text/plain", upload.contentType());
         upload.handler(fileBuffer::appendBuffer);
