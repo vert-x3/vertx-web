@@ -432,6 +432,7 @@ public class HttpContext<T> {
         contentType = prev;
       }
     }
+    Promise<Void> continuation = Promise.promise();
     if (body != null || "application/json".equals(contentType)) {
       if (body instanceof MultiMap) {
         MultipartForm parts = MultipartForm.create();
@@ -460,31 +461,40 @@ public class HttpContext<T> {
         });
         multipartForm.run();
       }
-
       if (body instanceof ReadStream<?>) {
         ReadStream<Buffer> stream = (ReadStream<Buffer>) body;
         if (request.headers == null || !request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
           req.setChunked(true);
         }
-        Pump pump = Pump.pump(stream, req);
-        req.exceptionHandler(err -> {
-          pump.stop();
-          stream.endHandler(null);
-          stream.resume();
-          responseFuture.tryFail(err);
-        });
-        stream.exceptionHandler(err -> {
-          // Notify before closing the connection otherwise the future could be failed with connection closed exception
-          responseFuture.tryFail(err);
-          req.reset();
-        });
-        stream.endHandler(v -> {
-          req.exceptionHandler(responseFuture::tryFail);
-          req.end();
-          pump.stop();
-        });
-        pump.start();
-        stream.resume();
+        stream.pause();
+        continuation
+          .future()
+          .onComplete(ar -> {
+            if (ar.succeeded()) {
+              Pump pump = Pump.pump(stream, req);
+              req.exceptionHandler(err -> {
+                pump.stop();
+                stream.endHandler(null);
+                stream.resume();
+                responseFuture.tryFail(err);
+              });
+              stream.exceptionHandler(err -> {
+                // Notify before closing the connection otherwise the future could be failed with connection closed exception
+                responseFuture.tryFail(err);
+                req.reset();
+              });
+              stream.endHandler(v -> {
+                req.exceptionHandler(responseFuture::tryFail);
+                req.end();
+                pump.stop();
+              });
+              pump.start();
+              stream.resume();
+            } else {
+              responseFuture.fail(ar.cause());
+              stream.resume();
+            }
+          });
       } else {
         Buffer buffer;
         if (body instanceof Buffer) {
@@ -494,13 +504,30 @@ public class HttpContext<T> {
         } else {
           buffer = JsonCodec.INSTANCE.toBuffer(body);
         }
-        req.exceptionHandler(responseFuture::tryFail);
-        req.end(buffer);
+        req.putHeader(HttpHeaders.CONTENT_LENGTH, "" + buffer.length());
+        continuation
+          .future()
+          .onComplete(ar -> {
+          if (ar.succeeded()) {
+            req.exceptionHandler(responseFuture::tryFail);
+            req.end(buffer);
+          } else {
+            responseFuture.fail(ar.cause());
+          }
+        });
       }
     } else {
-      req.exceptionHandler(responseFuture::tryFail);
-      req.end();
+      continuation.future().onComplete(ar -> {
+        if (ar.succeeded()) {
+          req.exceptionHandler(responseFuture::tryFail);
+          req.end();
+        } else {
+          responseFuture.fail(ar.cause());
+        }
+      });
     }
+    req.exceptionHandler(continuation::fail);
+    req.sendHead(v -> continuation.complete());
   }
 
   public <T> T get(String key) {

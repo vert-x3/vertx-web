@@ -457,9 +457,14 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
-  public void testRequestPumpErrorNotYetConnected() throws Exception {
+  public void testRequestPumpErrorInStream() throws Exception {
+    waitFor(2);
     HttpRequest<Buffer> post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    server.requestHandler(req -> fail());
+    server.requestHandler(req -> {
+      req.response().closeHandler(v -> {
+        complete();
+      });
+    });
     Throwable cause = new Throwable();
     startServer();
     post.sendStream(new ReadStream<Buffer>() {
@@ -494,7 +499,7 @@ public class WebClientTest extends HttpTestBase {
       }
     }, onFailure(err -> {
       assertSame(cause, err);
-      testComplete();
+      complete();
     }));
     await();
   }
