@@ -386,7 +386,7 @@ public class WebClientTest extends WebClientTestBase {
             return this;
           }
         }, onFailure(err -> {
-          if (cause == err) {
+          if (err instanceof StreamResetException && cause == err.getCause()) {
             complete();
           } else {
             fail(new Exception("Unexpected failure", err));
@@ -396,9 +396,10 @@ public class WebClientTest extends WebClientTestBase {
   }
 
   @Test
-  public void testRequestPumpErrorNotYetConnected() throws Exception {
+  public void testRequestPumpErrorInStream() throws Exception {
+    waitFor(2);
     HttpRequest<Buffer> post = webClient.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    server.requestHandler(req -> fail());
+    server.requestHandler(req -> req.response().closeHandler(v -> complete()));
     Throwable cause = new Throwable();
     startServer();
     post.sendStream(new ReadStream<Buffer>() {
@@ -432,8 +433,9 @@ public class WebClientTest extends WebClientTestBase {
         return this;
       }
     }, onFailure(err -> {
-      assertSame(cause, err);
-      testComplete();
+      assertEquals(StreamResetException.class, err.getClass());
+      assertSame(cause, err.getCause());
+      complete();
     }));
     await();
   }
@@ -1198,7 +1200,8 @@ public class WebClientTest extends WebClientTestBase {
       .textFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain");
 
     builder.sendMultipartForm(form, onFailure(err -> {
-      assertEquals(err.getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
+      assertEquals(err.getClass(), StreamResetException.class);
+      assertEquals(err.getCause().getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
       complete();
     }));
     await();
@@ -1211,7 +1214,8 @@ public class WebClientTest extends WebClientTestBase {
       .textFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain");
 
     builder.sendMultipartForm(form, onFailure(err -> {
-      assertEquals(err.getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
+      assertEquals(err.getClass(), StreamResetException.class);
+      assertEquals(err.getCause().getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
       complete();
     }));
     await();
