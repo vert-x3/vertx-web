@@ -1270,7 +1270,6 @@ public class WebClientTest extends HttpTestBase {
       AtomicInteger idx = new AtomicInteger();
       List<Upload> uploads = new ArrayList<>();
       req.uploadHandler(upload -> {
-        int val = idx.getAndIncrement();
         Buffer fileBuffer = Buffer.buffer();
         assertEquals("text/plain", upload.contentType());
         upload.handler(fileBuffer::appendBuffer);

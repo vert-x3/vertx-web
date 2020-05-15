@@ -48,8 +48,9 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
   private DefaultFullHttpRequest request;
   private HttpPostRequestEncoder encoder;
   private Handler<Throwable> exceptionHandler;
+  private Handler<Buffer> dataHandler;
   private Handler<Void> endHandler;
-  private InboundBuffer<Buffer> pending;
+  private InboundBuffer<Object> pending;
   private boolean ended;
   private final Context context;
 
@@ -58,7 +59,9 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
                              boolean multipart,
                              HttpPostRequestEncoder.EncoderMode encoderMode) throws Exception {
     this.context = context;
-    this.pending = new InboundBuffer<Buffer>(context).emptyHandler(v -> checkEnd()).drainHandler(v -> run()).pause();
+    this.pending = new InboundBuffer<>(context)
+      .handler(this::handleChunk)
+      .drainHandler(v -> run()).pause();
     this.request = new DefaultFullHttpRequest(
       HttpVersion.HTTP_1_1,
       io.netty.handler.codec.http.HttpMethod.POST,
@@ -81,14 +84,21 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
     encoder.finalizeRequest();
   }
 
-  private void checkEnd() {
-    Handler<Void> handler;
+  private void handleChunk(Object item) {
+    Handler handler;
     synchronized (MultipartFormUpload.this) {
-      handler = ended ? endHandler : null;
+      if (item instanceof Buffer) {
+        handler = dataHandler;
+      } else if (item instanceof Throwable) {
+        handler = exceptionHandler;
+      } else if (item == InboundBuffer.END_SENTINEL) {
+        handler = endHandler;
+        item = null;
+      } else {
+        return;
+      }
     }
-    if (handler != null) {
-      handler.handle(null);
-    }
+    handler.handle(item);
   }
 
   public void run() {
@@ -109,9 +119,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
             ended = true;
             request = null;
             encoder = null;
-            if (pending.isEmpty()) {
-              endHandler.handle(null);
-            }
+            pending.write(InboundBuffer.END_SENTINEL);
           } else if (!writable) {
             break;
           }
@@ -119,9 +127,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
           ended = true;
           request = null;
           encoder = null;
-          if (exceptionHandler != null) {
-            exceptionHandler.handle(e);
-          }
+          pending.write(e);
           break;
         }
       } else {
@@ -131,9 +137,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
         encoder = null;
         pending.write(buffer);
         ended = true;
-        if (pending.isEmpty() && endHandler != null) {
-          endHandler.handle(null);
-        }
+        pending.write(InboundBuffer.END_SENTINEL);
       }
     }
   }
@@ -150,7 +154,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
 
   @Override
   public synchronized MultipartFormUpload handler(Handler<Buffer> handler) {
-    pending.handler(handler);
+    dataHandler = handler;
     return this;
   }
 
