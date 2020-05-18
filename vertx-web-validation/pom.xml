@@ -16,7 +16,6 @@
     <mockito.version>3.3.0</mockito.version>
     <assertj.version>3.15.0</assertj.version>
     <doc.skip>false</doc.skip>
-    <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
   </properties>
 
   <dependencies>

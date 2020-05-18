@@ -12,10 +12,6 @@
 
   <artifactId>vertx-web-templ-jade</artifactId>
 
-  <properties>
-    <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>de.neuland-bfi</groupId>
