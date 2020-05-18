@@ -40,7 +40,7 @@ import java.util.List;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements OAuth2AuthHandler {
+public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler implements OAuth2AuthHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
 

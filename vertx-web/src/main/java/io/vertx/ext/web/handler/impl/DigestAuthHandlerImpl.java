@@ -39,7 +39,7 @@ import java.util.Set;
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class DigestAuthHandlerImpl extends AuthorizationAuthHandler implements DigestAuthHandler {
+public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler implements DigestAuthHandler {
 
   /**
    * Default name for map used to store nonces

@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class JWTAuthHandlerImpl extends AuthorizationAuthHandler implements JWTAuthHandler {
+public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler implements JWTAuthHandler {
 
   private final JsonObject options;
 
