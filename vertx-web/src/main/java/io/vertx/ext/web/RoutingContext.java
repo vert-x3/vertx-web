@@ -17,10 +17,7 @@
 package io.vertx.ext.web;
 
 import io.vertx.codegen.annotations.*;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.MimeMapping;
@@ -389,6 +386,39 @@ public interface RoutingContext {
    * @return true if the handler existed and was removed, false otherwise
    */
   boolean removeBodyEndHandler(int handlerID);
+
+  /**
+   * Add an end handler for the request/response context. This will be called when the response is disposed or an
+   * exception has been encountered to allow consistent cleanup. The handler is called asynchronously of when the
+   * response has been received by the client.
+   *
+   * @param handler the handler that will be called with either a success or failure result.
+   * @return  the id of the handler. This can be used if you later want to remove the handler.
+   */
+  int addEndHandler(Handler<AsyncResult<Void>> handler);
+
+  /**
+   * Add an end handler for the request/response context. This will be called when the response is disposed or an
+   * exception has been encountered to allow consistent cleanup. The handler is called asynchronously of when the
+   * response has been received by the client.
+   *
+   * @see #addEndHandler(Handler)
+   *
+   * @return future that will be called with either a success or failure result.
+   */
+  default Future<Void> addEndHandler() {
+    Promise<Void> promise = Promise.promise();
+    addEndHandler(promise);
+    return promise.future();
+  }
+
+  /**
+   * Remove an end handler
+   *
+   * @param handlerID  the id as returned from {@link io.vertx.ext.web.RoutingContext#addEndHandler(Handler)}.
+   * @return true if the handler existed and was removed, false otherwise
+   */
+  boolean removeEndHandler(int handlerID);
 
   /**
    * @return true if the context is being routed to failure handlers.

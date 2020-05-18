@@ -27,12 +27,12 @@ public class CookieStoreImpl implements CookieStore {
 
   private ConcurrentHashMap<Key, Cookie> noDomainCookies;
   private ConcurrentSkipListMap<Key, Cookie> domainCookies;
-  
+
   public CookieStoreImpl() {
     noDomainCookies = new ConcurrentHashMap<>();
     domainCookies = new ConcurrentSkipListMap<>();
   }
-  
+
   @Override
   public Iterable<Cookie> get(Boolean ssl, String domain, String path) {
     assert domain != null && domain.length() > 0;
@@ -45,7 +45,7 @@ public class CookieStoreImpl implements CookieStore {
       if (pos > -1) {
         uri = uri.substring(0, pos);
       }
-  
+
       // Remoe frament identifier if present
       pos = uri.indexOf('#');
       if (pos > -1) {
@@ -53,9 +53,9 @@ public class CookieStoreImpl implements CookieStore {
       }
       cleanPath = uri;
     }
-    
+
     TreeMap<String, Cookie> matches = new TreeMap<>();
-    
+
     Consumer<Cookie> adder = c -> {
       if (ssl != Boolean.TRUE && c.isSecure()) {
         return;
@@ -69,13 +69,13 @@ public class CookieStoreImpl implements CookieStore {
           return;
         }
       }
-      matches.put(c.name(), c);      
+      matches.put(c.name(), c);
     };
-    
+
     for (Cookie c : noDomainCookies.values()) {
       adder.accept(c);
     }
-    
+
     Key key = new Key(domain, "", "");
     String prefix = key.domain.substring(0, 1);
     for (Entry<Key, Cookie> entry : domainCookies.tailMap(new Key(prefix, "", ""), true).entrySet()) {
@@ -87,7 +87,7 @@ public class CookieStoreImpl implements CookieStore {
       }
       adder.accept(entry.getValue());
     }
-        
+
     return matches.values();
   }
 
@@ -115,7 +115,7 @@ public class CookieStoreImpl implements CookieStore {
 
   private static class Key implements Comparable<Key> {
     private static final String NO_DOMAIN = "";
-    
+
     private final String domain;
     private final String path;
     private final String name;
@@ -142,7 +142,7 @@ public class CookieStoreImpl implements CookieStore {
           }
           this.domain = String.join(".", tokens);
         }
-      }      
+      }
       this.path = path == null ? "" : path;
       this.name = name;
     }
@@ -187,11 +187,8 @@ public class CookieStoreImpl implements CookieStore {
       } else if (!name.equals(other.name))
         return false;
       if (path == null) {
-        if (other.path != null)
-          return false;
-      } else if (!path.equals(other.path))
-        return false;
-      return true;
+        return other.path == null;
+      } else return path.equals(other.path);
     }
-  }  
+  }
 }

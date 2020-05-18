@@ -25,10 +25,6 @@ import org.dataloader.BatchLoaderEnvironment;
 import org.dataloader.BatchLoaderWithContext;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-
-import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
 /**
  * A {@link BatchLoaderWithContext} that works well with Vert.x callback-based APIs.

@@ -304,8 +304,7 @@ public class OpenApi3Utils {
     java.lang.reflect.Parameter[] parameters = method.getParameters();
     if (parameters.length < 2) return false;
     if (!parameters[parameters.length - 1].getType().equals(Handler.class)) return false;
-    if (!parameters[parameters.length - 2].getType().equals(OperationRequest.class)) return false;
-    return true;
+    return parameters[parameters.length - 2].getType().equals(OperationRequest.class);
   }
 
   public static JsonObject sanitizeDeliveryOptionsExtension(JsonObject jsonObject) {

@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.http.HttpHeaderValues;
-import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;

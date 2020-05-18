@@ -23,9 +23,9 @@ import io.vertx.ext.auth.PubSecKeyOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
-import io.vertx.ext.jwt.JWK;
-import io.vertx.ext.jwt.JWT;
-import io.vertx.ext.jwt.JWTOptions;
+import io.vertx.ext.auth.impl.jose.JWK;
+import io.vertx.ext.auth.impl.jose.JWT;
+import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 

@@ -73,6 +73,9 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   SockJSSocket resume();
 
   @Override
+  SockJSSocket fetch(long amount);
+
+  @Override
   SockJSSocket endHandler(Handler<Void> endHandler);
 
   @Override

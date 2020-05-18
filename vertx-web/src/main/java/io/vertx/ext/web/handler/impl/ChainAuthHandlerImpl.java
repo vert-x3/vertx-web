@@ -77,7 +77,6 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl implements C
         if (all) {
           // all handlers need to be valid, a single failure is enough to
           // abort the execution of the chain
-          handler.handle(Future.failedFuture(res.cause()));
         } else {
           // any handler can be valid, if the response is within a validation error
           // the chain is allowed to proceed, otherwise we must abort.
@@ -94,9 +93,9 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl implements C
             }
           }
           // the error is not a validation exception, so we abort regardless
-          handler.handle(Future.failedFuture(res.cause()));
         }
-        return;
+          handler.handle(Future.failedFuture(res.cause()));
+          return;
       }
 
       // setup the desired auth provider if we can
