@@ -12,10 +12,6 @@
 
   <artifactId>vertx-web-sstore-cookie</artifactId>
 
-  <properties>
-    <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
-  </properties>
-
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>

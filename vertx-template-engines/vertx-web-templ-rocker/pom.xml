@@ -15,7 +15,6 @@
     <rocker.version>1.2.3</rocker.version>
     <!-- Force Java 8, see https://github.com/fizzed/rocker/issues/90 -->
     <rocker.javaVersion>1.8</rocker.javaVersion>
-    <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
   </properties>
 
   <dependencies>

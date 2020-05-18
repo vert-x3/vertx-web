@@ -15,7 +15,6 @@
 
   <properties>
     <doc.skip>false</doc.skip>
-    <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
   </properties>
 
   <dependencies>

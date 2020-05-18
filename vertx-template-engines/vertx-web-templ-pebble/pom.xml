@@ -12,10 +12,6 @@
 
   <artifactId>vertx-web-templ-pebble</artifactId>
 
-  <properties>
-    <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
-  </properties>
-
   <dependencies>
     <dependency>
 	    <groupId>io.pebbletemplates</groupId>
