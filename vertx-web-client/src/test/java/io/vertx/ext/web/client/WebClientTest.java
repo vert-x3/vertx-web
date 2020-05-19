@@ -11,6 +11,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.NetServer;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.core.net.SocketAddress;
@@ -341,6 +342,26 @@ public class WebClientTest extends HttpTestBase {
       assertTrue(err instanceof ConnectException);
       complete();
     }));
+    await();
+  }
+
+  @Repeat(times = 100)
+  @Test
+  public void testRace() throws Exception {
+    NetServer server = vertx.createNetServer();
+    server.connectHandler(so -> {
+    });
+    CountDownLatch latch = new CountDownLatch(1);
+    server.listen(8080, "localhost", onSuccess(v -> {
+      latch.countDown();
+    }));
+    awaitLatch(latch);
+    client
+      .get(8080, "localhost", "/")
+      .timeout(1)
+      .send(onFailure(err -> {
+        testComplete();
+      }));
     await();
   }
 

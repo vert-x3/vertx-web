@@ -489,11 +489,10 @@ public class HttpContext<T> {
                 pump.stop();
               });
               pump.start();
-              stream.resume();
             } else {
-              responseFuture.fail(ar.cause());
-              stream.resume();
+              // This will resume the origin stream
             }
+            stream.resume();
           });
       } else {
         Buffer buffer;
@@ -507,27 +506,16 @@ public class HttpContext<T> {
         req.putHeader(HttpHeaders.CONTENT_LENGTH, "" + buffer.length());
         continuation
           .future()
-          .onComplete(ar -> {
-          if (ar.succeeded()) {
-            req.exceptionHandler(responseFuture::tryFail);
-            req.end(buffer);
-          } else {
-            responseFuture.fail(ar.cause());
-          }
-        });
+          .onSuccess(ar -> req.end(buffer));
       }
     } else {
-      continuation.future().onComplete(ar -> {
-        if (ar.succeeded()) {
-          req.exceptionHandler(responseFuture::tryFail);
-          req.end();
-        } else {
-          responseFuture.fail(ar.cause());
-        }
-      });
+      continuation.future().onSuccess(ar -> req.end());
     }
-    req.exceptionHandler(continuation::fail);
-    req.sendHead(v -> continuation.complete());
+    req.exceptionHandler(err -> {
+      responseFuture.tryFail(err);
+      continuation.tryFail(err);
+    });
+    req.sendHead(v -> continuation.tryComplete());
   }
 
   public <T> T get(String key) {
