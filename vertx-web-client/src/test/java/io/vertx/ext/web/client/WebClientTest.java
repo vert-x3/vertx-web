@@ -9,6 +9,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.NetServer;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.core.net.SocketAddress;
@@ -20,6 +21,7 @@ import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
+import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.tls.Cert;
 import org.junit.Ignore;
@@ -280,6 +282,26 @@ public class WebClientTest extends WebClientTestBase {
       assertTrue(err instanceof ConnectException);
       complete();
     }));
+    await();
+  }
+
+  @Repeat(times = 100)
+  @Test
+  public void testTimeoutRequestBeforeSending() throws Exception {
+    NetServer server = vertx.createNetServer();
+    server.connectHandler(so -> {
+    });
+    CountDownLatch latch = new CountDownLatch(1);
+    server.listen(8080, "localhost", onSuccess(v -> {
+      latch.countDown();
+    }));
+    awaitLatch(latch);
+    webClient
+      .get(8080, "localhost", "/")
+      .timeout(1)
+      .send(onFailure(err -> {
+        testComplete();
+      }));
     await();
   }
 
