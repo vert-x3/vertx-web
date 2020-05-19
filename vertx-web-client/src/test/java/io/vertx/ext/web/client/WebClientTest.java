@@ -347,7 +347,7 @@ public class WebClientTest extends HttpTestBase {
 
   @Repeat(times = 100)
   @Test
-  public void testRace() throws Exception {
+  public void testTimeoutRequestBeforeSending() throws Exception {
     NetServer server = vertx.createNetServer();
     server.connectHandler(so -> {
     });
