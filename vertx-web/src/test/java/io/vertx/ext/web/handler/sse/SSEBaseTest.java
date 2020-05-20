@@ -25,11 +25,13 @@ import io.vertx.ext.web.Router;
 import io.vertx.test.core.VertxTestBase;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 abstract class SSEBaseTest extends VertxTestBase {
 
   protected final String TOKEN = "test";
   protected final static String SSE_NO_CONTENT_ENDPOINT = "/sse-no-content";
+  protected final static String SSE_REJECT_ODDS = "/sse-reject-odds";
   protected final static String SSE_RESET_CONTENT_ENDPOINT = "/sse-reset-content";
   protected final static String SSE_ENDPOINT = "/sse";
 
@@ -66,6 +68,14 @@ abstract class SSEBaseTest extends VertxTestBase {
       }
     });
     router.get(SSE_NO_CONTENT_ENDPOINT).handler(rc -> rc.response().setStatusCode(204).end());
+    AtomicInteger nbConnections = new AtomicInteger(0);
+    router.get(SSE_REJECT_ODDS).handler(rc -> {
+      if (nbConnections.incrementAndGet() % 2 == 1) {
+        rc.response().setStatusCode(204).end();
+      } else {
+        sseHandler.handle(rc);
+      }
+    });
     router.get(SSE_RESET_CONTENT_ENDPOINT).handler(rc -> rc.response().setStatusCode(205).end());
     router.get(SSE_ENDPOINT).handler(sseHandler);
     server.requestHandler(router);

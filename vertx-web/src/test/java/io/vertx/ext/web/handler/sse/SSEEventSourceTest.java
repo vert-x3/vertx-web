@@ -3,6 +3,7 @@ package io.vertx.ext.web.handler.sse;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SSEEventSourceTest extends SSEBaseTest {
 
@@ -32,14 +33,20 @@ public class SSEEventSourceTest extends SSEBaseTest {
 
   @Test
   public void testRetry() throws Exception {
-    CountDownLatch latch = new CountDownLatch(1);
-    final EventSource eventSource = eventSource();
+    CountDownLatch latch = new CountDownLatch(2);
+    final EventSource eventSource = eventSource(100);
+    AtomicBoolean rejectedOnce = new AtomicBoolean(false);
+    AtomicBoolean connected = new AtomicBoolean(false);
     eventSource.onError(error -> {
-      // TODO: event type / event name / content
+      rejectedOnce.set(true);
       latch.countDown();
     });
-    eventSource.connect(SSE_NO_CONTENT_ENDPOINT, handler -> {});
+    eventSource.connect(SSE_REJECT_ODDS, handler -> {
+      connected.set(true);
+      latch.countDown();
+    });
     awaitLatch(latch);
+    assertTrue("Connection should have been rejected, then retried, then accepted", rejectedOnce.get() && connected.get());
   }
 
 }
