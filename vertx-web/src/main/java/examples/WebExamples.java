@@ -6,6 +6,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.KeyStoreOptions;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
@@ -16,7 +17,6 @@ import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.webauthn.*;
-import io.vertx.ext.jwt.JWTOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
@@ -1386,7 +1386,7 @@ public class WebExamples {
 
   public void example63(Router router, AuthenticationProvider provider) {
 
-    ChainAuthHandler chain = ChainAuthHandler.create();
+    ChainAuthHandler chain = ChainAuthHandler.any();
 
     // add http basic auth handler to the chain
     chain.add(BasicAuthHandler.create(provider));
@@ -1605,5 +1605,37 @@ public class WebExamples {
     // we explicitly not allow forward header parsing
     // of any kind
     router.allowForward(AllowForwardHeaders.NONE);
+  }
+
+  public void example78(Router router, AuthenticationHandler authNHandlerA, AuthenticationHandler authNHandlerB, AuthenticationHandler authNHandlerC) {
+
+    // Chain will verify (A Or (B And C))
+    ChainAuthHandler chain =
+      ChainAuthHandler.any()
+        .add(authNHandlerA)
+        .add(ChainAuthHandler.all()
+          .add(authNHandlerB)
+          .add(authNHandlerC));
+
+    // secure your route
+    router.route("/secure/resource").handler(chain);
+    // your app
+    router.route("/secure/resource").handler(ctx -> {
+      // do something...
+    });
+  }
+
+  public void example78(Router router, SessionHandler sessionHandler) {
+
+    router.route().handler(ctx -> {
+      sessionHandler.flush(ctx, flush -> {
+        if (flush.succeeded()) {
+          ctx.end("Success!");
+        } else {
+          // session wasn't saved...
+          // go for plan B
+        }
+      });
+    });
   }
 }

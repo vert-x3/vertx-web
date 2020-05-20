@@ -23,10 +23,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static io.swagger.v3.parser.util.RefUtils.computeRefFormat;
+import static io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils.safeBoolean;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
+@SuppressWarnings("rawtypes")
 public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestValidationHandlerImpl<Operation> implements OpenAPI3RequestValidationHandler {
 
   /* I need this class to workaround the multipart validation of content types different from json and text */
@@ -59,7 +61,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     }
   }
 
-  private final static ParameterTypeValidator CONTENT_TYPE_VALIDATOR = new ParameterTypeValidator() {
+  private static final ParameterTypeValidator CONTENT_TYPE_VALIDATOR = new ParameterTypeValidator() {
 
     @Override
     public RequestParameter isValid(String value) throws ValidationException {
@@ -114,7 +116,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       // It will never reach this
       return ParameterType.GENERIC_STRING.validationMethod();
     }
-    if (parseEnum && schema.getEnum() != null && schema.getEnum().size() != 0) {
+    if (parseEnum && schema.getEnum() != null && !schema.getEnum().isEmpty()) {
       return ParameterTypeValidator.createEnumTypeValidatorWithInnerValidator(
         new ArrayList(schema.getEnum()),
         this.resolveInnerSchemaPrimitiveTypeValidator(schema, false)
@@ -195,7 +197,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
   }
 
   /* This function resolve all type validators of anyOf or oneOf type (schema) arrays. It calls the function below */
-  private List<ParameterTypeValidator> resolveTypeValidatorsForAnyOfOneOf(List<Schema> schemas, Parameter parent) {
+private List<ParameterTypeValidator> resolveTypeValidatorsForAnyOfOneOf(List<Schema> schemas, Parameter parent) {
     List<ParameterTypeValidator> result = new ArrayList<>();
     for (Schema schema : schemas) {
       result.add(this.resolveAnyOfOneOfTypeValidator(schema, parent));
@@ -207,11 +209,11 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
   private ParameterTypeValidator resolveAnyOfOneOfTypeValidator(Schema schema, Parameter parent) {
     if (schema.getType().equals("array"))
       return ArrayTypeValidator.ArrayTypeValidatorFactory.createArrayTypeValidator(this
-        .resolveInnerSchemaPrimitiveTypeValidator(schema, true), OpenApi3Utils.resolveStyle(parent), parent.getExplode
-        (), schema.getMaxItems(), schema.getMinItems());
+        .resolveInnerSchemaPrimitiveTypeValidator(schema, true), OpenApi3Utils.resolveStyle(parent), safeBoolean.apply(parent.getExplode
+        ()), schema.getMaxItems(), schema.getMinItems());
     else if (schema.getType().equals("object")) {
       ObjectTypeValidator objectTypeValidator = ObjectTypeValidator.ObjectTypeValidatorFactory
-        .createObjectTypeValidator(OpenApi3Utils.resolveStyle(parent), parent.getExplode());
+        .createObjectTypeValidator(OpenApi3Utils.resolveStyle(parent), safeBoolean.apply(parent.getExplode()));
       resolveObjectTypeFields(objectTypeValidator, schema);
       return objectTypeValidator;
     }
@@ -242,11 +244,11 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       ArraySchema arraySchema = (ArraySchema) parameter.getSchema();
       return ArrayTypeValidator.ArrayTypeValidatorFactory.createArrayTypeValidator(this
         .resolveInnerSchemaPrimitiveTypeValidator(arraySchema.getItems(), true), OpenApi3Utils
-        .resolveStyle(parameter), parameter.getExplode(), parameter.getSchema().getMaxItems(), parameter.getSchema()
+        .resolveStyle(parameter), safeBoolean.apply(parameter.getExplode()), parameter.getSchema().getMaxItems(), parameter.getSchema()
         .getMinItems());
     } else if (OpenApi3Utils.isParameterObjectOrAllOfType(parameter)) {
       ObjectTypeValidator objectTypeValidator = ObjectTypeValidator.ObjectTypeValidatorFactory
-        .createObjectTypeValidator(OpenApi3Utils.resolveStyle(parameter), parameter.getExplode());
+        .createObjectTypeValidator(OpenApi3Utils.resolveStyle(parameter), safeBoolean.apply(parameter.getExplode()));
       resolveObjectTypeFields(objectTypeValidator, parameter.getSchema());
       return objectTypeValidator;
     }
@@ -267,7 +269,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
         .createValidationRuleWithCustomTypeValidator(parameter.getName(), JsonTypeValidator.JsonTypeValidatorFactory
           .createJsonTypeValidator(OpenApi3Utils.generateSanitizedJsonSchemaNode(jsonsContents.get(0).getSchema(), this.spec)),
           !OpenApi3Utils.isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), location), location);
-    } else if (contents.size() > 1 && jsonsContents.size() >= 1) {
+    } else if (contents.size() > 1 && !jsonsContents.isEmpty()) {
       // Mount anyOf
       List<ParameterTypeValidator> validators =
         jsonsContents.stream().map(e -> JsonTypeValidator.JsonTypeValidatorFactory
@@ -504,7 +506,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
           this.addBodyFileRule(mediaType.getKey());
         }
       }
-      this.bodyRequired = (requestBody.getRequired() == null) ? false : requestBody.getRequired();
+      this.bodyRequired = safeBoolean.apply(requestBody.getRequired());
     }
   }
 }

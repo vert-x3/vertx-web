@@ -23,7 +23,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.CorsHandler;
 
 import java.net.URI;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -47,7 +46,7 @@ public class CorsHandlerImpl implements CorsHandler {
   private String exposedHeadersString;
   private boolean allowCredentials;
   private String maxAgeSeconds;
-  private final Set<HttpMethod> allowedMethods = new LinkedHashSet<>();
+  private final Set<String> allowedMethods = new LinkedHashSet<>();
   private final Set<String> allowedHeaders = new LinkedHashSet<>();
   private final Set<String> exposedHeaders = new LinkedHashSet<>();
 
@@ -62,43 +61,45 @@ public class CorsHandlerImpl implements CorsHandler {
 
   @Override
   public CorsHandler allowedMethod(HttpMethod method) {
-    allowedMethods.add(method);
-    allowedMethodsString = join(allowedMethods);
+    allowedMethods.add(method.name());
+    allowedMethodsString = String.join(",", allowedMethods);
     return this;
   }
 
   @Override
   public CorsHandler allowedMethods(Set<HttpMethod> methods) {
-    allowedMethods.addAll(methods);
-    allowedMethodsString = join(allowedMethods);
+    for (HttpMethod method : methods) {
+      allowedMethods.add(method.name());
+    }
+    allowedMethodsString = String.join(",", allowedMethods);
     return this;
   }
 
   @Override
   public CorsHandler allowedHeader(String headerName) {
     allowedHeaders.add(headerName);
-    allowedHeadersString = join(allowedHeaders);
+    allowedHeadersString = String.join(",", allowedHeaders);
     return this;
   }
 
   @Override
   public CorsHandler allowedHeaders(Set<String> headerNames) {
     allowedHeaders.addAll(headerNames);
-    allowedHeadersString = join(allowedHeaders);
+    allowedHeadersString = String.join(",", allowedHeaders);
     return this;
   }
 
   @Override
   public CorsHandler exposedHeader(String headerName) {
     exposedHeaders.add(headerName);
-    exposedHeadersString = join(exposedHeaders);
+    exposedHeadersString = String.join(",", exposedHeaders);
     return this;
   }
 
   @Override
   public CorsHandler exposedHeaders(Set<String> headerNames) {
     exposedHeaders.addAll(headerNames);
-    exposedHeadersString = join(exposedHeaders);
+    exposedHeadersString = String.join(",", exposedHeaders);
     return this;
   }
 
@@ -167,9 +168,10 @@ public class CorsHandlerImpl implements CorsHandler {
   }
 
   private boolean isValidOrigin(String origin) {
-    if (allowedOrigin == null && isValidOriginURI(origin)) {
-      // Null means accept all origins
-      return true;
+    // Null means accept all origins
+    if (allowedOrigin == null) {
+      // in this case origin "must" be a valid URL
+      return isValidOriginURI(origin);
     }
     return allowedOrigin.matcher(origin).matches();
   }
@@ -186,21 +188,4 @@ public class CorsHandlerImpl implements CorsHandler {
   private String getAllowedOrigin(String origin) {
     return allowedOrigin == null ? "*" : origin;
   }
-
-  private String join(Collection<?> ss) {
-    if (ss == null || ss.isEmpty()) {
-      return null;
-    }
-    StringBuilder sb = new StringBuilder();
-    boolean first = true;
-    for (Object s : ss) {
-      if (!first) {
-        sb.append(',');
-      }
-      sb.append(s);
-      first = false;
-    }
-    return sb.toString();
-  }
-
 }

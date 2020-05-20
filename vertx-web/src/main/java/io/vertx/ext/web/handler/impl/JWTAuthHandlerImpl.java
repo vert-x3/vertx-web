@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class JWTAuthHandlerImpl extends AuthorizationAuthHandler implements JWTAuthHandler {
+public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler implements JWTAuthHandler {
 
   private final JsonObject options;
 
@@ -71,7 +71,11 @@ public class JWTAuthHandlerImpl extends AuthorizationAuthHandler implements JWTA
   }
 
   @Override
-  protected String authenticateHeader(RoutingContext context) {
-    return "Bearer";
+  public String authenticateHeader(RoutingContext context) {
+    if (realm != null && realm.length() > 0) {
+      return "Bearer realm=\"" + realm + "\"";
+    } else {
+      return null;
+    }
   }
 }

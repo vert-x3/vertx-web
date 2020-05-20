@@ -227,9 +227,7 @@ public class Utils extends io.vertx.core.impl.Utils {
 
       boolean modifiedStale = lastModified == -1 || !(lastModified <= parseRFC1123DateTime(modifiedSince));
 
-      if (modifiedStale) {
-        return false;
-      }
+        return !modifiedStale;
     }
 
     return true;

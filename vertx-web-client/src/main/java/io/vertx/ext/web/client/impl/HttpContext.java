@@ -406,22 +406,14 @@ public class HttpContext<T> {
   }
 
   private void handleSendRequest() {
-    Promise<HttpClientResponse> responseFuture = Promise.<HttpClientResponse>promise();
-    responseFuture.future().onComplete(ar -> {
+    HttpClientRequest req = clientRequest;
+    req.onComplete(ar -> {
       if (ar.succeeded()) {
         HttpClientResponse resp = ar.result();
         resp.pause();
         receiveResponse(resp);
       } else {
         fail(ar.cause());
-      }
-    });
-    HttpClientRequest req = clientRequest;
-    req.onComplete(ar -> {
-      if (ar.succeeded()) {
-        responseFuture.tryComplete(ar.result());
-      } else {
-        responseFuture.tryFail(ar.cause());
       }
     });
     if (request.timeout > 0) {
@@ -435,6 +427,7 @@ public class HttpContext<T> {
         contentType = prev;
       }
     }
+    Handler<AsyncResult<Void>> continuation;
     if (body != null || "application/json".equals(contentType)) {
       if (body instanceof MultiMap) {
         MultipartForm parts = MultipartForm.create();
@@ -452,7 +445,7 @@ public class HttpContext<T> {
           multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
           this.body = multipartForm;
         } catch (Exception e) {
-          responseFuture.tryFail(e);
+          req.reset(0L, e);
           return;
         }
         for (String headerName : request.headers().names()) {
@@ -469,12 +462,19 @@ public class HttpContext<T> {
         if (request.headers == null || !request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
           req.setChunked(true);
         }
-        stream.pipeTo(req, ar -> {
-          if (ar.failed()) {
-            responseFuture.tryFail(ar.cause());
-            req.reset();
+        Pipe<Buffer> pipe = stream.pipe();
+        pipe.endOnFailure(false);
+        continuation = ar1 -> {
+          if (ar1.succeeded()) {
+            pipe.to(req, ar2 -> {
+              if (ar2.failed()) {
+                req.reset(0L, ar2.cause());
+              }
+            });
+          } else {
+            pipe.close();
           }
-        });
+        };
       } else {
         Buffer buffer;
         if (body instanceof Buffer) {
@@ -484,13 +484,21 @@ public class HttpContext<T> {
         } else {
           buffer = Buffer.buffer(Json.encode(body));
         }
-        req.exceptionHandler(responseFuture::tryFail);
-        req.end(buffer);
+        req.putHeader(HttpHeaders.CONTENT_LENGTH, "" + buffer.length());
+        continuation = ar -> {
+          if (ar.succeeded()) {
+            req.end(buffer);
+          }
+        };
       }
     } else {
-      req.exceptionHandler(responseFuture::tryFail);
-      req.end();
+      continuation= ar -> {
+        if (ar.succeeded()) {
+          req.end();
+        }
+      };
     }
+    req.sendHead(ar -> continuation.handle(ar.mapEmpty()));
   }
 
   public <T> T get(String key) {

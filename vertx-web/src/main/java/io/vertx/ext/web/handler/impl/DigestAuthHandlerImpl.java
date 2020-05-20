@@ -39,7 +39,7 @@ import java.util.Set;
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class DigestAuthHandlerImpl extends AuthorizationAuthHandler implements DigestAuthHandler {
+public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler implements DigestAuthHandler {
 
   /**
    * Default name for map used to store nonces
@@ -153,12 +153,6 @@ public class DigestAuthHandlerImpl extends AuthorizationAuthHandler implements D
           nonces.put(nonce, new Nonce(n.createdAt, nc));
         }
 
-        final String uri = authInfo.getString("uri");
-
-        if (!uri.equalsIgnoreCase(context.request().uri())) {
-          handler.handle(Future.failedFuture(UNAUTHORIZED));
-          return;
-        }
       } catch (RuntimeException e) {
         handler.handle(Future.failedFuture(e));
       }
@@ -181,7 +175,7 @@ public class DigestAuthHandlerImpl extends AuthorizationAuthHandler implements D
   }
 
   @Override
-  protected String authenticateHeader(RoutingContext context) {
+  public String authenticateHeader(RoutingContext context) {
     final byte[] bytes = new byte[32];
     random.nextBytes(bytes);
     // generate nonce

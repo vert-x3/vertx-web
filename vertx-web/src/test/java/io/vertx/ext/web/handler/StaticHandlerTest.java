@@ -499,7 +499,7 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testCacheFilesFileDeleted() throws Exception {
-    File webroot = new File(".vertx/webroot"), pageFile = new File(webroot, "deleted.html");
+    File webroot = new File("target/.vertx/webroot"), pageFile = new File(webroot, "deleted.html");
     if (!pageFile.exists()) {
       webroot.mkdirs();
       pageFile.createNewFile();

@@ -41,6 +41,9 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
    * @return the auth handler
    */
   static OAuth2AuthHandler create(Vertx vertx, OAuth2Auth authProvider, String callbackURL) {
+    if (callbackURL == null) {
+      throw new IllegalArgumentException("callbackURL cannot be null");
+    }
     return new OAuth2AuthHandlerImpl(vertx, authProvider, callbackURL);
   }
 
@@ -54,7 +57,7 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
    * @return the auth handler
    */
   static OAuth2AuthHandler create(Vertx vertx, OAuth2Auth authProvider) {
-    return create(vertx, authProvider, null);
+    return new OAuth2AuthHandlerImpl(vertx, authProvider, null);
   }
 
   /**
