@@ -159,10 +159,23 @@ public class CSRFHandlerImpl implements CSRFHandler {
     return s == null || s.trim().isEmpty();
   }
 
-  private boolean validateRequest(RoutingContext ctx) {
+  private static long parseLong(String s) {
+    if (isBlank(s)) {
+      return -1;
+    }
 
+    try {
+      return Long.parseLong(s);
+    } catch (NumberFormatException e) {
+      log.trace("Invalid Token format", e);
+      // fallback as the token is expired
+      return -1;
+    }
+  }
+
+  private boolean isValidOrigin(RoutingContext  ctx) {
+    /* Verifying Same Origin with Standard Headers */
     if (origin != null) {
-      /* STEP 1: Verifying Same Origin with Standard Headers */
       //Try to get the source from the "Origin" header
       String source = ctx.request().getHeader("Origin");
       if (isBlank(source)) {
@@ -170,10 +183,11 @@ public class CSRFHandlerImpl implements CSRFHandler {
         source = ctx.request().getHeader("Referer");
         //If this one is empty too then we trace the event and we block the request (recommendation of the article)...
         if (isBlank(source)) {
-          log.warn("ORIGIN and REFERER request headers are both absent/empty");
+          log.trace("ORIGIN and REFERER request headers are both absent/empty");
           return false;
         }
       }
+
       //Compare the source against the expected target origin
       try {
         URI sourceURL = new URI(source);
@@ -182,16 +196,21 @@ public class CSRFHandlerImpl implements CSRFHandler {
             !origin.getHost().equals(sourceURL.getHost()) ||
             origin.getPort() != sourceURL.getPort()) {
           //One the part do not match so we trace the event and we block the request
-          log.warn("Protocol/Host/Port do not fully match");
+          log.trace("Protocol/Host/Port do not fully match");
           return false;
         }
       } catch (URISyntaxException e) {
-        log.error("Invalid URI", e);
+        log.trace("Invalid URI", e);
         return false;
       }
     }
+    // no configured origin or origin is valid
+    return true;
+  }
 
-    /* STEP 2: Verifying CSRF token using "Double Submit Cookie" approach */
+  private boolean isValidRequest(RoutingContext ctx) {
+
+    /* Verifying CSRF token using "Double Submit Cookie" approach */
     final Cookie cookie = ctx.getCookie(cookieName);
 
     String header = ctx.request().getHeader(headerName);
@@ -202,13 +221,13 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
     // both the header and the cookie must be present, not null and not empty
     if (header == null || cookie == null || isBlank(header) || isBlank(cookie.getValue())) {
-      log.warn("Token provided via HTTP Header/Form is absent/empty");
+      log.trace("Token provided via HTTP Header/Form is absent/empty");
       return false;
     }
 
     //Verify that token from header and one from cookie are the same
     if (!header.equals(cookie.getValue())) {
-      log.warn("Token provided via HTTP Header and via Cookie are not equal");
+      log.trace("Token provided via HTTP Header and via Cookie are not equal");
       return false;
     }
 
@@ -224,15 +243,15 @@ public class CSRFHandlerImpl implements CSRFHandler {
           String challenge = sessionToken.substring(idx + 1);
           // the challenge must match the user-agent input
           if (!challenge.equals(header)) {
-            log.warn("Token has been used or is outdated");
+            log.trace("Token has been used or is outdated");
             return false;
           }
         } else {
-          log.warn("Token has been issued for a different session");
+          log.trace("Token has been issued for a different session");
           return false;
         }
       } else {
-        log.warn("No Token has been added to the session");
+        log.trace("No Token has been added to the session");
         return false;
       }
     }
@@ -243,13 +262,15 @@ public class CSRFHandlerImpl implements CSRFHandler {
     }
 
     byte[] saltPlusToken = (tokens[0] + "." + tokens[1]).getBytes();
+
     synchronized (mac) {
       saltPlusToken = mac.doFinal(saltPlusToken);
     }
+
     String signature = BASE64.encodeToString(saltPlusToken);
 
     if(!signature.equals(tokens[2])) {
-      log.warn("Token signature does not match");
+      log.trace("Token signature does not match");
       return false;
     }
 
@@ -258,13 +279,14 @@ public class CSRFHandlerImpl implements CSRFHandler {
       ctx.session().remove(headerName);
     }
 
-    try {
-      // validate validity
-      return !(System.currentTimeMillis() > Long.parseLong(tokens[1]) + timeout);
-    } catch (NumberFormatException e) {
-      log.error("Invalid Token format", e);
+    final long ts = parseLong(tokens[1]);
+
+    if (ts == -1) {
       return false;
     }
+
+    // validate validity
+    return !(System.currentTimeMillis() > ts + timeout);
   }
 
   @Override
@@ -273,16 +295,23 @@ public class CSRFHandlerImpl implements CSRFHandler {
     if (nagHttps) {
       String uri = ctx.request().absoluteURI();
       if (uri != null && !uri.startsWith("https:")) {
-        log.warn("Using session cookies without https could make you susceptible to session hijacking: " + uri);
+        log.trace("Using session cookies without https could make you susceptible to session hijacking: " + uri);
       }
     }
 
     HttpMethod method = ctx.request().method();
     Session session = ctx.session();
 
+    // if we're being strict with the origin
+    // ensure that they are always valid
+    if (!isValidOrigin(ctx)) {
+      ctx.fail(403);
+      return;
+    }
+
     switch (method.name()) {
       case "GET":
-        String token;
+        final String token;
 
         if (session == null) {
           // if there's no session to store values, tokens are issued on every request
@@ -301,9 +330,13 @@ public class CSRFHandlerImpl implements CSRFHandler {
             session.put(headerName, session.id() + "/" + token);
           } else {
             String[] parts = sessionToken.split("\\.");
-            try {
-              // validate validity
-              if (!(System.currentTimeMillis() > Long.parseLong(parts[1]) + timeout)) {
+            final long ts = parseLong(parts[1]);
+
+            if (ts == -1) {
+              // fallback as the token is expired
+              token = generateAndStoreToken(ctx);
+            } else {
+              if (!(System.currentTimeMillis() > ts + timeout)) {
                 // we're still on the same session, no need to regenerate the token
                 // also note that the token isn't expired, so it can be reused
                 token = sessionToken;
@@ -313,10 +346,6 @@ public class CSRFHandlerImpl implements CSRFHandler {
                 // fallback as the token is expired
                 token = generateAndStoreToken(ctx);
               }
-            } catch (NumberFormatException e) {
-              log.error("Invalid Token format", e);
-              // fallback as the token is expired
-              token = generateAndStoreToken(ctx);
             }
           }
         }
@@ -328,7 +357,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
       case "PUT":
       case "DELETE":
       case "PATCH":
-        if (validateRequest(ctx)) {
+        if (isValidRequest(ctx)) {
           // it matches, so refresh the token to avoid replay attacks
           token = generateAndStoreToken(ctx);
           // put the token in the context for users who prefer to
