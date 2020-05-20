@@ -28,11 +28,10 @@ public class SSERequestResponseHeadersTest extends SSEBaseTest {
   @Test
   public void noHeaderTextEventStreamHttpRequest() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
-    MultiMap headers = MultiMap.caseInsensitiveMultiMap().add("Accept", "foo");
-    client().get("/sse?token=" + TOKEN, headers, ar -> {
+    MultiMap headers = MultiMap.caseInsensitiveMultiMap().add(HttpHeaders.ACCEPT, "foo");
+    client().get(SSE_ENDPOINT + "?token=" + TOKEN, headers, ar -> {
       assertTrue(ar.succeeded());
-      HttpClientResponse response = ar.result();
-      assertEquals(406, response.statusCode());
+      assertEquals(406, ar.result().statusCode());
       latch.countDown();
     });
     awaitLatch(latch);
@@ -41,10 +40,9 @@ public class SSERequestResponseHeadersTest extends SSEBaseTest {
   @Test
   public void noHeaderHttpRequest() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
-    client().get("/sse?token=" + TOKEN, ar -> {
+    client().get(SSE_ENDPOINT + "?token=" + TOKEN, ar -> {
       assertTrue(ar.succeeded());
-      HttpClientResponse response = ar.result();
-      assertSSEHeaders(response);
+      assertSSEHeaders(ar.result());
       latch.countDown();
     });
     awaitLatch(latch);
@@ -53,11 +51,10 @@ public class SSERequestResponseHeadersTest extends SSEBaseTest {
   @Test
   public void correctResponseHeaders() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
-    MultiMap headers = MultiMap.caseInsensitiveMultiMap().add("Accept", "text/event-stream");
-    client().get("/sse?token=" + TOKEN, headers, ar -> {
+    MultiMap headers = MultiMap.caseInsensitiveMultiMap().add(HttpHeaders.ACCEPT, "text/event-stream");
+    client().get(SSE_ENDPOINT + "?token=" + TOKEN, headers, ar -> {
       assertTrue(ar.succeeded());
-      HttpClientResponse response = ar.result();
-      assertSSEHeaders(response);
+      assertSSEHeaders(ar.result());
       latch.countDown();
     });
     awaitLatch(latch);
@@ -68,4 +65,5 @@ public class SSERequestResponseHeadersTest extends SSEBaseTest {
     assertEquals("no-cache", response.getHeader(HttpHeaders.CACHE_CONTROL));
     assertEquals("keep-alive", response.getHeader(HttpHeaders.CONNECTION));
   }
+
 }

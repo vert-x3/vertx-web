@@ -29,8 +29,12 @@ import java.util.concurrent.CountDownLatch;
 abstract class SSEBaseTest extends VertxTestBase {
 
   protected final String TOKEN = "test";
+  protected final static String SSE_NO_CONTENT_ENDPOINT = "/sse-no-content";
+  protected final static String SSE_RESET_CONTENT_ENDPOINT = "/sse-reset-content";
+  protected final static String SSE_ENDPOINT = "/sse";
 
   private final static Integer PORT = 9009;
+
 
   protected SSEConnection connection;
   protected SSEHandler sseHandler;
@@ -47,7 +51,10 @@ abstract class SSEBaseTest extends VertxTestBase {
     server = vertx.createHttpServer(options);
     Router router = Router.router(vertx);
     sseHandler = SSEHandler.create();
-    router.route().handler(rc -> {
+    sseHandler.connectHandler(connection -> {
+      this.connection = connection; // accept
+    });
+    router.get(SSE_ENDPOINT).handler(rc -> {
       final HttpServerRequest request = rc.request();
       final String token = request.getParam("token");
       if (token == null) {
@@ -58,10 +65,9 @@ abstract class SSEBaseTest extends VertxTestBase {
         rc.next();
       }
     });
-    sseHandler.connectHandler(connection -> {
-      this.connection = connection; // accept
-    });
-    router.get("/sse").handler(sseHandler);
+    router.get(SSE_NO_CONTENT_ENDPOINT).handler(rc -> rc.response().setStatusCode(204).end());
+    router.get(SSE_RESET_CONTENT_ENDPOINT).handler(rc -> rc.response().setStatusCode(205).end());
+    router.get(SSE_ENDPOINT).handler(sseHandler);
     server.requestHandler(router);
     server.listen(ar -> {
       if (ar.failed()) {
@@ -79,6 +85,10 @@ abstract class SSEBaseTest extends VertxTestBase {
     sseHandler = null;
   }
 
+  EventSource eventSource(long retryPeriod) {
+    return EventSource.create(vertx, clientOptions().setRetryPeriod(retryPeriod));
+  }
+
   EventSource eventSource() {
     return EventSource.create(vertx, clientOptions());
   }
@@ -87,12 +97,12 @@ abstract class SSEBaseTest extends VertxTestBase {
     return vertx.createHttpClient(clientOptions());
   }
 
-  private HttpClientOptions clientOptions() {
+  private EventSourceOptions clientOptions() {
     if (options == null) {
       options = new HttpClientOptions();
       options.setDefaultPort(PORT);
     }
-    return options;
+    return new EventSourceOptions(options);
   }
 
 }
