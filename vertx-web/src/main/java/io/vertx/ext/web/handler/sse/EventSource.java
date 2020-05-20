@@ -27,7 +27,7 @@ import io.vertx.ext.web.handler.sse.impl.EventSourceImpl;
 @VertxGen
 public interface EventSource {
 
-  static EventSource create(Vertx vertx, HttpClientOptions options) {
+  static EventSource create(Vertx vertx,  EventSourceOptions options) {
     return new EventSourceImpl(vertx, options);
   }
 
@@ -44,6 +44,11 @@ public interface EventSource {
 
   @Fluent
   EventSource onEvent(String eventName, Handler<String> handler);
+
+  @Fluent
+  default EventSource onError(Handler<String> handler) {
+    return addEventListener("error", handler);
+  }
 
   @Fluent
   default EventSource addEventListener(String eventName, Handler<String> handler) {

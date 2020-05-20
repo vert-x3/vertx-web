@@ -23,14 +23,16 @@ import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.sse.EventSource;
+import io.vertx.ext.web.handler.sse.EventSourceOptions;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class EventSourceImpl implements EventSource {
 
@@ -41,9 +43,10 @@ public class EventSourceImpl implements EventSource {
   private final Map<String, Handler<String>> eventHandlers;
   private SSEPacket currentPacket;
   private final Vertx vertx;
-  private final HttpClientOptions options;
+  private final EventSourceOptions options;
+  private Long retryTimerId;
 
-  public EventSourceImpl(Vertx vertx, HttpClientOptions options) {
+  public EventSourceImpl(Vertx vertx, EventSourceOptions options) {
     options.setKeepAlive(true);
     this.vertx = vertx;
     this.options = options;
@@ -68,6 +71,16 @@ public class EventSourceImpl implements EventSource {
       handler.handle(Future.failedFuture(cause));
     });
     request.onSuccess(response -> {
+      if (shouldReconnect(response)) {
+        client.close();
+        client = null;
+        getEventErrorHandler().ifPresent(errorHandler -> errorHandler.handle("")); // FIXME: error type/name
+        vertx.setTimer(options.getRetryPeriod(), timerId -> {
+          retryTimerId = timerId;
+          connect(path, lastEventId, handler);
+        });
+        return;
+      }
       if (response.statusCode() != 200) {
         handler.handle(Future.failedFuture(new VertxException("Could not connect EventSource, the server answered with status " + response.statusCode())));
       } else {
@@ -80,14 +93,23 @@ public class EventSourceImpl implements EventSource {
       request.headers().add(SSEHeaders.LAST_EVENT_ID.toString(), lastEventId);
     }
     request.headers().add(HttpHeaders.ACCEPT, "text/event-stream");
-    request.setChunked(true);
     request.end();
     return this;
   }
 
   @Override
   public synchronized void close() {
-    client.close();
+    if (retryTimerId != null) {
+      vertx.cancelTimer(retryTimerId);
+      retryTimerId = null;
+    }
+    if (client != null) {
+      try {
+        client.close();
+      } catch(Exception e ) {
+        e.printStackTrace();
+      }
+    }
     client = null;
     connected = false;
   }
@@ -109,7 +131,21 @@ public class EventSourceImpl implements EventSource {
     return lastId;
   }
 
+  private synchronized Optional<Handler<String>> getEventErrorHandler() {
+    return Optional.ofNullable(eventHandlers.get("error"));
+  }
+
+  private synchronized boolean shouldReconnect(HttpClientResponse response) {
+    int status = response.statusCode();
+    return status == 204
+      || status == 205
+      || (status == 200 && !"text/event-stream".equalsIgnoreCase(response.headers().get(HttpHeaders.CONTENT_TYPE)));
+  }
+
   private synchronized void handleMessage(Buffer buffer) {
+    if (!connected) {
+      return;
+    }
     if (currentPacket == null) {
       currentPacket = new SSEPacket();
     }
