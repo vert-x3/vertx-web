@@ -9,6 +9,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.NetServer;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.core.net.SocketAddress;
@@ -20,6 +21,7 @@ import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
+import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.tls.Cert;
 import org.junit.Ignore;
@@ -283,6 +285,26 @@ public class WebClientTest extends WebClientTestBase {
     await();
   }
 
+  @Repeat(times = 100)
+  @Test
+  public void testTimeoutRequestBeforeSending() throws Exception {
+    NetServer server = vertx.createNetServer();
+    server.connectHandler(so -> {
+    });
+    CountDownLatch latch = new CountDownLatch(1);
+    server.listen(8080, "localhost", onSuccess(v -> {
+      latch.countDown();
+    }));
+    awaitLatch(latch);
+    webClient
+      .get(8080, "localhost", "/")
+      .timeout(1)
+      .send(onFailure(err -> {
+        testComplete();
+      }));
+    await();
+  }
+
   @Test
   public void testRequestSendError() throws Exception {
     HttpRequest<Buffer> post = webClient.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
@@ -386,7 +408,7 @@ public class WebClientTest extends WebClientTestBase {
             return this;
           }
         }, onFailure(err -> {
-          if (cause == err) {
+          if (err instanceof StreamResetException && cause == err.getCause()) {
             complete();
           } else {
             fail(new Exception("Unexpected failure", err));
@@ -396,9 +418,10 @@ public class WebClientTest extends WebClientTestBase {
   }
 
   @Test
-  public void testRequestPumpErrorNotYetConnected() throws Exception {
+  public void testRequestPumpErrorInStream() throws Exception {
+    waitFor(2);
     HttpRequest<Buffer> post = webClient.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    server.requestHandler(req -> fail());
+    server.requestHandler(req -> req.response().closeHandler(v -> complete()));
     Throwable cause = new Throwable();
     startServer();
     post.sendStream(new ReadStream<Buffer>() {
@@ -432,8 +455,9 @@ public class WebClientTest extends WebClientTestBase {
         return this;
       }
     }, onFailure(err -> {
-      assertSame(cause, err);
-      testComplete();
+      assertEquals(StreamResetException.class, err.getClass());
+      assertSame(cause, err.getCause());
+      complete();
     }));
     await();
   }
@@ -708,9 +732,8 @@ public class WebClientTest extends WebClientTestBase {
     CompletableFuture<Void> resume = new CompletableFuture<>();
     AtomicInteger size = new AtomicInteger();
     AtomicBoolean ended = new AtomicBoolean();
-    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
+    WriteStream<Buffer> stream = new WriteStreamBase() {
       boolean paused = true;
-      Handler<Void> drainHandler;
       {
         resume.thenAccept(v -> {
           paused = false;
@@ -720,41 +743,18 @@ public class WebClientTest extends WebClientTestBase {
         });
       }
       @Override
-      public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
-        return this;
-      }
-      @Override
-      public Future<Void> write(Buffer data) {
-        Promise<Void> promise = Promise.promise();
-        write(data, promise);
-        return promise.future();
-      }
-      @Override
       public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         size.addAndGet(data.length());
-        if (handler != null) {
-          handler.handle(Future.succeededFuture());
-        }
+        super.write(data, handler);
       }
       @Override
       public void end(Handler<AsyncResult<Void>> handler) {
         ended.set(true);
-        if (handler != null) {
-          handler.handle(Future.succeededFuture());
-        }
-      }
-      @Override
-      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
-        return this;
+        super.end(handler);
       }
       @Override
       public boolean writeQueueFull() {
         return paused;
-      }
-      @Override
-      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
-        drainHandler = handler;
-        return this;
       }
     };
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
@@ -782,47 +782,11 @@ public class WebClientTest extends WebClientTestBase {
     });
     startServer();
     AtomicInteger received = new AtomicInteger();
-    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
-      @Override
-      public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
-        return this;
-      }
-      @Override
-      public Future<Void> write(Buffer data) {
-        Promise<Void> promise = Promise.promise();
-        write(data, promise);
-        return promise.future();
-      }
+    WriteStream<Buffer> stream = new WriteStreamBase() {
       @Override
       public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         received.addAndGet(data.length());
-        if (handler != null) {
-          handler.handle(Future.succeededFuture());
-        }
-      }
-      @Override
-      public Future<Void> end() {
-        Promise<Void> promise = Promise.promise();
-        end(promise);
-        return promise.future();
-      }
-      @Override
-      public void end(Handler<AsyncResult<Void>> handler) {
-        if (handler != null) {
-          handler.handle(Future.succeededFuture());
-        }
-      }
-      @Override
-      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
-        return this;
-      }
-      @Override
-      public boolean writeQueueFull() {
-        return false;
-      }
-      @Override
-      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
-        return this;
+        super.write(data, handler);
       }
     };
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
@@ -843,7 +807,7 @@ public class WebClientTest extends WebClientTestBase {
     });
     startServer();
     RuntimeException cause = new RuntimeException();
-    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
+    WriteStream<Buffer> stream = new WriteStreamBase() {
       Handler<Throwable> exceptionHandler;
       @Override
       public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
@@ -851,43 +815,37 @@ public class WebClientTest extends WebClientTestBase {
         return this;
       }
       @Override
-      public Future<Void> write(Buffer data) {
-        Promise<Void> promise = Promise.promise();
-        write(data, promise);
-        return promise.future();
-      }
-      @Override
       public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         exceptionHandler.handle(cause);
-        if (handler != null) {
-          handler.handle(Future.failedFuture(cause));
-        }
-      }
-      @Override
-      public Future<Void> end() {
-        throw new AssertionError();
-      }
-      @Override
-      public void end(Handler<AsyncResult<Void>> handler) {
-        throw new AssertionError();
-      }
-      @Override
-      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
-        return this;
-      }
-      @Override
-      public boolean writeQueueFull() {
-        return false;
-      }
-      @Override
-      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
-        return this;
+        handler.handle(Future.failedFuture(cause));
       }
     };
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
       .as(BodyCodec.pipe(stream))
       .send(onFailure(err -> {
+      assertSame(cause, err);
+      testComplete();
+    }));
+    await();
+  }
+
+  @Test
+  public void testResponseBodyCodecErrorBeforeResponseIsReceived() throws Exception {
+    server.requestHandler(req -> {
+      HttpServerResponse resp = req.response();
+      resp.setChunked(true);
+      resp.end(TestUtils.randomBuffer(2048));
+    });
+    startServer();
+    RuntimeException cause = new RuntimeException();
+    WriteStreamBase stream = new WriteStreamBase() {
+    };
+    HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequest<Void> request = get.as(BodyCodec.pipe(stream));
+    assertNotNull(stream.exceptionHandler);
+    stream.exceptionHandler.handle(cause);
+    request.send(onFailure(err -> {
       assertSame(cause, err);
       testComplete();
     }));
@@ -981,42 +939,16 @@ public class WebClientTest extends WebClientTestBase {
   public void testResponseWriteStreamMissingBody() throws Exception {
     AtomicInteger length = new AtomicInteger();
     AtomicBoolean ended = new AtomicBoolean();
-    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
-      @Override
-      public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
-        return this;
-      }
-      @Override
-      public Future<Void> write(Buffer data) {
-        Promise<Void> promise = Promise.promise();
-        write(data, promise);
-        return promise.future();
-      }
+    WriteStream<Buffer> stream = new WriteStreamBase() {
       @Override
       public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
         length.addAndGet(data.length());
-        if (handler != null) {
-          handler.handle(Future.succeededFuture());
-        }
+        super.write(data, handler);
       }
       @Override
       public void end(Handler<AsyncResult<Void>> handler) {
         ended.set(true);
-        if (handler != null) {
-          handler.handle(Future.succeededFuture());
-        }
-      }
-      @Override
-      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
-        return this;
-      }
-      @Override
-      public boolean writeQueueFull() {
-        return false;
-      }
-      @Override
-      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
-        return this;
+        super.end(handler);
       }
     };
     testResponseMissingBody(BodyCodec.pipe(stream));
@@ -1160,7 +1092,6 @@ public class WebClientTest extends WebClientTestBase {
   }
 
   @Test
-  @Ignore("This test is flaky on Travis and should be reviewed before 4.0.0")
   public void testFileUploadFormMultipart32M() throws Exception {
     testFileUploadFormMultipart(32 * 1024 * 1024);
   }
@@ -1251,7 +1182,6 @@ public class WebClientTest extends WebClientTestBase {
       AtomicInteger idx = new AtomicInteger();
       List<Upload> uploads = new ArrayList<>();
       req.uploadHandler(upload -> {
-        int val = idx.getAndIncrement();
         Buffer fileBuffer = Buffer.buffer();
         assertEquals("text/plain", upload.contentType());
         upload.handler(fileBuffer::appendBuffer);
@@ -1292,7 +1222,8 @@ public class WebClientTest extends WebClientTestBase {
       .textFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain");
 
     builder.sendMultipartForm(form, onFailure(err -> {
-      assertEquals(err.getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
+      assertEquals(err.getClass(), StreamResetException.class);
+      assertEquals(err.getCause().getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
       complete();
     }));
     await();
@@ -1305,7 +1236,8 @@ public class WebClientTest extends WebClientTestBase {
       .textFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain");
 
     builder.sendMultipartForm(form, onFailure(err -> {
-      assertEquals(err.getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
+      assertEquals(err.getClass(), StreamResetException.class);
+      assertEquals(err.getCause().getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
       complete();
     }));
     await();
@@ -1854,5 +1786,50 @@ public class WebClientTest extends WebClientTestBase {
         .get("somepath")
         .putHeader("bla", Arrays.asList("1", "2")),
       req -> assertEquals(Arrays.asList("1", "2"), req.headers().getAll("bla")));
+  }
+
+  private abstract static class WriteStreamBase implements WriteStream<Buffer> {
+
+    protected Handler<Throwable> exceptionHandler;
+    protected Handler<Void> drainHandler;
+
+    @Override
+    public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
+      exceptionHandler = handler;
+      return this;
+    }
+
+    @Override
+    public Future<Void> write(Buffer data) {
+      Promise<Void> promise = Promise.promise();
+      write(data, promise);
+      return promise.future();
+    }
+
+    @Override
+    public void write(Buffer buffer, Handler<AsyncResult<Void>> handler) {
+      handler.handle(Future.succeededFuture());
+    }
+
+    @Override
+    public void end(Handler<AsyncResult<Void>> handler) {
+      handler.handle(Future.succeededFuture());
+    }
+
+    @Override
+    public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
+      return this;
+    }
+
+    @Override
+    public boolean writeQueueFull() {
+      return false;
+    }
+
+    @Override
+    public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
+      drainHandler = handler;
+      return this;
+    }
   }
 }

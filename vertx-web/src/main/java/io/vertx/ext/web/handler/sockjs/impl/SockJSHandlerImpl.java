@@ -44,7 +44,6 @@ import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.*;
-import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

@@ -41,7 +41,6 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.core.net.impl.ConnectionBase;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.Shareable;
-import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.impl.InboundBuffer;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
@@ -152,7 +151,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   }
 
   @Override
-  public ReadStream<Buffer> fetch(long amount) {
+  public SockJSSession fetch(long amount) {
     pendingReads.fetch(amount);
     return this;
   }

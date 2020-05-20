@@ -40,7 +40,7 @@ import java.util.List;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements OAuth2AuthHandler {
+public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler implements OAuth2AuthHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
 
@@ -50,7 +50,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
   private Route callback;
   private JsonObject extraParams;
-  private List<String> scopes = new ArrayList<>();
+  private final List<String> scopes = new ArrayList<>();
   private String prompt;
 
   // explicit signal that tokens are handled as bearer only (meaning, no backend server known)
@@ -146,7 +146,9 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
       config.put("redirect_uri", host + callback.getPath());
     }
 
-    config.put("scopes", scopes);
+    if (scopes.size() > 0) {
+      config.put("scopes", scopes);
+    }
 
     if (prompt != null) {
       config.put("prompt", prompt);
@@ -181,21 +183,42 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
   public OAuth2AuthHandler setupCallback(final Route route) {
 
     if (callbackPath != null && !"".equals(callbackPath)) {
-      // no matter what path was provided we will make sure it is the correct one
-      if (LOG.isWarnEnabled()) {
-        LOG.warn("route path changed to match callback URL");
+      if (!callbackPath.equals(route.getPath())) {
+        if (LOG.isWarnEnabled()) {
+          LOG.warn("route path changed to match callback URL");
+        }
+        // no matter what path was provided we will make sure it is the correct one
+        route.path(callbackPath);
       }
-      route.path(callbackPath);
     }
 
     route.method(HttpMethod.GET);
 
     route.handler(ctx -> {
+      // Some IdP's (e.g.: AWS Cognito) returns errors as query arguments
+      String error = ctx.request().getParam("error");
+
+      if (error != null) {
+        String errorDescription = ctx.request().getParam("error_description");
+        if (errorDescription != null) {
+          ctx.response()
+            .setStatusMessage(error + ": " + errorDescription);
+        } else {
+          ctx.response()
+            .setStatusMessage(error);
+        }
+        ctx.fail(400);
+        return;
+      }
+
       // Handle the callback of the flow
       final String code = ctx.request().getParam("code");
 
       // code is a require value
       if (code == null) {
+        ctx.response()
+          .setStatusMessage("Missing code parameter");
+
         ctx.fail(400);
         return;
       }
@@ -275,7 +298,11 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
   }
 
   @Override
-  protected String authenticateHeader(RoutingContext context) {
-    return "Bearer realm=\"" + realm + "\"";
+  public String authenticateHeader(RoutingContext context) {
+    if (realm != null && realm.length() > 0) {
+      return "Bearer realm=\"" + realm + "\"";
+    } else {
+      return null;
+    }
   }
 }

@@ -22,6 +22,7 @@ import io.vertx.ext.web.api.validation.SpecFeatureNotSupportedException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -303,8 +304,7 @@ public class OpenApi3Utils {
     java.lang.reflect.Parameter[] parameters = method.getParameters();
     if (parameters.length < 2) return false;
     if (!parameters[parameters.length - 1].getType().equals(Handler.class)) return false;
-    if (!parameters[parameters.length - 2].getType().equals(OperationRequest.class)) return false;
-    return true;
+    return parameters[parameters.length - 2].getType().equals(OperationRequest.class);
   }
 
   public static JsonObject sanitizeDeliveryOptionsExtension(JsonObject jsonObject) {
@@ -366,5 +366,7 @@ public class OpenApi3Utils {
     if (operationExtension == null) return pathExtension;
     return null;
   }
+
+public static final UnaryOperator<Boolean> safeBoolean = in -> in == null? Boolean.FALSE: in.booleanValue();
 
 }

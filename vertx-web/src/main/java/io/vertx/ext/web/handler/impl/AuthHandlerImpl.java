@@ -109,10 +109,6 @@ public abstract class AuthHandlerImpl implements AuthHandler {
     }
   }
 
-  protected String authenticateHeader(RoutingContext context) {
-    return null;
-  }
-
   @Override
   public void handle(RoutingContext ctx) {
 

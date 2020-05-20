@@ -1,0 +1,50 @@
+# https://swagger.io/docs/specification/using-ref/
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: JSON Schemas test spec
+  license:
+    name: MIT
+paths:
+  /things:
+    x-vertx-event-bus:
+     address: test.admin
+     timeout: 1000
+
+    get:
+      operationId: getThings
+      responses:
+        default:
+          description: "OK"
+      parameters:
+        - $ref: "#/components/parameters/ParamQ_FilterByString" 
+
+components:
+  
+  parameters:
+
+    ParamQ_FilterByString:
+      in: query
+      name: filter
+      required: false
+      schema:
+        $ref: "#/components/schemas/FilterPredicates"
+
+  schemas:
+           
+    FilterPredicates:
+      type: array
+      items:
+        $ref: "#/components/schemas/FilterPredicate"            
+      
+    FilterPredicate:
+      type: object
+      properties:
+        field:
+          type: string
+        operator:
+          type: string
+        value:
+          type: string
+      title: filter_predicate
+           

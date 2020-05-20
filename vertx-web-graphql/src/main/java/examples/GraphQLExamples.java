@@ -210,11 +210,7 @@ public class GraphQLExamples {
   }
 
   public void createBatchLoader() {
-    BatchLoaderWithContext<String, Link> linksBatchLoader = (keys, environment) -> {
-
-      return retrieveLinksFromBackend(keys, environment);
-
-    };
+    BatchLoaderWithContext<String, Link> linksBatchLoader = this::retrieveLinksFromBackend;
   }
 
   private CompletionStage<List<Link>> retrieveLinksFromBackend(List<String> ids, BatchLoaderEnvironment environment) {

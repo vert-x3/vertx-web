@@ -12,7 +12,6 @@ import io.vertx.ext.web.validation.builder.Parameters;
 
 import static io.vertx.ext.json.schema.common.dsl.Schemas.*;
 import static io.vertx.ext.json.schema.draft7.dsl.Keywords.maximum;
-import static io.vertx.ext.json.schema.draft7.dsl.Schemas.intSchema;
 import static io.vertx.ext.web.validation.builder.Parameters.param;
 
 @Source

@@ -16,7 +16,6 @@
 package io.vertx.ext.web;
 
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.handler.VirtualHostHandler;
 import org.junit.Test;
 
 /**
@@ -46,9 +45,7 @@ public class VirtualHostTest extends WebTestBase {
   public void testVHostSubRouter() throws Exception {
 
     Router a = Router.router(vertx);
-    a.get("/somepath").handler(ctx -> {
-      ctx.end();
-    });
+    a.get("/somepath").handler(RoutingContext::end);
 
     router.route("/*").virtualHost("*.com").subRouter(a);
     testRequest(HttpMethod.GET, "/somepath", req -> req.setAuthority("www.mysite.com"), 200, "OK", null);

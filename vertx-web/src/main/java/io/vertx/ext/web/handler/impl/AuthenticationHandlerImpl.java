@@ -47,10 +47,6 @@ public abstract class AuthenticationHandlerImpl implements AuthenticationHandler
     this.realm = realm;
   }
 
-  protected String authenticateHeader(RoutingContext context) {
-    return null;
-  }
-
   @Override
   public void handle(RoutingContext ctx) {
 
@@ -174,7 +170,7 @@ public abstract class AuthenticationHandlerImpl implements AuthenticationHandler
     return false;
   }
 
-  private AuthenticationProvider getAuthProvider(RoutingContext ctx) {
+  protected AuthenticationProvider getAuthProvider(RoutingContext ctx) {
     try {
       AuthenticationProvider provider = ctx.get(AUTH_PROVIDER_CONTEXT_KEY);
       if (provider != null) {

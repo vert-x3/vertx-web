@@ -3,7 +3,7 @@ package io.vertx.ext.web;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
-@DataObject
+@DataObject(generateConverter = true)
 public class Http2PushMapping {
   private String filePath;
   private String extensionTarget;
@@ -32,9 +32,7 @@ public class Http2PushMapping {
    * @param json the JSON
    */
   public Http2PushMapping(JsonObject json) {
-    this.filePath = json.getString("filePath");
-    this.extensionTarget = json.getString("extensionTarget");
-    this.noPush = json.getBoolean("noPush");
+    Http2PushMappingConverter.fromJson(json, this);
   }
 
   /**
@@ -72,5 +70,11 @@ public class Http2PushMapping {
 
   public void setNoPush(boolean noPush) {
     this.noPush = noPush;
+  }
+
+  public JsonObject toJson() {
+    JsonObject json = new JsonObject();
+    Http2PushMappingConverter.toJson(this, json);
+    return json;
   }
 }

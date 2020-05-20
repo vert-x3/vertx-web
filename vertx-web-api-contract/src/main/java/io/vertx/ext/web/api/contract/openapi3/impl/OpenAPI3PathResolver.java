@@ -3,6 +3,8 @@ package io.vertx.ext.web.api.contract.openapi3.impl;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 
+import static io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils.safeBoolean;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -219,14 +221,11 @@ public class OpenAPI3PathResolver {
   }
 
   private boolean solveParamExplode(Parameter parameter) {
-    return (parameter.getExplode() != null) ? parameter.getExplode() : false;
+    return safeBoolean.apply(parameter.getExplode());
   }
 
   private boolean hasParameterWithStyle(String style) {
     return parameters.stream().map(this::solveParamStyle).anyMatch(s -> s.equals(style));
   }
 
-  private boolean hasParameterWithStyleAndExplode(String style, boolean explode) {
-    return parameters.stream().anyMatch(p -> solveParamStyle(p).equals(style) && solveParamExplode(p) == explode);
-  }
 }

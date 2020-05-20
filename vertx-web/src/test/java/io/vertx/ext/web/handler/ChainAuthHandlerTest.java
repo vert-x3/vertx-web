@@ -9,7 +9,6 @@ import org.junit.Test;
 
 public class ChainAuthHandlerTest extends WebTestBase {
 
-  private AuthenticationHandler redirectAuthHandler;
   private AuthenticationProvider authProvider;
   protected ChainAuthHandler chain;
 
@@ -18,10 +17,10 @@ public class ChainAuthHandlerTest extends WebTestBase {
     super.setUp();
 
     authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
-    redirectAuthHandler = RedirectAuthHandler.create(authProvider);
+    AuthenticationHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
     // create a chain
-    chain = ChainAuthHandler.create()
+    chain = ChainAuthHandler.any()
       .add(JWTAuthHandler.create(null))
       .add(BasicAuthHandler.create(authProvider))
       .add(redirectAuthHandler);
@@ -56,7 +55,7 @@ public class ChainAuthHandlerTest extends WebTestBase {
     router.clear();
 
     // create a chain
-    chain = ChainAuthHandler.create()
+    chain = ChainAuthHandler.any()
       .add(JWTAuthHandler.create(null))
       .add(BasicAuthHandler.create(authProvider));
 
