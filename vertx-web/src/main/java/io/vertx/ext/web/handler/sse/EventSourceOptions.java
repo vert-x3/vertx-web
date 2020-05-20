@@ -3,7 +3,7 @@ package io.vertx.ext.web.handler.sse;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.http.HttpClientOptions;
 
-@DataObject(generateConverter = true, publicConverter = false)
+@DataObject(generateConverter = true)
 public class EventSourceOptions extends HttpClientOptions {
 
   public final static long DEFAULT_RETRY_PERIOD = 60000;

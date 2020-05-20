@@ -27,6 +27,10 @@ import io.vertx.ext.web.handler.sse.impl.EventSourceImpl;
 @VertxGen
 public interface EventSource {
 
+  static EventSource create(Vertx vertx) {
+    return new EventSourceImpl(vertx, new EventSourceOptions());
+  }
+
   static EventSource create(Vertx vertx,  EventSourceOptions options) {
     return new EventSourceImpl(vertx, options);
   }
