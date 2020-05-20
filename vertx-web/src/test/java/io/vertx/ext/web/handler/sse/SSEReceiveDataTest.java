@@ -29,7 +29,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     CountDownLatch latch = new CountDownLatch(1);
     final String message = "Happiness is a warm puppy";
     final EventSource eventSource = eventSource();
-    eventSource.connect("/sse?token=" + TOKEN, handler -> {
+    eventSource.connect(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
       assertTrue(handler.succeeded());
       assertFalse(handler.failed());
       assertNull(handler.cause());
@@ -48,7 +48,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     CountDownLatch latch = new CountDownLatch(1);
     final List<String> quotes = createData();
     final EventSource eventSource = eventSource();
-    eventSource.connect("/sse?token=" + TOKEN, handler -> {
+    eventSource.connect(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
       assertTrue(handler.succeeded());
       assertFalse(handler.failed());
       assertNull(handler.cause());
@@ -74,7 +74,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     final String eventName = "quotes";
     final List<String> quotes = createData();
     final EventSource eventSource = eventSource();
-    eventSource.connect("/sse?token=" + TOKEN, handler -> {
+    eventSource.connect(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
       assertTrue(handler.succeeded());
       assertFalse(handler.failed());
       assertNull(handler.cause());
@@ -109,7 +109,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
         assertEquals(quote + "\n", msg);
         assertEquals(id, eventSource.lastId());
         eventSource.close();
-        eventSource.connect("/sse?token=" + TOKEN, eventSource.lastId(), secondHandler -> {
+        eventSource.connect(SSE_ENDPOINT + "?token=" + TOKEN, eventSource.lastId(), secondHandler -> {
           assertTrue(handler.succeeded());
           assertFalse(handler.failed());
           assertNull(handler.cause());
