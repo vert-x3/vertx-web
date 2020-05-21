@@ -61,4 +61,15 @@ public class SSEEventSourceTest extends SSEBaseTest {
     awaitLatch(latch);
   }
 
+  @Test
+  public void testReconnect() throws Exception {
+    CountDownLatch latch = new CountDownLatch(2); // we should connect twice
+    final EventSource eventSource = eventSource();
+    eventSource.connect(SSE_RECONNECT_ENDPOINT, res -> {
+      assertFalse("Redirect should have been followed", res.failed());
+      latch.countDown();
+    });
+    awaitLatch(latch);
+  }
+
 }

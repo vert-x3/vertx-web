@@ -34,6 +34,7 @@ abstract class SSEBaseTest extends VertxTestBase {
   protected final static String SSE_NO_CONTENT_ENDPOINT = "/sse-no-content";
   protected final static String SSE_REJECT_ODDS = "/sse-reject-odds";
   protected final static String SSE_RESET_CONTENT_ENDPOINT = "/sse-reset-content";
+  protected final static String SSE_RECONNECT_ENDPOINT = "/sse-reconnect";
   protected final static String SSE_REDIRECT_ENDPOINT = "/sse-redirect";
   protected final static String SSE_ENDPOINT = "/sse";
 
@@ -70,6 +71,14 @@ abstract class SSEBaseTest extends VertxTestBase {
       }
     });
     router.get(SSE_NO_CONTENT_ENDPOINT).handler(rc -> rc.response().setStatusCode(204).end());
+    SSEHandler sseReconnectHandler = SSEHandler.create();
+    AtomicInteger nbSSEConn = new AtomicInteger(0);
+    sseReconnectHandler.connectHandler(conn -> {
+      if (nbSSEConn.incrementAndGet() <= 1) {
+        conn.close(); // force a reconnect on client side
+      }
+    });
+    router.get(SSE_RECONNECT_ENDPOINT).handler(sseReconnectHandler);
     router.get(SSE_REDIRECT_ENDPOINT).handler(rc -> {
       rc.response().putHeader(HttpHeaders.LOCATION.toString(), SSE_ENDPOINT + "?token=" + TOKEN);
       rc.response().setStatusCode(302).end();
