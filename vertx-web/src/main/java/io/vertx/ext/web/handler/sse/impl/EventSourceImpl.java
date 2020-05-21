@@ -66,34 +66,11 @@ public class EventSourceImpl implements EventSource {
     if (client == null) {
       client = vertx.createHttpClient(options);
     }
-    HttpClientRequest request = client.request(HttpMethod.GET, path);
-    request.onFailure(cause -> {
-      handler.handle(Future.failedFuture(cause));
+    client.redirectHandler(resp -> {
+      String redirect = resp.headers().get(HttpHeaders.LOCATION);
+      return Future.succeededFuture(createRequest(redirect, lastEventId, handler));
     });
-    request.onSuccess(response -> {
-      if (shouldReconnect(response)) {
-        client.close();
-        client = null;
-        getEventErrorHandler().ifPresent(errorHandler -> errorHandler.handle("")); // FIXME: error type/name
-        vertx.setTimer(options.getRetryPeriod(), timerId -> {
-          retryTimerId = timerId;
-          connect(path, lastEventId, handler);
-        });
-        return;
-      }
-      if (response.statusCode() != 200) {
-        handler.handle(Future.failedFuture(new VertxException("Could not connect EventSource, the server answered with status " + response.statusCode())));
-      } else {
-        connected = true;
-        response.handler(this::handleMessage);
-        handler.handle(Future.succeededFuture());
-      }
-    });
-    if (lastEventId != null) {
-      request.headers().add(SSEHeaders.LAST_EVENT_ID.toString(), lastEventId);
-    }
-    request.headers().add(HttpHeaders.ACCEPT, "text/event-stream");
-    request.end();
+    createRequest(path, lastEventId, handler).end();
     return this;
   }
 
@@ -171,4 +148,36 @@ public class EventSourceImpl implements EventSource {
       currentPacket = null;
     }
   }
+
+  private HttpClientRequest createRequest(String path, String lastEventId, Handler<AsyncResult<Void>> handler) {
+    HttpClientRequest request = client.request(HttpMethod.GET, path);
+    request.setFollowRedirects(true);
+    request.onFailure(cause -> handler.handle(Future.failedFuture(cause)));
+    request.onSuccess(response -> {
+      if (shouldReconnect(response)) {
+        client.close();
+        client = null;
+        getEventErrorHandler().ifPresent(errorHandler -> errorHandler.handle("")); // FIXME: error type/name
+        vertx.setTimer(options.getRetryPeriod(), timerId -> {
+          retryTimerId = timerId;
+          connect(path, lastEventId, handler);
+        });
+        return;
+      }
+      int status = response.statusCode();
+      if (status != 200) { // redirects have been handled in `client.redirectHandler(...)` other status codes are considered errors, 204 & 205 are handled in `shouldReconnect`
+        handler.handle(Future.failedFuture(new VertxException("Could not connect EventSource, the server answered with status " + status)));
+      } else {
+        connected = true;
+        response.handler(this::handleMessage);
+        handler.handle(Future.succeededFuture());
+      }
+    });
+    if (lastEventId != null) {
+      request.headers().add(SSEHeaders.LAST_EVENT_ID.toString(), lastEventId);
+    }
+    request.headers().add(HttpHeaders.ACCEPT, "text/event-stream");
+    return request;
+  }
+
 }
