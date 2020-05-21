@@ -3,6 +3,7 @@ package io.vertx.ext.web.handler.sse;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SSEEventSourceTest extends SSEBaseTest {
@@ -47,6 +48,17 @@ public class SSEEventSourceTest extends SSEBaseTest {
     });
     awaitLatch(latch);
     assertTrue("Connection should have been rejected, then retried, then accepted", rejectedOnce.get() && connected.get());
+  }
+
+  @Test
+  public void testFollowRedirects() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    final EventSource eventSource = eventSource();
+    eventSource.connect(SSE_REDIRECT_ENDPOINT, res -> {
+      assertFalse("Redirect should have been followed", res.failed());
+      latch.countDown();
+    });
+    awaitLatch(latch);
   }
 
 }

@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler.sse;
 
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
@@ -33,6 +34,7 @@ abstract class SSEBaseTest extends VertxTestBase {
   protected final static String SSE_NO_CONTENT_ENDPOINT = "/sse-no-content";
   protected final static String SSE_REJECT_ODDS = "/sse-reject-odds";
   protected final static String SSE_RESET_CONTENT_ENDPOINT = "/sse-reset-content";
+  protected final static String SSE_REDIRECT_ENDPOINT = "/sse-redirect";
   protected final static String SSE_ENDPOINT = "/sse";
 
   private final static Integer PORT = 9009;
@@ -68,6 +70,10 @@ abstract class SSEBaseTest extends VertxTestBase {
       }
     });
     router.get(SSE_NO_CONTENT_ENDPOINT).handler(rc -> rc.response().setStatusCode(204).end());
+    router.get(SSE_REDIRECT_ENDPOINT).handler(rc -> {
+      rc.response().putHeader(HttpHeaders.LOCATION.toString(), SSE_ENDPOINT + "?token=" + TOKEN);
+      rc.response().setStatusCode(302).end();
+    });
     AtomicInteger nbConnections = new AtomicInteger(0);
     router.get(SSE_REJECT_ODDS).handler(rc -> {
       if (nbConnections.incrementAndGet() % 2 == 1) {
