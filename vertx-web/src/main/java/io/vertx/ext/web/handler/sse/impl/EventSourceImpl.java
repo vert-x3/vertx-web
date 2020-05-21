@@ -170,6 +170,10 @@ public class EventSourceImpl implements EventSource {
       } else {
         connected = true;
         response.handler(this::handleMessage);
+        response.endHandler(r -> {
+          connected = false;
+          connect(path, this.lastId, handler);
+        }); // reconnect automatically
         handler.handle(Future.succeededFuture());
       }
     });
