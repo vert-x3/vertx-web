@@ -17,6 +17,7 @@ package io.vertx.ext.web.handler.sse;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.json.JsonObject;
 
 @DataObject(generateConverter = true)
 public class EventSourceOptions extends HttpClientOptions {
@@ -40,6 +41,16 @@ public class EventSourceOptions extends HttpClientOptions {
     this.retryPeriod = other.getRetryPeriod();
   }
 
+  /**
+   * Creates a new instance from JSON.
+   *
+   * @param json the JSON object
+   */
+  public EventSourceOptions(JsonObject json) {
+    super(json);
+    EventSourceOptionsConverter.fromJson(json, this);
+  }
+
   public EventSourceOptions setRetryPeriod(long retryPeriod) {
     this.retryPeriod = retryPeriod;
     return this;
@@ -47,6 +58,17 @@ public class EventSourceOptions extends HttpClientOptions {
 
   public long getRetryPeriod() {
     return retryPeriod;
+  }
+
+  /**
+   * Convert to JSON
+   *
+   * @return the JSON
+   */
+  public JsonObject toJson() {
+    JsonObject json = super.toJson();
+    EventSourceOptionsConverter.toJson(this, json);
+    return json;
   }
 
 }
