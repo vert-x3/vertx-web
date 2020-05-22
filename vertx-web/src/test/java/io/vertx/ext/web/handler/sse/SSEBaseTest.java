@@ -23,10 +23,6 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.sse.EventSource;
-import io.vertx.ext.web.handler.sse.EventSourceOptions;
-import io.vertx.ext.web.handler.sse.SSEConnection;
-import io.vertx.ext.web.handler.sse.SSEHandler;
 import io.vertx.test.core.VertxTestBase;
 
 import java.util.concurrent.CountDownLatch;
@@ -42,6 +38,7 @@ abstract class SSEBaseTest extends VertxTestBase {
   protected final static String SSE_RECONNECT_ENDPOINT = "/sse-reconnect";
   protected final static String SSE_REDIRECT_ENDPOINT = "/sse-redirect";
   protected final static String SSE_EVENTBUS_ENDPOINT = "/sse-eventbus";
+  protected final static String SSE_MULTIPLE_MESSAGES_ENDPOINT = "/sse-multiple-messages";
   protected final static String SSE_ENDPOINT = "/sse";
 
   private final static Integer PORT = 9009;
@@ -102,6 +99,13 @@ abstract class SSEBaseTest extends VertxTestBase {
     SSEHandler sseEventBusHandler = SSEHandler.create();
     sseEventBusHandler.connectHandler(conn -> conn.forward(EB_ADDRESS));
     router.get(SSE_EVENTBUS_ENDPOINT).handler(sseEventBusHandler);
+    SSEHandler sseMultipleMessages = SSEHandler.create();
+    sseMultipleMessages.connectHandler(conn -> {
+      conn.id("some-id");
+      conn.data("some-data");
+      vertx.setTimer(500, l -> conn.data("some-other-data-without-id"));
+    });
+    router.get(SSE_MULTIPLE_MESSAGES_ENDPOINT).handler(sseMultipleMessages);
     server.requestHandler(router);
     server.listen(ar -> {
       if (ar.failed()) {
