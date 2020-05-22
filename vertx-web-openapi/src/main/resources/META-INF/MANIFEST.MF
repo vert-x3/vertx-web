@@ -1,1 +1,2 @@
 Automatic-Module-Name: io.vertx.web.openapi
+
