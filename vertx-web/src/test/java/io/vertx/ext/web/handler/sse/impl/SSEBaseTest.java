@@ -14,7 +14,7 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.sse;
+package io.vertx.ext.web.handler.sse.impl;
 
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
@@ -23,6 +23,10 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.sse.EventSource;
+import io.vertx.ext.web.handler.sse.EventSourceOptions;
+import io.vertx.ext.web.handler.sse.SSEConnection;
+import io.vertx.ext.web.handler.sse.SSEHandler;
 import io.vertx.test.core.VertxTestBase;
 
 import java.util.concurrent.CountDownLatch;
@@ -31,11 +35,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 abstract class SSEBaseTest extends VertxTestBase {
 
   protected final String TOKEN = "test";
+  protected final String EB_ADDRESS = "eb-forward-sse";
   protected final static String SSE_NO_CONTENT_ENDPOINT = "/sse-no-content";
   protected final static String SSE_REJECT_ODDS = "/sse-reject-odds";
   protected final static String SSE_RESET_CONTENT_ENDPOINT = "/sse-reset-content";
   protected final static String SSE_RECONNECT_ENDPOINT = "/sse-reconnect";
   protected final static String SSE_REDIRECT_ENDPOINT = "/sse-redirect";
+  protected final static String SSE_EVENTBUS_ENDPOINT = "/sse-eventbus";
   protected final static String SSE_ENDPOINT = "/sse";
 
   private final static Integer PORT = 9009;
@@ -93,6 +99,9 @@ abstract class SSEBaseTest extends VertxTestBase {
     });
     router.get(SSE_RESET_CONTENT_ENDPOINT).handler(rc -> rc.response().setStatusCode(205).end());
     router.get(SSE_ENDPOINT).handler(sseHandler);
+    SSEHandler sseEventBusHandler = SSEHandler.create();
+    sseEventBusHandler.connectHandler(conn -> conn.forward(EB_ADDRESS));
+    router.get(SSE_EVENTBUS_ENDPOINT).handler(sseEventBusHandler);
     server.requestHandler(router);
     server.listen(ar -> {
       if (ar.failed()) {

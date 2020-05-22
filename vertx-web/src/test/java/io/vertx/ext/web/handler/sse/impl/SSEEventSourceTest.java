@@ -1,9 +1,9 @@
-package io.vertx.ext.web.handler.sse;
+package io.vertx.ext.web.handler.sse.impl;
 
+import io.vertx.ext.web.handler.sse.EventSource;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SSEEventSourceTest extends SSEBaseTest {

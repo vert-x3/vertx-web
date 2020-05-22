@@ -120,13 +120,11 @@ public class SSEConnectionImpl implements SSEConnection {
     String data = msg.body() == null ? "" : msg.body().toString();
     if (eventName != null) {
       event(eventName);
-      data(data);
     }
     if (id != null) {
       id(id);
-      data(data);
     }
-    if (eventName == null && id == null) {
+    if (data != null) {
       data(data);
     }
   }
