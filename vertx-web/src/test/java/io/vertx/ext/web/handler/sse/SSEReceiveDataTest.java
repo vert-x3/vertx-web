@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler.sse;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -140,6 +141,25 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     });
     awaitLatch(latch);
     assertTrue(messagesReceived.contains("some-other-data-without-id"));
+  }
+
+  @Test
+  public void disconnectAndReconnectWithId() throws Exception {
+    CountDownLatch latch = new CountDownLatch(7);
+    EventSource es = eventSource();
+    List<Integer> idsReceived = new ArrayList<>();
+    es.onMessage(msg -> {
+      assertNotNull(es.lastId());
+      idsReceived.add(Integer.parseInt(es.lastId()));
+      latch.countDown();
+    });
+    es.connect(SSE_ID_TEST_ENDPOINT, res -> { // this endpoint periodically increments a counter and send it as 'id', with "last-event-id" as initial value
+      assertFalse(res.failed());
+    });
+    awaitLatch(latch);
+    assertEquals(7, idsReceived.size());
+    List<Integer> expectedIds = Arrays.asList(1, 2, 3, 4, 5, 6, 7); // we should not have received (1, 2, 1, 2, 1, 2) which would happen if we did not reconnect with last-id properly set
+    assertEquals(expectedIds, idsReceived);
   }
 
   private List<String> createData() {

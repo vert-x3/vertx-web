@@ -27,6 +27,7 @@ import io.vertx.test.core.VertxTestBase;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 abstract class SSEBaseTest extends VertxTestBase {
 
@@ -39,6 +40,7 @@ abstract class SSEBaseTest extends VertxTestBase {
   protected final static String SSE_REDIRECT_ENDPOINT = "/sse-redirect";
   protected final static String SSE_EVENTBUS_ENDPOINT = "/sse-eventbus";
   protected final static String SSE_MULTIPLE_MESSAGES_ENDPOINT = "/sse-multiple-messages";
+  protected final static String SSE_ID_TEST_ENDPOINT = "/sse-id-tests";
   protected final static String SSE_ENDPOINT = "/sse";
 
   private final static Integer PORT = 9009;
@@ -106,6 +108,26 @@ abstract class SSEBaseTest extends VertxTestBase {
       vertx.setTimer(500, l -> conn.data("some-other-data-without-id"));
     });
     router.get(SSE_MULTIPLE_MESSAGES_ENDPOINT).handler(sseMultipleMessages);
+    SSEHandler sseIds = SSEHandler.create();
+    AtomicLong timerId = new AtomicLong(-1L);
+    sseIds.connectHandler(conn -> {
+      AtomicInteger idCounter = new AtomicInteger(0);
+      if (conn.lastId() != null) {
+        idCounter.set(Integer.parseInt(conn.lastId()));
+      }
+      AtomicInteger counterForConnection = new AtomicInteger(0);
+      vertx.setPeriodic(150, id -> {
+        if (counterForConnection.incrementAndGet() >= 3) {
+          conn.close(); // client will reconnect automatically, hopefully using its last id
+          return;
+        }
+        timerId.set(id);
+        conn.id(Integer.toString(idCounter.incrementAndGet()));
+        conn.data("some-data");
+      });
+      conn.closeHandler(c -> vertx.cancelTimer(timerId.get()));
+    });
+    router.get(SSE_ID_TEST_ENDPOINT).handler(sseIds);
     server.requestHandler(router);
     server.listen(ar -> {
       if (ar.failed()) {
