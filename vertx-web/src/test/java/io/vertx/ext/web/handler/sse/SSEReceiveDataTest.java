@@ -124,6 +124,24 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     awaitLatch(latch);
   }
 
+  @Test
+  public void receiveDataWithAndWithoutId() throws Exception {
+    CountDownLatch latch = new CountDownLatch(2);
+    EventSource es = eventSource();
+    List<String> messagesReceived = new ArrayList<>(2);
+    es.onMessage(msg -> {
+      assertNotNull(es.lastId());
+      assertNotNull(msg);
+      messagesReceived.add(msg);
+      latch.countDown(); // we should receive 2 messages, first has an id, the second one doesn't, lastId should never been discarded
+    });
+    es.connect(SSE_MULTIPLE_MESSAGES_ENDPOINT, res -> {
+      assertFalse(res.failed());
+    });
+    awaitLatch(latch);
+    assertTrue(messagesReceived.contains("some-other-data-without-id"));
+  }
+
   private List<String> createData() {
     final List<String> data = new ArrayList<>(3);
     data.add("Happiness is a warm puppy");
