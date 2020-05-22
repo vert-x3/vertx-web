@@ -74,6 +74,7 @@
     <module>vertx-web-session-stores</module>
     <module>vertx-web-api-service</module>
     <module>vertx-web-validation</module>
+    <module>vertx-web-openapi</module>
   </modules>
 
   <profiles>

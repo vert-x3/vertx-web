@@ -1,0 +1,30 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Test spec for OpenAPI3RouterFactoryTest.customBodyHandlerTest()
+paths:
+  /upload:
+    post:
+      summary: Uploads a file
+      operationId: upload
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                fileName:
+                  type: string
+                  format: binary
+            encoding:
+              fileName:
+                contentType: text/plain
+      responses:
+        201:
+          description: Created
+        default:
+          description: unexpected error
+          content:
+            text/plain:
+              schema:
+                type: string

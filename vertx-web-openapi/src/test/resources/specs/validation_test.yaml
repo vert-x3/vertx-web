@@ -1,0 +1,519 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Test spec for OpenAPI3ValidationTest
+  license:
+    name: Apache 2.0 License
+paths:
+  /pets:
+    get:
+      summary: List all pets
+      operationId: listPets
+      tags:
+        - pets
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at one time (max 100)
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: An paged array of pets
+          headers:
+            x-next:
+              description: A link to the next page of responses
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pets"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create a pet
+      operationId: createPets
+      tags:
+        - pets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        201:
+          description: Null response
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /queryTests/anyOfTest:
+    get:
+      operationId: anyOfTest
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          explode: false
+          schema:
+            anyOf:
+              - type: boolean
+              - type: integer
+              - type: array
+                items:
+                  type: integer
+              - type: object
+                properties:
+                  a:
+                    type: integer
+      responses:
+        default:
+          description: ok
+  /pets/{petId}:
+    get:
+      summary: Info for a specific pet
+      operationId: showPetById
+      tags:
+        - pets
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          description: The id of the pet to retrieve
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pets"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /queryTests/arrayTests/formExploded:
+    get:
+      operationId: arrayTestFormExploded
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+              multipleOf: 2
+      responses:
+        default:
+          description: ok
+  /queryTests/objectTests/onlyAdditionalProperties:
+    get:
+      operationId: objectTestOnlyAdditionalProperties
+      parameters:
+        - name: params
+          in: query
+          schema:
+            type: object
+            additionalProperties:
+              type: integer
+          style: form
+          explode: true
+        - name: wellKnownParam
+          in: query
+          schema:
+            type: string
+            minLength: 2
+      responses:
+        default:
+          description: ok
+  /queryTests/defaultString:
+    get:
+      operationId: testDefaultString
+      parameters:
+        - name: parameter
+          in: query
+          required: false
+          schema:
+            type: string
+            default: aString
+      responses:
+        default:
+          description: ok
+  /queryTests/defaultInt:
+    get:
+      operationId: testDefaultInt
+      parameters:
+        - name: parameter
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        default:
+          description: ok
+  /queryTests/defaultFloat:
+    get:
+      operationId: testDefaultFloat
+      parameters:
+        - name: parameter
+          in: query
+          schema:
+            type: number
+            format: float
+            default: 1.0
+      responses:
+        default:
+          description: ok
+  /queryTests/defaultDouble:
+    get:
+      operationId: testDefaultDouble
+      parameters:
+        - name: parameter
+          in: query
+          schema:
+            type: number
+            format: double
+            default: 1.0
+      responses:
+        default:
+          description: ok
+  /queryTests/defaultBoolean:
+    get:
+      operationId: testDefaultBoolean
+      parameters:
+        - name: parameter
+          in: query
+          allowEmptyValue: true
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        default:
+          description: ok
+  /queryTests/arrayTests/default:
+    get:
+      operationId: arrayTest
+      parameters:
+        - name: parameter
+          in: query
+          explode: false
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+              multipleOf: 2
+      responses:
+        default:
+          description: ok
+  /formTests/arraytest:
+    post:
+      operationId: formArrayTest
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                values:
+                  # complex types are stringified to support RFC 1866
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        default:
+          description: ok
+  /jsonBodyTest/sampleTest:
+    post:
+      operationId: jsonBodyTest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                values:
+                  type: array
+                  items:
+                    type: integer
+          application/superapplication+json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                values:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        default:
+          description: ok
+  /jsonBodyWithDate:
+    post:
+      operationId: jsonBodyWithDate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                dateTime1:
+                  type: string
+                  format: date-time
+                dateTime2:
+                  type: string
+                  format: date-time
+                dateTime3:
+                  type: string
+                  format: date-time
+      responses:
+        default:
+          description: ok
+  /queryTests/allOfTest:
+    get:
+      operationId: alloftest
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          explode: false
+          schema:
+            allOf:
+              - type: object
+                properties:
+                  a:
+                    type: integer
+                required:
+                  - a
+              - type: object
+                properties:
+                  b:
+                    type: boolean
+                    default: false
+      responses:
+        default:
+          description: ok
+  /queryTests/byteFormat:
+    get:
+      operationId: byteFormatTest
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          schema:
+            type: string
+            format: byte
+      responses:
+        default:
+          description: ok
+  /cookieTests/objectTests/onlyAdditionalProperties:
+    get:
+      operationId: cookieObjectTestOnlyAdditionalProperties
+      parameters:
+        - name: params
+          in: cookie
+          schema:
+            type: object
+            additionalProperties:
+              type: integer
+          style: form
+          explode: true
+        - name: wellKnownParam
+          in: cookie
+          schema:
+            type: string
+      responses:
+        default:
+          description: ok
+  /multipart/complex:
+    post:
+      operationId: complexMultipartRequest
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                param1:
+                  type: string
+                param1Binary:
+                  type: string
+                  format: binary
+                param1NotRealBinary:
+                  type: string
+                  format: binary
+                param2:
+                  $ref: "#/components/schemas/Pet"
+                param3:
+                  type: string
+                param4:
+                  type: array
+                  items:
+                    type: number
+                    format: float
+                param5:
+                  type: integer
+                  format: int32
+                  enum:
+                    - 1
+                    - 2
+              required:
+                - param1
+                - param1Binary
+                - param1NotRealBinary
+                - param3
+            encoding:
+              param3:
+                contentType: text/csv
+              param1:
+                contentType: text/plain
+              param1NotRealBinary:
+                contentType: text/plain
+      responses:
+        default:
+          description: ok
+  /circularReferences:
+    post:
+      operationId: circularReferences
+      tags:
+        - pets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SchemaRecursive"
+      responses:
+        default:
+          description: Ok
+  /additionalProperties:
+    post:
+      operationId: additionalProperties
+      tags:
+        - pets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - id
+                - name
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                name:
+                  type: string
+                tag:
+                  type: string
+      responses:
+        default:
+          description: Ok
+  '/query/form/explode/object':
+    get:
+      parameters:
+        - name: color
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: form
+          explode: true
+      operationId: 'query_form_explode_object'
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+components:
+  schemas:
+    Pet:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        tag:
+          type: string
+    Pets:
+      type: array
+      items:
+        $ref: "#/components/schemas/Pet"
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    SchemaRecursive:
+      type: object
+      properties:
+        a:
+          $ref: '#/components/schemas/SchemaInnerRecursive'
+        b:
+          type: string
+        c:
+          type: number
+    SchemaInnerRecursive:
+      type: object
+      properties:
+        a:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchemaRecursive'
+    ColorObject:
+      type: object
+      properties:
+        R:
+          type: string
+        G:
+          type: string
+        B:
+          type: string
+        alpha:
+          type: number
+      required:
+        - R
+        - G
+        - B
