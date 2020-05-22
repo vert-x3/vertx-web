@@ -199,7 +199,7 @@ public class SockJSWriteTest extends SockJSTestBase {
   @Test
   public void testXHRPollingClose() throws Exception {
     // Take 5 seconds which is the hearbeat timeout
-    waitFor(2);
+    waitFor(3);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(Buffer.buffer(expected), onFailure(err -> {
@@ -215,6 +215,7 @@ public class SockJSWriteTest extends SockJSTestBase {
     startServers();
     client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
+      complete();
     }));
     await();
   }
@@ -222,7 +223,7 @@ public class SockJSWriteTest extends SockJSTestBase {
   @Test
   public void testXHRPollingShutdown() throws Exception {
     // Take 5 seconds which is the hearbeat timeout
-    waitFor(2);
+    waitFor(3);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(Buffer.buffer(expected), onFailure(err -> {
@@ -237,6 +238,7 @@ public class SockJSWriteTest extends SockJSTestBase {
     startServers();
     client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
+      complete();
     }));
     await();
   }
