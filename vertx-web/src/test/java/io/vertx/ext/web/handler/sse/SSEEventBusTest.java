@@ -13,7 +13,7 @@ public class SSEEventBusTest extends SSEBaseTest {
     String sentMsg = "just-a-string";
     eventSource()
       .onMessage(msg -> {
-        assertEquals(sentMsg, msg.replace("\n", ""));
+        assertEquals(sentMsg, msg);
         latch.countDown();
       })
       .connect(SSE_EVENTBUS_ENDPOINT, res -> {
@@ -33,7 +33,7 @@ public class SSEEventBusTest extends SSEBaseTest {
         throw new RuntimeException("onMessage shouldn't have been called, onEvent should have");
       })
       .onEvent(eventName, msg -> {
-        assertEquals(sentMsg, msg.replace("\n", "")); // FIXME: this does not conform to the spec: https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format
+        assertEquals(sentMsg, msg);
         latch.countDown();
       })
       .connect(SSE_EVENTBUS_ENDPOINT, res -> {
@@ -74,7 +74,7 @@ public class SSEEventBusTest extends SSEBaseTest {
         throw new RuntimeException("onMessage shouldn't have been called, onEvent should have");
       })
       .onEvent(eventName, msg -> {
-        assertEquals(sentMsg, msg.replace("\n", "")); // FIXME: this does not conform to the spec: https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format
+        assertEquals(sentMsg, msg);
         assertEquals(idName, es.lastId());
         latch.countDown();
       })

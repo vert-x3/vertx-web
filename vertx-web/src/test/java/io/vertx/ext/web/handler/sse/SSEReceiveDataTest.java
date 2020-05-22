@@ -35,7 +35,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
       assertNull(handler.cause());
       assertNotNull(connection);
       eventSource.onMessage(msg -> {
-        assertEquals(message + "\n", msg);
+        assertEquals(message, msg);
         latch.countDown();
       });
       connection.data(message);
@@ -55,7 +55,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
       assertNotNull(connection);
       final List<String> received = new ArrayList<>();
       eventSource.onMessage(msg -> {
-        received.add(msg.substring(0, msg.length() - 1)); /* remove trailing linefeed */
+        received.add(msg);
         if (received.size() == quotes.size()) {
           for (int i = 0; i < received.size(); i++) {
             assertEquals("Received quotes don't match", quotes.get(i), received.get(i));
@@ -84,7 +84,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
         throw new RuntimeException("this handler should not be called, at all !");
       });
       eventSource.addEventListener(eventName, msg -> {
-        assertEquals(quote + "\n", msg);
+        assertEquals(quote, msg);
         latch.countDown();
       });
       connection.event(eventName);
@@ -106,7 +106,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
       assertNotNull(connection);
       String quote = quotes.get(2);
       eventSource.onMessage(msg -> {
-        assertEquals(quote + "\n", msg);
+        assertEquals(quote, msg);
         assertEquals(id, eventSource.lastId());
         eventSource.close();
         eventSource.connect(SSE_ENDPOINT + "?token=" + TOKEN, eventSource.lastId(), secondHandler -> {

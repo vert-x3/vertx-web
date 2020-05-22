@@ -48,11 +48,10 @@ class SSEPacket {
       }
       final String type = line.substring(0, idx);
       final String data = line.substring(idx + 2);
-      if (i == 0 && !"data".equals(type)) {
-        Optional<SSEHeaders> header = SSEHeaders.fromString(type);
-        header.ifPresent(h -> headers.put(h, data));
+      if (!"data".equals(type)) {
+        SSEHeaders.fromString(type).ifPresent(h -> headers.put(h, data));
       } else {
-        payload.append(data).append(LINE_SEPARATOR); // FIXME: this does not conform to the spec
+        payload.append(data);
       }
     }
     return willTerminate;
