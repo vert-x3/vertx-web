@@ -39,13 +39,12 @@ public class SockJSAsyncHandlerTest extends SockJSTestBase {
 
   @Test
   public void testHandleMessageFromXhrTransportWithAsyncHandler() throws Exception {
-    socketHandler = () -> {
-      return socket -> {
-        socket.handler(buf -> {
-          assertEquals("Hello World", buf.toString());
-          testComplete();
-        });
-      };
+    waitFor(2);
+    socketHandler = () -> socket -> {
+      socket.handler(buf -> {
+        assertEquals("Hello World", buf.toString());
+        complete();
+      });
     };
 
     startServers();
@@ -53,7 +52,10 @@ public class SockJSAsyncHandlerTest extends SockJSTestBase {
     client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
 
-      client.post("/test/400/8ne8e94a/xhr_send", Buffer.buffer("\"Hello World\""), onSuccess(respSend -> assertEquals(204, respSend.statusCode())));
+      client.post("/test/400/8ne8e94a/xhr_send", Buffer.buffer("\"Hello World\""), onSuccess(respSend -> {
+        assertEquals(204, respSend.statusCode());
+        complete();
+      }));
     }));
 
     await();
