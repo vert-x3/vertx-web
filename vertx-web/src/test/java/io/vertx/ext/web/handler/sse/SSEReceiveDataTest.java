@@ -162,6 +162,20 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     assertEquals(expectedIds, idsReceived);
   }
 
+  @Test
+  public void testMultilineData() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    eventSource()
+      .onMessage(msg -> {
+        assertEquals(multilineMsg, msg);
+        latch.countDown();
+      })
+      .connect(SSE_MULTILINE_ENDPOINT, res -> {
+        assertFalse(res.failed());
+      });
+    awaitLatch(latch);
+  }
+
   private List<String> createData() {
     final List<String> data = new ArrayList<>(3);
     data.add("Happiness is a warm puppy");

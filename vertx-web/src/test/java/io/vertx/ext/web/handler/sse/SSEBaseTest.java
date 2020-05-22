@@ -33,6 +33,7 @@ abstract class SSEBaseTest extends VertxTestBase {
 
   protected final String TOKEN = "test";
   protected final String EB_ADDRESS = "eb-forward-sse";
+  protected String multilineMsg = "Some message split across multiple lines";
   protected final static String SSE_NO_CONTENT_ENDPOINT = "/sse-no-content";
   protected final static String SSE_REJECT_ODDS = "/sse-reject-odds";
   protected final static String SSE_RESET_CONTENT_ENDPOINT = "/sse-reset-content";
@@ -41,13 +42,12 @@ abstract class SSEBaseTest extends VertxTestBase {
   protected final static String SSE_EVENTBUS_ENDPOINT = "/sse-eventbus";
   protected final static String SSE_MULTIPLE_MESSAGES_ENDPOINT = "/sse-multiple-messages";
   protected final static String SSE_ID_TEST_ENDPOINT = "/sse-id-tests";
+  protected final static String SSE_MULTILINE_ENDPOINT = "/sse-multiline";
   protected final static String SSE_ENDPOINT = "/sse";
 
   private final static Integer PORT = 9009;
 
-
   protected SSEConnection connection;
-  protected SSEHandler sseHandler;
 
   private HttpServer server;
   private HttpClientOptions options;
@@ -60,7 +60,7 @@ abstract class SSEBaseTest extends VertxTestBase {
     options.setPort(PORT);
     server = vertx.createHttpServer(options);
     Router router = Router.router(vertx);
-    sseHandler = SSEHandler.create();
+    SSEHandler sseHandler = SSEHandler.create();
     sseHandler.connectHandler(connection -> {
       this.connection = connection; // accept
     });
@@ -75,7 +75,11 @@ abstract class SSEBaseTest extends VertxTestBase {
         rc.next();
       }
     });
+    router.get(SSE_ENDPOINT).handler(sseHandler);
+
     router.get(SSE_NO_CONTENT_ENDPOINT).handler(rc -> rc.response().setStatusCode(204).end());
+    router.get(SSE_RESET_CONTENT_ENDPOINT).handler(rc -> rc.response().setStatusCode(205).end());
+
     SSEHandler sseReconnectHandler = SSEHandler.create();
     AtomicInteger nbSSEConn = new AtomicInteger(0);
     sseReconnectHandler.connectHandler(conn -> {
@@ -84,10 +88,12 @@ abstract class SSEBaseTest extends VertxTestBase {
       }
     });
     router.get(SSE_RECONNECT_ENDPOINT).handler(sseReconnectHandler);
+
     router.get(SSE_REDIRECT_ENDPOINT).handler(rc -> {
       rc.response().putHeader(HttpHeaders.LOCATION.toString(), SSE_ENDPOINT + "?token=" + TOKEN);
       rc.response().setStatusCode(302).end();
     });
+
     AtomicInteger nbConnections = new AtomicInteger(0);
     router.get(SSE_REJECT_ODDS).handler(rc -> {
       if (nbConnections.incrementAndGet() % 2 == 1) {
@@ -96,8 +102,7 @@ abstract class SSEBaseTest extends VertxTestBase {
         sseHandler.handle(rc);
       }
     });
-    router.get(SSE_RESET_CONTENT_ENDPOINT).handler(rc -> rc.response().setStatusCode(205).end());
-    router.get(SSE_ENDPOINT).handler(sseHandler);
+
     SSEHandler sseEventBusHandler = SSEHandler.create();
     sseEventBusHandler.connectHandler(conn -> conn.forward(EB_ADDRESS));
     router.get(SSE_EVENTBUS_ENDPOINT).handler(sseEventBusHandler);
@@ -107,6 +112,7 @@ abstract class SSEBaseTest extends VertxTestBase {
       conn.data("some-data");
       vertx.setTimer(500, l -> conn.data("some-other-data-without-id"));
     });
+
     router.get(SSE_MULTIPLE_MESSAGES_ENDPOINT).handler(sseMultipleMessages);
     SSEHandler sseIds = SSEHandler.create();
     AtomicLong timerId = new AtomicLong(-1L);
@@ -128,6 +134,19 @@ abstract class SSEBaseTest extends VertxTestBase {
       conn.closeHandler(c -> vertx.cancelTimer(timerId.get()));
     });
     router.get(SSE_ID_TEST_ENDPOINT).handler(sseIds);
+
+
+    router.get(SSE_MULTILINE_ENDPOINT).handler(
+      SSEHandler.create().connectHandler(conn -> {
+        String[] splitted = multilineMsg.split(" ");
+        conn.data(splitted[0], true);
+        for (int i = 1; i < splitted.length - 1; i++) {
+          conn.data(" " + splitted[i], true);
+        }
+        conn.data(" " + splitted[splitted.length -1 ]);
+      })
+    );
+
     server.requestHandler(router);
     server.listen(ar -> {
       if (ar.failed()) {
@@ -142,7 +161,6 @@ abstract class SSEBaseTest extends VertxTestBase {
   public void tearDown() throws Exception {
     super.tearDown();
     connection = null;
-    sseHandler = null;
   }
 
   EventSource eventSource(long retryPeriod) {
