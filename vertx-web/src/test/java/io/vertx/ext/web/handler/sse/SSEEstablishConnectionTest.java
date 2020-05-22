@@ -14,7 +14,7 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.sse.impl;
+package io.vertx.ext.web.handler.sse;
 
 import io.vertx.core.VertxException;
 import org.junit.Test;
