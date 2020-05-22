@@ -60,8 +60,8 @@ public class SSEConnectionImpl implements SSEConnection {
   }
 
   @Override
-  public synchronized SSEConnection data(String data) {
-    return writeData(data);
+  public synchronized SSEConnection data(String data, boolean multiline) {
+    return writeData(data, multiline);
   }
 
   @Override
@@ -109,8 +109,8 @@ public class SSEConnectionImpl implements SSEConnection {
     return this;
   }
 
-  private synchronized SSEConnection writeData(String data) {
-    context.response().write("data: " + data + PACKET_SEPARATOR);
+  private synchronized SSEConnection writeData(String data, boolean multiline) {
+    context.response().write("data: " + data + (multiline ? MSG_SEPARATOR : PACKET_SEPARATOR));
     return this;
   }
 

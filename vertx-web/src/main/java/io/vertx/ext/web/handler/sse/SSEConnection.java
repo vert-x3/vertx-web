@@ -40,7 +40,12 @@ public interface SSEConnection {
   SSEConnection retry(long delay);
 
   @Fluent
-  SSEConnection data(String data);
+  default SSEConnection data(String data) {
+    return data(data, false);
+  }
+
+  @Fluent
+  SSEConnection data(String data, boolean multiline);
 
   @Fluent
   SSEConnection event(String eventName);
