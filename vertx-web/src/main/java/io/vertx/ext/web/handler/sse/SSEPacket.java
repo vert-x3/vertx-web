@@ -14,9 +14,10 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.sse.impl;
+package io.vertx.ext.web.handler.sse;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.handler.sse.SSEHeaders;
 
 import java.util.HashMap;
 import java.util.Map;

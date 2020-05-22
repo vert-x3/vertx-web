@@ -14,7 +14,7 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.sse.impl;
+package io.vertx.ext.web.handler.sse;
 
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -24,6 +24,7 @@ import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sse.SSEConnection;
+import io.vertx.ext.web.handler.sse.SSEHeaders;
 
 import java.util.ArrayList;
 import java.util.List;

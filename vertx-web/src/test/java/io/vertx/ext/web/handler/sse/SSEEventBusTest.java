@@ -1,7 +1,6 @@
-package io.vertx.ext.web.handler.sse.impl;
+package io.vertx.ext.web.handler.sse;
 
 import io.vertx.core.eventbus.DeliveryOptions;
-import io.vertx.ext.web.handler.sse.EventSource;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;

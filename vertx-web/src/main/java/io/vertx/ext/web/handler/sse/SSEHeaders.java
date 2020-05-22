@@ -14,15 +14,20 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.sse.impl;
+package io.vertx.ext.web.handler.sse;
 
 import io.vertx.codegen.annotations.VertxGen;
 
 import java.util.Arrays;
 import java.util.Optional;
 
+/**
+ * Enumeration describing Event-Stream message types
+ * This enumeration is public since it can be used as EventBus message headers,
+ * in case the user needs to forward messages from the event-bus with metadata (like "event:", or "id:")
+ */
 @VertxGen
-enum SSEHeaders {
+public enum SSEHeaders {
   EVENT("event"),
   ID("id"),
   RETRY("retry"),
