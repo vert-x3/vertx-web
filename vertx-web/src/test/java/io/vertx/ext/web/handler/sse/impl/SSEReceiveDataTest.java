@@ -14,8 +14,9 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.sse;
+package io.vertx.ext.web.handler.sse.impl;
 
+import io.vertx.ext.web.handler.sse.EventSource;
 import org.junit.Test;
 
 import java.util.ArrayList;

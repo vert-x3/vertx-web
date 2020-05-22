@@ -33,6 +33,8 @@ import io.vertx.ext.web.handler.sse.EventSourceOptions;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class EventSourceImpl implements EventSource {
 
@@ -127,23 +129,24 @@ public class EventSourceImpl implements EventSource {
       currentPacket = new SSEPacket();
     }
     boolean terminated = currentPacket.append(buffer);
+    Optional<Handler<String>> eventHandler = Optional.empty();
     if (terminated) {
-      // choose the right handler and call it
-      Handler<String> handler = messageHandler;
-      String header = currentPacket.headerName;
-      if (header == null) {
-        messageHandler.handle(currentPacket.toString());
+      for (SSEHeaders header : currentPacket.headers().keySet()) {
+        String value = currentPacket.headers().get(header);
+        switch (header) {
+          case ID:
+          case LAST_EVENT_ID:
+            lastId = value;
+            break;
+          case EVENT:
+            eventHandler = Optional.ofNullable(eventHandlers.get(value));
+            break;
+        }
+      }
+      if (eventHandler.isPresent()) {
+        eventHandler.get().handle(currentPacket.toString());
       } else {
-        final String headerName = currentPacket.headerName;
-        if (headerName.equalsIgnoreCase(SSEHeaders.EVENT.toString())) {
-          handler = eventHandlers.get(currentPacket.headerValue);
-        }
-        if (headerName.equalsIgnoreCase(SSEHeaders.ID.toString())) {
-          lastId = currentPacket.headerValue;
-        }
-        if (handler != null) {
-          handler.handle(currentPacket.toString());
-        }
+        messageHandler.handle(currentPacket.toString());
       }
       currentPacket = null;
     }

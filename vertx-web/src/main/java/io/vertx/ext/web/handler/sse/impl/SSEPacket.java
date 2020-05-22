@@ -18,6 +18,10 @@ package io.vertx.ext.web.handler.sse.impl;
 
 import io.vertx.core.buffer.Buffer;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 class SSEPacket {
 
   private static final String END_OF_PACKET = "\n\n";
@@ -25,8 +29,7 @@ class SSEPacket {
   private static final String FIELD_SEPARATOR = ":";
 
   private final StringBuilder payload;
-  String headerName;
-  String headerValue;
+  private final Map<SSEHeaders, String> headers = new HashMap<>();
 
   SSEPacket() {
     payload = new StringBuilder();
@@ -44,14 +47,18 @@ class SSEPacket {
       }
       final String type = line.substring(0, idx);
       final String data = line.substring(idx + 2);
-      if (i == 0 && headerName == null && !"data".equals(type)) {
-        headerName = type;
-        headerValue = data;
+      if (i == 0 && !"data".equals(type)) {
+        Optional<SSEHeaders> header = SSEHeaders.fromString(type);
+        header.ifPresent(h -> headers.put(h, data));
       } else {
-        payload.append(data).append(LINE_SEPARATOR);
+        payload.append(data).append(LINE_SEPARATOR); // FIXME: this does not conform to the spec
       }
     }
     return willTerminate;
+  }
+
+  public Map<SSEHeaders, String> headers() {
+    return headers;
   }
 
   @Override
