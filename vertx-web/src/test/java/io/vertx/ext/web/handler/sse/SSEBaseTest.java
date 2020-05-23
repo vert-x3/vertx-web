@@ -23,6 +23,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.test.core.VertxTestBase;
 
 import java.util.concurrent.CountDownLatch;
@@ -60,93 +61,16 @@ abstract class SSEBaseTest extends VertxTestBase {
     options.setPort(PORT);
     server = vertx.createHttpServer(options);
     Router router = Router.router(vertx);
-    SSEHandler sseHandler = SSEHandler.create();
-    sseHandler.connectHandler(connection -> {
-      this.connection = connection; // accept
-    });
-    router.get(SSE_ENDPOINT).handler(rc -> {
-      final HttpServerRequest request = rc.request();
-      final String token = request.getParam("token");
-      if (token == null) {
-        rc.fail(401);
-      } else if (!TOKEN.equals(token)) {
-        rc.fail(403);
-      } else {
-        rc.next();
-      }
-    });
-    router.get(SSE_ENDPOINT).handler(sseHandler);
-
+    // Non-SSE handlers
     router.get(SSE_NO_CONTENT_ENDPOINT).handler(rc -> rc.response().setStatusCode(204).end());
     router.get(SSE_RESET_CONTENT_ENDPOINT).handler(rc -> rc.response().setStatusCode(205).end());
-
-    SSEHandler sseReconnectHandler = SSEHandler.create();
-    AtomicInteger nbSSEConn = new AtomicInteger(0);
-    sseReconnectHandler.connectHandler(conn -> {
-      if (nbSSEConn.incrementAndGet() <= 1) {
-        conn.close(); // force a reconnect on client side
-      }
-    });
-    router.get(SSE_RECONNECT_ENDPOINT).handler(sseReconnectHandler);
-
     router.get(SSE_REDIRECT_ENDPOINT).handler(rc -> {
+      // Client-side redirect
       rc.response().putHeader(HttpHeaders.LOCATION.toString(), SSE_ENDPOINT + "?token=" + TOKEN);
       rc.response().setStatusCode(302).end();
     });
-
-    AtomicInteger nbConnections = new AtomicInteger(0);
-    router.get(SSE_REJECT_ODDS).handler(rc -> {
-      if (nbConnections.incrementAndGet() % 2 == 1) {
-        rc.response().setStatusCode(204).end();
-      } else {
-        sseHandler.handle(rc);
-      }
-    });
-
-    SSEHandler sseEventBusHandler = SSEHandler.create();
-    sseEventBusHandler.connectHandler(conn -> conn.forward(EB_ADDRESS));
-    router.get(SSE_EVENTBUS_ENDPOINT).handler(sseEventBusHandler);
-    SSEHandler sseMultipleMessages = SSEHandler.create();
-    sseMultipleMessages.connectHandler(conn -> {
-      conn.id("some-id");
-      conn.data("some-data");
-      vertx.setTimer(500, l -> conn.data("some-other-data-without-id"));
-    });
-
-    router.get(SSE_MULTIPLE_MESSAGES_ENDPOINT).handler(sseMultipleMessages);
-    SSEHandler sseIds = SSEHandler.create();
-    AtomicLong timerId = new AtomicLong(-1L);
-    sseIds.connectHandler(conn -> {
-      AtomicInteger idCounter = new AtomicInteger(0);
-      if (conn.lastId() != null) {
-        idCounter.set(Integer.parseInt(conn.lastId()));
-      }
-      AtomicInteger counterForConnection = new AtomicInteger(0);
-      vertx.setPeriodic(150, id -> {
-        if (counterForConnection.incrementAndGet() >= 3) {
-          conn.close(); // client will reconnect automatically, hopefully using its last id
-          return;
-        }
-        timerId.set(id);
-        conn.id(Integer.toString(idCounter.incrementAndGet()));
-        conn.data("some-data");
-      });
-      conn.closeHandler(c -> vertx.cancelTimer(timerId.get()));
-    });
-    router.get(SSE_ID_TEST_ENDPOINT).handler(sseIds);
-
-
-    router.get(SSE_MULTILINE_ENDPOINT).handler(
-      SSEHandler.create().connectHandler(conn -> {
-        String[] splitted = multilineMsg.split(" ");
-        conn.data(splitted[0], true);
-        for (int i = 1; i < splitted.length - 1; i++) {
-          conn.data(" " + splitted[i], true);
-        }
-        conn.data(" " + splitted[splitted.length -1 ]);
-      })
-    );
-
+    // Proper SSE handlers
+    attachSSEHandlers(router);
     server.requestHandler(router);
     server.listen(ar -> {
       if (ar.failed()) {
@@ -181,6 +105,100 @@ abstract class SSEBaseTest extends VertxTestBase {
       options.setDefaultPort(PORT);
     }
     return new EventSourceOptions(options);
+  }
+
+  private void attachSSEHandlers(Router router) {
+    // A simple SSE handler that doesn't do anything specific apart accepting the connection
+    SSEHandler sseHandler = SSEHandler.create();
+    sseHandler.connectHandler(connection -> {
+      this.connection = connection; // accept
+    });
+    router.get(SSE_ENDPOINT).handler(this::protectEndpoint);
+    router.get(SSE_ENDPOINT).handler(sseHandler);
+
+    // The purpose of this handler is to close the connection the first time a client connects, to force it to reconnect
+    SSEHandler sseReconnectHandler = SSEHandler.create();
+    AtomicInteger nbSSEConn = new AtomicInteger(0);
+    sseReconnectHandler.connectHandler(conn -> {
+      if (nbSSEConn.incrementAndGet() <= 1) {
+        conn.close(); // force a reconnect on client side
+      }
+    });
+    router.get(SSE_RECONNECT_ENDPOINT).handler(sseReconnectHandler);
+
+    // Rejects one connect out of 2 by sending "No content"
+    AtomicInteger nbConnections = new AtomicInteger(0);
+    router.get(SSE_REJECT_ODDS).handler(rc -> {
+      if (nbConnections.incrementAndGet() % 2 == 1) {
+        rc.response().setStatusCode(204).end();
+      } else {
+        sseHandler.handle(rc);
+      }
+    });
+
+    // Forwards messages from the event bus to an SSE connection
+    SSEHandler sseEventBusHandler = SSEHandler.create();
+    sseEventBusHandler.connectHandler(conn -> conn.forward(EB_ADDRESS));
+    router.get(SSE_EVENTBUS_ENDPOINT).handler(sseEventBusHandler);
+    SSEHandler sseMultipleMessages = SSEHandler.create();
+    sseMultipleMessages.connectHandler(conn -> {
+      conn.id("some-id");
+      conn.data("some-data");
+      vertx.setTimer(500, l -> conn.data("some-other-data-without-id"));
+    });
+
+    // Sends multiple times the same message to the connection periodically, incrementing its "id" every time a message is sent
+    router.get(SSE_MULTIPLE_MESSAGES_ENDPOINT).handler(sseMultipleMessages);
+    SSEHandler sseIds = SSEHandler.create();
+    AtomicLong timerId = new AtomicLong(-1L);
+    sseIds.connectHandler(conn -> {
+      AtomicInteger idCounter = new AtomicInteger(0);
+      if (conn.lastId() != null) {
+        idCounter.set(Integer.parseInt(conn.lastId()));
+      }
+      AtomicInteger counterForConnection = new AtomicInteger(0);
+      vertx.setPeriodic(150, id -> {
+        if (counterForConnection.incrementAndGet() >= 3) {
+          conn.close(); // client will reconnect automatically, hopefully using its last id
+          return;
+        }
+        timerId.set(id);
+        conn.id(Integer.toString(idCounter.incrementAndGet()));
+        conn.data("some-data");
+      });
+      // clear the timer when the connection is closed
+      conn.closeHandler(c -> {
+        if (timerId.get() > 0) {
+          vertx.cancelTimer(timerId.get());
+        }
+      });
+    });
+    router.get(SSE_ID_TEST_ENDPOINT).handler(sseIds);
+
+    // Sends data in an SSE connection, splitting it in multiple lines
+    router.get(SSE_MULTILINE_ENDPOINT).handler(
+      SSEHandler.create().connectHandler(conn -> {
+        String[] splitted = multilineMsg.split(" ");
+        conn.data(splitted[0], true);
+        for (int i = 1; i < splitted.length - 1; i++) {
+          conn.data(" " + splitted[i], true);
+        }
+        conn.data(" " + splitted[splitted.length -1 ]);
+      })
+    );
+  }
+
+  // Mimics a very trivial `AuthHandler`. Only accepts connections if the expected "token" query param is sent
+  private void protectEndpoint(RoutingContext rc) {
+    HttpServerRequest request = rc.request();
+    String token = request.getParam("token");
+    if (token == null) {
+      rc.fail(401);
+    } else if (!TOKEN.equals(token)) {
+      rc.fail(403);
+    } else {
+      rc.next();
+    }
   }
 
 }
