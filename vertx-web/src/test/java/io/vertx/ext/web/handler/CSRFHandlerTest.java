@@ -20,7 +20,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.handler.impl.HttpStatusException;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.AfterClass;
@@ -56,8 +55,6 @@ public class CSRFHandlerTest extends WebTestBase {
     }, 200, "OK", null);
   }
 
-  Throwable failure;
-
   @Test
   public void testPostWithoutHeader() throws Exception {
 
@@ -66,16 +63,11 @@ public class CSRFHandlerTest extends WebTestBase {
 
     router.route().handler(CSRFHandler.create(vertx, "Abracadabra"));
     router.route().handler(rc -> rc.response().end());
-    router.errorHandler(403, rc -> {
-      failure = rc.failure();
-      latch.countDown();
-    });
+    router.errorHandler(403, rc -> latch.countDown());
 
     testRequest(HttpMethod.POST, "/", null, null, 403, "Forbidden", null);
 
     latch.await();
-    assertTrue(failure instanceof HttpStatusException);
-    assertEquals(((HttpStatusException)failure).getPayload(), CSRFHandler.ERROR_MESSAGE);
   }
 
   String rawCookie;
@@ -191,13 +183,11 @@ public class CSRFHandlerTest extends WebTestBase {
 
   @Test
   public void testPostWithCustomResponseBody() throws Exception {
-    final String expectedResponseBody = "Expected response body";
-
-    router.route().handler(CSRFHandler.create(vertx, "Abracadabra").setTimeout(1).setResponseBody(expectedResponseBody));
+    router.route().handler(CSRFHandler.create(vertx, "Abracadabra").setTimeout(1));
     router.route().handler(rc -> rc.response().end());
 
     testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
-      "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34="), null, 403, "Forbidden", expectedResponseBody);
+      "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34="), null, 403, "Forbidden", "Forbidden");
   }
 
   @Test
@@ -244,14 +234,29 @@ public class CSRFHandlerTest extends WebTestBase {
       for (String cookie : cookies) {
         encodedCookie += cookie.substring(0, cookie.indexOf(';'));
         encodedCookie += "; ";
+        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+          tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
+        }
       }
       cookieJar.set(encodedCookie);
     }, 200, "OK", null);
 
     // POST shall be OK as the token is on the session
-    testRequest(HttpMethod.POST, "/", req -> req.putHeader("cookie", cookieJar.get()), null, 200, "OK", null);
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.putHeader("cookie", cookieJar.get());
+      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+    }, res -> {
+      List<String> cookies = res.headers().getAll("set-cookie");
+      // as this request was fine, we must invalidate the old cookie
+      assertEquals(1, cookies.size());
+    }, 200, "OK", null);
     // POST shall be Forbidded as the token is now removed from the session (can only be used once)
-    testRequest(HttpMethod.POST, "/", req -> req.putHeader("cookie", cookieJar.get()), null, 403, "Forbidden", null);
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.putHeader("cookie", cookieJar.get());
+      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+    }, res -> {
+
+    }, 403, "Forbidden", null);
   }
 
   @Test
@@ -271,13 +276,60 @@ public class CSRFHandlerTest extends WebTestBase {
       for (String cookie : cookies) {
         encodedCookie += cookie.substring(0, cookie.indexOf(';'));
         encodedCookie += "; ";
+        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+          tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
+        }
       }
       cookieJar.set(encodedCookie);
     }, 200, "OK", null);
 
     // GET shall not have any impact on the token as they are on the session, so we can reuse it further on...
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", cookieJar.get()), null, 200, "OK", null);
+    testRequest(HttpMethod.GET, "/", req -> {
+      req.putHeader("cookie", cookieJar.get());
+    }, res -> {
+      List<String> cookies = res.headers().getAll("set-cookie");
+      // as there is a session, the cookie jar should be untouched
+      assertEquals(0, cookies.size());
+    }, 200, "OK", null);
     // POST shall be OK as the token is on the session
-    testRequest(HttpMethod.POST, "/", req -> req.putHeader("cookie", cookieJar.get()), null, 200, "OK", null);
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.putHeader("cookie", cookieJar.get());
+      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+    }, null, 200, "OK", null);
+  }
+
+  @Test
+  public void testPostWithHeaderAndOrigin() throws Exception {
+
+    router.route().handler(StaticHandler.create());
+    router.route("/xsrf").handler(CSRFHandler.create(vertx, "Abracadabra").setOrigin("http://myserver.com"));
+    router.route("/xsrf").handler(rc -> rc.response().end());
+
+    testRequest(HttpMethod.GET, "/xsrf", req -> {
+      req.putHeader("Origin", "http://myserver.com");
+    }, resp -> {
+      List<String> cookies = resp.headers().getAll("set-cookie");
+      String cookie = cookies.get(0);
+      rawCookie = cookie;
+      tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
+    }, 200, "OK", null);
+
+    testRequest(HttpMethod.POST, "/xsrf", req -> {
+      req.putHeader("Origin", "http://myserver.com");
+      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader("Cookie", rawCookie);
+    }, null, 200, "OK", null);
+  }
+
+  @Test
+  public void testPostWithHeaderAndWrongOrigin() throws Exception {
+
+    router.route().handler(StaticHandler.create());
+    router.route("/xsrf").handler(CSRFHandler.create(vertx, "Abracadabra").setOrigin("http://myserver.com"));
+    router.route("/xsrf").handler(rc -> rc.response().end());
+
+    testRequest(HttpMethod.GET, "/xsrf", req -> req.putHeader("Origin", "https://myserver.com"), null, 403, "Forbidden", null);
+    testRequest(HttpMethod.GET, "/xsrf", req -> req.putHeader("Origin", "http://myserver.com/"), null, 200, "OK", null);
+    testRequest(HttpMethod.GET, "/xsrf", req -> req.putHeader("Origin", "http://myserver.com:80"), null, 403, "Forbidden", null);
   }
 }
