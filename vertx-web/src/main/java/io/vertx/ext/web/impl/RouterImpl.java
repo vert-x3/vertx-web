@@ -276,15 +276,13 @@ public class RouterImpl implements Router {
   }
 
   @Override
-  public Router mountSubRouter(String mountPoint, Router subRouter) {
+  public Route mountSubRouter(String mountPoint, Router subRouter) {
     if (mountPoint.endsWith("*")) {
       throw new IllegalArgumentException("Don't include * when mounting a sub router");
     }
 
-    route(mountPoint + "*")
+    return route(mountPoint + "*")
       .subRouter(subRouter);
-
-    return this;
   }
 
   @Deprecated
