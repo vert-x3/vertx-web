@@ -1638,4 +1638,10 @@ public class WebExamples {
       });
     });
   }
+
+  public void example79(Router router, SessionStore store) {
+
+    router.route()
+      .handler(SessionHandler.create(store).setCookieless(true));
+  }
 }

@@ -42,28 +42,21 @@ public class SessionHandlerImpl implements SessionHandler {
   private static final Logger log = LoggerFactory.getLogger(SessionHandlerImpl.class);
 
   private final SessionStore sessionStore;
-  private String sessionCookieName;
-  private String sessionCookiePath;
-  private long sessionTimeout;
-  private boolean nagHttps;
-  private boolean sessionCookieSecure;
-  private boolean sessionCookieHttpOnly;
-  private int minLength;
-  private CookieSameSite cookieSameSite;
-  private boolean lazySession;
 
-  public SessionHandlerImpl(String sessionCookieName, String sessionCookiePath, long sessionTimeout, boolean nagHttps,
-                            boolean sessionCookieSecure, boolean sessionCookieHttpOnly, int minLength, boolean lazySession,
-                            SessionStore sessionStore) {
-    this.sessionCookieName = sessionCookieName;
-    this.sessionCookiePath = sessionCookiePath;
-    this.sessionTimeout = sessionTimeout;
-    this.nagHttps = nagHttps;
+  private String sessionCookieName = DEFAULT_SESSION_COOKIE_NAME;
+  private String sessionCookiePath = DEFAULT_SESSION_COOKIE_PATH;
+  private long sessionTimeout = DEFAULT_SESSION_TIMEOUT;
+  private boolean nagHttps = DEFAULT_NAG_HTTPS;
+  private boolean sessionCookieSecure = DEFAULT_COOKIE_SECURE_FLAG;
+  private boolean sessionCookieHttpOnly = DEFAULT_COOKIE_HTTP_ONLY_FLAG;
+  private int minLength = DEFAULT_SESSIONID_MIN_LENGTH;
+  private boolean lazySession = DEFAULT_LAZY_SESSION;
+
+  private boolean cookieless;
+  private CookieSameSite cookieSameSite;
+
+  public SessionHandlerImpl(SessionStore sessionStore) {
     this.sessionStore = sessionStore;
-    this.sessionCookieSecure = sessionCookieSecure;
-    this.sessionCookieHttpOnly = sessionCookieHttpOnly;
-    this.minLength = minLength;
-    this.lazySession = lazySession;
   }
 
   @Override
@@ -127,6 +120,12 @@ public class SessionHandlerImpl implements SessionHandler {
   }
 
   @Override
+  public SessionHandler setCookieless(boolean cookieless) {
+    this.cookieless = cookieless;
+    return this;
+  }
+
+  @Override
   public SessionHandler flush(RoutingContext context, Handler<AsyncResult<Void>> handler) {
     boolean sessionUsed = context.isSessionAccessed();
     Session session = context.session();
@@ -151,15 +150,20 @@ public class SessionHandlerImpl implements SessionHandler {
           // see:
           // https://www.owasp.org/index.php/Session_Management_Cheat_Sheet#Session_ID_Life_Cycle
 
-          // the session cookie needs to be updated to the new id
-          final Cookie cookie = sessionCookie(context, session);
-          // restore defaults
-          session.setAccessed();
-          cookie
-            .setValue(session.value())
-            .setPath(sessionCookiePath)
-            .setSecure(sessionCookieSecure)
-            .setHttpOnly(sessionCookieHttpOnly);
+          if (cookieless) {
+            // restore defaults
+            session.setAccessed();
+          } else {
+            // the session cookie needs to be updated to the new id
+            final Cookie cookie = sessionCookie(context, session);
+            // restore defaults
+            session.setAccessed();
+            cookie
+              .setValue(session.value())
+              .setPath(sessionCookiePath)
+              .setSecure(sessionCookieSecure)
+              .setHttpOnly(sessionCookieHttpOnly);
+          }
 
           // we must invalidate the old id
           sessionStore.delete(session.oldId(), delete -> {
@@ -178,8 +182,10 @@ public class SessionHandlerImpl implements SessionHandler {
             }
           });
         } else if (!lazySession || sessionUsed) {
-          // if lazy mode activated, no need to store the session nor to create the session cookie if not used.
-          sessionCookie(context, session);
+          if (!cookieless) {
+            // if lazy mode activated, no need to store the session nor to create the session cookie if not used.
+            sessionCookie(context, session);
+          }
           session.setAccessed();
           sessionStore.put(session, put -> {
             if (put.failed()) {
@@ -192,9 +198,10 @@ public class SessionHandlerImpl implements SessionHandler {
         }
       }
     } else {
-      // invalidate the cookie as the session has been destroyed
-      context.removeCookie(sessionCookieName);
-
+      if (!cookieless) {
+        // invalidate the cookie as the session has been destroyed
+        context.removeCookie(sessionCookieName);
+      }
       // if the session was regenerated in the request
       // the old id must also be removed
       if (session.isRegenerated()) {
@@ -238,49 +245,80 @@ public class SessionHandlerImpl implements SessionHandler {
       }
     }
 
-    // Look for existing session cookie
-    Cookie cookie = context.getCookie(sessionCookieName);
-    if (cookie != null) {
-      // Look up session
-      String sessionID = cookie.getValue();
-      if (sessionID != null && sessionID.length() > minLength) {
-        // we passed the OWASP min length requirements
-        getSession(context.vertx(), sessionID, res -> {
-          if (res.succeeded()) {
-            Session session = res.result();
-            if (session != null) {
-              context.setSession(session);
-              // attempt to load the user from the session
-              UserHolder holder = session.get(SESSION_USER_HOLDER_KEY);
-              if (holder != null) {
-                holder.refresh(context);
-              } else {
-                // signal we must store the user to link it to the
-                // session as it wasn't found
-                context.put(SESSION_STOREUSER_KEY, true);
-              }
-              addStoreSessionHandler(context);
+    // Look for existing session id
+    String sessionID = getSessionId(context);
+    if (sessionID != null && sessionID.length() > minLength) {
+      // we passed the OWASP min length requirements
+      getSession(context.vertx(), sessionID, res -> {
+        if (res.succeeded()) {
+          Session session = res.result();
+          if (session != null) {
+            context.setSession(session);
+            // attempt to load the user from the session
+            UserHolder holder = session.get(SESSION_USER_HOLDER_KEY);
+            if (holder != null) {
+              holder.refresh(context);
             } else {
-              // Cannot find session - either it timed out, or was explicitly destroyed at the
-              // server side on a
-              // previous request.
-
-              // OWASP clearly states that we shouldn't recreate the session as it allows
-              // session fixation.
-              // create a new anonymous session.
-              createNewSession(context);
+              // signal we must store the user to link it to the
+              // session as it wasn't found
+              context.put(SESSION_STOREUSER_KEY, true);
             }
+            addStoreSessionHandler(context);
           } else {
-            context.fail(res.cause());
+            // Cannot find session - either it timed out, or was explicitly destroyed at the
+            // server side on a
+            // previous request.
+
+            // OWASP clearly states that we shouldn't recreate the session as it allows
+            // session fixation.
+            // create a new anonymous session.
+            createNewSession(context);
           }
-          context.next();
-        });
-        return;
+        } else {
+          context.fail(res.cause());
+        }
+        context.next();
+      });
+    } else {
+      // requirements were not met, so a anonymous session is created.
+      createNewSession(context);
+      context.next();
+    }
+  }
+
+  private String getSessionId(RoutingContext  context) {
+    if (cookieless) {
+      // cookieless sessions store the session on the path or the request
+      // a session is identified by a sequence of characters between braces
+      String path = context.normalizedPath();
+      int s = -1;
+      int e = -1;
+      for (int i = 0; i < path.length(); i++) {
+        if (path.charAt(i) == '(') {
+          s = i + 1;
+          continue;
+        }
+        if (path.charAt(i) == ')') {
+          // if not open parenthesis yet
+          // this is a false end, continue looking
+          if (s != -1) {
+            e = i;
+            break;
+          }
+        }
+      }
+      if (s != -1 && e != -1 && s < e) {
+        return path.substring(s, e);
+      }
+    } else {
+      Cookie cookie = context.getCookie(sessionCookieName);
+      if (cookie != null) {
+        // Look up sessionId
+        return cookie.getValue();
       }
     }
-    // requirements were not met, so a anonymous session is created.
-    createNewSession(context);
-    context.next();
+
+    return null;
   }
 
   private void getSession(Vertx vertx, String sessionID, Handler<AsyncResult<Session>> resultHandler) {
@@ -324,7 +362,9 @@ public class SessionHandlerImpl implements SessionHandler {
   private void createNewSession(RoutingContext context) {
     Session session = sessionStore.createSession(sessionTimeout, minLength);
     context.setSession(session);
-    context.removeCookie(sessionCookieName, false);
+    if (!cookieless) {
+      context.removeCookie(sessionCookieName, false);
+    }
     // it's a new session we must store the user too otherwise it won't be linked
     context.put(SESSION_STOREUSER_KEY, true);
     addStoreSessionHandler(context);
