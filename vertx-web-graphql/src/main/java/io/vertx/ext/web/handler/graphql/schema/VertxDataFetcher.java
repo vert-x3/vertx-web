@@ -20,14 +20,19 @@ import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Context;
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.ext.web.handler.graphql.schema.impl.VertxDataFetcherImpl;
+import io.vertx.core.Vertx;
+import io.vertx.ext.web.handler.graphql.schema.impl.CallbackDataFetcherImpl;
+import io.vertx.ext.web.handler.graphql.schema.impl.FutureDataFetcherImpl;
 
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
- * A {@link DataFetcher} that works well with Vert.x callback-based APIs.
+ * A {@link DataFetcher} that works well with Vert.x callback and {@link Future} based APIs.
  *
  * @author Thomas Segismont
  */
@@ -35,15 +40,45 @@ import java.util.function.BiConsumer;
 public interface VertxDataFetcher<T> extends DataFetcher<CompletionStage<T>> {
 
   /**
-   * Create a new data fetcher.
-   * The provided function will be invoked with the following arguments:
+   * Create a new data fetcher that works well with callback based APIs.
+   * <p>
+   * The provided {@code dataFetcher} will be invoked with the following arguments:
    * <ul>
    * <li>the {@link DataFetchingEnvironment}</li>
-   * <li>a future that the implementor must complete after the data objects are fetched</li>
+   * <li>a {@link Promise} that the implementor must complete after the data objects are fetched</li>
    * </ul>
    */
   @GenIgnore
   static <T> VertxDataFetcher<T> create(BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher) {
-    return new VertxDataFetcherImpl<>(dataFetcher);
+    return create(dataFetcher, env -> Vertx.currentContext());
+  }
+
+  /**
+   * Like {@link #create(BiConsumer)}, except the method uses the provided {@code contextProvider} instead of capturing the current one.
+   */
+  @GenIgnore
+  static <T> VertxDataFetcher<T> create(BiConsumer<DataFetchingEnvironment, Promise<T>> dataFetcher, Function<DataFetchingEnvironment, Context> contextProvider) {
+    return new CallbackDataFetcherImpl<>(dataFetcher, contextProvider);
+  }
+
+  /**
+   * Create a new data fetcher that works well with {@link Future} based APIs.
+   * <p>
+   * The provided {@code dataFetcher} will be invoked with the following argument:
+   * <ul>
+   * <li>the {@link DataFetchingEnvironment}</li>
+   * </ul>
+   */
+  @GenIgnore
+  static <T> VertxDataFetcher<T> create(Function<DataFetchingEnvironment, Future<T>> dataFetcher) {
+    return create(dataFetcher, env -> Vertx.currentContext());
+  }
+
+  /**
+   * Like {@link #create(Function)}, except the method uses the provided {@code contextProvider} instead of capturing the current one.
+   */
+  @GenIgnore
+  static <T> VertxDataFetcher<T> create(Function<DataFetchingEnvironment, Future<T>> dataFetcher, Function<DataFetchingEnvironment, Context> contextProvider) {
+    return new FutureDataFetcherImpl<>(dataFetcher, contextProvider);
   }
 }
