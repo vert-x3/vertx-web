@@ -21,7 +21,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.webauthn.WebAuthn;
-import io.vertx.ext.auth.webauthn.WebAuthnInfo;
+import io.vertx.ext.auth.webauthn.WebAuthnCredentials;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -256,7 +256,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
 
           webAuthn.authenticate(
             // authInfo
-            new WebAuthnInfo()
+            new WebAuthnCredentials()
               .setChallenge(session.get("challenge"))
               .setUsername(session.get("username"))
               .setWebauthn(webauthnResp), authenticate -> {

@@ -341,18 +341,6 @@ public interface Router extends Handler<HttpServerRequest> {
   Route mountSubRouter(String mountPoint, Router subRouter);
 
   /**
-   * Specify a handler for any unhandled exceptions on this router. The handler will be called for exceptions thrown
-   * from handlers. This does not affect the normal failure routing logic.
-   *
-   * @param exceptionHandler  the exception handler
-   * @return a reference to this, so the API can be used fluently
-   * @deprecated you should use {@link Router#errorHandler(int, Handler)} with 500 status code
-   */
-  @Deprecated
-  @Fluent
-  Router exceptionHandler(@Nullable Handler<Throwable> exceptionHandler);
-
-  /**
    * Specify an handler to handle an error for a particular status code. You can use to manage general errors too using status code 500.
    * The handler will be called when the context fails and other failure handlers didn't write the reply or when an exception is thrown inside an handler.
    * You <b>must not</b> use {@link RoutingContext#next()} inside the error handler

@@ -285,15 +285,6 @@ public class RouterImpl implements Router {
       .subRouter(subRouter);
   }
 
-  @Deprecated
-  @Override
-  public synchronized Router exceptionHandler(Handler<Throwable> exceptionHandler) {
-    if (exceptionHandler != null) {
-      this.errorHandler(500, routingContext -> exceptionHandler.handle(routingContext.failure()));
-    }
-    return this;
-  }
-
   @Override
   public synchronized Router errorHandler(int statusCode, Handler<RoutingContext> errorHandler) {
     state = state.putErrorHandler(statusCode, errorHandler);
