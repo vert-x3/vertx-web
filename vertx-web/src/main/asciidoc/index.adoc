@@ -2354,6 +2354,21 @@ fetch('/process', {
 })
 ----
 
+== HSTSHandler
+
+HTTP Strict Transport Security (HSTS) is a web security policy mechanism that helps to protect websites against
+man-in-the-middle attacks such as protocol downgrade attacks and cookie hijacking. It allows web servers to declare that
+web browsers (or other complying user agents) should automatically interact with it using only HTTPS connections, which
+provide Transport Layer Security (TLS/SSL), unlike the insecure HTTP used alone. HSTS is an IETF standards track
+protocol and is specified in RFC 6797.
+
+This handler will configure the correct header for your application in a single step:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example80}
+----
+
 == OAuth2AuthHandler Handler
 
 The `OAuth2AuthHandler` allows quick setup of secure routes using the OAuth2 protocol. This handler simplifies the

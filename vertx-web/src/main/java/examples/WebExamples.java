@@ -1644,4 +1644,13 @@ public class WebExamples {
     router.route()
       .handler(SessionHandler.create(store).setCookieless(true));
   }
+
+  public void example80(Router router) {
+
+    // all responses will then include the right
+    // Strict-Transport-Security header if the
+    // connection is secure (using TLS/SSL, or
+    // the forwarding parsing is enabled
+    router.route().handler(HSTSHandler.create());
+  }
 }
