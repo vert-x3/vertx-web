@@ -23,7 +23,6 @@ import graphql.schema.idl.FieldWiringEnvironment;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.WiringFactory;
 import io.vertx.core.*;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
@@ -68,7 +67,7 @@ public class GraphQLExamples {
   public void handlerSetupGraphiQLAuthn(GraphiQLHandler graphiQLHandler, Router router) {
     graphiQLHandler.graphiQLRequestHeaders(rc -> {
       String token = rc.get("token");
-      return MultiMap.caseInsensitiveMultiMap().add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+      return MultiMap.caseInsensitiveMultiMap().add("Authorization", "Bearer " + token);
     });
 
     router.route("/graphiql/*").handler(graphiQLHandler);
@@ -129,53 +128,59 @@ public class GraphQLExamples {
       .build();
   }
 
-  public void completionStageInterop() {
-    DataFetcher<CompletionStage<List<Link>>> dataFetcher = environment -> {
-      Future<List<Link>> future = retrieveLinksFromBackend(environment);
-      return future.toCompletionStage();
-    };
-  }
-
   private void retrieveLinksFromBackend(DataFetchingEnvironment environment, Handler<AsyncResult<List<Link>>> handler) {
   }
 
-  private Future<List<Link>> retrieveLinksFromBackend(DataFetchingEnvironment environment) {
-    return null;
-  }
-
-  private void vertxDataFetcher() {
-    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create(this::retrieveLinksFromBackend);
+  public void callbackDataFetcher() {
+    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((env, promise) -> {
+      retrieveLinksFromBackend(env, promise);
+    });
 
     RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()
       .type("Query", builder -> builder.dataFetcher("allLinks", dataFetcher))
       .build();
   }
 
+  public void futureDataFetcher() {
+    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create(environment -> {
+      Future<List<Link>> future = retrieveLinksFromBackend(environment);
+      return future;
+    });
+
+    RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()
+      .type("Query", builder -> builder.dataFetcher("allLinks", dataFetcher))
+      .build();
+  }
+
+  private Future<List<Link>> retrieveLinksFromBackend(DataFetchingEnvironment environment) {
+    return null;
+  }
+
   class User {
   }
 
   private void routingContextInDataFetchingEnvironment() {
-    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((environment, future) -> {
+    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((environment, promise) -> {
 
       RoutingContext routingContext = environment.getContext();
 
       User user = routingContext.get("user");
 
-      retrieveLinksPostedBy(user, future);
+      retrieveLinksPostedBy(user, promise);
 
     });
   }
 
-  private void retrieveLinksPostedBy(User user, Handler<AsyncResult<List<Link>>> future) {
+  private void retrieveLinksPostedBy(User user, Handler<AsyncResult<List<Link>>> handler) {
   }
 
   private void customContextInDataFetchingEnvironment(Router router) {
-    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((environment, future) -> {
+    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((environment, promise) -> {
 
       // User as custom context object
       User user = environment.getContext();
 
-      retrieveLinksPostedBy(user, future);
+      retrieveLinksPostedBy(user, promise);
 
     });
 
@@ -195,13 +200,13 @@ public class GraphQLExamples {
     return null;
   }
 
-  private void jsonData() {
+  public void jsonData() {
     RuntimeWiring.Builder builder = RuntimeWiring.newRuntimeWiring();
 
     builder.wiringFactory(new WiringFactory() {
 
       @Override
-      public DataFetcher getDefaultDataFetcher(FieldWiringEnvironment environment) {
+      public DataFetcher<Object> getDefaultDataFetcher(FieldWiringEnvironment environment) {
 
         return VertxPropertyDataFetcher.create(environment.getFieldDefinition().getName());
 

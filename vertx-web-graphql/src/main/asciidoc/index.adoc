@@ -138,16 +138,16 @@ This is where the {@link io.vertx.ext.web.handler.graphql.schema.VertxDataFetche
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#vertxDataFetcher}
+{@link examples.GraphQLExamples#callbackDataFetcher}
 ----
 
 === Working with Vert.x Futures
 
-Vert.x {@link io.vertx.core.Future} can be converted to `CompletionStage`:
+{@link io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher} can also help with futurized APIs:
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#completionStageInterop}
+{@link examples.GraphQLExamples#futureDataFetcher}
 ----
 
 === Providing data fetchers with some context
