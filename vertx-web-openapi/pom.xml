@@ -28,7 +28,6 @@
   <artifactId>vertx-web-openapi</artifactId>
 
   <properties>
-    <stack.version>4.0.0-SNAPSHOT</stack.version>
     <doc.skip>false</doc.skip>
     <junit5.version>5.6.0</junit5.version>
     <mockito.version>3.3.0</mockito.version>
