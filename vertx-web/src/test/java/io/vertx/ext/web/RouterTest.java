@@ -2279,7 +2279,7 @@ public class RouterTest extends WebTestBase {
 
     for (int i = 0; i < multipleConnections; i++) {
       // using executeBlocking should create multiple connections
-      vertx.executeBlocking((new Random().nextBoolean() ? execute200Request : execute400Request), objectAsyncResult -> {
+      vertx.executeBlocking((new Random().nextBoolean() ? execute200Request : execute400Request), false, objectAsyncResult -> {
         assertTrue(objectAsyncResult.succeeded());
         latch.countDown();
       });
@@ -2511,7 +2511,7 @@ public class RouterTest extends WebTestBase {
         when(response.ended()).thenReturn(true);
         router.handle(request);
         future.complete();
-      }, asyncResult -> {
+      }, false, asyncResult -> {
         assertFalse(asyncResult.failed());
         assertNull(asyncResult.cause());
         latch.countDown();
