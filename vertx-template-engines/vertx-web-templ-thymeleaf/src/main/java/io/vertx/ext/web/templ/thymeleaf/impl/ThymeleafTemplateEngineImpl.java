@@ -25,6 +25,8 @@ import io.vertx.ext.web.common.WebEnvironment;
 import org.thymeleaf.IEngineConfiguration;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.IContext;
+import org.thymeleaf.context.IExpressionContext;
+import org.thymeleaf.linkbuilder.StandardLinkBuilder;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.StringTemplateResolver;
 import org.thymeleaf.templateresource.ITemplateResource;
@@ -55,6 +57,15 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
     this.templateResolver = templateResolver;
     this.templateEngine.setTemplateResolver(templateResolver);
+    // There's no servlet context in Vert.x, so we override default link builder
+    // See https://github.com/vert-x3/vertx-web/issues/161
+    this.templateEngine.setLinkBuilder(new StandardLinkBuilder() {
+      @Override
+      protected String computeContextPath(
+        final IExpressionContext context, final String base, final Map<String, Object> parameters) {
+        return "/";
+      }
+    });
   }
 
   @Override
