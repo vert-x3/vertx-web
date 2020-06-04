@@ -42,6 +42,4 @@ public interface ParamsTestService {
 
   void mapParams(Map<String, String> mapString, Map<String, Byte> mapByte, Map<String, Short> mapShort, Map<String, Integer> mapInt, Map<String, Long> mapLong, Map<String, JsonObject> mapJsonObject, Map<String, JsonArray> mapJsonArray, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 
-  Future<ServiceResponse> futureReturn(String str, ServiceRequest context);
-
 }

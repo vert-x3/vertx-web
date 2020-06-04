@@ -64,7 +64,6 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
       return;
     }
     TypeInfo returnType = m.getReturnType();
-    boolean returnFuture = ProxyModel.isFuture(returnType);
     writer
       .codeln(String.format("case \"%s\": {", m.getName()))
       .indent()
@@ -80,12 +79,7 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
       .code(String.format("service.%s(", m.getName()))
       .indent();
 
-    Stream<String> methodParamsTail;
-    if (returnFuture) {
-      methodParamsTail = Stream.of("context");
-    } else {
-      methodParamsTail = Stream.of("context", serviceCallHandler);
-    }
+    Stream<String> methodParamsTail = Stream.of("context", serviceCallHandler);
 
     writer.writeSeq(
       Stream.concat(
@@ -95,12 +89,7 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
       ",\n" + writer.indentation()
     );
     writer.unindent();
-    if (returnFuture) {
-      writer.print(")");
-      writer.println(".onComplete(" + generateFutureHandler((ParameterizedTypeInfo) returnType) + ");");
-    } else {
-      writer.write(");\n");
-    }
+    writer.write(");\n");
     writer.unindent()
       .codeln("} catch (Exception e) {")
       .indent()

@@ -51,9 +51,7 @@ public class WebApiProxyModel extends ProxyModel {
       // Check signature constraints
 
       TypeInfo ret;
-      if (ProxyModel.isFuture(returnType)) {
-        ret = ((ParameterizedTypeInfo)returnType).getArg(0);
-      } else if (baseInfo.getKind() == MethodKind.FUTURE) {
+      if (baseInfo.getKind() == MethodKind.FUTURE) {
         ret = ((ParameterizedTypeInfo) ((ParameterizedTypeInfo) mParams.get(mParams.size() - 1).getType()).getArg(0)).getArg(0);
       } else {
         throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);

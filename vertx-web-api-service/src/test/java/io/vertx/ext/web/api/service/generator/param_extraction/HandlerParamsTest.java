@@ -222,13 +222,4 @@ public class HandlerParamsTest {
     );
   }
 
-  @Test
-  public void testFutureReturn(Vertx vertx, VertxTestContext testContext) {
-    testServiceEndpoint(
-      "futureReturn",
-      new JsonObject().put("str", "aaa"),
-      vertx, testContext
-    );
-  }
-
 }
