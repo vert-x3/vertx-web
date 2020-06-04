@@ -125,47 +125,46 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSession() throws Exception {
-		router.route().handler(SessionHandler.create(store));
-		AtomicReference<String> rid = new AtomicReference<>();
-		AtomicInteger requestCount = new AtomicInteger();
-		router.route().handler(rc -> {
-			Session sess = rc.session();
-			assertNotNull(sess);
-			assertNotNull(sess.id());
-			switch (requestCount.get()) {
-			case 0:
-				rid.set(sess.id());
-				sess.put("foo", "bar");
-				break;
-			case 1:
-				assertEquals(rid.get(), sess.id());
-				assertEquals("bar", sess.get("foo"));
-				sess.put("eek", "wibble");
-				break;
-			case 2:
-				assertEquals(rid.get(), sess.id());
-				assertEquals("bar", sess.get("foo"));
-				assertEquals("wibble", sess.get("eek"));
-			}
-			requestCount.incrementAndGet();
-			rc.response().end();
-		});
-		AtomicReference<String> rSetCookie = new AtomicReference<>();
-		testRequest(HttpMethod.GET, "/", null, resp -> {
-			String setCookie = resp.headers().get("set-cookie");
-			rSetCookie.set(setCookie);
-		}, 200, "OK", null);
-		Thread.sleep(1000);
-		testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), resp -> {
-			String setCookie = resp.headers().get("set-cookie");
-			// if the cookie was regenerated
-			if (setCookie != null) {
-				rSetCookie.set(setCookie);
-			}
-		}, 200, "OK", null);
-		Thread.sleep(1000);
-		testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
-	}
+    SessionHandler sessionHandler = SessionHandler.create(store);
+    router.route().handler(sessionHandler);
+    AtomicReference<String> rid = new AtomicReference<>();
+    AtomicInteger requestCount = new AtomicInteger();
+    router.route().handler(rc -> {
+      Session sess = rc.session();
+      assertNotNull(sess);
+      assertNotNull(sess.id());
+      switch (requestCount.get()) {
+        case 0:
+          rid.set(sess.id());
+          sess.put("foo", "bar");
+          break;
+        case 1:
+          assertEquals(rid.get(), sess.id());
+          assertEquals("bar", sess.get("foo"));
+          sess.put("eek", "wibble");
+          break;
+        case 2:
+          assertEquals(rid.get(), sess.id());
+          assertEquals("bar", sess.get("foo"));
+          assertEquals("wibble", sess.get("eek"));
+      }
+      requestCount.incrementAndGet();
+      sessionHandler.flush(rc).onFailure(rc::fail).onSuccess(v -> rc.response().end());
+    });
+    AtomicReference<String> rSetCookie = new AtomicReference<>();
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      rSetCookie.set(setCookie);
+    }, 200, "OK", null);
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      // if the cookie was regenerated
+      if (setCookie != null) {
+        rSetCookie.set(setCookie);
+      }
+    }, 200, "OK", null);
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
+  }
 
 	@Test
 	public void testSessionExpires() throws Exception {
@@ -266,20 +265,19 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testLastAccessed1() throws Exception {
-		router.route().handler(SessionHandler.create(store));
-		AtomicReference<Session> rid = new AtomicReference<>();
-		long start = System.currentTimeMillis();
-		router.route().handler(rc -> {
-			rid.set(rc.session());
-			rc.response().end();
-		});
-		testRequest(HttpMethod.GET, "/", 200, "OK");
-		assertTrue(rid.get().lastAccessed() - start < 500);
-		start = System.currentTimeMillis();
-		Thread.sleep(1000);
-		testRequest(HttpMethod.GET, "/", 200, "OK");
-		assertTrue(rid.get().lastAccessed() - start >= 1000);
-	}
+    router.route().handler(SessionHandler.create(store));
+    AtomicReference<Session> rid = new AtomicReference<>();
+    router.route().handler(rc -> {
+      rid.set(rc.session());
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+    long start = rid.get().lastAccessed();
+    int millis = 250;
+    Thread.sleep(millis);
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+    assertTrue(rid.get().lastAccessed() - start >= millis);
+  }
 
 	@Test
 	public void testLastAccessed2() throws Exception {
