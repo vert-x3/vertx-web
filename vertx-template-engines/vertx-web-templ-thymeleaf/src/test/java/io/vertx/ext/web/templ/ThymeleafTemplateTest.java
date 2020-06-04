@@ -183,6 +183,9 @@ public class ThymeleafTemplateTest {
       .put("context", new JsonObject().put("path", "/test-thymeleaf-template2.html"));
 
     engine.render(context, "somedir/test-thymeleaf-fragmented.html", render -> {
+      if(render.cause()!=null) {
+        throw new RuntimeException(render.cause());
+      }
       should.assertTrue(render.succeeded());
 
       final String expected =
@@ -190,6 +193,7 @@ public class ThymeleafTemplateTest {
           "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
           "<head>\n" +
           "  <meta charset=\"utf-8\">\n" +
+          "  <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"/resources/images/favicon.png\">\n" +
           "</head>\n" +
           "<body>\n" +
           "<p>badger</p>\n" +
