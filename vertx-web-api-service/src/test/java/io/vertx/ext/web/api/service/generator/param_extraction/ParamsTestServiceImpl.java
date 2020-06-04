@@ -109,11 +109,4 @@ public class ParamsTestServiceImpl implements ParamsTestService {
         new JsonObject().put(mapJsonArray.keySet().iterator().next(), mapJsonArray.values().iterator().next())
     ))));
   }
-
-  @Override
-  public Future<ServiceResponse> futureReturn(String str, ServiceRequest context) {
-    return Future.succeededFuture(ServiceResponse.completedWithPlainText(Buffer.buffer(
-      "" + str
-    )));
-  }
 }
