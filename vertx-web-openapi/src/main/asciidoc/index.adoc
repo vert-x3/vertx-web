@@ -123,13 +123,13 @@ For debugging/testing purpose you can disable this check with {@link io.vertx.ex
 
 Router Factory automatically mounts a default handler for operations without a specified handler.
 This default handler fails the routing context with 405 `Method Not Allowed`/501 `Not Implemented` error.
-You can enable/disable it with {@link io.vertx.ext.web.api.contract.RouterFactoryOptions#setMountNotImplementedHandler}
+You can enable/disable it with {@link io.vertx.ext.web.openapi.RouterFactoryOptions#setMountNotImplementedHandler}
 and you can customize this error handling with {@link io.vertx.ext.web.Router#errorHandler}
 
 === Response Content Type Handler
 
 Router Factory automatically mounts a {@link io.vertx.ext.web.handler.ResponseContentTypeHandler} handler when contract requires it.
-You can disable this feature with {@link io.vertx.ext.web.api.contract.RouterFactoryOptions#setMountResponseContentTypeHandler}
+You can disable this feature with {@link io.vertx.ext.web.openapi.RouterFactoryOptions#setMountResponseContentTypeHandler}
 
 === Operation model
 
@@ -144,7 +144,7 @@ you can configure the router factory to push it inside the `RoutingContext` with
 === Body Handler
 
 Router Factory automatically mounts a {@link io.vertx.ext.web.handler.BodyHandler} to manage request bodies.
-You can configure the instance of {@link io.vertx.ext.web.handler.BodyHandler} (e.g. to change upload directory) with {@link io.vertx.ext.web.openapi.RouterFactoryOptions#setBodyHandler(BodyHandler)}.
+You can configure the instance of {@link io.vertx.ext.web.handler.BodyHandler} (e.g. to change upload directory) with {@link io.vertx.ext.web.openapi.RouterFactory#bodyHandler(BodyHandler)}.
 
 === `multipart/form-data` validation
 
