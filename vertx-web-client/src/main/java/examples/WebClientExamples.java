@@ -70,7 +70,8 @@ public class WebClientExamples {
       .send()
       .onSuccess(response -> System.out
         .println("Received response with status code" + response.statusCode()))
-      .onFailure(err -> System.out.println("Something went wrong " + err.getMessage()));
+      .onFailure(err ->
+        System.out.println("Something went wrong " + err.getMessage()));
 
     // Send a HEAD request
     client
@@ -78,7 +79,8 @@ public class WebClientExamples {
       .send()
       .onSuccess(response -> System.out
         .println("Received response with status code" + response.statusCode()))
-      .onFailure(err -> System.out.println("Something went wrong " + err.getMessage()));
+      .onFailure(err ->
+        System.out.println("Something went wrong " + err.getMessage()));
   }
 
   public void simpleGetWithParams(WebClient client) {
@@ -369,7 +371,8 @@ public class WebClientExamples {
             " " +
             user.getLastName());
       })
-      .onFailure(err -> System.out.println("Something went wrong " + err.getMessage()));
+      .onFailure(err ->
+        System.out.println("Something went wrong " + err.getMessage()));
   }
 
   public void receiveResponseAsWriteStream(WebClient client, WriteStream<Buffer> writeStream) {
