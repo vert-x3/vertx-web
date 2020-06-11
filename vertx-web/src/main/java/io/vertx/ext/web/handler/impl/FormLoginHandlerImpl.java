@@ -21,10 +21,10 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.FormLoginHandler;
@@ -94,7 +94,8 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
         context.fail(400);
       } else {
         Session session = context.session();
-        JsonObject authInfo = new JsonObject().put("username", username).put("password", password);
+        UsernamePasswordCredentials authInfo = new UsernamePasswordCredentials(username, password);
+
         authProvider.authenticate(authInfo, res -> {
           if (res.succeeded()) {
             User user = res.result();

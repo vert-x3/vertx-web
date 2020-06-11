@@ -22,6 +22,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -45,15 +46,15 @@ public interface AuthenticationHandler extends Handler<RoutingContext> {
    * @param context the routing context
    * @param handler the handler to be called once the information is available.
    */
-  void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler);
+  void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler);
 
   /**
    * @see AuthenticationHandler#parseCredentials(RoutingContext, Handler)
    * @param context the routing context
    * @return Future json
    */
-  default Future<JsonObject> parseCredentials(RoutingContext context) {
-    Promise<JsonObject> promise = Promise.promise();
+  default Future<Credentials> parseCredentials(RoutingContext context) {
+    Promise<Credentials> promise = Promise.promise();
     parseCredentials(context, promise);
     return promise.future();
   }

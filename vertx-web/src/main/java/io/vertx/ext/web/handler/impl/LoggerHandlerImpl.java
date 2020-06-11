@@ -52,7 +52,7 @@ public class LoggerHandlerImpl implements LoggerHandler {
    */
   private final boolean immediate;
 
-  /** the current choosen format
+  /** the current chosen format
    */
   private final LoggerFormat format;
 

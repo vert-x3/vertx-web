@@ -19,8 +19,8 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.authentication.Credentials;
+import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.JWTAuthHandler;
@@ -30,35 +30,14 @@ import java.util.List;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler implements JWTAuthHandler {
-
-  private final JsonObject options;
+public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implements JWTAuthHandler {
 
   public JWTAuthHandlerImpl(JWTAuth authProvider) {
     super(authProvider, Type.BEARER);
-    options = new JsonObject();
   }
 
   @Override
-  public JWTAuthHandler setAudience(List<String> audience) {
-    options.put("audience", new JsonArray(audience));
-    return this;
-  }
-
-  @Override
-  public JWTAuthHandler setIssuer(String issuer) {
-    options.put("issuer", issuer);
-    return this;
-  }
-
-  @Override
-  public JWTAuthHandler setIgnoreExpiration(boolean ignoreExpiration) {
-    options.put("ignoreExpiration", ignoreExpiration);
-    return this;
-  }
-
-  @Override
-  public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
+  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
 
     parseAuthorization(context, false, parseAuthorization -> {
       if (parseAuthorization.failed()) {
@@ -66,7 +45,7 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler implements JWTA
         return;
       }
 
-      handler.handle(Future.succeededFuture(new JsonObject().put("jwt", parseAuthorization.result()).put("options", options)));
+      handler.handle(Future.succeededFuture(new TokenCredentials(parseAuthorization.result())));
     });
   }
 

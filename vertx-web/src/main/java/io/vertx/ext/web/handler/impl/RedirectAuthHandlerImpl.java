@@ -21,6 +21,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.RedirectAuthHandler;
@@ -29,7 +30,7 @@ import io.vertx.ext.web.handler.RedirectAuthHandler;
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class RedirectAuthHandlerImpl extends AuthenticationHandlerImpl implements RedirectAuthHandler {
+public class RedirectAuthHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements RedirectAuthHandler {
 
   private final String loginRedirectURL;
   private final String returnURLParam;
@@ -41,7 +42,7 @@ public class RedirectAuthHandlerImpl extends AuthenticationHandlerImpl implement
   }
 
   @Override
-  public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
+  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
     Session session = context.session();
     if (session != null) {
       // Now redirect to the login url - we'll get redirected back here after successful login

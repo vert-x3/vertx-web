@@ -3,7 +3,8 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.ChainAuthHandler;
@@ -13,7 +14,7 @@ import io.vertx.ext.web.handler.RedirectAuthHandler;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl implements ChainAuthHandler {
+public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements ChainAuthHandler {
 
   private final List<AuthenticationHandler> handlers = new ArrayList<>();
   private final boolean all;
@@ -43,7 +44,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl implements C
   }
 
   @Override
-  public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
+  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
     if (handlers.size() == 0) {
       handler.handle(Future.failedFuture("No providers in the auth chain."));
     } else {
@@ -52,7 +53,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl implements C
     }
   }
 
-  private void iterate(final int idx, final RoutingContext ctx, JsonObject result, HttpStatusException exception, Handler<AsyncResult<JsonObject>> handler) {
+  private void iterate(final int idx, final RoutingContext ctx, Credentials result, HttpStatusException exception, Handler<AsyncResult<Credentials>> handler) {
     // stop condition
     if (idx >= handlers.size()) {
       if (all) {
