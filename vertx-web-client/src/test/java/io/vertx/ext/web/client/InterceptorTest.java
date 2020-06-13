@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
@@ -447,5 +448,53 @@ public class InterceptorTest extends HttpTestBase {
     await();
   }
 
+  @Test
+  public void testCallNextAsynchronously() throws Exception {
+    server.requestHandler(req -> req.response().end());
+    startServer();
+    AtomicBoolean synchronous = new AtomicBoolean();
+    AtomicBoolean first = new AtomicBoolean();
+    client.addInterceptor(ctx -> {
+      first.set(true);
+      synchronous.set(true);
+      vertx.setTimer(10, id -> {
+        synchronous.set(false);
+        ctx.next();
+      });
+    });
+    List<Long> list = Collections.synchronizedList(new ArrayList<>());
+    client.addInterceptor(ctx -> {
+      assertTrue(first.getAndSet(false));
+      assertFalse(synchronous.get());
+      list.add(System.currentTimeMillis());
+      ctx.next();
+    });
+    HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
+    builder.send(onSuccess(resp -> {
+      long prev = 0L;
+      for (long val : list) {
+        assertTrue(val >= prev);
+        prev = val;
+      }
+      testComplete();
+    }));
+    await();
+  }
 
+  @Test
+  public void testSynchronousInterceptorFailure() throws Exception {
+    RuntimeException failure = new RuntimeException();
+    client.addInterceptor(ctx -> {
+      throw failure;
+    });
+    client.addInterceptor(ctx -> {
+      fail("Should never be executed");
+    });
+    HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
+    builder.send(onFailure(err -> {
+      assertSame(failure, err);
+      testComplete();
+    }));
+    await();
+  }
 }

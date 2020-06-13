@@ -51,7 +51,9 @@ public class HttpContext<T> {
   private Object body;
   private String contentType;
   private Map<String, Object> attrs;
-  private Iterator<Handler<HttpContext<?>>> it;
+  private int interceptorIdx;
+  private boolean invoking;
+  private boolean invokeNext;
   private ClientPhase phase;
   private RequestOptions requestOptions;
   private HttpClientRequest clientRequest;
@@ -270,22 +272,55 @@ public class HttpContext<T> {
   }
 
   /**
-   * Call the next interceptor in the chain.
+   * Fire a client execution phase.
+   *
+   * When an interception phase is in progress, the current phase is interrupted and
+   * a new interception phase begins.
+   *
+   * @param phase the phase to execute
    */
-  public void next() {
-    if (it.hasNext()) {
-      Handler<HttpContext<?>> next = it.next();
-      next.handle(this);
+  private void fire(ClientPhase phase) {
+    Objects.requireNonNull(phase);
+    this.phase = phase;
+    if (invoking) {
+      this.interceptorIdx = 0;
+      this.invokeNext = true;
     } else {
-      it = null;
-      execute();
+      next();
     }
   }
 
-  private void fire(ClientPhase phase) {
-    this.phase = phase;
-    this.it = interceptors.iterator();
-    next();
+  /**
+   * Call the next interceptor in the chain.
+   */
+  public void next() {
+    if (invoking) {
+      invokeNext = true;
+    } else {
+      while (interceptorIdx < interceptors.size()) {
+        Handler<HttpContext<?>> interceptor = interceptors.get(interceptorIdx);
+        invoking = true;
+        interceptorIdx++;
+        try {
+          interceptor.handle(this);
+        } catch (Exception e ) {
+          // Internal failure => directly dispatch a failure without the interceptor stack
+          // that could lead to infinite failures
+          failure = e;
+          invokeNext = false;
+          phase = ClientPhase.FAILURE;
+          break;
+        } finally {
+          invoking = false;
+        }
+        if (!invokeNext) {
+          return;
+        }
+        invokeNext = false;
+      }
+      interceptorIdx = 0;
+      execute();
+    }
   }
 
   private void execute() {
