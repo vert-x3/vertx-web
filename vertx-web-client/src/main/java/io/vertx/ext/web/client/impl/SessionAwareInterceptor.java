@@ -1,5 +1,6 @@
 package io.vertx.ext.web.client.impl;
 
+import io.vertx.ext.web.client.predicate.PredicateInterceptor;
 import java.net.URI;
 import java.util.List;
 
@@ -15,12 +16,12 @@ import io.vertx.ext.web.client.spi.CookieStore;
 /**
  * A stateless interceptor for session management that operates on the {@code HttpContext}
  */
-public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
+public class SessionAwareInterceptor implements PredicateInterceptor {
 
   private static final String HEADERS_CONTEXT_KEY = "_originalHeaders";
 
   @Override
-  public void handle(HttpContext<?> context) {
+  public boolean handle(HttpContext<?> context) {
     switch(context.phase()) {
     case PREPARE_REQUEST:
       prepareRequest(context);
@@ -35,7 +36,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       break;
     }
 
-    context.next();
+    return true;
   }
 
   private void prepareRequest(HttpContext<?> context) {

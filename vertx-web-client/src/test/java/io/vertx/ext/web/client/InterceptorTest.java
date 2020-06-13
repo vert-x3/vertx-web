@@ -16,6 +16,7 @@ import io.vertx.ext.unit.junit.RepeatRule;
 import io.vertx.ext.web.client.impl.ClientPhase;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
+import io.vertx.ext.web.client.predicate.PredicateInterceptor;
 import io.vertx.ext.web.codec.BodyCodec;
 
 import org.junit.Rule;
@@ -59,12 +60,13 @@ public class InterceptorTest extends HttpTestBase {
     server = vertx.createHttpServer(new HttpServerOptions().setPort(DEFAULT_HTTP_PORT).setHost(DEFAULT_HTTP_HOST));
   }
 
-  private void handleMutateRequest(HttpContext context) {
+  private boolean handleMutateRequest(HttpContext context) {
     if (context.phase() == ClientPhase.PREPARE_REQUEST) {
       context.request().host("localhost");
       context.request().port(8080);
     }
-    context.next();
+
+    return true;
   }
 
   @Rule
@@ -80,13 +82,14 @@ public class InterceptorTest extends HttpTestBase {
     await();
   }
 
-  private void handleMutateCodec(HttpContext context) {
+  private boolean handleMutateCodec(HttpContext context) {
     if (context.phase() == ClientPhase.RECEIVE_RESPONSE) {
       if (context.clientResponse().statusCode() == 200) {
         context.request().as(BodyCodec.none());
       }
     }
-    context.next();
+
+    return true;
   }
 
   @Test
@@ -111,7 +114,7 @@ public class InterceptorTest extends HttpTestBase {
     }
   }
 
-  private void mutateResponseHandler(HttpContext context) {
+  private boolean mutateResponseHandler(HttpContext context) {
     if (context.phase() == ClientPhase.DISPATCH_RESPONSE) {
       HttpResponse<?> resp = context.response();
       assertEquals(500, resp.statusCode());
@@ -122,7 +125,8 @@ public class InterceptorTest extends HttpTestBase {
         }
       });
     }
-    context.next();
+
+    return true;
   }
 
   @Test
@@ -145,11 +149,14 @@ public class InterceptorTest extends HttpTestBase {
     List<String> events = Collections.synchronizedList(new ArrayList<>());
     client.addInterceptor(context -> {
       events.add(context.phase().name() + "_1");
-      context.next();
+
+      return true;
     });
     client.addInterceptor(context -> {
       events.add(context.phase().name() + "_2");
-      context.next();
+
+
+      return true;
     });
     HttpRequest<Buffer> builder = client.get("/somepath");
     builder.send(onSuccess(resp -> {
@@ -188,7 +195,8 @@ public class InterceptorTest extends HttpTestBase {
     List<Thread> phaseThreads = Collections.synchronizedList(new ArrayList<>());
     client.addInterceptor(context -> {
       phaseThreads.add(Thread.currentThread());
-      context.next();
+
+      return true;
     });
     HttpRequest<Buffer> builder = client.get("/somepath");
     builder.send(onSuccess(resp -> {
@@ -198,7 +206,7 @@ public class InterceptorTest extends HttpTestBase {
     }));
   }
 
-  private <T> void handle(HttpContext<T> ctx, AtomicInteger reqCount, AtomicInteger respCount, int num) {
+  private <T> boolean handle(HttpContext<T> ctx, AtomicInteger reqCount, AtomicInteger respCount, int num) {
     if (ctx.phase() == ClientPhase.PREPARE_REQUEST) {
       reqCount.incrementAndGet();
     } else if (ctx.phase() == ClientPhase.DISPATCH_RESPONSE) {
@@ -212,14 +220,15 @@ public class InterceptorTest extends HttpTestBase {
         if (count < num) {
           ctx.set("retries", count + 1);
           ctx.prepareRequest(ctx.request(), ctx.contentType(), ctx.body());
-          return;
+          return false;
         }
       }
     }
-    ctx.next();
+
+    return true;
   }
 
-  private Handler<HttpContext<?>> retryInterceptorHandler(AtomicInteger reqCount, AtomicInteger respCount, int num) {
+  private PredicateInterceptor retryInterceptorHandler(AtomicInteger reqCount, AtomicInteger respCount, int num) {
     return ctx -> handle(ctx, reqCount, respCount, num);
   }
 
@@ -241,11 +250,13 @@ public class InterceptorTest extends HttpTestBase {
     await();
   }
 
-  private void cacheInterceptorHandler(HttpContext<?> context) {
+  private boolean cacheInterceptorHandler(HttpContext<?> context) {
     if (context.phase() == ClientPhase.PREPARE_REQUEST) {
       context.dispatchResponse(new HttpResponseImpl<>());
+
+      return false;
     } else {
-      context.next();
+      return true;
     }
   }
 
@@ -350,7 +361,8 @@ public class InterceptorTest extends HttpTestBase {
           requestUris.add(ctx.clientRequest().path());
           break;
       }
-      ctx.next();
+
+      return true;
     });
     HttpRequest<Buffer> builder = client.get("/1").host("localhost").port(8080);
     builder.send(onSuccess(resp -> {
@@ -379,7 +391,8 @@ public class InterceptorTest extends HttpTestBase {
     List<ClientPhase> phases = new ArrayList<>();
     client.addInterceptor(ctx -> {
       phases.add(ctx.phase());
-      ctx.next();
+
+      return true;
     });
     HttpRequest<Buffer> builder = client.get("/").host("localhost").port(8080);
     builder.send(onSuccess(resp -> {

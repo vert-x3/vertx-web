@@ -30,6 +30,7 @@ import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.predicate.PredicateInterceptor;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.ext.web.multipart.MultipartForm;
 
@@ -44,13 +45,12 @@ public class HttpContext<T> {
 
   private final Handler<AsyncResult<HttpResponse<T>>> handler;
   private final HttpClientImpl client;
-  private final List<Handler<HttpContext<?>>> interceptors;
+  private final List<PredicateInterceptor> interceptors;
   private Context context;
   private HttpRequestImpl<T> request;
   private Object body;
   private String contentType;
   private Map<String, Object> attrs;
-  private Iterator<Handler<HttpContext<?>>> it;
   private ClientPhase phase;
   private HttpClientRequest clientRequest;
   private HttpClientResponse clientResponse;
@@ -59,7 +59,7 @@ public class HttpContext<T> {
   private int redirects;
   private List<String> redirectedLocations = new ArrayList<>();
 
-  HttpContext(HttpClientImpl client, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
+  HttpContext(HttpClientImpl client, List<PredicateInterceptor> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.handler = handler;
     this.client = client;
     this.interceptors = interceptors;
@@ -257,23 +257,26 @@ public class HttpContext<T> {
     return true;
   }
 
-  /**
-   * Call the next interceptor in the chain.
-   */
-  public void next() {
-    if (it.hasNext()) {
-      Handler<HttpContext<?>> next = it.next();
-      next.handle(this);
-    } else {
-      it = null;
+  private void fire(ClientPhase phase) {
+    this.phase = phase;
+
+    boolean interceptorsResult = executeInterceptors();
+
+    if (interceptorsResult) {
       execute();
     }
   }
 
-  private void fire(ClientPhase phase) {
-    this.phase = phase;
-    this.it = interceptors.iterator();
-    next();
+  private boolean executeInterceptors() {
+    for (PredicateInterceptor interceptor : interceptors) {
+      boolean interceptorResult = interceptor.handle(this);
+
+      if (!interceptorResult) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   private void execute() {
