@@ -15,6 +15,7 @@
  */
 package io.vertx.ext.web.client.impl;
 
+import io.vertx.ext.web.client.predicate.PredicateInterceptor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -32,7 +33,7 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.ext.web.client.impl.predicate.PredicateInterceptor;
+import io.vertx.ext.web.client.impl.predicate.PredicateInterceptorImpl;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 
 /**
@@ -42,7 +43,7 @@ public class WebClientBase implements WebClientInternal {
 
   final HttpClient client;
   final WebClientOptions options;
-  private final List<Handler<HttpContext<?>>> interceptors;
+  private final List<PredicateInterceptor> interceptors;
 
   public WebClientBase(HttpClient client, WebClientOptions options) {
     this.client = client;
@@ -50,7 +51,7 @@ public class WebClientBase implements WebClientInternal {
     this.interceptors = new CopyOnWriteArrayList<>();
 
     // Add base interceptor
-    addInterceptor(new PredicateInterceptor());
+    addInterceptor(new PredicateInterceptorImpl());
   }
 
   WebClientBase(WebClientBase webClient) {
@@ -257,15 +258,15 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public WebClientInternal addInterceptor(Handler<HttpContext<?>> interceptor) {
-    interceptors.add((Handler) interceptor);
+  public WebClientInternal addInterceptor(PredicateInterceptor interceptor) {
+    interceptors.add(interceptor);
     return this;
   }
 
   @Override
   public <T> HttpContext<T> createContext(Handler<AsyncResult<HttpResponse<T>>> handler) {
     HttpClientImpl client = (HttpClientImpl) this.client;
-    return new HttpContext<>(client, interceptors, handler);
+    return new HttpContext<T>(client, interceptors, handler);
   }
 
   @Override

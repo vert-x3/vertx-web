@@ -24,15 +24,16 @@ import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.HttpRequestImpl;
 import io.vertx.ext.web.client.impl.HttpResponseImpl;
 import io.vertx.ext.web.client.predicate.ErrorConverter;
+import io.vertx.ext.web.client.predicate.PredicateInterceptor;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PredicateInterceptor implements Handler<HttpContext<?>> {
+public class PredicateInterceptorImpl implements PredicateInterceptor {
 
   @Override
-  public void handle(HttpContext<?> httpContext) {
+  public boolean handle(HttpContext<?> httpContext) {
 
     if (httpContext.phase() == ClientPhase.RECEIVE_RESPONSE) {
 
@@ -47,7 +48,7 @@ public class PredicateInterceptor implements Handler<HttpContext<?>> {
             predicateResult = (ResponsePredicateResultImpl) expectation.apply(responseCopy(resp, httpContext,null));
           } catch (Exception e) {
             httpContext.fail(e);
-            return;
+            return false;
           }
           if (!predicateResult.succeeded()) {
             ErrorConverter errorConverter = expectation.errorConverter();
@@ -60,13 +61,13 @@ public class PredicateInterceptor implements Handler<HttpContext<?>> {
               });
               resp.resume();
             }
-            return;
+            return false;
           }
         }
       }
     }
 
-    httpContext.next();
+    return true;
   }
 
   private <B> HttpResponseImpl<B> responseCopy(HttpClientResponse resp, HttpContext<?> httpContext, B value) {

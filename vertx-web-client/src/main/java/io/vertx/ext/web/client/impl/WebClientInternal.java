@@ -19,6 +19,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.predicate.PredicateInterceptor;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -40,6 +41,6 @@ public interface WebClientInternal extends WebClient {
    * @param interceptor the interceptor to add, must not be null
    * @return a reference to this, so the API can be used fluently
    */
-  WebClientInternal addInterceptor(Handler<HttpContext<?>> interceptor);
+  WebClientInternal addInterceptor(PredicateInterceptor interceptor);
 
 }
