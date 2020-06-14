@@ -36,7 +36,8 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
 
   @Override
   public ServerWebSocket exceptionHandler(Handler<Throwable> handler) {
-    return delegate.exceptionHandler(handler);
+    delegate.exceptionHandler(handler);
+    return this;
   }
 
   @Override
@@ -51,32 +52,38 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
 
   @Override
   public ServerWebSocket handler(Handler<Buffer> handler) {
-    return delegate.handler(handler);
+    delegate.handler(handler);
+    return this;
   }
 
   @Override
   public ServerWebSocket pause() {
-    return delegate.pause();
+    delegate.pause();
+    return this;
   }
 
   @Override
   public ServerWebSocket resume() {
-    return delegate.resume();
+    delegate.resume();
+    return this;
   }
 
   @Override
   public ServerWebSocket fetch(long amount) {
-    return delegate.fetch(amount);
+    delegate.fetch(amount);
+    return this;
   }
 
   @Override
   public ServerWebSocket endHandler(Handler<Void> endHandler) {
-    return delegate.endHandler(endHandler);
+    delegate.endHandler(endHandler);
+    return this;
   }
 
   @Override
   public ServerWebSocket setWriteQueueMaxSize(int maxSize) {
-    return delegate.setWriteQueueMaxSize(maxSize);
+    delegate.setWriteQueueMaxSize(maxSize);
+    return this;
   }
 
   @Override
@@ -86,7 +93,8 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
 
   @Override
   public ServerWebSocket drainHandler(Handler<Void> handler) {
-    return delegate.drainHandler(handler);
+    delegate.drainHandler(handler);
+    return this;
   }
 
   @Override
@@ -126,7 +134,8 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
 
   @Override
   public ServerWebSocket writeFrame(WebSocketFrame frame, Handler<AsyncResult<Void>> handler) {
-    return delegate.writeFrame(frame, handler);
+    delegate.writeFrame(frame, handler);
+    return this;
   }
 
   @Override
@@ -136,7 +145,8 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
 
   @Override
   public ServerWebSocket writeFinalTextFrame(String text, Handler<AsyncResult<Void>> handler) {
-    return delegate.writeFinalTextFrame(text, handler);
+    delegate.writeFinalTextFrame(text, handler);
+    return this;
   }
 
   @Override
@@ -146,7 +156,8 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
 
   @Override
   public ServerWebSocket writeFinalBinaryFrame(Buffer data, Handler<AsyncResult<Void>> handler) {
-    return delegate.writeFinalBinaryFrame(data, handler);
+    delegate.writeFinalBinaryFrame(data, handler);
+    return this;
   }
 
   @Override
@@ -156,7 +167,8 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
 
   @Override
   public ServerWebSocket writeBinaryMessage(Buffer data, Handler<AsyncResult<Void>> handler) {
-    return delegate.writeBinaryMessage(data, handler);
+    delegate.writeBinaryMessage(data, handler);
+    return this;
   }
 
   @Override
@@ -166,12 +178,14 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
 
   @Override
   public ServerWebSocket writeTextMessage(String text, Handler<AsyncResult<Void>> handler) {
-    return delegate.writeTextMessage(text, handler);
+    delegate.writeTextMessage(text, handler);
+    return this;
   }
 
   @Override
   public WebSocketBase writePing(Buffer data, Handler<AsyncResult<Void>> handler) {
-    return delegate.writePing(data, handler);
+    delegate.writePing(data, handler);
+    return this;
   }
 
   @Override
@@ -181,7 +195,8 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
 
   @Override
   public WebSocketBase writePong(Buffer data, Handler<AsyncResult<Void>> handler) {
-    return delegate.writePong(data, handler);
+    delegate.writePong(data, handler);
+    return this;
   }
 
   @Override
@@ -191,27 +206,32 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
 
   @Override
   public ServerWebSocket closeHandler(Handler<Void> handler) {
-    return delegate.closeHandler(handler);
+    delegate.closeHandler(handler);
+    return this;
   }
 
   @Override
   public ServerWebSocket frameHandler(Handler<WebSocketFrame> handler) {
-    return delegate.frameHandler(handler);
+    delegate.frameHandler(handler);
+    return this;
   }
 
   @Override
   public WebSocketBase textMessageHandler(@Nullable Handler<String> handler) {
-    return delegate.textMessageHandler(handler);
+    delegate.textMessageHandler(handler);
+    return this;
   }
 
   @Override
   public WebSocketBase binaryMessageHandler(@Nullable Handler<Buffer> handler) {
-    return delegate.binaryMessageHandler(handler);
+    delegate.binaryMessageHandler(handler);
+    return this;
   }
 
   @Override
   public WebSocketBase pongHandler(@Nullable Handler<Buffer> handler) {
-    return delegate.pongHandler(handler);
+    delegate.pongHandler(handler);
+    return this;
   }
 
   @Override
