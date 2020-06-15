@@ -22,7 +22,7 @@ To use Vert.x OpenAPI, add the following dependency to the _dependencies_ sectio
 ----
 <dependency>
   <groupId>io.vertx</groupId>
-  <artifactId>vertx-openapi</artifactId>
+  <artifactId>vertx-web-openapi</artifactId>
   <version>${maven.version}</version>
 </dependency>
 ----
@@ -32,7 +32,7 @@ To use Vert.x OpenAPI, add the following dependency to the _dependencies_ sectio
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile 'io.vertx:vertx-openapi:${maven.version}'
+  compile 'io.vertx:vertx-web-openapi:${maven.version}'
 }
 ----
 
@@ -40,7 +40,7 @@ dependencies {
 
 {@link io.vertx.ext.web.openapi.RouterFactory} is the main element of this module: It provides the interface to mount request handlers and generates the final {@link io.vertx.ext.web.Router}
 
-=== Create the `RouterFactory`
+== Create the `RouterFactory`
 
 To start using Vert.x Web OpenAPI, you must instantiate {@link io.vertx.ext.web.openapi.RouterFactory} with your contract using
 {@link io.vertx.ext.web.openapi.RouterFactory#create(Vertx,String,Handler)}
@@ -73,7 +73,7 @@ You can modify different behaviours of the router factory with {@link io.vertx.e
 {@link examples.OpenAPI3Examples#setOptions}
 ----
 
-=== Access to operations
+== Access to operations
 
 To access to an https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#operationObject[Operation] defined in contract, use {@link io.vertx.ext.web.openapi.RouterFactory#operation(String)}.
 This method returns an {@link io.vertx.ext.web.openapi.Operation} instance that you can use to both access the model and assign handlers
@@ -98,7 +98,7 @@ You can't access to contract operations without `operationId`. The operations wi
 Vert.x OpenAPI mounts the correct {@link io.vertx.ext.web.validation.ValidationHandler} for you, so you can access to request parameters and request body.
 Refer to https://vertx.io/docs/vertx-web-validation/java/[Vert.x Web Validation documentation] to learn how to get request parameters & request body and how to manage validation failures
 
-=== Define security handlers
+== Define security handlers
 
 A security handler is defined by a combination of schema name and scope. You can mount only one security handler for a combination.
 For example:
@@ -119,19 +119,19 @@ When you generate the {@link io.vertx.ext.web.Router} the router factory fails i
 
 For debugging/testing purpose you can disable this check with {@link io.vertx.ext.web.openapi.RouterFactoryOptions#setRequireSecurityHandlers(boolean)}
 
-=== Not Implemented Error
+== Not Implemented Error
 
 Router Factory automatically mounts a default handler for operations without a specified handler.
 This default handler fails the routing context with 405 `Method Not Allowed`/501 `Not Implemented` error.
 You can enable/disable it with {@link io.vertx.ext.web.openapi.RouterFactoryOptions#setMountNotImplementedHandler}
 and you can customize this error handling with {@link io.vertx.ext.web.Router#errorHandler}
 
-=== Response Content Type Handler
+== Response Content Type Handler
 
 Router Factory automatically mounts a {@link io.vertx.ext.web.handler.ResponseContentTypeHandler} handler when contract requires it.
 You can disable this feature with {@link io.vertx.ext.web.openapi.RouterFactoryOptions#setMountResponseContentTypeHandler}
 
-=== Operation model
+== Operation model
 
 If you need to access to your operation model while handling the request,
 you can configure the router factory to push it inside the `RoutingContext` with {@link io.vertx.ext.web.openapi.RouterFactoryOptions#setOperationModelKey(String)}:
@@ -141,12 +141,12 @@ you can configure the router factory to push it inside the `RoutingContext` with
 {@link examples.OpenAPI3Examples#addOperationModelKey}
 ----
 
-=== Body Handler
+== Body Handler
 
 Router Factory automatically mounts a {@link io.vertx.ext.web.handler.BodyHandler} to manage request bodies.
 You can configure the instance of {@link io.vertx.ext.web.handler.BodyHandler} (e.g. to change upload directory) with {@link io.vertx.ext.web.openapi.RouterFactory#bodyHandler(BodyHandler)}.
 
-=== `multipart/form-data` validation
+== `multipart/form-data` validation
 
 The validation handler separates file uploads and form attributes as explained:
 
@@ -158,11 +158,11 @@ The validation handler separates file uploads and form attributes as explained:
 The form attributes are parsed, converted in json and validated,
 while for file uploads the validation handler just checks the existence and the content type.
 
-=== Custom global handlers
+== Custom global handlers
 
 If you need to mount handlers that must be executed for each operation in your router before the operation specific handlers, you can use {@link io.vertx.ext.web.openapi.RouterFactory#rootHandler(Handler)}
 
-=== Router factory handlers mount order
+== Router factory handlers mount order
 
 Handlers are loaded by the router factory in this order:
 
@@ -173,7 +173,7 @@ Handlers are loaded by the router factory in this order:
 5. Generated validation handler
 6. User handlers or "Not implemented" handler (if enabled)
 
-=== Generate the router
+== Generate the router
 
 When you are ready, generate the router and use it:
 
