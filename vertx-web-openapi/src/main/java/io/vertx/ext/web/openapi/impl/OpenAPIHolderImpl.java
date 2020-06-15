@@ -6,7 +6,10 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -22,7 +25,6 @@ import io.vertx.ext.web.openapi.OpenAPILoaderOptions;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,22 +45,6 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   private final YAMLMapper yamlMapper;
   private JsonObject openapiRoot;
 
-  private static URI openapiSchemaURI;
-  private static JsonObject openapiSchemaJson;
-
-  static {
-    try {
-      openapiSchemaURI = OpenAPIHolderImpl.class.getResource("/openapi_3_schema.json").toURI();
-      openapiSchemaJson = new JsonObject(
-          String.join("",
-              Files.readAllLines(Paths.get(openapiSchemaURI))
-          )
-      );
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   public OpenAPIHolderImpl(HttpClient client, FileSystem fs, OpenAPILoaderOptions options) {
     absolutePaths = new ConcurrentHashMap<>();
     externalSolvingRefs = new ConcurrentHashMap<>();
@@ -68,31 +54,33 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     this.router = SchemaRouter.create(client, fs, options.toSchemaRouterOptions());
     this.parser = Draft7SchemaParser.create(this.router);
     this.yamlMapper = new YAMLMapper();
-    this.openapiSchema = parser.parse(openapiSchemaJson, JsonPointer.fromURI(openapiSchemaURI));
+    this.openapiSchema = parser.parseFromString(OpenAPI3Utils.openapiSchemaJson);
   }
 
   public Future<JsonObject> loadOpenAPI(String u) {
     URI uri = URIUtils.removeFragment(URI.create(u));
-    Future<JsonObject> resolvedOpenAPIDocumentUnparsed = (URIUtils.isRemoteURI(uri)) ? solveRemoteRef(uri) : solveLocalRef(uri);
+    Future<JsonObject> resolvedOpenAPIDocumentUnparsed = (URIUtils.isRemoteURI(uri)) ? solveRemoteRef(uri) :
+      solveLocalRef(uri);
     initialScope = (URIUtils.isRemoteURI(uri)) ? uri : URI.create(sanitizeLocalRef(uri));
     initialScopeDirectory = Paths.get(initialScope.getPath()).resolveSibling("").toString();
     return resolvedOpenAPIDocumentUnparsed
-        .compose(openapi -> {
-          absolutePaths.put(initialScope, openapi); // Circular refs hell!
-          openapiRoot = openapi;
-          return walkAndSolve(openapi, initialScope).map(openapi);
-        })
-        .compose(openapi -> {
-          JsonObject openapiCopy = openapi.copy();
-          deepSubstituteForValidation(openapiCopy, JsonPointer.fromURI(initialScope), new HashMap<>());
-          // We need this shitty flattened spec just to validate it
-          return openapiSchema.validateAsync(openapiCopy).map(openapi);
-        });
+      .compose(openapi -> {
+        absolutePaths.put(initialScope, openapi); // Circular refs hell!
+        openapiRoot = openapi;
+        return walkAndSolve(openapi, initialScope).map(openapi);
+      })
+      .compose(openapi -> {
+        JsonObject openapiCopy = openapi.copy();
+        deepSubstituteForValidation(openapiCopy, JsonPointer.fromURI(initialScope), new HashMap<>());
+        // We need this shitty flattened spec just to validate it
+        return openapiSchema.validateAsync(openapiCopy).map(openapi);
+      });
   }
 
   @Override
   public JsonObject getCached(JsonPointer pointer) {
-    JsonObject startingObj = absolutePaths.get(resolveRefResolutionURIWithoutFragment(pointer.getURIWithoutFragment(), initialScope));
+    JsonObject startingObj = absolutePaths.get(resolveRefResolutionURIWithoutFragment(pointer.getURIWithoutFragment()
+      , initialScope));
     return (JsonObject) pointer.queryJson(startingObj);
   }
 
@@ -115,7 +103,8 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     return openapiRoot;
   }
 
-  public Map.Entry<JsonPointer, JsonObject> normalizeSchema(JsonObject schema, JsonPointer scope, Map<JsonPointer, JsonObject> additionalSchemasToRegister) {
+  public Map.Entry<JsonPointer, JsonObject> normalizeSchema(JsonObject schema, JsonPointer scope, Map<JsonPointer,
+    JsonObject> additionalSchemasToRegister) {
     JsonObject normalized = schema.copy();
     JsonPointer newId = new SchemaURNId().toPointer();
     normalized.put("x-$id", newId.toURI().toString());
@@ -124,7 +113,8 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     return new AbstractMap.SimpleImmutableEntry<>(newId, normalized);
   }
 
-  private void innerNormalizeSchema(Object schema, JsonPointer schemaRootScope, Map<JsonPointer, JsonObject> additionalSchemasToRegister) {
+  private void innerNormalizeSchema(Object schema, JsonPointer schemaRootScope,
+                                    Map<JsonPointer, JsonObject> additionalSchemasToRegister) {
     if (schema instanceof JsonObject) {
       JsonObject schemaObject = (JsonObject) schema;
       if (isRef(schemaObject)) {
@@ -136,7 +126,8 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
           JsonPointer newRef = OpenAPI3Utils.pointerDifference(schemaRootScope, refPointer);
           schemaObject.put("$ref", newRef.toURI().toString());
         } else if (refPointer.equals(schemaRootScope)) {
-          // If it's a circular $ref that points to schema root, I need to remove $ref URI component and replace with newRef = scope - refPointer
+          // If it's a circular $ref that points to schema root, I need to remove $ref URI component and replace with
+          // newRef = scope - refPointer
           JsonPointer newRef = JsonPointer.create();
           schemaObject.put("$ref", newRef.toURI().toString());
         } else {
@@ -185,9 +176,10 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
       JsonPointer parsedRef = JsonPointer.fromURI(URI.create(ref.getString("$ref")));
       if (!parsedRef.getURIWithoutFragment().isAbsolute()) // Ref not absolute, make it absolute based on scope
         parsedRef = JsonPointer.fromURI(
-            URIUtils.replaceFragment(
-                resolveRefResolutionURIWithoutFragment(parsedRef.getURIWithoutFragment(), scope), parsedRef.toURI().getFragment()
-            )
+          URIUtils.replaceFragment(
+            resolveRefResolutionURIWithoutFragment(parsedRef.getURIWithoutFragment(), scope),
+            parsedRef.toURI().getFragment()
+          )
         );
       URI solvedURI = parsedRef.toURI();
       ref.put("$ref", solvedURI.toString()); // Replace ref
@@ -195,8 +187,8 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
         refsToSolve.add(parsedRef.getURIWithoutFragment());
     }
     return CompositeFuture
-        .all(refsToSolve.stream().map(this::resolveExternalRef).collect(Collectors.toList()))
-        .compose(cf -> Future.succeededFuture());
+      .all(refsToSolve.stream().map(this::resolveExternalRef).collect(Collectors.toList()))
+      .compose(cf -> Future.succeededFuture());
   }
 
   private void deepGetAllRefs(Object obj, List<JsonObject> refsList) {
@@ -213,7 +205,8 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   }
 
   // We need this shitty substitution to get the validation working
-  private void deepSubstituteForValidation(Object obj, JsonPointer scope, Map<JsonPointer, JsonPointer> originalToSubstitutedMap) {
+  private void deepSubstituteForValidation(Object obj, JsonPointer scope,
+                                           Map<JsonPointer, JsonPointer> originalToSubstitutedMap) {
     if (obj instanceof JsonObject) {
       JsonObject jsonObject = (JsonObject) obj;
       if (jsonObject.containsKey("$ref")) {
@@ -238,9 +231,9 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
           deepSubstituteForValidation(jsonObject.getValue(key), scope.copy().append(key), originalToSubstitutedMap);
     }
     if (obj instanceof JsonArray) {
-      for (int i = 0; i < ((JsonArray)obj).size(); i++)
+      for (int i = 0; i < ((JsonArray) obj).size(); i++)
         deepSubstituteForValidation(
-          ((JsonArray)obj).getValue(i),
+          ((JsonArray) obj).getValue(i),
           scope.copy().append(Integer.toString(i)),
           originalToSubstitutedMap
         );
@@ -249,12 +242,12 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
 
   private Future<JsonObject> resolveExternalRef(final URI ref) {
     return externalSolvingRefs.computeIfAbsent(ref,
-        uri ->
-              ((URIUtils.isRemoteURI(uri)) ? solveRemoteRef(uri) : solveLocalRef(uri))
-                  .compose(j -> {
-                    absolutePaths.put(uri, j); // Circular refs hell!
-                    return walkAndSolve(j, uri).map(j);
-                  })
+      uri ->
+        ((URIUtils.isRemoteURI(uri)) ? solveRemoteRef(uri) : solveLocalRef(uri))
+          .compose(j -> {
+            absolutePaths.put(uri, j); // Circular refs hell!
+            return walkAndSolve(j, uri).map(j);
+          })
 
     );
   }
