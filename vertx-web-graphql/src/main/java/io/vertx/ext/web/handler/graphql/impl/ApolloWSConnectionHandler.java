@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler.graphql.impl;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.logging.Logger;
@@ -68,50 +69,52 @@ class ApolloWSConnectionHandler {
       ch.handle(serverWebSocket);
     }
 
-    serverWebSocket.handler(buffer -> {
-      JsonObject content = buffer.toJsonObject();
-      String opId = content.getString("id");
-      ApolloWSMessageType type = from(content.getString("type"));
+    serverWebSocket.binaryMessageHandler(this::handleBinaryMessage);
+    serverWebSocket.textMessageHandler(this::handleTextMessage);
+    serverWebSocket.closeHandler(this::close);
+  }
 
-      if (type == null) {
-        sendMessage(opId, ERROR, "Unknown message type: " + content.getString("type"));
-        return;
-      }
+  private void handleBinaryMessage(Buffer buffer) {
+    handleMessage(new JsonObject(buffer));
+  }
 
-      ApolloWSMessage message = new ApolloWSMessageImpl(serverWebSocket, type, content);
+  private void handleTextMessage(String text) {
+    handleMessage(new JsonObject(text));
+  }
 
-      Handler<ApolloWSMessage> mh = apolloWSHandler.getMessageHandler();
-      if (mh != null) {
-        mh.handle(message);
-      }
+  private void handleMessage(JsonObject jsonObject) {
+    String opId = jsonObject.getString("id");
+    ApolloWSMessageType type = from(jsonObject.getString("type"));
 
-      switch (type) {
-        case CONNECTION_INIT:
-          connect();
-          break;
-        case CONNECTION_TERMINATE:
-          serverWebSocket.close();
-          break;
-        case START:
-          start(message);
-          break;
-        case STOP:
-          stop(opId);
-          break;
-        default:
-          sendMessage(opId, ERROR, "Unsupported message type: " + type);
-          break;
-      }
-    });
+    if (type == null) {
+      sendMessage(opId, ERROR, "Unknown message type: " + jsonObject.getString("type"));
+      return;
+    }
 
-    serverWebSocket.closeHandler(v -> {
-      subscriptions.values().forEach(Subscription::cancel);
+    ApolloWSMessage message = new ApolloWSMessageImpl(serverWebSocket, type, jsonObject);
 
-      Handler<ServerWebSocket> eh = apolloWSHandler.getEndHandler();
-      if (eh != null) {
-        eh.handle(serverWebSocket);
-      }
-    });
+    Handler<ApolloWSMessage> mh = apolloWSHandler.getMessageHandler();
+    if (mh != null) {
+      mh.handle(message);
+    }
+
+    switch (type) {
+      case CONNECTION_INIT:
+        connect();
+        break;
+      case CONNECTION_TERMINATE:
+        serverWebSocket.close();
+        break;
+      case START:
+        start(message);
+        break;
+      case STOP:
+        stop(opId);
+        break;
+      default:
+        sendMessage(opId, ERROR, "Unsupported message type: " + type);
+        break;
+    }
   }
 
   private void connect() {
@@ -249,5 +252,14 @@ class ApolloWSConnectionHandler {
       message.put("payload", payload);
     }
     serverWebSocket.writeTextMessage(message.toString());
+  }
+
+  private void close(Void v) {
+    subscriptions.values().forEach(Subscription::cancel);
+
+    Handler<ServerWebSocket> eh = apolloWSHandler.getEndHandler();
+    if (eh != null) {
+      eh.handle(serverWebSocket);
+    }
   }
 }
