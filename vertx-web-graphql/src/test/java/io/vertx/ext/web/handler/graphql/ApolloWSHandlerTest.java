@@ -25,7 +25,10 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.WebSocket;
+import io.vertx.core.http.WebSocketFrame;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetClientOptions;
 import io.vertx.core.net.NetServer;
@@ -40,6 +43,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import java.util.stream.IntStream;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
@@ -132,8 +136,8 @@ public class ApolloWSHandlerTest extends WebTestBase {
 
       AtomicReference<String> id = new AtomicReference<>();
       AtomicInteger counter = new AtomicInteger();
-      websocket.handler(buffer -> {
-        JsonObject obj = buffer.toJsonObject();
+      websocket.textMessageHandler(text -> {
+        JsonObject obj = new JsonObject(text);
         int current = counter.getAndIncrement();
         if (current >= 0 && current <= MAX_COUNT) {
           if (current == 0) {
@@ -166,14 +170,30 @@ public class ApolloWSHandlerTest extends WebTestBase {
 
   @Test
   public void testQueryWsCall() {
+    testQueryWsCall((webSocket, message) -> webSocket.write(message.toBuffer()));
+  }
+
+  @Test
+  public void testQueryWsCallMultipleFrames() {
+    testQueryWsCall((webSocket, message) -> {
+      Buffer buffer = message.toBuffer();
+      int part = buffer.length() / 3;
+      if (part == 0) fail("Cannot perform test");
+      webSocket.writeFrame(WebSocketFrame.binaryFrame(buffer.getBuffer(0, part), false));
+      webSocket.writeFrame(WebSocketFrame.continuationFrame(buffer.getBuffer(part, 2 * part), false));
+      webSocket.writeFrame(WebSocketFrame.continuationFrame(buffer.getBuffer(2 * part, buffer.length()), true));
+    });
+  }
+
+  private void testQueryWsCall(BiConsumer<WebSocket, JsonObject> sender) {
     waitFor(2);
     client.webSocket("/graphql", onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
 
       AtomicReference<String> id = new AtomicReference<>();
       AtomicInteger counter = new AtomicInteger();
-      websocket.handler(buffer -> {
-        JsonObject obj = buffer.toJsonObject();
+      websocket.textMessageHandler(text -> {
+        JsonObject obj = new JsonObject(text);
         int current = counter.getAndIncrement();
         if (current == 0) {
           assertTrue(id.compareAndSet(null, obj.getString("id")));
@@ -195,7 +215,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
           .put("query", "query Query { staticCounter { count } }"))
         .put("type", "start")
         .put("id", "1");
-      websocket.write(message.toBuffer());
+      sender.accept(websocket, message);
     }));
     await();
   }
@@ -224,9 +244,9 @@ public class ApolloWSHandlerTest extends WebTestBase {
       websocket.exceptionHandler(this::fail);
 
       AtomicInteger counter = new AtomicInteger(0);
-      websocket.handler(buffer -> {
+      websocket.textMessageHandler(text -> {
         try {
-          JsonObject obj = buffer.toJsonObject();
+          JsonObject obj = new JsonObject(text);
 
           if (counter.getAndIncrement() == 0) {
             assertEquals(ApolloWSMessageType.CONNECTION_ACK.getText(), obj.getString("type"));
@@ -261,7 +281,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
       websocket.exceptionHandler(this::fail);
 
       AtomicInteger counter = new AtomicInteger();
-      websocket.handler(buffer -> {
+      websocket.textMessageHandler(text -> {
         if (counter.getAndIncrement() == MAX_COUNT) {
           if (subscriptionRef.get() == null) {
             fail("Expected a live subscription");
