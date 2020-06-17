@@ -20,9 +20,9 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.AuthenticationHandlerImpl;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
@@ -41,8 +41,8 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
     return new AuthenticationHandlerImpl(authProvider) {
 
       @Override
-      public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
-        handler.handle(Future.succeededFuture(new JsonObject()));
+      public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
+        handler.handle(Future.succeededFuture(JsonObject::new));
       }
 
       @Override
@@ -65,12 +65,12 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
     };
 
     Throwable rootCause = new IllegalArgumentException("validation of credentials failed");
-    AuthProvider authProvider = mock(AuthProvider.class);
+    AuthenticationProvider authProvider = mock(AuthenticationProvider.class);
     doAnswer(invocation -> {
       final Handler<AsyncResult<User>> resultHandler = invocation.getArgument(1);
       resultHandler.handle(Future.failedFuture(rootCause));
       return null;
-    }).when(authProvider).authenticate(any(JsonObject.class), any(Handler.class));
+    }).when(authProvider).authenticate(any(Credentials.class), any(Handler.class));
 
     router.route("/protected/*").handler(newAuthHandler(authProvider, exception -> {
       assertTrue(exception instanceof HttpStatusException);
@@ -92,12 +92,12 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
     };
 
     Throwable rootCause = new HttpStatusException(499, "bla");
-    AuthProvider authProvider = mock(AuthProvider.class);
+    AuthenticationProvider authProvider = mock(AuthenticationProvider.class);
     doAnswer(invocation -> {
       final Handler<AsyncResult<User>> resultHandler = invocation.getArgument(1);
       resultHandler.handle(Future.failedFuture(rootCause));
       return null;
-    }).when(authProvider).authenticate(any(JsonObject.class), any(Handler.class));
+    }).when(authProvider).authenticate(any(Credentials.class), any(Handler.class));
 
     router.route("/protected/*").handler(newAuthHandler(authProvider, exception -> {
       assertTrue(exception instanceof HttpStatusException);

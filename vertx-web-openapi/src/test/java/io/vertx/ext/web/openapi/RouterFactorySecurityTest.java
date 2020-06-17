@@ -7,6 +7,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
@@ -22,7 +24,6 @@ import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.assertj.core.api.Condition;
-import org.assertj.core.data.Index;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -423,19 +424,19 @@ public class RouterFactorySecurityTest extends BaseRouterFactoryTest {
   }
 
   private AuthenticationHandler mockSuccessfulAuthHandler(Handler<RoutingContext> mockHandler) {
-    return new AuthenticationHandlerImpl((authInfo, resultHandler) -> resultHandler.handle(Future.succeededFuture(User.create(new JsonObject())))) {
+    return new AuthenticationHandlerImpl<AuthenticationProvider>((authInfo, resultHandler) -> resultHandler.handle(Future.succeededFuture(User.create(new JsonObject())))) {
       @Override
-      public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
+      public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
         mockHandler.handle(context);
-        handler.handle(Future.succeededFuture(new JsonObject()));
+        handler.handle(Future.succeededFuture(JsonObject::new));
       }
     };
   }
 
   private AuthenticationHandler mockFailingAuthHandler(Handler<RoutingContext> mockHandler) {
-    return new AuthenticationHandlerImpl((authInfo, resultHandler) -> resultHandler.handle(Future.succeededFuture(User.create(new JsonObject())))) {
+    return new AuthenticationHandlerImpl<AuthenticationProvider>((authInfo, resultHandler) -> resultHandler.handle(Future.succeededFuture(User.create(new JsonObject())))) {
       @Override
-      public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
+      public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
         mockHandler.handle(context);
         handler.handle(Future.failedFuture(new HttpStatusException(401)));
       }

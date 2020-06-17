@@ -20,11 +20,14 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.Shareable;
 import io.vertx.ext.auth.VertxContextPRNG;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
+import io.vertx.ext.auth.htdigest.HtdigestCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.DigestAuthHandler;
@@ -39,7 +42,9 @@ import java.util.Set;
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler implements DigestAuthHandler {
+public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth> implements DigestAuthHandler {
+
+  private final static Logger LOG = LoggerFactory.getLogger(HTTPAuthorizationHandler.class);
 
   /**
    * Default name for map used to store nonces
@@ -91,7 +96,7 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler implements D
   }
 
   @Override
-  public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
+  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
     // clean up nonce
     long now = System.currentTimeMillis();
     if (now - lastExpireRun > nonceExpireTimeout / 2) {
@@ -114,7 +119,7 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler implements D
         return;
       }
 
-      final JsonObject authInfo = new JsonObject();
+      final HtdigestCredentials authInfo = new HtdigestCredentials();
 
       try {
         // Split the parameters by comma.
@@ -127,13 +132,49 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler implements D
           // Strip quotes and whitespace.
           Matcher m = PARSER.matcher(tokens[i]);
           if (m.find()) {
-            authInfo.put(m.group(1), m.group(2));
+            switch (m.group(1)) {
+              case "algorithm":
+                authInfo.setAlgorithm(m.group(2));
+                break;
+              case "cnonce":
+                authInfo.setCnonce(m.group(2));
+                break;
+              case "method":
+                authInfo.setMethod(m.group(2));
+                break;
+              case "nc":
+                authInfo.setNc(m.group(2));
+                break;
+              case "nonce":
+                authInfo.setNonce(m.group(2));
+                break;
+              case "opaque":
+                authInfo.setOpaque(m.group(2));
+                break;
+              case "qop":
+                authInfo.setQop(m.group(2));
+                break;
+              case "realm":
+                authInfo.setRealm(m.group(2));
+                break;
+              case "response":
+                authInfo.setResponse(m.group(2));
+                break;
+              case "uri":
+                authInfo.setUri(m.group(2));
+                break;
+              case "username":
+                authInfo.setUsername(m.group(2));
+                break;
+              default:
+                LOG.info("Uknown parameter: " + m.group(1));
+            }
           }
 
           ++i;
         }
 
-        final String nonce = authInfo.getString("nonce");
+        final String nonce = authInfo.getNonce();
 
         // check for expiration
         if (!nonces.containsKey(nonce)) {
@@ -142,8 +183,8 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler implements D
         }
 
         // check for nonce counter (prevent replay attack)
-        if (authInfo.containsKey("qop")) {
-          int nc = Integer.parseInt(authInfo.getString("nc"), 16);
+        if (authInfo.getQop() != null) {
+          int nc = Integer.parseInt(authInfo.getNc(), 16);
           final Nonce n = nonces.get(nonce);
           if (nc <= n.count) {
             handler.handle(Future.failedFuture(UNAUTHORIZED));
@@ -161,14 +202,14 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler implements D
       final Session session = context.session();
       if (session != null) {
         String opaque = (String) session.data().get("opaque");
-        if (opaque != null && !opaque.equals(authInfo.getString("opaque"))) {
+        if (opaque != null && !opaque.equals(authInfo.getOpaque())) {
           handler.handle(Future.failedFuture(UNAUTHORIZED));
           return;
         }
       }
 
       // we now need to pass some extra info
-      authInfo.put("method", context.request().method().name());
+      authInfo.setMethod(context.request().method().name());
 
       handler.handle(Future.succeededFuture(authInfo));
     });

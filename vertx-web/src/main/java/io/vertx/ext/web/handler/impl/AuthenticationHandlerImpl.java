@@ -28,7 +28,7 @@ import io.vertx.ext.web.handler.AuthenticationHandler;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public abstract class AuthenticationHandlerImpl implements AuthenticationHandler {
+public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider> implements AuthenticationHandler {
 
   static final String AUTH_PROVIDER_CONTEXT_KEY = "io.vertx.ext.web.handler.AuthenticationHandler.provider";
 
@@ -36,13 +36,13 @@ public abstract class AuthenticationHandlerImpl implements AuthenticationHandler
   static final HttpStatusException BAD_REQUEST = new HttpStatusException(400);
 
   protected final String realm;
-  protected final AuthenticationProvider authProvider;
+  protected final T authProvider;
 
-  public AuthenticationHandlerImpl(AuthenticationProvider authProvider) {
+  public AuthenticationHandlerImpl(T authProvider) {
     this(authProvider, "");
   }
 
-  public AuthenticationHandlerImpl(AuthenticationProvider authProvider, String realm) {
+  public AuthenticationHandlerImpl(T authProvider, String realm) {
     this.authProvider = authProvider;
     this.realm = realm;
   }

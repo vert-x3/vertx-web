@@ -16,12 +16,9 @@
 
 package io.vertx.ext.web.handler;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl;
-
-import java.util.List;
 
 /**
  * An auth handler that provides JWT Authentication support.
@@ -40,28 +37,4 @@ public interface JWTAuthHandler extends AuthenticationHandler {
   static JWTAuthHandler create(JWTAuth authProvider) {
     return new JWTAuthHandlerImpl(authProvider);
   }
-
-  /**
-   * Set the audience list
-   * @param audience  the audience list
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  JWTAuthHandler setAudience(List<String> audience);
-
-  /**
-   * Set the issuer
-   * @param issuer  the issuer
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  JWTAuthHandler setIssuer(String issuer);
-
-  /**
-   * Set whether expiration is ignored
-   * @param ignoreExpiration  whether expiration is ignored
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  JWTAuthHandler setIgnoreExpiration(boolean ignoreExpiration);
 }

@@ -32,7 +32,8 @@ import io.vertx.ext.web.handler.MethodOverrideHandler;
  * @author <a href="mailto:victorqrsilva@gmail.com">Victor Quezado</a>
  */
 public class MethodOverrideHandlerImpl implements MethodOverrideHandler {
-  private boolean useSafeDowngrade;
+
+  private final boolean useSafeDowngrade;
 
   private interface HttpMethodTraits {
     static boolean isIdempotent(HttpMethod method) {

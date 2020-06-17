@@ -26,7 +26,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.VertxContextPRNG;
+import io.vertx.ext.auth.authentication.Credentials;
+import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
+import io.vertx.ext.auth.oauth2.Oauth2Credentials;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -40,7 +43,7 @@ import java.util.List;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler implements OAuth2AuthHandler {
+public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> implements OAuth2AuthHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
 
@@ -76,7 +79,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler implements O
   }
 
   @Override
-  public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
+  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
     // when the handler is working as bearer only, then the `Authorization` header is required
     parseAuthorization(context, !bearerOnly, parseAuthorization -> {
       if (parseAuthorization.failed()) {
@@ -124,7 +127,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler implements O
         }
       } else {
         // attempt to decode the token and handle it as a user
-        authProvider.authenticate(new JsonObject().put("access_token", token).put("token_type", "Bearer"), decodeToken -> {
+        authProvider.authenticate(new TokenCredentials(token), decodeToken -> {
           if (decodeToken.failed()) {
             handler.handle(Future.failedFuture(new HttpStatusException(401, decodeToken.cause().getMessage())));
             return;
@@ -244,8 +247,8 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler implements O
         redirectUri = state;
       }
 
-      final JsonObject config = new JsonObject()
-        .put("code", code);
+      final Oauth2Credentials config = new Oauth2Credentials()
+        .setCode(code);
 
       if (host == null) {
         // warn that the setup is wrong, if this route is called
@@ -254,11 +257,11 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler implements O
           LOG.warn("Cannot compute: 'redirect_uri' variable. OAuth2AuthHandler was created without a origin/callback URL.");
         }
       } else {
-        config.put("redirect_uri", host + route.getPath());
+        config.setRedirectUri(host + route.getPath());
       }
 
       if (extraParams != null) {
-        config.mergeIn(extraParams);
+        config.setExtra(extraParams);
       }
 
       authProvider.authenticate(config, res -> {

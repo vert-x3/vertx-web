@@ -6,6 +6,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.impl.AuthenticationHandlerImpl;
@@ -15,16 +16,16 @@ import org.junit.Test;
 
 public class ChainAuthMixHandlerTest extends WebTestBase {
 
-  private AuthenticationHandler success = new AuthenticationHandlerImpl((authInfo, resultHandler) -> resultHandler.handle(Future.succeededFuture(User.create(new JsonObject())))) {
+  private final AuthenticationHandler success = new AuthenticationHandlerImpl((authInfo, resultHandler) -> resultHandler.handle(Future.succeededFuture(User.create(new JsonObject())))) {
     @Override
-    public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
-      handler.handle(Future.succeededFuture(new JsonObject()));
+    public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
+      handler.handle(Future.succeededFuture(JsonObject::new));
     }
   };
 
-  private AuthenticationHandler failure = new AuthenticationHandlerImpl((authInfo, resultHandler) -> resultHandler.handle(Future.failedFuture("Oops!"))) {
+  private final AuthenticationHandler failure = new AuthenticationHandlerImpl((authInfo, resultHandler) -> resultHandler.handle(Future.failedFuture("Oops!"))) {
     @Override
-    public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
+    public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
       handler.handle(Future.failedFuture(new HttpStatusException(401)));
     }
   };

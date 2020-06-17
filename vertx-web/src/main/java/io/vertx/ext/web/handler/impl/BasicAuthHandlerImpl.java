@@ -19,8 +19,9 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.Credentials;
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 
@@ -30,14 +31,14 @@ import java.util.Base64;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler implements BasicAuthHandler {
+public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler<AuthenticationProvider> implements BasicAuthHandler {
 
   public BasicAuthHandlerImpl(AuthenticationProvider authProvider, String realm) {
     super(authProvider, realm, Type.BASIC);
   }
 
   @Override
-  public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
+  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
 
     parseAuthorization(context, false, parseAuthorization -> {
       if (parseAuthorization.failed()) {
@@ -61,12 +62,11 @@ public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler implements Ba
           spass = null;
         }
       } catch (RuntimeException e) {
-        // IllegalArgumentException includes PatternSyntaxException
         context.fail(e);
         return;
       }
 
-      handler.handle(Future.succeededFuture(new JsonObject().put("username", suser).put("password", spass)));
+      handler.handle(Future.succeededFuture(new UsernamePasswordCredentials(suser, spass)));
     });
   }
 
