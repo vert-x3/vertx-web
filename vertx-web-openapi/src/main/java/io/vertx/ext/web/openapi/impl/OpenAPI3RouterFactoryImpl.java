@@ -179,7 +179,7 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
   @Override
   public RouterFactory rootHandler(Handler<RoutingContext> rootHandler) {
     this.globalHandlers.add(rootHandler);
-    return null;
+    return this;
   }
 
   @Override
