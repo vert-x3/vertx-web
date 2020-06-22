@@ -285,8 +285,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
       routerFactory.rootHandler(rc -> {
         rc.response().putHeader("header-from-global-handler", "some dummy data");
         rc.next();
-      });
-      routerFactory.rootHandler(rc -> {
+      }).rootHandler(rc -> {
         rc.response().putHeader("header-from-global-handler", "some more dummy data");
         rc.next();
       });
