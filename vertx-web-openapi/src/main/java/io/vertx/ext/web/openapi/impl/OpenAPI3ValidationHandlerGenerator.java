@@ -90,7 +90,8 @@ public class OpenAPI3ValidationHandlerGenerator {
       JsonPointer mediaTypePointer = operation.getPointer().copy().append("requestBody").append("content").append(mediaType.getKey());
       BodyProcessor generated = bodyProcessorGenerators.stream()
         .filter(g -> g.canGenerate(mediaType.getKey(), mediaTypeModel))
-        .findFirst().orElseThrow(() -> RouterFactoryException.createBodyNotSupported(mediaTypePointer))
+        .findFirst()
+        .orElse(NoopBodyProcessorGenerator.INSTANCE)
         .generate(mediaType.getKey(), mediaTypeModel, mediaTypePointer, context);
       bodyProcessors.add(generated);
     }

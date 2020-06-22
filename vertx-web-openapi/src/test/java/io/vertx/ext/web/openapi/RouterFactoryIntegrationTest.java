@@ -2,20 +2,24 @@ package io.vertx.ext.web.openapi;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringEncoder;
-import io.vertx.core.*;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.handler.impl.AuthenticationHandlerImpl;
 import io.vertx.ext.web.multipart.MultipartForm;
-import io.vertx.ext.web.validation.*;
+import io.vertx.ext.web.validation.BodyProcessorException;
+import io.vertx.ext.web.validation.ParameterProcessorException;
+import io.vertx.ext.web.validation.RequestParameter;
+import io.vertx.ext.web.validation.RequestParameters;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
@@ -32,11 +36,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.vertx.ext.web.validation.testutils.ValidationTestUtils.*;
-import static io.vertx.ext.web.validation.testutils.ValidationTestUtils.badParameterResponse;
 import static io.vertx.ext.web.validation.testutils.TestRequest.*;
+import static io.vertx.ext.web.validation.testutils.ValidationTestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * This tests are about RouterFactory behaviours
@@ -1213,6 +1215,32 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
         .expect(statusCode(400))
         .expect(badParameterResponse(ParameterProcessorException.ParameterProcessorErrorType.PARSING_ERROR, "color", ParameterLocation.QUERY))
         .send(testContext, checkpoint);
+    });
+  }
+
+  /**
+   * Test: binary_test
+   */
+  @Test
+  public void testOctetStreamBody(Vertx vertx, VertxTestContext testContext) {
+    Buffer body = Buffer.buffer("Hello World!");
+    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
+      routerFactory
+        .operation("binary_test")
+        .handler(routingContext -> {
+          RequestParameters params = routingContext.get("parsedParameters");
+          routingContext.response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+            .putHeader("content-type", "application/octet-stream")
+            .end(params.body().getBuffer());
+        });
+    }).onComplete(h -> {
+      testRequest(client, HttpMethod.POST, "/binaryTest")
+        .expect(statusCode(200))
+        .expect(bodyResponse(body, "application/octet-stream"))
+        .with(requestHeader("content-type", "application/octet-stream"))
+        .sendBuffer(body, testContext);
     });
   }
 

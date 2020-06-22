@@ -1,6 +1,7 @@
 package io.vertx.ext.web.validation.impl;
 
 import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.validation.RequestParameter;
@@ -16,17 +17,6 @@ public class RequestParameterImpl implements RequestParameter {
 
   public RequestParameterImpl(Object value) {
     this.value = value;
-  }
-
-  @Override
-  public RequestParameter merge(RequestParameter m) {
-    RequestParameterImpl mergingObj = (RequestParameterImpl) m;
-    if (this.isJsonArray() && mergingObj.isJsonArray()) {
-      mergingObj.value = mergingObj.getJsonArray().addAll(this.getJsonArray());
-    } else if (this.isJsonObject() && mergingObj.isJsonObject()) {
-      mergingObj.value = mergingObj.getJsonObject().mergeIn(this.getJsonObject());
-    }
-    return mergingObj;
   }
 
   public RequestParameterImpl() {
@@ -99,6 +89,16 @@ public class RequestParameterImpl implements RequestParameter {
   }
 
   @Override
+  public @Nullable Buffer getBuffer() {
+    return isBuffer() ? (Buffer) value : null;
+  }
+
+  @Override
+  public boolean isBuffer() {
+    return !isNull() && value instanceof Buffer;
+  }
+
+  @Override
   public boolean isNull() {
     return value == null;
   }
@@ -108,11 +108,12 @@ public class RequestParameterImpl implements RequestParameter {
     return isNull() ||
       (isString() && getString().isEmpty()) ||
       (isJsonObject() && getJsonObject().isEmpty()) ||
-      (isJsonArray() && getJsonArray().isEmpty());
+      (isJsonArray() && getJsonArray().isEmpty()) ||
+      (isBuffer() && getBuffer().length() == 0);
   }
 
   @Override
-  public Object toJson() {
+  public Object get() {
     return value;
   }
 

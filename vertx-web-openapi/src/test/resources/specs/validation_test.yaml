@@ -456,6 +456,20 @@ paths:
           description: Wrong validation
         default:
           description: Default response
+  /binaryTest:
+    post:
+      operationId: binary_test
+      requestBody:
+        description: The binary body
+        required: true
+        content:
+          "application/octet-stream":
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: Ok
 components:
   schemas:
     Pet:
