@@ -138,7 +138,7 @@ public class RequestParametersImpl implements RequestParameters {
     root.put("header", mapToJsonObject(headerParameters));
     root.put("cookie", mapToJsonObject(cookieParameters));
     if (body != null)
-      root.put("body", body.toJson());
+      root.put("body", body.get());
     return root;
   }
 
@@ -148,7 +148,7 @@ public class RequestParametersImpl implements RequestParameters {
       .stream()
       .collect(Collector.of(
         JsonObject::new,
-        (j, e) -> j.put(e.getKey(), e.getValue().toJson()),
+        (j, e) -> j.put(e.getKey(), e.getValue().get()),
         JsonObject::mergeIn
       ));
   }

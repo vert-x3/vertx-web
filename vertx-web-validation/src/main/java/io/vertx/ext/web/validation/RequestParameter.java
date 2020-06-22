@@ -3,6 +3,7 @@ package io.vertx.ext.web.validation;
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.validation.impl.RequestParameterImpl;
@@ -16,65 +17,47 @@ import io.vertx.ext.web.validation.impl.RequestParameterImpl;
 public interface RequestParameter {
 
   /**
-   * Returns null if value is not a {@link String}, otherwise it returns value
-   *
-   * @return
+   * @return null if value is not a {@link String}, otherwise it returns value
    */
   @Nullable String getString();
 
   /**
-   * Returns true if value of this instance is a {@link String} instance
-   *
-   * @return
+   * @return true if value of this instance is a {@link String} instance
    */
   boolean isString();
 
   /**
-   * Returns null if value is not a {@link Number}, otherwise it returns value as {@link Integer}
-   *
-   * @return
+   * @return null if value is not a {@link Number}, otherwise it returns value as {@link Integer}
    */
   @Nullable Integer getInteger();
 
   /**
-   * Returns null if value is not a {@link Number}, otherwise it returns value as {@link Long}
-   *
-   * @return
+   * @return null if value is not a {@link Number}, otherwise it returns value as {@link Long}
    */
   @Nullable Long getLong();
 
   /**
-   * Returns null if value is not a {@link Number}, otherwise it returns value as {@link Float}
-   *
-   * @return
+   * @return null if value is not a {@link Number}, otherwise it returns value as {@link Float}
    */
   @Nullable Float getFloat();
 
   /**
-   * Returns null if value is not a {@link Number}, otherwise it returns value as {@link Double}
-   *
-   * @return
+   * @return null if value is not a {@link Number}, otherwise it returns value as {@link Double}
    */
   @Nullable Double getDouble();
 
   /**
-   * Returns true if value of this instance is a {@link Number} instance
-   *
-   * @return
+   * @return true if value of this instance is a {@link Number} instance
    */
   boolean isNumber();
 
   /**
-   * Returns null if value is not a {@link Boolean}, otherwise it returns value
-   *
-   * @return
+   * @return null if value is not a {@link Boolean}, otherwise it returns value
    */
   @Nullable Boolean getBoolean();
 
   /**
-   * Returns true if value of this instance is a {@link Boolean} instance
-   *
-   * @return
+   * @return true if value of this instance is a {@link Boolean} instance
    */
   boolean isBoolean();
 
@@ -86,54 +69,44 @@ public interface RequestParameter {
   @Nullable JsonObject getJsonObject();
 
   /**
-   * Returns true if value of this instance is a {@link JsonObject} instance
-   *
-   * @return
+   * @return true if value of this instance is a {@link JsonObject} instance
    */
   boolean isJsonObject();
 
   /**
-   * Returns null if value is not a {@link JsonArray}, otherwise it returns value
-   *
-   * @return
+   * @return null if value is not a {@link JsonArray}, otherwise it returns value
    */
   @Nullable JsonArray getJsonArray();
 
   /**
-   * Returns true if value of this instance is a {@link JsonArray} instance
-   *
-   * @return
+   * @return true if value of this instance is a {@link JsonArray} instance
    */
   boolean isJsonArray();
 
   /**
-   * Returns true if value is null
-   *
-   * @return
+   * @return null if value is not a {@link Buffer}, otherwise it returns value
+   */
+  @Nullable Buffer getBuffer();
+
+  /**
+   * @return true if value of this instance is a {@link Buffer} instance
+   */
+  boolean isBuffer();
+
+  /**
+   * @return true if value is null
    */
   boolean isNull();
 
   /**
-   * A parameter is empty if it's an empty string, an empty json object/array or if it's null
-   *
-   * @return
+   * @return True if it's an empty string, an empty json object/array, an empty buffer or it's null
    */
   boolean isEmpty();
 
   /**
-   * Converts deeply this instance into a Json representation
-   *
-   * @return
+   * @return the internal value. The internal value is always a valid Vert.x JSON type
    */
-  @CacheReturn Object toJson();
-
-  /**
-   * Merge this request parameter with another one. Note: the parameter passed by argument has the priority
-   *
-   * @param otherParameter
-   * @return
-   */
-  RequestParameter merge(RequestParameter otherParameter);
+  @CacheReturn Object get();
 
   static RequestParameter create(Object value) {
     return new RequestParameterImpl(value);
