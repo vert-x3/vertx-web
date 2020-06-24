@@ -196,8 +196,12 @@ public class WebClientBase implements WebClientInternal {
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, RequestOptions requestOptions) {
-    return new HttpRequestImpl<>(this, method, serverAddress, requestOptions.isSsl(), requestOptions.getPort(),
+    HttpRequest<Buffer> request = new HttpRequestImpl<>(this, method, serverAddress, requestOptions.isSsl(), requestOptions.getPort(),
       requestOptions.getHost(), requestOptions.getURI(), BodyCodecImpl.BUFFER, options);
+    if (requestOptions.getHeaders() != null) {
+      request.putHeaders(requestOptions.getHeaders());
+    }
+    return request;
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, String host, String requestURI) {
