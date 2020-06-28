@@ -137,6 +137,9 @@ public abstract class RoutingContextImplBase implements RoutingContext {
           }
           return true;
         } else if (matchResult != 404) {
+          if (this.matchFailure != 404 && this.matchFailure != 405 && matchResult == 405) {
+            continue;
+          }
           this.matchFailure = matchResult;
         }
       } catch (Throwable e) {
