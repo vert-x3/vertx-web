@@ -76,6 +76,26 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testSlashPaths() throws Exception {
+    router.route("/foo/").handler(rc -> {
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/foo", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/foo/", 200, "OK");
+    testRequest(HttpMethod.GET, "/foo//", 200, "OK");
+  }
+
+  @Test
+  public void testSlashPaths2() throws Exception {
+    router.route("/foo").handler(rc -> {
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/foo", 200, "OK");
+    testRequest(HttpMethod.GET, "/foo/", 200, "OK");
+    testRequest(HttpMethod.GET, "/foo//", 200, "OK");
+  }
+
+  @Test
   public void testRoutePathAndMethod() throws Exception {
     for (HttpMethod meth : METHODS) {
       testRoutePathAndMethod(meth, true);
