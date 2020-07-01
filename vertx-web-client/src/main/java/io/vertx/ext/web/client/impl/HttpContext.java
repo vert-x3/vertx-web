@@ -59,7 +59,7 @@ public class HttpContext<T> {
   private HttpResponse<T> response;
   private Throwable failure;
   private int redirects;
-  private List<String> redirectedLocations = new ArrayList<>();
+  private List<String> redirectedLocations = Collections.emptyList();
 
   HttpContext(Context context, HttpClientImpl client, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.context = context;
@@ -206,6 +206,9 @@ public class HttpContext<T> {
       redirects++;
       Future<HttpClientRequest> next = client.redirectHandler().apply(clientResponse);
       if (next != null) {
+        if (redirectedLocations.isEmpty()) {
+          redirectedLocations = new ArrayList<>();
+        }
         redirectedLocations.add(clientResponse.getHeader(HttpHeaders.LOCATION));
         next.onComplete(ar -> {
           if (ar.succeeded()) {
