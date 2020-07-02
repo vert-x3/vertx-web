@@ -13,8 +13,11 @@ import java.util.function.Function;
 /**
  * Main interface for Design Driven Router factory
  * Author: Francesco Guardiani @slinkydeveloper
+ *
+ * @deprecated You should use the new module vertx-web-openapi
  */
 @VertxGen(concrete = false)
+@Deprecated
 public interface RouterFactory<Specification> {
 
   /**

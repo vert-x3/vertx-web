@@ -22,8 +22,10 @@ import java.util.List;
  * </ul>
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated You should use the new module vertx-web-openapi
  */
 @VertxGen @FunctionalInterface
+@Deprecated
 public interface ParameterTypeValidator {
   /**
    * Function that checks if parameter is valid. It returns a RequestParameter object that will be linked inside

@@ -9,7 +9,11 @@ import io.vertx.core.json.JsonObject;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * @deprecated You should use the new module vertx-web-openapi
+ */
 @DataObject(generateConverter = true, publicConverter = false)
+@Deprecated
 public class OperationRequest {
 
   /**

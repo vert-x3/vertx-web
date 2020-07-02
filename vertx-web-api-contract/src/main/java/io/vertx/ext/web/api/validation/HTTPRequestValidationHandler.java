@@ -25,8 +25,10 @@ import io.vertx.ext.web.api.validation.impl.HTTPRequestValidationHandlerImpl;
  * If a parameter is flagged as an array, it will be validated also if the size of array is 1 element
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated You should use the new module vertx-web-openapi
  */
 @VertxGen
+@Deprecated
 public interface HTTPRequestValidationHandler extends ValidationHandler {
 
   /**

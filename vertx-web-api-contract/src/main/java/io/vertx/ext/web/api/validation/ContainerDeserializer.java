@@ -9,8 +9,10 @@ import java.util.Map;
  * Interface that define methods for deserialization of array and objects
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated You should use the new module vertx-web-openapi
  */
 @VertxGen
+@Deprecated
 public interface ContainerDeserializer {
 
   List<String> deserializeArray(String serialized) throws ValidationException;

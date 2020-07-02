@@ -8,11 +8,7 @@ import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.RouterFactory;
@@ -59,8 +55,10 @@ import java.util.stream.Collectors;
  * </ol>
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated You should use the new module vertx-web-openapi
  */
 @VertxGen
+@Deprecated
 public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
 
   /**

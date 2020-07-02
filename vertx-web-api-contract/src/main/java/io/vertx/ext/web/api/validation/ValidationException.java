@@ -8,7 +8,9 @@ import io.vertx.core.VertxException;
  * This is the main class for every Validation flow related errors
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated You should use the new module vertx-web-openapi
  */
+@Deprecated
 public class ValidationException extends VertxException {
 
   /**

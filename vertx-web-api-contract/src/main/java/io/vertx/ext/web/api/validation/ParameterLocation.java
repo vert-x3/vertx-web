@@ -6,8 +6,10 @@ import io.vertx.codegen.annotations.VertxGen;
  * ParameterLocation describe the location of parameter inside HTTP Request
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated You should use the new module vertx-web-openapi
  */
 @VertxGen
+@Deprecated
 public enum ParameterLocation {
   HEADER("header"), QUERY("query"), PATH("path"), FILE("body multipart/form"), BODY_FORM("body form"), BODY("body"),
   BODY_JSON("body json"), BODY_XML("body xml"), COOKIE("cookie");

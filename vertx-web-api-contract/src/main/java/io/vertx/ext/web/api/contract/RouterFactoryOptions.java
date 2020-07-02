@@ -7,8 +7,10 @@ import io.vertx.core.json.JsonObject;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated You should use the new module vertx-web-openapi
  */
 @DataObject(generateConverter = true, publicConverter = false)
+@Deprecated
 public class RouterFactoryOptions {
 
   /**
