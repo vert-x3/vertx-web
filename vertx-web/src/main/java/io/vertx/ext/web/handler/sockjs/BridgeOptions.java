@@ -10,6 +10,10 @@ import io.vertx.core.json.JsonObject;
 @DataObject
 public class BridgeOptions extends SockJSBridgeOptions {
 
+  public BridgeOptions() {
+    super();
+  }
+
   public BridgeOptions(JsonObject json) {
     super(json);
   }
