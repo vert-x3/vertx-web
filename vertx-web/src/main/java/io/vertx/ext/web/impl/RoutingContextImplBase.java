@@ -136,14 +136,16 @@ public abstract class RoutingContextImplBase implements RoutingContext {
             handleInHandlerRuntimeFailure(routeState.getRouter(), failed, t);
           }
           return true;
-        } else if (matchResult != 404) {
-          if (this.matchFailure != 404 && this.matchFailure != 405 && matchResult == 405) {
-            continue;
+        } else if (matchResult == 405) {
+          // invalid method match, means that
+          // we should "update" the failure if not found to be invalid method
+          if (this.matchFailure == 404) {
+            this.matchFailure = matchResult;
           }
+        } else if (matchResult != 404) {
           this.matchFailure = matchResult;
         }
       } catch (Throwable e) {
-        e.printStackTrace();
         if (LOG.isTraceEnabled()) {
           LOG.trace("IllegalArgumentException thrown during iteration", e);
         }
