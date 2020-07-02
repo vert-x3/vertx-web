@@ -2711,6 +2711,43 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testRouteMatchingUnsupportedMediaType() throws Exception {
+    router.post("/api").consumes("application/json").handler(rc -> rc.response().setStatusMessage("post api").end());
+    router.put("/api").consumes("application/json").handler(rc -> rc.response().setStatusMessage("put api").end());
+    testRequestWithContentType(HttpMethod.POST, "/api", "application/json", 200, "post api");
+    testRequestWithContentType(HttpMethod.POST, "/api", "application/xml", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.PUT, "/api", "application/json", 200, "put api");
+    testRequestWithContentType(HttpMethod.PUT, "/api", "application/xml", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.PATCH, "/api", "application/json", 405, "Method Not Allowed");
+  }
+
+  @Test
+  public void testRouteMatchingUnsupportedMediaTypeOrder() throws Exception {
+    router.put("/api").consumes("application/json").handler(rc -> rc.response().setStatusMessage("put api").end());
+    router.post("/api").consumes("application/json").handler(rc -> rc.response().setStatusMessage("post api").end());
+    router.get("/api").handler(rc -> rc.response().setStatusMessage("get api").end());
+    router.put("/api").consumes("application/xml").handler(rc -> rc.response().setStatusMessage("put api xml").end());
+    testRequestWithContentType(HttpMethod.POST, "/api", "application/json", 200, "post api");
+    testRequestWithContentType(HttpMethod.POST, "/api", "application/xml", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.PUT, "/api", "application/json", 200, "put api");
+    testRequestWithContentType(HttpMethod.PUT, "/api", "application/xml", 200, "put api xml");
+    testRequestWithContentType(HttpMethod.PATCH, "/api", "application/json", 405, "Method Not Allowed");
+  }
+
+  @Test
+  public void testRouteMatchingSupportedMediaTypes() throws Exception {
+    router.post("/api").consumes("application/json").handler(rc -> rc.response().setStatusMessage("post api").end());
+    router.post("/api").consumes("application/xml").handler(rc -> rc.response().setStatusMessage("post api xml").end());
+    router.put("/api").consumes("application/json").handler(rc -> rc.response().setStatusMessage("put api").end());
+    router.put("/api").consumes("application/xml").handler(rc -> rc.response().setStatusMessage("put api xml").end());
+    testRequestWithContentType(HttpMethod.POST, "/api", "application/json", 200, "post api");
+    testRequestWithContentType(HttpMethod.POST, "/api", "application/xml", 200, "post api xml");
+    testRequestWithContentType(HttpMethod.PUT, "/api", "application/json", 200, "put api");
+    testRequestWithContentType(HttpMethod.PUT, "/api", "application/xml", 200, "put api xml");
+    testRequestWithContentType(HttpMethod.PATCH, "/api", "application/json", 405, "Method Not Allowed");
+  }
+
+  @Test
   public void testRouteCustomVerb() throws Exception {
     router
       .route()
