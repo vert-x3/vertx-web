@@ -28,32 +28,36 @@ import java.nio.charset.Charset;
 public class VertxBufferOutput extends AbstractRockerOutput<VertxBufferOutput> {
 
   public static final VertxBufferOutputFactory FACTORY = new VertxBufferOutputFactory();
+  private static int maxRuntimeSize = 0;
 
   private final Buffer buffer;
 
   public VertxBufferOutput(ContentType contentType, String charsetName) {
     super(contentType, charsetName, 0);
-    this.buffer = Buffer.buffer();
+    this.buffer = Buffer.buffer(maxRuntimeSize);
   }
 
   public VertxBufferOutput(ContentType contentType, Charset charset) {
     super(contentType, charset, 0);
-    this.buffer = Buffer.buffer();
+    this.buffer = Buffer.buffer(maxRuntimeSize);
   }
 
   public Buffer getBuffer() {
+    maxRuntimeSize = Math.max(maxRuntimeSize, buffer.length());
     return buffer;
   }
 
   @Override
   public VertxBufferOutput w(String string) {
-    buffer.appendBytes(string.getBytes(charset));
+    buffer.appendString(string, charset.name());
+    byteLength = buffer.length();
     return this;
   }
 
   @Override
   public VertxBufferOutput w(byte[] bytes) {
     buffer.appendBytes(bytes);
+    byteLength = buffer.length();
     return this;
   }
 

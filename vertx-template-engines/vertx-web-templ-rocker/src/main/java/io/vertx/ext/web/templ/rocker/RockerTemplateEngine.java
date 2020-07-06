@@ -39,7 +39,7 @@ public interface RockerTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   static RockerTemplateEngine create() {
-    return new RockerTemplateEngineImpl(DEFAULT_TEMPLATE_EXTENSION);
+    return create(DEFAULT_TEMPLATE_EXTENSION);
   }
 
   /**
