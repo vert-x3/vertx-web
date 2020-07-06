@@ -1669,18 +1669,52 @@ public class WebExamples {
     OAuth2AuthHandler googleOAuth2 = OAuth2AuthHandler.create(
       vertx,
       googleAuthProvider,
-      "http://localhost:8080");
+      "https://myserver.com/google-callback");
 
+    // setup the callback handler for receiving the Google callback
+    googleOAuth2.setupCallback(router.route());
 
-    MultiTenantHandler.create("X-Tenant")
-      // tenants using github should go this way:
-      .addTenantHandler("tenant-github", githubOAuth2)
-      // tenants using google should go this way:
-      .addTenantHandler("tenant-google", googleOAuth2)
-      // all other should be forbidden
-      .addDefaultHandler(ctx -> ctx.fail(401));
+    // At this point the 2 callbacks endpoints are registered:
+
+    // /github-callback -> handle github Oauth2 callbacks
+    // /google-callback -> handle google Oauth2 callbacks
+
+    // As the callbacks are made by the IdPs there's no header
+    // to identify the source, hence the need of custom URLs
+
+    // However for out Application we can control it so later
+    // we can add the right handler for the right tenant
+
+    router.route().handler(
+      MultiTenantHandler.create("X-Tenant")
+        // tenants using github should go this way:
+        .addTenantHandler("github", githubOAuth2)
+        // tenants using google should go this way:
+        .addTenantHandler("google", googleOAuth2)
+        // all other should be forbidden
+        .addDefaultHandler(ctx -> ctx.fail(401)));
+
+    // Proceed using the router as usual.
   }
 
+  public void example81(Router router) {
+
+    router.route().handler(ctx -> {
+      // the default key is "tenant" as defined in
+      // MultiTenantHandler.TENANT but this value can be
+      // modified at creation time in the factory method
+      String tenant = ctx.get(MultiTenantHandler.TENANT);
+
+      switch(tenant) {
+        case "google":
+          // do something for google users
+          break;
+        case "github":
+          // so something for github users
+          break;
+      }
+    });
+  }
 
   public void example75(Vertx vertx, Router router, CredentialStore authStore) {
     // create the webauthn security object

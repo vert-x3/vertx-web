@@ -1456,6 +1456,16 @@ This is useful for security situations:
 {@link examples.WebExamples#example74}
 ----
 
+The tenant id can be read at any moment from the context, for example to decide which resource to load, or which
+database to connect to:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example81}
+----
+
+Multi tenant is a powerful handler that will allow applications to live side by side, however it provides no sandboxing
+for execution. It should not be used as isolation as wrongly written applications may leak state across tenants.
 
 == Templates
 
