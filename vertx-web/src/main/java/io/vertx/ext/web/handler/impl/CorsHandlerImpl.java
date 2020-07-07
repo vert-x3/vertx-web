@@ -29,6 +29,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.VARY;
 import static io.vertx.core.http.HttpHeaders.*;
 
 /**
@@ -48,6 +49,7 @@ public class CorsHandlerImpl implements CorsHandler {
   private final Set<String> allowedMethods = new LinkedHashSet<>();
   private final Set<String> allowedHeaders = new LinkedHashSet<>();
   private final Set<String> exposedHeaders = new LinkedHashSet<>();
+  private final Set<String> exposedVary = new LinkedHashSet<>();
 
   public CorsHandlerImpl(String allowedOriginPattern) {
     Objects.requireNonNull(allowedOriginPattern);
@@ -120,9 +122,15 @@ public class CorsHandlerImpl implements CorsHandler {
     HttpServerResponse response = context.response();
     String origin = context.request().headers().get(ORIGIN);
     if (origin == null) {
+      if (allowedOrigin != null) {
+        response.putHeader(VARY, ORIGIN);
+      }
       // Not a CORS request - we don't set any headers and just call the next handler
       context.next();
     } else if (isValidOrigin(origin)) {
+      if (allowedOrigin != null) {
+        response.putHeader(VARY, ORIGIN);
+      }
       String accessControlRequestMethod = request.headers().get(ACCESS_CONTROL_REQUEST_METHOD);
       if (request.method() == HttpMethod.OPTIONS && accessControlRequestMethod != null) {
         // Pre-flight request
