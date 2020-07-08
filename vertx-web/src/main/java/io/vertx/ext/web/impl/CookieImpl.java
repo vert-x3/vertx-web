@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.http.impl.ServerCookie;
 import io.vertx.ext.web.Cookie;
@@ -101,15 +102,30 @@ public class CookieImpl implements Cookie, ServerCookie {
   }
 
   @Override
+  public boolean isSecure() {
+    return delegate.isSecure();
+  }
+
+  @Override
   public Cookie setHttpOnly(final boolean httpOnly) {
     delegate.setHttpOnly(httpOnly);
     return this;
   }
 
   @Override
+  public boolean isHttpOnly() {
+    return delegate.isHttpOnly();
+  }
+
+  @Override
   public Cookie setSameSite(final CookieSameSite policy) {
     delegate.setSameSite(policy);
     return this;
+  }
+
+  @Override
+  public @Nullable CookieSameSite getSameSite() {
+    return delegate.getSameSite();
   }
 
   @Override

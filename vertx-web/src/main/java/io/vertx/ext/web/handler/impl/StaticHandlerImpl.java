@@ -238,6 +238,15 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   private void sendDirectory(RoutingContext context, String path, String file) {
+    // in order to keep caches in a valid state we need to assert that
+    // the user is requesting a directory (ends with /)
+    if (!path.endsWith("/")) {
+      context.response()
+        .putHeader(HttpHeaders.LOCATION, path + "/")
+        .setStatusCode(301)
+        .end();
+      return;
+    }
 
     if (directoryListing) {
       sendDirectoryListing(file, context);
