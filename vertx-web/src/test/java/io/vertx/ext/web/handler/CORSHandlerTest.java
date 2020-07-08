@@ -37,7 +37,7 @@ import static org.mockito.Mockito.verify;
  */
 public class CORSHandlerTest extends WebTestBase {
 
-  @Test(expected=NullPointerException.class)
+  @Test(expected = NullPointerException.class)
   public void testNullAllowedOrigin() throws Exception {
     CorsHandler.create(null);
   }
@@ -99,7 +99,7 @@ public class CORSHandlerTest extends WebTestBase {
   }
 
   @Test
-  @SuppressWarnings ("unchecked")
+  @SuppressWarnings("unchecked")
   public void testAcceptConstantOriginDeniedErrorHandler() throws Exception {
     Consumer<RoutingContext> handler = mock(Consumer.class);
 
@@ -245,7 +245,7 @@ public class CORSHandlerTest extends WebTestBase {
                             String accessControlAllowMethods, String accessControlAllowHeaders,
                             String accessControlExposeHeaders) {
     checkHeaders(resp, accessControlAllowOrigin, accessControlAllowMethods, accessControlAllowHeaders,
-                 accessControlExposeHeaders, null, null);
+      accessControlExposeHeaders, null, null);
   }
 
   private void checkHeaders(HttpClientResponse resp, String accessControlAllowOrigin,
@@ -260,4 +260,109 @@ public class CORSHandlerTest extends WebTestBase {
     assertEquals(maxAgeSeconds, resp.headers().get("access-control-max-age"));
   }
 
+  @Test
+  public void testIncludesVaryHeaderForSpecificOrigins() throws Exception {
+    router.route().handler(CorsHandler.create("http://example.com"));
+    router.route().handler(context -> context.response().end());
+    testRequest(
+      HttpMethod.GET,
+      "/",
+      req -> req.headers().add("origin", "http://example.com"),
+      resp -> {
+        assertEquals("origin", resp.getHeader("Vary"));
+      }, 200, "OK", null);
+  }
+
+  @Test
+  public void testAppendsVaryHeaderForSpecificOriginsWhenVaryIsDefined() throws Exception {
+    router.route().handler(context -> {
+      context.response().putHeader("Vary", "Foo");
+      context.next();
+    });
+    router.route().handler(CorsHandler.create("http://example.com"));
+    router.route().handler(context -> context.response().end());
+    testRequest(
+      HttpMethod.GET,
+      "/",
+      req -> req.headers().add("origin", "http://example.com"),
+      resp -> {
+        assertEquals("Foo,origin", resp.getHeader("Vary"));
+      }, 200, "OK", null);
+  }
+
+  @Test
+  public void testCanSpecifyAllowedHeaders() throws Exception {
+    router.route().handler(CorsHandler.create("http://example.com").allowedHeader("header1").allowedHeader("header2"));
+    router.route().handler(context -> context.response().end());
+    testRequest(
+      HttpMethod.OPTIONS,
+      "/",
+      req -> req.headers()
+        .add("origin", "http://example.com")
+        .add("access-control-request-method", "POST")
+        .add("access-control-request-headers", "x-header-1, x-header-2"),
+      resp -> {
+        assertEquals("header1,header2", resp.getHeader("Access-Control-Allow-Headers"));
+        assertNull(resp.getHeader("Vary"));
+      }, 200, "OK", null);
+  }
+
+  @Test
+  public void testMirrorAllowedHeaders() throws Exception {
+    router.route().handler(CorsHandler.create("http://example.com"));
+    router.route().handler(context -> context.response().end());
+    testRequest(
+      HttpMethod.OPTIONS,
+      "/",
+      req -> req.headers()
+        .add("origin", "http://example.com")
+        .add("access-control-request-method", "POST")
+        .add("access-control-request-headers", "x-header-1, x-header-2"),
+      resp -> {
+        assertEquals("x-header-1, x-header-2", resp.getHeader("Access-Control-Allow-Headers"));
+        assertEquals("access-control-request-headers", resp.getHeader("Vary"));
+      }, 200, "OK", null);
+  }
+
+  @Test
+  public void testMDNExample() throws Exception {
+    router.route().handler(
+      CorsHandler
+        .create("http://foo.example")
+        .allowedHeader("X-PINGOTHER")
+        .allowedHeader("Content-Type")
+        .allowedMethod(HttpMethod.POST)
+        .allowedMethod(HttpMethod.GET)
+        .allowedMethod(HttpMethod.OPTIONS)
+        .maxAgeSeconds(86400)
+    );
+    router.route().handler(context -> context.response().end());
+
+    // preflight
+    testRequest(
+      HttpMethod.OPTIONS,
+      "/",
+      req -> req.headers()
+        .add("origin", "http://foo.example")
+        .add("access-control-request-method", "POST")
+        .add("access-control-request-headers", "X-PINGOTHER, Content-Type"),
+      resp -> {
+        assertEquals("http://foo.example", resp.getHeader("Access-Control-Allow-Origin"));
+        assertEquals("POST,GET,OPTIONS", resp.getHeader("Access-Control-Allow-Methods"));
+        assertEquals("X-PINGOTHER,Content-Type", resp.getHeader("access-control-allow-headers"));
+        assertEquals("86400", resp.getHeader("access-control-max-age"));
+      }, 200, "OK", null);
+    // real request
+    testRequest(
+      HttpMethod.POST,
+      "/",
+      req -> req.headers()
+        .add("origin", "http://foo.example")
+        .add("X-PINGOTHER", "pingother")
+        .add("Content-Type", "text/xml; charset=UTF-8"),
+      resp -> {
+        assertEquals("http://foo.example", resp.getHeader("Access-Control-Allow-Origin"));
+        assertEquals("origin", resp.getHeader("Vary"));
+      }, 200, "OK", null);
+  }
 }

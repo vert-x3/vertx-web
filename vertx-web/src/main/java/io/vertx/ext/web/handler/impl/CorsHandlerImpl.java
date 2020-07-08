@@ -21,6 +21,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.impl.Utils;
 
 import java.net.URI;
 import java.util.LinkedHashSet;
@@ -50,7 +51,6 @@ public class CorsHandlerImpl implements CorsHandler {
   private final Set<String> allowedMethods = new LinkedHashSet<>();
   private final Set<String> allowedHeaders = new LinkedHashSet<>();
   private final Set<String> exposedHeaders = new LinkedHashSet<>();
-  private final Set<String> exposedVary = new LinkedHashSet<>();
 
   public CorsHandlerImpl(String allowedOriginPattern) {
     Objects.requireNonNull(allowedOriginPattern);
@@ -124,14 +124,11 @@ public class CorsHandlerImpl implements CorsHandler {
     String origin = context.request().headers().get(ORIGIN);
     if (origin == null) {
       if (allowedOrigin != null) {
-        response.putHeader(VARY, ORIGIN);
+        Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
       }
       // Not a CORS request - we don't set any headers and just call the next handler
       context.next();
     } else if (isValidOrigin(origin)) {
-      if (allowedOrigin != null) {
-        response.putHeader(VARY, ORIGIN);
-      }
       String accessControlRequestMethod = request.headers().get(ACCESS_CONTROL_REQUEST_METHOD);
       if (request.method() == HttpMethod.OPTIONS && accessControlRequestMethod != null) {
         // Pre-flight request
@@ -141,13 +138,23 @@ public class CorsHandlerImpl implements CorsHandler {
         }
         if (allowedHeadersString != null) {
           response.putHeader(ACCESS_CONTROL_ALLOW_HEADERS, allowedHeadersString);
+        } else {
+          if (request.headers().contains(ACCESS_CONTROL_REQUEST_HEADERS)) {
+            // echo back the request headers
+            response.putHeader(ACCESS_CONTROL_ALLOW_HEADERS, request.getHeader(ACCESS_CONTROL_REQUEST_HEADERS));
+            // in this case we need to vary on this header
+            Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ACCESS_CONTROL_REQUEST_HEADERS);
+          }
         }
         if (maxAgeSeconds != null) {
           response.putHeader(ACCESS_CONTROL_MAX_AGE, maxAgeSeconds);
         }
-        // according to MDC although the is no body the response should be OK
+        // according to MDC although there is no body the response should be OK
         response.setStatusCode(200).end();
       } else {
+        if (allowedOrigin != null) {
+          Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
+        }
         addCredentialsAndOriginHeader(response, origin);
         if (exposedHeadersString != null) {
           response.putHeader(ACCESS_CONTROL_EXPOSE_HEADERS, exposedHeadersString);

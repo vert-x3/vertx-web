@@ -140,9 +140,18 @@ public class Utils extends io.vertx.core.impl.Utils {
     return contentType.contains("application/xml") || contentType.contains("text/xml") || contentType.contains("+xml");
   }
 
-  public static void addToMapIfAbsent(MultiMap map, CharSequence key, String value) {
+  public static void addToMapIfAbsent(MultiMap map, CharSequence key, CharSequence value) {
     if (!map.contains(key)) {
       map.set(key, value);
+    }
+  }
+
+  public static void appendToMapIfAbsent(MultiMap map, CharSequence key, CharSequence sep, CharSequence value) {
+    if (!map.contains(key)) {
+      map.set(key, value);
+    } else {
+      String existing = map.get(key);
+      map.set(key, existing + sep + value);
     }
   }
 
