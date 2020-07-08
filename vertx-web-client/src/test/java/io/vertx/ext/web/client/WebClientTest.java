@@ -1002,6 +1002,16 @@ public class WebClientTest extends WebClientTestBase {
   }
 
   @Test
+  public void testHeadersFromRequestOptions() throws Exception {
+    RequestOptions options = new RequestOptions()
+      .setHost(DEFAULT_HTTP_HOST)
+      .setPort(DEFAULT_HTTP_PORT)
+      .setURI("/")
+      .addHeader("header-name", "header-value");
+    testRequest(client -> client.request(HttpMethod.GET, options), req -> assertEquals("header-value", req.getHeader("header-name")));
+  }
+
+  @Test
   public void testQueryParam() throws Exception {
     testRequest(client -> client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/").addQueryParam("param", "param_value"), req -> {
       assertEquals("param=param_value", req.query());
