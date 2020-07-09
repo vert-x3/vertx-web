@@ -33,8 +33,7 @@ import io.vertx.ext.bridge.BaseBridgeEvent;
 public interface BridgeEvent extends BaseBridgeEvent {
 
   /**
-   * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
-   * no message involved.
+   * Set the raw JSON message for the event.
    *
    * @param message the raw message
    * @return this reference, so it can be used fluently
