@@ -333,7 +333,7 @@ public class StaticHandlerTest extends WebTestBase {
       lastModifiedRef.set(lastModified);
       assertNotNull(cacheControl);
       assertNotNull(lastModified);
-      assertEquals("public, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
+      assertEquals("public, immutable, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
     }, 200, "OK", "<html><body>Other page</body></html>");
     testRequest(HttpMethod.GET, "/otherpage.html", req -> handler.accept(lastModifiedRef.get(), req), null, expectedStatusCode, expectedStatusMessage, expectedStatusBody);
   }
@@ -347,7 +347,7 @@ public class StaticHandlerTest extends WebTestBase {
       lastModifiedRef.set(lastModified);
       assertNotNull(cacheControl);
       assertNotNull(lastModified);
-      assertEquals("public, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
+      assertEquals("public, immutable, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
     }, 200, "OK", "<html><body>Subdirectory index page</body></html>");
     testRequest(HttpMethod.GET, "/somedir/", req -> req.putHeader("if-modified-since", lastModifiedRef.get()), null, 304, "Not Modified", null);
   }
@@ -414,7 +414,7 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setMaxAgeSeconds(maxAge);
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
       String cacheControl = res.headers().get("cache-control");
-      assertEquals("public, max-age=" + maxAge, cacheControl);
+      assertEquals("public, immutable, max-age=" + maxAge, cacheControl);
     }, 200, "OK", "<html><body>Other page</body></html>");
   }
 
