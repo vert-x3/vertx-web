@@ -21,6 +21,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.net.URI;
 import java.util.LinkedHashSet;
@@ -36,8 +37,6 @@ import static io.vertx.core.http.HttpHeaders.*;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class CorsHandlerImpl implements CorsHandler {
-
-  public static final String CORS_HANDLED_FLAG = "corsHeadersWritten";
 
   private final Pattern allowedOrigin;
 
@@ -144,7 +143,7 @@ public class CorsHandlerImpl implements CorsHandler {
         if (exposedHeadersString != null) {
           response.putHeader(ACCESS_CONTROL_EXPOSE_HEADERS, exposedHeadersString);
         }
-        context.put(CORS_HANDLED_FLAG, true);
+        ((RoutingContextInternal) context).visitHandler(RoutingContextInternal.CORS_HANDLER);
         context.next();
       }
     } else {

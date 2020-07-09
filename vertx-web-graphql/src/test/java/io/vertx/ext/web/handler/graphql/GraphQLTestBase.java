@@ -24,6 +24,7 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.handler.BodyHandler;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static java.util.stream.Collectors.toList;
@@ -39,6 +40,7 @@ public class GraphQLTestBase extends WebTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    router.route().handler(BodyHandler.create());
     graphQLHandler = GraphQLHandler.create(graphQL(), createOptions());
     router.route("/graphql").order(100).handler(graphQLHandler);
   }

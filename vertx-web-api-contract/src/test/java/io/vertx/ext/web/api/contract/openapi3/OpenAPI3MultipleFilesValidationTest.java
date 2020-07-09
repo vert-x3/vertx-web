@@ -32,7 +32,7 @@ import java.util.List;
  * The validation handlers are not constructed through OpenAPI3RouterFactory.
  * For router factory behaviours, please give a look at
  * OpenAPI3RouterFactoryTest
- * 
+ *
  * @author Cristiano Gaviao @cvgaviao
  */
 public class OpenAPI3MultipleFilesValidationTest extends WebTestValidationBase {
@@ -703,7 +703,7 @@ public class OpenAPI3MultipleFilesValidationTest extends WebTestValidationBase {
         // An empty body should be a non parsable json, not an empty object
         // invalid
         testRequestWithJSON(HttpMethod.POST, "/pets", null, 400,
-                errorMessage(ValidationException.ErrorType.JSON_INVALID));
+                errorMessage(ValidationException.ErrorType.JSON_NOT_PARSABLE));
 
         // An empty json object should be invalid, because some fields are
         // required

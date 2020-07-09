@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public abstract class RoutingContextImplBase implements RoutingContext {
+public abstract class RoutingContextImplBase implements RoutingContextInternal {
 
   private static final Logger LOG = LoggerFactory.getLogger(RoutingContextImplBase.class);
 
@@ -48,6 +48,8 @@ public abstract class RoutingContextImplBase implements RoutingContext {
   // the current path matched string
   int matchRest = -1;
   boolean matchNormalized;
+  // internal runtime state
+  private volatile long seen;
 
   RoutingContextImplBase(String mountPoint, Set<RouteImpl> routes) {
     this.mountPoint = mountPoint;
@@ -56,6 +58,17 @@ public abstract class RoutingContextImplBase implements RoutingContext {
     this.currentRouteNextHandlerIndex = new AtomicInteger(0);
     this.currentRouteNextFailureHandlerIndex = new AtomicInteger(0);
     resetMatchFailure();
+  }
+
+  @Override
+  public synchronized RoutingContextInternal visitHandler(int id) {
+    seen |= id;
+    return this;
+  }
+
+  @Override
+  public boolean seenHandler(int id) {
+    return (seen & id) != 0;
   }
 
   @Override

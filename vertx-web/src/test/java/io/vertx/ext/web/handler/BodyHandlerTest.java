@@ -61,18 +61,18 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testGETWithBody() throws Exception {
+  public void testGETWithoutBody() throws Exception {
     router.route().handler(rc -> {
-      assertNotNull(rc.getBody());
+      assertNull(rc.getBody());
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", 200, "OK");
   }
 
   @Test
-  public void testHEADWithBody() throws Exception {
+  public void testHEADWithoutBody() throws Exception {
     router.route().handler(rc -> {
-      assertNotNull(rc.getBody());
+      assertNull(rc.getBody());
       rc.response().end();
     });
     testRequest(HttpMethod.HEAD, "/", 200, "OK");
@@ -264,7 +264,7 @@ public class BodyHandlerTest extends WebTestBase {
       assertEquals(fileData, uploaded);
       // the data is upload as HTML form, so the body should be empty
       Buffer rawBody = rc.getBody();
-      assertEquals(0, rawBody.length());
+      assertNull(rawBody);
       rc.response().end();
     });
     sendFileUploadRequest(fileData, 200, "OK");
@@ -550,7 +550,7 @@ public class BodyHandlerTest extends WebTestBase {
     router.route().handler(BodyHandler.create()
         .setUploadsDirectory(uploadsDirectory));
     router.route().handler(ctx -> {
-      assertEquals(0, ctx.getBody().length());
+      assertNull(ctx.getBody());
       assertEquals(1, ctx.fileUploads().size());
       ctx.response().end();
     });

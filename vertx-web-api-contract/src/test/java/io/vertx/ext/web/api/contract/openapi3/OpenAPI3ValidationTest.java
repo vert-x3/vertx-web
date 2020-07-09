@@ -522,7 +522,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     });
 
     // An empty body should be a non parsable json, not an empty object invalid
-    testRequestWithJSON(HttpMethod.POST, "/pets", null, 400, errorMessage(ValidationException.ErrorType.JSON_INVALID));
+    testRequestWithJSON(HttpMethod.POST, "/pets", null, 400, errorMessage(ValidationException.ErrorType.JSON_NOT_PARSABLE));
 
     // An empty json object should be invalid, because some fields are required
     testRequestWithJSON(HttpMethod.POST, "/pets", new JsonObject().toBuffer(),400, errorMessage(ValidationException.ErrorType.JSON_INVALID));

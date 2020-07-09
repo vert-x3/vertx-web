@@ -26,7 +26,7 @@ import java.util.Set;
  * @author <a href="mailto:stephane.bastian.dev@gmail.com>Stéphane Bastian</a>
  *
  */
-public class RoutingContextDecorator implements RoutingContext {
+public class RoutingContextDecorator implements RoutingContextInternal {
 
   private final Route currentRoute;
   private final RoutingContext decoratedContext;
@@ -36,6 +36,16 @@ public class RoutingContextDecorator implements RoutingContext {
     Objects.requireNonNull(decoratedContext);
     this.currentRoute = currentRoute;
     this.decoratedContext = decoratedContext;
+  }
+
+  @Override
+  public RoutingContextInternal visitHandler(int id) {
+    return ((RoutingContextInternal) decoratedContext).visitHandler(id);
+  }
+
+  @Override
+  public boolean seenHandler(int id) {
+    return ((RoutingContextInternal) decoratedContext).seenHandler(id);
   }
 
   @Override

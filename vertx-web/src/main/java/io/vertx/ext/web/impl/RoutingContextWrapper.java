@@ -62,6 +62,16 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public RoutingContextInternal visitHandler(int id) {
+    return ((RoutingContextInternal) inner).visitHandler(id);
+  }
+
+  @Override
+  public boolean seenHandler(int id) {
+    return ((RoutingContextInternal) inner).seenHandler(id);
+  }
+
+  @Override
   public HttpServerRequest request() {
     return inner.request();
   }

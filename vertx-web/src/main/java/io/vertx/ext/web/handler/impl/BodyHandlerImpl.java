@@ -35,16 +35,14 @@ import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.impl.FileUploadImpl;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 /**
- *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class BodyHandlerImpl implements BodyHandler {
 
   private static final Logger log = LoggerFactory.getLogger(BodyHandlerImpl.class);
-
-  private static final String BODY_HANDLED = "__body-handled";
 
   private long bodyLimit = DEFAULT_BODY_LIMIT;
   private boolean handleFileUploads;
@@ -80,13 +78,12 @@ public class BodyHandlerImpl implements BodyHandler {
       return;
     }
     // we need to keep state since we can be called again on reroute
-    Boolean handled = context.get(BODY_HANDLED);
-    if (handled == null || !handled) {
+    if (!((RoutingContextInternal) context).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
       long contentLength = isPreallocateBodyBuffer ? parseContentLengthHeader(request) : -1;
       BHandler handler = new BHandler(context, contentLength);
       request.handler(handler);
       request.endHandler(v -> handler.end());
-      context.put(BODY_HANDLED, true);
+      ((RoutingContextInternal) context).visitHandler(RoutingContextInternal.BODY_HANDLER);
     } else {
       // on reroute we need to re-merge the form params if that was desired
       if (mergeFormAttributes && request.isExpectMultipart()) {
@@ -135,14 +132,13 @@ public class BodyHandlerImpl implements BodyHandler {
 
   private long parseContentLengthHeader(HttpServerRequest request) {
     String contentLength = request.getHeader(HttpHeaders.CONTENT_LENGTH);
-    if(contentLength == null || contentLength.isEmpty()) {
+    if (contentLength == null || contentLength.isEmpty()) {
       return -1;
     }
     try {
       long parsedContentLength = Long.parseLong(contentLength);
-      return  parsedContentLength < 0 ? null : parsedContentLength;
-    }
-    catch (NumberFormatException ex) {
+      return parsedContentLength < 0 ? -1 : parsedContentLength;
+    } catch (NumberFormatException ex) {
       return -1;
     }
   }
@@ -150,7 +146,8 @@ public class BodyHandlerImpl implements BodyHandler {
   private class BHandler implements Handler<Buffer> {
     private static final int MAX_PREALLOCATED_BODY_BUFFER_BYTES = 65535;
 
-    RoutingContext context;
+    final RoutingContext context;
+    final long contentLength;
     Buffer body;
     boolean failed;
     AtomicInteger uploadCount = new AtomicInteger();
@@ -162,6 +159,14 @@ public class BodyHandlerImpl implements BodyHandler {
 
     public BHandler(RoutingContext context, long contentLength) {
       this.context = context;
+      this.contentLength = contentLength;
+      // the request clearly states that there should
+      // be a body, so we respect the client and ensure
+      // that the body will not be null
+      if (contentLength != -1) {
+        initBodyBuffer();
+      }
+
       Set<FileUpload> fileUploads = context.fileUploads();
 
       final String contentType = context.request().getHeader(HttpHeaders.CONTENT_TYPE);
@@ -173,8 +178,6 @@ public class BodyHandlerImpl implements BodyHandler {
         isMultipart = lowerCaseContentType.startsWith(HttpHeaderValues.MULTIPART_FORM_DATA.toString());
         isUrlEncoded = lowerCaseContentType.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString());
       }
-
-      initBodyBuffer(contentLength);
 
       if (isMultipart || isUrlEncoded) {
         context.request().setExpectMultipart(true);
@@ -218,20 +221,18 @@ public class BodyHandlerImpl implements BodyHandler {
       });
     }
 
-    private void initBodyBuffer(long contentLength) {
+    private void initBodyBuffer() {
       int initialBodyBufferSize;
-      if(contentLength < 0) {
+      if (contentLength < 0) {
         initialBodyBufferSize = DEFAULT_INITIAL_BODY_BUFFER_SIZE;
-      }
-      else if(contentLength > MAX_PREALLOCATED_BODY_BUFFER_BYTES) {
+      } else if (contentLength > MAX_PREALLOCATED_BODY_BUFFER_BYTES) {
         initialBodyBufferSize = MAX_PREALLOCATED_BODY_BUFFER_BYTES;
-      }
-      else {
+      } else {
         initialBodyBufferSize = (int) contentLength;
       }
 
-      if(bodyLimit != -1) {
-        initialBodyBufferSize = (int)Math.min(initialBodyBufferSize, bodyLimit);
+      if (bodyLimit != -1) {
+        initialBodyBufferSize = (int) Math.min(initialBodyBufferSize, bodyLimit);
       }
 
       this.body = Buffer.buffer(initialBodyBufferSize);
@@ -259,6 +260,9 @@ public class BodyHandlerImpl implements BodyHandler {
         // url encoded should also not, however jQuery by default
         // post in urlencoded even if the payload is something else
         if (!isMultipart /* && !isUrlEncoded */) {
+          if (body == null) {
+            initBodyBuffer();
+          }
           body.appendBuffer(buff);
         }
       }

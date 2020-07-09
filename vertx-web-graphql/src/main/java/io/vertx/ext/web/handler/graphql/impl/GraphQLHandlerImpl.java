@@ -33,6 +33,7 @@ import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 import org.dataloader.DataLoaderRegistry;
 
 import java.util.*;
@@ -93,11 +94,14 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     if (method == GET) {
       handleGet(rc);
     } else if (method == POST) {
-      Buffer body = rc.getBody();
-      if (body == null) {
-        rc.request().bodyHandler(buffer -> handlePost(rc, buffer));
+      if (!((RoutingContextInternal) rc).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+        // the body handler was not set, so we cannot securely process POST bodies
+        // we could just add an ad-hoc body handler but this can lead to DDoS attacks
+        // and it doesn't really cover all the uploads, such as multipart, etc...
+        // as well as resource cleanup
+        rc.fail(500, new NoStackTraceThrowable("BodyHandler is required to process POST requests"));
       } else {
-        handlePost(rc, body);
+        handlePost(rc, rc.getBody());
       }
     } else {
       rc.fail(405);
@@ -137,12 +141,22 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
 
     switch (getContentType(rc)) {
       case "application/json":
+        if (body == null) {
+          // plain failure as the json body is missing
+          rc.fail(400, new NoStackTraceThrowable("No body"));
+          return;
+        }
         handlePostJson(rc, body, rc.queryParams().get("operationName"), variables);
         break;
       case "multipart/form-data":
         handlePostMultipart(rc, rc.queryParams().get("operationName"), variables);
         break;
       case "application/graphql":
+        if (body == null) {
+          // plain failure as the query is missing
+          rc.fail(400, new NoStackTraceThrowable("No body"));
+          return;
+        }
         executeOne(rc, new GraphQLQuery(body.toString(), rc.queryParams().get("operationName"), variables));
         break;
       default:
