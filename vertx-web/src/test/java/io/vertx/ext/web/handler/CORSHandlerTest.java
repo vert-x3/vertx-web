@@ -136,7 +136,7 @@ public class CORSHandlerTest extends WebTestBase {
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "vertx.io");
       req.headers().add("access-control-request-method", "PUT,DELETE");
-    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null), 200, "OK", null);
+    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null), 204, "No Content", null);
   }
 
   @Test
@@ -149,7 +149,7 @@ public class CORSHandlerTest extends WebTestBase {
       req.headers().add("origin", "vertx.io");
       req.headers().add("access-control-request-method", "PUT,DELETE");
       req.headers().add("access-control-request-headers", allowedHeaders);
-    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", "X-wibble,X-blah", null), 200, "OK", null);
+    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", "X-wibble,X-blah", null), 204, "No Content", null);
   }
 
   @Test
@@ -164,7 +164,7 @@ public class CORSHandlerTest extends WebTestBase {
     }, resp -> {
       // Note expose headers header is never provided in response of pre-flight request
       checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null);
-    }, 200, "OK", null);
+    }, 204, "No Content", null);
   }
 
   @Test
@@ -175,7 +175,7 @@ public class CORSHandlerTest extends WebTestBase {
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "vertx.io");
       req.headers().add("access-control-request-method", "PUT,DELETE");
-    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null, "true", null), 200, "OK", null);
+    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null, "true", null), 204, "No Content", null);
   }
 
   @Test
@@ -187,7 +187,7 @@ public class CORSHandlerTest extends WebTestBase {
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "vertx.io");
       req.headers().add("access-control-request-method", "PUT,DELETE");
-    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null, "true", null), 200, "OK", null);
+    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null, "true", null), 204, "No Content", null);
   }
 
   @Test
@@ -199,7 +199,7 @@ public class CORSHandlerTest extends WebTestBase {
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "vertx.io");
       req.headers().add("access-control-request-method", "PUT,DELETE");
-    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null, null, String.valueOf(maxAge)), 200, "OK", null);
+    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null, null, String.valueOf(maxAge)), 204, "No Content", null);
   }
 
   @Test
@@ -304,7 +304,7 @@ public class CORSHandlerTest extends WebTestBase {
       resp -> {
         assertEquals("header1,header2", resp.getHeader("Access-Control-Allow-Headers"));
         assertNull(resp.getHeader("Vary"));
-      }, 200, "OK", null);
+      }, 204, "No Content", null);
   }
 
   @Test
@@ -321,7 +321,7 @@ public class CORSHandlerTest extends WebTestBase {
       resp -> {
         assertEquals("x-header-1, x-header-2", resp.getHeader("Access-Control-Allow-Headers"));
         assertEquals("access-control-request-headers", resp.getHeader("Vary"));
-      }, 200, "OK", null);
+      }, 204, "No Content", null);
   }
 
   @Test
@@ -351,7 +351,7 @@ public class CORSHandlerTest extends WebTestBase {
         assertEquals("POST,GET,OPTIONS", resp.getHeader("Access-Control-Allow-Methods"));
         assertEquals("X-PINGOTHER,Content-Type", resp.getHeader("access-control-allow-headers"));
         assertEquals("86400", resp.getHeader("access-control-max-age"));
-      }, 200, "OK", null);
+      }, 204, "No Content", null);
     // real request
     testRequest(
       HttpMethod.POST,
