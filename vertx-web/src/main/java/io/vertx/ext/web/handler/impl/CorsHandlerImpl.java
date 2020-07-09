@@ -30,7 +30,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static io.netty.handler.codec.http.HttpHeaderNames.VARY;
 import static io.vertx.core.http.HttpHeaders.*;
 
 /**
@@ -122,9 +121,7 @@ public class CorsHandlerImpl implements CorsHandler {
     HttpServerResponse response = context.response();
     String origin = context.request().headers().get(ORIGIN);
     if (origin == null) {
-      if (allowedOrigin != null) {
-        Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
-      }
+      Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
       // Not a CORS request - we don't set any headers and just call the next handler
       context.next();
     } else if (isValidOrigin(origin)) {
@@ -148,12 +145,15 @@ public class CorsHandlerImpl implements CorsHandler {
         if (maxAgeSeconds != null) {
           response.putHeader(ACCESS_CONTROL_MAX_AGE, maxAgeSeconds);
         }
-        // according to MDC although there is no body the response should be OK
-        response.setStatusCode(200).end();
+
+        response
+          // for old Safari
+          .putHeader(CONTENT_LENGTH, "0")
+          .setStatusCode(204)
+          .end();
+
       } else {
-        if (allowedOrigin != null) {
-          Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
-        }
+        Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
         addCredentialsAndOriginHeader(response, origin);
         if (exposedHeadersString != null) {
           response.putHeader(ACCESS_CONTROL_EXPOSE_HEADERS, exposedHeadersString);
