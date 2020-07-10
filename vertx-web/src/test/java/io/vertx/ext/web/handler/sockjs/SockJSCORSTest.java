@@ -14,9 +14,9 @@ public class SockJSCORSTest extends WebTestBase {
       .route()
       .handler(BodyHandler.create());
     SockJSProtocolTest.installTestApplications(router, vertx);
-    client.get("/echo/info?t=21321", HttpHeaders.set(HttpHeaders.ORIGIN, "example.com"), onSuccess(resp -> {
+    client.get("/echo/info?t=21321", HttpHeaders.set(HttpHeaders.ORIGIN, "http://example.com"), onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
-      assertEquals("example.com", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+      assertEquals("http://example.com", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
       assertEquals("true", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
       complete();
     }));
@@ -30,7 +30,7 @@ public class SockJSCORSTest extends WebTestBase {
       .handler(CorsHandler.create("*").allowCredentials(false))
       .handler(BodyHandler.create());
     SockJSProtocolTest.installTestApplications(router, vertx);
-    client.get("/echo/info?t=21321", HttpHeaders.set(HttpHeaders.ORIGIN, "example.com"), onSuccess(resp -> {
+    client.get("/echo/info?t=21321", HttpHeaders.set(HttpHeaders.ORIGIN, "http://example.com"), onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals("*", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
       assertFalse(resp.headers().contains(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
