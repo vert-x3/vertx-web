@@ -23,6 +23,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.CorsHandlerImpl;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -34,7 +35,8 @@ import java.util.Set;
 public interface CorsHandler extends Handler<RoutingContext> {
 
   /**
-   * Create a CORS handler
+   * Create a CORS handler using a regular expression to match origins. An origin follows rfc6454#section-7
+   * and is expected to have the format: {@code <scheme> "://" <hostname> [ ":" <port> ]}
    *
    * @param allowedOriginPattern  the allowed origin pattern
    * @return  the handler
@@ -42,6 +44,32 @@ public interface CorsHandler extends Handler<RoutingContext> {
   static CorsHandler create(String allowedOriginPattern) {
     return new CorsHandlerImpl(allowedOriginPattern);
   }
+
+  /**
+   * Create a empty CORS handler that allows {@code *} origin.
+   * @return the handler
+   */
+  static CorsHandler create() {
+    return new CorsHandlerImpl();
+  }
+
+  /**
+   * Add an origin to the list of allowed Origins. An origin follows rfc6454#section-7
+   * and is expected to have the format: {@code <scheme> "://" <hostname> [ ":" <port> ]}
+   * @param origin the well formatted static origin
+   * @return self
+   */
+  @Fluent
+  CorsHandler addOrigin(String origin);
+
+  /**
+   * Set the list of allowed origins. An origin follows rfc6454#section-7
+   * and is expected to have the format: {@code <scheme> "://" <hostname> [ ":" <port> ]}
+   * @param origins the well formatted static origin list
+   * @return self
+   */
+  @Fluent
+  CorsHandler addOrigins(List<String> origins);
 
   /**
    * Add an allowed method

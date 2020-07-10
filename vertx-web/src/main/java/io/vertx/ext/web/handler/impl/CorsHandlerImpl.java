@@ -22,9 +22,10 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
+import io.vertx.ext.web.impl.Utils;
 
-import java.net.URI;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -39,6 +40,7 @@ import static io.vertx.core.http.HttpHeaders.*;
 public class CorsHandlerImpl implements CorsHandler {
 
   private final Pattern allowedOrigin;
+  private Set<String> allowedOrigins;
 
   private String allowedMethodsString;
   private String allowedHeadersString;
@@ -56,6 +58,45 @@ public class CorsHandlerImpl implements CorsHandler {
     } else {
       allowedOrigin = Pattern.compile(allowedOriginPattern);
     }
+    allowedOrigins = null;
+  }
+
+  public CorsHandlerImpl() {
+    allowedOrigin = null;
+    allowedOrigins = null;
+  }
+
+  @Override
+  public CorsHandler addOrigin(String origin) {
+    if (allowedOrigin != null) {
+      throw new IllegalStateException("Cannot mix Pattern mode and Origin List mode");
+    }
+    if (allowedOrigins == null) {
+      if (origin.equals("*")) {
+        // we signal any as null
+        return this;
+      }
+      allowedOrigins = new LinkedHashSet<>();
+    } else {
+      if (origin.equals("*")) {
+        // we signal any as null
+        throw new IllegalStateException("Cannot mix '*' with explicit origins");
+      }
+    }
+    allowedOrigins.add(origin);
+    return this;
+  }
+
+  @Override
+  public CorsHandler addOrigins(List<String> origins) {
+    if (allowedOrigin != null) {
+      throw new IllegalStateException("Cannot mix Pattern mode and Origin List mode");
+    }
+    if (allowedOrigins == null) {
+      allowedOrigins = new LinkedHashSet<>();
+    }
+    allowedOrigins.addAll(origins);
+    return this;
   }
 
   @Override
@@ -120,6 +161,7 @@ public class CorsHandlerImpl implements CorsHandler {
     HttpServerResponse response = context.response();
     String origin = context.request().headers().get(ORIGIN);
     if (origin == null) {
+      Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
       // Not a CORS request - we don't set any headers and just call the next handler
       context.next();
     } else if (isValidOrigin(origin)) {
@@ -132,13 +174,26 @@ public class CorsHandlerImpl implements CorsHandler {
         }
         if (allowedHeadersString != null) {
           response.putHeader(ACCESS_CONTROL_ALLOW_HEADERS, allowedHeadersString);
+        } else {
+          if (request.headers().contains(ACCESS_CONTROL_REQUEST_HEADERS)) {
+            // echo back the request headers
+            response.putHeader(ACCESS_CONTROL_ALLOW_HEADERS, request.getHeader(ACCESS_CONTROL_REQUEST_HEADERS));
+            // in this case we need to vary on this header
+            Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ACCESS_CONTROL_REQUEST_HEADERS);
+          }
         }
         if (maxAgeSeconds != null) {
           response.putHeader(ACCESS_CONTROL_MAX_AGE, maxAgeSeconds);
         }
-        // according to MDC although the is no body the response should be OK
-        response.setStatusCode(200).end();
+
+        response
+          // for old Safari
+          .putHeader(CONTENT_LENGTH, "0")
+          .setStatusCode(204)
+          .end();
+
       } else {
+        Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
         addCredentialsAndOriginHeader(response, origin);
         if (exposedHeadersString != null) {
           response.putHeader(ACCESS_CONTROL_EXPOSE_HEADERS, exposedHeadersString);
@@ -167,24 +222,80 @@ public class CorsHandlerImpl implements CorsHandler {
   }
 
   private boolean isValidOrigin(String origin) {
+
     // Null means accept all origins
-    if (allowedOrigin == null) {
-      // in this case origin "must" be a valid URL
+    if ((allowedOrigin == null && allowedOrigins == null)) {
       return isValidOriginURI(origin);
     }
-    return allowedOrigin.matcher(origin).matches();
+
+    if(allowedOrigin != null) {
+      // check for allowed origin pattern match
+      return allowedOrigin.matcher(origin).matches();
+    }
+
+    if(allowedOrigins != null) {
+      // check whether origin is contained within allowed origin set
+      return allowedOrigins.contains(origin) && isValidOriginURI(origin);
+    }
+
+    return false;
   }
 
+  /**
+   * Checks if the origin header is valid according to:
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin
+   * https://tools.ietf.org/html/rfc6454#section-7
+   */
   private boolean isValidOriginURI(String origin) {
-    try {
-      URI.create(origin);
-      return true;
-    } catch (IllegalArgumentException e) {
+    if (origin == null || origin.length() < 3) {
       return false;
     }
+    // an origin header has the following syntax:
+    // <scheme> "://" <hostname> [ ":" <port> ]
+    int sep0 = origin.indexOf("://");
+
+    if (sep0 <= 0) {
+      // ://xyz -> url misses scheme
+      return false;
+    }
+
+    // scheme allow letters
+    for (int i = 0; i < sep0; i++) {
+      char c = origin.charAt(i);
+      if (!Character.isLetter(c)) {
+        return false;
+      }
+    }
+
+    int sep1 = origin.lastIndexOf(':');
+
+    if (sep1 > sep0) {
+      // optional port information present
+      try {
+        Integer.parseInt(origin.substring(sep1 + 1));
+      } catch (NumberFormatException e) {
+        return false;
+      }
+    } else {
+      sep1 = origin.length();
+    }
+
+    // domain allow letters, numbers and .
+    for (int i = sep0 + 3; i < sep1; i++) {
+      char c = origin.charAt(i);
+      if (!Character.isLetterOrDigit(c) && c != '.') {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   private String getAllowedOrigin(String origin) {
-    return allowedOrigin == null ? "*" : origin;
+    if(allowedOrigin == null && allowedOrigins == null) {
+      return "*";
+    }
+
+    return origin;
   }
 }
