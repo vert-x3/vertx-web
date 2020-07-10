@@ -21,10 +21,7 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.Cookie;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -87,11 +84,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   private void fillParsedHeaders(HttpServerRequest request) {
-    String accept = request.getHeader("Accept");
-    String acceptCharset = request.getHeader ("Accept-Charset");
-    String acceptEncoding = request.getHeader("Accept-Encoding");
-    String acceptLanguage = request.getHeader("Accept-Language");
-    String contentType = ensureNotNull(request.getHeader("Content-Type"));
+    String accept = request.getHeader(HttpHeaders.ACCEPT);
+    String acceptCharset = request.getHeader (HttpHeaders.ACCEPT_CHARSET);
+    String acceptEncoding = request.getHeader(HttpHeaders.ACCEPT_ENCODING);
+    String acceptLanguage = request.getHeader(HttpHeaders.ACCEPT_LANGUAGE);
+    String contentType = ensureNotNull(request.getHeader(HttpHeaders.CONTENT_TYPE));
 
     parsedHeaders = new ParsableHeaderValuesContainer(
         HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(accept, ParsableMIMEValue::new)),

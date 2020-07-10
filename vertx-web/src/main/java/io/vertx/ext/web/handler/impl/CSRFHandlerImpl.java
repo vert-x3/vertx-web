@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -177,10 +178,10 @@ public class CSRFHandlerImpl implements CSRFHandler {
     /* Verifying Same Origin with Standard Headers */
     if (origin != null) {
       //Try to get the source from the "Origin" header
-      String source = ctx.request().getHeader("Origin");
+      String source = ctx.request().getHeader(HttpHeaders.ORIGIN);
       if (isBlank(source)) {
         //If empty then fallback on "Referer" header
-        source = ctx.request().getHeader("Referer");
+        source = ctx.request().getHeader(HttpHeaders.REFERER);
         //If this one is empty too then we trace the event and we block the request (recommendation of the article)...
         if (isBlank(source)) {
           log.trace("ORIGIN and REFERER request headers are both absent/empty");

@@ -110,7 +110,7 @@ class JsonPTransport extends BaseTransport {
       String body = buff.toString();
 
       boolean urlEncoded;
-      String ct = rc.request().getHeader("content-type");
+      String ct = rc.request().getHeader(HttpHeaders.CONTENT_TYPE);
       if ("application/x-www-form-urlencoded".equalsIgnoreCase(ct)) {
         urlEncoded = true;
       } else if ("text/plain".equalsIgnoreCase(ct)) {

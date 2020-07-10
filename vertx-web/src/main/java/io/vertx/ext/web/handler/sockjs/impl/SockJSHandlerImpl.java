@@ -222,7 +222,7 @@ public class SockJSHandlerImpl implements SockJSHandler {
     return rc -> {
       try {
         if (log.isTraceEnabled()) log.trace("In Iframe handler");
-        if (etag != null && etag.equals(rc.request().getHeader("if-none-match"))) {
+        if (etag != null && etag.equals(rc.request().getHeader(HttpHeaders.IF_NONE_MATCH))) {
           rc.response().setStatusCode(304);
           rc.response().end();
         } else {
