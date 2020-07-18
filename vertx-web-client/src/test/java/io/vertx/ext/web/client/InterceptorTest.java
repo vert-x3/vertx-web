@@ -11,6 +11,7 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpTestBase;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.unit.junit.RepeatRule;
 import io.vertx.ext.web.client.impl.ClientPhase;
@@ -347,7 +348,7 @@ public class InterceptorTest extends HttpTestBase {
           break;
         case SEND_REQUEST:
           assertEquals(redirects.getAndIncrement(), ctx.redirects());
-          requestUris.add(ctx.clientRequest().path());
+          requestUris.add(ctx.requestOptions().getURI());
           break;
       }
       ctx.next();

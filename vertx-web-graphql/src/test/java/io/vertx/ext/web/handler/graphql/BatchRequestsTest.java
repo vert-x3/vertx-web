@@ -37,57 +37,63 @@ public class BatchRequestsTest extends GraphQLTestBase {
 
   @Test
   public void testEmptyBatch() throws Exception {
-    HttpClientRequest request = client.request(HttpMethod.POST, 8080, "localhost", "/graphql");
-    request.onComplete(onSuccess(response -> {
-      if (response.statusCode() != 200) {
-        fail(response.statusCode() + " " + response.statusMessage());
-      } else {
-        response.bodyHandler(buffer -> {
-          Object json = buffer.toJson();
-          assertThat(json, is(instanceOf(JsonArray.class)));
-          JsonArray results = (JsonArray) json;
-          assertTrue(results.isEmpty());
-          complete();
-        });
-      }
-    })).exceptionHandler(this::fail).end(new JsonArray().toBuffer());
+    client.request(HttpMethod.POST, 8080, "localhost", "/graphql")
+      .onComplete(onSuccess(request -> {
+        request.onComplete(onSuccess(response -> {
+          if (response.statusCode() != 200) {
+            fail(response.statusCode() + " " + response.statusMessage());
+          } else {
+            response.bodyHandler(buffer -> {
+              Object json = buffer.toJson();
+              assertThat(json, is(instanceOf(JsonArray.class)));
+              JsonArray results = (JsonArray) json;
+              assertTrue(results.isEmpty());
+              complete();
+            });
+          }
+        })).exceptionHandler(this::fail).end(new JsonArray().toBuffer());
+    }));
     await();
   }
 
   @Test
   public void testSimpleBatch() throws Exception {
-    HttpClientRequest request = client.request(HttpMethod.POST, 8080, "localhost", "/graphql");
-    JsonObject query = new JsonObject()
-      .put("query", "query { allLinks { url } }");
-    request.onComplete(onSuccess(response -> {
-      if (response.statusCode() != 200) {
-        fail(response.statusCode() + " " + response.statusMessage());
-      } else {
-        response.bodyHandler(buffer -> {
-          Object json = buffer.toJson();
-          assertThat(json, is(instanceOf(JsonArray.class)));
-          JsonArray results = (JsonArray) json;
-          assertEquals(1, results.size());
-          testData.checkLinkUrls(testData.urls(), results.getJsonObject(0));
-          complete();
-        });
-      }
-    })).exceptionHandler(this::fail).end(new JsonArray().add(query).toBuffer());
+    client.request(HttpMethod.POST, 8080, "localhost", "/graphql")
+      .onComplete(onSuccess(request -> {
+        JsonObject query = new JsonObject()
+          .put("query", "query { allLinks { url } }");
+        request.onComplete(onSuccess(response -> {
+          if (response.statusCode() != 200) {
+            fail(response.statusCode() + " " + response.statusMessage());
+          } else {
+            response.bodyHandler(buffer -> {
+              Object json = buffer.toJson();
+              assertThat(json, is(instanceOf(JsonArray.class)));
+              JsonArray results = (JsonArray) json;
+              assertEquals(1, results.size());
+              testData.checkLinkUrls(testData.urls(), results.getJsonObject(0));
+              complete();
+            });
+          }
+        })).exceptionHandler(this::fail).end(new JsonArray().add(query).toBuffer());
+    }));
     await();
   }
 
   @Test
   public void testMissingQuery() throws Exception {
-    HttpClientRequest request = client.request(HttpMethod.POST, 8080, "localhost", "/graphql");
-    JsonObject query = new JsonObject()
-      .put("foo", "bar");
-    request.onComplete(onSuccess(response -> {
-      if (response.statusCode() == 400) {
-        complete();
-      } else {
-        fail(response.statusCode() + " " + response.statusMessage());
-      }
-    })).exceptionHandler(this::fail).end(new JsonArray().add(query).toBuffer());
+    client.request(HttpMethod.POST, 8080, "localhost", "/graphql")
+      .onComplete(onSuccess(request -> {
+        JsonObject query = new JsonObject()
+          .put("foo", "bar");
+        request.onComplete(onSuccess(response -> {
+          if (response.statusCode() == 400) {
+            complete();
+          } else {
+            fail(response.statusCode() + " " + response.statusMessage());
+          }
+        })).exceptionHandler(this::fail).end(new JsonArray().add(query).toBuffer());
+    }));
     await();
   }
 }

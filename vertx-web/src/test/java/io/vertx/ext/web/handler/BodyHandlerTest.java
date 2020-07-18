@@ -27,6 +27,7 @@ import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import org.junit.AfterClass;
 import org.junit.Rule;
@@ -37,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -342,36 +344,51 @@ public class BodyHandlerTest extends WebTestBase {
       .setUploadsDirectory(uploadsDirectory));
 
     assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
-    io.vertx.core.http.HttpClientRequest req = client.request(HttpMethod.POST, "/");
+    client.request(HttpMethod.POST, "/").onComplete(onSuccess(req -> {
+      String name = "somename";
+      String fileName = "somefile.dat";
+      String contentType = "application/octet-stream";
+      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+      Buffer buffer = Buffer.buffer();
+      String header =
+        "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
+          "Content-Type: " + contentType + "\r\n" +
+          "Content-Transfer-Encoding: binary\r\n" +
+          "\r\n";
+      buffer.appendString(header);
+      buffer.appendBuffer(TestUtils.randomBuffer(50));
+      req.headers().set("content-length", String.valueOf(buffer.length() + 50)); //partial upload
+      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+      req.write(buffer);
 
-    String name = "somename";
-    String fileName = "somefile.dat";
-    String contentType = "application/octet-stream";
-    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-    Buffer buffer = Buffer.buffer();
-    String header =
-      "--" + boundary + "\r\n" +
-        "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
-        "Content-Type: " + contentType + "\r\n" +
-        "Content-Transfer-Encoding: binary\r\n" +
-        "\r\n";
-    buffer.appendString(header);
-    buffer.appendBuffer(TestUtils.randomBuffer(50));
-    req.headers().set("content-length", String.valueOf(buffer.length() + 50)); //partial upload
-    req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
-    req.write(buffer);
+      //wait for upload beginning
+      repeatWhile(100, i -> i < 100 && vertx.fileSystem().readDirBlocking(uploadsDirectory).size() == 0, () -> {
+        assertEquals(1, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+        req.connection().close();
+        //wait for upload being deleted
+        repeatWhile(100, i -> i < 100 && vertx.fileSystem().readDirBlocking(uploadsDirectory).size() != 0, () -> {
+          assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+          testComplete();
+        });
+      });
+    }));
 
-    for (int i = 100; i > 0 && vertx.fileSystem().readDirBlocking(uploadsDirectory).size() == 0; i--) {
-      Thread.sleep(100); //wait for upload beginning
+    await();
+  }
+
+  private <T> void repeatWhile(long time, Function<Integer, Boolean> f, Runnable done) {
+    repeatWhile(time, 0, f, done);
+  }
+
+  private <T> void repeatWhile(long time, int current, Function<Integer, Boolean> f, Runnable done) {
+    if (f.apply(current)) {
+      vertx.setTimer(time, id -> {
+        repeatWhile(time, current + 1, f, done);
+      });
+    } else {
+      done.run();
     }
-    assertEquals(1, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
-
-    req.connection().close();
-
-    for (int i = 100; i > 0 && vertx.fileSystem().readDirBlocking(uploadsDirectory).size() != 0; i--) {
-      Thread.sleep(100); //wait for upload being deleted
-    }
-    assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
   }
 
   private void testFileUploadFileRemoval(Handler<RoutingContext> requestHandler, boolean deletedUploadedFilesOnEnd,

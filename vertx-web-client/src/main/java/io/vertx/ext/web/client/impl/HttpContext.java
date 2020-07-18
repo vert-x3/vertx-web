@@ -52,6 +52,7 @@ public class HttpContext<T> {
   private Map<String, Object> attrs;
   private Iterator<Handler<HttpContext<?>>> it;
   private ClientPhase phase;
+  private RequestOptions requestOptions;
   private HttpClientRequest clientRequest;
   private HttpClientResponse clientResponse;
   private HttpResponse<T> response;
@@ -91,6 +92,17 @@ public class HttpContext<T> {
    */
   public HttpRequest<T> request() {
     return request;
+  }
+
+  /**
+   * @return the current request options
+   */
+  public RequestOptions requestOptions() {
+    return requestOptions;
+  }
+
+  public void setRequestOptions(RequestOptions requestOptions) {
+    this.requestOptions = requestOptions;
   }
 
   /**
@@ -173,8 +185,8 @@ public class HttpContext<T> {
    *   <li>Send the actual request</li>
    * </ul>
    */
-  public void sendRequest(HttpClientRequest clientRequest) {
-    this.clientRequest = clientRequest;
+  public void sendRequest(RequestOptions requestOptions) {
+    this.requestOptions = requestOptions;
     fire(ClientPhase.SEND_REQUEST);
   }
 
@@ -199,9 +211,10 @@ public class HttpContext<T> {
   public void receiveResponse(HttpClientResponse clientResponse) {
     int sc = clientResponse.statusCode();
     int maxRedirects = request.followRedirects ? client.getOptions().getMaxRedirects(): 0;
+    this.clientResponse = clientResponse;
     if (redirects < maxRedirects && sc >= 300 && sc < 400) {
       redirects++;
-      Future<HttpClientRequest> next = client.redirectHandler().apply(clientResponse);
+      Future<RequestOptions> next = client.redirectHandler().apply(clientResponse);
       if (next != null) {
         if (redirectedLocations.isEmpty()) {
           redirectedLocations = new ArrayList<>();
@@ -209,12 +222,7 @@ public class HttpContext<T> {
         redirectedLocations.add(clientResponse.getHeader(HttpHeaders.LOCATION));
         next.onComplete(ar -> {
           if (ar.succeeded()) {
-            HttpClientRequest nextRequest = ar.result();
-            if (request.headers != null) {
-              nextRequest.headers().addAll(request.headers);
-            }
-            this.clientRequest = nextRequest;
-            this.clientResponse = clientResponse;
+            requestOptions = ar.result();
             fire(ClientPhase.FOLLOW_REDIRECT);
           } else {
             fail(ar.cause());
@@ -312,7 +320,6 @@ public class HttpContext<T> {
 
   private void handlePrepareRequest() {
     context = client.getVertx().getOrCreateContext();
-    HttpClientRequest req;
     String requestURI;
     if (request.params != null && request.params.size() > 0) {
       QueryStringEncoder enc = new QueryStringEncoder(request.uri);
@@ -323,37 +330,43 @@ public class HttpContext<T> {
     }
     int port = request.port();
     String host = request.host();
+    RequestOptions options = new RequestOptions();
     if (request.ssl != null && request.ssl != request.options.isSsl()) {
-      req = client.request(request.serverAddress, new RequestOptions().setMethod(request.method).setSsl(request.ssl).setHost(host).setPort
-        (port)
-        .setURI
-          (requestURI));
+      options.setServer(request.serverAddress)
+        .setMethod(request.method)
+        .setSsl(request.ssl)
+        .setHost(host)
+        .setPort(port)
+        .setURI(requestURI);
     } else {
       if (request.protocol != null && !request.protocol.equals("http") && !request.protocol.equals("https")) {
         // we have to create an abs url again to parse it in HttpClient
         try {
           URI uri = new URI(request.protocol, null, host, port, requestURI, null, null);
-          req = client.request(request.serverAddress, new RequestOptions().setMethod(request.method).setAbsoluteURI(uri.toString()));
+          options.setServer(request.serverAddress)
+            .setMethod(request.method)
+            .setAbsoluteURI(uri.toString());
         } catch (URISyntaxException ex) {
           fail(ex);
           return;
         }
       } else {
-        req = client.request(request.method, request.serverAddress, port, host, requestURI);
+        options.setServer(request.serverAddress)
+          .setMethod(request.method)
+          .setHost(host)
+          .setPort(port)
+          .setURI(requestURI);
       }
     }
+    redirects = 0;
     if (request.virtualHost != null) {
       String virtalHost = request.virtualHost;
       if (port != 80) {
         virtalHost += ":" + port;
       }
-      req.setAuthority(virtalHost);
+      options.setAuthority(virtalHost);
     }
-    redirects = 0;
-    if (request.headers != null) {
-      req.headers().addAll(request.headers);
-    }
-    sendRequest(req);
+    sendRequest(options);
   }
 
   private void handleReceiveResponse() {
@@ -409,28 +422,24 @@ public class HttpContext<T> {
   }
 
   private void handleSendRequest() {
-    HttpClientRequest req = clientRequest;
-    req.onComplete(ar -> {
-      if (ar.succeeded()) {
-        HttpClientResponse resp = ar.result();
-        resp.pause();
-        receiveResponse(resp);
-      } else {
-        fail(ar.cause());
+    if (request.headers != null) {
+      MultiMap headers = requestOptions.getHeaders();
+      if (headers == null) {
+        headers = MultiMap.caseInsensitiveMultiMap();
+        requestOptions.setHeaders(headers);
       }
-    });
-    if (request.timeout > 0) {
-      req.setTimeout(request.timeout);
+      headers.addAll(request.headers);
     }
     if (contentType != null) {
-      String prev = req.headers().get(HttpHeaders.CONTENT_TYPE);
+      String prev = requestOptions.getHeaders().get(HttpHeaders.CONTENT_TYPE);
       if (prev == null) {
-        req.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+        requestOptions.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
       } else {
         contentType = prev;
       }
     }
-    Handler<AsyncResult<Void>> continuation;
+    requestOptions.setTimeout(this.request.timeout);
+    Handler<AsyncResult<HttpClientRequest>> continuation;
     if (body != null || "application/json".equals(contentType)) {
       if (body instanceof MultiMap) {
         MultipartForm parts = MultipartForm.create();
@@ -444,37 +453,40 @@ public class HttpContext<T> {
         MultipartFormUpload multipartForm;
         try {
           boolean multipart = "multipart/form-data".equals(contentType);
-          HttpPostRequestEncoder.EncoderMode encoderMode = request.multipartMixed ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
+          HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
           multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
           this.body = multipartForm;
         } catch (Exception e) {
-          req.reset(0L, e);
+          fail(e);
           return;
         }
-        for (String headerName : request.headers().names()) {
-          req.putHeader(headerName, request.headers().get(headerName));
+        for (String headerName : this.request.headers().names()) {
+          requestOptions.putHeader(headerName, this.request.headers().get(headerName));
         }
         multipartForm.headers().forEach(header -> {
-          req.putHeader(header.getKey(), header.getValue());
+          requestOptions.putHeader(header.getKey(), header.getValue());
         });
         multipartForm.run();
       }
-
       if (body instanceof ReadStream<?>) {
         ReadStream<Buffer> stream = (ReadStream<Buffer>) body;
-        if (request.headers == null || !request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
-          req.setChunked(true);
-        }
-        Pipe<Buffer> pipe = stream.pipe();
-        pipe.endOnFailure(false);
-        continuation = ar1 -> {
-          if (ar1.succeeded()) {
+        Pipe<Buffer> pipe = stream.pipe(); // Shouldn't this be called in an earlier phase ?
+        continuation = ar -> {
+          if (ar.succeeded()) {
+            HttpClientRequest req = ar.result();
+            if (this.request.headers == null || !this.request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
+              req.setChunked(true);
+            }
+            pipe.endOnFailure(false);
             pipe.to(req, ar2 -> {
+              clientRequest = null;
               if (ar2.failed()) {
                 req.reset(0L, ar2.cause());
               }
             });
           } else {
+            // Test this
+            clientRequest = null;
             pipe.close();
           }
         };
@@ -487,21 +499,43 @@ public class HttpContext<T> {
         } else {
           buffer = Buffer.buffer(Json.encode(body));
         }
-        req.putHeader(HttpHeaders.CONTENT_LENGTH, "" + buffer.length());
         continuation = ar -> {
           if (ar.succeeded()) {
+            clientRequest = null;
+            HttpClientRequest req = ar.result();
+            req.putHeader(HttpHeaders.CONTENT_LENGTH, "" + buffer.length());
             req.end(buffer);
           }
         };
       }
     } else {
-      continuation= ar -> {
+      continuation = ar -> {
         if (ar.succeeded()) {
+          clientRequest = null;
+          HttpClientRequest req = ar.result();
           req.end();
         }
       };
     }
-    req.sendHead(ar -> continuation.handle(ar.mapEmpty()));
+    Future<HttpClientRequest> f = client.request(requestOptions);
+    f.onComplete(continuation);
+    f.onComplete(ar1 -> {
+      if (ar1.succeeded()) {
+        clientRequest = ar1.result();
+        HttpClientRequest req = ar1.result();
+        req.onComplete(ar2 -> {
+          if (ar2.succeeded()) {
+            HttpClientResponse resp = ar2.result();
+            resp.pause();
+            receiveResponse(resp);
+          } else {
+            fail(ar2.cause());
+          }
+        });
+      } else {
+        fail(ar1.cause());
+      }
+    });
   }
 
   public <T> T get(String key) {

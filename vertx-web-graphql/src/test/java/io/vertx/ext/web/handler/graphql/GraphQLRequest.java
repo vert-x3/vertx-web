@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler.graphql;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
@@ -122,40 +123,47 @@ public class GraphQLRequest {
   void send(HttpClient client, int expectedStatus, Handler<AsyncResult<JsonObject>> handler) throws Exception {
     Promise<JsonObject> promise = Promise.promise();
     promise.future().onComplete(handler);
-    HttpClientRequest request = client.request(method, 8080, "localhost", getUri());
-    if (locale != null) {
-      request.putHeader("Accept-Language", locale);
-    }
-    request.onComplete(ar -> {
-      if (ar.succeeded()) {
-        HttpClientResponse response = ar.result();
-        if (expectedStatus != response.statusCode()) {
-          promise.fail(response.statusCode() + " " + response.statusMessage());
-        } else if (response.statusCode() == 200) {
-          response.bodyHandler(buffer -> promise.complete(new JsonObject(buffer)));
+    Future<HttpClientRequest> fut = client.request(method, 8080, "localhost", getUri());
+    fut.onComplete(ar1 -> {
+      if (ar1.succeeded()) {
+        HttpClientRequest request = ar1.result();
+        if (locale != null) {
+          request.putHeader("Accept-Language", locale);
+        }
+        if (contentType != null) {
+          request.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+        }
+        request.onComplete(ar2 -> {
+          if (ar2.succeeded()) {
+            HttpClientResponse response = ar2.result();
+            if (expectedStatus != response.statusCode()) {
+              promise.fail(response.statusCode() + " " + response.statusMessage());
+            } else if (response.statusCode() == 200) {
+              response.bodyHandler(buffer -> promise.complete(new JsonObject(buffer)));
+            } else {
+              promise.complete();
+            }
+          } else {
+            promise.fail(ar2.cause());
+          }
+        });
+        Buffer buffer;
+        if (requestBody != null) {
+          buffer = requestBody;
+        } else if (GRAPHQL.equalsIgnoreCase(contentType)) {
+          buffer = graphQLQuery != null ? Buffer.buffer(graphQLQuery) : null;
         } else {
-          promise.complete();
+          buffer = getJsonBody();
+        }
+        if (buffer != null) {
+          request.end(buffer);
+        } else {
+          request.end();
         }
       } else {
-        promise.fail(ar.cause());
+        promise.fail(ar1.cause());
       }
-    }).exceptionHandler(promise::fail);
-    if (contentType != null) {
-      request.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
-    }
-    Buffer buffer;
-    if (requestBody != null) {
-      buffer = requestBody;
-    } else if (GRAPHQL.equalsIgnoreCase(contentType)) {
-      buffer = graphQLQuery != null ? Buffer.buffer(graphQLQuery) : null;
-    } else {
-      buffer = getJsonBody();
-    }
-    if (buffer != null) {
-      request.end(buffer);
-    } else {
-      request.end();
-    }
+    });
   }
 
   private String getUri() {

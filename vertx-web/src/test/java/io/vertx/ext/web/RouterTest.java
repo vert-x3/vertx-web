@@ -1477,98 +1477,101 @@ public class RouterTest extends WebTestBase {
   // Test that adding an exceptionHandler doesn't overwrite other ones
   @Test
   public void testExceptionHandler() throws Exception {
-    HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path");
     AtomicInteger cnt = new AtomicInteger();
-    router.route().handler(rc -> {
-      rc.addEndHandler(done -> {
-        if (done.failed()) {
-          cnt.incrementAndGet();
-        }
+    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(onSuccess(req -> {
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          if (done.failed()) {
+            cnt.incrementAndGet();
+          }
+        });
+        rc.next();
       });
-      rc.next();
-    });
-    router.route().handler(rc -> {
-      rc.addEndHandler(done -> {
-        if (done.failed()) {
-          cnt.incrementAndGet();
-        }
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          if (done.failed()) {
+            cnt.incrementAndGet();
+          }
+        });
+        rc.next();
       });
-      rc.next();
-    });
-    router.route().handler(rc -> {
-      rc.addEndHandler(done -> {
-        if (done.failed()) {
-          cnt.incrementAndGet();
-        }
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          if (done.failed()) {
+            cnt.incrementAndGet();
+          }
+        });
+        rc.next();
       });
-      rc.next();
-    });
-    router.route().handler(rc -> {
-      req.connection().close();
-    });
-    req.end();
+      router.route().handler(rc -> {
+        req.connection().close();
+      });
+      req.end();
+    }));
     assertWaitUntil(() -> cnt.get() == 3);
   }
 
   // Test that adding a closeHandler doesn't overwrite other ones
   @Test
   public void testCloseHandler() throws Exception {
-    HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path");
     AtomicInteger cnt = new AtomicInteger();
-    router.route().handler(rc -> {
-      rc.addEndHandler(done -> {
-        cnt.incrementAndGet();
+    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(onSuccess(req -> {
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          cnt.incrementAndGet();
+        });
+        rc.next();
       });
-      rc.next();
-    });
-    router.route().handler(rc -> {
-      rc.addEndHandler(done -> {
-        cnt.incrementAndGet();
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          cnt.incrementAndGet();
+        });
+        rc.next();
       });
-      rc.next();
-    });
-    router.route().handler(rc -> {
-      rc.addEndHandler(done -> {
-        cnt.incrementAndGet();
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          cnt.incrementAndGet();
+        });
+        rc.next();
       });
-      rc.next();
-    });
-    router.route().handler(rc -> {
-      req.connection().close();
-    });
-    req.end();
+      router.route().handler(rc -> {
+        req.connection().close();
+      });
+      req.end();
+    }));
     assertWaitUntil(() -> cnt.get() == 3);
   }
 
   // Test that the endHandler is called once for an exception
   @Test
   public void testEndHandlerCalledOnce() throws Exception {
-    HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path");
     AtomicInteger endCnt = new AtomicInteger();
     AtomicInteger excCnt = new AtomicInteger();
     AtomicInteger closeCnt = new AtomicInteger();
-    router.route().handler(rc -> {
-      rc.addEndHandler(done -> {
-        excCnt.incrementAndGet();
+    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(onSuccess(req -> {
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          excCnt.incrementAndGet();
+        });
+        rc.next();
       });
-      rc.next();
-    });
-    router.route().handler(rc -> {
-      rc.addEndHandler(done -> {
-        endCnt.incrementAndGet();
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          endCnt.incrementAndGet();
+        });
+        rc.next();
       });
-      rc.next();
-    });
-    router.route().handler(rc -> {
-      rc.addEndHandler(done -> {
-        closeCnt.incrementAndGet();
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          closeCnt.incrementAndGet();
+        });
+        rc.next();
       });
-      rc.next();
-    });
-    router.route().handler(rc -> {
-      req.connection().close();
-    });
-    req.end();
+      router.route().handler(rc -> {
+        req.connection().close();
+      });
+      req.end();
+    }));
     assertWaitUntil(() -> endCnt.get() == 1);
     assertWaitUntil(() -> excCnt.get() == 1);
     assertWaitUntil(() -> closeCnt.get() == 1);
@@ -2591,17 +2594,18 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testErrorHandlingResponseClosed() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path");
-    router.route().handler(rc -> {
-      req.connection().close();
-      rc.response().closeHandler(v -> rc.next());
-    });
-    router.route("/path").handler(rc -> rc.response().write(""));
-    router.errorHandler(500, rc -> {
-      assertEquals(1, latch.getCount());
-      latch.countDown();
-    });
-    req.end();
+    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(onSuccess(req -> {
+      router.route().handler(rc -> {
+        req.connection().close();
+        rc.response().closeHandler(v -> rc.next());
+      });
+      router.route("/path").handler(rc -> rc.response().write(""));
+      router.errorHandler(500, rc -> {
+        assertEquals(1, latch.getCount());
+        latch.countDown();
+      });
+      req.end();
+    }));
     latch.await();
   }
 

@@ -152,29 +152,30 @@ public class WebTestBase extends VertxTestBase {
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    HttpClientRequest req = client.request(method, port, "localhost", path);
-    req.onComplete(onSuccess(resp -> {
-      assertEquals(statusCode, resp.statusCode());
-      assertEquals(statusMessage, resp.statusMessage());
-      if (responseAction != null) {
-        responseAction.accept(resp);
-      }
-      if (responseBodyBuffer == null) {
-        latch.countDown();
-      } else {
-        resp.bodyHandler(buff -> {
-          if (normalizeLineEndings) {
-            buff = normalizeLineEndingsFor(buff);
-          }
-          assertEquals(responseBodyBuffer, buff);
+    client.request(method, port, "localhost", path).onComplete(onSuccess(req -> {
+      req.onComplete(onSuccess(resp -> {
+        assertEquals(statusCode, resp.statusCode());
+        assertEquals(statusMessage, resp.statusMessage());
+        if (responseAction != null) {
+          responseAction.accept(resp);
+        }
+        if (responseBodyBuffer == null) {
           latch.countDown();
-        });
+        } else {
+          resp.bodyHandler(buff -> {
+            if (normalizeLineEndings) {
+              buff = normalizeLineEndingsFor(buff);
+            }
+            assertEquals(responseBodyBuffer, buff);
+            latch.countDown();
+          });
+        }
+      }));
+      if (requestAction != null) {
+        requestAction.accept(req);
       }
+      req.end();
     }));
-    if (requestAction != null) {
-      requestAction.accept(req);
-    }
-    req.end();
     awaitLatch(latch);
   }
 

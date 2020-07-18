@@ -10,6 +10,8 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.RequestOptions;
+import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.ext.web.client.spi.CookieStore;
 
 /**
@@ -99,17 +101,16 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
 
   private void prepareRedirectRequest(HttpContext<?> context) {
     // Now the context contains the redirect request in clientRequest() and the original request in request()
-    HttpClientRequest redirectRequest = context.clientRequest();
-    HttpRequestImpl<?> originalRequest = (HttpRequestImpl<?>) context.request();
-    WebClientSessionAware webclient = (WebClientSessionAware) originalRequest.client;
+    RequestOptions redirectRequest = context.requestOptions();
 
     MultiMap headers = context.get(HEADERS_CONTEXT_KEY);
     if (headers == null) {
-      headers = HttpHeaders.headers().addAll(redirectRequest.headers());
+      headers = HttpHeaders.headers().addAll(redirectRequest.getHeaders());
       context.set(SessionAwareInterceptor.HEADERS_CONTEXT_KEY, headers);
     }
 
-    String redirectHost = URI.create(redirectRequest.absoluteURI()).getHost();
+    HttpRequestImpl<?> originalRequest = (HttpRequestImpl<?>) context.request();
+    String redirectHost = redirectRequest.getHost();
     String domain;
     if (redirectHost.equals(originalRequest.host()) && originalRequest.virtualHost != null) {
       domain = originalRequest.virtualHost;
@@ -117,10 +118,39 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       domain = redirectHost;
     }
 
-    Iterable<Cookie> cookies = webclient.cookieStore().get(originalRequest.ssl, domain, redirectRequest.path());
+    WebClientSessionAware webclient = (WebClientSessionAware) originalRequest.client;
+    String path = parsePath(redirectRequest.getURI());
+    Iterable<Cookie> cookies = webclient.cookieStore().get(originalRequest.ssl, domain, path);
     for (Cookie c : cookies) {
-      redirectRequest.headers().add("cookie", ClientCookieEncoder.STRICT.encode(c));
+      redirectRequest.putHeader("cookie", ClientCookieEncoder.STRICT.encode(c));
     }
+  }
+
+  private static String parsePath(String uri) {
+    if (uri.length() == 0) {
+      return "";
+    }
+    int i;
+    if (uri.charAt(0) == '/') {
+      i = 0;
+    } else {
+      i = uri.indexOf("://");
+      if (i == -1) {
+        i = 0;
+      } else {
+        i = uri.indexOf('/', i + 3);
+        if (i == -1) {
+          // contains no /
+          return "/";
+        }
+      }
+    }
+
+    int queryStart = uri.indexOf('?', i);
+    if (queryStart == -1) {
+      queryStart = uri.length();
+    }
+    return uri.substring(i, queryStart);
   }
 
   private void processResponse(HttpContext<?> context) {

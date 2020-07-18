@@ -28,6 +28,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.nio.file.Files;
 import java.util.*;
@@ -420,8 +421,12 @@ public class WebClientTest extends WebClientTestBase {
   @Test
   public void testRequestPumpErrorInStream() throws Exception {
     waitFor(2);
+    CompletableFuture<Void> failSignal = new CompletableFuture<>();
     HttpRequest<Buffer> post = webClient.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    server.requestHandler(req -> req.response().closeHandler(v -> complete()));
+    server.requestHandler(req -> {
+      req.response().closeHandler(v -> complete());
+      failSignal.complete(null);
+    });
     Throwable cause = new Throwable();
     startServer();
     post.sendStream(new ReadStream<Buffer>() {
@@ -434,7 +439,10 @@ public class WebClientTest extends WebClientTestBase {
       @Override
       public ReadStream<Buffer> handler(Handler<Buffer> handler) {
         if (handler != null) {
-          vertx.runOnContext(v -> exceptionHandler.handle(cause));
+          failSignal.whenComplete((v1, e) -> {
+            vertx.runOnContext(v2 -> exceptionHandler.handle(cause));
+          });
+          handler.handle(Buffer.buffer("hello world"));
         }
         return this;
       }
@@ -1215,6 +1223,7 @@ public class WebClientTest extends WebClientTestBase {
       this.data = data;
     }
   }
+
   @Test
   public void testFileUploadWhenFileDoesNotExist() {
     HttpRequest<Buffer> builder = webClient.post("somepath");
@@ -1222,22 +1231,24 @@ public class WebClientTest extends WebClientTestBase {
       .textFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain");
 
     builder.sendMultipartForm(form, onFailure(err -> {
-      assertEquals(err.getClass(), StreamResetException.class);
-      assertEquals(err.getCause().getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
+      assertEquals(err.getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
+      assertEquals(err.getCause().getClass(), FileNotFoundException.class);
       complete();
     }));
     await();
   }
 
   @Test
-  public void testFileUploads() {
+  public void testFileUploads() throws Exception {
+    server.requestHandler(req -> {
+      fail("Should not be called");
+    });
+    startServer();
     HttpRequest<Buffer> builder = webClient.post("somepath");
     MultipartForm form = MultipartForm.create()
       .textFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain");
-
     builder.sendMultipartForm(form, onFailure(err -> {
-      assertEquals(err.getClass(), StreamResetException.class);
-      assertEquals(err.getCause().getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
+      assertEquals(err.getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
       complete();
     }));
     await();

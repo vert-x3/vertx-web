@@ -203,16 +203,18 @@ public class StaticHandlerTest extends WebTestBase {
       .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem"));
     HttpClient client = vertx.createHttpClient(options);
     client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
-      .onComplete(onSuccess(resp -> {
-        assertEquals(200, resp.statusCode());
-        assertEquals(HttpVersion.HTTP_2, resp.version());
-        resp.bodyHandler(this::assertNotNull);
-        testComplete();
-      }))
-      .pushHandler(pushedReq -> pushedReq.onComplete(pushedResp -> {
-        fail();
-      }))
-      .end();
+      .onComplete(onSuccess(req -> {
+        req.onComplete(onSuccess(resp -> {
+          assertEquals(200, resp.statusCode());
+          assertEquals(HttpVersion.HTTP_2, resp.version());
+          resp.bodyHandler(this::assertNotNull);
+          testComplete();
+        }));
+        req.pushHandler(pushedReq -> pushedReq.onComplete(pushedResp -> {
+          fail();
+        }));
+        req.end();
+      }));
     await();
   }
 
@@ -238,17 +240,19 @@ public class StaticHandlerTest extends WebTestBase {
     HttpClient client = vertx.createHttpClient(options);
     CountDownLatch latch = new CountDownLatch(2);
     client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
-      .onComplete(onSuccess(resp -> {
-        assertEquals(200, resp.statusCode());
-        assertEquals(HttpVersion.HTTP_2, resp.version());
-        resp.bodyHandler(this::assertNotNull);
-      }))
-      .pushHandler(pushedReq -> pushedReq.onComplete(onSuccess(pushedResp -> {
-        assertNotNull(pushedResp);
-        pushedResp.bodyHandler(this::assertNotNull);
-        latch.countDown();
-      })))
-      .end();
+      .onComplete(onSuccess(req -> {
+        req.onComplete(onSuccess(resp -> {
+          assertEquals(200, resp.statusCode());
+          assertEquals(HttpVersion.HTTP_2, resp.version());
+          resp.bodyHandler(this::assertNotNull);
+        }))
+          .pushHandler(pushedReq -> pushedReq.onComplete(onSuccess(pushedResp -> {
+            assertNotNull(pushedResp);
+            pushedResp.bodyHandler(this::assertNotNull);
+            latch.countDown();
+          })))
+          .end();
+      }));
     latch.await();
   }
 
