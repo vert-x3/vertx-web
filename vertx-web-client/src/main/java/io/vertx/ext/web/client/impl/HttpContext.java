@@ -518,7 +518,6 @@ public class HttpContext<T> {
       };
     }
     Future<HttpClientRequest> f = client.request(requestOptions);
-    f.onComplete(continuation);
     f.onComplete(ar1 -> {
       if (ar1.succeeded()) {
         clientRequest = ar1.result();
@@ -535,6 +534,7 @@ public class HttpContext<T> {
       } else {
         fail(ar1.cause());
       }
+      continuation.handle(ar1);
     });
   }
 
