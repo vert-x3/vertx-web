@@ -29,6 +29,10 @@ public enum ParameterType {
    */
   INT(ParameterTypeValidator.createIntegerTypeValidator(null)),
   /**
+   * INT type does the validation with Integer.parseLong(value)
+   */
+  LONG(ParameterTypeValidator.createLongTypeValidator(null)),
+  /**
    * FLOAT type does the validation with Float.parseFloat(value)
    */
   FLOAT(ParameterTypeValidator.createFloatTypeValidator(null)),
