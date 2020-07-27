@@ -29,7 +29,7 @@ public enum ParameterType {
    */
   INT(ParameterTypeValidator.createIntegerTypeValidator(null)),
   /**
-   * INT type does the validation with Integer.parseLong(value)
+   * LONG type does the validation with Long.parseLong(value)
    */
   LONG(ParameterTypeValidator.createLongTypeValidator(null)),
   /**
