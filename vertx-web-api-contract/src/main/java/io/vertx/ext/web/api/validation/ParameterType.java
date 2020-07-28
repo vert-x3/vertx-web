@@ -11,8 +11,10 @@ import io.vertx.ext.web.api.validation.impl.StringTypeValidator;
  * {@link ParameterType#validationMethod()}
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated You should use the new module vertx-web-openapi
  */
 @VertxGen
+@Deprecated
 public enum ParameterType {
   /**
    * STRING Type accept every string

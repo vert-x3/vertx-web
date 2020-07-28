@@ -10,7 +10,11 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.Map;
 
+/**
+ * @deprecated You should use the new module vertx-web-openapi
+ */
 @DataObject(generateConverter = true, publicConverter = false)
+@Deprecated
 public class OperationResponse {
 
   private final static Integer DEFAULT_STATUS_CODE = 200;

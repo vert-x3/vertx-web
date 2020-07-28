@@ -8,8 +8,10 @@ import io.vertx.ext.web.RoutingContext;
  * {@link HTTPRequestValidationHandler}.
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated You should use the new module vertx-web-openapi
  */
 @VertxGen
+@Deprecated
 public interface CustomValidator {
   /**
    * This function have to be <b>synchronous</b>. It doesn't return nothing if validation succedes, otherwise it

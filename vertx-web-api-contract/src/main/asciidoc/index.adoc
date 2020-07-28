@@ -5,6 +5,8 @@ Vert.x Web API Contract extends Vert.x Web to support https://www.openapis.org/[
 
 If you are interested in building an application that routes API Requests to event bus, check out https://vertx.io/docs/vertx-web-api-service/java/[Vert.x Web API Service]
 
+WARNING: this module is deprecated, if you're going to create a new application, please look at https://vertx.io/docs/vertx-web-openapi/java/[Vert.x Web OpenAPI]
+
 == Using Vert.x API Contract
 
 To use Vert.x API Contract, add the following dependency to the _dependencies_ section of your build descriptor:

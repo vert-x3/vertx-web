@@ -11,8 +11,10 @@ import java.util.List;
  * Container for request parameters
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated You should use the new module vertx-web-openapi
  */
 @VertxGen
+@Deprecated
 public interface RequestParameters {
 
   /**

@@ -13,8 +13,10 @@ import java.util.regex.Pattern;
  * strings to refeer to it.
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated You should use the new module vertx-web-openapi
  */
 @VertxGen
+@Deprecated
 public enum ContainerSerializationStyle {
 
   /**
