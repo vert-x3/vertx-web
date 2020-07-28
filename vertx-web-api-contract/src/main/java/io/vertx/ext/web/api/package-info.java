@@ -1,6 +1,3 @@
-/**
- * @deprecated You should use the new module vertx-web-openapi
- */
 @ModuleGen(name = "vertx-web-api-contract", groupPackage = "io.vertx")
 package io.vertx.ext.web.api;
 
