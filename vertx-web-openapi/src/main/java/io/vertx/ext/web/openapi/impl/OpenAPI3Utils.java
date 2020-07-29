@@ -325,7 +325,7 @@ public class OpenAPI3Utils {
   }
 
   // Hardcoded FTW
-  protected static String openapiSchemaJson = "{\"id\":\"https://spec.openapis.org/oas/3.0/schema/2019-04-02\"," +
+  protected static String openapiSchemaJson = "{\"$id\":\"https://spec.openapis.org/oas/3.0/schema/2019-04-02\"," +
     "\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"description\":\"Validation schema for OpenAPI " +
     "Specification 3.0.X.\",\"type\":\"object\",\"required\":[\"openapi\",\"info\",\"paths\"]," +
     "\"properties\":{\"openapi\":{\"type\":\"string\",\"pattern\":\"^3\\\\.0\\\\.\\\\d(-.+)?$\"}," +
