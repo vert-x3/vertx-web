@@ -17,11 +17,15 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.common.WebEnvironment;
 import io.vertx.ext.web.handler.impl.StaticHandlerImpl;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * A handler for serving static resources from the file system or classpath.
@@ -49,7 +53,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Default of whether cache header handling is enabled
    */
-  boolean DEFAULT_CACHING_ENABLED = true;
+  boolean DEFAULT_CACHING_ENABLED = !WebEnvironment.development();
 
   /**
    * Default of whether directory listing is enabled
@@ -59,7 +63,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Default template file to use for directory listing
    */
-  String DEFAULT_DIRECTORY_TEMPLATE = "vertx-web-directory.html";
+  String DEFAULT_DIRECTORY_TEMPLATE = "META-INF/vertx/web/vertx-web-directory.html";
 
   /**
    * Default of whether hidden files can be served
@@ -128,19 +132,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static StaticHandler create(String root) {
-    return new StaticHandlerImpl(root, null);
-  }
-
-  /**
-   * Create a handler, specifying web-root and a classloader used to load the resources.
-   *
-   * @param root        the web-root
-   * @param classLoader the classloader used to load the resource
-   * @return the handler
-   */
-  @GenIgnore
-  static StaticHandler create(String root, ClassLoader classLoader) {
-    return new StaticHandlerImpl(root, classLoader);
+    return create().setWebRoot(root);
   }
 
   /**
@@ -232,6 +224,35 @@ public interface StaticHandler extends Handler<RoutingContext> {
    */
   @Fluent
   StaticHandler setMaxCacheSize(int maxCacheSize);
+
+  /**
+   * Set the file mapping for http2push and link preload
+   *
+   * @param http2PushMappings the mapping for http2 push
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  StaticHandler setHttp2PushMapping(List<Http2PushMapping> http2PushMappings);
+
+  /**
+   * Skip compression if the media type of the file to send is in the provided {@code mediaTypes} set.
+   * {@code Content-Encoding} header set to {@code identity} for the types present in the {@code mediaTypes} set
+   *
+   * @param mediaTypes the set of mime types that are already compressed
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  StaticHandler skipCompressionForMediaTypes(Set<String> mediaTypes);
+
+  /**
+   * Skip compression if the suffix of the file to send is in the provided {@code fileSuffixes} set.
+   * {@code Content-Encoding} header set to {@code identity} for the suffixes present in the {@code fileSuffixes} set
+   *
+   * @param fileSuffixes the set of file suffixes that are already compressed
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  StaticHandler skipCompressionForSuffixes(Set<String> fileSuffixes);
 
   /**
    * Set whether async filesystem access should always be used

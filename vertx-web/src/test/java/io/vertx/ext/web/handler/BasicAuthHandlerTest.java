@@ -19,18 +19,18 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.impl.ClusterSerializable;
+import io.vertx.ext.auth.VertxContextPRNG;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.SessionStore;
-import io.vertx.ext.web.sstore.impl.PRNG;
-import io.vertx.ext.web.sstore.impl.SessionImpl;
-import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.shiro.ShiroAuth;
-import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
+import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
 import org.junit.Test;
 
 import java.util.Map;
@@ -61,8 +61,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       rc.response().end("Welcome to the protected resource!");
     };
 
-    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthenticationProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     router.route("/protected/*").handler(BasicAuthHandler.create(authProvider, realm));
 
     router.route("/protected/somepage").handler(handler);
@@ -74,9 +73,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }, 401, "Unauthorized", null);
 
     // Now try again with credentials
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
-    }, resp -> {
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
     }, 200, "OK", "Welcome to the protected resource!");
@@ -86,13 +83,10 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
   @Test
   public void testWithSessions() throws Exception {
     router.route().handler(BodyHandler.create());
-    router.route().handler(CookieHandler.create());
     SessionStore store = new SerializingSessionStore();
-    router.route().handler(SessionHandler.create(store));
 
-    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
-    router.route().handler(UserSessionHandler.create(authProvider));
+    AuthenticationProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
+    router.route().handler(SessionHandler.create(store));
     router.route("/protected/*").handler(BasicAuthHandler.create(authProvider));
 
     AtomicReference<String> sessionID = new AtomicReference<>();
@@ -127,9 +121,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }, 401, "Unauthorized", null);
 
     // Now try again with credentials
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
-    }, resp -> {
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
       // auth is success, we should get a cookie!!!
@@ -140,9 +132,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     // And try again a few times we should be logged in with user stored in the session
     for (int i = 0; i < 5; i++) {
-      testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-        req.putHeader("cookie", sessionCookie.get());
-      }, resp -> {
+      testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
         String wwwAuth = resp.headers().get("WWW-Authenticate");
         assertNull(wwwAuth);
       }, 200, "OK", "Welcome to the protected resource!");
@@ -157,9 +147,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }, 401, "Unauthorized", null);
 
     // And login again
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
-    }, resp -> {
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
     }, 200, "OK", "Welcome to the protected resource!");
@@ -177,8 +165,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       rc.response().end("Welcome to the protected resource!");
     };
 
-    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthenticationProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     router.route("/protected/*").handler(BasicAuthHandler.create(authProvider));
 
     router.route("/protected/somepage").handler(handler);
@@ -190,9 +177,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }, 401, "Unauthorized", null);
 
     // Now try again with bad credentials
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic dGltOn5hdXdhZ2Vz");
-    }, resp -> {
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOn5hdXdhZ2Vz"), resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNotNull(wwwAuth);
       assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
@@ -202,14 +187,19 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
   }
 
   @Override
-  protected AuthHandler createAuthHandler(AuthProvider authProvider) {
+  protected AuthenticationHandler createAuthHandler(AuthenticationProvider authProvider) {
     return BasicAuthHandler.create(authProvider);
   }
 
   private class SerializingSessionStore implements SessionStore {
 
     private Map<String, Buffer> sessions = new ConcurrentHashMap<>();
-    private final PRNG prng = new PRNG(vertx);
+    private final VertxContextPRNG prng = VertxContextPRNG.current(vertx);
+
+    @Override
+    public SessionStore init(Vertx vertx, JsonObject options) {
+      return this;
+    }
 
     @Override
     public long retryTimeout() {
@@ -218,20 +208,20 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     @Override
     public Session createSession(long timeout) {
-      return new SessionImpl(prng, timeout, DEFAULT_SESSIONID_LENGTH);
+      return new SharedDataSessionImpl(prng, timeout, DEFAULT_SESSIONID_LENGTH);
     }
 
     @Override
     public Session createSession(long timeout, int length) {
-      return new SessionImpl(prng, timeout, length);
+      return new SharedDataSessionImpl(prng, timeout, length);
     }
 
     @Override
     public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
       Buffer buff = sessions.get(id);
-      SessionImpl sess;
+      SharedDataSessionImpl sess;
       if (buff != null) {
-        sess = new SessionImpl(prng);
+        sess = new SharedDataSessionImpl(prng);
         sess.readFromBuffer(0, buff);
       } else {
         sess = null;
@@ -240,24 +230,24 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }
 
     @Override
-    public void delete(String id, Handler<AsyncResult<Boolean>> resultHandler) {
-      boolean deleted = sessions.remove(id) != null;
-      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(deleted)));
+    public void delete(String id, Handler<AsyncResult<Void>> resultHandler) {
+      sessions.remove(id);
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture()));
     }
 
     @Override
-    public void put(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
+    public void put(Session session, Handler<AsyncResult<Void>> resultHandler) {
       ClusterSerializable cs = (ClusterSerializable)session;
       Buffer buff = Buffer.buffer();
       cs.writeToBuffer(buff);
       sessions.put(session.id(), buff);
-      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(true)));
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture()));
     }
 
     @Override
-    public void clear(Handler<AsyncResult<Boolean>> resultHandler) {
+    public void clear(Handler<AsyncResult<Void>> resultHandler) {
       sessions.clear();
-      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(true)));
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture()));
     }
 
     @Override
@@ -279,8 +269,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       rc.response().end("Welcome to the protected resource!");
     };
 
-    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthenticationProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     router.route().pathRegex("/api/.*").handler(BasicAuthHandler.create(authProvider));
 
     router.route("/api/v1/standard-job-profiles").handler(handler);

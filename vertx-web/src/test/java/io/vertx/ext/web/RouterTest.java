@@ -16,19 +16,22 @@
 
 package io.vertx.ext.web;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.Promise;
+import io.vertx.core.http.*;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.io.IOException;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -66,22 +69,42 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testRouteGetPathWithParamsInHandler() throws Exception {
     router.route("/foo/:id").handler(rc -> {
-      assertEquals("/foo/123", rc.normalisedPath());
+      assertEquals("/foo/123", rc.normalizedPath());
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/foo/123", 200, "OK");
   }
 
   @Test
+  public void testSlashPaths() throws Exception {
+    router.route("/foo/").handler(rc -> {
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/foo", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/foo/", 200, "OK");
+    testRequest(HttpMethod.GET, "/foo//", 200, "OK");
+  }
+
+  @Test
+  public void testSlashPaths2() throws Exception {
+    router.route("/foo").handler(rc -> {
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/foo", 200, "OK");
+    testRequest(HttpMethod.GET, "/foo/", 200, "OK");
+    testRequest(HttpMethod.GET, "/foo//", 200, "OK");
+  }
+
+  @Test
   public void testRoutePathAndMethod() throws Exception {
-    for (HttpMethod meth: METHODS) {
+    for (HttpMethod meth : METHODS) {
       testRoutePathAndMethod(meth, true);
     }
   }
 
   @Test
   public void testRoutePathAndMethodBegin() throws Exception {
-    for (HttpMethod meth: METHODS) {
+    for (HttpMethod meth : METHODS) {
       testRoutePathAndMethod(meth, false);
     }
   }
@@ -89,17 +112,15 @@ public class RouterTest extends WebTestBase {
   private void testRoutePathAndMethod(HttpMethod method, boolean exact) throws Exception {
     String path = "/blah";
     router.clear();
-    router.route(method, exact ? path : path + "*").handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route(method, exact ? path : path + "*").handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     if (exact) {
       testPathExact(method, path);
     } else {
       testPathBegin(method, path);
     }
-    for (HttpMethod meth: METHODS) {
+    for (HttpMethod meth : METHODS) {
       if (meth != method) {
-        testRequest(meth, path, 404, "Not Found");
+        testRequest(meth, path, HttpResponseStatus.METHOD_NOT_ALLOWED);
       }
     }
   }
@@ -107,13 +128,9 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testRoutePathOnly() throws Exception {
     String path1 = "/blah";
-    router.route(path1).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route(path1).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     String path2 = "/quux";
-    router.route(path2).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route(path2).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
 
     testPathExact(path1);
     testPathExact(path2);
@@ -122,13 +139,9 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testRoutePathOnlyBegin() throws Exception {
     String path1 = "/blah";
-    router.route(path1 + "*").handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route(path1 + "*").handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     String path2 = "/quux";
-    router.route(path2 + "*").handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route(path2 + "*").handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
 
     testPathBegin(path1);
     testPathBegin(path2);
@@ -137,80 +150,66 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testRoutePathWithTrailingSlashOnlyBegin() throws Exception {
     String path = "/some/path/";
-    router.route(path + "*").handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route(path + "*").handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathBegin(path);
   }
 
   @Test
   public void testRoutePathBuilder() throws Exception {
     String path = "/blah";
-    router.route().path(path).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().path(path).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathExact(path);
   }
 
   @Test
   public void testRoutePathBuilderBegin() throws Exception {
     String path = "/blah";
-    router.route().path(path + "*").handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().path(path + "*").handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathBegin(path);
   }
 
   @Test
   public void testRoutePathAndMethodBuilder() throws Exception {
     String path = "/blah";
-    router.route().path(path).method(HttpMethod.GET).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().path(path).method(HttpMethod.GET).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathExact(HttpMethod.GET, path);
-    testRequest(HttpMethod.POST, path, 404, "Not Found");
+    testRequest(HttpMethod.POST, path, HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testRoutePathAndMethodBuilderBegin() throws Exception {
     String path = "/blah";
-    router.route().path(path + "*").method(HttpMethod.GET).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().path(path + "*").method(HttpMethod.GET).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathBegin(HttpMethod.GET, path);
-    testRequest(HttpMethod.POST, path, 404, "Not Found");
+    testRequest(HttpMethod.POST, path, HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testRoutePathAndMultipleMethodBuilder() throws Exception {
     String path = "/blah";
-    router.route().path(path).method(HttpMethod.GET).method(HttpMethod.POST).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().path(path).method(HttpMethod.GET).method(HttpMethod.POST).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathExact(HttpMethod.GET, path);
     testPathExact(HttpMethod.POST, path);
-    testRequest(HttpMethod.PUT, path, 404, "Not Found");
+    testRequest(HttpMethod.PUT, path, HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testRoutePathAndMultipleMethodBuilderBegin() throws Exception {
     String path = "/blah";
-    router.route().path(path + "*").method(HttpMethod.GET).method(HttpMethod.POST).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().path(path + "*").method(HttpMethod.GET).method(HttpMethod.POST).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathBegin(HttpMethod.GET, path);
     testPathBegin(HttpMethod.POST, path);
-    testRequest(HttpMethod.PUT, path, 404, "Not Found");
+    testRequest(HttpMethod.PUT, path, HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   private void testPathBegin(String path) throws Exception {
-    for (HttpMethod meth: METHODS) {
+    for (HttpMethod meth : METHODS) {
       testPathBegin(meth, path);
     }
   }
 
   private void testPathExact(String path) throws Exception {
-    for (HttpMethod meth: METHODS) {
+    for (HttpMethod meth : METHODS) {
       testPathExact(meth, path);
     }
   }
@@ -242,10 +241,8 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testRouteNoPath() throws Exception {
-    router.route().handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
-    for (HttpMethod meth: METHODS) {
+    router.route().handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
+    for (HttpMethod meth : METHODS) {
       testNoPath(meth);
     }
   }
@@ -256,30 +253,26 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage(rc.request().path());
       rc.next();
     });
-    router.route().handler(rc -> {
-      rc.response().setStatusCode(200).end();
-    });
-    for (HttpMethod meth: METHODS) {
+    router.route().handler(rc -> rc.response().setStatusCode(200).end());
+    for (HttpMethod meth : METHODS) {
       testNoPath(meth);
     }
   }
 
   @Test
   public void testRouteNoPathWithMethod() throws Exception {
-    for (HttpMethod meth: METHODS) {
+    for (HttpMethod meth : METHODS) {
       testRouteNoPathWithMethod(meth);
     }
   }
 
   private void testRouteNoPathWithMethod(HttpMethod meth) throws Exception {
     router.clear();
-    router.route().method(meth).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().method(meth).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testNoPath(meth);
-    for (HttpMethod m: METHODS) {
+    for (HttpMethod m : METHODS) {
       if (m != meth) {
-        testRequest(m, "/whatever", 404, "Not Found");
+        testRequest(m, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
       }
     }
   }
@@ -501,9 +494,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
       rc.next();  // Call next
     });
-    router.route(path).handler(rc -> {
-      assertTrue(rc.response().ended());
-    });
+    router.route(path).handler(rc -> assertTrue(rc.response().ended()));
     testRequest(HttpMethod.GET, path, 200, "OK");
   }
 
@@ -512,9 +503,7 @@ public class RouterTest extends WebTestBase {
     String path = "/blah";
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
-    }).failureHandler(frc -> {
-      frc.response().setStatusCode(555).setStatusMessage("oh dear").end();
-    });
+    }).failureHandler(frc -> frc.response().setStatusCode(555).setStatusMessage("oh dear").end());
     testRequest(HttpMethod.GET, path, 555, "oh dear");
   }
 
@@ -532,9 +521,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testFailureUsingInvalidCharsInStatus() throws Exception {
     String path = "/blah";
-    router.route(path).handler(rc -> {
-      rc.response().setStatusMessage("Hello\nWorld!").end();
-    });
+    router.route(path).handler(rc -> rc.response().setStatusMessage("Hello\nWorld!").end());
     testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
   }
 
@@ -543,9 +530,7 @@ public class RouterTest extends WebTestBase {
     String path = "/blah";
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
-    }).failureHandler(frc -> {
-      frc.response().setStatusMessage("Hello\nWorld").end();
-    });
+    }).failureHandler(frc -> frc.response().setStatusMessage("Hello\nWorld").end());
     testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
   }
 
@@ -556,7 +541,8 @@ public class RouterTest extends WebTestBase {
       throw new RuntimeException("ouch!");
     });
     CountDownLatch latch = new CountDownLatch(1);
-    router.exceptionHandler(t -> {
+    router.errorHandler(500, ctx -> {
+      Throwable t = ctx.failure();
       assertEquals("ouch!", t.getMessage());
       latch.countDown();
     });
@@ -567,9 +553,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testFailureHandler1CallFail() throws Exception {
     String path = "/blah";
-    router.route(path).handler(rc -> {
-      rc.fail(400);
-    }).failureHandler(frc -> {
+    router.route(path).handler(rc -> rc.fail(400)).failureHandler(frc -> {
       assertEquals(400, frc.statusCode());
       frc.response().setStatusCode(400).setStatusMessage("oh dear").end();
     });
@@ -582,18 +566,14 @@ public class RouterTest extends WebTestBase {
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
     });
-    router.route("/bl*").failureHandler(frc -> {
-      frc.response().setStatusCode(555).setStatusMessage("oh dear").end();
-    });
+    router.route("/bl*").failureHandler(frc -> frc.response().setStatusCode(555).setStatusMessage("oh dear").end());
     testRequest(HttpMethod.GET, path, 555, "oh dear");
   }
 
   @Test
   public void testFailureHandler2CallFail() throws Exception {
     String path = "/blah";
-    router.route(path).handler(rc -> {
-      rc.fail(400);
-    });
+    router.route(path).handler(rc -> rc.fail(400));
     router.route("/bl*").failureHandler(frc -> {
       assertEquals(400, frc.statusCode());
       frc.response().setStatusCode(400).setStatusMessage("oh dear").end();
@@ -614,9 +594,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testDefaultFailureHandlerCallFail() throws Exception {
     String path = "/blah";
-    router.route(path).handler(rc -> {
-      rc.fail(400);
-    });
+    router.route(path).handler(rc -> rc.fail(400));
     // Default failure response
     testRequest(HttpMethod.GET, path, 400, "Bad Request");
   }
@@ -627,9 +605,7 @@ public class RouterTest extends WebTestBase {
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
     });
-    router.route("/other").failureHandler(frc -> {
-      frc.response().setStatusCode(555).setStatusMessage("oh dear").end();
-    });
+    router.route("/other").failureHandler(frc -> frc.response().setStatusCode(555).setStatusMessage("oh dear").end());
     // Default failure response
     testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
   }
@@ -638,9 +614,7 @@ public class RouterTest extends WebTestBase {
   public void testFailureWithThrowable() throws Exception {
     String path = "/blah";
     Throwable failure = new Throwable();
-    router.route(path).handler(rc -> {
-      rc.fail(failure);
-    }).failureHandler(frc -> {
+    router.route(path).handler(rc -> rc.fail(failure)).failureHandler(frc -> {
       assertEquals(-1, frc.statusCode());
       assertSame(failure, frc.failure());
       frc.response().setStatusCode(500).setStatusMessage("Internal Server Error").end();
@@ -651,9 +625,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testFailureWithNullThrowable() throws Exception {
     String path = "/blah";
-    router.route(path).handler(rc -> {
-      rc.fail(null);
-    }).failureHandler(frc -> {
+    router.route(path).handler(rc -> rc.fail(null)).failureHandler(frc -> {
       assertEquals(-1, frc.statusCode());
       assertTrue(frc.failure() instanceof NullPointerException);
       frc.response().setStatusCode(500).setStatusMessage("Internal Server Error").end();
@@ -662,27 +634,8 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testFailureWithKnownHeaderTooLongThrowable() throws Exception {
-    char[] longChars = new char[201];
-    Arrays.fill(longChars, 'a');
-    String testHeaderValue = new String(longChars);
-    String path = "/blah";
-
-    router.route(path).handler(rc -> {
-      rc.response().end();
-    });
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept", testHeaderValue), 400, "Bad Request", null);
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept-Charset", testHeaderValue), 400, "Bad Request", null);
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept-Encoding", testHeaderValue), 400, "Bad Request", null);
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept-Language", testHeaderValue), 400, "Bad Request", null);
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Content-Type", testHeaderValue), 400, "Bad Request", null);
-  }
-
-  @Test
   public void testPattern1() throws Exception {
-    router.route("/:abc").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
-    });
+    router.route("/:abc").handler(rc -> rc.response().setStatusMessage(rc.request().params().get("abc")).end());
     testPattern("/tim", "tim");
   }
 
@@ -724,42 +677,32 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testPattern1WithMethod() throws Exception {
-    router.route(HttpMethod.GET, "/:abc").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
-    });
+    router.route(HttpMethod.GET, "/:abc").handler(rc -> rc.response().setStatusMessage(rc.request().params().get("abc")).end());
     testPattern("/tim", "tim");
-    testRequest(HttpMethod.POST, "/tim", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/tim", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testPattern1WithBuilder() throws Exception {
-    router.route().path("/:abc").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
-    });
+    router.route().path("/:abc").handler(rc -> rc.response().setStatusMessage(rc.request().params().get("abc")).end());
     testPattern("/tim", "tim");
   }
 
   @Test
   public void testPattern2() throws Exception {
-    router.route("/blah/:abc").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
-    });
+    router.route("/blah/:abc").handler(rc -> rc.response().setStatusMessage(rc.request().params().get("abc")).end());
     testPattern("/blah/tim", "tim");
   }
 
   @Test
   public void testPattern3() throws Exception {
-    router.route("/blah/:abc/blah").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
-    });
+    router.route("/blah/:abc/blah").handler(rc -> rc.response().setStatusMessage(rc.request().params().get("abc")).end());
     testPattern("/blah/tim/blah", "tim");
   }
 
   @Test
   public void testPattern4() throws Exception {
-    router.route("/blah/:abc/foo").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
-    });
+    router.route("/blah/:abc/foo").handler(rc -> rc.response().setStatusMessage(rc.request().params().get("abc")).end());
     testPattern("/blah/tim/foo", "tim");
   }
 
@@ -823,9 +766,31 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage(params.get(paramName) + "|" + qValue).end();
     });
     testRequest(HttpMethod.GET,
-            "/blah/" + pathParamValue + "/test?" + paramName + "=" + queryParamValue1 + "&" + paramName + "=" + queryParamValue2,
-            200,
-            pathParamValue + "|" + queryParamValue1 + sep + queryParamValue2);
+      "/blah/" + pathParamValue + "/test?" + paramName + "=" + queryParamValue1 + "&" + paramName + "=" + queryParamValue2,
+      200,
+      pathParamValue + "|" + queryParamValue1 + sep + queryParamValue2);
+  }
+
+  @Test
+  public void testCorrectQueryParamatersEncapsulation() throws Exception {
+    final String pathParameterName = "pathParameter";
+    final String pathParamValue = "awesomePath";
+    final String qName = "q";
+    final String qValue1 = "a";
+    final String qValue2 = "b";
+    final String sName = "s";
+    final String sValue = "sample_value";
+    final String sep = ",";
+    router.route("/blah/:" + pathParameterName + "/test").handler(rc -> {
+      MultiMap params = rc.queryParams();
+      assertFalse(params.contains(pathParameterName));
+      String qExpected = String.join(",", params.getAll("q"));
+      String statusMessage = String.join("/", qExpected, params.get("s"));
+      rc.response().setStatusMessage(statusMessage).end();
+    });
+    testRequest(HttpMethod.GET,
+      "/blah/" + pathParamValue + "/test?" + qName + "=" + qValue1 + "," + qValue2 + "&" + sName + "=" + sValue, 200,
+      qValue1 + "," + qValue2 + "/" + sValue);
   }
 
   @Test
@@ -837,9 +802,7 @@ public class RouterTest extends WebTestBase {
       assertEquals(firstParamValue, rc.pathParam(paramName));
       rc.reroute(HttpMethod.GET, "/second/" + secondParamValue + "/route");
     });
-    router.route("/second/:" + paramName + "/route").handler(rc -> {
-       rc.response().setStatusMessage(rc.pathParam(paramName)).end();
-    });
+    router.route("/second/:" + paramName + "/route").handler(rc -> rc.response().setStatusMessage(rc.pathParam(paramName)).end());
     testRequest(HttpMethod.GET, "/first/" + firstParamValue + "/route", 200, secondParamValue);
   }
 
@@ -903,7 +866,7 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
     });
     testPattern("/dog/cat", "dogcat");
-    testRequest(HttpMethod.POST, "/dog/cat", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/dog/cat", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
@@ -917,20 +880,35 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testRegex3() throws Exception {
-    router.routeWithRegex(".*foo.txt").handler(rc -> {
-      rc.response().setStatusMessage("ok").end();
-    });
+    router.routeWithRegex(".*foo.txt").handler(rc -> rc.response().setStatusMessage("ok").end());
     testPattern("/dog/cat/foo.txt", "ok");
     testRequest(HttpMethod.POST, "/dog/cat/foo.bar", 404, "Not Found");
+  }
 
+  @Test
+  public void testRegexWithNamedParams() throws Exception {
+    router.routeWithRegex(HttpMethod.GET, "\\/(?<name>[^\\/]+)\\/(?<surname>[^\\/]+)").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("name") + params.get("surname")).end();
+    });
+    testPattern("/joe/doe", "joedoe");
+  }
+
+  @Test
+  public void testRegexWithNamedParamsKeepsIndexedParams() throws Exception {
+    router.routeWithRegex(HttpMethod.GET, "\\/(?<name>[^\\/]+)\\/(?<surname>[^\\/]+)").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
+    });
+    testPattern("/joe/doe", "joedoe");
   }
 
   @Test
   public void testConsumes() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -940,15 +918,15 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;itWorks", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
   }
 
   @Test
   public void testConsumesWithParameter() throws Exception {
     router.route().consumes("text/html;boo=ya").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -956,20 +934,22 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html;boo=\"yeah,right\"").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\";itWorks=4real", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 415, "Unsupported Media Type");
+    // this might look wrong but since there is only 1 entry per content-type, the comma has no semantic meaning
+    // therefore it is ignored
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
   }
 
   @Test
   public void testConsumesWithQuotedParameterWithQuotes() throws Exception {
     router.route().consumes("text/html;boo=\"yeah\\\"right\"").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah\\\"right\"", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -985,10 +965,10 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html").consumes("application/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -998,9 +978,9 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;works", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;works", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=done;it=works", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;yes=no;right", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;boo", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;works=aright", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;yes=no;right", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;boo", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;works=aright", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -1010,7 +990,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -1018,7 +998,7 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/*").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -1026,7 +1006,7 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("*/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/html", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -1056,34 +1036,34 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testConsumesNoContentType() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
-    testRequest(HttpMethod.GET, "/foo", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/foo", HttpResponseStatus.BAD_REQUEST);
   }
 
   @Test
   public void testProduces() throws Exception {
     router.route().produces("text/html").handler(rc -> rc.response().end());
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 200, "OK");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 406, "Not Acceptable");
     testRequest(HttpMethod.GET, "/foo", 200, "OK");
   }
 
   @Test
   public void testProducesWithParameterKey() throws Exception {
     router.route().produces("text/html;boo").handler(rc -> rc.response().end());
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo=ya;itWorks=4real", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo;itWorks", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/*", 200, "OK");
   }
 
   @Test
   public void testProducesWithParameter() throws Exception {
     router.route().produces("text/html;boo=ya").handler(rc -> rc.response().end());
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 406, "Not Acceptable");
   }
 
   @Test
@@ -1091,10 +1071,10 @@ public class RouterTest extends WebTestBase {
     router.route().produces("text/html").produces("application/json").handler(rc -> rc.response().end());
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/blah", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/blah", 406, "Not Acceptable");
   }
 
   @Test
@@ -1104,6 +1084,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;a", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;q=2", 200, "OK");
     testRequest(HttpMethod.GET, "/foo", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/*", 200, "OK");
   }
 
   @Test
@@ -1114,7 +1095,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "json", 200, "application/json");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text", 406, "Not Acceptable");
   }
 
   @Test
@@ -1124,7 +1105,34 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/*", 200, "text/html");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/*", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/*", 406, "Not Acceptable");
+  }
+
+  @Test
+  public void testProducesSubtypeWildcardAcceptTextPlain() throws Exception {
+    router.route().produces("text/*").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/plain", 200, "text/plain");
+  }
+
+  @Test
+  public void testProducesComponentWildcardAcceptTextPlain() throws Exception {
+    router.route().produces("*/plain").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/plain", 200, "text/plain");
+  }
+
+  @Test
+  public void testProducesAllWildcard() throws Exception {
+    router.route().produces("*/*").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/plain", 200, "text/plain");
   }
 
   @Test
@@ -1134,7 +1142,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "*/json", 200, "application/json");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/html", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/html", 406, "Not Acceptable");
   }
 
   @Test
@@ -1173,6 +1181,25 @@ public class RouterTest extends WebTestBase {
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/*,text/plain", 200, "application/json");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;a,application/*,text/plain", 200, "application/json");
+  }
+
+  @Test
+  public void testAcceptsWithSpaces() throws Exception {
+    router.route("/json").produces("application/json").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/json", "    text/html    , application/*    , text/plain; q= 0.9  ", 200, "application/json");
+    router.route("/html").produces("text/html").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/html", "    text/html    , application/*    , text/plain; q= 0.9  ", 200, "text/html");
+    router.route("/text").produces("text/plain").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/text", "    text/html    , application/*    , text/plain; q= 0.9  ", 200, "text/plain");
   }
 
   @Test
@@ -1283,9 +1310,12 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testGetRoutes() throws Exception {
-    router.route("/abc").handler(rc -> {});
-    router.route("/abc/def").handler(rc -> {});
-    router.route("/xyz").handler(rc -> {});
+    router.route("/abc").handler(rc -> {
+    });
+    router.route("/abc/def").handler(rc -> {
+    });
+    router.route("/xyz").handler(rc -> {
+    });
     List<Route> routes = router.getRoutes();
     assertEquals(3, routes.size());
   }
@@ -1294,21 +1324,15 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testHeadersEndHandler() throws Exception {
     router.route().handler(rc -> {
-      rc.addHeadersEndHandler(v -> {
-        rc.response().putHeader("header1", "foo");
-      });
+      rc.addHeadersEndHandler(v -> rc.response().putHeader("header1", "foo"));
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addHeadersEndHandler(v -> {
-        rc.response().putHeader("header2", "foo");
-      });
+      rc.addHeadersEndHandler(v -> rc.response().putHeader("header2", "foo"));
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addHeadersEndHandler(v -> {
-        rc.response().putHeader("header3", "foo");
-      });
+      rc.addHeadersEndHandler(v -> rc.response().putHeader("header3", "foo"));
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", null, resp -> {
@@ -1326,23 +1350,17 @@ public class RouterTest extends WebTestBase {
 
     router.route().handler(rc -> {
       final int val = cnt.incrementAndGet();
-      rc.addHeadersEndHandler(v -> {
-        assertEquals(val, cnt.getAndDecrement());
-      });
+      rc.addHeadersEndHandler(v -> assertEquals(val, cnt.getAndDecrement()));
       rc.next();
     });
     router.route().handler(rc -> {
       final int val = cnt.incrementAndGet();
-      rc.addHeadersEndHandler(v -> {
-        assertEquals(val, cnt.getAndDecrement());
-      });
+      rc.addHeadersEndHandler(v -> assertEquals(val, cnt.getAndDecrement()));
       rc.next();
     });
     router.route().handler(rc -> {
       final int val = cnt.incrementAndGet();
-      rc.addHeadersEndHandler(v -> {
-        assertEquals(val, cnt.getAndDecrement());
-      });
+      rc.addHeadersEndHandler(v -> assertEquals(val, cnt.getAndDecrement()));
       rc.response().end();
     });
 
@@ -1356,23 +1374,17 @@ public class RouterTest extends WebTestBase {
 
     router.route().handler(rc -> {
       final int val = cnt.incrementAndGet();
-      rc.addBodyEndHandler(v -> {
-        assertEquals(val, cnt.getAndDecrement());
-      });
+      rc.addBodyEndHandler(v -> assertEquals(val, cnt.getAndDecrement()));
       rc.next();
     });
     router.route().handler(rc -> {
       final int val = cnt.incrementAndGet();
-      rc.addBodyEndHandler(v -> {
-        assertEquals(val, cnt.getAndDecrement());
-      });
+      rc.addBodyEndHandler(v -> assertEquals(val, cnt.getAndDecrement()));
       rc.next();
     });
     router.route().handler(rc -> {
       final int val = cnt.incrementAndGet();
-      rc.addBodyEndHandler(v -> {
-        assertEquals(val, cnt.getAndDecrement());
-      });
+      rc.addBodyEndHandler(v -> assertEquals(val, cnt.getAndDecrement()));
       rc.response().end();
     });
 
@@ -1382,15 +1394,11 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testHeadersEndHandlerRemoveHandler() throws Exception {
     router.route().handler(rc -> {
-      rc.addHeadersEndHandler(v -> {
-        rc.response().putHeader("header1", "foo");
-      });
+      rc.addHeadersEndHandler(v -> rc.response().putHeader("header1", "foo"));
       rc.next();
     });
     router.route().handler(rc -> {
-      Handler<Void> handler = v -> {
-        rc.response().putHeader("header2", "foo");
-      };
+      Handler<Void> handler = v -> rc.response().putHeader("header2", "foo");
       int handlerID = rc.addHeadersEndHandler(handler);
       vertx.setTimer(1, tid -> {
         assertTrue(rc.removeHeadersEndHandler(handlerID));
@@ -1410,40 +1418,30 @@ public class RouterTest extends WebTestBase {
   public void testBodyEndHandler() throws Exception {
     AtomicInteger cnt = new AtomicInteger();
     router.route().handler(rc -> {
-      rc.addBodyEndHandler(v -> {
-        cnt.incrementAndGet();
-      });
+      rc.addBodyEndHandler(v -> cnt.incrementAndGet());
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addBodyEndHandler(v -> {
-        cnt.incrementAndGet();
-      });
+      rc.addBodyEndHandler(v -> cnt.incrementAndGet());
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addBodyEndHandler(v -> {
-        cnt.incrementAndGet();
-      });
+      rc.addBodyEndHandler(v -> cnt.incrementAndGet());
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", 200, "OK");
-    waitUntil(() -> cnt.get() == 3);
+    assertWaitUntil(() -> cnt.get() == 3);
   }
 
   @Test
   public void testBodyEndHandlerRemoveHandler() throws Exception {
     AtomicInteger cnt = new AtomicInteger();
     router.route().handler(rc -> {
-      rc.addBodyEndHandler(v -> {
-        cnt.incrementAndGet();
-      });
+      rc.addBodyEndHandler(v -> cnt.incrementAndGet());
       rc.next();
     });
     router.route().handler(rc -> {
-      Handler<Void> handler = v -> {
-        cnt.incrementAndGet();
-      };
+      Handler<Void> handler = v -> cnt.incrementAndGet();
       int handlerID = rc.addBodyEndHandler(handler);
       vertx.setTimer(1, tid -> {
         assertTrue(rc.removeBodyEndHandler(handlerID));
@@ -1453,7 +1451,130 @@ public class RouterTest extends WebTestBase {
     });
 
     testRequest(HttpMethod.GET, "/", 200, "OK");
-    waitUntil(() -> cnt.get() == 1);
+    assertWaitUntil(() -> cnt.get() == 1);
+  }
+
+  // Test that adding an endHandler doesn't overwrite other ones
+  @Test
+  public void testEndHandler() throws Exception {
+    AtomicInteger cnt = new AtomicInteger();
+    router.route().handler(rc -> {
+      rc.addEndHandler(v -> cnt.incrementAndGet());
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(v -> cnt.incrementAndGet());
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(v -> cnt.incrementAndGet());
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+    assertWaitUntil(() -> cnt.get() == 3);
+  }
+
+  // Test that adding an exceptionHandler doesn't overwrite other ones
+  @Test
+  public void testExceptionHandler() throws Exception {
+    AtomicInteger cnt = new AtomicInteger();
+    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(onSuccess(req -> {
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          if (done.failed()) {
+            cnt.incrementAndGet();
+          }
+        });
+        rc.next();
+      });
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          if (done.failed()) {
+            cnt.incrementAndGet();
+          }
+        });
+        rc.next();
+      });
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          if (done.failed()) {
+            cnt.incrementAndGet();
+          }
+        });
+        rc.next();
+      });
+      router.route().handler(rc -> {
+        req.connection().close();
+      });
+      req.end();
+    }));
+    assertWaitUntil(() -> cnt.get() == 3);
+  }
+
+  // Test that adding a closeHandler doesn't overwrite other ones
+  @Test
+  public void testCloseHandler() throws Exception {
+    AtomicInteger cnt = new AtomicInteger();
+    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(onSuccess(req -> {
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          cnt.incrementAndGet();
+        });
+        rc.next();
+      });
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          cnt.incrementAndGet();
+        });
+        rc.next();
+      });
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          cnt.incrementAndGet();
+        });
+        rc.next();
+      });
+      router.route().handler(rc -> {
+        req.connection().close();
+      });
+      req.end();
+    }));
+    assertWaitUntil(() -> cnt.get() == 3);
+  }
+
+  // Test that the endHandler is called once for an exception
+  @Test
+  public void testEndHandlerCalledOnce() throws Exception {
+    AtomicInteger endCnt = new AtomicInteger();
+    AtomicInteger excCnt = new AtomicInteger();
+    AtomicInteger closeCnt = new AtomicInteger();
+    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(onSuccess(req -> {
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          excCnt.incrementAndGet();
+        });
+        rc.next();
+      });
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          endCnt.incrementAndGet();
+        });
+        rc.next();
+      });
+      router.route().handler(rc -> {
+        rc.addEndHandler(done -> {
+          closeCnt.incrementAndGet();
+        });
+        rc.next();
+      });
+      router.route().handler(rc -> {
+        req.connection().close();
+      });
+      req.end();
+    }));
+    assertWaitUntil(() -> endCnt.get() == 1);
+    assertWaitUntil(() -> excCnt.get() == 1);
+    assertWaitUntil(() -> closeCnt.get() == 1);
   }
 
   @Test
@@ -1463,22 +1584,19 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testGet() throws Exception {
-    router.get().handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.get().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.GET, "/whatever", 200, "foo");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testGetWithPathExact() throws Exception {
-    router.get("/somepath/").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.get("/somepath/").handler(rc -> rc.response().setStatusMessage("foo").end());
+    testRequest(HttpMethod.GET, "/somepath", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/", 200, "foo");
     testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
@@ -1490,50 +1608,54 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testGetWithPathBegin() throws Exception {
-    router.get("/somepath/*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.get("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.GET, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+  }
+
+  @Test
+  public void testGetWithPathBeginShouldNotMatchPrefix() throws Exception {
+    router.get("/swagger-ui/*").handler(rc -> rc.response().setStatusMessage("/swagger-ui/*").end());
+    router.get("/swagger-ui").handler(rc -> rc.response().setStatusMessage("/swagger-ui").end());
+    router.get("/swagger").handler(rc -> rc.response().setStatusMessage("/swagger").end());
+    testRequest(HttpMethod.GET, "/swagger-ui/", 200, "/swagger-ui/*");
+    testRequest(HttpMethod.GET, "/swagger-ui/whatever", 200, "/swagger-ui/*");
+    testRequest(HttpMethod.GET, "/swagger", 200, "/swagger");
+    testRequest(HttpMethod.GET, "/swagger/", 200, "/swagger"); // Is that expected ?
+    testRequest(HttpMethod.GET, "/swagger/whatever", 404, "Not Found");
   }
 
   @Test
   public void testGetWithRegex() throws Exception {
-    router.getWithRegex("\\/somepath\\/.*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.getWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.GET, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testPost() throws Exception {
-    router.post().handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.post().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.POST, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testPostWithPathExact() throws Exception {
-    router.post("/somepath/").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.post("/somepath/").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.POST, "/somepath/", 200, "foo");
     testRequest(HttpMethod.POST, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1545,50 +1667,42 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testPostWithPathBegin() throws Exception {
-    router.post("/somepath/*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.post("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.POST, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.POST, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testPostWithRegex() throws Exception {
-    router.postWithRegex("\\/somepath\\/.*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.postWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.POST, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.POST, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testPut() throws Exception {
-    router.put().handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.put().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.PUT, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testPutWithPathExact() throws Exception {
-    router.put("/somepath/").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.put("/somepath/").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.PUT, "/somepath/", 200, "foo");
     testRequest(HttpMethod.PUT, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1600,50 +1714,42 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testPutWithPathBegin() throws Exception {
-    router.put("/somepath/*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.put("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.PUT, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.PUT, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testPutWithRegex() throws Exception {
-    router.putWithRegex("\\/somepath\\/.*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.putWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.PUT, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.PUT, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testDelete() throws Exception {
-    router.delete().handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.delete().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.DELETE, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testDeleteWithPathExact() throws Exception {
-    router.delete("/somepath/").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.delete("/somepath/").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.DELETE, "/somepath/", 200, "foo");
     testRequest(HttpMethod.DELETE, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1655,50 +1761,42 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testDeleteWithPathBegin() throws Exception {
-    router.delete("/somepath/*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.delete("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.DELETE, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.DELETE, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testDeleteWithRegex() throws Exception {
-    router.deleteWithRegex("\\/somepath\\/.*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.deleteWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.DELETE, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.DELETE, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testOptions() throws Exception {
-    router.options().handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.options().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.OPTIONS, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testOptionsWithPathExact() throws Exception {
-    router.options("/somepath/").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.options("/somepath/").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.OPTIONS, "/somepath/", 200, "foo");
     testRequest(HttpMethod.OPTIONS, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1710,50 +1808,42 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testOptionsWithPathBegin() throws Exception {
-    router.options("/somepath/*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.options("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.OPTIONS, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testOptionsWithRegex() throws Exception {
-    router.optionsWithRegex("\\/somepath\\/.*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.optionsWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.OPTIONS, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testHead() throws Exception {
-    router.head().handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.head().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.HEAD, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testHeadWithPathExact() throws Exception {
-    router.head("/somepath/").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.head("/somepath/").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.HEAD, "/somepath/", 200, "foo");
     testRequest(HttpMethod.HEAD, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1765,37 +1855,31 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testHeadWithPathBegin() throws Exception {
-    router.head("/somepath/*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.head("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.HEAD, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.HEAD, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
   public void testHeadWithRegex() throws Exception {
-    router.headWithRegex("\\/somepath\\/.*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.headWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.HEAD, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.HEAD, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.POST, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.PUT, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
   @Test
-  public void testRouteNormalised1() throws Exception {
-    router.route("/foo").handler(rc -> {
-      rc.response().setStatusMessage("socks").end();
-    });
+  public void testRouteNormalized1() throws Exception {
+    router.route("/foo").handler(rc -> rc.response().setStatusMessage("socks").end());
     testRequest(HttpMethod.GET, "/foo", 200, "socks");
     testRequest(HttpMethod.GET, "/foo/", 200, "socks");
     testRequest(HttpMethod.GET, "//foo/", 200, "socks");
@@ -1804,11 +1888,10 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testRouteNormalised2() throws Exception {
-    router.route("/foo/").handler(rc -> {
-      rc.response().setStatusMessage("socks").end();
-    });
-    testRequest(HttpMethod.GET, "/foo", 200, "socks");
+  public void testRouteNormalized2() throws Exception {
+    router.route("/foo/").handler(rc -> rc.response().setStatusMessage("socks").end());
+    // note that the final slash is significant
+    testRequest(HttpMethod.GET, "/foo", 404, "Not Found");
     testRequest(HttpMethod.GET, "/foo/", 200, "socks");
     testRequest(HttpMethod.GET, "//foo/", 200, "socks");
     testRequest(HttpMethod.GET, "//foo//", 200, "socks");
@@ -1816,10 +1899,8 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testRouteNormalised3() throws Exception {
-    router.route("/").handler(rc -> {
-      rc.response().setStatusMessage("pants").end();
-    });
+  public void testRouteNormalized3() throws Exception {
+    router.route("/").handler(rc -> rc.response().setStatusMessage("pants").end());
     testRequest(HttpMethod.GET, "/", 200, "pants");
     testRequest(HttpMethod.GET, "//", 200, "pants");
     testRequest(HttpMethod.GET, "///", 200, "pants");
@@ -1869,9 +1950,9 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testLocaleWithCountry() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(3, rc.acceptableLocales().size());
-      assertEquals("da", rc.preferredLocale().language());
-      assertEquals("DK", rc.preferredLocale().country());
+      assertEquals(3, rc.acceptableLanguages().size());
+      assertEquals("da", rc.preferredLanguage().tag());
+      assertEquals("DK", rc.preferredLanguage().subtag());
       rc.response().end();
     });
 
@@ -1882,8 +1963,8 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testLocaleSimple() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(3, rc.acceptableLocales().size());
-      assertEquals("da", rc.preferredLocale().language());
+      assertEquals(3, rc.acceptableLanguages().size());
+      assertEquals("da", rc.preferredLanguage().tag());
       rc.response().end();
     });
 
@@ -1893,9 +1974,9 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testLocaleWithoutQuality() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(1, rc.acceptableLocales().size());
-      assertEquals("en", rc.preferredLocale().language());
-      assertEquals("GB", rc.preferredLocale().country());
+      assertEquals(1, rc.acceptableLanguages().size());
+      assertEquals("en", rc.preferredLanguage().tag());
+      assertEquals("GB", rc.preferredLanguage().subtag().toUpperCase());
       rc.response().end();
     });
 
@@ -1905,8 +1986,8 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testLocaleSameQuality() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(2, rc.acceptableLocales().size());
-      assertEquals("pt", rc.preferredLocale().language());
+      assertEquals(2, rc.acceptableLanguages().size());
+      assertEquals("pt", rc.preferredLanguage().tag());
       rc.response().end();
     });
 
@@ -1916,7 +1997,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testLocaleNoHeaderFromClient() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(0, rc.acceptableLocales().size());
+      assertEquals(0, rc.acceptableLanguages().size());
       rc.response().end();
     });
 
@@ -1934,6 +2015,13 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testBadURL() throws Exception {
+    router.route().handler(rc -> rc.response().end());
+
+    testRequest(HttpMethod.GET, "/%7B%channel%%7D", 200, "OK");
+  }
+
+  @Test
   public void testDuplicateParams() throws Exception {
     router.route("/test/:p").handler(RoutingContext::next);
     router.route("/test/:p").handler(RoutingContext::next);
@@ -1948,9 +2036,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testDuplicateParams2() throws Exception {
     router.route("/test/:p").handler(RoutingContext::next);
-    router.route("/test/:p").handler(ctx -> {
-      ctx.reroute("/done/abc/cde");
-    });
+    router.route("/test/:p").handler(ctx -> ctx.reroute("/done/abc/cde"));
 
     router.route("/done/:a/:p").handler(routingContext -> {
       assertEquals(1, routingContext.request().params().getAll("p").size());
@@ -1988,12 +2074,690 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testGetWithPlusPath2() throws Exception {
-    router.get("/:param1").useNormalisedPath(false).handler(rc -> {
-      assertEquals("/some+path",rc.normalisedPath());
-      assertEquals("some+path",rc.pathParam("param1"));
-      assertEquals("some query",rc.request().getParam("q1"));
+    router.get("/:param1").useNormalizedPath(false).handler(rc -> {
+      assertEquals("/some+path", rc.normalizedPath());
+      assertEquals("some+path", rc.pathParam("param1"));
+      assertEquals("some query", rc.request().getParam("q1"));
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.GET, "/some+path?q1=some+query", 200, "foo");
+  }
+
+  @Test
+  public void testMultipleSetHandler() throws Exception {
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    }).handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 200, "OK", "handler1handler2handler3");
+  }
+
+  @Test
+  public void testMultipleSetFailureHandler() throws Exception {
+    router.get("/path").handler(routingContext -> routingContext.fail(500)).failureHandler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    }).failureHandler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).failureHandler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.setStatusMessage("ERROR");
+      response.setStatusCode(500);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 500, "ERROR", "handler1handler2handler3");
+  }
+
+  @Test
+  public void testMultipleSetFailureHandlerCorrectOrder() throws Exception {
+    router.route().failureHandler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    });
+
+    router.get("/path").handler(routingContext -> routingContext.fail(500)).failureHandler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).failureHandler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.setStatusMessage("ERROR");
+      response.setStatusCode(500);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 500, "ERROR", "handler1handler2handler3");
+  }
+
+  @Test
+  public void testMultipleHandlersMixed() throws Exception {
+    router.route().failureHandler(routingContext -> {
+      routingContext.put("response", "fhandler1");
+      routingContext.next();
+    });
+
+    router.get("/:param").handler(routingContext -> {
+      if (routingContext.pathParam("param").equals("fail")) routingContext.fail(500);
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    }).handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    }).failureHandler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "fhandler2");
+      routingContext.next();
+    }).failureHandler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.setStatusMessage("ERROR");
+      response.setStatusCode(500);
+      response.end(routingContext.get("response") + "fhandler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 200, "OK", "handler1handler2handler3");
+    testRequest(HttpMethod.GET, "/fail", 500, "ERROR", "fhandler1fhandler2fhandler3");
+  }
+
+  @Test
+  public void testMultipleHandlersMultipleConnections() throws Exception {
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    }).handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    CountDownLatch latch = new CountDownLatch(100);
+
+    for (int i = 0; i < 100; i++) {
+      vertx.executeBlocking(future -> {
+        try {
+          testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
+          future.complete();
+        } catch (Exception e) {
+          e.printStackTrace();
+          future.fail(e);
+        }
+      }, asyncResult -> {
+        assertFalse(asyncResult.failed());
+        assertNull(asyncResult.cause());
+        latch.countDown();
+      });
+    }
+    awaitLatch(latch);
+  }
+
+  /*
+  This test is for issue #729 and #740 about thread safety and errors of multiple handlers
+  In this test case I try 100 connections in separated worker threads with random delays and old fashion Java sync http client.
+  I've also added a timer when I call routingContext.next()
+   */
+  @Test
+  public void testMultipleHandlersMultipleConnectionsDelayed() throws Exception {
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.vertx().setTimer((int) (1 + Math.random() * 10), asyncResult -> routingContext.next());
+    }).handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.vertx().setTimer((int) (1 + Math.random() * 10), asyncResult -> routingContext.next());
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    });
+
+    CountDownLatch latch = new CountDownLatch(100);
+    for (int i = 0; i < 100; i++) {
+      // using executeBlocking should create multiple connections
+      vertx.executeBlocking(future -> {
+        try {
+          Thread.sleep((int) (1 + Math.random() * 10));
+          testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
+          future.complete();
+        } catch (Exception e) {
+          future.fail(e);
+        }
+      }, asyncResult -> {
+        assertFalse(asyncResult.failed());
+        assertNull(asyncResult.cause());
+        latch.countDown();
+      });
+    }
+    awaitLatch(latch);
+  }
+
+  /*
+    This test is similar to test above but it mixes right and failing requests
+   */
+  @Test
+  public void testMultipleHandlersMultipleConnectionsDelayedMixed() throws Exception {
+    router.get("/:param").handler(routingContext -> {
+      if (routingContext.pathParam("param").equals("fail")) {
+        routingContext.fail(400);
+      } else {
+        routingContext.put("response", "handler1");
+        routingContext.vertx().setTimer((int) (1 + Math.random() * 10), asyncResult -> routingContext.next());
+      }
+    }).failureHandler(routingContext -> {
+      routingContext.put("response", "fhandler1");
+      routingContext.vertx().setTimer((int) (1 + Math.random() * 10), asyncResult -> routingContext.next());
+    }).handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.vertx().setTimer((int) (1 + Math.random() * 10), asyncResult -> routingContext.next());
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    }).failureHandler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "fhandler2");
+      routingContext.vertx().setTimer((int) (1 + Math.random() * 10), asyncResult -> routingContext.next());
+    }).failureHandler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.setStatusMessage("ERROR");
+      response.setStatusCode(400);
+      response.end(routingContext.get("response") + "fhandler3");
+    });
+
+    final int multipleConnections = 500;
+
+    CountDownLatch latch = new CountDownLatch(multipleConnections);
+
+    Handler<Promise<Object>> execute200Request = future -> {
+      try {
+        Thread.sleep((int) (1 + Math.random() * 10));
+        testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
+        future.complete();
+      } catch (InterruptedException | IOException e) {
+        e.printStackTrace();
+        future.fail(e);
+      }
+    };
+
+    Handler<Promise<Object>> execute400Request = future -> {
+      try {
+        Thread.sleep((int) (1 + Math.random() * 10));
+        testSyncRequest("GET", "/fail", 400, "ERROR", "fhandler1fhandler2fhandler3");
+        future.complete();
+      } catch (InterruptedException | IOException e) {
+        e.printStackTrace();
+        future.fail(e);
+      }
+    };
+
+    for (int i = 0; i < multipleConnections; i++) {
+      // using executeBlocking should create multiple connections
+      vertx.executeBlocking((new Random().nextBoolean() ? execute200Request : execute400Request), false, objectAsyncResult -> {
+        assertTrue(objectAsyncResult.succeeded());
+        latch.countDown();
+      });
+    }
+    awaitLatch(latch);
+  }
+
+
+  @Test
+  public void testMultipleSetHandlerMultipleRouteObject() throws Exception {
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    });
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 200, "OK", "handler1handler2handler3");
+  }
+
+  @Test
+  public void testSetRegexGroupsNamesMethod() throws Exception {
+    List<String> groupNames = new ArrayList<>();
+    groupNames.add("hello");
+
+    Route route1 = router.getWithRegex("\\/(?<p0>[a-z]{2})");
+    route1.setRegexGroupsNames(groupNames);
+    route1.handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("hello"))
+      .end());
+    testRequest(HttpMethod.GET, "/hi", 200, "hi");
+
+  }
+
+  @Test
+  public void testRegexGroupsNamesWithMethodOverride() throws Exception {
+    List<String> groupNames = new ArrayList<>();
+    groupNames.add("FirstParam");
+    groupNames.add("SecondParam");
+
+    Route route = router.getWithRegex("\\/([a-z]{2})([a-z]{2})");
+    route.setRegexGroupsNames(groupNames);
+    route.handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("FirstParam") + "-" + routingContext.pathParam("SecondParam"))
+      .end());
+    testRequest(HttpMethod.GET, "/aabb", 200, "aa-bb");
+  }
+
+  @Test
+  public void testSetRegexGroupsNamesMethodWithUnorderedGroups() throws Exception {
+    List<String> groupNames = new ArrayList<>();
+    groupNames.add("firstParam");
+    groupNames.add("secondParam");
+
+    Route route1 = router.getWithRegex("\\/(?<p1>[a-z]{2})(?<p0>[a-z]{2})");
+    route1.setRegexGroupsNames(groupNames);
+    route1.handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+      .end());
+    testRequest(HttpMethod.GET, "/bbaa", 200, "aa-bb");
+
+  }
+
+  @Test
+  public void testSetRegexGroupsNamesMethodWithNestedRegex() throws Exception {
+    List<String> groupNames = new ArrayList<>();
+    groupNames.add("firstParam");
+    groupNames.add("secondParam");
+
+    Route route1 = router.getWithRegex("\\/(?<p1>[a-z]{2}(?<p0>[a-z]{2}))");
+    route1.setRegexGroupsNames(groupNames);
+    route1.handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+      .end());
+    testRequest(HttpMethod.GET, "/bbaa", 200, "aa-bbaa");
+
+  }
+
+  @Test
+  public void testRegexGroupsNames() throws Exception {
+    router.getWithRegex("\\/(?<firstParam>[a-z]{2})(?<secondParam>[a-z]{2})").handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+      .end());
+    testRequest(HttpMethod.GET, "/aabb", 200, "aa-bb");
+  }
+
+  @Test
+  public void testRegexGroupsNamesWithNestedGroups() throws Exception {
+    router.getWithRegex("\\/(?<secondParam>[a-z]{2}(?<firstParam>[a-z]{2}))").handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+      .end());
+    testRequest(HttpMethod.GET, "/bbaa", 200, "aa-bbaa");
+  }
+
+  private Handler<RoutingContext> generateHandler(final int i) {
+    return routingContext -> routingContext.put(Integer.toString(i), i).next();
+  }
+
+  @Test
+  public void stressTestMultipleHandlers() throws Exception {
+    final int HANDLERS_NUMBER = 100;
+    final int REQUESTS_NUMBER = 200;
+
+    Route r = router.get("/path");
+    for (int i = 0; i < HANDLERS_NUMBER; i++) {
+      r.handler(generateHandler(i));
+    }
+    r.handler(routingContext -> {
+      StringBuilder sum = new StringBuilder();
+      for (int i = 0; i < HANDLERS_NUMBER; i++) {
+        sum.append((Integer) routingContext.get(Integer.toString(i)));
+      }
+      routingContext.response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .end(sum.toString());
+    });
+
+    CountDownLatch latch = new CountDownLatch(REQUESTS_NUMBER);
+    final StringBuilder sum = new StringBuilder();
+    for (int i = 0; i < HANDLERS_NUMBER; i++) {
+      sum.append(i);
+    }
+    for (int i = 0; i < REQUESTS_NUMBER; i++) {
+      // using executeBlocking should create multiple connections
+      vertx.executeBlocking(future -> {
+        try {
+          Thread.sleep((int) (1 + Math.random() * 10));
+          testSyncRequest("GET", "/path", 200, "OK", sum.toString());
+          future.complete();
+        } catch (Exception e) {
+          future.fail(e);
+        }
+      }, asyncResult -> {
+        assertFalse(asyncResult.failed());
+        assertNull(asyncResult.cause());
+        latch.countDown();
+      });
+    }
+    awaitLatch(latch);
+  }
+
+  @Test
+  public void testDecodingError() throws Exception {
+    String BAD_PARAM = "~!@\\||$%^&*()_=-%22;;%27%22:%3C%3E/?]}{";
+
+    router.route().handler(rc -> {
+      rc.queryParams(); // Trigger decoding
+      rc.next();
+    });
+    router.route("/path").handler(rc -> rc.response().setStatusCode(500).end());
+    testRequest(HttpMethod.GET, "/path?q=" + BAD_PARAM, 400, "Bad Request");
+  }
+
+  @Test
+  public void testRoutePathNoSlashBegin() throws Exception {
+    String path = "?test=something";
+    router.route().handler(rc -> rc.response().end());
+    testRequest(HttpMethod.GET, path, 400, "Bad Request");
+  }
+
+  @Test
+  public void testMultipleHandlersWithFailuresDeadlock() throws Exception {
+    AtomicBoolean first = new AtomicBoolean(true);
+    CountDownLatch firstHandlerLatch = new CountDownLatch(1);
+    CountDownLatch secondHandlerLatch = new CountDownLatch(1);
+
+    router.get("/path").handler(event -> {
+      if (!first.compareAndSet(true, false)) {
+        // Second run, block until the second handler runs
+        try {
+          firstHandlerLatch.countDown();
+          awaitLatch(secondHandlerLatch);
+
+          // Add a small delay so the exception handler happens first
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+          // ignore
+        }
+
+        event.next();
+      } else {
+        vertx.executeBlocking(future -> {
+          event.next();
+          future.complete();
+        }, asyncResult -> {});
+      }
+    });
+
+    router.get("/path").handler(event -> {
+      try {
+        awaitLatch(firstHandlerLatch);
+      } catch (InterruptedException e) {
+        // ignore
+      }
+      secondHandlerLatch.countDown();
+      event.fail(new NullPointerException());
+    });
+
+    CountDownLatch latch = new CountDownLatch(2);
+    for (int i = 0; i < 2; i++) {
+      vertx.executeBlocking(future -> {
+        HttpServerRequest request = mock(HttpServerRequest.class);
+        HttpServerResponse response = mock(HttpServerResponse.class);
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.scheme()).thenReturn("http");
+        when(request.uri()).thenReturn("http://localhost/path");
+        when(request.absoluteURI()).thenReturn("http://localhost/path");
+        when(request.host()).thenReturn("localhost");
+        when(request.path()).thenReturn("/path");
+        when(request.response()).thenReturn(response);
+        when(response.ended()).thenReturn(true);
+        router.handle(request);
+        future.complete();
+      }, false, asyncResult -> {
+        assertFalse(asyncResult.failed());
+        assertNull(asyncResult.cause());
+        latch.countDown();
+      });
+    }
+    awaitLatch(latch);
+  }
+
+  @Test
+  public void testCustom404ErrorHandler() throws Exception {
+    // Default 404 handler
+    testRequest(HttpMethod.GET, "/blah", 404, "Not Found", "<html><body><h1>Resource not found</h1></body></html>");
+    router.errorHandler(404, routingContext -> routingContext
+      .response()
+      .setStatusMessage("Not Found")
+      .setStatusCode(404)
+      .end("Not Found custom error")
+    );
+    testRequest(HttpMethod.GET, "/blah", 404, "Not Found", "Not Found custom error");
+  }
+
+  @Test
+  public void testDecodingErrorCustomHandler() throws Exception {
+    String BAD_PARAM = "~!@\\||$%^&*()_=-%22;;%27%22:%3C%3E/?]}{";
+
+    router.errorHandler(400, context -> context.response().setStatusCode(500).setStatusMessage("Dumb").end());
+
+    router.route().handler(rc -> {
+      rc.queryParams(); // Trigger decoding
+      rc.next();
+    }).handler(rc -> {
+      rc.response().setStatusCode(500).end();
+    });
+    testRequest(HttpMethod.GET, "/path?q=" + BAD_PARAM, 500,"Dumb");
+  }
+
+  @Test
+  public void testCustomErrorHandler() throws Exception {
+
+    router.route("/path").handler(rc -> rc.fail(410));
+    router.errorHandler(410, context -> context.response().setStatusCode(500).setStatusMessage("Dumb").end());
+
+    testRequest(HttpMethod.GET, "/path", 500, "Dumb");
+  }
+
+  @Test
+  public void testErrorInCustomErrorHandler() throws Exception {
+
+    router.route("/path").handler(rc -> rc.fail(410));
+    router.errorHandler(410, rc -> {
+      throw new RuntimeException();
+    });
+
+    testRequest(HttpMethod.GET, "/path", 410, "Gone");
+  }
+
+  @Test
+  public void testErrorHandlingResponseClosed() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(onSuccess(req -> {
+      router.route().handler(rc -> {
+        req.connection().close();
+        rc.response().closeHandler(v -> rc.next());
+      });
+      router.route("/path").handler(rc -> rc.response().write(""));
+      router.errorHandler(500, rc -> {
+        assertEquals(1, latch.getCount());
+        latch.countDown();
+      });
+      req.end();
+    }));
+    latch.await();
+  }
+
+  @Test
+  public void testMethodNotAllowedCustomErrorHandler() throws Exception {
+    router.get("/path").handler(rc -> rc.response().end());
+    router.post("/path").handler(rc -> rc.response().end());
+    router.errorHandler(405, context -> context.response().setStatusCode(context.statusCode()).setStatusMessage("Dumb").end());
+
+    testRequest(HttpMethod.PUT, "/path", 405, "Dumb");
+  }
+
+  @Test
+  public void testNotAcceptableCustomErrorHandler() throws Exception {
+    router.route().produces("text/html").handler(rc -> rc.response().end());
+    router.errorHandler(406, context -> context.response().setStatusCode(context.statusCode()).setStatusMessage("Dumb").end());
+
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 406, "Dumb");
+  }
+
+  @Test
+  public void testUnsupportedMediaTypeCustomErrorHandler() throws Exception {
+    router.route().consumes("text/html").handler(rc -> rc.response().end());
+    router.errorHandler(415, context -> context.response().setStatusCode(context.statusCode()).setStatusMessage("Dumb").end());
+
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Dumb");
+  }
+
+  @Test
+  public void testMethodNotAllowedStatusCode() throws Exception {
+    router.get("/path").handler(rc -> rc.response().end());
+    router.post("/path").handler(rc -> rc.response().end());
+    router.put("/hello").handler(rc -> rc.response().end());
+
+    testRequest(HttpMethod.PUT, "/path", HttpResponseStatus.METHOD_NOT_ALLOWED);
+  }
+
+  @Test
+  public void testNotAcceptableStatusCode() throws Exception {
+    router.route().produces("text/html").handler(rc -> rc.response().end());
+    router.route("/hello").produces("something/html").handler(rc -> rc.response().end());
+
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 406, HttpResponseStatus.NOT_ACCEPTABLE.reasonPhrase());
+  }
+
+  @Test
+  public void testUnsupportedMediaTypeStatusCode() throws Exception {
+    router.route().consumes("text/html").handler(rc -> rc.response().end());
+    router.get("/hello").consumes("something/html").handler(rc -> rc.response().end());
+
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE.reasonPhrase());
+  }
+
+  @Test
+  public void testVHost() throws Exception {
+    router.route().virtualHost("*.com").handler(ctx -> ctx.response().end());
+
+    router.route().handler(ctx -> ctx.fail(500));
+
+    testRequest(HttpMethod.GET, "/", req -> req.setAuthority("www.mysite.com"), 200, "OK", null);
+  }
+
+  @Test
+  public void testVHostShouldFail() throws Exception {
+    router.route().virtualHost("*.com").handler(ctx -> ctx.response().end());
+
+    router.route().handler(ctx -> ctx.fail(500));
+
+    testRequest(HttpMethod.GET, "/", req -> req.setAuthority("www.mysite.net"), 500, "Internal Server Error", null);
+  }
+
+  @Test
+  public void testOverlappingRoutes() throws Exception {
+    router.route(HttpMethod.PUT, "/foo/:param1").order(1).handler(routingContext -> {
+      fail("Should not route to PUT");
+    });
+    router.route(HttpMethod.GET, "/foo/:param2").order(10).handler(routingContext -> {
+      if (routingContext.pathParam("param1") != null) {
+        fail("Should not have parameter from the other route.");
+      }
+      if (routingContext.pathParam("param2") == null) {
+        fail("Should have parameter from the other route.");
+      }
+      routingContext.response().end("done");
+    });
+
+    testRequest(HttpMethod.GET, "/foo/bar", HttpResponseStatus.OK);
+  }
+
+  @Test
+  public void testToString() {
+    // Check we can compute toString() without infinite recursion
+    assertNotNull(router.toString());
+    Route route = router.route("/foo/:param1");
+    assertNotNull(router.toString());
+    assertNotNull(route.toString());
+  }
+
+  @Test
+  public void testRouteMatching() throws Exception {
+    router.route("/foo/bar/").handler(rc -> rc.response().setStatusMessage("socks").end());
+    testRequest(HttpMethod.GET, "/foo/bar", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/foo/bar/", 200, "socks");
+    testRequest(HttpMethod.GET, "/foo/bar/baz", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/foo/b", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/f", 404, "Not Found");
+  }
+
+  @Test
+  public void testRouteMatchingUnsupportedMediaType() throws Exception {
+    router.post("/api").consumes("application/json").handler(rc -> rc.response().setStatusMessage("post api").end());
+    router.put("/api").consumes("application/json").handler(rc -> rc.response().setStatusMessage("put api").end());
+    testRequestWithContentType(HttpMethod.POST, "/api", "application/json", 200, "post api");
+    testRequestWithContentType(HttpMethod.POST, "/api", "application/xml", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.PUT, "/api", "application/json", 200, "put api");
+    testRequestWithContentType(HttpMethod.PUT, "/api", "application/xml", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.PATCH, "/api", "application/json", 405, "Method Not Allowed");
+  }
+
+  @Test
+  public void testRouteMatchingUnsupportedMediaTypeOrder() throws Exception {
+    router.put("/api").consumes("application/json").handler(rc -> rc.response().setStatusMessage("put api").end());
+    router.post("/api").consumes("application/json").handler(rc -> rc.response().setStatusMessage("post api").end());
+    router.get("/api").handler(rc -> rc.response().setStatusMessage("get api").end());
+    router.put("/api").consumes("application/xml").handler(rc -> rc.response().setStatusMessage("put api xml").end());
+    testRequestWithContentType(HttpMethod.POST, "/api", "application/json", 200, "post api");
+    testRequestWithContentType(HttpMethod.POST, "/api", "application/xml", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.PUT, "/api", "application/json", 200, "put api");
+    testRequestWithContentType(HttpMethod.PUT, "/api", "application/xml", 200, "put api xml");
+    testRequestWithContentType(HttpMethod.PATCH, "/api", "application/json", 405, "Method Not Allowed");
+  }
+
+  @Test
+  public void testRouteMatchingSupportedMediaTypes() throws Exception {
+    router.post("/api").consumes("application/json").handler(rc -> rc.response().setStatusMessage("post api").end());
+    router.post("/api").consumes("application/xml").handler(rc -> rc.response().setStatusMessage("post api xml").end());
+    router.put("/api").consumes("application/json").handler(rc -> rc.response().setStatusMessage("put api").end());
+    router.put("/api").consumes("application/xml").handler(rc -> rc.response().setStatusMessage("put api xml").end());
+    testRequestWithContentType(HttpMethod.POST, "/api", "application/json", 200, "post api");
+    testRequestWithContentType(HttpMethod.POST, "/api", "application/xml", 200, "post api xml");
+    testRequestWithContentType(HttpMethod.PUT, "/api", "application/json", 200, "put api");
+    testRequestWithContentType(HttpMethod.PUT, "/api", "application/xml", 200, "put api xml");
+    testRequestWithContentType(HttpMethod.PATCH, "/api", "application/json", 405, "Method Not Allowed");
+  }
+
+  @Test
+  public void testRouteCustomVerb() throws Exception {
+    router
+      .route()
+      .method(HttpMethod.valueOf("MKCOL"))
+      .handler(rc -> rc.response().setStatusMessage("socks").end());
+
+    testRequest(HttpMethod.MKCOL, "/", 200, "socks");
   }
 }

@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 /**
  * @author <a href="http://plopes@redhat.com">Paulo Lopes</a>
  */
+@Deprecated
 public class VirtualHostHandlerImpl implements VirtualHostHandler {
 
   private final Pattern regex;
@@ -36,7 +37,7 @@ public class VirtualHostHandlerImpl implements VirtualHostHandler {
 
   @Override
   public void handle(RoutingContext ctx) {
-    String host = ctx.request().getHeader("host");
+    String host = ctx.request().host();
     if (host == null) {
       ctx.next();
     } else {

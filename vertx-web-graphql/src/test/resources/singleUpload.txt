@@ -1,0 +1,16 @@
+------WebKitFormBoundaryBpwmk50wSJmsTPAH
+Content-Disposition: form-data; name="operations"
+
+{"operationName":null,"variables":{"file":null},"query":"mutation ($file: Upload!) {\n  singleUpload(file: $file) {\n    id\n    __typename\n  }\n}\n"}
+------WebKitFormBoundaryBpwmk50wSJmsTPAH
+Content-Disposition: form-data; name="map"
+
+{"1":["variables.file"]}
+------WebKitFormBoundaryBpwmk50wSJmsTPAH
+Content-Disposition: form-data; name="1"; filename="a.txt"
+Content-Type: text/plain
+
+Alpha file content.
+
+------WebKitFormBoundaryBpwmk50wSJmsTPAH--
+

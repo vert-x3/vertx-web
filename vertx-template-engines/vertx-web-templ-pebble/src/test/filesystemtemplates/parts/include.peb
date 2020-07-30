@@ -1,1 +1,1 @@
-Hi {{ context.get("foo") }}!
+Hi {{ foo }}!

@@ -15,68 +15,89 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.UnpooledByteBufAllocator;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.handler.codec.http.QueryStringEncoder;
-import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.CaseInsensitiveHeaders;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.streams.Pump;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
-import io.vertx.ext.web.codec.spi.BodyStream;
+import io.vertx.ext.web.multipart.MultipartForm;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-class HttpRequestImpl<T> implements HttpRequest<T> {
+public class HttpRequestImpl<T> implements HttpRequest<T> {
 
-  final HttpClient client;
+  final WebClientInternal client;
+  final WebClientOptions options;
+  SocketAddress serverAddress;
   MultiMap params;
   HttpMethod method;
-  int port = -1;
-  String host;
+  String protocol;
+  private Integer port;
+  private String host;
+  String virtualHost;
   String uri;
   MultiMap headers;
   long timeout = -1;
   BodyCodec<T> codec;
+  boolean followRedirects;
+  Boolean ssl;
+  boolean multipartMixed = true;
+  public List<ResponsePredicate> expectations;
 
-  HttpRequestImpl(HttpClient client, HttpMethod method, BodyCodec<T> codec) {
+  HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, Boolean ssl, Integer port, String host, String uri, BodyCodec<T>
+          codec, WebClientOptions options) {
+    this(client, method, serverAddress, null, ssl, port, host, uri, codec, options);
+  }
+
+  HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, String protocol, Boolean ssl, Integer port, String host, String
+          uri, BodyCodec<T> codec, WebClientOptions options) {
     this.client = client;
     this.method = method;
+    this.protocol = protocol;
     this.codec = codec;
+    this.port = port;
+    this.host = host;
+    this.uri = uri;
+    this.ssl = ssl;
+    this.serverAddress = serverAddress;
+    this.followRedirects = options.isFollowRedirects();
+    this.options = options;
+    if (options.isUserAgentEnabled()) {
+      headers = HttpHeaders.set(HttpHeaders.USER_AGENT, options.getUserAgent());
+    }
   }
 
   private HttpRequestImpl(HttpRequestImpl<T> other) {
     this.client = other.client;
+    this.serverAddress = other.serverAddress;
+    this.options = other.options;
     this.method = other.method;
+    this.protocol = other.protocol;
     this.port = other.port;
     this.host = other.host;
     this.timeout = other.timeout;
     this.uri = other.uri;
-    this.headers = other.headers != null ? new CaseInsensitiveHeaders().addAll(other.headers) : null;
-    this.params = other.params != null ? new CaseInsensitiveHeaders().addAll(other.params) : null;
+    this.headers = other.headers != null ? HttpHeaders.headers().addAll(other.headers) : null;
+    this.params = other.params != null ? HttpHeaders.headers().addAll(other.params) : null;
     this.codec = other.codec;
+    this.followRedirects = other.followRedirects;
+    this.ssl = other.ssl;
+    this.multipartMixed = other.multipartMixed;
   }
 
   @Override
@@ -91,10 +112,18 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     return this;
   }
 
+  public HttpMethod method() {
+    return method;
+  }
+
   @Override
   public HttpRequest<T> port(int value) {
     port = value;
     return this;
+  }
+
+  public int port() {
+    return port != null ? port : options.getDefaultPort();
   }
 
   @Override
@@ -103,10 +132,34 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     return this;
   }
 
+  public String host() {
+    return host != null ? host : options.getDefaultHost();
+  }
+
+  @Override
+  public HttpRequest<T> virtualHost(String value) {
+    virtualHost = value;
+    return this;
+  }
+
+  public String virtualHost() {
+    return virtualHost;
+  }
+
   @Override
   public HttpRequest<T> uri(String value) {
     params = null;
     uri = value;
+    return this;
+  }
+
+  public String uri() {
+    return uri;
+  }
+
+  @Override
+  public HttpRequest<T> putHeaders(MultiMap headers) {
+    headers().addAll(headers);
     return this;
   }
 
@@ -117,17 +170,54 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
+  public HttpRequest<T> putHeader(String name, Iterable<String> value) {
+    headers().set(name, value);
+    return this;
+  }
+
+  @Override
   public MultiMap headers() {
     if (headers == null) {
-      headers = new CaseInsensitiveHeaders();
+      headers = HttpHeaders.headers();
     }
     return headers;
+  }
+
+  @Override
+  public HttpRequest<T> basicAuthentication(String id, String password) {
+    return this.basicAuthentication(Buffer.buffer(id), Buffer.buffer(password));
+  }
+
+  @Override
+  public HttpRequest<T> basicAuthentication(Buffer id, Buffer password) {
+    Buffer buff = Buffer.buffer().appendBuffer(id).appendString(":").appendBuffer(password);
+    String credentials =  new String(Base64.getEncoder().encode(buff.getBytes()));
+    return putHeader(HttpHeaders.AUTHORIZATION.toString(), "Basic " + credentials);
+  }
+
+  @Override
+  public HttpRequest<T> bearerTokenAuthentication(String bearerToken) {
+    return putHeader(HttpHeaders.AUTHORIZATION.toString(), "Bearer " + bearerToken);
+  }
+
+  @Override
+  public HttpRequest<T> ssl(Boolean value) {
+    ssl = value;
+    return this;
+  }
+
+  public Boolean ssl() {
+    return ssl;
   }
 
   @Override
   public HttpRequest<T> timeout(long value) {
     timeout = value;
     return this;
+  }
+
+  public long timeout() {
+    return timeout;
   }
 
   @Override
@@ -143,9 +233,28 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
+  public HttpRequest<T> followRedirects(boolean value) {
+    followRedirects = value;
+    return this;
+  }
+
+  public boolean followRedirects() {
+    return followRedirects;
+  }
+
+  @Override
+  public HttpRequest<T> expect(ResponsePredicate expectation) {
+    if (expectations == null) {
+      expectations = new ArrayList<>();
+    }
+    expectations.add(expectation);
+    return this;
+  }
+
+  @Override
   public MultiMap queryParams() {
     if (params == null) {
-      params = new CaseInsensitiveHeaders();
+      params = HttpHeaders.headers();
     }
     if (params.isEmpty()) {
       int idx = uri.indexOf('?');
@@ -160,7 +269,13 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
 
   @Override
   public HttpRequest<T> copy() {
-    return new HttpRequestImpl<T>(this);
+    return new HttpRequestImpl<>(this);
+  }
+
+  @Override
+  public HttpRequest<T> multipartMixed(boolean allow) {
+    multipartMixed = allow;
+    return this;
   }
 
   @Override
@@ -193,158 +308,13 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     send("application/x-www-form-urlencoded", body, handler);
   }
 
+  @Override
+  public void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    send("multipart/form-data", body, handler);
+  }
+
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-
-    Future<HttpClientResponse> responseFuture = Future.<HttpClientResponse>future().setHandler(ar -> {
-      if (ar.succeeded()) {
-        HttpClientResponse resp = ar.result();
-        Future<HttpResponse<T>> fut = Future.future();
-        fut.setHandler(handler);
-        resp.exceptionHandler(err -> {
-          if (!fut.isComplete()) {
-            fut.fail(err);
-          }
-        });
-        resp.pause();
-        codec.create(ar2 -> {
-          resp.resume();
-          if (ar2.succeeded()) {
-            BodyStream<T> stream = ar2.result();
-            stream.exceptionHandler(err -> {
-              if (!fut.isComplete()) {
-                fut.fail(err);
-              }
-            });
-            resp.endHandler(v -> {
-              if (!fut.isComplete()) {
-                stream.end();
-                if (stream.result().succeeded()) {
-                  fut.complete(new HttpResponseImpl<>(resp, null, stream.result().result()));
-                } else {
-                  fut.fail(stream.result().cause());
-                }
-              }
-            });
-            Pump responsePump = Pump.pump(resp, stream);
-            responsePump.start();
-          } else {
-            handler.handle(Future.failedFuture(ar2.cause()));
-          }
-        });
-      } else {
-        handler.handle(Future.failedFuture(ar.cause()));
-      }
-    });
-
-    HttpClientRequest req;
-    String requestURI;
-    if (params != null && params.size() > 0) {
-      QueryStringEncoder enc = new QueryStringEncoder(uri);
-      params.forEach(param -> {
-        enc.addParam(param.getKey(), param.getValue());
-      });
-      requestURI = enc.toString();
-    } else {
-      requestURI = uri;
-    }
-    if (port != -1) {
-      if (host != null) {
-        req = client.request(method, port, host, requestURI);
-      } else {
-        throw new IllegalStateException("Both host and port must be set with an explicit port");
-      }
-    } else {
-      if (host != null) {
-        req = client.request(method, host, requestURI);
-      } else {
-        req = client.request(method, requestURI);
-      }
-    }
-    if (headers != null) {
-      req.headers().addAll(headers);
-    }
-    req.exceptionHandler(err -> {
-      if (!responseFuture.isComplete()) {
-        responseFuture.fail(err);
-      }
-    });
-    req.handler(resp -> {
-      if (!responseFuture.isComplete()) {
-        responseFuture.complete(resp);
-      }
-    });
-    if (timeout > 0) {
-      req.setTimeout(timeout);
-    }
-    if (body != null) {
-      if (contentType != null) {
-        String prev = req.headers().get(HttpHeaders.CONTENT_TYPE);
-        if (prev == null) {
-          req.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
-        } else {
-          contentType = prev;
-        }
-      }
-      if (body instanceof ReadStream<?>) {
-        ReadStream<Buffer> stream = (ReadStream<Buffer>) body;
-        if (headers == null || !headers.contains(HttpHeaders.CONTENT_LENGTH)) {
-          req.setChunked(true);
-        }
-        Pump pump = Pump.pump(stream, req);
-        stream.exceptionHandler(err -> {
-          req.reset();
-          if (!responseFuture.isComplete()) {
-            responseFuture.fail(err);
-          }
-        });
-        stream.endHandler(v -> {
-          pump.stop();
-          req.end();
-        });
-        pump.start();
-      } else {
-        Buffer buffer;
-        if (body instanceof Buffer) {
-          buffer = (Buffer) body;
-        } else if (body instanceof MultiMap) {
-          try {
-            MultiMap attributes = (MultiMap) body;
-            boolean multipart = "multipart/form-data".equals(contentType);
-            DefaultFullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/");
-            HttpPostRequestEncoder encoder = new HttpPostRequestEncoder(request, multipart);
-            for (Map.Entry<String, String> attribute : attributes) {
-              encoder.addBodyAttribute(attribute.getKey(), attribute.getValue());
-            }
-            encoder.finalizeRequest();
-            for (String headerName : request.headers().names()) {
-              req.putHeader(headerName, request.headers().get(headerName));
-            }
-            if (encoder.isChunked()) {
-              buffer = Buffer.buffer();
-              while (true) {
-                HttpContent chunk = encoder.readChunk(new UnpooledByteBufAllocator(false));
-                ByteBuf content = chunk.content();
-                if (content.readableBytes() == 0) {
-                  break;
-                }
-                buffer.appendBuffer(Buffer.buffer(content));
-              }
-            } else {
-              ByteBuf content = request.content();
-              buffer = Buffer.buffer(content);
-            }
-          } catch (Exception e) {
-            throw new VertxException(e);
-          }
-        } else if (body instanceof JsonObject) {
-          buffer = Buffer.buffer(((JsonObject)body).encode());
-        } else {
-          buffer = Buffer.buffer(Json.encode(body));
-        }
-        req.end(buffer);
-      }
-    } else {
-      req.end();
-    }
+    HttpContext<T> ctx = client.createContext(handler);
+    ctx.prepareRequest(this, contentType, body);
   }
 }

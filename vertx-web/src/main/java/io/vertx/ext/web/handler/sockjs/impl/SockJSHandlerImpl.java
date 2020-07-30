@@ -34,28 +34,35 @@ package io.vertx.ext.web.handler.sockjs.impl;
 
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.VoidHandler;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
+import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.*;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import static io.vertx.core.buffer.Buffer.buffer;
+import static io.vertx.core.buffer.Buffer.*;
 
 /**
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext> {
+public class SockJSHandlerImpl implements SockJSHandler {
 
   private static final Logger log = LoggerFactory.getLogger(SockJSHandlerImpl.class);
 
@@ -73,6 +80,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
   }
 
   @Override
+  @Deprecated
   public void handle(RoutingContext context) {
     if (log.isTraceEnabled()) {
       log.trace("Got request in sockjs server: " + context.request().uri());
@@ -81,22 +89,15 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
   }
 
   @Override
-  public SockJSHandler bridge(BridgeOptions bridgeOptions) {
-    return bridge(bridgeOptions, null);
+  public Router bridge(AuthorizationProvider authorizationProvider, SockJSBridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
+    return socketHandler(new EventBusBridgeImpl(vertx, authorizationProvider, bridgeOptions, bridgeEventHandler));
   }
 
   @Override
-  public SockJSHandler bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
-    socketHandler(new EventBusBridgeImpl(vertx, bridgeOptions, bridgeEventHandler));
-    return this;
-  }
-
-  @Override
-  public SockJSHandler socketHandler(Handler<SockJSSocket> sockHandler) {
-
-    router.route("/").useNormalisedPath(false).handler(rc -> {
+  public Router socketHandler(Handler<SockJSSocket> sockHandler) {
+    router.route("/").useNormalizedPath(false).handler(rc -> {
       if (log.isTraceEnabled()) log.trace("Returning welcome response");
-      rc.response().putHeader("Content-Type", "text/plain; charset=UTF-8").end("Welcome to SockJS!\n");
+      rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8").end("Welcome to SockJS!\n");
     });
 
     // Iframe handlers
@@ -148,7 +149,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
       new RawWebSocketTransport(vertx, router, sockHandler);
     }
 
-    return this;
+    return router;
   }
 
   private Handler<RoutingContext> createChunkingTestHandler() {
@@ -221,15 +222,18 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
     return rc -> {
       try {
         if (log.isTraceEnabled()) log.trace("In Iframe handler");
-        if (etag != null && etag.equals(rc.request().getHeader("if-none-match"))) {
+        if (etag != null && etag.equals(rc.request().getHeader(HttpHeaders.IF_NONE_MATCH))) {
           rc.response().setStatusCode(304);
           rc.response().end();
         } else {
-          long oneYear = 365 * 24 * 60 * 60 * 1000l;
+          long oneYear = 365 * 24 * 60 * 60 * 1000L;
           String expires = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").format(new Date(System.currentTimeMillis() + oneYear));
-          rc.response().putHeader("Content-Type", "text/html; charset=UTF-8")
-            .putHeader("Cache-Control", "public,max-age=31536000")
-            .putHeader("Expires", expires).putHeader("ETag", etag).end(iframeHTML);
+          rc.response()
+            .putHeader(HttpHeaders.CONTENT_TYPE, "text/html; charset=UTF-8")
+            .putHeader(HttpHeaders.CACHE_CONTROL, "public,max-age=31536000")
+            .putHeader(HttpHeaders.EXPIRES, expires)
+            .putHeader(HttpHeaders.ETAG, etag)
+            .end(iframeHTML);
         }
       } catch (Exception e) {
         log.error("Failed to server iframe", e);
@@ -240,7 +244,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
   private static String getMD5String(String str) {
     try {
         MessageDigest md = MessageDigest.getInstance("MD5");
-        byte[] bytes = md.digest(str.getBytes("UTF-8"));
+        byte[] bytes = md.digest(str.getBytes(StandardCharsets.UTF_8));
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
           sb.append(Integer.toHexString(b + 127));
@@ -259,80 +263,16 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
       "<head>\n" +
       "  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n" +
       "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" +
+      "  <script src=\"{{ sockjs_url }}\"></script>\n" +
       "  <script>\n" +
       "    document.domain = document.domain;\n" +
-      "    _sockjs_onload = function(){SockJS.bootstrap_iframe();};\n" +
+      "    SockJS.bootstrap_iframe();\n" +
       "  </script>\n" +
-      "  <script src=\"{{ sockjs_url }}\"></script>\n" +
       "</head>\n" +
       "<body>\n" +
       "  <h2>Don't panic!</h2>\n" +
       "  <p>This is a SockJS hidden iframe. It's used for cross domain magic.</p>\n" +
       "</body>\n" +
       "</html>";
-
-  public static void installTestApplications(Router router, Vertx vertx) {
-
-    // These applications are required by the SockJS protocol and QUnit tests
-
-    router.route("/echo/*").handler(SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> sock.handler(sock::write)));
-    router.route("/close/*").handler(SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(SockJSSocket::close));
-    router.route("/disabled_websocket_echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions()
-      .setMaxBytesStreaming(4096).addDisabledTransport("WEBSOCKET")).socketHandler(sock -> sock.handler(sock::write)));
-    router.route("/ticker/*").handler(SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> {
-          long timerID = vertx.setPeriodic(1000, tid -> sock.write(buffer("tick!")));
-          sock.endHandler(v -> vertx.cancelTimer(timerID));
-        }));
-    router.route("/amplify/*").handler(SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> {
-          sock.handler(data -> {
-            String str = data.toString();
-            int n = Integer.valueOf(str);
-            if (n < 0 || n > 19) {
-              n = 1;
-            }
-            int num = (int) Math.pow(2, n);
-            Buffer buff = buffer(num);
-            for (int i = 0; i < num; i++) {
-              buff.appendByte((byte) 'x');
-            }
-            sock.write(buff);
-          });
-      }));
-    router.route("/broadcast/*").handler(SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(new Handler<SockJSSocket>() {
-          Set<String> connections = new HashSet<>();
-
-          public void handle(SockJSSocket sock) {
-            connections.add(sock.writeHandlerID());
-            sock.handler(buffer -> {
-              for (String actorID : connections) {
-                vertx.eventBus().publish(actorID, buffer);
-              }
-            });
-            sock.endHandler(new VoidHandler() {
-              public void handle() {
-              connections.remove(sock.writeHandlerID());
-            }
-            });
-          }
-        }));
-    router.route("/cookie_needed_echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().
-      setMaxBytesStreaming(4096).setInsertJSESSIONID(true)).socketHandler(sock -> sock.handler(sock::write)));
-  }
-
-  // For debug only
-
-  // The sockjs-protocol tests must be run against the tests in the 0.3.3 tag of sockjs-protocol !!
-  public static void main(String[] args) throws Exception {
-    Vertx vertx = Vertx.vertx();
-    HttpServer server = vertx.createHttpServer();
-    Router router = Router.router(vertx);
-    installTestApplications(router, vertx);
-    server.requestHandler(router::accept).listen(8081);
-  }
 }
 

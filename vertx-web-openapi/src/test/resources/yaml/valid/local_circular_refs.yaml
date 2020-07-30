@@ -1,0 +1,17 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Local relative refs
+paths:
+  /simple:
+    post:
+      summary: Simple
+      operationId: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "refs/Circular.yaml"
+      responses:
+        201:
+          description: Created

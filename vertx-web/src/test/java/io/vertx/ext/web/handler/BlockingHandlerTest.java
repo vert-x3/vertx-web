@@ -139,7 +139,6 @@ public class BlockingHandlerTest extends WebTestBase {
     long pause = 1000;
 
     router.route().blockingHandler(rc -> {
-      System.out.println("In blocking handler");
       try {
         Thread.sleep(pause);
       } catch (Exception ignore) {
@@ -149,11 +148,11 @@ public class BlockingHandlerTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(numExecBlocking);
     for (int i = 0; i < numExecBlocking; i++) {
-      client.getNow("/", resp -> {
+      client.get("/", onSuccess(resp -> {
         assertEquals(200, resp.statusCode());
         assertEquals("OK", resp.statusMessage());
         latch.countDown();
-      });
+      }));
     }
 
     awaitLatch(latch);

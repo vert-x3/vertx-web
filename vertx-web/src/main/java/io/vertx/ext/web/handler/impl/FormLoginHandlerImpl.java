@@ -17,16 +17,17 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.FormLoginHandler;
-import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
 
 /**
@@ -36,7 +37,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
 
   private static final Logger log = LoggerFactory.getLogger(FormLoginHandlerImpl.class);
 
-  private final AuthProvider authProvider;
+  private final AuthenticationProvider authProvider;
 
   private String usernameParam;
   private String passwordParam;
@@ -67,7 +68,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
     return this;
   }
 
-  public FormLoginHandlerImpl(AuthProvider authProvider, String usernameParam, String passwordParam,
+  public FormLoginHandlerImpl(AuthenticationProvider authProvider, String usernameParam, String passwordParam,
                               String returnURLParam, String directLoggedInOKURL) {
     this.authProvider = authProvider;
     this.usernameParam = usernameParam;
@@ -83,7 +84,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
       context.fail(405); // Must be a POST
     } else {
       if (!req.isExpectMultipart()) {
-        throw new IllegalStateException("Form body not parsed - do you forget to include a BodyHandler?");
+        throw new IllegalStateException("HttpServerRequest should have setExpectMultipart set to true, but it is currently set to false.");
       }
       MultiMap params = req.formAttributes();
       String username = params.get(usernameParam);
@@ -93,7 +94,8 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
         context.fail(400);
       } else {
         Session session = context.session();
-        JsonObject authInfo = new JsonObject().put("username", username).put("password", password);
+        UsernamePasswordCredentials authInfo = new UsernamePasswordCredentials(username, password);
+
         authProvider.authenticate(authInfo, res -> {
           if (res.succeeded()) {
             User user = res.result();
@@ -121,7 +123,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
               req.response().end(DEFAULT_DIRECT_LOGGED_IN_OK_PAGE);
             }
           } else {
-            context.fail(403);  // Failed login
+            context.fail(401);  // Failed login
           }
         });
       }
@@ -129,7 +131,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
   }
 
   private void doRedirect(HttpServerResponse response, String url) {
-    response.putHeader("location", url).setStatusCode(302).end();
+    response.putHeader(HttpHeaders.LOCATION, url).setStatusCode(302).end();
   }
 
   private static final String DEFAULT_DIRECT_LOGGED_IN_OK_PAGE = "" +

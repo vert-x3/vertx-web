@@ -19,9 +19,9 @@ package io.vertx.ext.web.handler;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.handler.impl.FormLoginHandlerImpl;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.auth.AuthProvider;
 
 /**
  * Handler that handles login from a form on a custom login page.
@@ -44,7 +44,7 @@ public interface FormLoginHandler extends Handler<RoutingContext> {
   String DEFAULT_PASSWORD_PARAM = "password";
 
   /**
-   * The default value of the form attribute which will contain the return url
+   * The default value of the session attribute which will contain the return url
    */
   String DEFAULT_RETURN_URL_PARAM = "return_url";
 
@@ -54,7 +54,7 @@ public interface FormLoginHandler extends Handler<RoutingContext> {
    * @param authProvider  the auth service to use
    * @return the handler
    */
-  static FormLoginHandler create(AuthProvider authProvider) {
+  static FormLoginHandler create(AuthenticationProvider authProvider) {
     return new FormLoginHandlerImpl(authProvider, DEFAULT_USERNAME_PARAM, DEFAULT_PASSWORD_PARAM,
       DEFAULT_RETURN_URL_PARAM, null);
   }
@@ -71,7 +71,7 @@ public interface FormLoginHandler extends Handler<RoutingContext> {
    *
    * @return the handler
    */
-  static FormLoginHandler create(AuthProvider authProvider, String usernameParam, String passwordParam,
+  static FormLoginHandler create(AuthenticationProvider authProvider, String usernameParam, String passwordParam,
                                  String returnURLParam, String directLoggedInOKURL) {
     return new FormLoginHandlerImpl(authProvider, usernameParam, passwordParam, returnURLParam, directLoggedInOKURL);
   }

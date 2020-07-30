@@ -7,86 +7,48 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-template-engines</artifactId>
-    <version>3.4.0-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>vertx-web-templ-pebble</artifactId>
 
   <dependencies>
     <dependency>
-	    <groupId>com.mitchellbosecke</groupId>
+	    <groupId>io.pebbletemplates</groupId>
 	    <artifactId>pebble</artifactId>
-	    <version>2.0.0</version>
+	    <version>3.1.0</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-api</artifactId>
         </exclusion>
+        <!-- Exclude this optional dependency -->
+        <exclusion>
+          <groupId>com.github.ben-manes.caffeine</groupId>
+          <artifactId>caffeine</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
+    <!-- Peeble requires SLF4J: declare this dependency to force shiro to use this one. It is the version used by vert.x -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.12</version>
+      <version>1.7.21</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
+      <artifactId>vertx-web-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
-      <type>test-jar</type>
-      <version>${project.version}</version>
+      <artifactId>vertx-unit</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <useDefaultManifestFile>true</useDefaultManifestFile>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>biz.aQute.bnd</groupId>
-        <artifactId>bnd-maven-plugin</artifactId>
-        <version>3.2.0</version>
-
-        <executions>
-          <execution>
-            <id>default-bnd-process</id>
-            <goals>
-              <goal>bnd-process</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <bnd><![CDATA[
-          Fragment-Host: vertx-web
-          Import-Package: \
-            groovy.lang.*;resolution:=optional,\
-            org.codehaus.groovy.*;resolution:=optional,\
-            io.vertx.groovy.*;resolution:=optional,\
-            io.vertx.ext.auth.*,\
-            io.vertx.lang.rxjava.*;resolution:=optional,\
-            io.vertx.lang.groovy.*;resolution:=optional,\
-            io.vertx.codegen.annotations;resolution:=optional,\
-            io.vertx.rx.java;resolution:=optional,\
-            io.vertx.rxjava.core.*;resolution:=optional,\
-            io.vertx.rxjava.ext.auth.*;resolution:=optional,\
-            rx.*;resolution:=optional,\
-            !io.vertx.ext.web.impl,\
-            *
-          ]]></bnd>
-        </configuration>
-      </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -103,7 +65,7 @@
               <shadedClassifierName>shaded</shadedClassifierName>
               <artifactSet>
                 <includes>
-                  <include>com.mitchellbosecke:pebble</include>
+                  <include>io.pebbletemplates:pebble</include>
                 </includes>
               </artifactSet>
             </configuration>

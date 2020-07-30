@@ -1,0 +1,10 @@
+type: object
+properties:
+  value:
+    type: string
+  parent:
+    $ref: "#"
+  childs:
+    type: array
+    items:
+      $ref: "#"

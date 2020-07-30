@@ -1,0 +1,22 @@
+------WebKitFormBoundaryhvb6BzAACEqQKt0Z
+Content-Disposition: form-data; name="operations"
+
+{"operationName":null,"variables":{"files":[null,null]},"query":"mutation ($files: [Upload!]!) {\n  multipleUpload(files: $files) {\n    id\n    __typename\n  }\n}\n"}
+------WebKitFormBoundaryhvb6BzAACEqQKt0Z
+Content-Disposition: form-data; name="map"
+
+{"1":["variables.files.0"],"2":["variables.files.1"]}
+------WebKitFormBoundaryhvb6BzAACEqQKt0Z
+Content-Disposition: form-data; name="1"; filename="b.txt"
+Content-Type: text/plain
+
+Bravo file content.
+
+------WebKitFormBoundaryhvb6BzAACEqQKt0Z
+Content-Disposition: form-data; name="2"; filename="c.txt"
+Content-Type: text/plain
+
+Charlie file content.
+
+------WebKitFormBoundaryhvb6BzAACEqQKt0Z--
+

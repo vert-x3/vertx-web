@@ -1,0 +1,5 @@
+= Vert.x Web GraphiQL
+
+This sub-project creates a GraphiQL app for Vert.x Web GraphQL.
+
+IMPORTANT: If you modify `package.json` or source files, don't forget to build before saving changes to source control.

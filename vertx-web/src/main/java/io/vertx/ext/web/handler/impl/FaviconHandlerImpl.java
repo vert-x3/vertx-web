@@ -19,10 +19,13 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.CaseInsensitiveHeaders;
+import io.vertx.core.file.FileSystem;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.handler.FaviconHandler;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.impl.Utils;
 
 import static io.vertx.core.http.HttpHeaders.*;
 
@@ -31,6 +34,13 @@ import static io.vertx.core.http.HttpHeaders.*;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class FaviconHandlerImpl implements FaviconHandler {
+
+  private static final Logger logger = LoggerFactory.getLogger(FaviconHandler.class);
+
+  // default framework branding
+  private static final String DEFAULT_VERTX_ICON = "META-INF/vertx/web/favicon.ico";
+
+  private final Icon NULL_ICON = new Icon();
 
   /**
    * ## Icon
@@ -54,12 +64,17 @@ public class FaviconHandlerImpl implements FaviconHandler {
      * @param buffer buffer containing the image data for this icon.
      */
     private Icon(Buffer buffer) {
-      headers = new CaseInsensitiveHeaders();
+      headers = HttpHeaders.headers();
       body = buffer;
 
       headers.add(CONTENT_TYPE, "image/x-icon");
       headers.add(CONTENT_LENGTH, Integer.toString(buffer.length()));
       headers.add(CACHE_CONTROL, "public, max-age=" + maxAgeSeconds);
+    }
+
+    private Icon() {
+      headers = null;
+      body = null;
     }
   }
 
@@ -82,8 +97,8 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * Create a new Favicon instance using a file in the file system and customizable cache period
    *
    * <pre>
-   * Yoke yoke = new Yoke(...);
-   * yoke.use(new Favicon("/icons/icon.ico", 1000));
+   * Router router = Router.router(vertx);
+   * router.route().handler(FaviconHandler.create("/icons/icon.ico", 1000));
    * </pre>
    *
    * @param path file path to icon
@@ -101,8 +116,8 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * Create a new Favicon instance from the classpath and customizable cache period
    *
    * <pre>
-   * Yoke yoke = new Yoke(...);
-   * yoke.use(new Favicon("/icons/icon.ico", 1000));
+   * Router router = Router.router(vertx);
+   * router.route().handler(FaviconHandler.create(1000));
    * </pre>
    *
    * @param maxAgeSeconds max allowed time to be cached in seconds
@@ -115,8 +130,8 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * Create a new Favicon instance using a file in the file system and cache for 1 day.
    *
    * <pre>
-   * Yoke yoke = new Yoke(...);
-   * yoke.use(new Favicon("/icons/icon.ico"));
+   * Router router = Router.router(vertx);
+   * router.route().handler(FaviconHandler.create("/icons/icon.ico"));
    * </pre>
    *
    * @param path file path to icon
@@ -129,23 +144,55 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * Create a new Favicon instance using a the default icon and cache for 1 day.
    *
    * <pre>
-   * Yoke yoke = new Yoke(...);
-   * yoke.use(new Favicon());
+   * Router router = Router.router(vertx);
+   * router.route().handler(FaviconHandler.create());
    * </pre>
    */
   public FaviconHandlerImpl() {
     this(null);
   }
 
+  private Buffer readFile(FileSystem fs, String path) {
+    if (fs.existsBlocking(path)) {
+      return fs.readFileBlocking(path);
+    } else {
+      throw new RuntimeException(path + " not found!");
+    }
+  }
+
   private void init(Vertx vertx) {
-    try {
-      if (path == null) {
-        icon = new Icon(Utils.readResourceToBuffer("favicon.ico"));
-      } else {
-        icon = new Icon(vertx.fileSystem().readFileBlocking(path));
+    final FileSystem fs = vertx.fileSystem();
+
+    Buffer buffer = null;
+
+    if (path == null) {
+      // use defaults
+      try {
+        // default is to load a favicon.ico from the resources
+        buffer = readFile(fs,"favicon.ico");
+      } catch (RuntimeException e) {
+        // if not provided return the default vertx icon
+        try {
+          buffer = fs.readFileBlocking(DEFAULT_VERTX_ICON);
+        } catch (RuntimeException e1) {
+          // if this fails (very unlikely unless users explicitly filters out the icon)
+          // leave the buffer as NULL so it is handled as a 404 (Not Found)
+        }
       }
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    } else {
+      // use a custom location for the favicon.ico
+      try {
+        buffer = readFile(fs, path);
+      } catch (RuntimeException e) {
+        logger.error("Could not load favicon " + path);
+        // this will ensure the response is a 404 (Not Found)
+      }
+    }
+
+    if (buffer != null) {
+      icon = new Icon(buffer);
+    } else {
+      icon = NULL_ICON;
     }
   }
 
@@ -155,8 +202,13 @@ public class FaviconHandlerImpl implements FaviconHandler {
       init(ctx.vertx());
     }
     if ("/favicon.ico".equals(ctx.request().path())) {
-      ctx.response().headers().addAll(icon.headers);
-      ctx.response().end(icon.body);
+      HttpServerResponse resp = ctx.response();
+      if (icon == NULL_ICON) {
+        resp.setStatusCode(404).end();
+      } else {
+        resp.headers().addAll(icon.headers);
+        resp.end(icon.body);
+      }
     } else {
       ctx.next();
     }

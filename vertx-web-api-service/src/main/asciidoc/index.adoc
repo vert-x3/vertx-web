@@ -1,0 +1,184 @@
+= Vert.x Web API Service
+:toc: left
+
+Vert.x Web API Service helps you handling HTTP Requests using the Vert.x Event Bus.
+
+Event Bus provides important features like load balancing and distribution of requests across different Vert.x instances.
+We encourage you to give a look at https://vertx.io/docs/vertx-core/java/#event_bus[Event Bus documentation] for more info.
+
+This module gives you the ability to create a Web API Service, an event bus message consumer based on same concept of https://vertx.io/docs/vertx-service-proxy/java/[Vert.x service proxy].
+Then it provides an handler to proxy the request to these services.
+
+== Using Vert.x API Service
+
+To use Vert.x API Service, add the following dependency to the _dependencies_ section of your build descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-codegen</artifactId>
+  <version>${maven.version}</version>
+  <classifier>processor</classifier>
+</dependency>
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-api-service</artifactId>
+  <version>${maven.version}</version>
+</dependency>
+----
+
+* Gradle < 5 (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-codegen:${maven.version}:processor'
+  compile 'io.vertx:vertx-web-api-service:${maven.version}'
+}
+----
+
+* Gradle >= 5 (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  annotationProcessor 'io.vertx:vertx-codegen:${maven.version}:processor'
+  annotationProcessor 'io.vertx:vertx-web-api-service:${maven.version}'
+  compile 'io.vertx:vertx-web-api-service:${maven.version}'
+}
+----
+
+You need to import `vertx-codegen` to trigger the code generation from annotated interfaces.
+If you need only the {@link io.vertx.ext.web.api.service.RouteToEBServiceHandler}, you don't need it
+
+If you want to use the interface you write in different languages, you will need to add the _language_ dependency such as
+`vertx-lang-groovy` for Groovy.
+
+== Proxy an HTTP Request to a Web API Service
+
+To proxy a request to the event bus you can use {@link io.vertx.ext.web.api.service.RouteToEBServiceHandler}.
+This handler sends some data extracted from {@link io.vertx.ext.web.RoutingContext} inside a {@link io.vertx.ext.web.api.service.ServiceRequest} and expects a
+{@link io.vertx.ext.web.api.service.ServiceResponse} as reply.
+
+[source,$lang]
+----
+{@link examples.ApiCodegenExamples#mountHandler}
+----
+
+You can also define the {@link io.vertx.core.eventbus.DeliveryOptions} that will be used each time a message is sent through the event bus:
+
+[source,$lang]
+----
+{@link examples.ApiCodegenExamples#mountHandlerWithTimeout}
+----
+
+IMPORTANT: Before mounting the {@link io.vertx.ext.web.api.service.RouteToEBServiceHandler}, you *must* mount a
+{@link io.vertx.ext.web.validation.ValidationHandler} that extracts the request parameters. Otherwise, no request parameters will be sent.
+
+== Define your Web API Service interface
+
+We encourage you to read https://vertx.io/docs/vertx-service-proxy/java/[Service Proxy documentation] before going further
+
+Let's assume we have defined two different routes in our {@link io.vertx.ext.web.Router} as follows:
+
+[source,$lang]
+----
+{@link examples.ApiCodegenExamples#serviceMountExample}
+----
+
+`GET /api/transactions` receives two optional query parameters as input: `from` and `to`. `PUT /api/transactions` receives a {@link io.vertx.core.json.JsonObject} as request body
+
+Now we can build the interface *TransactionService* that handles those endpoints.
+For each endpoint you need to write a method with name corresponding to `action` specified when you build the {@link io.vertx.ext.web.api.service.RouteToEBServiceHandler}.
+There are a couple of rules to follow for method parameters:
+
+* Last parameter must have type `Handler<AsyncResult<ServiceResponse>>`
+* Second to last parameter must have type {@link io.vertx.ext.web.api.service.ServiceRequest}
+* All parameters from first to second to last (excluded) are extracted from {@link io.vertx.ext.web.validation.RequestParameters} with specified type automatically, but they need to respect https://vertx.io/docs/vertx-service-proxy/java/#_restrictions_for_service_interface[service proxy restrictions]
+
+A request parameter is identified only by the name of the method parameter and the special `body` method parameter name is used to extract the body of the request.
+
+For example:
+
+[source,java]
+----
+@WebApiServiceGen
+interface TransactionService {
+  void getTransactionsList(String from, String to, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  void putTransaction(JsonObject body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+}
+----
+
+When you receive a request at `TransactionService#getTransactionsList` the generated service handler will automatically extract `from` and `to` parameter (if present) from {@link io.vertx.ext.web.api.service.ServiceRequest}.
+In `TransactionService#putTransaction` we use the `body` parameter name to extract the json body.
+
+The service handler is also capable to translate `JsonObject` to Vert.x data objects automatically, for example if you have a `Transaction` data object that matches the json schema above, you can rewrite the `putTransaction` signature as:
+
+[source,java]
+----
+void putTransaction(Transaction body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+----
+
+You can also use {@link io.vertx.ext.web.validation.RequestParameter} to extract parameters, like:
+
+[source,java]
+----
+void putTransaction(RequestParameter body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+----
+
+
+We encourage to extract with {@link io.vertx.ext.web.validation.RequestParameter} type the parameters that uses json schema allOf/anyOf/oneOf/not keywords because the extraction can produce undefined behaviours.
+
+== Implement your Web API Service
+
+Now you can implement your service. Remember that {@link io.vertx.ext.web.api.service.ServiceRequest} object contains headers and parameters maps.
+
+To write the request you must call the `resultHandler` with an {@link io.vertx.ext.web.api.service.ServiceResponse}.
+To create an instance of {@link io.vertx.ext.web.api.service.ServiceResponse} you can use some handy methods like {@link io.vertx.ext.web.api.service.ServiceResponse#completedWithJson(io.vertx.core.buffer.Buffer)} or {@link io.vertx.ext.web.api.service.ServiceResponse#completedWithPlainText(io.vertx.core.buffer.Buffer)}
+
+For example the implementation of `TransactionService#getTransactionsList` looks like:
+
+[source,$lang]
+----
+{@link examples.ApiCodegenExamples#implGetTransactionsListSuccess}
+----
+
+Or when it fails:
+
+[source,$lang]
+----
+{@link examples.ApiCodegenExamples#implGetTransactionsListFailure}
+----
+
+=== The `ServiceRequest` data object
+
+`ServiceRequest` it's a _serializable_ version of `RoutingContext`, but It doesn't contain all data of `RoutingContext`. It transports to your service:
+
+* {@link io.vertx.ext.web.api.service.ServiceRequest#getHeaders()}: Headers of the request
+* {@link io.vertx.ext.web.api.service.ServiceRequest#getParams()}: Contains `routingContext.get("parsedParameters")`
+* {@link io.vertx.ext.web.api.service.ServiceRequest#getUser()}: Contains `routingContext.user().principal()`, null if no user is authenticated
+* {@link io.vertx.ext.web.api.service.ServiceRequest#getExtra()}: Contains an extra configurable payload
+
+You can configure a lambda that builds the extra payload with {@link io.vertx.ext.web.api.service.RouteToEBServiceHandler#extraPayloadMapper(java.util.function.Function)}
+
+=== The `ServiceResponse` data object
+
+`ServiceResponse` is composed by:
+
+* Headers of the response
+* Status code/Status message
+* Body as a payload. If you don't set the payload/set as null no body will be sent
+
+== Expose your Web API Service
+
+Now you can register your service to event bus:
+
+[source,$lang]
+----
+{@link examples.ApiCodegenExamples#serviceMount}
+----
+
+For more info on how to expose your service look at https://vertx.io/docs/vertx-service-proxy/java/#_exposing_your_service[Vert.x service proxy documentation]

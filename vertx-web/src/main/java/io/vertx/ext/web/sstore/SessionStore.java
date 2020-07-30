@@ -16,19 +16,71 @@
 
 package io.vertx.ext.web.sstore;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
+import io.vertx.core.*;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.sstore.impl.ClusteredSessionStoreImpl;
+import io.vertx.ext.web.sstore.impl.LocalSessionStoreImpl;
 
 /**
  * A session store is used to store sessions for an Vert.x-Web web app
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
 public interface SessionStore {
+
+  /**
+   * Create a Session store given a backend and configuration JSON.
+   *
+   * @param vertx vertx instance
+   * @return the store or runtime exception
+   */
+  static SessionStore create(Vertx vertx) {
+    return create(vertx, new JsonObject());
+  }
+
+  /**
+   * Create a Session store given a backend and configuration JSON.
+   *
+   * @param vertx vertx instance
+   * @param options extra options for initialization
+   * @return the store or runtime exception
+   */
+  static SessionStore create(Vertx vertx, JsonObject options) {
+    SessionStore defaultStore;
+
+    try {
+      defaultStore = ServiceHelper.loadFactoryOrNull(SessionStore.class);
+      if (defaultStore != null) {
+        return defaultStore.init(vertx, options);
+      }
+    } catch (RuntimeException e) {
+      // ignore that it cannot be loaded, falling back to the next
+    }
+
+    if (vertx.isClustered()) {
+      defaultStore = new ClusteredSessionStoreImpl();
+    } else {
+      defaultStore = new LocalSessionStoreImpl();
+    }
+
+    return defaultStore.init(vertx, options);
+  }
+
+  /**
+   * Initialize this store.
+   *
+   * @param vertx  the vertx instance
+   * @param options  optional Json with extra configuration options
+   * @return  self
+   */
+  @Fluent
+  SessionStore init(Vertx vertx, JsonObject options);
 
   /**
    * Default length for a session id.
@@ -55,7 +107,7 @@ public interface SessionStore {
   Session createSession(long timeout);
 
   /**
-   * Create a new session
+   * Create a new session.
    *
    * @param timeout - the session timeout, in ms
    * @param length - the required length for the session id
@@ -65,46 +117,100 @@ public interface SessionStore {
   Session createSession(long timeout, int length);
 
   /**
-   * Get the session with the specified ID
+   * Get the session with the specified ID.
    *
-   * @param id  the unique ID of the session
+   * @param cookieValue  the unique ID of the session
    * @param resultHandler  will be called with a result holding the session, or a failure
    */
-  void get(String id, Handler<AsyncResult<@Nullable Session>> resultHandler);
+  void get(String cookieValue, Handler<AsyncResult<@Nullable Session>> resultHandler);
 
   /**
-   * Delete the session with the specified ID
-   *
-   * @param id  the unique ID of the session
-   * @param resultHandler  will be called with a result true/false, or a failure
+   * @see SessionStore#get(String, Handler)
+   * @param cookieValue  the unique ID of the session
+   * @return future that will be called with a result holding the session, or a failure
    */
-  void delete(String id, Handler<AsyncResult<Boolean>> resultHandler);
+  default Future<@Nullable Session> get(String cookieValue) {
+    Promise<Session> promise = Promise.promise();
+    get(cookieValue, promise);
+    return promise.future();
+  }
 
   /**
-   * Add a session with the specified ID
+   * Delete the session with the specified ID.
+   *
+   * @param id  the session id
+   * @param resultHandler  will be called with a success or a failure
+   */
+  void delete(String id, Handler<AsyncResult<Void>> resultHandler);
+
+  /**
+   * @see SessionStore#delete(String, Handler)
+   * @param cookieValue  the unique ID of the session
+   * @return future that will be called with a result, or a failure
+   */
+  default Future<Void> delete(String cookieValue) {
+    Promise<Void> promise = Promise.promise();
+    delete(cookieValue, promise);
+    return promise.future();
+  }
+
+  /**
+   * Add a session with the specified ID.
    *
    * @param session  the session
-   * @param resultHandler  will be called with a result true/false, or a failure
+   * @param resultHandler  will be called with a success or a failure
    */
-  void put(Session session, Handler<AsyncResult<Boolean>> resultHandler);
+  void put(Session session, Handler<AsyncResult<Void>> resultHandler);
 
   /**
-   * Remove all sessions from the store
+   * @see SessionStore#put(Session, Handler)
+   * @param session the session
+   * @return future that will be called with a result, or a failure
+   */
+  default Future<Void> put(Session session) {
+    Promise<Void> promise = Promise.promise();
+    put(session, promise);
+    return promise.future();
+  }
+
+  /**
+   * Remove all sessions from the store.
    *
-   * @param resultHandler  will be called with a result true/false, or a failure
+   * @param resultHandler  will be called with a success or a failure
    */
-  void clear(Handler<AsyncResult<Boolean>> resultHandler);
+  void clear(Handler<AsyncResult<Void>> resultHandler);
 
   /**
-   * Get the number of sessions in the store
+   * @see SessionStore#clear(Handler)
+   * @return future that will be called with a result, or a failure
+   */
+  default Future<Void> clear() {
+    Promise<Void> promise = Promise.promise();
+    clear(promise);
+    return promise.future();
+  }
+
+  /**
+   * Get the number of sessions in the store.
+   * <p>
+   * Beware of the result which is just an estimate, in particular with distributed session stores.
    *
    * @param resultHandler  will be called with the number, or a failure
    */
   void size(Handler<AsyncResult<Integer>> resultHandler);
 
   /**
+   * @see SessionStore#size(Handler)
+   * @return future that will be called with a result, or a failure
+   */
+  default Future<Integer> size() {
+    Promise<Integer> promise = Promise.promise();
+    size(promise);
+    return promise.future();
+  }
+
+  /**
    * Close the store
    */
   void close();
-
 }

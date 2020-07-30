@@ -32,26 +32,33 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
+import java.util.regex.Pattern;
+
 import static io.vertx.core.buffer.Buffer.buffer;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 class HtmlFileTransport extends BaseTransport {
 
   private static final Logger log = LoggerFactory.getLogger(HtmlFileTransport.class);
+
+  private static final Pattern CALLBACK_VALIDATION = Pattern.compile("[^a-zA-Z0-9-_.]");
 
   private static final String HTML_FILE_TEMPLATE;
 
@@ -96,11 +103,16 @@ class HtmlFileTransport extends BaseTransport {
         }
       }
 
+      if (CALLBACK_VALIDATION.matcher(callback).find()) {
+        rc.response().setStatusCode(500);
+        rc.response().end("invalid \"callback\" parameter\n");
+        return;
+      }
+
       HttpServerRequest req = rc.request();
       String sessionID = req.params().get("param0");
       SockJSSession session = getSession(rc, options.getSessionTimeout(), options.getHeartbeatInterval(), sessionID, sockHandler);
-      session.setInfo(req.localAddress(), req.remoteAddress(), req.uri(), req.headers());
-      session.register(new HtmlFileListener(options.getMaxBytesStreaming(), rc, callback, session));
+      session.register(req, new HtmlFileListener(options.getMaxBytesStreaming(), rc, callback, session));
     });
   }
 
@@ -119,11 +131,12 @@ class HtmlFileTransport extends BaseTransport {
       addCloseHandler(rc.response(), session);
     }
 
-    public void sendFrame(String body) {
+    @Override
+    public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
       if (log.isTraceEnabled()) log.trace("HtmlFile, sending frame");
       if (!headersWritten) {
         String htmlFile = HTML_FILE_TEMPLATE.replace("{{ callback }}", callback);
-        rc.response().putHeader("Content-Type", "text/html; charset=UTF-8");
+        rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html; charset=UTF-8");
         setNoCacheHeaders(rc);
         rc.response().setChunked(true);
         setJSESSIONID(options, rc);
@@ -131,12 +144,11 @@ class HtmlFileTransport extends BaseTransport {
         headersWritten = true;
       }
       body = escapeForJavaScript(body);
-      StringBuilder sb = new StringBuilder();
-      sb.append("<script>\np(\"");
-      sb.append(body);
-      sb.append("\");\n</script>\r\n");
-      Buffer buff = buffer(sb.toString());
-      rc.response().write(buff);
+      String sb = "<script>\np(\"" +
+        body +
+        "\");\n</script>\r\n";
+      Buffer buff = buffer(sb);
+      rc.response().write(buff, handler);
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {
         if (log.isTraceEnabled()) log.trace("More than maxBytes sent so closing connection");

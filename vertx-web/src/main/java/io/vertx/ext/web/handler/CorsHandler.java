@@ -17,13 +17,13 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.handler.impl.CorsHandlerImpl;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.impl.CorsHandlerImpl;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -35,7 +35,8 @@ import java.util.Set;
 public interface CorsHandler extends Handler<RoutingContext> {
 
   /**
-   * Create a CORS handler
+   * Create a CORS handler using a regular expression to match origins. An origin follows rfc6454#section-7
+   * and is expected to have the format: {@code <scheme> "://" <hostname> [ ":" <port> ]}
    *
    * @param allowedOriginPattern  the allowed origin pattern
    * @return  the handler
@@ -43,6 +44,32 @@ public interface CorsHandler extends Handler<RoutingContext> {
   static CorsHandler create(String allowedOriginPattern) {
     return new CorsHandlerImpl(allowedOriginPattern);
   }
+
+  /**
+   * Create a empty CORS handler that allows {@code *} origin.
+   * @return the handler
+   */
+  static CorsHandler create() {
+    return new CorsHandlerImpl();
+  }
+
+  /**
+   * Add an origin to the list of allowed Origins. An origin follows rfc6454#section-7
+   * and is expected to have the format: {@code <scheme> "://" <hostname> [ ":" <port> ]}
+   * @param origin the well formatted static origin
+   * @return self
+   */
+  @Fluent
+  CorsHandler addOrigin(String origin);
+
+  /**
+   * Set the list of allowed origins. An origin follows rfc6454#section-7
+   * and is expected to have the format: {@code <scheme> "://" <hostname> [ ":" <port> ]}
+   * @param origins the well formatted static origin list
+   * @return self
+   */
+  @Fluent
+  CorsHandler addOrigins(List<String> origins);
 
   /**
    * Add an allowed method
@@ -59,7 +86,7 @@ public interface CorsHandler extends Handler<RoutingContext> {
    * @param methods the methods to add
    * @return a reference to this, so the API can be used fluently
    */
-  @GenIgnore
+  @Fluent
   CorsHandler allowedMethods(Set<HttpMethod> methods);
 
   /**
@@ -99,7 +126,15 @@ public interface CorsHandler extends Handler<RoutingContext> {
   CorsHandler exposedHeaders(Set<String> headerNames);
 
   /**
-   * Set whether credentials are allowed
+   * Set whether credentials are allowed. Note that user agents will block
+   * requests that use a wildcard as origin and include credentials.
+   *
+   * From the MDN documentation you can read:
+   *
+   * <blockquote>
+   * Important note: when responding to a credentialed request,
+   * server must specify a domain, and cannot use wild carding.
+   * </blockquote>
    *
    * @param allow true if allowed
    * @return a reference to this, so the API can be used fluently

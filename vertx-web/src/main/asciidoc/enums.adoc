@@ -1,10 +1,10 @@
 = Enums
 
-[[BridgeEventType]]
-== BridgeEventType
+[[AllowForwardHeaders]]
+== AllowForwardHeaders
 
 ++++
- Bridge Event Types.
+ What kind of forward header parsing are we allowing.
 ++++
 '''
 
@@ -12,37 +12,26 @@
 [frame="topbot"]
 |===
 ^|Name | Description
-|[[SOCKET_CREATED]]`SOCKET_CREATED`|
+|[[NONE]]`NONE`|+++
+No parsing shall be performed.
 +++
-This event will occur when a new SockJS socket is created.
+|[[FORWARD]]`FORWARD`|+++
+Only process the standard <code>Forward</code> header as defined by <a href="https://tools.ietf.org/html/rfc7239#section-4>RFC 7239, section 4: Forwarded</a>.
+
+ For more info see: <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded">https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded</a>
 +++
-|[[SOCKET_CLOSED]]`SOCKET_CLOSED`|
+|[[X_FORWARD]]`X_FORWARD`|+++
+Only process the non standard but widely used <code>X-Forward-*</code> headers.
+
+ These headers are not official standards but widely used. Users are advised to avoid them for new applications.
 +++
-This event will occur when a SockJS socket is closed.
-+++
-|[[SOCKET_IDLE]]`SOCKET_IDLE`|
-+++
-This event will occur when SockJS socket is on idle for longer period of time than configured.
-+++
-|[[SEND]]`SEND`|
-+++
-This event will occur when a message is attempted to be sent from the client to the server.
-+++
-|[[PUBLISH]]`PUBLISH`|
-+++
-This event will occur when a message is attempted to be published from the client to the server.
-+++
-|[[RECEIVE]]`RECEIVE`|
-+++
-This event will occur when a message is attempted to be delivered from the server to the client.
-+++
-|[[REGISTER]]`REGISTER`|
-+++
-This event will occur when a client attempts to register a handler.
-+++
-|[[UNREGISTER]]`UNREGISTER`|
-+++
-This event will occur when a client attempts to unregister a handler.
+|[[ALL]]`ALL`|+++
+Will process both  and . Be aware that mixing the 2 headers can open
+ security holes has specially crafted requests that are not validated as proxy level can allow bypassing
+ the proxy desired forward value.
+
+ For example, a proxy will add the <code>X-Forward-*</code> headers to a request but not filter out if the original
+ request includes the <code>Forward</code> header.
 +++
 |===
 
@@ -58,17 +47,17 @@ This event will occur when a client attempts to unregister a handler.
 [frame="topbot"]
 |===
 ^|Name | Description
-|[[DEFAULT]]`DEFAULT`|
-+++
+|[[DEFAULT]]`DEFAULT`|+++
 <i>remote-client</i> - - [<i>timestamp</i>] "<i>method</i> <i>uri</i> <i>version</i>" <i>status</i> <i>content-length</i> "<i>referrer</i>" "<i>user-agent</i>"
 +++
-|[[SHORT]]`SHORT`|
-+++
+|[[SHORT]]`SHORT`|+++
 <i>remote-client</i> - <i>method</i> <i>uri</i> <i>version</i> <i>status</i> <i>content-length</i> <i>duration</i> ms
 +++
-|[[TINY]]`TINY`|
-+++
+|[[TINY]]`TINY`|+++
 <i>method</i> <i>uri</i> <i>status</i> - <i>content-length</i> <i>duration</i>
++++
+|[[CUSTOM]]`CUSTOM`|+++
+Will use user defined formatter function.
 +++
 |===
 
@@ -84,25 +73,20 @@ This event will occur when a client attempts to unregister a handler.
 [frame="topbot"]
 |===
 ^|Name | Description
-|[[WEBSOCKET]]`WEBSOCKET`|
-+++
+|[[WEBSOCKET]]`WEBSOCKET`|+++
 <a href="http://www.rfc-editor.org/rfc/rfc6455.txt">rfc 6455</a>
 +++
-|[[EVENT_SOURCE]]`EVENT_SOURCE`|
-+++
+|[[EVENT_SOURCE]]`EVENT_SOURCE`|+++
 <a href="http://dev.w3.org/html5/eventsource/">Event source</a>
 +++
-|[[HTML_FILE]]`HTML_FILE`|
-+++
+|[[HTML_FILE]]`HTML_FILE`|+++
 <a href="http://cometdaily.com/2007/11/18/ie-activexhtmlfile-transport-part-ii/">HtmlFile</a>.
 +++
-|[[JSON_P]]`JSON_P`|
-+++
+|[[JSON_P]]`JSON_P`|+++
 Slow and old fashioned <a hred="https://developer.mozilla.org/en/DOM/window.postMessage">JSONP polling</a>.
  This transport will show "busy indicator" (aka: "spinning wheel") when sending data.
 +++
-|[[XHR]]`XHR`|
-+++
+|[[XHR]]`XHR`|+++
 Long-polling using <a hred="https://secure.wikimedia.org/wikipedia/en/wiki/XMLHttpRequest#Cross-domain_requests">cross domain XHR</a>
 +++
 |===

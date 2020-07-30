@@ -1,0 +1,3 @@
+Hello {{foo}} and {{bar}}
+String is {{ createString() }}
+Request path is {{context.getString("path")}}

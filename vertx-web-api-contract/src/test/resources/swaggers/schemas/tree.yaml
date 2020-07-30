@@ -1,0 +1,13 @@
+tree:
+  type: object
+  properties:
+    value:
+      type: string
+    childs:
+      type: array
+      items:
+        "$ref": "#/tree"
+    parent:
+      "$ref": "#/tree"
+  required:
+    - value

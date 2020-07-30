@@ -21,7 +21,10 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 
 import java.util.List;
 
@@ -36,7 +39,7 @@ import java.util.List;
  *   <li>{@link #version()} the HTTP version</li>
  * </ul>
  * <p>
- * The body of the response is returned by {@link #body()} decoded as the format specified by the {@link BodyCodec} that
+ * The body of the response is returned by {@link #body()} decoded as the format specified by the {@link io.vertx.ext.web.codec.BodyCodec} that
  * built the response.
  * <p>
  * Keep in mind that using this {@code HttpResponse} impose to fully buffer the response body and should be used for payload
@@ -107,36 +110,61 @@ public interface HttpResponse<T> {
   T body();
 
   /**
-   * @return the response body decoded as a {@link Buffer}
+   * @return the response body decoded as a {@link Buffer}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @CacheReturn
   @Nullable
   Buffer bodyAsBuffer();
 
   /**
-   * @return the response body decoded as a {@code String}
+   * @return the list of all followed redirects, including the final location.
+   */
+  @CacheReturn
+  List<String> followedRedirects();
+
+  /**
+   * @return the response body decoded as a {@code String}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @CacheReturn
   @Nullable
-  String bodyAsString();
+  default String bodyAsString() {
+    Buffer b = bodyAsBuffer();
+    return b != null ? BodyCodecImpl.UTF8_DECODER.apply(b) : null;
+  }
 
   /**
-   * @return the response body decoded as a {@code String} given a specific {@code encoding}
+   * @return the response body decoded as a {@code String} given a specific {@code encoding}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @Nullable
-  String bodyAsString(String encoding);
+  default String bodyAsString(String encoding) {
+    Buffer b = bodyAsBuffer();
+    return b != null ? b.toString(encoding) : null;
+  }
 
   /**
-   * @return the response body decoded as a json object
+   * @return the response body decoded as {@link JsonObject}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @CacheReturn
   @Nullable
-  JsonObject bodyAsJsonObject();
+  default JsonObject bodyAsJsonObject() {
+    Buffer b = bodyAsBuffer();
+    return b != null ? BodyCodecImpl.JSON_OBJECT_DECODER.apply(b) : null;
+  }
 
   /**
-   * @return the response body decoded as the specified {@code type} with the Jackson mapper.
+   * @return the response body decoded as a {@link JsonArray}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
+   */
+  @CacheReturn
+  @Nullable
+  JsonArray bodyAsJsonArray();
+
+  /**
+   * @return the response body decoded as the specified {@code type} with the Jackson mapper, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @Nullable
-  <R> R bodyAsJson(Class<R> type);
+  default <R> R bodyAsJson(Class<R> type) {
+    Buffer b = bodyAsBuffer();
+    return b != null ? BodyCodecImpl.jsonDecoder(type).apply(b) : null;
+  }
 
 }

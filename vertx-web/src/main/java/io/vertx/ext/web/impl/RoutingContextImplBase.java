@@ -17,34 +17,58 @@
 package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.Handler;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.impl.HttpStatusException;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public abstract class RoutingContextImplBase implements RoutingContext {
+public abstract class RoutingContextImplBase implements RoutingContextInternal {
 
-  private static final Logger log = LoggerFactory.getLogger(RoutingContextImplBase.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RoutingContextImplBase.class);
 
   private final Set<RouteImpl> routes;
 
   protected final String mountPoint;
-  protected final HttpServerRequest request;
   protected Iterator<RouteImpl> iter;
-  protected RouteImpl currentRoute;
+  protected RouteState currentRoute;
+  private AtomicInteger currentRouteNextHandlerIndex;
+  private AtomicInteger currentRouteNextFailureHandlerIndex;
+  // When Route#matches executes, if it returns != 0 this flag is configured
+  // to write the correct status code at the end of routing process
+  int matchFailure;
+  // the current path matched string
+  int matchRest = -1;
+  boolean matchNormalized;
+  // internal runtime state
+  private volatile long seen;
 
-  protected RoutingContextImplBase(String mountPoint, HttpServerRequest request, Set<RouteImpl> routes) {
+  RoutingContextImplBase(String mountPoint, Set<RouteImpl> routes) {
     this.mountPoint = mountPoint;
-    this.request = new HttpServerRequestWrapper(request);
     this.routes = routes;
     this.iter = routes.iterator();
+    this.currentRouteNextHandlerIndex = new AtomicInteger(0);
+    this.currentRouteNextFailureHandlerIndex = new AtomicInteger(0);
+    resetMatchFailure();
+  }
+
+  @Override
+  public synchronized RoutingContextInternal visitHandler(int id) {
+    seen |= id;
+    return this;
+  }
+
+  @Override
+  public boolean seenHandler(int id) {
+    return (seen & id) != 0;
   }
 
   @Override
@@ -54,39 +78,93 @@ public abstract class RoutingContextImplBase implements RoutingContext {
 
   @Override
   public Route currentRoute() {
-    return currentRoute;
+    if (currentRoute == null) {
+      return null;
+    }
+    return currentRoute.getRoute();
   }
 
-  protected void restart() {
+  int currentRouteNextHandlerIndex() {
+    return currentRouteNextHandlerIndex.intValue();
+  }
+
+  int currentRouteNextFailureHandlerIndex() {
+    return currentRouteNextFailureHandlerIndex.intValue();
+  }
+
+  void restart() {
     this.iter = routes.iterator();
     currentRoute = null;
     next();
   }
 
-  protected boolean iterateNext() {
+  boolean iterateNext() {
     boolean failed = failed();
+    if (currentRoute != null) { // Handle multiple handlers inside route object
+      try {
+        if (!failed && currentRoute.hasNextContextHandler(this)) {
+          currentRouteNextHandlerIndex.incrementAndGet();
+          resetMatchFailure();
+          currentRoute.handleContext(this);
+          return true;
+        } else if (failed && currentRoute.hasNextFailureHandler(this)) {
+          currentRouteNextFailureHandlerIndex.incrementAndGet();
+          currentRoute.handleFailure(this);
+          return true;
+        }
+      } catch (Throwable t) {
+        handleInHandlerRuntimeFailure(currentRoute.getRouter(), failed, t);
+        return true;
+      }
+    }
+    // Search for more handlers
     while (iter.hasNext()) {
-      RouteImpl route = iter.next();
-      if (route.matches(this, mountPoint(), failed)) {
-        if (log.isTraceEnabled()) log.trace("Route matches: " + route);
-        try {
-          currentRoute = route;
-          if (log.isTraceEnabled()) log.trace("Calling the " + (failed ? "failure" : "") + " handler");
-          if (failed) {
-            route.handleFailure(this);
-          } else {
-            route.handleContext(this);
+      // state is locked at this moment
+      RouteState routeState = iter.next().state();
+
+      currentRouteNextHandlerIndex.set(0);
+      currentRouteNextFailureHandlerIndex.set(0);
+      try {
+        int matchResult = routeState.matches(this, mountPoint(), failed);
+        if (matchResult == 0) {
+          if (LOG.isTraceEnabled()) {
+            LOG.trace("Route matches: " + routeState);
           }
-        } catch (Throwable t) {
-          if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);
-          if (!failed) {
-            if (log.isTraceEnabled()) log.trace("Failing the routing");
-            fail(t);
-          } else {
-            // Failure in handling failure!
-            if (log.isTraceEnabled()) log.trace("Failure in handling failure");
-            unhandledFailure(-1, t, route.router());
+          resetMatchFailure();
+          try {
+            currentRoute = routeState;
+            if (LOG.isTraceEnabled()) {
+              LOG.trace("Calling the " + (failed ? "failure" : "") + " handler");
+            }
+            if (failed && currentRoute.hasNextFailureHandler(this)) {
+              currentRouteNextFailureHandlerIndex.incrementAndGet();
+              routeState.handleFailure(this);
+            } else if (currentRoute.hasNextContextHandler(this)) {
+              currentRouteNextHandlerIndex.incrementAndGet();
+              routeState.handleContext(this);
+            } else {
+              continue;
+            }
+          } catch (Throwable t) {
+            handleInHandlerRuntimeFailure(routeState.getRouter(), failed, t);
           }
+          return true;
+        } else if (matchResult == 405) {
+          // invalid method match, means that
+          // we should "update" the failure if not found to be invalid method
+          if (this.matchFailure == 404) {
+            this.matchFailure = matchResult;
+          }
+        } else if (matchResult != 404) {
+          this.matchFailure = matchResult;
+        }
+      } catch (Throwable e) {
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("IllegalArgumentException thrown during iteration", e);
+        }
+        // Failure in matches algorithm (If the exception is instanceof IllegalArgumentException probably is a QueryStringDecoder error!)
+        if (!this.response().ended()) {
+          unhandledFailure((e instanceof IllegalArgumentException) ? 400 : -1, e, routeState.getRouter());
         }
         return true;
       }
@@ -94,25 +172,40 @@ public abstract class RoutingContextImplBase implements RoutingContext {
     return false;
   }
 
+  private void handleInHandlerRuntimeFailure(RouterImpl router, boolean failed, Throwable t) {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Throwable thrown from handler", t);
+    }
+    if (!failed) {
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("Failing the routing");
+      }
+      fail(t);
+    } else {
+      // Failure in handling failure!
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("Failure in handling failure");
+      }
+      unhandledFailure(-1, t, router);
+    }
+  }
+
 
   protected void unhandledFailure(int statusCode, Throwable failure, RouterImpl router) {
-    int code = statusCode != -1 ? statusCode : 500;
-    if (failure != null) {
-      if (router.exceptionHandler() != null) {
-        router.exceptionHandler().handle(failure);
-      } else {
-        log.error("Unexpected exception in route", failure);
-      }
-      if(!response().ended()){
-        // Handle in a custom way if the failure is internal and known
-        if(failure instanceof HeaderTooLongException){
-          response().setStatusCode(400);
-          response().putHeader("Content-Type", "text/plain");
-          response().end(failure.getMessage());
-        }
+    int code = statusCode != -1 ?
+      statusCode :
+      (failure instanceof HttpStatusException) ?
+        ((HttpStatusException) failure).getStatusCode() :
+        500;
+    Handler<RoutingContext> errorHandler = router.getErrorHandlerByStatusCode(code);
+    if (errorHandler != null) {
+      try {
+        errorHandler.handle(this);
+      } catch (Throwable t) {
+        LOG.error("Error in error handler", t);
       }
     }
-    if (!response().ended()) {
+    if (!response().ended() && !response().closed()) {
       try {
         response().setStatusCode(code);
       } catch (IllegalArgumentException e) {
@@ -123,5 +216,9 @@ public abstract class RoutingContextImplBase implements RoutingContext {
       }
       response().end(response().getStatusMessage());
     }
+  }
+
+  private void resetMatchFailure() {
+    this.matchFailure = 404;
   }
 }

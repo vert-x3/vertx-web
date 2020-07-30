@@ -16,45 +16,40 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.web.handler.RedirectAuthHandler;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class RedirectAuthHandlerImpl extends AuthHandlerImpl {
-
-  private static final Logger log = LoggerFactory.getLogger(RedirectAuthHandlerImpl.class);
+public class RedirectAuthHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements RedirectAuthHandler {
 
   private final String loginRedirectURL;
   private final String returnURLParam;
 
-  public RedirectAuthHandlerImpl(AuthProvider authProvider, String loginRedirectURL, String returnURLParam) {
+  public RedirectAuthHandlerImpl(AuthenticationProvider authProvider, String loginRedirectURL, String returnURLParam) {
     super (authProvider);
     this.loginRedirectURL = loginRedirectURL;
     this.returnURLParam = returnURLParam;
   }
 
   @Override
-  public void handle(RoutingContext context) {
+  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
     Session session = context.session();
     if (session != null) {
-      User user = context.user();
-      if (user != null) {
-        // Already logged in, just authorise
-        authorise(user, context);
-      } else {
-        // Now redirect to the login url - we'll get redirected back here after successful login
-        session.put(returnURLParam, context.request().uri());
-        context.response().putHeader("location", loginRedirectURL).setStatusCode(302).end();
-      }
+      // Now redirect to the login url - we'll get redirected back here after successful login
+      session.put(returnURLParam, context.request().uri());
+      handler.handle(Future.failedFuture(new HttpStatusException(302, loginRedirectURL)));
     } else {
-      context.fail(new NullPointerException("No session - did you forget to include a SessionHandler?"));
+      handler.handle(Future.failedFuture("No session - did you forget to include a SessionHandler?"));
     }
-
   }
 }

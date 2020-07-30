@@ -1,0 +1,1380 @@
+openapi: 3.0.0
+info:
+  version: 0.0.1
+  title: OpenAPI 3 Parameter Validation Compatibility Test
+  license:
+    name: Apache 2.0
+paths:
+  '/path/matrix/noexplode/string/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: string
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: ";color=blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: matrix
+          explode: false
+      operationId: 'path_matrix_noexplode_string'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorValue200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/path/matrix/noexplode/array/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: array
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: ";color=blue,black,brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: matrix
+          explode: false
+      operationId: 'path_matrix_noexplode_array'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorArray200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/path/matrix/noexplode/object/{color}':
+    get:
+      parameters:
+        - name: color
+          in: path
+          x-test: object
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: ";color=R,100,G,200,B,150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: matrix
+          explode: false
+      operationId: 'path_matrix_noexplode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+  '/path/matrix/explode/string/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: string
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: ";color=blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: matrix
+          explode: true
+      operationId: 'path_matrix_explode_string'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorValue200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/path/matrix/explode/array/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: array
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: ";color=blue;color=black;color=brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: matrix
+          explode: true
+      operationId: 'path_matrix_explode_array'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorArray200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/path/matrix/explode/object/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: ";R=100;G=200;B=150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: matrix
+          explode: true
+      operationId: 'path_matrix_explode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+
+  '/path/label/noexplode/string/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: string
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: ".blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: label
+          explode: false
+      operationId: 'path_label_noexplode_string'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorValue200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/path/label/noexplode/array/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: array
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: ".blue.black.brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: label
+          explode: false
+      operationId: 'path_label_noexplode_array'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorArray200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/path/label/noexplode/object/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: ".R.100.G.200.B.150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: label
+          explode: false
+      operationId: 'path_label_noexplode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+  '/path/label/explode/string/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: string
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: ".blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: label
+          explode: true
+      operationId: 'path_label_explode_string'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorValue200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/path/label/explode/array/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: array
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: ".blue.black.brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: label
+          explode: true
+      operationId: 'path_label_explode_array'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorArray200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/path/label/explode/object/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: ".R=100.G=200.B=150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: label
+          explode: true
+      operationId: 'path_label_explode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+
+  '/path/simple/noexplode/string/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: string
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: "blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: simple
+          explode: false
+      operationId: 'path_simple_noexplode_string'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorValue200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/path/simple/noexplode/array/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: array
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: "blue,black,brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: simple
+          explode: false
+      operationId: 'path_simple_noexplode_array'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorArray200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/path/simple/noexplode/object/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: "R,100,G,200,B,150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: simple
+          explode: false
+      operationId: 'path_simple_noexplode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+  '/path/simple/explode/string/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: string
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: "blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: simple
+          explode: true
+      operationId: 'path_simple_explode_string'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorValue200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/path/simple/explode/array/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: array
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: "blue,black,brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: simple
+          explode: true
+      operationId: 'path_simple_explode_array'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorArray200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/path/simple/explode/object/{color}':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: "R=100,G=200,B=150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: simple
+          explode: true
+      operationId: 'path_simple_explode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+  /path/multi/{color_simple}{color_label}/test:
+    get:
+      parameters:
+        - name: color_simple
+          x-test: string
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: "blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: simple
+          explode: false
+        - name: color_label
+          x-test: array
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: ".blue.black.brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: label
+          explode: false
+      operationId: path_multi_simple_label
+      responses:
+        200:
+          description: Validation successful
+          content:
+            application/json:
+              example:
+                color_simple: "blue"
+                color_label:
+                  - "blue"
+                  - "black"
+                  - "brown"
+              schema:
+                type: object
+                properties:
+                  color_simple:
+                    $ref: "#/components/schemas/Color"
+                  color_label:
+                    $ref: "#/components/schemas/ColorArray"
+                required:
+                  - color_simple
+                  - color_label
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+  /path/multi/{color_simple}{color_matrix}/test:
+    get:
+      parameters:
+        - name: color_simple
+          x-test: string
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: "blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: simple
+          explode: false
+        - name: color_matrix
+          x-test: array
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: ";color=blue,black,brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: matrix
+          explode: false
+      operationId: path_multi_simple_matrix
+      responses:
+        200:
+          description: Validation successful
+          content:
+            application/json:
+              example:
+                color_simple: "blue"
+                color_matrix:
+                  - "blue"
+                  - "black"
+                  - "brown"
+              schema:
+                type: object
+                properties:
+                  color_simple:
+                    $ref: "#/components/schemas/Color"
+                  color_matrix:
+                    $ref: "#/components/schemas/ColorArray"
+                required:
+                  - color_simple
+                  - color_matrix
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+  /path/multi/{color_label}{color_matrix}/test:
+    get:
+      parameters:
+        - name: color_label
+          x-test: array
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: ".blue.black.brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: label
+          explode: false
+        - name: color_matrix
+          x-test: object
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: ";R=100;G=200;B=150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: matrix
+          explode: true
+      operationId: path_multi_label_matrix
+      responses:
+        200:
+          description: Validation successful
+          content:
+            application/json:
+              example:
+                color_label:
+                  - "blue"
+                  - "black"
+                  - "brown"
+                color_matrix:
+                  R: "100"
+                  G: "200"
+                  B: "150"
+
+              schema:
+                type: object
+                properties:
+                  color_label:
+                    $ref: "#/components/schemas/ColorArray"
+                  color_matrix:
+                    $ref: "#/components/schemas/ColorObject"
+                required:
+                  - color_label
+                  - color_matrix
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+  '/query/form/noexplode/empty':
+    get:
+      parameters:
+        - name: color
+          x-test: empty
+          in: query
+          required: true
+          allowEmptyValue: true
+          examples:
+            value:
+              $ref: "#/components/examples/Empty"
+            spec:
+              value: "color="
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: form
+          explode: false
+      operationId: 'query_form_noexplode_empty'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorEmpty200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/query/form/noexplode/string':
+    get:
+      parameters:
+        - name: color
+          x-test: string
+          in: query
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: "color=blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: form
+          explode: false
+      operationId: 'query_form_noexplode_string'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorValue200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/query/form/noexplode/array':
+    get:
+      parameters:
+        - name: color
+          x-test: array
+          in: query
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: "color=blue,black,brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: form
+          explode: false
+      operationId: 'query_form_noexplode_array'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorArray200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/query/form/noexplode/object':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: query
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: "color=R,100,G,200,B,150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: form
+          explode: false
+      operationId: 'query_form_noexplode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+  '/query/form/explode/empty':
+    get:
+      parameters:
+        - name: color
+          x-test: empty
+          in: query
+          required: true
+          allowEmptyValue: true
+          examples:
+            value:
+              $ref: "#/components/examples/Empty"
+            spec:
+              value: "color="
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: form
+          explode: true
+      operationId: 'query_form_explode_empty'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorEmpty200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/query/form/explode/string':
+    get:
+      parameters:
+        - name: color
+          x-test: string
+          in: query
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: "color=blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: form
+          explode: true
+      operationId: 'query_form_explode_string'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorValue200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/query/form/explode/array':
+    get:
+      parameters:
+        - name: color
+          x-test: array
+          in: query
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: "color=blue&color=black&color=brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: form
+          explode: true
+      operationId: 'query_form_explode_array'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorArray200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/query/form/explode/object':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: query
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: "R=100&G=200&B=150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: form
+          explode: true
+      operationId: 'query_form_explode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+
+  '/query/spaceDelimited/noexplode/array':
+    get:
+      parameters:
+        - name: color
+          x-test: array
+          in: query
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: "blue%20black%20brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: spaceDelimited
+          explode: false
+      operationId: 'query_spaceDelimited_noexplode_array'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorArray200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/query/spaceDelimited/noexplode/object':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: query
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: "R%20100%20G%20200%20B%20150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: spaceDelimited
+          explode: false
+      operationId: 'query_spaceDelimited_noexplode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+
+  '/query/pipeDelimited/noexplode/array':
+    get:
+      parameters:
+        - name: color
+          x-test: array
+          in: query
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: "blue|black|brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: pipeDelimited
+          explode: false
+      operationId: 'query_pipeDelimited_noexplode_array'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorArray200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/query/pipeDelimited/noexplode/object':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: query
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: "R|100|G|200|B|150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: pipeDelimited
+          explode: false
+      operationId: 'query_pipeDelimited_noexplode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+
+  '/query/deepObject/explode/object':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: query
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: "color[R]=100&color[G]=200&color[B]=150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: deepObject
+          explode: true
+      operationId: 'query_deepObject_explode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+
+  '/cookie/form/noexplode/empty':
+    get:
+      parameters:
+        - name: color
+          x-test: empty
+          in: cookie
+          required: true
+          allowEmptyValue: true
+          examples:
+            value:
+              $ref: "#/components/examples/Empty"
+            spec:
+              value: "color="
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: form
+          explode: false
+      operationId: 'cookie_form_noexplode_empty'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorEmpty200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/cookie/form/noexplode/string':
+    get:
+      parameters:
+        - name: color
+          x-test: string
+          in: cookie
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: "color=blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: form
+          explode: false
+      operationId: 'cookie_form_noexplode_string'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorValue200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/cookie/form/noexplode/array':
+    get:
+      parameters:
+        - name: color
+          x-test: array
+          in: cookie
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: "color=blue,black,brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: form
+          explode: false
+      operationId: 'cookie_form_noexplode_array'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorArray200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/cookie/form/noexplode/object':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: cookie
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: "color=R,100,G,200,B,150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: form
+          explode: false
+      operationId: 'cookie_form_noexplode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+  '/cookie/form/explode/empty':
+    get:
+      parameters:
+        - name: color
+          x-test: empty
+          in: cookie
+          required: true
+          allowEmptyValue: true
+          examples:
+            value:
+              $ref: "#/components/examples/Empty"
+            spec:
+              value: "color="
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: form
+          explode: true
+      operationId: 'cookie_form_explode_empty'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorEmpty200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/cookie/form/explode/string':
+    get:
+      parameters:
+        - name: color
+          x-test: string
+          in: cookie
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: "color=blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: form
+          explode: true
+      operationId: 'cookie_form_explode_string'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorValue200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/cookie/form/explode/array':
+    get:
+      parameters:
+        - name: color
+          x-test: array
+          in: cookie
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: "color=blue&color=black&color=brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: form
+          explode: true
+      operationId: 'cookie_form_explode_array'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorArray200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/cookie/form/explode/object':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: cookie
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: "R=100&G=200&B=150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: form
+          explode: true
+      operationId: 'cookie_form_explode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+
+  '/header/simple/noexplode/string':
+    get:
+      parameters:
+        - name: color
+          x-test: string
+          in: header
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: "blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: simple
+          explode: false
+      operationId: 'header_simple_noexplode_string'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorValue200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/header/simple/noexplode/array':
+    get:
+      parameters:
+        - name: color
+          x-test: array
+          in: header
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: "blue,black,brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: simple
+          explode: false
+      operationId: 'header_simple_noexplode_array'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorArray200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/header/simple/noexplode/object':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: header
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: "R,100,G,200,B,150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: simple
+          explode: false
+      operationId: 'header_simple_noexplode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+  '/header/simple/explode/string':
+    get:
+      parameters:
+        - name: color
+          x-test: string
+          in: header
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: "blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: simple
+          explode: true
+      operationId: 'header_simple_explode_string'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorValue200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/header/simple/explode/array':
+    get:
+      parameters:
+        - name: color
+          x-test: array
+          in: header
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: "blue,black,brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: simple
+          explode: true
+      operationId: 'header_simple_explode_array'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorArray200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/header/simple/explode/object':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: header
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: "R=100,G=200,B=150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: simple
+          explode: true
+      operationId: 'header_simple_explode_object'
+      responses:
+        200:
+          $ref: "#/components/responses/ColorObject200"
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+components:
+  examples:
+    Empty:
+      value:
+    Value:
+      value: blue
+    Array:
+      value:
+        - blue
+        - black
+        - brown
+    Object:
+      value:
+        R: "100"
+        G: "200"
+        B: "150"
+  responses:
+    ColorEmpty200:
+      description: Validation successful
+      content:
+        application/json:
+          example:
+            color:
+          schema:
+            type: object
+            properties:
+              color:
+                $ref: "#/components/schemas/Color"
+            required:
+              - color
+    ColorValue200:
+      description: Validation successful
+      content:
+        application/json:
+          example:
+            color: "blue"
+          schema:
+            type: object
+            properties:
+              color:
+                $ref: "#/components/schemas/Color"
+            required:
+              - color
+    ColorArray200:
+      description: Validation successful
+      content:
+        application/json:
+          example:
+            color:
+              - blue
+              - black
+              - brown
+          schema:
+            type: object
+            properties:
+              color:
+                $ref: "#/components/schemas/ColorArray"
+            required:
+              - color
+    ColorObject200:
+      description: Validation successful
+      content:
+        application/json:
+          example:
+            color:
+              R: "100"
+              G: "200"
+              B: "150"
+          schema:
+            type: object
+            properties:
+              color:
+                $ref: "#/components/schemas/ColorObject"
+            required:
+              - color
+  schemas:
+    Color:
+      type: string
+    ColorArray:
+      type: array
+      items:
+        type: string
+    ColorObject:
+      type: object
+      properties:
+        R:
+          type: string
+        G:
+          type: string
+        B:
+          type: string
+      required:
+        - R
+        - G
+        - B

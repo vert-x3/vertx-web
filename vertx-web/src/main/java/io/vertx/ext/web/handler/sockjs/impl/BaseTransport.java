@@ -38,29 +38,31 @@ import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
-import io.vertx.core.VoidHandler;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.impl.StringEscapeUtils;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.handler.sockjs.Transport;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
 import java.util.Set;
 
-import static io.vertx.core.http.HttpHeaders.COOKIE;
+import static io.vertx.core.http.HttpHeaders.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 class BaseTransport {
 
@@ -70,7 +72,7 @@ class BaseTransport {
   protected final LocalMap<String, SockJSSession> sessions;
   protected SockJSHandlerOptions options;
 
-  protected static final String COMMON_PATH_ELEMENT_RE = "\\/[^\\/\\.]+\\/([^\\/\\.]+)\\/";
+  static final String COMMON_PATH_ELEMENT_RE = "\\/[^\\/\\.]+\\/([^\\/\\.]+)\\/";
 
   private static final long RAND_OFFSET = 2L << 30;
 
@@ -82,11 +84,7 @@ class BaseTransport {
 
   protected SockJSSession getSession(RoutingContext rc, long timeout, long heartbeatInterval, String sessionID,
                                      Handler<SockJSSocket> sockHandler) {
-    SockJSSession session = sessions.get(sessionID);
-    if (session == null) {
-      session = new SockJSSession(vertx, sessions, rc, sessionID, timeout, heartbeatInterval, sockHandler);
-      sessions.put(sessionID, session);
-    }
+    SockJSSession session = sessions.computeIfAbsent(sessionID, s -> new SockJSSession(vertx, sessions, rc, s, timeout, heartbeatInterval, sockHandler));
     return session;
   }
 
@@ -116,14 +114,12 @@ class BaseTransport {
       this.session = session;
     }
     protected void addCloseHandler(HttpServerResponse resp, final SockJSSession session) {
-      resp.closeHandler(new VoidHandler() {
-        public void handle() {
+      resp.closeHandler(v -> {
           if (log.isTraceEnabled()) log.trace("Connection closed (from client?), closing session");
           // Connection has been closed from the client or network error so
           // we remove the session
           session.shutdown();
           closed = true;
-        }
       });
     }
 
@@ -135,7 +131,7 @@ class BaseTransport {
   }
 
   static void setJSESSIONID(SockJSHandlerOptions options, RoutingContext rc) {
-    String cookies = rc.request().getHeader("cookie");
+    String cookies = rc.request().getHeader(COOKIE);
     if (options.isInsertJSESSIONID()) {
       //Preserve existing JSESSIONID, if any
       if (cookies != null) {
@@ -155,21 +151,27 @@ class BaseTransport {
       if (cookies == null) {
         cookies = "JSESSIONID=dummy; path=/";
       }
-      rc.response().putHeader("Set-Cookie", cookies);
+      rc.response().putHeader(SET_COOKIE, cookies);
     }
   }
 
   static void setCORS(RoutingContext rc) {
-    HttpServerRequest req = rc.request();
-    String origin = req.headers().get("origin");
-    if (origin == null || "null".equals(origin)) {
-      origin = "*";
-    }
-    req.response().headers().set("Access-Control-Allow-Origin", origin);
-    req.response().headers().set("Access-Control-Allow-Credentials", "true");
-    String hdr = req.headers().get("Access-Control-Request-Headers");
-    if (hdr != null) {
-      req.response().headers().set("Access-Control-Allow-Headers", hdr);
+    if (!((RoutingContextInternal) rc).seenHandler(RoutingContextInternal.CORS_HANDLER)) {
+      HttpServerRequest req = rc.request();
+      String origin = req.getHeader(ORIGIN);
+      if (origin == null) {
+        origin = "*";
+      }
+      req.response().headers().set(ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+      if ("*".equals(origin)) {
+        req.response().headers().set(ACCESS_CONTROL_ALLOW_CREDENTIALS, "false");
+      } else {
+        req.response().headers().set(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+      }
+      String hdr = req.headers().get(ACCESS_CONTROL_REQUEST_HEADERS);
+      if (hdr != null) {
+        req.response().headers().set(ACCESS_CONTROL_ALLOW_HEADERS, hdr);
+      }
     }
   }
 
@@ -178,7 +180,7 @@ class BaseTransport {
       boolean websocket = !options.getDisabledTransports().contains(Transport.WEBSOCKET.toString());
       public void handle(RoutingContext rc) {
         if (log.isTraceEnabled()) log.trace("In Info handler");
-        rc.response().putHeader("Content-Type", "application/json; charset=UTF-8");
+        rc.response().putHeader(CONTENT_TYPE, "application/json; charset=UTF-8");
         setNoCacheHeaders(rc);
         JsonObject json = new JsonObject();
         json.put("websocket", websocket);
@@ -194,19 +196,20 @@ class BaseTransport {
   }
 
   static void setNoCacheHeaders(RoutingContext rc) {
-    rc.response().putHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    rc.response().putHeader(CACHE_CONTROL, "no-store, no-cache, no-transform, must-revalidate, max-age=0");
   }
 
   static Handler<RoutingContext> createCORSOptionsHandler(SockJSHandlerOptions options, String methods) {
     return rc -> {
       if (log.isTraceEnabled()) log.trace("In CORS options handler");
-      rc.response().putHeader("Cache-Control", "public,max-age=31536000");
+      rc.response().putHeader(CACHE_CONTROL, "public,max-age=31536000");
       long oneYearSeconds = 365 * 24 * 60 * 60;
       long oneYearms = oneYearSeconds * 1000;
       String expires = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").format(new Date(System.currentTimeMillis() + oneYearms));
-      rc.response().putHeader("Expires", expires)
-        .putHeader("Access-Control-Allow-Methods", methods)
-        .putHeader("Access-Control-Max-Age", String.valueOf(oneYearSeconds));
+      rc.response()
+        .putHeader(EXPIRES, expires)
+        .putHeader(ACCESS_CONTROL_ALLOW_METHODS, methods)
+        .putHeader(ACCESS_CONTROL_MAX_AGE, String.valueOf(oneYearSeconds));
       setCORS(rc);
       setJSESSIONID(options, rc);
       rc.response().setStatusCode(204);
@@ -215,7 +218,7 @@ class BaseTransport {
   }
 
   // We remove cookie headers for security reasons. See https://github.com/sockjs/sockjs-node section on
-  // Authorisation
+  // Authorization
   static MultiMap removeCookieHeaders(MultiMap headers) {
     // We don't want to remove the JSESSION cookie.
     String cookieHeader = headers.get(COOKIE);

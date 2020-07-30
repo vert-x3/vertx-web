@@ -28,9 +28,7 @@ public class ResponseTimeTest extends WebTestBase {
   @Test
   public void testRequestTime1() throws Exception {
     router.route().handler(ResponseTimeHandler.create());
-    router.route().handler(rc -> {
-      rc.response().end();
-    });
+    router.route().handler(rc -> rc.response().end());
     testRequest(HttpMethod.GET, "/", null, resp -> {
       String reqTime = resp.headers().get("x-response-time");
       assertNotNull(reqTime);
@@ -41,9 +39,7 @@ public class ResponseTimeTest extends WebTestBase {
   @Test
   public void testRequestTime2() throws Exception {
     router.route().handler(ResponseTimeHandler.create());
-    router.route().handler(rc -> {
-      vertx.setTimer(250, tid -> rc.response().end());
-    });
+    router.route().handler(rc -> vertx.setTimer(250, tid -> rc.response().end()));
     testRequest(HttpMethod.GET, "/", null, resp -> {
       String reqTime = resp.headers().get("x-response-time");
       assertNotNull(reqTime);

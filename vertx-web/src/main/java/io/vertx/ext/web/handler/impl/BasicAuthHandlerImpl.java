@@ -16,13 +16,14 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.Credentials;
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.User;
-import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.BasicAuthHandler;
 
 import java.util.Base64;
 
@@ -30,79 +31,47 @@ import java.util.Base64;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class BasicAuthHandlerImpl extends AuthHandlerImpl {
+public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler<AuthenticationProvider> implements BasicAuthHandler {
 
-  private final String realm;
-
-  public BasicAuthHandlerImpl(AuthProvider authProvider, String realm) {
-    super(authProvider);
-    this.realm = realm;
+  public BasicAuthHandlerImpl(AuthenticationProvider authProvider, String realm) {
+    super(authProvider, realm, Type.BASIC);
   }
 
   @Override
-  public void handle(RoutingContext context) {
-    User user = context.user();
-    if (user != null) {
-      // Already authenticated in, just authorise
-      authorise(user, context);
-    } else {
-      HttpServerRequest request = context.request();
-      String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
+  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
 
-      if (authorization == null) {
-        handle401(context);
-      } else {
-        String suser;
-        String spass;
-        String sscheme;
-
-        try {
-          String[] parts = authorization.split(" ");
-          sscheme = parts[0];
-          String decoded = new String(Base64.getDecoder().decode(parts[1]));
-          int colonIdx = decoded.indexOf(":");
-          if(colonIdx!=-1) {
-              suser = decoded.substring(0,colonIdx);
-              spass = decoded.substring(colonIdx+1);
-          } else {
-              suser = decoded;
-              spass = null;
-          }
-        } catch (ArrayIndexOutOfBoundsException e) {
-          handle401(context);
-          return;
-        } catch (IllegalArgumentException | NullPointerException e) {
-          // IllegalArgumentException includes PatternSyntaxException
-          context.fail(e);
-          return;
-        }
-
-        if (!"Basic".equals(sscheme)) {
-          context.fail(400);
-        } else {
-          JsonObject authInfo = new JsonObject().put("username", suser).put("password", spass);
-          authProvider.authenticate(authInfo, res -> {
-            if (res.succeeded()) {
-              User authenticated = res.result();
-              context.setUser(authenticated);
-              Session session = context.session();
-              if (session != null) {
-                // the user has upgraded from unauthenticated to authenticated
-                // session should be upgraded as recommended by owasp
-                session.regenerateId();
-              }
-              authorise(authenticated, context);
-            } else {
-              handle401(context);
-            }
-          });
-        }
+    parseAuthorization(context, false, parseAuthorization -> {
+      if (parseAuthorization.failed()) {
+        handler.handle(Future.failedFuture(parseAuthorization.cause()));
+        return;
       }
-    }
+
+      final String suser;
+      final String spass;
+
+      try {
+        // decode the payload
+        String decoded = new String(Base64.getDecoder().decode(parseAuthorization.result()));
+
+        int colonIdx = decoded.indexOf(":");
+        if (colonIdx != -1) {
+          suser = decoded.substring(0, colonIdx);
+          spass = decoded.substring(colonIdx + 1);
+        } else {
+          suser = decoded;
+          spass = null;
+        }
+      } catch (RuntimeException e) {
+        context.fail(e);
+        return;
+      }
+
+      handler.handle(Future.succeededFuture(new UsernamePasswordCredentials(suser, spass)));
+    });
   }
 
-  private void handle401(RoutingContext context) {
-    context.response().putHeader("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
-    context.fail(401);
+  @Override
+  public String authenticateHeader(RoutingContext context) {
+    return "Basic realm=\"" + realm + "\"";
   }
 }

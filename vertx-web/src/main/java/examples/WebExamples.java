@@ -1,31 +1,40 @@
 package examples;
 
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.*;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.*;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.JWTOptions;
+import io.vertx.ext.auth.KeyStoreOptions;
+import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authorization.AuthorizationProvider;
+import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
+import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
 import io.vertx.ext.auth.jwt.JWTAuth;
-import io.vertx.ext.auth.jwt.JWTOptions;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
+import io.vertx.ext.auth.oauth2.OAuth2Options;
+import io.vertx.ext.auth.webauthn.*;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
-import io.vertx.ext.auth.oauth2.OAuth2ClientOptions;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
+import io.vertx.ext.bridge.BridgeEventType;
+import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.*;
+import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.handler.sockjs.*;
+import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
-import io.vertx.ext.web.templ.TemplateEngine;
 
+import java.util.List;
 import java.util.Set;
 
 /**
- *
  * These are the examples used in the documentation.
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -54,17 +63,17 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    router.route().handler(routingContext -> {
+    router.route().handler(ctx -> {
 
       // This handler will be called for every request
-      HttpServerResponse response = routingContext.response();
+      HttpServerResponse response = ctx.response();
       response.putHeader("content-type", "text/plain");
 
       // Write to the response and end it
       response.end("Hello World from Vert.x-Web!");
     });
 
-    server.requestHandler(router::accept).listen(8080);
+    server.requestHandler(router).listen(8080);
 
   }
 
@@ -72,7 +81,23 @@ public class WebExamples {
 
     Route route = router.route().path("/some/path/");
 
-    route.handler(routingContext -> {
+    route.handler(ctx -> {
+      // This handler will be called for the following request paths:
+
+      // `/some/path/`
+      // `/some/path//`
+      //
+      // but not:
+      // `/some/path` the end slash in the path makes it strict
+      // `/some/path/subdir`
+    });
+
+    // paths that do not end with slash are not strict
+    // this means that the trailing slash is optional
+    // and they match regardless
+    Route route2 = router.route().path("/some/path");
+
+    route2.handler(ctx -> {
       // This handler will be called for the following request paths:
 
       // `/some/path`
@@ -83,22 +108,23 @@ public class WebExamples {
       // `/some/path/subdir`
     });
 
+
   }
 
   public void example3_1(Router router) {
 
     Route route = router.route().path("/some/path/*");
 
-    route.handler(routingContext -> {
+    route.handler(ctx -> {
       // This handler will be called for any path that starts with
       // `/some/path/`, e.g.
 
-      // `/some/path`
       // `/some/path/`
       // `/some/path/subdir`
       // `/some/path/subdir/blah.html`
       //
       // but not:
+      // `/some/path` the path is strict because it ends with slash
       // `/some/bath`
     });
 
@@ -108,7 +134,7 @@ public class WebExamples {
 
     Route route = router.route("/some/path/*");
 
-    route.handler(routingContext -> {
+    route.handler(ctx -> {
       // This handler will be called same as previous example
     });
 
@@ -116,15 +142,15 @@ public class WebExamples {
 
   public void example4_1(Router router) {
 
-    Route route = router.route(HttpMethod.POST, "/catalogue/products/:producttype/:productid/");
+    router
+      .route(HttpMethod.POST, "/catalogue/products/:productType/:productID/")
+      .handler(ctx -> {
 
-    route.handler(routingContext -> {
+        String productType = ctx.pathParam("productType");
+        String productID = ctx.pathParam("productID");
 
-      String productType = routingContext.request().getParam("producttype");
-      String productID = routingContext.request().getParam("productid");
-
-      // Do something with them...
-    });
+        // Do something with them...
+      });
 
   }
 
@@ -134,7 +160,7 @@ public class WebExamples {
     // Matches any path ending with 'foo'
     Route route = router.route().pathRegex(".*foo");
 
-    route.handler(routingContext -> {
+    route.handler(ctx -> {
 
       // This handler will be called for:
 
@@ -153,7 +179,7 @@ public class WebExamples {
 
     Route route = router.routeWithRegex(".*foo");
 
-    route.handler(routingContext -> {
+    route.handler(ctx -> {
 
       // This handler will be called same as previous example
 
@@ -166,15 +192,32 @@ public class WebExamples {
     Route route = router.routeWithRegex(".*foo");
 
     // This regular expression matches paths that start with something like:
-    // "/foo/bar" - where the "foo" is captured into param0 and the "bar" is captured into
-    // param1
-    route.pathRegex("\\/([^\\/]+)\\/([^\\/]+)").handler(routingContext -> {
+    // "/foo/bar" - where the "foo" is captured into param0 and the "bar" is
+    // captured into param1
+    route.pathRegex("\\/([^\\/]+)\\/([^\\/]+)").handler(ctx -> {
 
-      String productType = routingContext.request().getParam("param0");
-      String productID = routingContext.request().getParam("param1");
+      String productType = ctx.pathParam("param0");
+      String productID = ctx.pathParam("param1");
 
       // Do something with them...
     });
+
+  }
+
+  public void example6_2(Router router) {
+
+    // This regular expression matches paths that start with
+    // something like: "/foo/bar". It uses named regex groups
+    // to capture path params
+    router
+      .routeWithRegex("\\/(?<productType>[^\\/]+)\\/(?<productID>[^\\/]+)")
+      .handler(ctx -> {
+
+        String productType = ctx.pathParam("productType");
+        String productID = ctx.pathParam("productID");
+
+        // Do something with them...
+      });
 
   }
 
@@ -182,7 +225,7 @@ public class WebExamples {
 
     Route route = router.route().method(HttpMethod.POST);
 
-    route.handler(routingContext -> {
+    route.handler(ctx -> {
 
       // This handler will be called for any POST request
 
@@ -194,37 +237,37 @@ public class WebExamples {
 
     Route route = router.route(HttpMethod.POST, "/some/path/");
 
-    route.handler(routingContext -> {
-
-      // This handler will be called for any POST request to a URI path starting with /some/path/
-
+    route.handler(ctx -> {
+      // This handler will be called for any POST request
+      // to a URI path starting with /some/path/
     });
 
   }
 
   public void example8_1(Router router) {
 
-    router.get().handler(routingContext -> {
+    router.get().handler(ctx -> {
 
       // Will be called for any GET request
 
     });
 
-    router.get("/some/path/").handler(routingContext -> {
+    router.get("/some/path/").handler(ctx -> {
 
       // Will be called for any GET request to a path
       // starting with /some/path
 
     });
 
-    router.getWithRegex(".*foo").handler(routingContext -> {
+    router.getWithRegex(".*foo").handler(ctx -> {
 
       // Will be called for any GET request to a path
       // ending with `foo`
 
     });
 
-    // There are also equivalents to the above for PUT, POST, DELETE, HEAD and OPTIONS
+    // There are also equivalents to the above for:
+    // PUT, POST, DELETE, HEAD and OPTIONS
 
   }
 
@@ -232,7 +275,7 @@ public class WebExamples {
 
     Route route = router.route().method(HttpMethod.POST).method(HttpMethod.PUT);
 
-    route.handler(routingContext -> {
+    route.handler(ctx -> {
 
       // This handler will be called for any POST or PUT request
 
@@ -240,171 +283,210 @@ public class WebExamples {
 
   }
 
+  public void example9_1(Router router) {
+
+    Route route = router.route()
+      .method(HttpMethod.valueOf("MKCOL"))
+      .handler(ctx -> {
+        // This handler will be called for any MKCOL request
+      });
+
+  }
+
   public void example10(Router router) {
 
-    Route route1 = router.route("/some/path/").handler(routingContext -> {
+    router
+      .route("/some/path/")
+      .handler(ctx -> {
 
-      HttpServerResponse response = routingContext.response();
-      // enable chunked responses because we will be adding data as
-      // we execute over other handlers. This is only required once and
-      // only if several handlers do output.
-      response.setChunked(true);
+        HttpServerResponse response = ctx.response();
+        // enable chunked responses because we will be adding data as
+        // we execute over other handlers. This is only required once and
+        // only if several handlers do output.
+        response.setChunked(true);
 
-      response.write("route1\n");
+        response.write("route1\n");
 
-      // Now call the next matching route
-      routingContext.next();
-    });
+        // Now call the next matching route
+        ctx.next();
+      });
 
-    Route route2 = router.route("/some/path/").handler(routingContext -> {
+    router
+      .route("/some/path/")
+      .handler(ctx -> {
 
-      HttpServerResponse response = routingContext.response();
-      response.write("route2\n");
+        HttpServerResponse response = ctx.response();
+        response.write("route2\n");
 
-      // Now call the next matching route
-      routingContext.next();
-    });
+        // Now call the next matching route
+        ctx.next();
+      });
 
-    Route route3 = router.route("/some/path/").handler(routingContext -> {
+    router
+      .route("/some/path/")
+      .handler(ctx -> {
 
-      HttpServerResponse response = routingContext.response();
-      response.write("route3");
+        HttpServerResponse response = ctx.response();
+        response.write("route3");
 
-      // Now end the response
-      routingContext.response().end();
-    });
+        // Now end the response
+        ctx.response().end();
+      });
 
   }
 
   public void example11(Router router) {
 
-    Route route1 = router.route("/some/path/").handler(routingContext -> {
+    router
+      .route("/some/path/")
+      .order(1)
+      .handler(ctx -> {
 
-      HttpServerResponse response = routingContext.response();
-      response.write("route1\n");
+        HttpServerResponse response = ctx.response();
+        response.write("route1\n");
 
-      // Now call the next matching route
-      routingContext.next();
-    });
+        // Now call the next matching route
+        ctx.next();
+      });
 
-    Route route2 = router.route("/some/path/").handler(routingContext -> {
+    router
+      .route("/some/path/")
+      .order(0)
+      .handler(ctx -> {
 
-      HttpServerResponse response = routingContext.response();
-      // enable chunked responses because we will be adding data as
-      // we execute over other handlers. This is only required once and
-      // only if several handlers do output.
-      response.setChunked(true);
+        HttpServerResponse response = ctx.response();
+        // enable chunked responses because we will be adding data as
+        // we execute over other handlers. This is only required once and
+        // only if several handlers do output.
+        response.setChunked(true);
 
-      response.write("route2\n");
+        response.write("route2\n");
 
-      // Now call the next matching route
-      routingContext.next();
-    });
+        // Now call the next matching route
+        ctx.next();
+      });
 
-    Route route3 = router.route("/some/path/").handler(routingContext -> {
+    router
+      .route("/some/path/")
+      .order(2)
+      .handler(ctx -> {
 
-      HttpServerResponse response = routingContext.response();
-      response.write("route3");
+        HttpServerResponse response = ctx.response();
+        response.write("route3");
 
-      // Now end the response
-      routingContext.response().end();
-    });
-
-    // Change the order of route2 so it runs before route1
-    route2.order(-1);
+        // Now end the response
+        ctx.response().end();
+      });
   }
 
   public void example12(Router router) {
 
     // Exact match
-    router.route().consumes("text/html").handler(routingContext -> {
+    router.route()
+      .consumes("text/html")
+      .handler(ctx -> {
 
-      // This handler will be called for any request with
-      // content-type header set to `text/html`
+        // This handler will be called for any request with
+        // content-type header set to `text/html`
 
-    });
+      });
   }
 
   public void example13(Router router) {
 
     // Multiple exact matches
-    router.route().consumes("text/html").consumes("text/plain").handler(routingContext -> {
+    router.route()
+      .consumes("text/html")
+      .consumes("text/plain")
+      .handler(ctx -> {
 
-      // This handler will be called for any request with
-      // content-type header set to `text/html` or `text/plain`.
+        // This handler will be called for any request with
+        // content-type header set to `text/html` or `text/plain`.
 
-    });
+      });
   }
 
   public void example14(Router router) {
 
     // Sub-type wildcard match
-    router.route().consumes("text/*").handler(routingContext -> {
+    router.route()
+      .consumes("text/*")
+      .handler(ctx -> {
 
-      // This handler will be called for any request with top level type `text`
-      // e.g. content-type header set to `text/html` or `text/plain` will both match
+        // This handler will be called for any request
+        // with top level type `text` e.g. content-type
+        // header set to `text/html` or `text/plain`
+        // will both match
 
-    });
+      });
   }
 
   public void example15(Router router) {
 
     // Top level type wildcard match
-    router.route().consumes("*/json").handler(routingContext -> {
+    router.route()
+      .consumes("*/json")
+      .handler(ctx -> {
 
-      // This handler will be called for any request with sub-type json
-      // e.g. content-type header set to `text/json` or `application/json` will both match
+        // This handler will be called for any request with sub-type json
+        // e.g. content-type header set to `text/json` or
+        // `application/json` will both match
 
-    });
+      });
   }
 
   public void example16(Router router, String someJSON) {
 
-    router.route().produces("application/json").handler(routingContext -> {
+    router.route()
+      .produces("application/json")
+      .handler(ctx -> {
 
-      HttpServerResponse response = routingContext.response();
-      response.putHeader("content-type", "application/json");
-      response.write(someJSON).end();
+        HttpServerResponse response = ctx.response();
+        response.putHeader("content-type", "application/json");
+        response.end(someJSON);
 
-    });
+      });
   }
 
   public void example17(Router router, String whatever) {
 
     // This route can produce two different MIME types
-    router.route().produces("application/json").produces("text/html").handler(routingContext -> {
+    router.route()
+      .produces("application/json")
+      .produces("text/html")
+      .handler(ctx -> {
 
-      HttpServerResponse response = routingContext.response();
+        HttpServerResponse response = ctx.response();
 
-      // Get the actual MIME type acceptable
-      String acceptableContentType = routingContext.getAcceptableContentType();
+        // Get the actual MIME type acceptable
+        String acceptableContentType = ctx.getAcceptableContentType();
 
-      response.putHeader("content-type", acceptableContentType);
-      response.write(whatever).end();
-    });
+        response.putHeader("content-type", acceptableContentType);
+        response.end(whatever);
+      });
   }
 
   public void example18(Router router) {
 
-    Route route = router.route(HttpMethod.PUT, "myapi/orders")
-                        .consumes("application/json")
-                        .produces("application/json");
+    router.route(HttpMethod.PUT, "myapi/orders")
+      .consumes("application/json")
+      .produces("application/json")
+      .handler(ctx -> {
 
-    route.handler(routingContext -> {
+        // This would be match for any PUT method to paths starting
+        // with "myapi/orders" with a content-type of "application/json"
+        // and an accept header matching "application/json"
 
-      // This would be match for any PUT method to paths starting with "myapi/orders" with a
-      // content-type of "application/json"
-      // and an accept header matching "application/json"
-
-    });
+      });
 
   }
 
   public void example20(Router router) {
 
-    Route route1 = router.route("/some/path/").handler(routingContext -> {
+    Route route = router.route("/some/path/");
+    route.handler(ctx -> {
 
-      HttpServerResponse response = routingContext.response();
+      HttpServerResponse response = ctx.response();
       // enable chunked responses because we will be adding data as
       // we execute over other handlers. This is only required once and
       // only if several handlers do output.
@@ -413,38 +495,38 @@ public class WebExamples {
       response.write("route1\n");
 
       // Call the next matching route after a 5 second delay
-      routingContext.vertx().setTimer(5000, tid -> routingContext.next());
+      ctx.vertx().setTimer(5000, tid -> ctx.next());
     });
 
-    Route route2 = router.route("/some/path/").handler(routingContext -> {
+    route.handler(ctx -> {
 
-      HttpServerResponse response = routingContext.response();
+      HttpServerResponse response = ctx.response();
       response.write("route2\n");
 
       // Call the next matching route after a 5 second delay
-      routingContext.vertx().setTimer(5000, tid ->  routingContext.next());
+      ctx.vertx().setTimer(5000, tid -> ctx.next());
     });
 
-    Route route3 = router.route("/some/path/").handler(routingContext -> {
+    route.handler(ctx -> {
 
-      HttpServerResponse response = routingContext.response();
+      HttpServerResponse response = ctx.response();
       response.write("route3");
 
       // Now end the response
-      routingContext.response().end();
+      ctx.response().end();
     });
 
   }
 
   public void example20_1(Router router, SomeLegacyService service) {
 
-    router.route().blockingHandler(routingContext -> {
+    router.route().blockingHandler(ctx -> {
 
       // Do something that might take some time synchronously
       service.doSomethingThatBlocks();
 
       // Now call the next handler
-      routingContext.next();
+      ctx.next();
 
     });
   }
@@ -465,18 +547,18 @@ public class WebExamples {
 
   public void example21(Router router) {
 
-    router.get("/some/path").handler(routingContext -> {
+    router.get("/some/path").handler(ctx -> {
 
-      routingContext.put("foo", "bar");
-      routingContext.next();
+      ctx.put("foo", "bar");
+      ctx.next();
 
     });
 
-    router.get("/some/path/other").handler(routingContext -> {
+    router.get("/some/path/other").handler(ctx -> {
 
-      String bar = routingContext.get("foo");
+      String bar = ctx.get("foo");
       // Do something with bar
-      routingContext.response().end();
+      ctx.response().end();
 
     });
 
@@ -486,24 +568,24 @@ public class WebExamples {
 
     Router restAPI = Router.router(vertx);
 
-    restAPI.get("/products/:productID").handler(rc -> {
+    restAPI.get("/products/:productID").handler(ctx -> {
 
       // TODO Handle the lookup of the product....
-      rc.response().write(productJSON);
+      ctx.response().write(productJSON);
 
     });
 
-    restAPI.put("/products/:productID").handler(rc -> {
+    restAPI.put("/products/:productID").handler(ctx -> {
 
       // TODO Add a new product...
-      rc.response().end();
+      ctx.response().end();
 
     });
 
-    restAPI.delete("/products/:productID").handler(rc -> {
+    restAPI.delete("/products/:productID").handler(ctx -> {
 
       // TODO delete the product...
-      rc.response().end();
+      ctx.response().end();
 
     });
   }
@@ -527,7 +609,7 @@ public class WebExamples {
 
     Route route = router.get("/somepath/*");
 
-    route.failureHandler(frc -> {
+    route.failureHandler(ctx -> {
 
       // This will be called for failures that occur
       // when routing requests to paths starting with
@@ -540,7 +622,7 @@ public class WebExamples {
 
     Route route1 = router.get("/somepath/path1/");
 
-    route1.handler(routingContext -> {
+    route1.handler(ctx -> {
 
       // Let's say this throws a RuntimeException
       throw new RuntimeException("something happened!");
@@ -549,11 +631,11 @@ public class WebExamples {
 
     Route route2 = router.get("/somepath/path2");
 
-    route2.handler(routingContext -> {
+    route2.handler(ctx -> {
 
       // This one deliberately fails the request passing in the status code
       // E.g. 403 - Forbidden
-      routingContext.fail(403);
+      ctx.fail(403);
 
     });
 
@@ -565,7 +647,8 @@ public class WebExamples {
 
       int statusCode = failureRoutingContext.statusCode();
 
-      // Status code will be 500 for the RuntimeException or 403 for the other failure
+      // Status code will be 500 for the RuntimeException
+      // or 403 for the other failure
       HttpServerResponse response = failureRoutingContext.response();
       response.setStatusCode(statusCode).end("Sorry! Not today");
 
@@ -580,40 +663,53 @@ public class WebExamples {
 
   }
 
+  public void example27_1(Router router) {
+
+    router.route().handler(ctx -> {
+
+      HttpServerRequest request = ctx.request();
+
+      // Pause the request
+      request.pause();
+
+      someAsyncCall(result -> {
+
+        // Resume the request
+        request.resume();
+
+        // And continue processing
+        ctx.next();
+      });
+    });
+
+    // This body handler will be called for all routes
+    router.route().handler(BodyHandler.create());
+  }
+
+  private void someAsyncCall(Handler<Void> handler) {
+  }
+
   public void example28(Router router) {
 
     router.route().handler(BodyHandler.create());
 
-    router.post("/some/path/uploads").handler(routingContext -> {
+    router.post("/some/path/uploads").handler(ctx -> {
 
-      Set<FileUpload> uploads = routingContext.fileUploads();
+      Set<FileUpload> uploads = ctx.fileUploads();
       // Do something with uploads....
 
     });
   }
 
-  public void example29(Router router) {
+  public void example30(RoutingContext ctx) {
 
-    // This cookie handler will be called for all routes
-    router.route().handler(CookieHandler.create());
+    Cookie someCookie = ctx.getCookie("mycookie");
+    String cookieValue = someCookie.getValue();
 
-  }
+    // Do something with cookie...
 
-  public void example30(Router router) {
-
-    // This cookie handler will be called for all routes
-    router.route().handler(CookieHandler.create());
-
-    router.route("some/path/").handler(routingContext -> {
-
-      Cookie someCookie = routingContext.getCookie("mycookie");
-      String cookieValue = someCookie.getValue();
-
-      // Do something with cookie...
-
-      // Add a cookie - this will get written back in the response automatically
-      routingContext.addCookie(Cookie.cookie("othercookie", "somevalue"));
-    });
+    // Add a cookie - this will get written back in the response automatically
+    ctx.addCookie(Cookie.cookie("othercookie", "somevalue"));
   }
 
   public void example31(Vertx vertx) {
@@ -624,18 +720,23 @@ public class WebExamples {
     // Create a local session store specifying the local shared map name to use
     // This might be useful if you have more than one application in the same
     // Vert.x instance and want to use different maps for different applications
-    SessionStore store2 = LocalSessionStore.create(vertx, "myapp3.sessionmap");
+    SessionStore store2 = LocalSessionStore.create(
+      vertx,
+      "myapp3.sessionmap");
 
     // Create a local session store specifying the local shared map name to use and
     // setting the reaper interval for expired sessions to 10 seconds
-    SessionStore store3 = LocalSessionStore.create(vertx, "myapp3.sessionmap", 10000);
+    SessionStore store3 = LocalSessionStore.create(
+      vertx,
+      "myapp3.sessionmap",
+      10000);
 
   }
 
   public void example32() {
 
     // a clustered Vert.x
-    Vertx.clusteredVertx(new VertxOptions().setClustered(true), res -> {
+    Vertx.clusteredVertx(new VertxOptions(), res -> {
 
       Vertx vertx = res.result();
 
@@ -645,7 +746,9 @@ public class WebExamples {
       // Create a clustered session store specifying the distributed map name to use
       // This might be useful if you have more than one application in the cluster
       // and want to use different maps for different applications
-      SessionStore store2 = ClusteredSessionStore.create(vertx, "myclusteredapp3.sessionmap");
+      SessionStore store2 = ClusteredSessionStore.create(
+        vertx,
+        "myclusteredapp3.sessionmap");
     });
 
   }
@@ -654,21 +757,23 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    // We need a cookie handler first
-    router.route().handler(CookieHandler.create());
-
     // Create a clustered session store using defaults
     SessionStore store = ClusteredSessionStore.create(vertx);
 
     SessionHandler sessionHandler = SessionHandler.create(store);
 
+    // the session handler controls the cookie used for the session
+    // this includes configuring, for example, the same site policy
+    // like this, for strict same site policy.
+    sessionHandler.setCookieSameSite(CookieSameSite.STRICT);
+
     // Make sure all requests are routed through the session handler too
     router.route().handler(sessionHandler);
 
     // Now your application handlers
-    router.route("/somepath/blah/").handler(routingContext -> {
+    router.route("/somepath/blah/").handler(ctx -> {
 
-      Session session = routingContext.session();
+      Session session = ctx.session();
       session.put("foo", "bar");
       // etc
 
@@ -678,13 +783,12 @@ public class WebExamples {
 
   public void example34(SessionHandler sessionHandler, Router router) {
 
-    router.route().handler(CookieHandler.create());
     router.route().handler(sessionHandler);
 
     // Now your application handlers
-    router.route("/somepath/blah").handler(routingContext -> {
+    router.route("/somepath/blah").handler(ctx -> {
 
-      Session session = routingContext.session();
+      Session session = ctx.session();
 
       // Put some data from the session
       session.put("foo", "bar");
@@ -700,87 +804,102 @@ public class WebExamples {
   }
 
 
-  public void example37(Vertx vertx, AuthProvider authProvider, Router router) {
+  public void example37(Vertx vertx, AuthenticationProvider authProvider, Router router) {
 
-    router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-    AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
+    AuthenticationHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
   }
 
-  public void example38(Vertx vertx, AuthProvider authProvider, Router router) {
+  public void example38(Vertx vertx, AuthenticationProvider authProvider, Router router) {
 
-    router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-    router.route().handler(UserSessionHandler.create(authProvider));
 
-    AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
+    AuthenticationHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
     // All requests to paths starting with '/private/' will be protected
     router.route("/private/*").handler(basicAuthHandler);
 
-    router.route("/someotherpath").handler(routingContext -> {
+    router.route("/someotherpath").handler(ctx -> {
 
       // This will be public access - no login required
 
     });
 
-    router.route("/private/somepath").handler(routingContext -> {
+    router.route("/private/somepath").handler(ctx -> {
 
       // This will require a login
 
       // This will have the value true
-      boolean isAuthenticated = routingContext.user() != null;
+      boolean isAuthenticated = ctx.user() != null;
 
     });
   }
 
-  public void example39(Vertx vertx, AuthProvider authProvider, Router router) {
+  public void example39(Vertx vertx, AuthenticationProvider authProvider, Router router) {
 
-    router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-    router.route().handler(UserSessionHandler.create(authProvider));
-
-    AuthHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
     // All requests to paths starting with '/private/' will be protected
-    router.route("/private/*").handler(redirectAuthHandler);
+    router
+      .route("/private/*")
+      .handler(RedirectAuthHandler.create(authProvider));
 
     // Handle the actual login
-    router.route("/login").handler(FormLoginHandler.create(authProvider));
+    // One of your pages must POST form login data
+    router.post("/login").handler(FormLoginHandler.create(authProvider));
 
     // Set a static server to serve static resources, e.g. the login page
     router.route().handler(StaticHandler.create());
 
-    router.route("/someotherpath").handler(routingContext -> {
-      // This will be public access - no login required
-    });
+    router
+      .route("/someotherpath")
+      .handler(ctx -> {
+        // This will be public access - no login required
+      });
 
-    router.route("/private/somepath").handler(routingContext -> {
+    router
+      .route("/private/somepath")
+      .handler(ctx -> {
 
-      // This will require a login
+        // This will require a login
 
-      // This will have the value true
-      boolean isAuthenticated = routingContext.user() != null;
+        // This will have the value true
+        boolean isAuthenticated = ctx.user() != null;
 
-    });
+      });
 
   }
 
-  public void example40(AuthProvider authProvider, Router router) {
+  public void example40_a(AuthorizationProvider authProvider, Router router) {
+    // attest that all requests on the route match the required authorization
+    router.route().handler(
+      // create the handler that will perform the attestation
+      AuthorizationHandler.create(
+        // what to attest
+        PermissionBasedAuthorization.create("can-do-work"))
+        // where to lookup the authorizations for the user
+        .addAuthorizationProvider(authProvider));
+  }
 
-    AuthHandler listProductsAuthHandler = RedirectAuthHandler.create(authProvider);
-    listProductsAuthHandler.addAuthority("list_products");
 
-    // Need "list_products" authority to list products
-    router.route("/listproducts/*").handler(listProductsAuthHandler);
-
-    AuthHandler settingsAuthHandler = RedirectAuthHandler.create(authProvider);
-    settingsAuthHandler.addAuthority("role:admin");
+  public void example40(AuthorizationProvider authProvider, Router router) {
+    // Need "list_products" authorization to list products
+    router.route("/listproducts/*").handler(
+      // create the handler that will perform the attestation
+      AuthorizationHandler.create(
+        // what to attest
+        PermissionBasedAuthorization.create("list_products"))
+        // where to lookup the authorizations for the user
+        .addAuthorizationProvider(authProvider));
 
     // Only "admin" has access to /private/settings
-    router.route("/private/settings/*").handler(settingsAuthHandler);
-
+    router.route("/private/settings/*").handler(
+      // create the handler that will perform the attestation
+      AuthorizationHandler.create(
+        // what to attest
+        RoleBasedAuthorization.create("admin"))
+        .addAuthorizationProvider(authProvider));
   }
 
   public void example41(Router router) {
@@ -788,12 +907,16 @@ public class WebExamples {
     router.route("/static/*").handler(StaticHandler.create());
 
   }
+
   public void example41_0_1(Router router) {
 
     // Will only accept GET requests from origin "vertx.io"
-    router.route().handler(CorsHandler.create("vertx\\.io").allowedMethod(HttpMethod.GET));
+    router.route()
+      .handler(
+        CorsHandler.create("vertx\\.io")
+          .allowedMethod(HttpMethod.GET));
 
-    router.route().handler(routingContext -> {
+    router.route().handler(ctx -> {
 
       // Your app handlers
 
@@ -804,12 +927,12 @@ public class WebExamples {
 
     TemplateHandler handler = TemplateHandler.create(engine);
 
-    router.get("/dynamic").handler(routingContext -> {
+    router.get("/dynamic").handler(ctx -> {
 
-      routingContext.put("request_path", routingContext.request().path());
-      routingContext.put("session_data", routingContext.session().data());
+      ctx.put("request_path", ctx.request().path());
+      ctx.put("session_data", ctx.session().data());
 
-      routingContext.next();
+      ctx.next();
     });
 
     router.get("/dynamic/").handler(handler);
@@ -818,7 +941,8 @@ public class WebExamples {
 
   public void example41_3(Router router) {
 
-    // Any errors on paths beginning with '/somepath/' will be handled by this error handler
+    // Any errors on paths beginning with '/somepath/' will
+    // be handled by this error handler
     router.route("/somepath/").failureHandler(ErrorHandler.create());
 
   }
@@ -834,7 +958,8 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
+    SockJSHandlerOptions options = new SockJSHandlerOptions()
+      .setHeartbeatInterval(2000);
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
@@ -845,7 +970,8 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
+    SockJSHandlerOptions options = new SockJSHandlerOptions()
+      .setHeartbeatInterval(2000);
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
@@ -863,10 +989,9 @@ public class WebExamples {
     Router router = Router.router(vertx);
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-    BridgeOptions options = new BridgeOptions();
-    sockJSHandler.bridge(options);
-
-    router.route("/eventbus/*").handler(sockJSHandler);
+    SockJSBridgeOptions options = new SockJSBridgeOptions();
+    // mount the bridge on the router
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(options));
   }
 
   public void example46(Vertx vertx) {
@@ -877,76 +1002,83 @@ public class WebExamples {
 
 
     // Let through any messages sent to 'demo.orderMgr' from the client
-    PermittedOptions inboundPermitted1 = new PermittedOptions().setAddress("demo.orderMgr");
+    PermittedOptions inboundPermitted1 = new PermittedOptions()
+      .setAddress("demo.orderMgr");
 
-    // Allow calls to the address 'demo.persistor' from the client as long as the messages
-    // have an action field with value 'find' and a collection field with value
-    // 'albums'
-    PermittedOptions inboundPermitted2 = new PermittedOptions().setAddress("demo.persistor")
-        .setMatch(new JsonObject().put("action", "find")
-            .put("collection", "albums"));
+    // Allow calls to the address 'demo.persistor' from the client as
+    // long as the messages have an action field with value 'find'
+    // and a collection field with value 'albums'
+    PermittedOptions inboundPermitted2 = new PermittedOptions()
+      .setAddress("demo.persistor")
+      .setMatch(new JsonObject().put("action", "find")
+        .put("collection", "albums"));
 
     // Allow through any message with a field `wibble` with value `foo`.
-    PermittedOptions inboundPermitted3 = new PermittedOptions().setMatch(new JsonObject().put("wibble", "foo"));
+    PermittedOptions inboundPermitted3 = new PermittedOptions()
+      .setMatch(new JsonObject().put("wibble", "foo"));
 
     // First let's define what we're going to allow from server -> client
 
     // Let through any messages coming from address 'ticker.mystock'
-    PermittedOptions outboundPermitted1 = new PermittedOptions().setAddress("ticker.mystock");
+    PermittedOptions outboundPermitted1 = new PermittedOptions()
+      .setAddress("ticker.mystock");
 
-    // Let through any messages from addresses starting with "news." (e.g. news.europe, news.usa, etc)
-    PermittedOptions outboundPermitted2 = new PermittedOptions().setAddressRegex("news\\..+");
+    // Let through any messages from addresses starting with "news."
+    // (e.g. news.europe, news.usa, etc)
+    PermittedOptions outboundPermitted2 = new PermittedOptions()
+      .setAddressRegex("news\\..+");
 
     // Let's define what we're going to allow from client -> server
-    BridgeOptions options = new BridgeOptions().
-        addInboundPermitted(inboundPermitted1).
-        addInboundPermitted(inboundPermitted1).
-        addInboundPermitted(inboundPermitted3).
-        addOutboundPermitted(outboundPermitted1).
-        addOutboundPermitted(outboundPermitted2);
+    SockJSBridgeOptions options = new SockJSBridgeOptions().
+      addInboundPermitted(inboundPermitted1).
+      addInboundPermitted(inboundPermitted1).
+      addInboundPermitted(inboundPermitted3).
+      addOutboundPermitted(outboundPermitted1).
+      addOutboundPermitted(outboundPermitted2);
 
-    sockJSHandler.bridge(options);
-
-    router.route("/eventbus/*").handler(sockJSHandler);
+    // mount the bridge on the router
+    router.mountSubRouter("/eventbus", sockJSHandler.bridge(options));
   }
 
   public void example47() {
 
     // Let through any messages sent to 'demo.orderService' from the client
-    PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.orderService");
+    PermittedOptions inboundPermitted = new PermittedOptions()
+      .setAddress("demo.orderService");
 
     // But only if the user is logged in and has the authority "place_orders"
     inboundPermitted.setRequiredAuthority("place_orders");
 
-    BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
+    SockJSBridgeOptions options = new SockJSBridgeOptions()
+      .addInboundPermitted(inboundPermitted);
   }
 
-  public void example48(Vertx vertx, AuthProvider authProvider) {
+  public void example48(Vertx vertx, AuthenticationProvider authProvider) {
 
     Router router = Router.router(vertx);
 
     // Let through any messages sent to 'demo.orderService' from the client
-    PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.orderService");
+    PermittedOptions inboundPermitted = new PermittedOptions()
+      .setAddress("demo.orderService");
 
     // But only if the user is logged in and has the authority "place_orders"
     inboundPermitted.setRequiredAuthority("place_orders");
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-    sockJSHandler.bridge(new BridgeOptions().
-            addInboundPermitted(inboundPermitted));
 
     // Now set up some basic auth handling:
 
-    router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-    AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
+    AuthenticationHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
     router.route("/eventbus/*").handler(basicAuthHandler);
 
-
-    router.route("/eventbus/*").handler(sockJSHandler);
-
+    // mount the bridge on the router
+    router.mountSubRouter(
+      "/eventbus",
+      sockJSHandler.bridge(new SockJSBridgeOptions()
+        .addInboundPermitted(inboundPermitted)));
   }
 
   public void example48_1(Vertx vertx) {
@@ -954,25 +1086,32 @@ public class WebExamples {
     Router router = Router.router(vertx);
 
     // Let through any messages sent to 'demo.orderService' from the client
-    PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.orderService");
+    PermittedOptions inboundPermitted = new PermittedOptions()
+      .setAddress("demo.orderService");
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-    BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
+    SockJSBridgeOptions options = new SockJSBridgeOptions()
+      .addInboundPermitted(inboundPermitted);
 
-    sockJSHandler.bridge(options, be -> {
-      if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.SEND) {
-        // Add some headers
-        JsonObject headers = new JsonObject().put("header1", "val").put("header2", "val2");
-        JsonObject rawMessage = be.getRawMessage();
-        rawMessage.put("headers", headers);
-        be.setRawMessage(rawMessage);
-      }
-      be.complete(true);
-    });
+    // mount the bridge on the router
+    router.mountSubRouter(
+      "/eventbus",
+      sockJSHandler.bridge(options, be -> {
+        if (
+          be.type() == BridgeEventType.PUBLISH ||
+            be.type() == BridgeEventType.SEND) {
 
-    router.route("/eventbus").handler(sockJSHandler);
+          // Add some headers
+          JsonObject headers = new JsonObject()
+            .put("header1", "val")
+            .put("header2", "val2");
 
-
+          JsonObject rawMessage = be.getRawMessage();
+          rawMessage.put("headers", headers);
+          be.setRawMessage(rawMessage);
+        }
+        be.complete(true);
+      }));
   }
 
   public void example49(Vertx vertx) {
@@ -980,42 +1119,69 @@ public class WebExamples {
     Router router = Router.router(vertx);
 
     // Let through any messages sent to 'demo.orderMgr' from the client
-    PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.someService");
+    PermittedOptions inboundPermitted = new PermittedOptions()
+      .setAddress("demo.someService");
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-    BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
+    SockJSBridgeOptions options = new SockJSBridgeOptions()
+      .addInboundPermitted(inboundPermitted);
 
-    sockJSHandler.bridge(options, be -> {
-      if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.RECEIVE) {
-        if (be.getRawMessage().getString("body").equals("armadillos")) {
-          // Reject it
-          be.complete(false);
-          return;
+    // mount the bridge on the router
+    router
+      .mountSubRouter("/eventbus", sockJSHandler
+        .bridge(options, be -> {
+          if (be.type() == BridgeEventType.PUBLISH ||
+            be.type() == BridgeEventType.RECEIVE) {
+
+            if (be.getRawMessage().getString("body").equals("armadillos")) {
+              // Reject it
+              be.complete(false);
+              return;
+            }
+          }
+          be.complete(true);
+        }));
+  }
+
+  public void handleSocketIdle(Vertx vertx, PermittedOptions inboundPermitted) {
+    Router router = Router.router(vertx);
+
+    // Initialize SockJS handler
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+    SockJSBridgeOptions options = new SockJSBridgeOptions()
+      .addInboundPermitted(inboundPermitted)
+      .setPingTimeout(5000);
+
+    // mount the bridge on the router
+    router
+      .mountSubRouter("/eventbus", sockJSHandler.bridge(options, be -> {
+        if (be.type() == BridgeEventType.SOCKET_IDLE) {
+          // Do some custom handling...
         }
-      }
-      be.complete(true);
-    });
 
-    router.route("/eventbus").handler(sockJSHandler);
-
-
+        be.complete(true);
+      }));
   }
 
   public void example50(Vertx vertx) {
 
     Router router = Router.router(vertx);
 
-    JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-        .put("type", "jceks")
-        .put("path", "keystore.jceks")
-        .put("password", "secret"));
+    JWTAuthOptions authConfig = new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret"));
 
-    JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
+    JWTAuth jwt = JWTAuth.create(vertx, authConfig);
 
     router.route("/login").handler(ctx -> {
       // this is an example, authentication should be done with another provider...
-      if ("paulo".equals(ctx.request().getParam("username")) && "secret".equals(ctx.request().getParam("password"))) {
-        ctx.response().end(authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions()));
+      if (
+        "paulo".equals(ctx.request().getParam("username")) &&
+          "secret".equals(ctx.request().getParam("password"))) {
+        ctx.response()
+          .end(jwt.generateToken(new JsonObject().put("sub", "paulo")));
       } else {
         ctx.fail(401);
       }
@@ -1026,10 +1192,11 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-        .put("type", "jceks")
-        .put("path", "keystore.jceks")
-        .put("password", "secret"));
+    JWTAuthOptions authConfig = new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret"));
 
     JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
@@ -1042,59 +1209,62 @@ public class WebExamples {
 
   public void example52(Vertx vertx) {
 
-    JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-        .put("type", "jceks")
-        .put("path", "keystore.jceks")
-        .put("password", "secret"));
+    JWTAuthOptions authConfig = new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret"));
 
     JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
-    authProvider.generateToken(new JsonObject().put("sub", "paulo").put("someKey", "some value"), new JWTOptions());
+    authProvider
+      .generateToken(
+        new JsonObject()
+          .put("sub", "paulo")
+          .put("someKey", "some value"),
+        new JWTOptions());
   }
 
   public void example53(Vertx vertx) {
 
-    Handler<RoutingContext> handler = rc -> {
-      String theSubject = rc.user().principal().getString("sub");
-      String someKey = rc.user().principal().getString("someKey");
+    Handler<RoutingContext> handler = ctx -> {
+      String theSubject = ctx.user().principal().getString("sub");
+      String someKey = ctx.user().principal().getString("someKey");
     };
   }
 
-  public void example54(Router router) {
+  public void example54(Vertx vertx, Router router) {
 
-    router.route().handler(CookieHandler.create());
-    router.route().handler(CSRFHandler.create("abracadabra"));
-    router.route().handler(rc -> {
+    router.route().handler(CSRFHandler.create(vertx, "abracadabra"));
+    router.route().handler(ctx -> {
 
     });
   }
 
   public void example55(Router router) {
 
-    router.get("/some/path").handler(routingContext -> {
+    router.get("/some/path").handler(ctx -> {
 
-      routingContext.put("foo", "bar");
-      routingContext.next();
+      ctx.put("foo", "bar");
+      ctx.next();
 
     });
 
-    router.get("/some/path/B").handler(routingContext -> {
-      routingContext.response().end();
-    });
+    router
+      .get("/some/path/B")
+      .handler(ctx -> ctx.response().end());
 
-    router.get("/some/path").handler(routingContext -> {
-      routingContext.reroute("/some/path/B");
-    });
+    router
+      .get("/some/path")
+      .handler(ctx -> ctx.reroute("/some/path/B"));
 
   }
 
   public void example55b(Router router) {
 
-    router.get("/my-pretty-notfound-handler").handler(ctx -> {
-      ctx.response()
-              .setStatusCode(404)
-              .end("NOT FOUND fancy html here!!!");
-    });
+    router.get("/my-pretty-notfound-handler").handler(ctx -> ctx.response()
+      .setStatusCode(404)
+      .end("NOT FOUND fancy html here!!!"));
 
     router.get().failureHandler(ctx -> {
       if (ctx.statusCode() == 404) {
@@ -1105,47 +1275,66 @@ public class WebExamples {
     });
   }
 
+  public void example55c(Router router) {
+
+    router.get("/final-target").handler(ctx -> {
+      // continue from here...
+    });
+
+    // THE WRONG WAY! (Will reroute to /final-target excluding the query string)
+    router.get().handler(ctx -> ctx.reroute("/final-target?variable=value"));
+
+    // THE CORRECT WAY!
+    router.get().handler(ctx -> ctx
+      .put("variable", "value")
+      .reroute("/final-target"));
+  }
+
   public void example56(Router router) {
-    router.route().handler(VirtualHostHandler.create("*.vertx.io", routingContext -> {
+    router.route().virtualHost("*.vertx.io").handler(ctx -> {
       // do something if the request is for *.vertx.io
-    }));
+    });
   }
 
   public void example57(Router router) {
 
-    Route route = router.get("/localized").handler( rc -> {
+    Route route = router.get("/localized").handler(ctx -> {
       // although it might seem strange by running a loop with a switch we
       // make sure that the locale order of preference is preserved when
       // replying in the users language.
-      for (LanguageHeader language : rc.acceptableLanguages()) {
+      for (LanguageHeader language : ctx.acceptableLanguages()) {
         switch (language.tag()) {
           case "en":
-            rc.response().end("Hello!");
+            ctx.response().end("Hello!");
             return;
           case "fr":
-            rc.response().end("Bonjour!");
+            ctx.response().end("Bonjour!");
             return;
           case "pt":
-            rc.response().end("Olá!");
+            ctx.response().end("Olá!");
             return;
           case "es":
-            rc.response().end("Hola!");
+            ctx.response().end("Hola!");
             return;
         }
       }
       // we do not know the user language so lets just inform that back:
-      rc.response().end("Sorry we don't speak: " + rc.preferredLocale());
+      ctx.response().end("Sorry we don't speak: " + ctx.preferredLanguage());
     });
   }
 
   public void example58(Vertx vertx, Router router) {
 
-    // create an OAuth2 provider, clientID and clientSecret should be requested to github
-    OAuth2Auth authProvider = GithubAuth.create(vertx, "CLIENT_ID", "CLIENT_SECRET");
+    // create an OAuth2 provider, clientID and clientSecret
+    // should be requested to github
+    OAuth2Auth authProvider = GithubAuth
+      .create(vertx, "CLIENT_ID", "CLIENT_SECRET");
 
     // create a oauth2 handler on our running server
-    // the second argument is the full url to the callback as you entered in your provider management console.
-    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "https://myserver.com/callback");
+    // the second argument is the full url to the
+    // callback as you entered in your provider management console.
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler
+      .create(vertx, authProvider, "https://myserver.com/callback");
 
     // setup the callback handler for receiving the GitHub callback
     oauth2.setupCallback(router.route());
@@ -1153,31 +1342,36 @@ public class WebExamples {
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2);
     // mount some handler under the protected zone
-    router.route("/protected/somepage").handler(rc -> {
-      rc.response().end("Welcome to the protected resource!");
-    });
+    router
+      .route("/protected/somepage")
+      .handler(ctx -> ctx.response().end("Welcome to the protected resource!"));
 
     // welcome page
-    router.get("/").handler(ctx -> {
-      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>");
-    });
+    router
+      .get("/")
+      .handler(ctx -> ctx.response()
+        .putHeader("content-type", "text/html")
+        .end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>"));
   }
 
   public void example59(Vertx vertx, Router router) {
 
-    // create an OAuth2 provider, clientID and clientSecret should be requested to Google
-    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
-        .setClientID("CLIENT_ID")
-        .setClientSecret("CLIENT_SECRET")
-        .setSite("https://accounts.google.com")
-        .setTokenPath("https://www.googleapis.com/oauth2/v3/token")
-        .setAuthorizationPath("/o/oauth2/auth"));
+    // create an OAuth2 provider, clientID and clientSecret
+    // should be requested to Google
+    OAuth2Auth authProvider = OAuth2Auth.create(vertx, new OAuth2Options()
+      .setClientID("CLIENT_ID")
+      .setClientSecret("CLIENT_SECRET")
+      .setFlow(OAuth2FlowType.AUTH_CODE)
+      .setSite("https://accounts.google.com")
+      .setTokenPath("https://www.googleapis.com/oauth2/v3/token")
+      .setAuthorizationPath("/o/oauth2/auth"));
 
     // create a oauth2 handler on our domain: "http://localhost:8080"
-    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler
+      .create(vertx, authProvider, "http://localhost:8080");
 
     // these are the scopes
-    oauth2.addAuthority("profile");
+    oauth2.withScope("profile");
 
     // setup the callback handler for receiving the Google callback
     oauth2.setupCallback(router.get("/callback"));
@@ -1185,51 +1379,447 @@ public class WebExamples {
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2);
     // mount some handler under the protected zone
-    router.route("/protected/somepage").handler(rc -> {
-      rc.response().end("Welcome to the protected resource!");
-    });
+    router
+      .route("/protected/somepage")
+      .handler(ctx -> ctx.response().end("Welcome to the protected resource!"));
 
     // welcome page
-    router.get("/").handler(ctx -> {
-      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>");
-    });
+    router
+      .get("/")
+      .handler(ctx -> ctx.response()
+        .putHeader("content-type", "text/html")
+        .end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>"));
   }
+
   public void example61(Vertx vertx, Router router, OAuth2Auth provider) {
-    // create a oauth2 handler pinned to myserver.com: "https://myserver.com:8447/callback"
-    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(provider, "https://myserver.com:8447/callback");
+    // create a oauth2 handler pinned to
+    // myserver.com: "https://myserver.com:8447/callback"
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler
+      .create(vertx, provider, "https://myserver.com:8447/callback");
+
     // now allow the handler to setup the callback url for you
     oauth2.setupCallback(router.route());
   }
 
   public void example62(Vertx vertx, Router router) {
+    // To simplify the development of the web components
+    // we use a Router to route all HTTP requests
+    // to organize our code in a reusable way.
 
-    // create an OAuth2 provider, clientID and clientSecret should be requested to Azure AD
-    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
-            .setClientID("APPLICATION_ID")
-            .setClientSecret("APPLICATION_KEYS_SECRET")
-            .setSite("https://login.windows.net/YOUR_CLIENT_GUID")
-            .setAuthorizationPath("/oauth2/token")
-            .setTokenPath("/oauth2/authorize"));
-
-    // create a oauth2 handler (Azure requires HTTPS) and your resource GUID
-    OAuth2AuthHandler oauth2 = OAuth2AuthHandler
-            .create(authProvider, "https://localhost:8443")
-            .extraParams(new JsonObject().put("resource", "00000002-0000-0000-c000-000000000000"));
-
-    // setup the callback handler for receiving the LinkedIn callback
-    oauth2.setupCallback(router.get("/callback"));
-
-    // protect everything under /protected
-    router.route("/protected/*").handler(oauth2);
-    // mount some handler under the protected zone
-    router.route("/protected/somepage").handler(rc -> {
-      rc.response().end("Welcome to the protected resource!");
-    });
-
-    // welcome page
-    router.get("/").handler(ctx -> {
-      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>");
+    // Simple auth service which uses a GitHub to
+    // authenticate the user
+    OAuth2Auth authProvider =
+      GithubAuth
+        .create(vertx, "CLIENTID", "CLIENT SECRET");
+    // We need a user session handler too to make sure
+    // the user is stored in the session between requests
+    router.route()
+      .handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+    // we now protect the resource under the path "/protected"
+    router.route("/protected").handler(
+      OAuth2AuthHandler.create(vertx, authProvider)
+        // we now configure the oauth2 handler, it will
+        // setup the callback handler
+        // as expected by your oauth2 provider.
+        .setupCallback(router.route("/callback"))
+        // for this resource we require that users have
+        // the authority to retrieve the user emails
+        .withScope("user:email")
+    );
+    // Entry point to the application, this will render
+    // a custom template.
+    router.get("/").handler(ctx -> ctx.response()
+      .putHeader("Content-Type", "text/html")
+      .end(
+        "<html>\n" +
+          "  <body>\n" +
+          "    <p>\n" +
+          "      Well, hello there!\n" +
+          "    </p>\n" +
+          "    <p>\n" +
+          "      We're going to the protected resource, if there is no\n" +
+          "      user in the session we will talk to the GitHub API. Ready?\n" +
+          "      <a href=\"/protected\">Click here</a> to begin!</a>\n" +
+          "    </p>\n" +
+          "    <p>\n" +
+          "      <b>If that link doesn't work</b>, remember to provide your\n" +
+          "      own <a href=\"https://github.com/settings/applications/new\">\n" +
+          "      Client ID</a>!\n" +
+          "    </p>\n" +
+          "  </body>\n" +
+          "</html>"));
+    // The protected resource
+    router.get("/protected").handler(ctx -> {
+      // at this moment your user object should contain the info
+      // from the Oauth2 response, since this is a protected resource
+      // as specified above in the handler config the user object is never null
+      User user = ctx.user();
+      // just dump it to the client for demo purposes
+      ctx.response().end(user.toString());
     });
   }
-}
 
+  public void manualContentType(Router router) {
+    router
+      .get("/api/books")
+      .produces("application/json")
+      .handler(ctx -> findBooks()
+        .onSuccess(books -> ctx.response()
+          .putHeader("Content-Type", "application/json")
+          .end(toJson(books))).onFailure(ctx::fail));
+  }
+
+  public void contentTypeHandler(Router router) {
+    router.route("/api/*").handler(ResponseContentTypeHandler.create());
+    router
+      .get("/api/books")
+      .produces("application/json")
+      .handler(ctx -> findBooks()
+        .onSuccess(books -> ctx.response()
+          .end(toJson(books))).onFailure(ctx::fail));
+  }
+
+  private Future<List<Book>> findBooks() {
+    throw new UnsupportedOperationException();
+  }
+
+  class Book {
+  }
+
+  Buffer toJson(List<Book> books) {
+    throw new UnsupportedOperationException();
+  }
+
+  Buffer toXML(List<Book> books) {
+    throw new UnsupportedOperationException();
+  }
+
+  public void mostAcceptableContentTypeHandler(Router router) {
+    router.route("/api/*").handler(ResponseContentTypeHandler.create());
+
+    router
+      .get("/api/books")
+      .produces("text/xml")
+      .produces("application/json")
+      .handler(ctx -> findBooks()
+        .onSuccess(books -> {
+          if (ctx.getAcceptableContentType().equals("text/xml")) {
+            ctx.response().end(toXML(books));
+          } else {
+            ctx.response().end(toJson(books));
+          }
+        })
+        .onFailure(ctx::fail));
+  }
+
+  public void example63(Router router, AuthenticationProvider provider) {
+
+    ChainAuthHandler chain = ChainAuthHandler.any();
+
+    // add http basic auth handler to the chain
+    chain.add(BasicAuthHandler.create(provider));
+    // add form redirect auth handler to the chain
+    chain.add(RedirectAuthHandler.create(provider));
+
+    // secure your route
+    router.route("/secure/resource").handler(chain);
+    // your app
+    router.route("/secure/resource").handler(ctx -> {
+      // do something...
+    });
+  }
+
+  public void example64(Router router) {
+    router.route().handler(MethodOverrideHandler.create());
+
+    router.route(HttpMethod.GET, "/").handler(ctx -> {
+      // do GET stuff...
+    });
+
+    router.route(HttpMethod.POST, "/").handler(ctx -> {
+      // do POST stuff...
+    });
+  }
+
+  public void example65(Router router) {
+    router.route().handler(MethodOverrideHandler.create(false));
+
+    router.route(HttpMethod.GET, "/").handler(ctx -> {
+      // do GET stuff...
+    });
+
+    router.route(HttpMethod.POST, "/").handler(ctx -> {
+      // do POST stuff...
+    });
+  }
+
+  public void example66(RoutingContext ctx, Buffer pdfBuffer) {
+    ctx
+      .attachment("weekly-report.pdf")
+      .end(pdfBuffer);
+  }
+
+  public void example67(RoutingContext ctx) {
+
+    ctx.redirect("https://securesite.com/");
+
+    // there is a special handling for the target "back".
+    // In this case the redirect would send the user to the
+    // referrer url or "/" if there's no referrer.
+
+    ctx.redirect("back");
+  }
+
+  public void example68(RoutingContext ctx, Object someObject) {
+    // no need to specify the content type headers
+    ctx.json(new JsonObject().put("hello", "vert.x"));
+    // also applies to arrays
+    ctx.json(new JsonArray().add("vertx").add("web"));
+    // or any object that will be converted according
+    // to the json encoder available at runtime.
+    ctx.json(someObject);
+  }
+
+  public void example69(RoutingContext ctx) {
+    // Check if the incoming request contains the "Content-Type"
+    // get field, and it contains the give mime `type`.
+    // If there is no request body, `false` is returned.
+    // If there is no content type, `false` is returned.
+    // Otherwise, it returns true if the `type` that matches.
+
+    // With Content-Type: text/html; getCharset=utf-8
+    ctx.is("html"); // => true
+    ctx.is("text/html"); // => true
+
+    // When Content-Type is application/json
+    ctx.is("application/json"); // => true
+    ctx.is("html"); // => false
+  }
+
+  public void example70(RoutingContext ctx) {
+    // set the response resource meta data
+    ctx.lastModified("Wed, 13 Jul 2011 18:30:00 GMT");
+    // this will now be used to verify the freshness of the request
+    if (ctx.isFresh()) {
+      // client cache value is fresh perhaps we
+      // can stop and return 304?
+    }
+  }
+
+  public void example71(RoutingContext ctx, Buffer buffer) {
+    // this response etag with a given value
+    ctx.etag("W/123456789");
+
+    // set the last modified value
+    ctx.lastModified("Wed, 13 Jul 2011 18:30:00 GMT");
+
+    // quickly end
+    ctx.end();
+    ctx.end("body");
+    ctx.end(buffer);
+  }
+
+  public void example72(Router router) {
+    router.route().handler(MultiTenantHandler.create("X-Tenant"));
+  }
+
+  public void example73() {
+    MultiTenantHandler.create("X-Tenant")
+      .addTenantHandler("tenant-A", ctx -> {
+        // do something for tenant A...
+      })
+      .addTenantHandler("tenant-B", ctx -> {
+        // do something for tenant B...
+      })
+      // optionally
+      .addDefaultHandler(ctx -> {
+        // do something when no tenant matches...
+      });
+
+  }
+
+  public void example74(Vertx vertx, Router router) {
+    // create an OAuth2 provider, clientID and clientSecret
+    // should be requested to github
+    OAuth2Auth gitHubAuthProvider = GithubAuth
+      .create(vertx, "CLIENT_ID", "CLIENT_SECRET");
+
+    // create a oauth2 handler on our running server
+    // the second argument is the full url to the callback
+    // as you entered in your provider management console.
+    OAuth2AuthHandler githubOAuth2 = OAuth2AuthHandler.create(
+      vertx,
+      gitHubAuthProvider,
+      "https://myserver.com/github-callback");
+
+    // setup the callback handler for receiving the GitHub callback
+    githubOAuth2.setupCallback(router.route());
+
+    // create an OAuth2 provider, clientID and clientSecret
+    // should be requested to Google
+    OAuth2Auth googleAuthProvider = OAuth2Auth.create(vertx, new OAuth2Options()
+      .setClientID("CLIENT_ID")
+      .setClientSecret("CLIENT_SECRET")
+      .setFlow(OAuth2FlowType.AUTH_CODE)
+      .setSite("https://accounts.google.com")
+      .setTokenPath("https://www.googleapis.com/oauth2/v3/token")
+      .setAuthorizationPath("/o/oauth2/auth"));
+
+    // create a oauth2 handler on our domain: "http://localhost:8080"
+    OAuth2AuthHandler googleOAuth2 = OAuth2AuthHandler.create(
+      vertx,
+      googleAuthProvider,
+      "https://myserver.com/google-callback");
+
+    // setup the callback handler for receiving the Google callback
+    googleOAuth2.setupCallback(router.route());
+
+    // At this point the 2 callbacks endpoints are registered:
+
+    // /github-callback -> handle github Oauth2 callbacks
+    // /google-callback -> handle google Oauth2 callbacks
+
+    // As the callbacks are made by the IdPs there's no header
+    // to identify the source, hence the need of custom URLs
+
+    // However for out Application we can control it so later
+    // we can add the right handler for the right tenant
+
+    router.route().handler(
+      MultiTenantHandler.create("X-Tenant")
+        // tenants using github should go this way:
+        .addTenantHandler("github", githubOAuth2)
+        // tenants using google should go this way:
+        .addTenantHandler("google", googleOAuth2)
+        // all other should be forbidden
+        .addDefaultHandler(ctx -> ctx.fail(401)));
+
+    // Proceed using the router as usual.
+  }
+
+  public void example81(Router router) {
+
+    router.route().handler(ctx -> {
+      // the default key is "tenant" as defined in
+      // MultiTenantHandler.TENANT but this value can be
+      // modified at creation time in the factory method
+      String tenant = ctx.get(MultiTenantHandler.TENANT);
+
+      switch(tenant) {
+        case "google":
+          // do something for google users
+          break;
+        case "github":
+          // so something for github users
+          break;
+      }
+    });
+  }
+
+  public void example75(Vertx vertx, Router router, CredentialStore authStore) {
+    // create the webauthn security object
+    WebAuthn webAuthn = WebAuthn.create(
+      vertx,
+      new WebAuthnOptions()
+        .setOrigin("https://192.168.178.74.xip.io:8443")
+        .setRelayParty(new RelayParty().setName("Vert.x WebAuthN Demo"))
+        // What kind of authentication do you want? do you care?
+        // if you care you can specify it (choose one of the 2)
+
+        // # security keys
+        .setAuthenticatorAttachment(AuthenticatorAttachment.CROSS_PLATFORM)
+        .setRequireResidentKey(false)
+        // # fingerprint
+        .setAuthenticatorAttachment(AuthenticatorAttachment.PLATFORM)
+        .setRequireResidentKey(false)
+        .setUserVerification(UserVerification.REQUIRED),
+      // where to load the credentials from?
+      authStore);
+
+    // parse the BODY
+    router.post()
+      .handler(BodyHandler.create());
+    // add a session handler
+    router.route()
+      .handler(SessionHandler
+        .create(LocalSessionStore.create(vertx)));
+
+    // security handler
+    WebAuthnHandler webAuthNHandler = WebAuthnHandler.create(webAuthn)
+      // required callback
+      .setupCallback(router.post("/webauthn/response"))
+      // optional register callback
+      .setupCredentialsCreateCallback(router.post("/webauthn/register"))
+      // optional login callback
+      .setupCredentialsGetCallback(router.post("/webauthn/login"));
+
+    // secure the remaining routes
+    router.route().handler(webAuthNHandler);
+  }
+
+  public void example76(Vertx vertx, Router router) {
+    // we can now allow forward header parsing
+    // and in this case only the "Forward" header will be considered
+    router.allowForward(AllowForwardHeaders.FORWARD);
+
+    // we can now allow forward header parsing
+    // and in this case only the "X-Forward" headers will be considered
+    router.allowForward(AllowForwardHeaders.X_FORWARD);
+
+    // we can now allow forward header parsing
+    // and in this case both the "Forward" header and "X-Forward" headers
+    // will be considered, yet the values from "Forward" take precedence
+    // this means if case of a conflict (2 headers for the same value)
+    // the "Forward" value will be taken and the "X-Forward" ignored.
+    router.allowForward(AllowForwardHeaders.ALL);
+  }
+
+  public void example77(Vertx vertx, Router router) {
+    // we explicitly not allow forward header parsing
+    // of any kind
+    router.allowForward(AllowForwardHeaders.NONE);
+  }
+
+  public void example78(Router router, AuthenticationHandler authNHandlerA, AuthenticationHandler authNHandlerB, AuthenticationHandler authNHandlerC) {
+
+    // Chain will verify (A Or (B And C))
+    ChainAuthHandler chain =
+      ChainAuthHandler.any()
+        .add(authNHandlerA)
+        .add(ChainAuthHandler.all()
+          .add(authNHandlerB)
+          .add(authNHandlerC));
+
+    // secure your route
+    router.route("/secure/resource").handler(chain);
+    // your app
+    router.route("/secure/resource").handler(ctx -> {
+      // do something...
+    });
+  }
+
+  public void example78(Router router, SessionHandler sessionHandler) {
+
+    router.route().handler(ctx -> sessionHandler.flush(ctx)
+      .onSuccess(v -> ctx.end("Success!"))
+      .onFailure(err -> {
+        // session wasn't saved...
+        // go for plan B
+      }));
+  }
+
+  public void example79(Router router, SessionStore store) {
+
+    router.route()
+      .handler(SessionHandler.create(store).setCookieless(true));
+  }
+
+  public void example80(Router router) {
+
+    // all responses will then include the right
+    // Strict-Transport-Security header if the
+    // connection is secure (using TLS/SSL, or
+    // the forwarding parsing is enabled
+    router.route().handler(HSTSHandler.create());
+  }
+}

@@ -16,18 +16,19 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpVersion;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.LoggerFormat;
 import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.Utils;
 
-import java.text.DateFormat;
-import java.util.Date;
+import java.util.function.Function;
 
 /** # Logger
  *
@@ -45,19 +46,17 @@ import java.util.Date;
  */
 public class LoggerHandlerImpl implements LoggerHandler {
 
-  private final io.vertx.core.logging.Logger logger = LoggerFactory.getLogger(this.getClass());
-
-  /** The Date formatter (UTC JS compatible format)
-   */
-  private final DateFormat dateTimeFormat = Utils.createRFC1123DateTimeFormatter();
+  private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
   /** log before request or after
    */
   private final boolean immediate;
 
-  /** the current choosen format
+  /** the current chosen format
    */
   private final LoggerFormat format;
+
+  private Function<HttpServerRequest, String> customFormatter;
 
   public LoggerHandlerImpl(boolean immediate, LoggerFormat format) {
     this.immediate = immediate;
@@ -99,21 +98,26 @@ public class LoggerHandlerImpl implements LoggerHandler {
       case HTTP_1_1:
         versionFormatted = "HTTP/1.1";
         break;
+      case HTTP_2:
+        versionFormatted = "HTTP/2.0";
+        break;
     }
 
+    final MultiMap headers = request.headers();
     int status = request.response().getStatusCode();
     String message = null;
 
     switch (format) {
       case DEFAULT:
-        String referrer = request.headers().get("referrer");
+        // as per RFC1945 the header is referer but it is not mandatory some implementations use referrer
+        String referrer = headers.contains("referrer") ? headers.get("referrer") : headers.get("referer");
         String userAgent = request.headers().get("user-agent");
         referrer = referrer == null ? "-" : referrer;
         userAgent = userAgent == null ? "-" : userAgent;
 
         message = String.format("%s - - [%s] \"%s %s %s\" %d %d \"%s\" \"%s\"",
           remoteClient,
-          dateTimeFormat.format(new Date(timestamp)),
+          Utils.formatRFC1123DateTime(timestamp),
           method,
           uri,
           versionFormatted,
@@ -140,6 +144,14 @@ public class LoggerHandlerImpl implements LoggerHandler {
           contentLength,
           (System.currentTimeMillis() - timestamp));
         break;
+      case CUSTOM:
+        try {
+          message = customFormatter.apply(request);
+        } catch (RuntimeException e) {
+          // if an error happens at the user side
+          // log it instead
+          message = e.getMessage();
+        }
     }
     doLog(status, message);
   }
@@ -171,5 +183,16 @@ public class LoggerHandlerImpl implements LoggerHandler {
 
     context.next();
 
+  }
+
+  @Override
+  public LoggerHandler customFormatter(Function<HttpServerRequest, String> formatter) {
+    if (format != LoggerFormat.CUSTOM) {
+      throw new IllegalStateException("Setting a formatter requires the handler to be set to CUSTOM format");
+    }
+
+    this.customFormatter = formatter;
+
+    return this;
   }
 }

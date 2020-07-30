@@ -35,12 +35,17 @@ package io.vertx.ext.web.handler.sockjs.impl;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.*;
-import io.vertx.core.http.CaseInsensitiveHeaders;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authorization.Authorization;
+import io.vertx.ext.auth.authorization.AuthorizationProvider;
+import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
+import io.vertx.ext.bridge.BridgeEventType;
+import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.sockjs.*;
 
@@ -73,10 +78,12 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   private final Map<String, Message> messagesAwaitingReply = new HashMap<>();
   private final Map<String, Pattern> compiledREs = new HashMap<>();
   private final Handler<BridgeEvent> bridgeEventHandler;
+  private final AuthorizationProvider authzProvider;
 
-  public EventBusBridgeImpl(Vertx vertx, BridgeOptions options, Handler<BridgeEvent> bridgeEventHandler) {
+  public EventBusBridgeImpl(Vertx vertx, AuthorizationProvider authzProvider, SockJSBridgeOptions options, Handler<BridgeEvent> bridgeEventHandler) {
     this.vertx = vertx;
     this.eb = vertx.eventBus();
+    this.authzProvider = authzProvider;
     this.inboundPermitted = options.getInboundPermitteds() == null ? new ArrayList<>() : options.getInboundPermitteds();
     this.outboundPermitted = options.getOutboundPermitteds() == null ? new ArrayList<>() : options.getOutboundPermitteds();
     this.maxAddressLength = options.getMaxAddressLength();
@@ -88,10 +95,10 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
 
   private void handleSocketClosed(SockJSSocket sock, Map<String, MessageConsumer> registrations) {
     // On close unregister any handlers that haven't been unregistered
-    registrations.entrySet().forEach(entry -> {
-      entry.getValue().unregister();
+    registrations.forEach((key, value) -> {
+      value.unregister();
       checkCallHook(() -> new BridgeEventImpl(BridgeEventType.UNREGISTER,
-              new JsonObject().put("type", "unregister").put("address", entry.getValue().address()), sock), null, null);
+        new JsonObject().put("type", "unregister").put("address", value.address()), sock), null, null);
     });
 
     SockInfo info = sockInfos.remove(sock);
@@ -158,10 +165,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }
     } else {
       BridgeEventImpl event = eventSupplier.get();
-      Future<Boolean> fut = Future.future();
-      event.setFuture(fut);
       bridgeEventHandler.handle(event);
-      fut.setHandler(res -> {
+      event.future().onComplete(res -> {
         if (res.succeeded()) {
           if (res.result()) {
             if (okAction != null) {
@@ -255,6 +260,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           MessageConsumer reg = eb.consumer(address).handler(handler);
           registrations.put(address, reg);
           info.handlerCount++;
+          // Notify registration completed
+          checkCallHook(() -> new BridgeEventImpl(BridgeEventType.REGISTERED, rawMsg, sock), null, null);
         } else {
           // inbound match failed
           if (debug) {
@@ -298,6 +305,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     SockInfo info = sockInfos.get(sock);
     if (info != null) {
       info.pingInfo.lastPing = System.currentTimeMillis();
+      // Trigger an event to allow custom behavior after updating lastPing
+      checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_PING, null, sock), null, null);
     }
   }
 
@@ -313,10 +322,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         PingInfo pingInfo = new PingInfo();
         pingInfo.timerID = vertx.setPeriodic(pingTimeout, id -> {
           if (System.currentTimeMillis() - pingInfo.lastPing >= pingTimeout) {
-        	// Trigger an event to allow custom behavior before disconnecting client.
-            checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_IDLE, null, sock), null, null);
-            // We didn't receive a ping in time so close the socket
-            sock.close();
+            // Trigger an event to allow custom behavior before disconnecting client.
+            checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_IDLE, null, sock),
+              // We didn't receive a ping in time so close the socket
+              ((SockJSSocketBase) sock)::closeAfterSessionExpired,
+              () -> replyError(sock, "rejected"));
           }
         });
         SockInfo sockInfo = new SockInfo();
@@ -402,7 +412,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
               }
             } else {
               replyError(sock, "auth_error");
-              log.error("Error in performing authorisation", res.cause());
+              log.error("Error in performing authorization", res.cause());
             }
           });
         } else {
@@ -451,11 +461,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           ReplyException cause = (ReplyException) result.cause();
           JsonObject envelope =
             new JsonObject()
-                .put("type", "err")
-                .put("address", replyAddress)
-                .put("failureCode", cause.failureCode())
-                .put("failureType", cause.failureType().name())
-                .put("message", cause.getMessage());
+              .put("type", "err")
+              .put("address", replyAddress)
+              .put("failureCode", cause.failureCode())
+              .put("failureType", cause.failureType().name())
+              .put("message", cause.getMessage());
           sock.write(buffer(envelope.encode()));
         }
         info.handlerCount--;
@@ -468,16 +478,24 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
     MultiMap mHeaders;
     if (headers != null) {
-      mHeaders = new CaseInsensitiveHeaders();
+      mHeaders = HttpHeaders.headers();
       headers.forEach(entry -> mHeaders.add(entry.getKey(), entry.getValue().toString()));
     } else {
       mHeaders = null;
     }
     if (send) {
       if (awaitingReply != null) {
-        awaitingReply.reply(body, new DeliveryOptions().setSendTimeout(replyTimeout).setHeaders(mHeaders), replyHandler);
+        if (replyAddress != null) {
+          awaitingReply.replyAndRequest(body, new DeliveryOptions().setSendTimeout(replyTimeout).setHeaders(mHeaders), replyHandler);
+        } else {
+          awaitingReply.reply(body, new DeliveryOptions().setSendTimeout(replyTimeout).setHeaders(mHeaders));
+        }
       } else {
-        eb.send(address, body, new DeliveryOptions().setSendTimeout(replyTimeout).setHeaders(mHeaders), replyHandler);
+        if (replyAddress != null) {
+          eb.request(address, body, new DeliveryOptions().setSendTimeout(replyTimeout).setHeaders(mHeaders), replyHandler);
+        } else {
+          eb.send(address, body, new DeliveryOptions().setSendTimeout(replyTimeout).setHeaders(mHeaders));
+        }
       }
       if (replyAddress != null) {
         info.handlerCount++;
@@ -487,18 +505,31 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
   }
 
-  private void authorise(Match curMatch, User webUser,
-                         Handler<AsyncResult<Boolean>> handler) {
-
-    if (curMatch.requiredAuthority != null) {
-      webUser.isAuthorised(curMatch.requiredAuthority, res -> {
-        if (res.succeeded()) {
-          handler.handle(Future.succeededFuture(res.result()));
-        } else {
-          log.error(res.cause());
-        }
-      });
+  private void authorise(Match curMatch, User webUser, Handler<AsyncResult<Boolean>> handler) {
+    // step 1: match against the raw user, if a AuthZ handler is in the path it could have already
+    //         loaded the authorizations
+    if (curMatch.requiredAuthority.match(webUser)) {
+      handler.handle(Future.succeededFuture(true));
+      return;
     }
+
+    if (authzProvider == null) {
+      // can't load, there's no provider
+      handler.handle(Future.succeededFuture(false));
+      return;
+    }
+    // step 2: load authorizations
+    authzProvider.getAuthorizations(webUser, res -> {
+      if (res.succeeded()) {
+        if (curMatch.requiredAuthority.match(webUser)) {
+          handler.handle(Future.succeededFuture(true));
+        } else {
+          handler.handle(Future.succeededFuture(false));
+        }
+      } else {
+        handler.handle(Future.failedFuture(res.cause()));
+      }
+    });
   }
 
   /*
@@ -538,11 +569,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   }
 
   private boolean regexMatches(String matchRegex, String address) {
-    Pattern pattern = compiledREs.get(matchRegex);
-    if (pattern == null) {
-      pattern = Pattern.compile(matchRegex);
-      compiledREs.put(matchRegex, pattern);
-    }
+    Pattern pattern = compiledREs.computeIfAbsent(matchRegex, Pattern::compile);
     Matcher m = pattern.matcher(address);
     return m.matches();
   }
@@ -578,11 +605,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
 
   private static class Match {
     public final boolean doesMatch;
-    public final String requiredAuthority;
+    public final Authorization requiredAuthority;
 
     Match(boolean doesMatch, String requiredAuthority) {
       this.doesMatch = doesMatch;
-      this.requiredAuthority = requiredAuthority;
+      this.requiredAuthority = requiredAuthority == null ? null : PermissionBasedAuthorization.create(requiredAuthority);
     }
 
     Match(boolean doesMatch) {

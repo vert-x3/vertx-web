@@ -23,11 +23,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SessionHandlerTestBase;
-import io.vertx.ext.web.handler.SomeSerializable;
-import io.vertx.ext.web.sstore.impl.SessionImpl;
+import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakecluster.FakeClusterManager;
 import org.junit.Test;
@@ -48,7 +46,6 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   public void setUp() throws Exception {
     super.setUp();
     VertxOptions options = new VertxOptions();
-    options.setClustered(true);
     options.setClusterManager(getClusterManager());
     startNodes(numNodes, options);
     store = ClusteredSessionStore.create(vertices[0], 3000);
@@ -61,41 +58,42 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
 
   @Test
   public void testClusteredSession() throws Exception {
+    CountDownLatch serversReady = new CountDownLatch(3);
+
     Router router1 = Router.router(vertices[0]);
-    router1.route().handler(CookieHandler.create());
     SessionStore store1 = ClusteredSessionStore.create(vertices[0]);
-    router1.route().handler(SessionHandler.create(store1));
+    SessionHandler sessionHandler1 = SessionHandler.create(store1);
+    router1.route().handler(sessionHandler1);
     HttpServer server1 = vertices[0].createHttpServer(new HttpServerOptions().setPort(8081).setHost("localhost"));
-    server1.requestHandler(router1::accept);
-    CountDownLatch latch1 = new CountDownLatch(1);
-    server1.listen(onSuccess(s -> latch1.countDown()));
+    server1.requestHandler(router1);
+    server1.listen(onSuccess(s -> serversReady.countDown()));
     HttpClient client1 = vertices[0].createHttpClient(new HttpClientOptions());
 
     Router router2 = Router.router(vertices[1]);
-    router2.route().handler(CookieHandler.create());
     SessionStore store2 = ClusteredSessionStore.create(vertices[1]);
-    router2.route().handler(SessionHandler.create(store2));
+    SessionHandler sessionHandler2 = SessionHandler.create(store2);
+    router2.route().handler(sessionHandler2);
     HttpServer server2 = vertices[1].createHttpServer(new HttpServerOptions().setPort(8082).setHost("localhost"));
-    server2.requestHandler(router2::accept);
-    CountDownLatch latch2 = new CountDownLatch(1);
-    server2.listen(onSuccess(s -> latch2.countDown()));
+    server2.requestHandler(router2);
+    server2.listen(onSuccess(s -> serversReady.countDown()));
     HttpClient client2 = vertices[0].createHttpClient(new HttpClientOptions());
 
     Router router3 = Router.router(vertices[2]);
-    router3.route().handler(CookieHandler.create());
     SessionStore store3 = ClusteredSessionStore.create(vertices[2]);
-    router3.route().handler(SessionHandler.create(store3));
+    SessionHandler sessionHandler3 = SessionHandler.create(store3);
+    router3.route().handler(sessionHandler3);
     HttpServer server3 = vertices[2].createHttpServer(new HttpServerOptions().setPort(8083).setHost("localhost"));
-    server3.requestHandler(router3::accept);
-    CountDownLatch latch3 = new CountDownLatch(1);
-    server3.listen(onSuccess(s -> latch3.countDown()));
+    server3.requestHandler(router3);
+    server3.listen(onSuccess(s -> serversReady.countDown()));
     HttpClient client3 = vertices[0].createHttpClient(new HttpClientOptions());
+
+    awaitLatch(serversReady);
 
     router1.route().handler(rc -> {
       Session sess = rc.session();
       sess.put("foo", "bar");
       stuffSession(sess);
-      rc.response().end();
+      sessionHandler1.flush(rc).onFailure(rc::fail).onSuccess(v -> rc.response().end());
     });
 
     router2.route().handler(rc -> {
@@ -103,7 +101,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       checkSession(sess);
       assertEquals("bar", sess.get("foo"));
       sess.put("eek", "wibble");
-      rc.response().end();
+      sessionHandler2.flush(rc).onFailure(rc::fail).onSuccess(v -> rc.response().end());
     });
 
     router3.route().handler(rc -> {
@@ -111,7 +109,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       checkSession(sess);
       assertEquals("bar", sess.get("foo"));
       assertEquals("wibble", sess.get("eek"));
-      rc.response().end();
+      sessionHandler3.flush(rc).onFailure(rc::fail).onSuccess(v -> rc.response().end());
     });
 
     AtomicReference<String> rSetCookie = new AtomicReference<>();
@@ -119,31 +117,21 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       String setCookie = resp.headers().get("set-cookie");
       rSetCookie.set(setCookie);
     }, 200, "OK", null);
-    // FIXME - for now we do an artificial sleep because it's possible the session hasn't been stored properly before
-    // the next request hits the server
-    // https://github.com/vert-x3/vertx-web/issues/93
-    Thread.sleep(1000);
-    testRequestBuffer(client2, HttpMethod.GET, 8082, "/", req -> {
-      req.putHeader("cookie", rSetCookie.get());
-    }, null, 200, "OK", null);
-    Thread.sleep(1000);
-    testRequestBuffer(client3, HttpMethod.GET, 8083, "/", req -> {
-      req.putHeader("cookie", rSetCookie.get());
-    }, null, 200, "OK", null);
-
+    testRequestBuffer(client2, HttpMethod.GET, 8082, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
+    testRequestBuffer(client3, HttpMethod.GET, 8083, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
   }
 
   @Test
   public void testSessionSerializationNullPrincipal() {
     long timeout = 123;
-    SessionImpl session = (SessionImpl)store.createSession(timeout);
+    SharedDataSessionImpl session = (SharedDataSessionImpl)store.createSession(timeout);
     session.setAccessed();
-    long lastAccessed = session.lastAccessed();    
+    long lastAccessed = session.lastAccessed();
     stuffSession(session);
     checkSession(session);
     Buffer buffer = Buffer.buffer();
     session.writeToBuffer(buffer);
-    SessionImpl session2 = (SessionImpl)store.createSession(0);
+    SharedDataSessionImpl session2 = (SharedDataSessionImpl)store.createSession(0);
     session2.readFromBuffer(0, buffer);
     checkSession(session2);
     assertEquals(timeout, session2.timeout());
@@ -152,7 +140,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   }
 
   private void stuffSession(Session session) {
-    session.put("somelong", 123456l);
+    session.put("somelong", 123456L);
     session.put("someint", 1234);
     session.put("someshort", (short) 123);
     session.put("somebyte", (byte) 12);
@@ -164,12 +152,11 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     session.put("somestring", "wibble");
     session.put("somebytes", bytes);
     session.put("somebuffer", buffer);
-    session.put("someserializable", new SomeSerializable("eek"));
     session.put("someclusterserializable", new JsonObject().put("foo", "bar"));
   }
 
   private void checkSession(Session session) {
-    assertEquals(123456l, (long) session.get("somelong"));
+    assertEquals(123456L, (long) session.get("somelong"));
     assertEquals(1234, (int) session.get("someint"));
     assertEquals((short) 123, (short) session.get("someshort"));
     assertEquals((byte) 12, (byte) session.get("somebyte"));
@@ -189,9 +176,6 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   @Test
   public void testRetryTimeout() throws Exception {
     long val = doTestSessionRetryTimeout();
-    assertTrue(val >= 3000 && val < 5000);
+    assertTrue(String.valueOf(val), val >= 3000 && val < 5000);
   }
-
 }
-
-

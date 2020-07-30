@@ -15,13 +15,18 @@
  */
 package io.vertx.ext.web.handler;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.handler.impl.LoggerHandlerImpl;
 import io.vertx.ext.web.RoutingContext;
 
+import java.util.function.Function;
+
 /**
  * A handler which logs request information to the Vert.x logger.
+ * You should mount this handler before any handler that could fail the routing context
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
@@ -60,4 +65,14 @@ public interface LoggerHandler extends Handler<RoutingContext> {
   static LoggerHandler create(boolean immediate, LoggerFormat format) {
     return new LoggerHandlerImpl(immediate, format);
   }
+
+  /**
+   * Set the custom formatter to be used by the handler.
+   *
+   * @param formatter the formatting function
+   * @return the formatted log string
+   * @throws IllegalStateException if current format is not {@link LoggerFormat#CUSTOM}
+   */
+  @Fluent
+  LoggerHandler customFormatter(Function<HttpServerRequest, String> formatter);
 }

@@ -17,9 +17,12 @@
 package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -40,16 +43,32 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   protected final RoutingContext inner;
   private final String mountPoint;
 
-  public RoutingContextWrapper(String mountPoint, HttpServerRequest request, Set<RouteImpl> iter,
-                               RoutingContext inner) {
-    super(mountPoint, request, iter);
+  public RoutingContextWrapper(String mountPoint, Set<RouteImpl> iter, RoutingContext inner) {
+    super(mountPoint, iter);
     this.inner = inner;
     String parentMountPoint = inner.mountPoint();
-    if (mountPoint.charAt(mountPoint.length() - 1) == '/') {
-      // Remove the trailing slash or we won't match
-      mountPoint = mountPoint.substring(0, mountPoint.length() - 1);
+    if (parentMountPoint == null) {
+      // just use the override
+      this.mountPoint = mountPoint;
+    } else {
+      if (parentMountPoint.charAt(parentMountPoint.length() - 1) == '/') {
+        // Remove the trailing slash or we won't match
+        this.mountPoint = parentMountPoint.substring(0, parentMountPoint.length() - 1) + mountPoint;
+      } else {
+        // slashes are ok, just concat
+        this.mountPoint = parentMountPoint + mountPoint;
+      }
     }
-    this.mountPoint = parentMountPoint == null ? mountPoint : parentMountPoint + mountPoint;
+  }
+
+  @Override
+  public RoutingContextInternal visitHandler(int id) {
+    return ((RoutingContextInternal) inner).visitHandler(id);
+  }
+
+  @Override
+  public boolean seenHandler(int id) {
+    return ((RoutingContextInternal) inner).seenHandler(id);
   }
 
   @Override
@@ -70,6 +89,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public void fail(Throwable throwable) {
     inner.fail(throwable);
+  }
+
+  @Override
+  public void fail(int statusCode, Throwable throwable) {
+    inner.fail(statusCode, throwable);
   }
 
   @Override
@@ -119,13 +143,28 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public int addEndHandler(Handler<AsyncResult<Void>> handler) {
+    return inner.addEndHandler(handler);
+  }
+
+  @Override
+  public boolean removeEndHandler(int handlerID) {
+    return inner.removeEndHandler(handlerID);
+  }
+
+  @Override
   public void setSession(Session session) {
-   inner.setSession(session);
+    inner.setSession(session);
   }
 
   @Override
   public Session session() {
     return inner.session();
+  }
+
+  @Override
+  public boolean isSessionAccessed() {
+    return inner.isSessionAccessed();
   }
 
   @Override
@@ -172,8 +211,8 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public String normalisedPath() {
-    return inner.normalisedPath();
+  public String normalizedPath() {
+    return inner.normalizedPath();
   }
 
   @Override
@@ -188,8 +227,8 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public Cookie removeCookie(String name) {
-    return inner.removeCookie(name);
+  public Cookie removeCookie(String name, boolean invalidate) {
+    return inner.removeCookie(name, invalidate);
   }
 
   @Override
@@ -198,8 +237,8 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public Set<Cookie> cookies() {
-    return inner.cookies();
+  public Map<String, io.vertx.core.http.Cookie> cookieMap() {
+    return inner.cookieMap();
   }
 
   @Override
@@ -258,11 +297,6 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public List<Locale> acceptableLocales() {
-    return inner.acceptableLocales();
-  }
-
-  @Override
   public Map<String, String> pathParams() {
     return inner.pathParams();
   }
@@ -270,6 +304,16 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public @Nullable String pathParam(String name) {
     return inner.pathParam(name);
+  }
+
+  @Override
+  public MultiMap queryParams() {
+    return inner.queryParams();
+  }
+
+  @Override
+  public @Nullable List<String> queryParam(String query) {
+    return inner.queryParam(query);
   }
 
 }

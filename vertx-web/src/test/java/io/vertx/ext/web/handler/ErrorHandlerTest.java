@@ -21,9 +21,10 @@ import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.impl.HeaderTooLongException;
 
 import org.junit.Test;
+
+import static io.vertx.ext.web.common.WebEnvironment.SYSTEM_PROPERTY_NAME;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -44,12 +45,10 @@ public class ErrorHandlerTest extends WebTestBase {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
       rc.fail(statusCode);
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      resp.bodyHandler(buff -> {
-        checkHtmlResponse(buff, resp, statusCode, statusMessage);
-        testComplete();
-      });
-    }, statusCode, statusMessage, null);
+    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
+      checkHtmlResponse(buff, resp, statusCode, statusMessage);
+      testComplete();
+    }), statusCode, statusMessage, null);
     await();
   }
 
@@ -61,12 +60,10 @@ public class ErrorHandlerTest extends WebTestBase {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
       rc.fail(statusCode);
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      resp.bodyHandler(buff -> {
-        checkJsonResponse(buff, resp, statusCode, statusMessage);
-        testComplete();
-      });
-    }, statusCode, statusMessage, null);
+    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
+      checkJsonResponse(buff, resp, statusCode, statusMessage);
+      testComplete();
+    }), statusCode, statusMessage, null);
     await();
   }
 
@@ -78,12 +75,10 @@ public class ErrorHandlerTest extends WebTestBase {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain");
       rc.fail(statusCode);
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      resp.bodyHandler(buff -> {
-        checkTextResponse(buff, resp, statusCode, statusMessage);
-        testComplete();
-      });
-    }, statusCode, statusMessage, null);
+    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
+      checkTextResponse(buff, resp, statusCode, statusMessage);
+      testComplete();
+    }), statusCode, statusMessage, null);
     await();
   }
 
@@ -91,17 +86,11 @@ public class ErrorHandlerTest extends WebTestBase {
   public void testFailWithStatusCodeInferContentTypeTextHtml() throws Exception {
     int statusCode = 404;
     String statusMessage = "Not Found";
-    router.route().handler(rc -> {
-      rc.fail(statusCode);
-    });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.putHeader("accept", "text/html");
-    }, resp -> {
-      resp.bodyHandler(buff -> {
-        checkHtmlResponse(buff, resp, statusCode, statusMessage);
-        testComplete();
-      });
-    }, statusCode, statusMessage, null);
+    router.route().handler(rc -> rc.fail(statusCode));
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("accept", "text/html"), resp -> resp.bodyHandler(buff -> {
+      checkHtmlResponse(buff, resp, statusCode, statusMessage);
+      testComplete();
+    }), statusCode, statusMessage, null);
     await();
   }
 
@@ -109,17 +98,11 @@ public class ErrorHandlerTest extends WebTestBase {
   public void testFailWithStatusCodeInferContentTypeApplicationJson() throws Exception {
     int statusCode = 404;
     String statusMessage = "Not Found";
-    router.route().handler(rc -> {
-      rc.fail(statusCode);
-    });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.putHeader("accept", "application/json");
-    }, resp -> {
-      resp.bodyHandler(buff -> {
-        checkJsonResponse(buff, resp, statusCode, statusMessage);
-        testComplete();
-      });
-    }, statusCode, statusMessage, null);
+    router.route().handler(rc -> rc.fail(statusCode));
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("accept", "application/json"), resp -> resp.bodyHandler(buff -> {
+      checkJsonResponse(buff, resp, statusCode, statusMessage);
+      testComplete();
+    }), statusCode, statusMessage, null);
     await();
   }
 
@@ -127,17 +110,11 @@ public class ErrorHandlerTest extends WebTestBase {
   public void testFailWithStatusCodeInferContentTypeTextPlain() throws Exception {
     int statusCode = 404;
     String statusMessage = "Not Found";
-    router.route().handler(rc -> {      
-      rc.fail(statusCode);
-    });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.putHeader("accept", "text/plain");
-    }, resp -> {
-      resp.bodyHandler(buff -> {
-        checkTextResponse(buff, resp, statusCode, statusMessage);
-        testComplete();
-      });
-    }, statusCode, statusMessage, null);
+    router.route().handler(rc -> rc.fail(statusCode));
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("accept", "text/plain"), resp -> resp.bodyHandler(buff -> {
+      checkTextResponse(buff, resp, statusCode, statusMessage);
+      testComplete();
+    }), statusCode, statusMessage, null);
     await();
   }
 
@@ -145,20 +122,25 @@ public class ErrorHandlerTest extends WebTestBase {
   public void testFailWithStatusCodeDefaultContentType() throws Exception {
     int statusCode = 404;
     String statusMessage = "Not Found";
-    router.route().handler(rc -> {
-      rc.fail(statusCode);
-    });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      resp.bodyHandler(buff -> {
-        checkTextResponse(buff, resp, statusCode, statusMessage);
-        testComplete();
-      });
-    }, statusCode, statusMessage, null);
+    router.route().handler(rc -> rc.fail(statusCode));
+    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
+      checkTextResponse(buff, resp, statusCode, statusMessage);
+      testComplete();
+    }), statusCode, statusMessage, null);
     await();
   }
-  
+
   @Test
   public void testFailWithException() throws Exception {
+    System.setProperty(SYSTEM_PROPERTY_NAME, "dev");
+    router
+      // clear the previous setup
+      .clear()
+      // new handler should use development mode
+      .route().failureHandler(ErrorHandler.create());
+    // unset the system property
+    System.setProperty(SYSTEM_PROPERTY_NAME, "test");
+
     int statusCode = 500;
     String statusMessage = "Something happened!";
     Exception e = new Exception(statusMessage);
@@ -166,38 +148,17 @@ public class ErrorHandlerTest extends WebTestBase {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
       rc.fail(e);
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      resp.bodyHandler(buff -> {
-        checkHtmlResponse(buff, resp, statusCode, statusMessage, e);
-        testComplete();
-      });
-    }, statusCode, statusMessage, null);
-    await();
-  }
-  @Test
-  public void testFailWithKnownException() throws Exception {
-    int statusCode = 400;
-    String responseMessage = "A header was too long to process";
-    String statusMessage = "Bad Request";
-    Exception e = new HeaderTooLongException("A header was longer than 150 characters");
-    
-    router.route().handler(rc -> {
-      rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
-      rc.fail(e);
-    });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      resp.bodyHandler(buff -> {
-        checkHtmlResponse(buff, resp, statusCode, responseMessage, e);
-        testComplete();
-      });
-    }, statusCode, statusMessage, null);
+    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
+      checkHtmlResponse(buff, resp, statusCode, statusMessage, e);
+      testComplete();
+    }), statusCode, statusMessage, null);
     await();
   }
 
   @Test
   public void testFailWithExceptionNoExceptionDetails() throws Exception {
     router.clear();
-    router.route().failureHandler(ErrorHandler.create(false));
+    router.route().failureHandler(ErrorHandler.create());
     int statusCode = 500;
     String statusMessage = "Something happened!";
     Exception e = new Exception(statusMessage);
@@ -205,15 +166,13 @@ public class ErrorHandlerTest extends WebTestBase {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
       rc.fail(e);
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      resp.bodyHandler(buff -> {
-        checkHtmlResponse(buff, resp, statusCode, "Internal Server Error", e, false);
-        testComplete();
-      });
-    }, statusCode, "Internal Server Error", null);
+    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
+      checkHtmlResponse(buff, resp, statusCode, "Internal Server Error", e, false);
+      testComplete();
+    }), statusCode, "Internal Server Error", null);
     await();
   }
-  
+
 
   @Test
   public void testSpecifyTemplate() throws Exception {
@@ -226,13 +185,11 @@ public class ErrorHandlerTest extends WebTestBase {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
       rc.fail(statusCode);
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      resp.bodyHandler(buff -> {
-        String page = buff.toString();
-        assertEquals("<html><body>Matron!.404.Not Found</body></html>", page);
-        testComplete();
-      });
-    }, statusCode, statusMessage, null);
+    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
+      String page = buff.toString();
+      assertEquals("<html><body>An unexpected error occurred.404.Not Found</body></html>", page);
+      testComplete();
+    }), statusCode, statusMessage, null);
     await();
   }
 
@@ -252,7 +209,7 @@ public class ErrorHandlerTest extends WebTestBase {
     assertTrue(page.startsWith("<html>"));
     assertTrue(page.contains(String.valueOf(statusCode)));
     assertTrue(page.contains(statusMessage));
-    assertTrue(page.contains("Matron!"));
+    assertTrue(page.contains("An unexpected error occurred"));
     if (e != null) {
       if (displayExceptionDetails) {
         assertTrue(page.contains(e.getStackTrace()[0].toString()));

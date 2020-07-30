@@ -36,7 +36,7 @@ import java.util.List;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface Router {
+public interface Router extends Handler<HttpServerRequest> {
 
   /**
    * Create a router
@@ -47,15 +47,6 @@ public interface Router {
   static Router router(Vertx vertx) {
     return new RouterImpl(vertx);
   }
-
-  /**
-   * This method is used to provide a request to the router. Usually you take request from the
-   * {@link io.vertx.core.http.HttpServer#requestHandler(Handler)} and pass it to this method. The
-   * router then routes it to matching routes.
-   *
-   * @param request  the request
-   */
-  void accept(HttpServerRequest request);
 
   /**
    * Add a route with no matching criteria, i.e. it matches all requests or failures.
@@ -347,18 +338,20 @@ public interface Router {
    * @param subRouter  the router to mount as a sub router
    * @return a reference to this, so the API can be used fluently
    */
-  @Fluent
-  Router mountSubRouter(String mountPoint, Router subRouter);
+  Route mountSubRouter(String mountPoint, Router subRouter);
 
   /**
-   * Specify a handler for any unhandled exceptions on this router. The handler will be called for exceptions thrown
-   * from handlers. This does not affect the normal failure routing logic.
+   * Specify an handler to handle an error for a particular status code. You can use to manage general errors too using status code 500.
+   * The handler will be called when the context fails and other failure handlers didn't write the reply or when an exception is thrown inside an handler.
+   * You <b>must not</b> use {@link RoutingContext#next()} inside the error handler
+   * This does not affect the normal failure routing logic.
    *
-   * @param exceptionHandler  the exception handler
+   * @param statusCode status code the errorHandler is capable of handle
+   * @param errorHandler error handler. Note: You <b>must not</b> use {@link RoutingContext#next()} inside the provided handler
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  Router exceptionHandler(@Nullable Handler<Throwable> exceptionHandler);
+  Router errorHandler(int statusCode, Handler<RoutingContext> errorHandler);
 
   /**
    * Used to route a context to the router. Used for sub-routers. You wouldn't normally call this method directly.
@@ -374,4 +367,23 @@ public interface Router {
    */
   void handleFailure(RoutingContext context);
 
+  /**
+   * When a Router routes are changed this handler is notified.
+   * This is useful for routes that depend on the state of the router.
+   *
+   * @param handler a notification handler that will receive this router as argument
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Router modifiedHandler(Handler<Router> handler);
+
+
+  /**
+   * Set whether the router should parse "forwarded"-type headers
+   *
+   * @param allowForwardHeaders to enable parsing of "forwarded"-type headers
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Router allowForward(AllowForwardHeaders allowForwardHeaders);
 }

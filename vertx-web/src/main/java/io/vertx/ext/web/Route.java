@@ -22,6 +22,9 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 
+import java.util.List;
+import java.util.Set;
+
 /**
  * A route is a holder for a set of criteria which determine whether an HTTP request or failure should be routed
  * to a handler.
@@ -80,6 +83,15 @@ public interface Route {
   Route consumes(String contentType);
 
   /**
+   * Add a virtual host filter for this route.
+   *
+   * @param hostnamePattern the hostname pattern that should match {@code Host} header of the requests
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Route virtualHost(String hostnamePattern);
+
+  /**
    * Specify the order for this route. The router tests routes in that order.
    *
    * @param order  the order
@@ -97,9 +109,9 @@ public interface Route {
   Route last();
 
   /**
-   * Specify a request handler for the route. The router routes requests to handlers depending on whether the various
-   * criteria such as method, path, etc match. There can be only one request handler for a route. If you set this more
-   * than once it will overwrite the previous handler.
+   * Append a request handler to the route handlers list. The router routes requests to handlers depending on whether the various
+   * criteria such as method, path, etc match. When method, path, etc are the same for different routes, You should add multiple
+   * handlers to the same route object rather than creating two different routes objects with one handler for route
    *
    * @param requestHandler  the request handler
    * @return a reference to this, so the API can be used fluently
@@ -113,6 +125,22 @@ public interface Route {
    */
   @Fluent
   Route blockingHandler(Handler<RoutingContext> requestHandler);
+
+  /**
+   * Use a (sub) {@link Router} as a handler. There are several requirements to be fulfilled for this
+   * to be accepted.
+   *
+   * <ul>
+   *     <li>The route path must end with a wild card</li>
+   *     <li>Parameters are allowed but full regex patterns not</li>
+   *     <li>No other handler can be registered before or after this call (but they can on a new route object for the same path)</li>
+   *     <li>Only 1 router per path object</li>
+   * </ul>
+   * @param subRouter the router to add
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Route subRouter(Router subRouter);
 
   /**
    * Specify a blocking request handler for the route.
@@ -132,9 +160,9 @@ public interface Route {
   Route blockingHandler(Handler<RoutingContext> requestHandler, boolean ordered);
 
   /**
-   * Specify a failure handler for the route. The router routes failures to failurehandlers depending on whether the various
-   * criteria such as method, path, etc match. There can be only one failure handler for a route. If you set this more
-   * than once it will overwrite the previous handler.
+   * Append a failure handler to the route failure handlers list. The router routes failures to failurehandlers depending on whether the various
+   * criteria such as method, path, etc match. When method, path, etc are the same for different routes, You should add multiple
+   * failure handlers to the same route object rather than creating two different routes objects with one failure handler for route
    *
    * @param failureHandler  the request handler
    * @return a reference to this, so the API can be used fluently
@@ -167,20 +195,54 @@ public interface Route {
   Route enable();
 
   /**
-   * If true then the normalised request path will be used when routing (e.g. removing duplicate /)
+   * Use {@link #useNormalizedPath(boolean)} instead
+   */
+  @Fluent
+  @Deprecated
+  default Route useNormalisedPath(boolean useNormalizedPath) {
+    return this.useNormalizedPath(useNormalizedPath);
+  }
+
+  /**
+   * If true then the normalized request path will be used when routing (e.g. removing duplicate /)
    * Default is true
    *
-   * @param useNormalisedPath  use normalised path for routing?
+   * @param useNormalizedPath  use normalized path for routing?
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  Route useNormalisedPath(boolean useNormalisedPath);
+  Route useNormalizedPath(boolean useNormalizedPath);
 
   /**
    * @return the path prefix (if any) for this route
    */
   @Nullable
   String getPath();
+
+  /**
+   * Returns true of the path is a regular expression, this includes expression paths.
+   * @return true if backed by a pattern.
+   */
+  boolean isRegexPath();
+
+  /**
+   * @return the http methods accepted by this route
+   */
+  Set<HttpMethod> methods();
+
+  /**
+   * When you add a new route with a regular expression, you can add named capture groups for parameters. <br/>
+   * However, if you need more complex parameters names (like "param_name"), you can add parameters names with
+   * this function. You have to name capture groups in regex with names: "p0", "p1", "p2", ... <br/>
+   * <br/>
+   * For example: If you declare route with regex \/(?<p0>[a-z]*)\/(?<p1>[a-z]*) and group names ["param_a", "param-b"]
+   * for uri /hello/world you receive inside pathParams() the parameter param_a = "hello"
+   *
+   * @param groups group names
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Route setRegexGroupsNames(List<String> groups);
 
 }
 

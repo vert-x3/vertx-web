@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.vertx</groupId>
+    <artifactId>vertx-template-engines</artifactId>
+    <version>4.0.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>vertx-web-templ-rocker</artifactId>
+
+  <properties>
+    <rocker.version>1.3.0</rocker.version>
+    <!-- Force Java 8, see https://github.com/fizzed/rocker/issues/90 -->
+    <rocker.javaVersion>1.8</rocker.javaVersion>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.fizzed</groupId>
+      <artifactId>rocker-runtime</artifactId>
+      <version>${rocker.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-unit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fizzed</groupId>
+      <artifactId>rocker-compiler</artifactId>
+      <version>${rocker.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>shaded</shadedClassifierName>
+              <artifactSet>
+                <includes>
+                  <include>com.fizzed.rocker:rocker</include>
+                </includes>
+              </artifactSet>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.fizzed</groupId>
+        <artifactId>rocker-maven-plugin</artifactId>
+        <version>${rocker.version}</version>
+        <executions>
+          <execution>
+            <id>generate-rocker-templates</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <templateDirectory>${project.basedir}/src/test/resources</templateDirectory>
+              <outputDirectory>${project.build.directory}/generated-test-sources/rocker</outputDirectory>
+              <addAsSources>false</addAsSources>
+              <addAsTestSources>true</addAsTestSources>
+              <optimize>true</optimize>
+              <skipTouch>true</skipTouch>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

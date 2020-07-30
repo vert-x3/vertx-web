@@ -1,0 +1,73 @@
+= Cheatsheets
+
+[[OperationRequest]]
+== OperationRequest
+
+++++
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[extra]]`@extra`|`Json object`|+++
+Get extra payload
++++
+|[[params]]`@params`|`Json object`|+++
+Get request parsedParameters as JSON
++++
+|[[user]]`@user`|`Json object`|+++
+Get request principal user as routingContext.user().principal(), null if no user is authenticated
++++
+|===
+
+[[OperationResponse]]
+== OperationResponse
+
+++++
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[payload]]`@payload`|`Buffer`|-
+|[[statusCode]]`@statusCode`|`Number (Integer)`|-
+|[[statusMessage]]`@statusMessage`|`String`|-
+|===
+
+[[RouterFactoryOptions]]
+== RouterFactoryOptions
+
+++++
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[mountNotImplementedHandler]]`@mountNotImplementedHandler`|`Boolean`|+++
+If true, Router Factory will automatically mount an handler that return HTTP 405/501 status code for each operation where you didn't specify an handler.
+ You can customize the response with link
++++
+|[[mountResponseContentTypeHandler]]`@mountResponseContentTypeHandler`|`Boolean`|+++
+If true, when required, the factory will mount a link
++++
+|[[mountValidationFailureHandler]]`@mountValidationFailureHandler`|`Boolean`|+++
+Enable or disable validation failure handler. If you enable it during router creation a failure handler
+ that manages ValidationException will be mounted. You can change the validation failure handler with with function link. If failure is different from ValidationException, next failure
+ handler will be called.
++++
+|[[operationModelKey]]`@operationModelKey`|`String`|+++
+When set, an additional handler will be created to expose the operation model in the routing
+ context under the given key. When the key is null, the handler is not added.
++++
+|[[requireSecurityHandlers]]`@requireSecurityHandlers`|`Boolean`|+++
+If true, when you call link the factory will mount for every path
+ the required security handlers and, if a security handler is not defined, it throws an link
++++
+|===
+

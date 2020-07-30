@@ -19,17 +19,17 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authorization.Authorization;
+import io.vertx.ext.auth.authorization.AuthorizationProvider;
+import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
+import io.vertx.ext.auth.properties.PropertyFileAuthentication;
+import io.vertx.ext.auth.properties.PropertyFileAuthorization;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
-import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.shiro.ShiroAuth;
-import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 import org.junit.AfterClass;
 import org.junit.Test;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -46,19 +46,15 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
 
   @Test
   public void testAuthAuthorities() throws Exception {
-    Set<String> authorities = new HashSet<>();
-    authorities.add("dance");
-    testAuthorisation("tim", false, authorities);
+    testAuthorization("tim", false, PermissionBasedAuthorization.create("dance"));
   }
 
   @Test
   public void testAuthAuthoritiesFail() throws Exception {
-    Set<String> authorities = new HashSet<>();
-    authorities.add("knitter");
-    testAuthorisation("tim", true, authorities);
+    testAuthorization("tim", true, PermissionBasedAuthorization.create("knitter"));
   }
 
-  protected abstract AuthHandler createAuthHandler(AuthProvider authProvider);
+  protected abstract AuthenticationHandler createAuthHandler(AuthenticationProvider authProvider);
 
   protected boolean requiresSession() {
     return false;
@@ -68,24 +64,21 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
     return LocalSessionStore.create(vertx);
   }
 
-  protected void testAuthorisation(String username, boolean fail, Set<String> authorities) throws Exception {
+  protected void testAuthorization(String username, boolean fail, Authorization authority) throws Exception {
     if (requiresSession()) {
       router.route().handler(BodyHandler.create());
-      router.route().handler(CookieHandler.create());
       SessionStore store = getSessionStore();
       router.route().handler(SessionHandler.create(store));
     }
-    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
-    AuthHandler authHandler = createAuthHandler(authProvider);
-    if (authorities != null) {
-      authHandler.addAuthorities(authorities);
-    }
+    AuthenticationProvider authNProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
+    AuthorizationProvider authZProvider = PropertyFileAuthorization.create(vertx, "login/loginusers.properties");
+
+    AuthenticationHandler authNHandler = createAuthHandler(authNProvider);
     router.route().handler(rc -> {
       // we need to be logged in
       if (rc.user() == null) {
         JsonObject authInfo = new JsonObject().put("username", username).put("password", "delicious:sausages");
-        authProvider.authenticate(authInfo, res -> {
+        authNProvider.authenticate(authInfo, res -> {
           if (res.succeeded()) {
             rc.setUser(res.result());
             rc.next();
@@ -95,7 +88,10 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
         });
       }
     });
-    router.route().handler(authHandler);
+    router.route().handler(authNHandler);
+    if (authority != null) {
+      router.route().handler(AuthorizationHandler.create(authority).addAuthorizationProvider(authZProvider));
+    }
     router.route().handler(rc -> rc.response().end());
 
     testRequest(HttpMethod.GET, "/", fail ? 403: 200, fail? "Forbidden": "OK");

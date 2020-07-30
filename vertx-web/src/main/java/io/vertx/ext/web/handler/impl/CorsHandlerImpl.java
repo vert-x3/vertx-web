@@ -19,11 +19,14 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.impl.Origin;
+import io.vertx.ext.web.impl.RoutingContextInternal;
+import io.vertx.ext.web.impl.Utils;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -38,13 +41,14 @@ import static io.vertx.core.http.HttpHeaders.*;
 public class CorsHandlerImpl implements CorsHandler {
 
   private final Pattern allowedOrigin;
+  private Set<Origin> allowedOrigins;
 
   private String allowedMethodsString;
   private String allowedHeadersString;
   private String exposedHeadersString;
   private boolean allowCredentials;
   private String maxAgeSeconds;
-  private final Set<HttpMethod> allowedMethods = new LinkedHashSet<>();
+  private final Set<String> allowedMethods = new LinkedHashSet<>();
   private final Set<String> allowedHeaders = new LinkedHashSet<>();
   private final Set<String> exposedHeaders = new LinkedHashSet<>();
 
@@ -55,47 +59,90 @@ public class CorsHandlerImpl implements CorsHandler {
     } else {
       allowedOrigin = Pattern.compile(allowedOriginPattern);
     }
+    allowedOrigins = null;
+  }
+
+  public CorsHandlerImpl() {
+    allowedOrigin = null;
+    allowedOrigins = null;
+  }
+
+  @Override
+  public CorsHandler addOrigin(String origin) {
+    if (allowedOrigin != null) {
+      throw new IllegalStateException("Cannot mix Pattern mode and Origin List mode");
+    }
+    if (allowedOrigins == null) {
+      if (origin.equals("*")) {
+        // we signal any as null
+        return this;
+      }
+      allowedOrigins = new LinkedHashSet<>();
+    } else {
+      if (origin.equals("*")) {
+        // we signal any as null
+        throw new IllegalStateException("Cannot mix '*' with explicit origins");
+      }
+    }
+    allowedOrigins.add(Origin.parse(origin));
+    return this;
+  }
+
+  @Override
+  public CorsHandler addOrigins(List<String> origins) {
+    if (allowedOrigin != null) {
+      throw new IllegalStateException("Cannot mix Pattern mode and Origin List mode");
+    }
+    if (allowedOrigins == null) {
+      allowedOrigins = new LinkedHashSet<>();
+    }
+    for (String origin : origins) {
+      allowedOrigins.add(Origin.parse(origin));
+    }
+    return this;
   }
 
   @Override
   public CorsHandler allowedMethod(HttpMethod method) {
-    allowedMethods.add(method);
-    allowedMethodsString = join(allowedMethods);
+    allowedMethods.add(method.name());
+    allowedMethodsString = String.join(",", allowedMethods);
     return this;
   }
 
   @Override
   public CorsHandler allowedMethods(Set<HttpMethod> methods) {
-    allowedMethods.addAll(methods);
-    allowedMethodsString = join(allowedMethods);
+    for (HttpMethod method : methods) {
+      allowedMethods.add(method.name());
+    }
+    allowedMethodsString = String.join(",", allowedMethods);
     return this;
   }
 
   @Override
   public CorsHandler allowedHeader(String headerName) {
     allowedHeaders.add(headerName);
-    allowedHeadersString = join(allowedHeaders);
+    allowedHeadersString = String.join(",", allowedHeaders);
     return this;
   }
 
   @Override
   public CorsHandler allowedHeaders(Set<String> headerNames) {
     allowedHeaders.addAll(headerNames);
-    allowedHeadersString = join(allowedHeaders);
+    allowedHeadersString = String.join(",", allowedHeaders);
     return this;
   }
 
   @Override
   public CorsHandler exposedHeader(String headerName) {
     exposedHeaders.add(headerName);
-    exposedHeadersString = join(exposedHeaders);
+    exposedHeadersString = String.join(",", exposedHeaders);
     return this;
   }
 
   @Override
   public CorsHandler exposedHeaders(Set<String> headerNames) {
     exposedHeaders.addAll(headerNames);
-    exposedHeadersString = join(exposedHeaders);
+    exposedHeadersString = String.join(",", exposedHeaders);
     return this;
   }
 
@@ -117,6 +164,7 @@ public class CorsHandlerImpl implements CorsHandler {
     HttpServerResponse response = context.response();
     String origin = context.request().headers().get(ORIGIN);
     if (origin == null) {
+      Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
       // Not a CORS request - we don't set any headers and just call the next handler
       context.next();
     } else if (isValidOrigin(origin)) {
@@ -129,20 +177,39 @@ public class CorsHandlerImpl implements CorsHandler {
         }
         if (allowedHeadersString != null) {
           response.putHeader(ACCESS_CONTROL_ALLOW_HEADERS, allowedHeadersString);
+        } else {
+          if (request.headers().contains(ACCESS_CONTROL_REQUEST_HEADERS)) {
+            // echo back the request headers
+            response.putHeader(ACCESS_CONTROL_ALLOW_HEADERS, request.getHeader(ACCESS_CONTROL_REQUEST_HEADERS));
+            // in this case we need to vary on this header
+            Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ACCESS_CONTROL_REQUEST_HEADERS);
+          }
         }
         if (maxAgeSeconds != null) {
           response.putHeader(ACCESS_CONTROL_MAX_AGE, maxAgeSeconds);
         }
-        response.setStatusCode(204).end();
+
+        response
+          // for old Safari
+          .putHeader(CONTENT_LENGTH, "0")
+          .setStatusCode(204)
+          .end();
+
       } else {
+        Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
         addCredentialsAndOriginHeader(response, origin);
         if (exposedHeadersString != null) {
           response.putHeader(ACCESS_CONTROL_EXPOSE_HEADERS, exposedHeadersString);
         }
+        ((RoutingContextInternal) context).visitHandler(RoutingContextInternal.CORS_HANDLER);
         context.next();
       }
     } else {
-      sendInvalid(request.response());
+      context
+        .response()
+        .setStatusMessage("CORS Rejected - Invalid origin");
+      context
+        .fail(403);
     }
   }
 
@@ -157,36 +224,33 @@ public class CorsHandlerImpl implements CorsHandler {
     }
   }
 
-  private void sendInvalid(HttpServerResponse resp) {
-    resp.setStatusCode(403).setStatusMessage("CORS Rejected - Invalid origin").end();
-  }
-
   private boolean isValidOrigin(String origin) {
-    if (allowedOrigin == null) {
-      // Null means accept all origins
-      return true;
+
+    // Null means accept all origins
+    if (allowedOrigin == null && allowedOrigins == null) {
+      return Origin.isValid(origin);
     }
-    return allowedOrigin.matcher(origin).matches();
+
+    if(allowedOrigin != null) {
+      // check for allowed origin pattern match
+      return allowedOrigin.matcher(origin).matches();
+    }
+
+    // check whether origin is contained within allowed origin set
+    for (Origin allowedOrigin : allowedOrigins) {
+      if (allowedOrigin.sameOrigin(origin)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private String getAllowedOrigin(String origin) {
-    return allowedOrigin == null ? "*" : origin;
-  }
-
-  private String join(Collection<?> ss) {
-    if (ss == null || ss.isEmpty()) {
-      return null;
+    if(allowedOrigin == null && allowedOrigins == null) {
+      return "*";
     }
-    StringBuilder sb = new StringBuilder();
-    boolean first = true;
-    for (Object s : ss) {
-      if (!first) {
-        sb.append(',');
-      }
-      sb.append(s);
-      first = false;
-    }
-    return sb.toString();
-  }
 
+    return origin;
+  }
 }
