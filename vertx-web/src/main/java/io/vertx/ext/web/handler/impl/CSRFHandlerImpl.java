@@ -27,11 +27,10 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.CSRFHandler;
 import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.impl.Origin;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -54,7 +53,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
   private String headerName = DEFAULT_HEADER_NAME;
   private long timeout = SessionHandler.DEFAULT_SESSION_TIMEOUT;
 
-  private URI origin;
+  private Origin origin;
   private boolean httpOnly;
 
   public CSRFHandlerImpl(final Vertx vertx, final String secret) {
@@ -69,12 +68,8 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
   @Override
   public CSRFHandler setOrigin(String origin) {
-    try {
-      this.origin = new URI(origin);
-      return this;
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
+    this.origin = Origin.parse(origin);
+    return this;
   }
 
   @Override
@@ -190,18 +185,9 @@ public class CSRFHandlerImpl implements CSRFHandler {
       }
 
       //Compare the source against the expected target origin
-      try {
-        URI sourceURL = new URI(source);
-        if (
-          !origin.getScheme().equals(sourceURL.getScheme()) ||
-            !origin.getHost().equals(sourceURL.getHost()) ||
-            origin.getPort() != sourceURL.getPort()) {
-          //One the part do not match so we trace the event and we block the request
-          log.trace("Protocol/Host/Port do not fully match");
-          return false;
-        }
-      } catch (URISyntaxException e) {
-        log.trace("Invalid URI", e);
+      if (!origin.sameOrigin(source)) {
+        //One the part do not match so we trace the event and we block the request
+        log.trace("Protocol/Host/Port do not fully match");
         return false;
       }
     }

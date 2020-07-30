@@ -21,6 +21,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.impl.Origin;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.impl.Utils;
 
@@ -40,7 +41,7 @@ import static io.vertx.core.http.HttpHeaders.*;
 public class CorsHandlerImpl implements CorsHandler {
 
   private final Pattern allowedOrigin;
-  private Set<String> allowedOrigins;
+  private Set<Origin> allowedOrigins;
 
   private String allowedMethodsString;
   private String allowedHeadersString;
@@ -83,7 +84,7 @@ public class CorsHandlerImpl implements CorsHandler {
         throw new IllegalStateException("Cannot mix '*' with explicit origins");
       }
     }
-    allowedOrigins.add(origin);
+    allowedOrigins.add(Origin.parse(origin));
     return this;
   }
 
@@ -95,7 +96,9 @@ public class CorsHandlerImpl implements CorsHandler {
     if (allowedOrigins == null) {
       allowedOrigins = new LinkedHashSet<>();
     }
-    allowedOrigins.addAll(origins);
+    for (String origin : origins) {
+      allowedOrigins.add(Origin.parse(origin));
+    }
     return this;
   }
 
@@ -224,8 +227,8 @@ public class CorsHandlerImpl implements CorsHandler {
   private boolean isValidOrigin(String origin) {
 
     // Null means accept all origins
-    if ((allowedOrigin == null && allowedOrigins == null)) {
-      return isValidOriginURI(origin);
+    if (allowedOrigin == null && allowedOrigins == null) {
+      return Origin.isValid(origin);
     }
 
     if(allowedOrigin != null) {
@@ -233,62 +236,14 @@ public class CorsHandlerImpl implements CorsHandler {
       return allowedOrigin.matcher(origin).matches();
     }
 
-    if(allowedOrigins != null) {
-      // check whether origin is contained within allowed origin set
-      return allowedOrigins.contains(origin) && isValidOriginURI(origin);
+    // check whether origin is contained within allowed origin set
+    for (Origin allowedOrigin : allowedOrigins) {
+      if (allowedOrigin.sameOrigin(origin)) {
+        return true;
+      }
     }
 
     return false;
-  }
-
-  /**
-   * Checks if the origin header is valid according to:
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin
-   * https://tools.ietf.org/html/rfc6454#section-7
-   */
-  private boolean isValidOriginURI(String origin) {
-    if (origin == null || origin.length() < 3) {
-      return false;
-    }
-    // an origin header has the following syntax:
-    // <scheme> "://" <hostname> [ ":" <port> ]
-    int sep0 = origin.indexOf("://");
-
-    if (sep0 <= 0) {
-      // ://xyz -> url misses scheme
-      return false;
-    }
-
-    // scheme allow letters
-    for (int i = 0; i < sep0; i++) {
-      char c = origin.charAt(i);
-      if (!Character.isLetter(c)) {
-        return false;
-      }
-    }
-
-    int sep1 = origin.lastIndexOf(':');
-
-    if (sep1 > sep0) {
-      // optional port information present
-      try {
-        Integer.parseInt(origin.substring(sep1 + 1));
-      } catch (NumberFormatException e) {
-        return false;
-      }
-    } else {
-      sep1 = origin.length();
-    }
-
-    // domain allow letters, numbers and .
-    for (int i = sep0 + 3; i < sep1; i++) {
-      char c = origin.charAt(i);
-      if (!Character.isLetterOrDigit(c) && c != '.') {
-        return false;
-      }
-    }
-
-    return true;
   }
 
   private String getAllowedOrigin(String origin) {
