@@ -188,6 +188,17 @@ public interface SessionHandler extends Handler<RoutingContext> {
 	SessionHandler setLazySession(boolean lazySession);
 
   /**
+   * Set a Cookie max-age to the session cookie. When doing this the Cookie will be persistent across browser restarts.
+   * This can be dangerous as closing a browser windows does not invalidate the session. For more information refer to
+   * https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#Expire_and_Max-Age_Attributes
+   *
+   * @param cookieMaxAge a non negative max-age, note that 0 means expire now.
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  SessionHandler setCookieMaxAge(long cookieMaxAge);
+
+  /**
    * Set an auth provider that will allow retrieving the User object from the session to the current routing context.
    *
    * @param authProvider any auth provider.

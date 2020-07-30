@@ -51,6 +51,7 @@ public class SessionHandlerImpl implements SessionHandler {
   private boolean sessionCookieHttpOnly = DEFAULT_COOKIE_HTTP_ONLY_FLAG;
   private int minLength = DEFAULT_SESSIONID_MIN_LENGTH;
   private boolean lazySession = DEFAULT_LAZY_SESSION;
+  private long cookieMaxAge = -1;
 
   private boolean cookieless;
   private CookieSameSite cookieSameSite;
@@ -110,6 +111,12 @@ public class SessionHandlerImpl implements SessionHandler {
   @Override
   public SessionHandler setLazySession(boolean lazySession) {
     this.lazySession = lazySession;
+    return this;
+  }
+
+  @Override
+  public SessionHandler setCookieMaxAge(long cookieMaxAge) {
+    this.cookieMaxAge = cookieMaxAge;
     return this;
   }
 
@@ -380,7 +387,10 @@ public class SessionHandlerImpl implements SessionHandler {
     cookie.setSecure(sessionCookieSecure);
     cookie.setHttpOnly(sessionCookieHttpOnly);
     cookie.setSameSite(cookieSameSite);
-    // Don't set max age - it's a session cookie
+    // set max age if user requested it - else it's a session cookie
+    if (cookieMaxAge >= 0) {
+      cookie.setMaxAge(cookieMaxAge);
+    }
     context.addCookie(cookie);
     return cookie;
   }
