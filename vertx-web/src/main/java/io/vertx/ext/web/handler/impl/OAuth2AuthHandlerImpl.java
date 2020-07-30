@@ -34,9 +34,8 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
+import io.vertx.ext.web.impl.Origin;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,17 +63,13 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     // get a reference to the prng
     this.prng = VertxContextPRNG.current(vertx);
 
-    try {
-      if (callbackURL != null) {
-        final URL url = new URL(callbackURL);
-        this.host = url.getProtocol() + "://" + url.getHost() + (url.getPort() == -1 ? "" : ":" + url.getPort());
-        this.callbackPath = url.getPath();
-      } else {
-        this.host = null;
-        this.callbackPath = null;
-      }
-    } catch (MalformedURLException e) {
-      throw new RuntimeException(e);
+    if (callbackURL != null) {
+      final Origin origin = Origin.parse(callbackURL);
+      this.host = origin.toString();
+      this.callbackPath = origin.resource();
+    } else {
+      this.host = null;
+      this.callbackPath = null;
     }
   }
 

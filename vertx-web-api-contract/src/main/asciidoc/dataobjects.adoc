@@ -3,6 +3,9 @@
 [[OperationRequest]]
 == OperationRequest
 
+++++
+++++
+'''
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]
@@ -22,6 +25,9 @@ Get request principal user as routingContext.user().principal(), null if no user
 [[OperationResponse]]
 == OperationResponse
 
+++++
+++++
+'''
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]

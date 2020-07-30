@@ -330,6 +330,6 @@ public class CSRFHandlerTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/xsrf", req -> req.putHeader("Origin", "https://myserver.com"), null, 403, "Forbidden", null);
     testRequest(HttpMethod.GET, "/xsrf", req -> req.putHeader("Origin", "http://myserver.com/"), null, 200, "OK", null);
-    testRequest(HttpMethod.GET, "/xsrf", req -> req.putHeader("Origin", "http://myserver.com:80"), null, 403, "Forbidden", null);
+    testRequest(HttpMethod.GET, "/xsrf", req -> req.putHeader("Origin", "http://myserver.com:80"), null, 200, "OK", null);
   }
 }
