@@ -25,8 +25,6 @@ import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 
-import java.util.List;
-
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */

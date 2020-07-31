@@ -32,7 +32,7 @@ import static io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils.safeBool
 public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestValidationHandlerImpl<Operation> implements OpenAPI3RequestValidationHandler {
 
   /* I need this class to workaround the multipart validation of content types different from json and text */
-  private class MultipartCustomValidator implements CustomValidator {
+  private static class MultipartCustomValidator implements CustomValidator {
 
     Pattern contentTypePattern;
     String parameterName;
@@ -281,7 +281,7 @@ private List<ParameterTypeValidator> resolveTypeValidatorsForAnyOfOneOf(List<Sch
           , location), location);
     } else {
       this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-        .createValidationRuleWithCustomTypeValidator(parameter.getName(), CONTENT_TYPE_VALIDATOR, !OpenApi3Utils.isRequiredParam(parameter), 
+        .createValidationRuleWithCustomTypeValidator(parameter.getName(), CONTENT_TYPE_VALIDATOR, !OpenApi3Utils.isRequiredParam(parameter),
                 OpenApi3Utils.resolveAllowEmptyValue(parameter), location), location);
     }
   }
@@ -402,7 +402,7 @@ private List<ParameterTypeValidator> resolveTypeValidatorsForAnyOfOneOf(List<Sch
       } else if ("deepObject".equals(style)) {
         this.magicParameterExplodedStyleDeepObjectTypeObject(parameter);
         result = true;
-      } 
+      }
     }
     return result;
   }

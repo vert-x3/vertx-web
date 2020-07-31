@@ -1483,7 +1483,7 @@ public class WebExamples {
     throw new UnsupportedOperationException();
   }
 
-  class Book {
+  static class Book {
   }
 
   Buffer toJson(List<Book> books) {

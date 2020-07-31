@@ -103,7 +103,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     }
   }
 
-  private final AuthorizationContext getAuhorizationContext(RoutingContext event) {
+  private AuthorizationContext getAuhorizationContext(RoutingContext event) {
     final AuthorizationContext result = AuthorizationContext.create(event.user());
     if (variableHandler != null) {
       variableHandler.accept(event, result);

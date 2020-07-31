@@ -15,7 +15,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.service.RouteToEBServiceHandler;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.impl.RouteImpl;
 import io.vertx.ext.web.openapi.*;

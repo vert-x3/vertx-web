@@ -17,7 +17,6 @@
 package io.vertx.ext.web;
 
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;

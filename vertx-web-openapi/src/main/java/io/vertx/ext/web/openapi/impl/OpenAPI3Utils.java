@@ -229,7 +229,7 @@ public class OpenAPI3Utils {
   }
 
   public static String sanitizeOperationId(String operationId) {
-    StringBuffer result = new StringBuffer();
+    StringBuilder result = new StringBuilder();
     for (int i = 0; i < operationId.length(); i++) {
       char c = operationId.charAt(i);
       if (c == '-' || c == ' ' || c == '_') {

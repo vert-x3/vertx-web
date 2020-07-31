@@ -38,7 +38,6 @@ import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.impl.StringEscapeUtils;

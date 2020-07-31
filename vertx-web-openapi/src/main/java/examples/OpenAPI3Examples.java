@@ -1,6 +1,5 @@
 package examples;
 
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
@@ -8,9 +7,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.docgen.Source;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
-import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.openapi.OpenAPILoaderOptions;
 import io.vertx.ext.web.openapi.RouterFactory;

@@ -119,7 +119,7 @@ class ForwardedParser {
         break;
     }
 
-    if (((scheme.equals(HTTP_SCHEME) && port == 80) || (scheme.equals(HTTPS_SCHEME) && port == 443))) {
+    if (((scheme.equalsIgnoreCase(HTTP_SCHEME) && port == 80) || (scheme.equalsIgnoreCase(HTTPS_SCHEME) && port == 443))) {
       port = -1;
     }
 

@@ -37,14 +37,14 @@ import io.vertx.ext.web.impl.RouteImpl;
  */
 public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implements
   OpenAPI3RouterFactory {
-    
+
 
     /**
     * The class Logger
     */
   private final static Logger LOG = LoggerFactory
         .getLogger(OpenAPI3RouterFactoryImpl.class);
-  
+
 
   private final static String OPENAPI_EXTENSION = "x-vertx-event-bus";
   private final static String OPENAPI_EXTENSION_ADDRESS = "address";
@@ -66,7 +66,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
 
   SecurityHandlersStore securityHandlers;
 
-  private class OperationValue {
+  private static class OperationValue {
     private HttpMethod method;
 
     private String path;
@@ -185,15 +185,15 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     for (Map.Entry<String, ? extends PathItem> pathEntry : spec.getPaths().entrySet()) {
       for (Map.Entry<PathItem.HttpMethod, ? extends Operation> opEntry : pathEntry.getValue().readOperationsMap().entrySet()) {
           if (opEntry.getValue().getOperationId() != null) {
-              this.operations.put(opEntry.getValue().getOperationId(), 
-                      new OperationValue(
-                              HttpMethod.valueOf(opEntry.getKey().name()),
-                              pathEntry.getKey(),
-                              opEntry.getValue(),
-                              pathEntry.getValue()
-                          ));
+              this.operations.put(opEntry.getValue().getOperationId(),
+                new OperationValue(
+                  HttpMethod.valueOf(opEntry.getKey().name()),
+                  pathEntry.getKey(),
+                  opEntry.getValue(),
+                  pathEntry.getValue()
+                ));
           } else if (LOG.isWarnEnabled()) {
-              LOG.warn("The operation '"+ opEntry.getKey() + "' from path '" + 
+              LOG.warn("The operation '"+ opEntry.getKey() + "' from path '" +
                       pathEntry.getKey()+"' is being ignored because it doesn't have an operationId");
           }
       }

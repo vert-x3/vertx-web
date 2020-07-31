@@ -104,7 +104,7 @@ public class GraphQLExamples {
     return null;
   }
 
-  class Link {
+  static class Link {
   }
 
   public void completionStageDataFetcher() {
@@ -156,7 +156,7 @@ public class GraphQLExamples {
     return null;
   }
 
-  class User {
+  static class User {
   }
 
   private void routingContextInDataFetchingEnvironment() {

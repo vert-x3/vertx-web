@@ -15,7 +15,7 @@ import java.util.Map;
  */
 public class ObjectTypeValidator extends ContainerTypeValidator<Map<String, String>> {
 
-  private class ObjectField {
+  private static class ObjectField {
     private ParameterTypeValidator validator;
     private boolean required;
 

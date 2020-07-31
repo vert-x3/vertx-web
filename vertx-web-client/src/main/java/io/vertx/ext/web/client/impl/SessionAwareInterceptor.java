@@ -8,10 +8,8 @@ import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.ext.web.client.spi.CookieStore;
 
 /**

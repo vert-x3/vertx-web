@@ -47,7 +47,7 @@ class JsonArrayValueResolver implements ValueResolver {
         return jsonArray.size();
       }
       // NumberFormatException will bubble up and cause a HandlebarsException with line, row info
-      Object value = jsonArray.getValue(Integer.valueOf(name));
+      Object value = jsonArray.getValue(Integer.parseInt(name));
       if (value != null) {
         return value;
       }

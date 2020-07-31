@@ -44,10 +44,10 @@ class HttpServerRequestWrapper implements HttpServerRequest {
 
     // parse
     int queryIndex = uri.indexOf('?');
-    int fragmentIndex = uri.indexOf('#');
 
     // there's a query
     if (queryIndex != -1) {
+      int fragmentIndex = uri.indexOf('#', queryIndex);
       path = uri.substring(0, queryIndex);
       // there's a fragment
       if (fragmentIndex != -1) {
@@ -56,6 +56,7 @@ class HttpServerRequestWrapper implements HttpServerRequest {
         query = uri.substring(queryIndex + 1);
       }
     } else {
+      int fragmentIndex = uri.indexOf('#');
       // there's a fragment
       if (fragmentIndex != -1) {
         path = uri.substring(0, fragmentIndex);

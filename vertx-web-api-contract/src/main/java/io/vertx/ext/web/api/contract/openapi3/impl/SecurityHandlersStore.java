@@ -14,7 +14,7 @@ import java.util.stream.Stream;
  */
 class SecurityHandlersStore {
 
-  private class SecurityRequirementKey {
+  private static class SecurityRequirementKey {
     private String name;
     private String oauth2Scope;
 
