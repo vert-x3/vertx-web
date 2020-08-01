@@ -26,6 +26,7 @@ import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
@@ -360,11 +361,10 @@ public class HttpContext<T> {
     }
     redirects = 0;
     if (request.virtualHost != null) {
-      String virtalHost = request.virtualHost;
-      if (port != 80) {
-        virtalHost += ":" + port;
+      if (options.getServer() == null) {
+        options.setServer(SocketAddress.inetSocketAddress(options.getPort(), options.getHost()));
       }
-      options.setAuthority(virtalHost);
+      options.setHost(request.virtualHost);
     }
     sendRequest(options);
   }
@@ -433,7 +433,7 @@ public class HttpContext<T> {
     if (contentType != null) {
       String prev = requestOptions.getHeaders().get(HttpHeaders.CONTENT_TYPE);
       if (prev == null) {
-        requestOptions.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+        requestOptions.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
       } else {
         contentType = prev;
       }

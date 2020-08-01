@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import org.junit.Test;
 
@@ -47,31 +48,33 @@ public class SockJSSessionContextTest extends SockJSTestBase {
 
     startServers();
 
-    client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
-
-      client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp2 -> {
-        assertEquals(200, resp.statusCode());
-
-        client.post("/test/400/8ne8e94a/xhr_send", Buffer.buffer('"' + msg + '"'), onSuccess(respSend -> {
-          assertEquals(204, respSend.statusCode());
-
-          client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp3 -> {
-            assertEquals(200, resp.statusCode());
-            resp3.bodyHandler(buffer -> {
-              String body = buffer.toString();
-              assertThat(body, startsWith("a"));
-              JsonArray content = new JsonArray(body.substring(1));
-              assertEquals(1, content.size());
-              assertEquals(msg, content.getValue(0));
-              complete();
-            });
+    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr", onSuccess(req1 -> {
+      req1.send(Buffer.buffer(), onSuccess(resp1 -> {
+        assertEquals(200, resp1.statusCode());
+        client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr", onSuccess(req2 -> {
+          req2.send(Buffer.buffer(), onSuccess(resp2 -> {
+            assertEquals(200, resp2.statusCode());
+            client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr_send", onSuccess(req3 -> {
+              req3.send(Buffer.buffer('"' + msg + '"'), onSuccess(resp3 -> {
+                assertEquals(204, resp3.statusCode());
+                client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr", onSuccess(req4 -> {
+                  req4.send(Buffer.buffer(), onSuccess(resp4 -> {
+                    assertEquals(200, resp4.statusCode());
+                    resp4.body(onSuccess(buffer -> {
+                      String body = buffer.toString();
+                      assertThat(body, startsWith("a"));
+                      JsonArray content = new JsonArray(body.substring(1));
+                      assertEquals(1, content.size());
+                      assertEquals(msg, content.getValue(0));
+                      complete();
+                    }));
+                  }));
+                }));
+              }));
+            }));
           }));
-
         }));
-
       }));
-
     }));
 
     await();

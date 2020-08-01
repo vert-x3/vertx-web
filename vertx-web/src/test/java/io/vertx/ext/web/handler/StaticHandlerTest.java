@@ -289,10 +289,14 @@ public class StaticHandlerTest extends WebTestBase {
     List<String> contentEncodings = Collections.synchronizedList(new ArrayList<>());
     for (String uri : uris) {
       CountDownLatch responseReceived = new CountDownLatch(1);
-      client.get(server.actualPort(), getHttpClientOptions().getDefaultHost(), uri, HttpHeaders.set(HttpHeaders.ACCEPT_ENCODING, String.join(", ", "gzip", "jpg", "jpeg", "png")), onSuccess(resp -> {
-        assertEquals(200, resp.statusCode());
-        contentEncodings.add(resp.getHeader(HttpHeaders.CONTENT_ENCODING));
-        responseReceived.countDown();
+      client.request(HttpMethod.GET, server.actualPort(), getHttpClientOptions().getDefaultHost(), uri, onSuccess(req -> {
+        req
+          .putHeader(HttpHeaders.ACCEPT_ENCODING, String.join(", ", "gzip", "jpg", "jpeg", "png"))
+          .send(onSuccess(resp -> {
+            assertEquals(200, resp.statusCode());
+            contentEncodings.add(resp.getHeader(HttpHeaders.CONTENT_ENCODING));
+            responseReceived.countDown();
+          }));
       }));
       awaitLatch(responseReceived);
     }

@@ -16,6 +16,7 @@
 package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.WebSocketBase;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
@@ -105,13 +106,14 @@ public class SockJSWriteTest extends SockJSTestBase {
       }));
     };
     startServers();
-    client.get("/test/400/8ne8e94a/eventsource", onSuccess(resp -> {
-      resp.handler(buffer -> {
-        if (buffer.toString().equals("data: a[\"" + expected + "\"]\r\n\r\n")) {
-          complete();
-        }
-      });
-    }));
+    client.request(HttpMethod.GET, "/test/400/8ne8e94a/eventsource")
+      .onComplete(onSuccess(req -> req.send(onSuccess(resp -> {
+        resp.handler(buffer -> {
+          if (buffer.toString().equals("data: a[\"" + expected + "\"]\r\n\r\n")) {
+            complete();
+          }
+        });
+      }))));
     await();
   }
 
@@ -126,9 +128,10 @@ public class SockJSWriteTest extends SockJSTestBase {
       });
     };
     startServers();
-    client.get("/test/400/8ne8e94a/eventsource", onSuccess(resp -> {
-      resp.request().connection().close();
-    }));
+    client.request(HttpMethod.GET, "/test/400/8ne8e94a/eventsource")
+      .onComplete(onSuccess(req -> req.send(onSuccess(resp -> {
+        req.connection().close();
+      }))));
     await();
   }
 
@@ -142,14 +145,15 @@ public class SockJSWriteTest extends SockJSTestBase {
       }));
     };
     startServers();
-    client.post("/test/400/8ne8e94a/xhr_streaming", Buffer.buffer(), onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
-      resp.handler(buffer -> {
-        if (buffer.toString().equals("a[\"" + expected + "\"]\n")) {
-          complete();
-        }
-      });
-    }));
+    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr_streaming")
+      .onComplete(onSuccess(req -> req.send(Buffer.buffer(), onSuccess(resp -> {
+        assertEquals(200, resp.statusCode());
+        resp.handler(buffer -> {
+          if (buffer.toString().equals("a[\"" + expected + "\"]\n")) {
+            complete();
+          }
+        });
+      }))));
     await();
   }
 
@@ -164,9 +168,10 @@ public class SockJSWriteTest extends SockJSTestBase {
       });
     };
     startServers();
-    client.post("/test/400/8ne8e94a/xhr_streaming", Buffer.buffer(), onSuccess(resp -> {
-      resp.request().connection().close();
-    }));
+    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr_streaming")
+      .onComplete(onSuccess(req -> req.send(onSuccess(resp -> {
+        req.connection().close();
+      }))));
     await();
   }
 
@@ -182,16 +187,17 @@ public class SockJSWriteTest extends SockJSTestBase {
     startServers();
     Runnable[] task = new Runnable[1];
     task[0] = () ->
-    client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
-      resp.handler(buffer -> {
-        if (buffer.toString().equals("a[\"" + expected + "\"]\n")) {
-          complete();
-        } else {
-          task[0].run();
-        }
-      });
-    }));
+      client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr")
+        .onComplete(onSuccess(req -> req.send(Buffer.buffer(), onSuccess(resp -> {
+          assertEquals(200, resp.statusCode());
+          resp.handler(buffer -> {
+            if (buffer.toString().equals("a[\"" + expected + "\"]\n")) {
+              complete();
+            } else {
+              task[0].run();
+            }
+          });
+        }))));
     task[0].run();
     await();
   }
@@ -213,10 +219,11 @@ public class SockJSWriteTest extends SockJSTestBase {
       socket.close();
     };
     startServers();
-    client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
-      complete();
-    }));
+    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr")
+      .onComplete(onSuccess(req -> req.send(onSuccess(resp -> {
+        assertEquals(200, resp.statusCode());
+        complete();
+      }))));
     await();
   }
 
@@ -236,10 +243,11 @@ public class SockJSWriteTest extends SockJSTestBase {
       });
     };
     startServers();
-    client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
-      complete();
-    }));
+    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr")
+      .onComplete(onSuccess(req -> req.send(onSuccess(resp -> {
+        assertEquals(200, resp.statusCode());
+        complete();
+      }))));
     await();
   }
 }

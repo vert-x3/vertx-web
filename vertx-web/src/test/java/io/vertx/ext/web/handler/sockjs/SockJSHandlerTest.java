@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler.sockjs;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.http.WebSocketFrame;
@@ -68,13 +69,14 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   private void testGreeting(String uri) {
-    client.get(uri, onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
-      assertEquals("text/plain; charset=UTF-8", resp.getHeader("content-type"));
-      resp.bodyHandler(buff -> {
-        assertEquals("Welcome to SockJS!\n", buff.toString());
-        complete();
-      });
+    client.request(HttpMethod.GET, uri).compose(req -> req.send()
+      .compose(resp -> {
+        assertEquals(200, resp.statusCode());
+        assertEquals("text/plain; charset=UTF-8", resp.getHeader("content-type"));
+        return resp.body();
+      })).onComplete(onSuccess(buff -> {
+      assertEquals("Welcome to SockJS!\n", buff.toString());
+      complete();
     }));
   }
 
@@ -352,10 +354,10 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   private void testNotFound(String uri) {
-    client.get(uri, onSuccess(resp -> {
+    client.request(HttpMethod.GET, uri, onSuccess(req -> req.send(onSuccess(resp -> {
       assertEquals(404, resp.statusCode());
       complete();
-    }));
+    }))));
   }
 
   @Test

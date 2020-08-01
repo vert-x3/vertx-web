@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.WebTestBase;
@@ -47,20 +48,28 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
   @Test
   public void testNoMatch() {
     testRoute.handler(rc -> rc.response().end());
-    client.get(testRoute.getPath(), HttpHeaders.set(HttpHeaders.ACCEPT, "application/json") ,onSuccess(resp -> {
-      assertNull(contentType(resp));
-      testComplete();
-    }));
+    client.request(HttpMethod.GET, testRoute.getPath())
+      .compose(req -> req
+        .putHeader(HttpHeaders.ACCEPT, "application/json")
+        .send())
+      .onComplete(onSuccess(resp -> {
+        assertNull(contentType(resp));
+        testComplete();
+      }));
     await();
   }
 
   @Test
   public void testExistingHeader() {
     testRoute.produces("application/json").handler(rc -> rc.response().putHeader(CONTENT_TYPE, "text/plain").end());
-    client.get(testRoute.getPath(), HttpHeaders.set(HttpHeaders.ACCEPT, "application/json"), onSuccess(resp -> {
-      assertEquals("text/plain", contentType(resp));
-      testComplete();
-    }));
+    client.request(HttpMethod.GET, testRoute.getPath())
+      .compose(req -> req
+        .putHeader(HttpHeaders.ACCEPT, "application/json")
+        .send())
+      .onComplete(onSuccess(resp -> {
+        assertEquals("text/plain", contentType(resp));
+        testComplete();
+      }));
     await();
   }
 
@@ -68,14 +77,18 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
   public void testFixedContent() {
     Buffer buffer = new JsonObject().put("toto", "titi").toBuffer();
     testRoute.produces("application/json").handler(rc -> rc.response().end(buffer));
-    client.get(testRoute.getPath(), HttpHeaders.set(HttpHeaders.ACCEPT, "application/json"), onSuccess(resp -> {
-      assertEquals("application/json", contentType(resp));
-      assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
-      resp.bodyHandler(buf -> {
+    client.request(HttpMethod.GET, testRoute.getPath())
+      .compose(req -> req
+        .putHeader(HttpHeaders.ACCEPT, "application/json")
+        .send().compose(resp -> {
+          assertEquals("application/json", contentType(resp));
+          assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
+          return resp.body();
+        })
+      ).onComplete(onSuccess(buf -> {
         assertEquals(buffer, buf);
         testComplete();
-      });
-    }));
+      }));
     await();
   }
 
@@ -83,13 +96,16 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
   public void testChunkedContent() {
     Buffer buffer = new JsonObject().put("toto", "titi").toBuffer();
     testRoute.produces("application/json").handler(rc -> rc.response().setChunked(true).end(buffer));
-    client.get(testRoute.getPath(), HttpHeaders.set(HttpHeaders.ACCEPT, "application/json"), onSuccess(resp -> {
-      assertEquals("application/json", contentType(resp));
-      assertNull(contentLength(resp));
-      resp.bodyHandler(buf -> {
-        assertEquals(buffer, buf);
-        testComplete();
-      });
+    client.request(HttpMethod.GET, testRoute.getPath())
+      .compose(req -> req
+        .putHeader(HttpHeaders.ACCEPT, "application/json")
+        .send().compose(resp -> {
+          assertNull(contentLength(resp));
+          return resp.body();
+        })
+      ).onComplete(onSuccess(buf -> {
+      assertEquals(buffer, buf);
+      testComplete();
     }));
     await();
   }
@@ -97,9 +113,14 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
   @Test
   public void testNoContent() {
     testRoute.produces("application/json").handler(rc -> rc.response().end());
-    client.get(testRoute.getPath(), HttpHeaders.set(HttpHeaders.ACCEPT, "application/json"), onSuccess(resp -> {
+    client.request(HttpMethod.GET, testRoute.getPath())
+      .compose(req -> req
+        .putHeader(HttpHeaders.ACCEPT, "application/json")
+        .send()
+      ).onComplete(onSuccess(resp -> {
       assertNull(contentType(resp));
       assertEquals(Integer.valueOf(0), contentLength(resp));
+      testComplete();
       testComplete();
     }));
     await();
@@ -115,13 +136,17 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       rc.put(ResponseContentTypeHandler.DEFAULT_DISABLE_FLAG, true);
       rc.response().end(buffer);
     });
-    client.get(testRoute.getPath(), HttpHeaders.set(HttpHeaders.ACCEPT, "application/json"), onSuccess(resp -> {
-      assertNull(contentType(resp));
-      assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
-      resp.bodyHandler(buf -> {
-        assertEquals(buffer, buf);
-        testComplete();
-      });
+    client.request(HttpMethod.GET, testRoute.getPath())
+      .compose(req -> req
+        .putHeader(HttpHeaders.ACCEPT, "application/json")
+        .send().compose(resp -> {
+          assertNull(contentType(resp));
+          assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
+          return resp.body();
+        })
+      ).onComplete(onSuccess(buf -> {
+      assertEquals(buffer, buf);
+      testComplete();
     }));
     await();
   }

@@ -708,9 +708,9 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
                   latch.countDown();
               });
       awaitLatch(latch, 5, TimeUnit.SECONDS);
-      
+
       startServer();
-      
+
       testRequest(HttpMethod.GET, "/test1", 404, "Not Found");
   }
 
@@ -736,7 +736,7 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
 
 	    testRequest(HttpMethod.GET, "/things?filter=[{\"field\":\"size\",\"operator\":\"gt\",\"value\":\"20\"},]", 200, "OK");
   }
-  
+
   @Test
   public void addGlobalHandlersTest() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
@@ -1151,15 +1151,16 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
     startServer();
 
     CountDownLatch requestLatch = new CountDownLatch(1);
-    client
-      .send(HttpMethod.POST, 8080, "localhost", "/jsonBody/empty", onSuccess(res -> {
-        assertEquals(200, res.statusCode());
-        assertEquals("application/json", res.getHeader(HttpHeaders.CONTENT_TYPE));
-        res.bodyHandler(buff -> {
-          JsonObject result = new JsonObject(normalizeLineEndingsFor(buff));
-          assertEquals(new JsonObject().put("bodyEmpty", true), result);
-          requestLatch.countDown();
-        });
+    client.request(HttpMethod.POST, 8080, "localhost", "/jsonBody/empty")
+      .compose(req -> req.send().compose(resp -> {
+        assertEquals(200, resp.statusCode());
+        assertEquals("application/json", resp.getHeader(HttpHeaders.CONTENT_TYPE));
+        return resp.body();
+      }))
+      .onComplete(onSuccess(buff -> {
+        JsonObject result = new JsonObject(normalizeLineEndingsFor(buff));
+        assertEquals(new JsonObject().put("bodyEmpty", true), result);
+        requestLatch.countDown();
       }));
     awaitLatch(requestLatch);
   }

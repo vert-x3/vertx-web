@@ -21,6 +21,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
 import io.vertx.core.http.*;
+import io.vertx.core.net.SocketAddress;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -2665,7 +2666,10 @@ public class RouterTest extends WebTestBase {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(HttpMethod.GET, "/", req -> req.setAuthority("www.mysite.com"), 200, "OK", null);
+    testRequest(new RequestOptions()
+      .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setPort(80)
+      .setHost("www.mysite.com"), req -> { }, 200, "OK", null);
   }
 
   @Test
@@ -2674,7 +2678,10 @@ public class RouterTest extends WebTestBase {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(HttpMethod.GET, "/", req -> req.setAuthority("www.mysite.net"), 500, "Internal Server Error", null);
+    testRequest(new RequestOptions()
+      .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setPort(80)
+      .setHost("www.mysite.net"), req -> {}, 500, "Internal Server Error", null);
   }
 
   @Test

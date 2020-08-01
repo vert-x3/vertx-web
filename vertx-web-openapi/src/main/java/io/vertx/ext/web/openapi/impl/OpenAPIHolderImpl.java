@@ -267,30 +267,32 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
       .addHeader(HttpHeaders.ACCEPT.toString(), "application/json, application/yaml, application/x-yaml");
     options.getAuthHeaders().forEach(reqOptions::addHeader);
 
-    return client.get(reqOptions).compose(res -> {
-      if (res.statusCode() != 200) {
-        return Future.failedFuture(new IllegalStateException("Wrong status " + res.statusCode() + " " + res.statusMessage() + " received while resolving remote ref"));
-      }
+    return client.request(reqOptions).compose(req ->
+      req.send().compose(res -> {
+        if (res.statusCode() != 200) {
+          return Future.failedFuture(new IllegalStateException("Wrong status " + res.statusCode() + " " + res.statusMessage() + " received while resolving remote ref"));
+        }
 
-      String contentType = res.getHeader("Content-Type");
-      if ("application/json".equals(contentType)) {
-        return res.body().compose(buf -> {
-          try {
-            return Future.succeededFuture(buf.toJsonObject());
-          } catch (DecodeException e) {
-            return Future.failedFuture(new RuntimeException("Cannot decode the received Json Response: ", e));
-          }
-        });
-      } else {
-        return res.body().compose(buf -> {
-          try {
-            return Future.succeededFuture(yamlToJson(buf));
-          } catch (DecodeException e) {
-            return Future.failedFuture(new RuntimeException("Cannot decode the received Json Response: ", e));
-          }
-        });
-      }
-    });
+        String contentType = res.getHeader("Content-Type");
+        if ("application/json".equals(contentType)) {
+          return res.body().compose(buf -> {
+            try {
+              return Future.succeededFuture(buf.toJsonObject());
+            } catch (DecodeException e) {
+              return Future.failedFuture(new RuntimeException("Cannot decode the received Json Response: ", e));
+            }
+          });
+        } else {
+          return res.body().compose(buf -> {
+            try {
+              return Future.succeededFuture(yamlToJson(buf));
+            } catch (DecodeException e) {
+              return Future.failedFuture(new RuntimeException("Cannot decode the received Json Response: ", e));
+            }
+          });
+        }
+      })
+    );
   }
 
   private Future<JsonObject> solveLocalRef(final URI ref) {

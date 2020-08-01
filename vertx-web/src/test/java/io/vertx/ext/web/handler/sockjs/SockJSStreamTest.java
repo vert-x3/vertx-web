@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler.sockjs;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import org.junit.Test;
 
@@ -67,21 +68,23 @@ public class SockJSStreamTest extends SockJSTestBase {
   }
 
   private void fetchMessages(List<String> messages) {
-    client.post("/test/400/8ne8e94a/xhr", Buffer.buffer(), onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
-      resp.bodyHandler(buffer -> {
-        String body = buffer.toString();
-        if (body.startsWith("a")) {
-          JsonArray content = new JsonArray(body.substring(1));
-          messages.addAll(content.stream().map(Object::toString).collect(toList()));
-        }
-        if (messages.size() < 2) {
-          fetchMessages(messages);
-        } else {
-          assertEquals(Arrays.asList("Hello", "World"), messages);
-          testComplete();
-        }
-      });
+    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").compose(
+      req -> req.send(Buffer.buffer()).compose(resp -> {
+        assertEquals(200, resp.statusCode());
+        return resp.body();
+      })
+    ).onComplete(onSuccess(buffer -> {
+      String body = buffer.toString();
+      if (body.startsWith("a")) {
+        JsonArray content = new JsonArray(body.substring(1));
+        messages.addAll(content.stream().map(Object::toString).collect(toList()));
+      }
+      if (messages.size() < 2) {
+        fetchMessages(messages);
+      } else {
+        assertEquals(Arrays.asList("Hello", "World"), messages);
+        testComplete();
+      }
     }));
   }
 }

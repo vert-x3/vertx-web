@@ -1,7 +1,9 @@
 package io.vertx.ext.web.api;
 
+import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
@@ -59,23 +61,30 @@ public class ApiWebTestBase extends WebTestBase {
     if (contentType != null) {
       options.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
     }
-    client
-      .send(options, obj, onSuccess(res -> {
-        if (checkResult != null) {
-          assertEquals(statusCode, res.statusCode());
-          assertEquals(statusMessage, res.statusMessage());
-          assertEquals(expectedContentType, res.getHeader(HttpHeaders.CONTENT_TYPE));
-          res.bodyHandler(buff -> {
-            buff = normalizeLineEndingsFor(buff);
-            checkResult.accept(buff);
+    client.request(options, onSuccess(req -> {
+      Future<HttpClientResponse> fut;
+      if (obj != null) {
+        fut = req.send(obj);
+      } else {
+        fut = req.send();
+      }
+      fut.onComplete(onSuccess(res -> {
+          if (checkResult != null) {
+            assertEquals(statusCode, res.statusCode());
+            assertEquals(statusMessage, res.statusMessage());
+            assertEquals(expectedContentType, res.getHeader(HttpHeaders.CONTENT_TYPE));
+            res.body(onSuccess(buff -> {
+              buff = normalizeLineEndingsFor(buff);
+              checkResult.accept(buff);
+              latch.countDown();
+            }));
+          } else {
+            assertEquals(statusCode, res.statusCode());
+            assertEquals(statusMessage, res.statusMessage());
             latch.countDown();
-          });
-        } else {
-          assertEquals(statusCode, res.statusCode());
-          assertEquals(statusMessage, res.statusMessage());
-          latch.countDown();
-        }
-      }));
+          }
+        }));
+    }));
     awaitLatch(latch);
   }
 
@@ -121,12 +130,15 @@ public class ApiWebTestBase extends WebTestBase {
 
   public void testRequestWithResponseContentTypeCheck(HttpMethod method, String path, int statusCode, String contentType, List<String> acceptableContentTypes) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    client
-      .send(method, 8080, "localhost", path, HttpHeaders.set("Accept", String.join(", ", acceptableContentTypes)), onSuccess(res -> {
-        assertEquals(statusCode, res.statusCode());
-        assertEquals(contentType, res.getHeader(HttpHeaders.CONTENT_TYPE));
-        latch.countDown();
-      }));
+    client.request(method, 8080, "localhost", path, onSuccess(req -> {
+      req
+        .putHeader("Accept", String.join(", ", acceptableContentTypes))
+        .send(onSuccess(res -> {
+          assertEquals(statusCode, res.statusCode());
+          assertEquals(contentType, res.getHeader(HttpHeaders.CONTENT_TYPE));
+          latch.countDown();
+        }));
+    }));
     awaitLatch(latch);
   }
 

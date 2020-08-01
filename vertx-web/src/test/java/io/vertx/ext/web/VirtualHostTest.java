@@ -15,7 +15,8 @@
  */
 package io.vertx.ext.web;
 
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
+import io.vertx.core.net.SocketAddress;
 import org.junit.Test;
 
 /**
@@ -29,7 +30,9 @@ public class VirtualHostTest extends WebTestBase {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(HttpMethod.GET, "/", req -> req.setAuthority("www.mysite.com"), 200, "OK", null);
+    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setHost("www.mysite.com")
+      .setPort(80), req -> {}, 200, "OK", null);
   }
 
   @Test
@@ -38,7 +41,9 @@ public class VirtualHostTest extends WebTestBase {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(HttpMethod.GET, "/", req -> req.setAuthority("www.mysite.net"), 500, "Internal Server Error", null);
+    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setHost("www.mysite.net")
+      .setPort(80), req -> {}, 500, "Internal Server Error", null);
   }
 
   @Test
@@ -48,12 +53,20 @@ public class VirtualHostTest extends WebTestBase {
     a.get("/somepath").handler(RoutingContext::end);
 
     router.route("/*").virtualHost("*.com").subRouter(a);
-    testRequest(HttpMethod.GET, "/somepath", req -> req.setAuthority("www.mysite.com"), 200, "OK", null);
+    testRequest(new RequestOptions()
+      .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setHost("www.mysite.com")
+      .setPort(80)
+      .setURI("/somepath"), req -> {}, 200, "OK", null);
 
     // Or
 
     router.route().virtualHost("*.com").subRouter(a);
-    testRequest(HttpMethod.GET, "/somepath", req -> req.setAuthority("www.mysite.com"), 200, "OK", null);
+    testRequest(new RequestOptions()
+      .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setHost("www.mysite.com")
+      .setPort(80)
+      .setURI("/somepath"), req -> {}, 200, "OK", null);
   }
 
 }

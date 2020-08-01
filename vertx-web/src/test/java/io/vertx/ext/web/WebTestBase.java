@@ -25,6 +25,7 @@ import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.test.core.VertxTestBase;
 
 import java.io.BufferedReader;
@@ -88,12 +89,25 @@ public class WebTestBase extends VertxTestBase {
     super.tearDown();
   }
 
+  protected void testRequest(RequestOptions requestOptions, HttpResponseStatus statusCode) throws Exception {
+    testRequest(requestOptions, null, statusCode.code(), statusCode.reasonPhrase(), null);
+  }
+
   protected void testRequest(HttpMethod method, String path, HttpResponseStatus statusCode) throws Exception {
     testRequest(method, path, null, statusCode.code(), statusCode.reasonPhrase(), null);
   }
 
+  protected void testRequest(RequestOptions requestOptions, int statusCode, String statusMessage) throws Exception {
+    testRequest(requestOptions, null, statusCode, statusMessage, null);
+  }
+
   protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage) throws Exception {
     testRequest(method, path, null, statusCode, statusMessage, null);
+  }
+
+  protected void testRequest(RequestOptions requestOptions, int statusCode, String statusMessage,
+                             String responseBody) throws Exception {
+    testRequest(requestOptions, null, statusCode, statusMessage, responseBody);
   }
 
   protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage,
@@ -101,45 +115,89 @@ public class WebTestBase extends VertxTestBase {
     testRequest(method, path, null, statusCode, statusMessage, responseBody);
   }
 
+  protected void testRequest(RequestOptions requestOptions, int statusCode, String statusMessage,
+                             Buffer responseBody) throws Exception {
+    testRequestBuffer(requestOptions, null, null, statusCode, statusMessage, responseBody);
+  }
+
   protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage,
                              Buffer responseBody) throws Exception {
     testRequestBuffer(method, path, null, null, statusCode, statusMessage, responseBody);
+  }
+
+  protected void testRequestWithContentType(RequestOptions requestOptions, String contentType, int statusCode, String statusMessage) throws Exception {
+    testRequest(requestOptions, req -> req.putHeader("content-type", contentType), statusCode, statusMessage, null);
   }
 
   protected void testRequestWithContentType(HttpMethod method, String path, String contentType, int statusCode, String statusMessage) throws Exception {
     testRequest(method, path, req -> req.putHeader("content-type", contentType), statusCode, statusMessage, null);
   }
 
+  protected void testRequestWithAccepts(RequestOptions requestOptions, String accepts, int statusCode, String statusMessage) throws Exception {
+    testRequest(requestOptions, req -> req.putHeader("accept", accepts), statusCode, statusMessage, null);
+  }
+
   protected void testRequestWithAccepts(HttpMethod method, String path, String accepts, int statusCode, String statusMessage) throws Exception {
     testRequest(method, path, req -> req.putHeader("accept", accepts), statusCode, statusMessage, null);
+  }
+
+  protected void testRequestWithCookies(RequestOptions requestOptions, String cookieHeader, int statusCode, String statusMessage) throws Exception {
+    testRequest(requestOptions, req -> req.putHeader("cookie", cookieHeader), statusCode, statusMessage, null);
   }
 
   protected void testRequestWithCookies(HttpMethod method, String path, String cookieHeader, int statusCode, String statusMessage) throws Exception {
     testRequest(method, path, req -> req.putHeader("cookie", cookieHeader), statusCode, statusMessage, null);
   }
 
+  protected void testRequest(RequestOptions requestOptions, Consumer<HttpClientRequest> requestAction,
+                             int statusCode, String statusMessage,
+                             String responseBody) throws Exception {
+    testRequest(requestOptions, requestAction, null, statusCode, statusMessage, responseBody);
+  }
   protected void testRequest(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction,
                              int statusCode, String statusMessage,
                              String responseBody) throws Exception {
     testRequest(method, path, requestAction, null, statusCode, statusMessage, responseBody);
   }
 
+  protected void testRequest(RequestOptions requestOptions, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
+                             int statusCode, String statusMessage,
+                             String responseBody) throws Exception {
+    testRequestBuffer(requestOptions, requestAction, responseAction, statusCode, statusMessage, responseBody != null ? Buffer.buffer(responseBody) : null, true);
+  }
   protected void testRequest(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                              int statusCode, String statusMessage,
                              String responseBody) throws Exception {
     testRequestBuffer(method, path, requestAction, responseAction, statusCode, statusMessage, responseBody != null ? Buffer.buffer(responseBody) : null, true);
   }
 
+  protected void testRequestBuffer(RequestOptions requestOptions, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
+                                   int statusCode, String statusMessage,
+                                   Buffer responseBodyBuffer) throws Exception {
+    testRequestBuffer(requestOptions, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, false);
+  }
   protected void testRequestBuffer(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer) throws Exception {
     testRequestBuffer(method, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, false);
   }
 
+  protected void testRequestBuffer(RequestOptions requestOptions, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
+                                   int statusCode, String statusMessage,
+                                   Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
+    testRequestBuffer(client, requestOptions, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, normalizeLineEndings);
+  }
+
   protected void testRequestBuffer(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
     testRequestBuffer(client, method, 8080, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, normalizeLineEndings);
+  }
+
+  protected void testRequestBuffer(HttpClient client, RequestOptions requestOptions, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
+                                   int statusCode, String statusMessage,
+                                   Buffer responseBodyBuffer) throws Exception {
+    testRequestBuffer(client, requestOptions, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, false);
   }
 
   protected void testRequestBuffer(HttpClient client, HttpMethod method, int port, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
@@ -151,8 +209,14 @@ public class WebTestBase extends VertxTestBase {
   protected void testRequestBuffer(HttpClient client, HttpMethod method, int port, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
+    testRequestBuffer(client, new RequestOptions().setMethod(method).setPort(port).setURI(path).setHost("localhost"), requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, normalizeLineEndings);
+  }
+
+  protected void testRequestBuffer(HttpClient client, RequestOptions requestOptions, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
+                                   int statusCode, String statusMessage,
+                                   Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    client.request(method, port, "localhost", path).onComplete(onSuccess(req -> {
+    client.request(requestOptions).onComplete(onSuccess(req -> {
       req.onComplete(onSuccess(resp -> {
         assertEquals(statusCode, resp.statusCode());
         assertEquals(statusMessage, resp.statusMessage());
