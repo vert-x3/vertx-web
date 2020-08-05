@@ -53,7 +53,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
       routingContext.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
     } else {
       // create the authorization context
-      AuthorizationContext authorizationContext = getAuhorizationContext(routingContext);
+      AuthorizationContext authorizationContext = getAuthorizationContext(routingContext);
       // check or fetch authorizations
       checkOrFetchAuthorizations(routingContext, authorizationContext, authorizationProviders.iterator());
     }
@@ -103,7 +103,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     }
   }
 
-  private AuthorizationContext getAuhorizationContext(RoutingContext event) {
+  private AuthorizationContext getAuthorizationContext(RoutingContext event) {
     final AuthorizationContext result = AuthorizationContext.create(event.user());
     if (variableHandler != null) {
       variableHandler.accept(event, result);
