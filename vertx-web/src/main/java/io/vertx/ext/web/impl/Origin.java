@@ -61,11 +61,34 @@ public final class Origin {
     if (host == null) {
       throw new IllegalStateException("Null host not allowed");
     }
-    // hosts are either domain names, dot seperated or ipv6 like
+    // hosts are either domain names, dot separated or ipv6 like
+    // https://tools.ietf.org/html/rfc1123
+    boolean ipv6 = false;
     for (int i = 0; i < host.length(); i++) {
       char c = host.charAt(i);
-      if (!Character.isLetterOrDigit(c) && c != '.' && c != ':' && c != '[' && c != ']') {
-        throw new IllegalStateException("Illegal character in hostname: " + host);
+      switch (c) {
+        case '[':
+          if (i == 0) {
+            ipv6 = true;
+          } else {
+            throw new IllegalStateException("Illegal character in hostname: " + host);
+          }
+          break;
+        case ']':
+          if (!ipv6 || i != host.length() - 1) {
+            throw new IllegalStateException("Illegal character in hostname: " + host);
+          }
+          break;
+        case ':':
+          if (!ipv6) {
+            throw new IllegalStateException("Illegal character in hostname: " + host);
+          }
+          break;
+        default:
+          if (!Character.isLetterOrDigit(c) && c != '.' && c != '-') {
+            throw new IllegalStateException("Illegal character in hostname: " + host);
+          }
+          break;
       }
     }
     this.host = host;
@@ -201,11 +224,34 @@ public final class Origin {
     if (host == null) {
       return false;
     }
-    // hosts are either domain names, dot seperated or ipv6 like
+    // hosts are either domain names, dot separated or ipv6 like
+    // https://tools.ietf.org/html/rfc1123
+    boolean ipv6 = false;
     for (int i = 0; i < host.length(); i++) {
       char c = host.charAt(i);
-      if (!Character.isLetterOrDigit(c) && c != '.' && c != ':' && c != '[' && c != ']') {
-        return false;
+      switch (c) {
+        case '[':
+          if (i == 0) {
+            ipv6 = true;
+          } else {
+            return false;
+          }
+          break;
+        case ']':
+          if (!ipv6 || i != host.length() - 1) {
+            return false;
+          }
+          break;
+        case ':':
+          if (!ipv6) {
+            return false;
+          }
+          break;
+        default:
+          if (!Character.isLetterOrDigit(c) && c != '.' && c != '-') {
+            return false;
+          }
+          break;
       }
     }
 
