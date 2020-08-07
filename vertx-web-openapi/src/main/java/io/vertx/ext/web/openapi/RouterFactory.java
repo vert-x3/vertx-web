@@ -4,10 +4,8 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.json.schema.SchemaParser;
 import io.vertx.ext.json.schema.SchemaRouter;
@@ -21,8 +19,6 @@ import io.vertx.ext.web.openapi.impl.OpenAPIHolderImpl;
 
 import java.util.List;
 import java.util.function.Function;
-
-//TODO all methods docs
 
 /**
  * Interface for OpenAPI3RouterFactory. <br/>
@@ -168,47 +164,70 @@ public interface RouterFactory {
    */
   Router createRouter();
 
+
   /**
-   * Create a new OpenAPI3RouterFactory
+   * Create a new {@link RouterFactory}
    *
    * @param vertx
    * @param url location of your spec. It can be an absolute path, a local path or remote url (with HTTP/HTTPS protocol)
-   * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
+   * @return Future completed with success when specification is loaded and valid
    */
-  static void create(Vertx vertx, String url, Handler<AsyncResult<RouterFactory>> handler) {
-    create(vertx, url, new OpenAPILoaderOptions(), handler);
+  static Future<RouterFactory> create(Vertx vertx, String url) {
+    return create(vertx, url, new OpenAPILoaderOptions());
   }
 
   /**
-   * Create a new OpenAPI3RouterFactory
+   * Like {@link this#create(Vertx, String)}
+   */
+  static void create(Vertx vertx, String url, Handler<AsyncResult<RouterFactory>> handler) {
+    RouterFactory.create(vertx, url).onComplete(handler);
+  }
+
+  /**
+   * Create a new {@link RouterFactory}
    *
    * @param vertx
    * @param url location of your spec. It can be an absolute path, a local path or remote url (with HTTP/HTTPS protocol)
    * @param options options for specification loading
-   * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
+   * @return Future completed with success when specification is loaded and valid
    */
-  static void create(Vertx vertx,
+  static Future<RouterFactory> create(Vertx vertx,
                      String url,
-                     OpenAPILoaderOptions options,
-                     Handler<AsyncResult<RouterFactory>> handler) {
+                     OpenAPILoaderOptions options) {
+    ContextInternal ctx = (ContextInternal) vertx.getOrCreateContext();
+    Promise<RouterFactory> promise = ctx.promise();
+
     OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx.createHttpClient(), vertx.fileSystem(), options);
     loader.loadOpenAPI(url).onComplete(ar -> {
       if (ar.failed()) {
         if (ar.cause() instanceof ValidationException) {
-          handler.handle(Future.failedFuture(RouterFactoryException.createInvalidSpecException(ar.cause())));
+          promise.fail(RouterFactoryException.createInvalidSpecException(ar.cause()));
         } else {
-          handler.handle(Future.failedFuture(RouterFactoryException.createInvalidFileSpec(url, ar.cause())));
+          promise.fail(RouterFactoryException.createInvalidFileSpec(url, ar.cause()));
         }
       } else {
         RouterFactory factory;
         try {
           factory = new OpenAPI3RouterFactoryImpl(vertx, loader, options);
         } catch (Exception e) {
-          handler.handle(Future.failedFuture(RouterFactoryException.createRouterFactoryInstantiationError(e, url)));
+          promise.fail(RouterFactoryException.createRouterFactoryInstantiationError(e, url));
           return;
         }
-        handler.handle(Future.succeededFuture(factory));
+        promise.complete(factory);
       }
     });
+
+    return promise.future();
   }
+
+  /**
+   * Like {@link this#create(Vertx, String, OpenAPILoaderOptions)}
+   */
+  static void create(Vertx vertx,
+                     String url,
+                     OpenAPILoaderOptions options,
+                     Handler<AsyncResult<RouterFactory>> handler) {
+    RouterFactory.create(vertx, url, options).onComplete(handler);
+  }
+
 }
