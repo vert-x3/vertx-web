@@ -320,4 +320,8 @@ class HttpServerRequestWrapper implements HttpServerRequest {
     return delegate.cookieMap();
   }
 
+  @Override
+  public Future<Void> end() {
+    return delegate.end();
+  }
 }
