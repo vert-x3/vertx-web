@@ -42,8 +42,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
-import io.vertx.ext.web.Session;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.web.Session;
 
 /**
  *
@@ -73,6 +73,15 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
 
   @Override
   SockJSSocket endHandler(Handler<Void> endHandler);
+
+  /**
+   * Set a close handler. This will be called when the SockJS socket is closed.
+   *
+   * @param closeHandler  the handler
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  SockJSSocket closeHandler(Handler<Void> closeHandler);
 
   @Override
   default SockJSSocket write(Buffer data) {

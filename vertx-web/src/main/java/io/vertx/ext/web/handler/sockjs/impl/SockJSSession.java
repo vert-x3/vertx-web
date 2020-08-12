@@ -32,12 +32,7 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.DecodeException;
@@ -89,6 +84,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private int messagesSize;
   private Handler<Void> drainHandler;
   private Handler<Void> endHandler;
+  private Handler<Void> closeHandler;
   private Handler<Throwable> exceptionHandler;
   private boolean handleCalled;
   private SocketAddress localAddress;
@@ -204,6 +200,12 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   @Override
   public synchronized SockJSSession endHandler(Handler<Void> endHandler) {
     this.endHandler = endHandler;
+    return this;
+  }
+
+  @Override
+  public synchronized SockJSSocket closeHandler(Handler<Void> closeHandler) {
+    this.closeHandler = closeHandler;
     return this;
   }
 
@@ -383,7 +385,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
       });
       writeAcks.clear();
     }
-    Handler<Void> handler = endHandler;
+    Handler<Void> handler = closeHandler;
     if (handler != null) {
       context.runOnContext(handler::handle);
     }

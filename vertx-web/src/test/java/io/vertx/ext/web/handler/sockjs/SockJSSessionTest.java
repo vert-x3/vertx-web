@@ -34,7 +34,7 @@ public class SockJSSessionTest extends SockJSTestBase {
     socketHandler = () -> {
       return socket -> {
         AtomicBoolean closed = new AtomicBoolean();
-        socket.endHandler(v -> {
+        socket.closeHandler(v -> {
           closed.set(true);
           testComplete();
         });

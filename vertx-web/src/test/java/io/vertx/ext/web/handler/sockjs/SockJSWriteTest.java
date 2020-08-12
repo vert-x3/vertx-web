@@ -51,7 +51,7 @@ public class SockJSWriteTest extends SockJSTestBase {
   public void testRawFailure() throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.endHandler(v -> {
+      socket.closeHandler(v -> {
         socket.write(Buffer.buffer(expected), onFailure(err -> {
           testComplete();
         }));
@@ -86,7 +86,7 @@ public class SockJSWriteTest extends SockJSTestBase {
   public void testWebSocketFailure() throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.endHandler(v -> {
+      socket.closeHandler(v -> {
         socket.write(Buffer.buffer(expected), onFailure(err -> {
           testComplete();
         }));
@@ -121,7 +121,7 @@ public class SockJSWriteTest extends SockJSTestBase {
   public void testEventSourceFailure() throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.endHandler(v -> {
+      socket.closeHandler(v -> {
         socket.write(Buffer.buffer(expected), onFailure(err -> {
           testComplete();
         }));
@@ -159,7 +159,7 @@ public class SockJSWriteTest extends SockJSTestBase {
   public void testXHRStreamingFailure() throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.endHandler(v -> {
+      socket.closeHandler(v -> {
         socket.write(Buffer.buffer(expected), onFailure(err -> {
           testComplete();
         }));
@@ -207,7 +207,7 @@ public class SockJSWriteTest extends SockJSTestBase {
       socket.write(Buffer.buffer(expected), onFailure(err -> {
         complete();
       }));
-      socket.endHandler(v -> {
+      socket.closeHandler(v -> {
         socket.write(Buffer.buffer(expected), onFailure(err -> {
           complete();
         }));
@@ -230,7 +230,7 @@ public class SockJSWriteTest extends SockJSTestBase {
       socket.write(Buffer.buffer(expected), onFailure(err -> {
         complete();
       }));
-      socket.endHandler(v -> {
+      socket.closeHandler(v -> {
         socket.write(Buffer.buffer(expected), onFailure(err -> {
           complete();
         }));

@@ -32,11 +32,7 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.net.SocketAddress;
@@ -58,16 +54,18 @@ class RawWebSocketTransport {
     MultiMap headers;
     boolean closed;
 
+    Handler<Void> defaultCloseHandler = v -> {
+      // Make sure the writeHandler gets unregistered
+      synchronized (RawWSSockJSSocket.this) {
+        closed = true;
+      }
+      RawWSSockJSSocket.super.close();
+    };
+
     RawWSSockJSSocket(Vertx vertx, Session webSession, User webUser, ServerWebSocket ws) {
       super(vertx, webSession, webUser);
       this.ws = ws;
-      ws.closeHandler(v -> {
-        // Make sure the writeHandler gets unregistered
-        synchronized (RawWSSockJSSocket.this) {
-          closed = true;
-        }
-        RawWSSockJSSocket.super.close();
-      });
+      ws.closeHandler(defaultCloseHandler);
     }
 
     public SockJSSocket handler(Handler<Buffer> handler) {
@@ -141,6 +139,15 @@ class RawWebSocketTransport {
 
     public SockJSSocket endHandler(Handler<Void> endHandler) {
       ws.endHandler(endHandler);
+      return this;
+    }
+
+    @Override
+    public SockJSSocket closeHandler(Handler<Void> closeHandler) {
+      ws.closeHandler(v -> {
+        defaultCloseHandler.handle(v);
+        closeHandler.handle(v);
+      });
       return this;
     }
 
