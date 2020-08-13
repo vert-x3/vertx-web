@@ -73,12 +73,15 @@ public interface RouterFactory {
   List<Operation> operations();
 
   /**
-   * Supply your own BodyHandler if you would like to control body limit, uploads directory and deletion of uploaded files
+   * Supply your own BodyHandler if you would like to control body limit, uploads directory and deletion of uploaded
+   * files.
+   * If you provide a null body handler, you won't be able to validate request bodies
+   *
    * @param bodyHandler
    * @return self
    */
   @Fluent
-  RouterFactory bodyHandler(BodyHandler bodyHandler);
+  RouterFactory bodyHandler(@Nullable BodyHandler bodyHandler);
 
   /**
    * Add global handler to be applied prior to {@link Router} being generated. <br/>

@@ -170,7 +170,6 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
 
   @Override
   public RouterFactory bodyHandler(BodyHandler bodyHandler) {
-    Objects.requireNonNull(bodyHandler);
     this.bodyHandler = bodyHandler;
     return this;
   }
@@ -231,7 +230,9 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
   public Router createRouter() {
     Router router = Router.router(vertx);
     Route globalRoute = router.route();
-    globalRoute.handler(bodyHandler);
+    if (bodyHandler != null) {
+      globalRoute.handler(bodyHandler);
+    }
     globalHandlers.forEach(globalRoute::handler);
 
     for (OperationImpl operation : operations.values()) {
