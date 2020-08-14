@@ -298,7 +298,8 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
       Route route = pathResolver
         .solve() // If this optional is empty, this route doesn't need regex
         .map(solvedRegex -> router.routeWithRegex(operation.getHttpMethod(), solvedRegex.toString()))
-        .orElseGet(() -> router.route(operation.getHttpMethod(), operation.getOpenAPIPath()));
+        .orElseGet(() -> router.route(operation.getHttpMethod(), operation.getOpenAPIPath()))
+        .setName(options.getRouteNamingStrategy().apply(operation));
 
       String exposeConfigurationKey = this.getOptions().getOperationModelKey();
       if (exposeConfigurationKey != null)
