@@ -190,6 +190,7 @@ public class BodyHandlerImpl implements BodyHandler {
             long size = uploadSize + upload.size();
             if (size > bodyLimit) {
               failed = true;
+              deleteFileUploads();
               context.fail(413);
               return;
             }
@@ -252,9 +253,8 @@ public class BodyHandlerImpl implements BodyHandler {
       uploadSize += buff.length();
       if (bodyLimit != -1 && uploadSize > bodyLimit) {
         failed = true;
+        deleteFileUploads();
         context.fail(413);
-        // enqueue a delete for the error uploads
-        context.vertx().runOnContext(v -> deleteFileUploads());
       } else {
         // multipart requests will not end up in the request body
         // url encoded should also not, however jQuery by default
@@ -303,7 +303,7 @@ public class BodyHandlerImpl implements BodyHandler {
         req.params().addAll(req.formAttributes());
       }
       context.setBody(body);
-
+      // release body as it may take lots of memory
       body = null;
 
       context.next();
