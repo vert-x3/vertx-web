@@ -28,7 +28,7 @@ import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.impl.TemplateHolder;
 import io.vertx.ext.web.templ.httl.HTTLTemplateEngine;
 
-import java.io.ByteArrayOutputStream;
+import java.io.Writer;
 import java.util.Map;
 
 /**
@@ -57,10 +57,24 @@ public class HTTLTemplateEngineImpl extends CachingTemplateEngine<Template> impl
         putTemplate(src, template);
       }
 
-      try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-        template.template().render(context, baos);
-        handler.handle(Future.succeededFuture(Buffer.buffer(baos.toByteArray())));
-      }
+      final Buffer buffer = Buffer.buffer();
+
+      template.template().render(context, new Writer() {
+        @Override
+        public void write(char[] cbuf, int off, int len) {
+          buffer.appendString(new String(cbuf, off, len));
+        }
+
+        @Override
+        public void flush() {
+        }
+
+        @Override
+        public void close() {
+        }
+      });
+
+      handler.handle(Future.succeededFuture(buffer));
 
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));

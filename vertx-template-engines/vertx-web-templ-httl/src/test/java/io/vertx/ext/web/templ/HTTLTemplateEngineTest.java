@@ -56,7 +56,7 @@ public class HTTLTemplateEngineTest {
 
     engine.render(context, "somedir/test-httl-template1.httl", render -> {
       should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox\n", render.result().toString());
+      should.assertEquals("<!--  -->\nHello badger and fox\n", render.result().toString());
       test.complete();
     });
     test.await();
@@ -118,7 +118,7 @@ public class HTTLTemplateEngineTest {
 
     engine.render(context, "somedir/test-httl-template1", render -> {
       should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox\n", render.result().toString());
+      should.assertEquals("<!--  -->\nHello badger and fox\n", render.result().toString());
       test.complete();
     });
     test.await();
@@ -135,7 +135,7 @@ public class HTTLTemplateEngineTest {
 
     engine.render(context, "somedir/test-httl-template1", render -> {
       should.assertTrue(render.succeeded());
-      should.assertEquals("Cheerio badger and fox\n", render.result().toString());
+      should.assertEquals("<!--  -->\nCheerio badger and fox\n", render.result().toString());
       test.complete();
     });
     test.await();

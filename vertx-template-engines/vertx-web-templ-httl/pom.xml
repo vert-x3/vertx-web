@@ -14,9 +14,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.github.httl</groupId>
+      <groupId>org.perfcake</groupId>
       <artifactId>httl</artifactId>
-      <version>1.0.11</version>
+      <version>1.0.12</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
