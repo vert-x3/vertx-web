@@ -92,6 +92,7 @@ Sets the Web Client user agent header. Defaults to Vert.x-WebClient/&lt;version&
 Sets whether the Web Client should send a user agent header. Defaults to true.
 +++
 |[[verifyHost]]`@verifyHost`|`Boolean`|-
+|[[webSocketClosingTimeout]]`@webSocketClosingTimeout`|`Number (int)`|-
 |[[webSocketCompressionAllowClientNoContext]]`@webSocketCompressionAllowClientNoContext`|`Boolean`|-
 |[[webSocketCompressionLevel]]`@webSocketCompressionLevel`|`Number (int)`|-
 |[[webSocketCompressionRequestServerNoContext]]`@webSocketCompressionRequestServerNoContext`|`Boolean`|-
