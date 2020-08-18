@@ -130,9 +130,11 @@ public class ApolloWSHandlerTest extends WebTestBase {
 
   @Test
   public void testSubscriptionWsCall() {
-    waitFor(MAX_COUNT + 2);
     client.webSocket("/graphql", onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
+      websocket.endHandler(v -> {
+        testComplete();
+      });
 
       AtomicReference<String> id = new AtomicReference<>();
       AtomicInteger counter = new AtomicInteger();
@@ -148,11 +150,10 @@ public class ApolloWSHandlerTest extends WebTestBase {
           assertEquals(DATA, ApolloWSMessageType.from(obj.getString("type")));
           int val = obj.getJsonObject("payload").getJsonObject("data").getJsonObject("counter").getInteger("count");
           assertEquals(current, val);
-          complete();
         } else if (current == MAX_COUNT + 1) {
           assertEquals(id.get(), obj.getString("id"));
           assertEquals(COMPLETE, ApolloWSMessageType.from(obj.getString("type")));
-          complete();
+          websocket.close();
         } else {
           fail();
         }
@@ -186,9 +187,9 @@ public class ApolloWSHandlerTest extends WebTestBase {
   }
 
   private void testQueryWsCall(BiConsumer<WebSocket, JsonObject> sender) {
-    waitFor(2);
     client.webSocket("/graphql", onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
+      websocket.endHandler(v -> testComplete());
 
       AtomicReference<String> id = new AtomicReference<>();
       AtomicInteger counter = new AtomicInteger();
@@ -200,11 +201,10 @@ public class ApolloWSHandlerTest extends WebTestBase {
           assertEquals(DATA, ApolloWSMessageType.from(obj.getString("type")));
           int val = obj.getJsonObject("payload").getJsonObject("data").getJsonObject("staticCounter").getInteger("count");
           assertEquals(STATIC_COUNT, val);
-          complete();
         } else if (current == 1) {
           assertEquals(id.get(), obj.getString("id"));
           assertEquals(COMPLETE, ApolloWSMessageType.from(obj.getString("type")));
-          complete();
+          websocket.close();
         } else {
           fail();
         }
@@ -242,6 +242,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
 
     client.webSocket("/graphql", onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
+      websocket.endHandler(v -> testComplete());
 
       AtomicInteger counter = new AtomicInteger(0);
       websocket.textMessageHandler(text -> {
@@ -252,7 +253,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
             assertEquals(ApolloWSMessageType.CONNECTION_ACK.getText(), obj.getString("type"));
           } else {
             assertEquals(ApolloWSMessageType.CONNECTION_KEEP_ALIVE.getText(), obj.getString("type"));
-            complete();
+            websocket.close();
           }
         } catch (Exception e) {
           fail(e);
@@ -287,6 +288,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
             fail("Expected a live subscription");
           } else {
             proxy.closeAbruptly(onSuccess(v -> {
+              websocket.exceptionHandler(null);
               testComplete();
             }));
           }
