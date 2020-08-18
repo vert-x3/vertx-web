@@ -287,8 +287,8 @@ public class ApolloWSHandlerTest extends WebTestBase {
           if (subscriptionRef.get() == null) {
             fail("Expected a live subscription");
           } else {
+            websocket.exceptionHandler(null);
             proxy.closeAbruptly(onSuccess(v -> {
-              websocket.exceptionHandler(null);
               testComplete();
             }));
           }
