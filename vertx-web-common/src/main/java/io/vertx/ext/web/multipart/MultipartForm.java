@@ -17,6 +17,7 @@ package io.vertx.ext.web.multipart;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.multipart.impl.MultipartFormImpl;
 
 /**
@@ -57,6 +58,18 @@ public interface MultipartForm extends Iterable<FormDataPart> {
   MultipartForm textFileUpload(String name, String filename, String pathname, String mediaType);
 
   /**
+   * Add a text file upload form data part.
+   *
+   * @param name      name of the parameter
+   * @param filename  filename of the file
+   * @param content  the content of the file
+   * @param mediaType the MIME type of the file
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  MultipartForm textFileUpload(String name, String filename, Buffer content, String mediaType);
+
+  /**
    * Add a binary file upload form data part.
    *
    * @param name      name of the parameter
@@ -67,5 +80,17 @@ public interface MultipartForm extends Iterable<FormDataPart> {
    */
   @Fluent
   MultipartForm binaryFileUpload(String name, String filename, String pathname, String mediaType);
+
+  /**
+   * Add a binary file upload form data part.
+   *
+   * @param name      name of the parameter
+   * @param filename  filename of the file
+   * @param content  the content of the file
+   * @param mediaType the MIME type of the file
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  MultipartForm binaryFileUpload(String name, String filename, Buffer content, String mediaType);
 
 }
