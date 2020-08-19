@@ -17,6 +17,7 @@ package io.vertx.ext.web.multipart;
 
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.buffer.Buffer;
 
 /**
  * A form data part of a {@link MultipartForm}.
@@ -55,10 +56,16 @@ public interface FormDataPart {
   String filename();
 
   /**
-   * @return the pathname when this part is a file upload otherwise {@code null}
+   * @return the pathname when this part is a file upload created with a pathname otherwise {@code null}
    */
   @CacheReturn
   String pathname();
+
+  /**
+   * @return the content when this part is a file upload created with a buffer otherwise {@code null}
+   */
+  @CacheReturn
+  Buffer content();
 
   /**
    * @return the media type when this part is a file upload otherwise {@code null}

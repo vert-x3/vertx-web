@@ -23,6 +23,7 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
+import io.netty.handler.codec.http.multipart.MemoryFileUpload;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -76,9 +77,28 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
       if (formDataPart.isAttribute()) {
         encoder.addBodyAttribute(formDataPart.name(), formDataPart.value());
       } else {
-        encoder.addBodyFileUpload(formDataPart.name(),
-          formDataPart.filename(), new File(formDataPart.pathname()),
-          formDataPart.mediaType(), formDataPart.isText());
+        String pathname = formDataPart.pathname();
+        if (pathname != null) {
+          encoder.addBodyFileUpload(formDataPart.name(),
+            formDataPart.filename(), new File(formDataPart.pathname()),
+            formDataPart.mediaType(), formDataPart.isText());
+        } else {
+          String contentType = formDataPart.mediaType();
+          if (formDataPart.mediaType() == null) {
+            if (formDataPart.isText()) {
+              contentType = "text/plain";
+            } else {
+              contentType = "application/octet-stream";
+            }
+          }
+          String transferEncoding = formDataPart.isText() ? null : "binary";
+          MemoryFileUpload fileUpload = new MemoryFileUpload(
+            formDataPart.name(),
+            formDataPart.filename(),
+            contentType, transferEncoding, null, formDataPart.content().length());
+          fileUpload.setContent(formDataPart.content().getByteBuf());
+          encoder.addBodyHttpData(fileUpload);
+        }
       }
     }
     encoder.finalizeRequest();

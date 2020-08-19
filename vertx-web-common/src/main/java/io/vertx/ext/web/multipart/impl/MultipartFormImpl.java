@@ -15,6 +15,7 @@
  */
 package io.vertx.ext.web.multipart.impl;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.multipart.FormDataPart;
 import io.vertx.ext.web.multipart.MultipartForm;
 
@@ -39,8 +40,20 @@ public class MultipartFormImpl implements MultipartForm {
   }
 
   @Override
+  public MultipartForm textFileUpload(String name, String filename, Buffer content, String mediaType) {
+    parts.add(new FormDataPartImpl(name, filename, content, mediaType, true));
+    return this;
+  }
+
+  @Override
   public MultipartForm binaryFileUpload(String name, String filename, String pathname, String mediaType) {
     parts.add(new FormDataPartImpl(name, filename, pathname, mediaType, false));
+    return this;
+  }
+
+  @Override
+  public MultipartForm binaryFileUpload(String name, String filename, Buffer content, String mediaType) {
+    parts.add(new FormDataPartImpl(name, filename, content, mediaType, false));
     return this;
   }
 

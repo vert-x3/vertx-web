@@ -24,7 +24,6 @@ import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.tls.Cert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -1091,26 +1090,36 @@ public class WebClientTest extends WebClientTestBase {
 
   @Test
   public void testFileUploadFormMultipart32B() throws Exception {
-    testFileUploadFormMultipart(32);
+    testFileUploadFormMultipart(32, false);
   }
 
   @Test
   public void testFileUploadFormMultipart32K() throws Exception {
-    testFileUploadFormMultipart(32 * 1024);
+    testFileUploadFormMultipart(32 * 1024, false);
   }
 
   @Test
   public void testFileUploadFormMultipart32M() throws Exception {
-    testFileUploadFormMultipart(32 * 1024 * 1024);
+    testFileUploadFormMultipart(32 * 1024 * 1024, false);
   }
 
-  private void testFileUploadFormMultipart(int size) throws Exception {
+  @Test
+  public void testMemoryFileUploadFormMultipart() throws Exception {
+    testFileUploadFormMultipart(32 * 1024, true);
+  }
+
+  private void testFileUploadFormMultipart(int size, boolean memory) throws Exception {
     Buffer content = Buffer.buffer(TestUtils.randomAlphaString(size));
-    List<Upload> toUpload = Collections.singletonList(new Upload("test", "test.txt", content));
+    Upload upload;
+    if (memory) {
+      upload = Upload.memoryUpload("test", "test.txt", content);
+    } else {
+      upload = Upload.fileUpload("test", "test.txt", content);
+    }
     MultipartForm form = MultipartForm.create()
       .attribute("toolkit", "vert.x")
       .attribute("runtime", "jvm");
-    testFileUploadFormMultipart(form, toUpload, true, (req, uploads) -> {
+    testFileUploadFormMultipart(form, Collections.singletonList(upload), true, (req, uploads) -> {
       assertEquals("vert.x", req.getFormAttribute("toolkit"));
       assertEquals("jvm", req.getFormAttribute("runtime"));
       assertEquals(1, uploads.size());
@@ -1125,8 +1134,8 @@ public class WebClientTest extends WebClientTestBase {
     Buffer content1 = Buffer.buffer(TestUtils.randomAlphaString(16));
     Buffer content2 = Buffer.buffer(TestUtils.randomAlphaString(16));
     List<Upload> toUpload = Arrays.asList(
-      new Upload("test1", "test1.txt", content1),
-      new Upload("test2", "test2.txt", content2)
+      Upload.fileUpload("test1", "test1.txt", content1),
+      Upload.fileUpload("test2", "test2.txt", content2)
     );
     testFileUploadFormMultipart(MultipartForm.create(), toUpload, true, (req, uploads) -> {
       assertEquals(2, uploads.size());
@@ -1144,8 +1153,8 @@ public class WebClientTest extends WebClientTestBase {
     Buffer content1 = Buffer.buffer(TestUtils.randomAlphaString(16));
     Buffer content2 = Buffer.buffer(TestUtils.randomAlphaString(16));
     List<Upload> toUpload = Arrays.asList(
-      new Upload("test", "test1.txt", content1),
-      new Upload("test", "test2.txt", content2)
+      Upload.fileUpload("test", "test1.txt", content1),
+      Upload.fileUpload("test", "test2.txt", content2)
     );
     testFileUploadFormMultipart(MultipartForm.create(), toUpload, true, (req, uploads) -> {
       assertEquals(2, uploads.size());
@@ -1163,8 +1172,8 @@ public class WebClientTest extends WebClientTestBase {
     Buffer content1 = Buffer.buffer(TestUtils.randomAlphaString(16));
     Buffer content2 = Buffer.buffer(TestUtils.randomAlphaString(16));
     List<Upload> toUpload = Arrays.asList(
-      new Upload("test", "test1.txt", content1),
-      new Upload("test", "test2.txt", content2)
+      Upload.fileUpload("test", "test1.txt", content1),
+      Upload.fileUpload("test", "test2.txt", content2)
     );
     testFileUploadFormMultipart(MultipartForm.create(), toUpload, false, (req, uploads) -> {
       assertEquals(2, uploads.size());
@@ -1177,24 +1186,34 @@ public class WebClientTest extends WebClientTestBase {
     });
   }
 
-  private void testFileUploadFormMultipart(MultipartForm form, List<Upload> toUpload, boolean multipartMixed, BiConsumer<HttpServerRequest, List<Upload>> checker) throws Exception {
+  private void testFileUploadFormMultipart(
+      MultipartForm form,
+      List<Upload> toUpload,
+      boolean multipartMixed,
+      BiConsumer<HttpServerRequest,
+      List<Upload>> checker) throws Exception {
     File[] testFiles = new File[toUpload.size()];
     for (int i = 0;i < testFiles.length;i++) {
-      String name = toUpload.get(i).filename;
-      testFiles[i] = testFolder.newFile(name);
-      vertx.fileSystem().writeFileBlocking(testFiles[i].getPath(), toUpload.get(i).data);
+      Upload upload = toUpload.get(i);
+      if (upload.file) {
+        String name = upload.filename;
+        testFiles[i] = testFolder.newFile(name);
+        vertx.fileSystem().writeFileBlocking(testFiles[i].getPath(), upload.data);
+        form.textFileUpload(toUpload.get(i).name, toUpload.get(i).filename, testFiles[i].getPath(), "text/plain");
+      } else {
+        form.textFileUpload(toUpload.get(i).name, toUpload.get(i).filename, upload.data, "text/plain");
+      }
     }
 
     server.requestHandler(req -> {
       req.setExpectMultipart(true);
-      AtomicInteger idx = new AtomicInteger();
       List<Upload> uploads = new ArrayList<>();
       req.uploadHandler(upload -> {
         Buffer fileBuffer = Buffer.buffer();
         assertEquals("text/plain", upload.contentType());
         upload.handler(fileBuffer::appendBuffer);
         upload.endHandler(v -> {
-          uploads.add(new Upload(upload.name(), upload.filename(), fileBuffer));
+          uploads.add(Upload.fileUpload(upload.name(), upload.filename(), fileBuffer));
         });
       });
       req.endHandler(v -> {
@@ -1203,9 +1222,6 @@ public class WebClientTest extends WebClientTestBase {
       });
     });
     startServer();
-    for (int i = 0;i < testFiles.length;i++) {
-      form.textFileUpload(toUpload.get(i).name, toUpload.get(i).filename, testFiles[i].getPath(), "text/plain");
-    }
 
     HttpRequest<Buffer> builder = webClient.post("somepath");
     builder.multipartMixed(multipartMixed);
@@ -1217,10 +1233,18 @@ public class WebClientTest extends WebClientTestBase {
     final String name;
     final String filename;
     final Buffer data;
-    Upload(String name, String filename, Buffer data) {
+    final boolean file;
+    private Upload(String name, String filename, boolean file, Buffer data) {
       this.name = name;
       this.filename = filename;
       this.data = data;
+      this.file = file;
+    }
+    static Upload fileUpload(String name, String filename, Buffer data) {
+      return new Upload(name, filename, true, data);
+    }
+    static Upload memoryUpload(String name, String filename, Buffer data) {
+      return new Upload(name, filename, true, data);
     }
   }
 

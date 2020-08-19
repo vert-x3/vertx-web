@@ -15,6 +15,7 @@
  */
 package io.vertx.ext.web.multipart.impl;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.multipart.FormDataPart;
 
 public class FormDataPartImpl implements FormDataPart {
@@ -24,6 +25,7 @@ public class FormDataPartImpl implements FormDataPart {
   private final String filename;
   private final String mediaType;
   private final String pathname;
+  private final Buffer content;
   private final Boolean text;
 
   public FormDataPartImpl(String name, String value) {
@@ -37,6 +39,7 @@ public class FormDataPartImpl implements FormDataPart {
     this.value = value;
     this.filename = null;
     this.pathname = null;
+    this.content = null;
     this.mediaType = null;
     this.text = null;
   }
@@ -58,6 +61,29 @@ public class FormDataPartImpl implements FormDataPart {
     this.value = null;
     this.filename = filename;
     this.pathname = pathname;
+    this.content = null;
+    this.mediaType = mediaType;
+    this.text = text;
+  }
+
+  public FormDataPartImpl(String name, String filename, Buffer content, String mediaType, boolean text) {
+    if (name == null) {
+      throw new NullPointerException();
+    }
+    if (filename == null) {
+      throw new NullPointerException();
+    }
+    if (content == null) {
+      throw new NullPointerException();
+    }
+    if (mediaType == null) {
+      throw new NullPointerException();
+    }
+    this.name = name;
+    this.value = null;
+    this.filename = filename;
+    this.pathname = null;
+    this.content = content;
     this.mediaType = mediaType;
     this.text = text;
   }
@@ -90,6 +116,11 @@ public class FormDataPartImpl implements FormDataPart {
   @Override
   public String pathname() {
     return pathname;
+  }
+
+  @Override
+  public Buffer content() {
+    return content;
   }
 
   @Override
