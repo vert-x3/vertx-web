@@ -900,13 +900,15 @@ final class RouteState {
         }
       }
     }
-    List<MIMEHeader> acceptableTypes = context.parsedHeaders().accept();
-    if (!isEmpty(produces) && !acceptableTypes.isEmpty()) {
-      MIMEHeader selectedAccept = context.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, produces);
-      if (selectedAccept != null) {
-        context.setAcceptableContentType(selectedAccept.rawValue());
-      } else {
-        return 406;
+    if (!isEmpty(produces)) {
+      List<MIMEHeader> acceptableTypes = context.parsedHeaders().accept();
+      if(!acceptableTypes.isEmpty()) {
+        MIMEHeader selectedAccept = context.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, produces);
+        if (selectedAccept != null) {
+          context.setAcceptableContentType(selectedAccept.rawValue());
+        } else {
+          return 406;
+        }
       }
     }
     if (!virtualHostMatches(context.request.host())) {
