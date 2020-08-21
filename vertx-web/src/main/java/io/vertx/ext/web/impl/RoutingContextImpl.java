@@ -69,7 +69,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     this.router = router;
     this.request = new HttpServerRequestWrapper(request, router.getAllowForward());
 
-    fillParsedHeaders(request);
     if (request.path().length() == 0) {
       // HTTP paths must start with a '/'
       fail(400);
@@ -340,6 +339,9 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public ParsableHeaderValuesContainer parsedHeaders() {
+    if (parsedHeaders == null) {
+      fillParsedHeaders(request);
+    }
     return parsedHeaders;
   }
 
