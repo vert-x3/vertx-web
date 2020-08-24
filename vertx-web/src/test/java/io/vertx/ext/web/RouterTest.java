@@ -616,7 +616,7 @@ public class RouterTest extends WebTestBase {
     String path = "/blah";
     Throwable failure = new Throwable();
     router.route(path).handler(rc -> rc.fail(failure)).failureHandler(frc -> {
-      assertEquals(-1, frc.statusCode());
+      assertEquals(500, frc.statusCode());
       assertSame(failure, frc.failure());
       frc.response().setStatusCode(500).setStatusMessage("Internal Server Error").end();
     });
@@ -627,7 +627,7 @@ public class RouterTest extends WebTestBase {
   public void testFailureWithNullThrowable() throws Exception {
     String path = "/blah";
     router.route(path).handler(rc -> rc.fail(null)).failureHandler(frc -> {
-      assertEquals(-1, frc.statusCode());
+      assertEquals(500, frc.statusCode());
       assertTrue(frc.failure() instanceof NullPointerException);
       frc.response().setStatusCode(500).setStatusMessage("Internal Server Error").end();
     });
@@ -2709,4 +2709,36 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.PATCH, "/api", "application/json", 405, "Method Not Allowed");
   }
 
+  @Test
+  public void testRouteCustomVerb() throws Exception {
+    router
+      .route()
+      .method(HttpMethod.valueOf("MKCOL"))
+      .handler(rc -> rc.response().setStatusMessage("socks").end());
+
+    testRequest(HttpMethod.MKCOL, "/", 200, "socks");
+  }
+
+  @Test
+  public void testStatusCodeUncatchedException() throws Exception {
+    Route route1 = router.get("/somepath/path1");
+    route1.handler(ctx -> {
+      // Let's say this throws a RuntimeException
+      throw new RuntimeException("something happened!");
+    });
+
+// Define a failure handler
+// This will get called for any failures in the above handlers
+    Route route3 = router.get("/somepath/*");
+    route3.failureHandler(failureRoutingContext -> {
+      int statusCode = failureRoutingContext.statusCode();
+      // Status code should be 500 for the RuntimeException
+      assertEquals(500, statusCode);
+      HttpServerResponse response = failureRoutingContext.response();
+      response.setStatusCode(statusCode).end("Sorry! Not today");
+    });
+
+    testRequest(HttpMethod.GET, "/somepath/path1", 500, "Internal Server Error");
+
+  }
 }

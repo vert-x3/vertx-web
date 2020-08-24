@@ -166,7 +166,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void fail(Throwable t) {
-    this.fail(-1, t);
+    if (t instanceof HttpStatusException) {
+      this.fail(((HttpStatusException) t).getStatusCode(), t);
+    } else {
+      this.fail(500, t);
+    }
   }
 
   @Override

@@ -310,7 +310,7 @@ public class SubRouterTest extends WebTestBase {
     });
 
     router.route("/subpath/*").failureHandler(rc -> {
-      assertEquals(-1, rc.statusCode());
+      assertEquals(500, rc.statusCode());
       assertEquals("Balderdash!", rc.failure().getMessage());
       rc.response().setStatusCode(555).setStatusMessage("Badgers").end();
     });
@@ -329,7 +329,7 @@ public class SubRouterTest extends WebTestBase {
     });
 
     subRouter.route("/foo/*").failureHandler(rc -> {
-      assertEquals(-1, rc.statusCode());
+      assertEquals(500, rc.statusCode());
       assertEquals("Balderdash!", rc.failure().getMessage());
       rc.response().setStatusCode(555).setStatusMessage("Badgers").end();
     });

@@ -16,9 +16,6 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import java.util.List;
-import java.util.Objects;
-
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
@@ -27,6 +24,9 @@ import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.ErrorHandler;
 import io.vertx.ext.web.impl.Utils;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -58,43 +58,48 @@ public class ErrorHandlerImpl implements ErrorHandler {
     Throwable failure = context.failure();
 
     int errorCode = context.statusCode();
-    String errorMessage = null;
-    if (errorCode != -1) {
-      context.response().setStatusCode(errorCode);
-      errorMessage = context.response().getStatusMessage();
-    } else {
+
+    // force default error code
+    if (errorCode == -1) {
       errorCode = 500;
-      if (displayExceptionDetails) {
-        errorMessage = failure.getMessage();
+    }
+
+    response.setStatusCode(errorCode);
+    String errorMessage = response.getStatusMessage();
+
+    if (displayExceptionDetails) {
+      errorMessage = failure.getMessage();
+      if (errorMessage != null) {
+        // no new lines are allowed in the status message
+        errorMessage = errorMessage.replaceAll("\\r|\\n", " ");
+        // apply the newly desired message
+        response.setStatusMessage(errorMessage);
       }
-      if (errorMessage == null) {
-        errorMessage = "Internal Server Error";
-      }
-      // no new lines are allowed in the status message
-      response.setStatusMessage(errorMessage.replaceAll("\\r|\\n", " "));
     }
 
     answerWithError(context, errorCode, errorMessage);
   }
 
-  private void answerWithError(RoutingContext context, int errorCode, String errorMessage){
-    context.response().setStatusCode(errorCode);
-    if( !sendErrorResponseMIME(context, errorCode, errorMessage) &&
-        !sendErrorAcceptMIME(context, errorCode, errorMessage)
-      ){
+  private void answerWithError(RoutingContext context, int errorCode, String errorMessage) {
+    if (!sendErrorResponseMIME(context, errorCode, errorMessage) && !sendErrorAcceptMIME(context, errorCode, errorMessage)) {
       // fallback plain/text
       sendError(context, "text/plain", errorCode, errorMessage);
     }
   }
 
-  private boolean sendErrorResponseMIME(RoutingContext context, int errorCode, String errorMessage){
+  private boolean sendErrorResponseMIME(RoutingContext context, int errorCode, String errorMessage) {
     // does the response already set the mime type?
     String mime = context.response().headers().get(HttpHeaders.CONTENT_TYPE);
+
+    if(mime == null) {
+      // does the route have an acceptable content type?
+      mime = context.getAcceptableContentType();
+    }
 
     return mime != null && sendError(context, mime, errorCode, errorMessage);
   }
 
-  private boolean sendErrorAcceptMIME(RoutingContext context, int errorCode, String errorMessage){
+  private boolean sendErrorAcceptMIME(RoutingContext context, int errorCode, String errorMessage) {
     // respect the client accept order
     List<MIMEHeader> acceptableMimes = context.parsedHeaders().accept();
 
@@ -115,11 +120,11 @@ public class ErrorHandlerImpl implements ErrorHandler {
     if (mime.startsWith("text/html")) {
       StringBuilder stack = new StringBuilder();
       if (context.failure() != null && displayExceptionDetails) {
-        for (StackTraceElement elem: context.failure().getStackTrace()) {
+        for (StackTraceElement elem : context.failure().getStackTrace()) {
           stack.append("<li>").append(elem).append("</li>");
         }
       }
-      response.putHeader(HttpHeaders.CONTENT_TYPE,"text/html");
+      response.putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
       response.end(
         errorTemplate.replace("{title}", title)
           .replace("{errorCode}", Integer.toString(errorCode))
@@ -134,7 +139,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
       jsonError.put("error", new JsonObject().put("code", errorCode).put("message", errorMessage));
       if (context.failure() != null && displayExceptionDetails) {
         JsonArray stack = new JsonArray();
-        for (StackTraceElement elem: context.failure().getStackTrace()) {
+        for (StackTraceElement elem : context.failure().getStackTrace()) {
           stack.add(elem.toString());
         }
         jsonError.put("stack", stack);
@@ -152,7 +157,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
       sb.append(": ");
       sb.append(errorMessage);
       if (context.failure() != null && displayExceptionDetails) {
-        for (StackTraceElement elem: context.failure().getStackTrace()) {
+        for (StackTraceElement elem : context.failure().getStackTrace()) {
           sb.append("\tat ").append(elem).append("\n");
         }
       }
