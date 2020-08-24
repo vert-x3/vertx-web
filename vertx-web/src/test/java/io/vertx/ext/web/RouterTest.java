@@ -2710,16 +2710,6 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testRouteCustomVerb() throws Exception {
-    router
-      .route()
-      .method(HttpMethod.valueOf("MKCOL"))
-      .handler(rc -> rc.response().setStatusMessage("socks").end());
-
-    testRequest(HttpMethod.MKCOL, "/", 200, "socks");
-  }
-
-  @Test
   public void testStatusCodeUncatchedException() throws Exception {
     Route route1 = router.get("/somepath/path1");
     route1.handler(ctx -> {
