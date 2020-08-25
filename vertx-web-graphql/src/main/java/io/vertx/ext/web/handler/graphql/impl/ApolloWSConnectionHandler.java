@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.vertx.ext.web.handler.graphql.ApolloWSMessageType.*;
@@ -54,12 +55,14 @@ class ApolloWSConnectionHandler {
   private final ApolloWSHandlerImpl apolloWSHandler;
   private final ServerWebSocket serverWebSocket;
   private final ContextInternal context;
+  private final Executor executor;
   private final ConcurrentMap<String, Subscription> subscriptions;
 
   ApolloWSConnectionHandler(ApolloWSHandlerImpl apolloWSHandler, ContextInternal context, ServerWebSocket serverWebSocket) {
     this.apolloWSHandler = apolloWSHandler;
     this.context = context;
     this.serverWebSocket = serverWebSocket;
+    this.executor = task -> context.runOnContext(v -> task.run());
     subscriptions = new ConcurrentHashMap<>();
   }
 
@@ -180,7 +183,7 @@ class ApolloWSConnectionHandler {
         }
         sendMessage(opId, ERROR, toJsonObject(throwable));
       }
-    }, context);
+    }, executor);
   }
 
   private void subscribe(String opId, ExecutionResult executionResult) {
