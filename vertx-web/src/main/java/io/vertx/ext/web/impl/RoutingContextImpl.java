@@ -388,8 +388,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     }
     // change the method and path of the request
     ((HttpServerRequestWrapper) request).changeTo(method, path);
-    // clear the params
-    request.params().clear();
     // we need to reset the normalized path
     normalizedPath = null;
     // we also need to reset any previous status
