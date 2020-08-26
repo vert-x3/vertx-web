@@ -139,6 +139,14 @@ public class RerouteTest extends WebTestBase {
   }
 
   @Test
+  public void testRerouteWhenBaseRequestHasBadlyEncodedParams() throws Exception {
+    router.get("/other").handler(ctx -> ctx.response().end("/other"));
+    router.get("/base").handler(ctx -> ctx.reroute("/other"));
+
+    testRequest(HttpMethod.GET, "/base?parameter1=%%value1%%", 200, "OK", "/other");
+  }
+
+  @Test
   public void testRerouteAbsoluteURI() throws Exception {
     router.get("/other").handler(ctx -> {
       assertEquals("http://localhost:8080/other?paramter1=p1&parameter2=p2", ctx.request().absoluteURI());

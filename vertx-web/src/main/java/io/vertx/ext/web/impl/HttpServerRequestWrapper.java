@@ -180,6 +180,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
+  public void clearParams() {
+    delegate.clearParams();
+  }
+
+  @Override
   public String getParam(String s) {
     return delegate.getParam(s);
   }
