@@ -1,5 +1,6 @@
 package io.vertx.ext.web.impl;
 
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -11,6 +12,7 @@ import io.vertx.core.net.SocketAddress;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Map;
 
 class HttpServerRequestWrapper implements HttpServerRequest {
@@ -25,6 +27,7 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   private String query;
   private String uri;
   private String absoluteURI;
+  private MultiMap params;
 
   HttpServerRequestWrapper(HttpServerRequest request) {
     delegate = request;
@@ -155,6 +158,37 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
+  public MultiMap params() {
+    if (!modified) {
+      return delegate.params();
+    }
+    if (params == null) {
+      params = MultiMap.caseInsensitiveMultiMap();
+      // if there is no query it's not really needed to parse it
+      if (query != null) {
+        QueryStringDecoder queryStringDecoder = new QueryStringDecoder(uri);
+        Map<String, List<String>> prms = queryStringDecoder.parameters();
+        if (!prms.isEmpty()) {
+          for (Map.Entry<String, List<String>> entry: prms.entrySet()) {
+            params.add(entry.getKey(), entry.getValue());
+          }
+        }
+      }
+    }
+
+    return params;
+  }
+
+  @Override
+  public String getParam(String param) {
+    if (!modified) {
+      return delegate.getParam(param);
+    }
+
+    return params().get(param);
+  }
+
+  @Override
   public HttpServerResponse response() {
     return delegate.response();
   }
@@ -172,16 +206,6 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   @Override
   public String getHeader(CharSequence charSequence) {
     return delegate.getHeader(charSequence);
-  }
-
-  @Override
-  public MultiMap params() {
-    return delegate.params();
-  }
-
-  @Override
-  public String getParam(String s) {
-    return delegate.getParam(s);
   }
 
   @Override
