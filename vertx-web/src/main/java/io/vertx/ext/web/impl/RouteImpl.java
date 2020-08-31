@@ -236,6 +236,17 @@ public class RouteImpl implements Route {
   }
 
   @Override
+  public Route setName(String name) {
+    state = state.setName(name);
+    return this;
+  }
+
+  @Override
+  public String getName() {
+    return state.getName();
+  }
+
+  @Override
   public String toString() {
     return "RouteImpl@" + System.identityHashCode(this) +
       "{" +

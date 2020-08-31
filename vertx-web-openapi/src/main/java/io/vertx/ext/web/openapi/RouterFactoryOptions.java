@@ -1,7 +1,10 @@
 package io.vertx.ext.web.openapi;
 
+import java.util.function.Function;
+
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 
@@ -32,10 +35,16 @@ public class RouterFactoryOptions {
    */
   public final static String DEFAULT_OPERATION_MODEL_KEY = null;
 
+  /**
+   * By default, RouterFactory will name routes by open api path.
+   */
+  public final static RouteNamingStrategy DEFAULT_ROUTE_NAMING_STRATEGY = RouteNamingStrategy.OPERATION_OPENAPI_PATH;
+
   private boolean mountNotImplementedHandler;
   private boolean requireSecurityHandlers;
   private boolean mountResponseContentTypeHandler;
   private String operationModelKey;
+  private RouteNamingStrategy routeNamingStrategy;
 
   public RouterFactoryOptions() {
     init();
@@ -51,6 +60,7 @@ public class RouterFactoryOptions {
     this.requireSecurityHandlers = other.isRequireSecurityHandlers();
     this.mountResponseContentTypeHandler = other.isMountResponseContentTypeHandler();
     this.operationModelKey = other.getOperationModelKey();
+    this.routeNamingStrategy = other.getRouteNamingStrategy();
   }
 
   public JsonObject toJson() {
@@ -64,6 +74,7 @@ public class RouterFactoryOptions {
     this.requireSecurityHandlers = DEFAULT_REQUIRE_SECURITY_HANDLERS;
     this.mountResponseContentTypeHandler = DEFAULT_MOUNT_RESPONSE_CONTENT_TYPE_HANDLER;
     this.operationModelKey = DEFAULT_OPERATION_MODEL_KEY;
+    this.routeNamingStrategy = DEFAULT_ROUTE_NAMING_STRATEGY;
   }
 
   public boolean isMountNotImplementedHandler() {
@@ -129,5 +140,40 @@ public class RouterFactoryOptions {
   public RouterFactoryOptions setOperationModelKey(String operationModelKey) {
     this.operationModelKey = operationModelKey;
     return this;
+  }
+
+  public RouteNamingStrategy getRouteNamingStrategy() {
+    return routeNamingStrategy;
+  }
+
+  /**
+   * The strategy to follow when naming the generated routes.
+   * @param routeNamingStrategy
+   * @return this object
+   */
+  @Fluent
+  public RouterFactoryOptions setRouteNamingStrategy(RouteNamingStrategy routeNamingStrategy) {
+    this.routeNamingStrategy = routeNamingStrategy;
+    return this;
+  }
+
+  /**
+   * The way an OpenAPI operation is transformed into a route name.
+   */
+  @VertxGen
+  public enum RouteNamingStrategy implements Function<Operation, String> {
+    OPERATION_ID(Operation::getOperationId),
+    OPERATION_OPENAPI_PATH(Operation::getOpenAPIPath);
+
+    private final Function<Operation, String> impl;
+
+    RouteNamingStrategy(Function<Operation, String> impl) {
+      this.impl = impl;
+    }
+
+    @Override
+    public String apply(Operation operation) {
+      return impl.apply(operation);
+    }
   }
 }

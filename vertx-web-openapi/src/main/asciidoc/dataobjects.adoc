@@ -38,5 +38,8 @@ When set, an additional handler will be created to expose the operation model in
 If true, when you call link ()} the factory will mount for every path
  the required security handlers and, if a security handler is not defined, it throws an link
 +++
+|[[routeNamingStrategy]]`@routeNamingStrategy`|`link:enums.html#RouteNamingStrategy[RouteNamingStrategy]`|+++
+The strategy to follow when naming the generated routes.
++++
 |===
 

@@ -35,6 +35,11 @@ public class RouterFactoryOptionsConverter {
             obj.setRequireSecurityHandlers((Boolean)member.getValue());
           }
           break;
+        case "routeNamingStrategy":
+          if (member.getValue() instanceof String) {
+            obj.setRouteNamingStrategy(io.vertx.ext.web.openapi.RouterFactoryOptions.RouteNamingStrategy.valueOf((String)member.getValue()));
+          }
+          break;
       }
     }
   }
@@ -50,5 +55,8 @@ public class RouterFactoryOptionsConverter {
       json.put("operationModelKey", obj.getOperationModelKey());
     }
     json.put("requireSecurityHandlers", obj.isRequireSecurityHandlers());
+    if (obj.getRouteNamingStrategy() != null) {
+      json.put("routeNamingStrategy", obj.getRouteNamingStrategy().name());
+    }
   }
 }

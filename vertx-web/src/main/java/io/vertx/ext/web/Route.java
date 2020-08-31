@@ -244,6 +244,22 @@ public interface Route {
   @Fluent
   Route setRegexGroupsNames(List<String> groups);
 
+  /**
+   * Giving a name to a route will provide this name as metadata to requests matching this route.
+   * This metadata is used by metrics and is meant to group requests with different URI paths (due
+   * to parameters) by a common identifier, for example "/resource/:resourceID"
+   * common name
+   * @param name The name of the route.
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Route setName(String name);
+
+  /**
+   * @return the name of the route. If not given explicitly, the path or the pattern or
+   * null is returned (in that order)
+   */
+  String getName();
 }
 
 

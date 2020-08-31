@@ -38,6 +38,7 @@ final class RouteState {
   private final RouteImpl route;
 
   private final String path;
+  private final String name;
   private final int order;
   private final boolean enabled;
   private final Set<HttpMethod> methods;
@@ -56,9 +57,10 @@ final class RouteState {
   private final boolean exclusive;
   private final boolean exactPath;
 
-  private RouteState(RouteImpl route, String path, int order, boolean enabled, Set<HttpMethod> methods, Set<MIMEHeader> consumes, boolean emptyBodyPermittedWithConsumes, Set<MIMEHeader> produces, List<Handler<RoutingContext>> contextHandlers, List<Handler<RoutingContext>> failureHandlers, boolean added, Pattern pattern, List<String> groups, boolean useNormalizedPath, Set<String> namedGroupsInRegex, Pattern virtualHostPattern, boolean pathEndsWithSlash, boolean exclusive, boolean exactPath) {
+  private RouteState(RouteImpl route, String path, String name, int order, boolean enabled, Set<HttpMethod> methods, Set<MIMEHeader> consumes, boolean emptyBodyPermittedWithConsumes, Set<MIMEHeader> produces, List<Handler<RoutingContext>> contextHandlers, List<Handler<RoutingContext>> failureHandlers, boolean added, Pattern pattern, List<String> groups, boolean useNormalizedPath, Set<String> namedGroupsInRegex, Pattern virtualHostPattern, boolean pathEndsWithSlash, boolean exclusive, boolean exactPath) {
     this.route = route;
     this.path = path;
+    this.name = name;
     this.order = order;
     this.enabled = enabled;
     this.methods = methods;
@@ -81,6 +83,7 @@ final class RouteState {
   RouteState(RouteImpl route, int order) {
     this(
       route,
+      null,
       null,
       order,
       true,
@@ -117,6 +120,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -144,6 +148,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       order,
       this.enabled,
       this.methods,
@@ -171,6 +176,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       enabled,
       this.methods,
@@ -198,6 +204,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       methods,
@@ -221,6 +228,7 @@ final class RouteState {
     RouteState newState = new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods == null ? new HashSet<>() : new HashSet<>(this.methods),
@@ -251,6 +259,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -274,6 +283,7 @@ final class RouteState {
     RouteState newState = new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -304,6 +314,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -331,6 +342,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -354,6 +366,7 @@ final class RouteState {
     RouteState newState = new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -388,6 +401,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -411,6 +425,7 @@ final class RouteState {
     RouteState newState = new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -445,6 +460,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -468,6 +484,7 @@ final class RouteState {
     RouteState newState = new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -498,6 +515,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -525,6 +543,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -552,6 +571,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -575,6 +595,7 @@ final class RouteState {
     RouteState newState = new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -605,6 +626,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -632,6 +654,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -655,6 +678,7 @@ final class RouteState {
     RouteState newState = new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -685,6 +709,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -712,6 +737,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -739,6 +765,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -766,6 +793,7 @@ final class RouteState {
     return new RouteState(
       this.route,
       this.path,
+      this.name,
       this.order,
       this.enabled,
       this.methods,
@@ -784,7 +812,29 @@ final class RouteState {
       this.exclusive,
       exactPath);
   }
-
+  RouteState setName(String name) {
+    return new RouteState(
+      this.route,
+      this.path,
+      name,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalizedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath);
+  }
   private boolean containsMethod(HttpServerRequest request) {
     if (!isEmpty(methods)) {
       return methods.contains(request.method());
@@ -1045,10 +1095,24 @@ final class RouteState {
       .handle(context);
   }
 
+  public String getName() {
+    if (name != null) {
+      return name;
+    }
+    if (path != null) {
+      return path;
+    }
+    if (pattern != null) {
+      return pattern.pattern();
+    }
+    return null;
+  }
+
   @Override
   public String toString() {
     return "RouteState{" +
       "path='" + path + '\'' +
+      ", name=" + name +
       ", order=" + order +
       ", enabled=" + enabled +
       ", methods=" + methods +

@@ -133,6 +133,7 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
           resetMatchFailure();
           try {
             currentRoute = routeState;
+            request().routed(currentRoute.getName());
             if (LOG.isTraceEnabled()) {
               LOG.trace("Calling the " + (failed ? "failure" : "") + " handler");
             }

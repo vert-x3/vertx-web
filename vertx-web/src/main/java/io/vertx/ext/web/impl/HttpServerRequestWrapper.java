@@ -324,4 +324,10 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   public Future<Void> end() {
     return delegate.end();
   }
+
+  @Override
+  public HttpServerRequest routed(String route) {
+    delegate.routed(route);
+    return this;
+  }
 }
