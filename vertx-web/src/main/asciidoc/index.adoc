@@ -684,8 +684,12 @@ should use the `RoutingContext` object. For example you want to reroute to a new
 {@link examples.WebExamples#example55c}
 ----
 
-Even though the wrong reroute path will warn you that the query string is ignored, the reroute will happen since the
-implementation will strip any query string or html fragment from the path.
+Reroute will re-parse the query params too. Be aware that previously query params will be discarded. The method
+will also silently discard and ignore any html fragment from the path. This is to keep the semantics of reroute
+consistent between a regular request and a re route.
+
+If more information is required to be passed to the new request, it should use the context that is preserved all the
+lifetime of the HTTP transaction.
 
 
 == Sub-routers
