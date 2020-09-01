@@ -38,6 +38,11 @@ public interface BodyHandler extends Handler<RoutingContext> {
   long DEFAULT_BODY_LIMIT = -1;
 
   /**
+   * Default max size for a JSON request body. -1 means unlimited
+   */
+  long DEFAULT_JSON_LIMIT = -1;
+
+  /**
    * Default uploads directory on server for file uploads
    */
   String DEFAULT_UPLOADS_DIRECTORY = "file-uploads";
@@ -85,10 +90,10 @@ public interface BodyHandler extends Handler<RoutingContext> {
   static BodyHandler create(String uploadDirectory) {
     return new BodyHandlerImpl(uploadDirectory);
   }
-  
+
   /**
    * Set whether file uploads will be handled
-   * 
+   *
    * @param handleFileUploads  true if they should be handled
    * @return reference to this for fluency
    */
@@ -103,6 +108,15 @@ public interface BodyHandler extends Handler<RoutingContext> {
    */
   @Fluent
   BodyHandler setBodyLimit(long bodyLimit);
+
+  /**
+   * Set the maximum JSON size -1 means unlimited
+   *
+   * @param jsonLimit the max size
+   * @return reference to this for fluency
+   */
+  @Fluent
+  BodyHandler setJsonLimit(long jsonLimit);
 
   /**
    * Set the uploads directory to use

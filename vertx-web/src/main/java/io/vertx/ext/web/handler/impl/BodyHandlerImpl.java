@@ -45,6 +45,7 @@ public class BodyHandlerImpl implements BodyHandler {
   private static final Logger log = LoggerFactory.getLogger(BodyHandlerImpl.class);
 
   private long bodyLimit = DEFAULT_BODY_LIMIT;
+  private long jsonLimit = DEFAULT_JSON_LIMIT;
   private boolean handleFileUploads;
   private String uploadsDir;
   private boolean mergeFormAttributes = DEFAULT_MERGE_FORM_ATTRIBUTES;
@@ -107,6 +108,12 @@ public class BodyHandlerImpl implements BodyHandler {
   }
 
   @Override
+  public BodyHandler setJsonLimit(long jsonLimit) {
+    this.jsonLimit = jsonLimit;
+    return this;
+  }
+
+  @Override
   public BodyHandler setUploadsDirectory(String uploadsDirectory) {
     this.uploadsDir = uploadsDirectory;
     return this;
@@ -156,9 +163,26 @@ public class BodyHandlerImpl implements BodyHandler {
     long uploadSize = 0L;
     final boolean isMultipart;
     final boolean isUrlEncoded;
+    final boolean isJson;
+    final long limit;
 
     public BHandler(RoutingContext context, long contentLength) {
       this.context = context;
+
+      final String contentType = context.request().getHeader(HttpHeaders.CONTENT_TYPE);
+      if (contentType == null) {
+        isMultipart = false;
+        isUrlEncoded = false;
+        isJson = false;
+      } else {
+        final String lowerCaseContentType = contentType.toLowerCase();
+        isMultipart = lowerCaseContentType.startsWith(HttpHeaderValues.MULTIPART_FORM_DATA.toString());
+        isUrlEncoded = lowerCaseContentType.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString());
+        isJson = lowerCaseContentType.startsWith(HttpHeaderValues.APPLICATION_JSON.toString());
+      }
+
+      limit = isJson ? jsonLimit : bodyLimit;
+
       this.contentLength = contentLength;
       // the request clearly states that there should
       // be a body, so we respect the client and ensure
@@ -167,28 +191,18 @@ public class BodyHandlerImpl implements BodyHandler {
         initBodyBuffer();
       }
 
-      Set<FileUpload> fileUploads = context.fileUploads();
-
-      final String contentType = context.request().getHeader(HttpHeaders.CONTENT_TYPE);
-      if (contentType == null) {
-        isMultipart = false;
-        isUrlEncoded = false;
-      } else {
-        final String lowerCaseContentType = contentType.toLowerCase();
-        isMultipart = lowerCaseContentType.startsWith(HttpHeaderValues.MULTIPART_FORM_DATA.toString());
-        isUrlEncoded = lowerCaseContentType.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString());
-      }
-
       if (isMultipart || isUrlEncoded) {
         context.request().setExpectMultipart(true);
+        Set<FileUpload> fileUploads = context.fileUploads();
+
         if (handleFileUploads) {
           makeUploadDir(context.vertx().fileSystem());
         }
         context.request().uploadHandler(upload -> {
-          if (bodyLimit != -1 && upload.isSizeAvailable()) {
+          if (limit != -1 && upload.isSizeAvailable()) {
             // we can try to abort even before the upload starts
             long size = uploadSize + upload.size();
-            if (size > bodyLimit) {
+            if (size > limit) {
               failed = true;
               deleteFileUploads();
               context.fail(413);
@@ -232,8 +246,8 @@ public class BodyHandlerImpl implements BodyHandler {
         initialBodyBufferSize = (int) contentLength;
       }
 
-      if (bodyLimit != -1) {
-        initialBodyBufferSize = (int) Math.min(initialBodyBufferSize, bodyLimit);
+      if (limit != -1) {
+        initialBodyBufferSize = (int) Math.min(initialBodyBufferSize, limit);
       }
 
       this.body = Buffer.buffer(initialBodyBufferSize);
@@ -251,7 +265,7 @@ public class BodyHandlerImpl implements BodyHandler {
         return;
       }
       uploadSize += buff.length();
-      if (bodyLimit != -1 && uploadSize > bodyLimit) {
+      if (limit != -1 && uploadSize > limit) {
         failed = true;
         deleteFileUploads();
         context.fail(413);

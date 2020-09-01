@@ -27,7 +27,6 @@ import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import org.junit.AfterClass;
 import org.junit.Rule;
@@ -790,5 +789,44 @@ public class BodyHandlerTest extends WebTestBase {
       req.putHeader("content-type", "application/x-www-form-urlencoded");
       req.write(buffer);
     }, 400, "Bad Request", null);
+  }
+
+  @Test
+  public void testJsonLimit() throws Exception {
+    router.clear();
+    router.route().handler(BodyHandler.create().setJsonLimit(10));
+    Buffer buffer = Buffer.buffer("000000000000000000000000000000000000000000000000");
+    router.route().handler(rc -> fail("Should not be called"));
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.putHeader("content-type", "application/json");
+      req.write(buffer);
+    }, 413, "Request Entity Too Large", null);
+  }
+
+  @Test
+  public void testJsonLimitOK() throws Exception {
+    router.clear();
+    router.route().handler(BodyHandler.create().setJsonLimit(10));
+    Buffer buffer = Buffer.buffer("0000000000");
+    router.route().handler(RoutingContext::end);
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.putHeader("content-type", "application/json");
+      req.write(buffer);
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testJsonLimitWrongType() throws Exception {
+    router.clear();
+    router.route().handler(BodyHandler.create().setJsonLimit(10));
+    Buffer buffer = Buffer.buffer("000000000000000000000000000000000000000000000000");
+    router.route().handler(RoutingContext::end);
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.putHeader("content-type", "applicatione/json");
+      req.write(buffer);
+    }, 200, "OK", null);
   }
 }
