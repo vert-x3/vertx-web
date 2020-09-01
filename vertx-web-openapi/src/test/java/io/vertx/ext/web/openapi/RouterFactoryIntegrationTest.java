@@ -25,6 +25,7 @@ import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -51,6 +52,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   public static final String VALIDATION_SPEC = "src/test/resources/specs/validation_test.yaml";
+  private final RouterFactoryOptions HANDLERS_TESTS_OPTIONS = new RouterFactoryOptions()
+    .setMountNotImplementedHandler(false)
+    .setRequireSecurityHandlers(false);
 
   private Future<Void> startFileServer(Vertx vertx, VertxTestContext testContext) {
     Router router = Router.router(vertx);
@@ -132,6 +136,29 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   }
 
   @Test
+  public void bodyHandlerNull(Vertx vertx, VertxTestContext testContext) {
+    RouterFactory.create(vertx, "src/test/resources/specs/router_factory_test.yaml",
+      routerFactoryAsyncResult -> {
+        assertThat(routerFactoryAsyncResult.succeeded()).isTrue();
+
+        RouterFactory routerFactory = routerFactoryAsyncResult.result();
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+        routerFactory.bodyHandler(null);
+
+        Router router = routerFactory.createRouter();
+
+        testContext.verify(() -> {
+          assertThat(router.getRoutes())
+            .extracting("state")
+            .extracting("contextHandlers")
+            .asList()
+            .doesNotHave(new Condition<>(o -> o instanceof BodyHandler, "Handler is a BodyHandler"));
+        });
+        testContext.completeNow();
+      });
+  }
+
+  @Test
   public void loadSpecFromURLWithAuthorizationValues(Vertx vertx, VertxTestContext testContext) {
     startSecuredFileServer(vertx, testContext).onComplete(h -> {
       RouterFactory.create(
@@ -159,10 +186,6 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
         });
     });
   }
-
-  private RouterFactoryOptions HANDLERS_TESTS_OPTIONS = new RouterFactoryOptions()
-    .setMountNotImplementedHandler(false)
-    .setRequireSecurityHandlers(false);
 
   @Test
   public void mountHandlerTest(Vertx vertx, VertxTestContext testContext) {
