@@ -156,7 +156,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       config.mergeIn(extraParams);
     }
 
-    return ((OAuth2Auth) authProvider).authorizeURL(config);
+    return authProvider.authorizeURL(config);
   }
 
   @Override
@@ -221,8 +221,12 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         return;
       }
 
+      // the state that was passed to the IdP server. The state can be
+      // an opaque random string (to protect against replay attacks)
+      // or if there was no session available the target resource to
+      // server after validation
       final String state = ctx.request().getParam("state");
-      final String redirectUri;
+      final String resource;
 
       // validate the state
       if (ctx.session() != null) {
@@ -237,12 +241,12 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
           }
         }
         // state is valid, extract the redirectUri from the session
-        redirectUri = ctx.session().get("redirect_uri");
+        resource = ctx.session().get("redirect_uri");
       } else {
-        redirectUri = state;
+        resource = state;
       }
 
-      final Oauth2Credentials config = new Oauth2Credentials()
+      final Oauth2Credentials credentials = new Oauth2Credentials()
         .setCode(code);
 
       if (host == null) {
@@ -252,14 +256,14 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
           LOG.warn("Cannot compute: 'redirect_uri' variable. OAuth2AuthHandler was created without a origin/callback URL.");
         }
       } else {
-        config.setRedirectUri(host + route.getPath());
+        credentials.setRedirectUri(host + route.getPath());
       }
 
       if (extraParams != null) {
-        config.setExtra(extraParams);
+        credentials.setExtra(extraParams);
       }
 
-      authProvider.authenticate(config, res -> {
+      authProvider.authenticate(credentials, res -> {
         if (res.failed()) {
           ctx.fail(res.cause());
         } else {
@@ -276,12 +280,12 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
               .putHeader("Pragma", "no-cache")
               .putHeader(HttpHeaders.EXPIRES, "0")
               // redirect (when there is no state, redirect to home
-              .putHeader(HttpHeaders.LOCATION, redirectUri != null ? redirectUri : "/")
+              .putHeader(HttpHeaders.LOCATION, resource != null ? resource : "/")
               .setStatusCode(302)
-              .end("Redirecting to " + (redirectUri != null ? redirectUri : "/") + ".");
+              .end("Redirecting to " + (resource != null ? resource : "/") + ".");
           } else {
             // there is no session object so we cannot keep state
-            ctx.reroute(redirectUri != null ? redirectUri : "/");
+            ctx.reroute(resource != null ? resource : "/");
           }
         }
       });
