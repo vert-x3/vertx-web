@@ -829,7 +829,7 @@ events are not delivered until the body handler is ready to process them.
 
 NOTE: Uploads can be a source of DDoS attacks, in order to reduce the attack surface, it is recommended to
 set sensible limits on {@link io.vertx.ext.web.handler.BodyHandler#setBodyLimit} (e.g.: 10mb) and
-{@link io.vertx.ext.web.handler.BodyHandlersetJsonLimit} (e.g.: 100kb).
+{@link io.vertx.ext.web.handler.BodyHandler#setJsonLimit} (e.g.: 100kb).
 
 === Getting the request body
 
