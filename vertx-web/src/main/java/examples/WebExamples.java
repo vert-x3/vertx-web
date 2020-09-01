@@ -1164,10 +1164,10 @@ public class WebExamples {
       // continue from here...
     });
 
-    // THE WRONG WAY! (Will reroute to /final-target excluding the query string)
+    // (Will reroute to /final-target including the query string)
     router.get().handler(ctx -> ctx.reroute("/final-target?variable=value"));
 
-    // THE CORRECT WAY!
+    // A safer way would be to add the variable to the context
     router.get().handler(ctx -> ctx
       .put("variable", "value")
       .reroute("/final-target"));
