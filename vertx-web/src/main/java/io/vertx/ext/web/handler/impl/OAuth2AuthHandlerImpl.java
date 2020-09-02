@@ -256,6 +256,8 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
           LOG.warn("Cannot compute: 'redirect_uri' variable. OAuth2AuthHandler was created without a origin/callback URL.");
         }
       } else {
+        // The valid callback URL set in your IdP application settings.
+        // This must exactly match the redirect_uri passed to the authorization URL in the previous step.
         credentials.setRedirectUri(host + route.getPath());
       }
 
