@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class RoutingContextImplBase implements RoutingContextInternal {
 
-  private static final Logger LOG = LoggerFactory.getLogger(RoutingContextImplBase.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(RoutingContext.class);
 
   private final Set<RouteImpl> routes;
 

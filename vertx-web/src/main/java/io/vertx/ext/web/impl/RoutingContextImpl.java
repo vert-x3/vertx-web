@@ -260,6 +260,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
         }
       }
       return body.toString();
+    } else {
+      if (!seenHandler(BODY_HANDLER)) {
+        if (LOG.isWarnEnabled()) {
+          LOG.warn("BodyHandler in not enabled on this route: RoutingContext.getBodyAsString(...) in always be NULL");
+        }
+      }
     }
     return null;
   }
@@ -270,17 +276,35 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public JsonObject getBodyAsJson() {
+  public JsonObject getBodyAsJson(int maxAllowedLength) {
     if (body != null) {
+      if (maxAllowedLength >= 0 && body.length() > maxAllowedLength) {
+        throw new IllegalStateException("RoutingContext body size exceeds the allowed limit");
+      }
       return BodyCodecImpl.JSON_OBJECT_DECODER.apply(body);
+    } else {
+      if (!seenHandler(BODY_HANDLER)) {
+        if (LOG.isWarnEnabled()) {
+          LOG.warn("BodyHandler in not enabled on this route: RoutingContext.getBodyAsJson() in always be NULL");
+        }
+      }
     }
     return null;
   }
 
   @Override
-  public JsonArray getBodyAsJsonArray() {
+  public JsonArray getBodyAsJsonArray(int maxAllowedLength) {
     if (body != null) {
+      if (maxAllowedLength >= 0 && body.length() > maxAllowedLength) {
+        throw new IllegalStateException("RoutingContext body size exceeds the allowed limit");
+      }
       return BodyCodecImpl.JSON_ARRAY_DECODER.apply(body);
+    } else {
+      if (!seenHandler(BODY_HANDLER)) {
+        if (LOG.isWarnEnabled()) {
+          LOG.warn("BodyHandler in not enabled on this route: RoutingContext.getBodyAsJsonArray(...) in always be NULL");
+        }
+      }
     }
     return null;
   }
