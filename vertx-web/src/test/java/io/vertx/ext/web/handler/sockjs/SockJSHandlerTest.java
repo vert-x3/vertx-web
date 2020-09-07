@@ -212,7 +212,7 @@ public class SockJSHandlerTest extends WebTestBase {
     String messageToSend = "[\"testMessage\"]";
     openedWebSocket.writeFrame(WebSocketFrame.textFrame(messageToSend, true));
 
-    await(5, TimeUnit.SECONDS);
+    await(10, TimeUnit.SECONDS);
 
     assertEquals("Client should have received 2 messages: the reply and the close.", 2, receivedMessages.size());
     Buffer expectedReply = Buffer.buffer("a" + messageToSend);
@@ -240,7 +240,7 @@ public class SockJSHandlerTest extends WebTestBase {
     log.debug("Client sending " + frame3.textData());
     openedWebSocket.writeFrame(frame3);
 
-    await(5, TimeUnit.SECONDS);
+    await(10, TimeUnit.SECONDS);
 
     assertEquals("Client should have received 2 messages: the reply and the close.", 2, receivedMessages.size());
     Buffer expectedReply = Buffer.buffer("a" + largeMessage.toString());
