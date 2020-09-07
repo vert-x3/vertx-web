@@ -65,18 +65,19 @@ import static io.vertx.core.buffer.Buffer.buffer;
 class SockJSSession extends SockJSSocketBase implements Shareable {
 
   private static final Logger log = LoggerFactory.getLogger(SockJSSession.class);
+
   private final LocalMap<String, SockJSSession> sessions;
   private final Deque<String> pendingWrites = new LinkedList<>();
-  private List<Handler<AsyncResult<Void>>> writeAcks;
   private final Context context;
   private final InboundBuffer<Buffer> pendingReads;
-  private TransportListener listener;
-  private boolean closed;
-  private boolean openWritten;
   private final String id;
   private final long timeout;
   private final Handler<SockJSSocket> sockHandler;
-  private long heartbeatID;
+  private final long heartbeatID;
+  private List<Handler<AsyncResult<Void>>> writeAcks;
+  private TransportListener listener;
+  private boolean closed;
+  private boolean openWritten;
   private long timeoutTimerID = -1;
   private int maxQueueSize = 64 * 1024; // Message queue size is measured in *characters* (not bytes)
   private int messagesSize;
@@ -141,7 +142,6 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
         }
       }
     }
-    return;
   }
 
   @Override
@@ -283,9 +283,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
       if (writeAcks != null) {
         List<Handler<AsyncResult<Void>>> acks = this.writeAcks;
         this.writeAcks = null;
-        listener.sendFrame("a" + json, ar -> {
-          acks.forEach(a -> a.handle(ar));
-        });
+        listener.sendFrame("a" + json, ar -> acks.forEach(a -> a.handle(ar)));
       } else {
         listener.sendFrame("a" + json, null);
       }
@@ -369,16 +367,12 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     pendingReads.clear();
     pendingWrites.clear();
     if (writeAcks != null) {
-      writeAcks.forEach(handler -> {
-        context.runOnContext(v -> {
-          handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION));
-        });
-      });
+      writeAcks.forEach(handler -> context.runOnContext(v -> handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION))));
       writeAcks.clear();
     }
     Handler<Void> handler = endHandler;
     if (handler != null) {
-      context.runOnContext(handler::handle);
+      context.runOnContext(handler);
     }
   }
 
@@ -398,19 +392,17 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
         pendingReads.write(buffer(msg));
       }
     } else {
-      context.runOnContext(v -> {
-        handleMessages(messages);
-      });
+      context.runOnContext(v -> handleMessages(messages));
     }
   }
 
-  void handleException(Throwable t) {
-    Handler<Throwable> eh;
-    synchronized (this) {
-      eh = exceptionHandler;
-    }
-    if (eh != null) {
-      context.runOnContext(v -> eh.handle(t));
+  synchronized void handleException(Throwable t) {
+    if (exceptionHandler != null) {
+      if (context == Vertx.currentContext()) {
+        exceptionHandler.handle(t);
+      } else {
+        context.runOnContext(v -> exceptionHandler.handle(t));
+      }
     } else {
       log.error("Unhandled exception", t);
     }
