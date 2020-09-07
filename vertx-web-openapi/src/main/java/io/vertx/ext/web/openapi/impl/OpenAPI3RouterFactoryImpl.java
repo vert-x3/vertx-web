@@ -68,6 +68,8 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
     this.globalHandlers = new ArrayList<>();
     this.schemaRouter = SchemaRouter.create(vertx, options.toSchemaRouterOptions());
     this.schemaParser = OpenAPI3SchemaParser.create(schemaRouter);
+    // Noop binary format validator to fix bad multipart form
+    this.schemaParser.withStringFormatValidator("binary", v -> true);
     this.validationHandlerGenerator = new OpenAPI3ValidationHandlerGenerator(spec, schemaParser);
 
     spec.getAbsolutePaths().forEach((u, jo) -> schemaRouter.addJson(u, jo));
