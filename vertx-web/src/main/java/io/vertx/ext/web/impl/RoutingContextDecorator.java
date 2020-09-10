@@ -141,13 +141,13 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
-  public JsonObject getBodyAsJson() {
-    return decoratedContext.getBodyAsJson();
+  public JsonObject getBodyAsJson(int maxAllowedLength) {
+    return decoratedContext.getBodyAsJson(maxAllowedLength);
   }
 
   @Override
-  public JsonArray getBodyAsJsonArray() {
-    return decoratedContext.getBodyAsJsonArray();
+  public JsonArray getBodyAsJsonArray(int maxAllowedLength) {
+    return decoratedContext.getBodyAsJsonArray(maxAllowedLength);
   }
 
   @Override

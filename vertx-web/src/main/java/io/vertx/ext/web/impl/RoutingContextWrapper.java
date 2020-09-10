@@ -252,13 +252,13 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public JsonObject getBodyAsJson() {
-    return inner.getBodyAsJson();
+  public JsonObject getBodyAsJson(int maxAllowedLength) {
+    return inner.getBodyAsJson(maxAllowedLength);
   }
 
   @Override
-  public JsonArray getBodyAsJsonArray() {
-    return inner.getBodyAsJsonArray();
+  public JsonArray getBodyAsJsonArray(int maxAllowedLength) {
+    return inner.getBodyAsJsonArray(maxAllowedLength);
   }
 
   @Override

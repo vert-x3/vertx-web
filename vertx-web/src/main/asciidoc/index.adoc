@@ -827,6 +827,10 @@ events are not delivered until the body handler is ready to process them.
 {@link examples.WebExamples#example27_1}
 ----
 
+NOTE: Uploads can be a source of DDoS attacks, in order to reduce the attack surface, it is recommended to
+set sensible limits on {@link io.vertx.ext.web.handler.BodyHandler#setBodyLimit} (e.g.: 10mb for general uploads or
+100kb for JSON).
+
 === Getting the request body
 
 If you know the request body is JSON, then you can use {@link io.vertx.ext.web.RoutingContext#getBodyAsJson},
