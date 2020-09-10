@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.WebSocketBase;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -1093,7 +1094,10 @@ public class EventbusBridgeTest extends WebTestBase {
       // we need to be logged in
       if (rc.user() == null) {
         JsonObject authInfo = new JsonObject().put("username", "tim").put("password", "delicious:sausages");
+        HttpServerRequest request = rc.request();
+        request.pause();
         authProvider.authenticate(authInfo, res -> {
+          request.resume();
           if (res.succeeded()) {
             rc.setUser(res.result());
             rc.next();

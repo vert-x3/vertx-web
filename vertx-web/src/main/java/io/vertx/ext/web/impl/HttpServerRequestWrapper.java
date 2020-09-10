@@ -272,8 +272,8 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
-  public NetSocket netSocket() {
-    return delegate.netSocket();
+  public Future<NetSocket> toNetSocket() {
+    return delegate.toNetSocket();
   }
 
   @Override
@@ -304,8 +304,10 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
-  public ServerWebSocket upgrade() {
-    return new ServerWebSocketWrapper(delegate.upgrade(), host(), scheme(), isSSL(), remoteAddress());
+  public Future<ServerWebSocket> toWebSocket() {
+    return delegate.toWebSocket().map(ws -> {
+      return new ServerWebSocketWrapper(ws, host(), scheme(), isSSL(), remoteAddress());
+    });
   }
 
   @Override

@@ -69,10 +69,13 @@ class WebSocketTransport extends BaseTransport {
         rc.response().setStatusCode(400);
         rc.response().end("Can \"Upgrade\" only to \"WebSocket\".");
       } else {
-        ServerWebSocket ws = rc.request().upgrade();
-        if (log.isTraceEnabled()) log.trace("WS, handler");
-        SockJSSession session = new SockJSSession(vertx, sessions, rc, options.getHeartbeatInterval(), sockHandler);
-        session.register(req, new WebSocketListener(ws, session));
+        rc.request().toWebSocket().onSuccess(ws -> {
+          if (log.isTraceEnabled()) {
+            log.trace("WS, handler");
+          }
+          SockJSSession session = new SockJSSession(vertx, sessions, rc, options.getHeartbeatInterval(), sockHandler);
+          session.register(req, new WebSocketListener(ws, session));
+        });
       }
     });
 

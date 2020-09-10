@@ -132,9 +132,10 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     MultiMap headers = routingContext.request().headers();
     if (headers.contains(CONNECTION) && headers.contains(UPGRADE, WEBSOCKET, true)) {
       ContextInternal context = (ContextInternal) routingContext.vertx().getOrCreateContext();
-      ServerWebSocket serverWebSocket = routingContext.request().upgrade();
-      ApolloWSConnectionHandler connectionHandler = new ApolloWSConnectionHandler(this, context, serverWebSocket);
-      connectionHandler.handleConnection();
+      routingContext.request().toWebSocket().onSuccess(ws -> {
+        ApolloWSConnectionHandler connectionHandler = new ApolloWSConnectionHandler(this, context, ws);
+        connectionHandler.handleConnection();
+      });
     } else {
       routingContext.next();
     }

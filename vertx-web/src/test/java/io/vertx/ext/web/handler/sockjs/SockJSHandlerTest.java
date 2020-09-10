@@ -293,6 +293,7 @@ public class SockJSHandlerTest extends WebTestBase {
     log.debug("Server received " + requestBuffer);
     log.debug("Server sending " + requestBuffer);
     sock.write(requestBuffer);
+    sock.exceptionHandler(null);
     sock.close();
   }
 

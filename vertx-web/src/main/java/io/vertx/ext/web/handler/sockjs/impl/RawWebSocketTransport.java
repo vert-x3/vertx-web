@@ -198,9 +198,10 @@ class RawWebSocketTransport {
     String wsRE = "/websocket";
 
     router.get(wsRE).handler(rc -> {
-      ServerWebSocket ws = rc.request().upgrade();
-      SockJSSocket sock = new RawWSSockJSSocket(vertx, rc.session(), rc.user(), ws);
-      sockHandler.handle(sock);
+      rc.request().toWebSocket().onSuccess(ws -> {
+        SockJSSocket sock = new RawWSSockJSSocket(vertx, rc.session(), rc.user(), ws);
+        sockHandler.handle(sock);
+      });
     });
 
     router.get(wsRE).handler(rc -> rc.response().setStatusCode(400).end("Can \"Upgrade\" only to \"WebSocket\"."));
