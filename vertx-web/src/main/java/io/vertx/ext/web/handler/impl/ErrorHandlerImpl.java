@@ -68,7 +68,8 @@ public class ErrorHandlerImpl implements ErrorHandler {
     String errorMessage = response.getStatusMessage();
 
     if (displayExceptionDetails) {
-      errorMessage = failure.getMessage();
+      // failure message may be null
+      errorMessage = failure == null ? null : failure.getMessage();
       if (errorMessage != null) {
         // no new lines are allowed in the status message
         errorMessage = errorMessage.replaceAll("\\r|\\n", " ");
