@@ -26,6 +26,7 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.WebAuthnHandler;
+import io.vertx.ext.web.impl.Origin;
 
 public class WebAuthnHandlerImpl implements WebAuthnHandler {
 
@@ -36,7 +37,9 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
   private Route register = null;
   private Route login = null;
   private Route response = null;
-
+  // optional config
+  private String origin;
+  private String domain;
 
   public WebAuthnHandlerImpl(WebAuthn webAuthN) {
     this.webAuthn = webAuthN;
@@ -131,7 +134,11 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
           final JsonObject webauthnRegister = ctx.getBodyAsJson();
           final Session session = ctx.session();
 
-          if (isEmptyString(webauthnRegister, "name") || isEmptyString(webauthnRegister, "displayName") || isEmptyString(webauthnRegister, "type")) {
+          // the register object should match a Webauthn user.
+          // A user has only a required field: name
+          // And optional fields: displayName and icon
+          if (isEmptyString(webauthnRegister, "name")) {
+            LOG.warn("missing 'name' field from request json");
             ctx.fail(400);
           } else {
             // input basic validation is OK
@@ -159,6 +166,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
             });
           }
         } catch (IllegalArgumentException e) {
+          LOG.error("Illegal request", e);
           ctx.fail(400);
         } catch (RuntimeException e) {
           LOG.error("Unexpected exception", e);
@@ -180,7 +188,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
           final Session session = ctx.session();
 
           if (isEmptyString(webauthnLogin, "name")) {
-            LOG.debug("Request missing username field");
+            LOG.debug("Request missing 'name' field");
             ctx.fail(400);
             return;
           }
@@ -212,7 +220,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
             ctx.json(getAssertion);
           });
         } catch (IllegalArgumentException e) {
-          LOG.error("Unexpected exception", e);
+          LOG.error("Illegal request", e);
           ctx.fail(400);
         } catch (RuntimeException e) {
           LOG.error("Unexpected exception", e);
@@ -257,6 +265,8 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
           webAuthn.authenticate(
             // authInfo
             new WebAuthnCredentials()
+              .setOrigin(origin)
+              .setDomain(domain)
               .setChallenge(session.get("challenge"))
               .setUsername(session.get("username"))
               .setWebauthn(webauthnResp), authenticate -> {
@@ -278,7 +288,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
               }
             });
         } catch (IllegalArgumentException e) {
-          LOG.error("Unexpected exception", e);
+          LOG.error("Illegal request", e);
           ctx.fail(400);
         } catch (RuntimeException e) {
           LOG.error("Unexpected exception", e);
@@ -286,6 +296,19 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
         }
       });
 
+    return this;
+  }
+
+  @Override
+  public WebAuthnHandler setOrigin(String origin) {
+    if (origin != null) {
+      Origin o = Origin.parse(origin);
+      this.origin = o.encode();
+      domain = o.host();
+    } else {
+      this.origin = null;
+      domain = null;
+    }
     return this;
   }
 }

@@ -66,4 +66,13 @@ public interface WebAuthnHandler extends Handler<RoutingContext> {
    */
   @Fluent
   WebAuthnHandler setupCallback(Route route);
+
+  /**
+   * Set the Origin to be validated by the webauthn object.
+   *
+   * @param origin - an HTTP Origin
+   * @return fluent self
+   */
+  @Fluent
+  WebAuthnHandler setOrigin(String origin);
 }

@@ -331,6 +331,19 @@ public final class Origin {
     return true;
   }
 
+  public String encode() {
+    switch (protocol) {
+      case "http":
+        return protocol + "://" + host + (port == 80 ? "" : ":" + port);
+      case "https":
+        return protocol + "://" + host + (port == 443 ? "" : ":" + port);
+      case "ftp":
+        return protocol + "://" + host + (port == 21 ? "" : ":" + port);
+      default:
+        return null;
+    }
+  }
+
   @Override
   public String toString() {
     return base;

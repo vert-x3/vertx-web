@@ -19,6 +19,7 @@ import io.vertx.ext.auth.webauthn.*;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
+import io.vertx.ext.auth.webauthn.store.AuthenticatorStore;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.*;
@@ -1716,25 +1717,20 @@ public class WebExamples {
     });
   }
 
-  public void example75(Vertx vertx, Router router, CredentialStore authStore) {
+  public void example75(Vertx vertx, Router router, AuthenticatorStore authStore) {
     // create the webauthn security object
     WebAuthn webAuthn = WebAuthn.create(
       vertx,
       new WebAuthnOptions()
-        .setOrigin("https://192.168.178.74.xip.io:8443")
-        .setRelayParty(new RelayParty().setName("Vert.x WebAuthN Demo"))
+        .setRelyingParty(new RelyingParty().setName("Vert.x WebAuthN Demo"))
         // What kind of authentication do you want? do you care?
-        // if you care you can specify it (choose one of the 2)
-
         // # security keys
         .setAuthenticatorAttachment(AuthenticatorAttachment.CROSS_PLATFORM)
-        .setRequireResidentKey(false)
         // # fingerprint
         .setAuthenticatorAttachment(AuthenticatorAttachment.PLATFORM)
-        .setRequireResidentKey(false)
-        .setUserVerification(UserVerification.REQUIRED),
-      // where to load the credentials from?
-      authStore);
+        .setUserVerification(UserVerificationRequirement.REQUIRED))
+      // where to load the credentials from?)
+      .setAuthenticatorStore(authStore);
 
     // parse the BODY
     router.post()
@@ -1746,6 +1742,7 @@ public class WebExamples {
 
     // security handler
     WebAuthnHandler webAuthNHandler = WebAuthnHandler.create(webAuthn)
+      .setOrigin("https://192.168.178.74.xip.io:8443")
       // required callback
       .setupCallback(router.post("/webauthn/response"))
       // optional register callback
