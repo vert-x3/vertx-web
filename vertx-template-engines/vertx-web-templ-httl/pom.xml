@@ -49,7 +49,7 @@
               <shadedClassifierName>shaded</shadedClassifierName>
               <artifactSet>
                 <includes>
-                  <include>com.github.httl:httl</include>
+                  <include>org.perfcake:httl</include>
                 </includes>
               </artifactSet>
             </configuration>
