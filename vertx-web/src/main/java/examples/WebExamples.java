@@ -19,7 +19,6 @@ import io.vertx.ext.auth.webauthn.*;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
-import io.vertx.ext.auth.webauthn.store.AuthenticatorStore;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.*;
@@ -34,6 +33,7 @@ import io.vertx.ext.web.sstore.SessionStore;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * These are the examples used in the documentation.
@@ -1717,7 +1717,7 @@ public class WebExamples {
     });
   }
 
-  public void example75(Vertx vertx, Router router, AuthenticatorStore authStore) {
+  public void example75(Vertx vertx, Router router, Function<Authenticator, Future<List<Authenticator>>> fetcher, Function<Authenticator, Future<Void>> updater) {
     // create the webauthn security object
     WebAuthn webAuthn = WebAuthn.create(
       vertx,
@@ -1728,9 +1728,11 @@ public class WebExamples {
         .setAuthenticatorAttachment(AuthenticatorAttachment.CROSS_PLATFORM)
         // # fingerprint
         .setAuthenticatorAttachment(AuthenticatorAttachment.PLATFORM)
-        .setUserVerification(UserVerificationRequirement.REQUIRED))
-      // where to load the credentials from?)
-      .setAuthenticatorStore(authStore);
+        .setUserVerification(UserVerification.REQUIRED))
+      // where to load the credentials from?
+      .authenticatorFetcher(fetcher)
+      // update the state of an authenticator
+      .authenticatorUpdater(updater);
 
     // parse the BODY
     router.post()
