@@ -2,6 +2,7 @@ package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -9,6 +10,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.net.NetSocket;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.core.streams.Pipe;
+import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.AllowForwardHeaders;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
@@ -67,6 +70,12 @@ class HttpServerRequestWrapper implements HttpServerRequest {
         path = uri;
       }
     }
+  }
+
+  @Override
+  public HttpServerRequest body(Handler<AsyncResult<Buffer>> handler) {
+    delegate.body(handler);
+    return this;
   }
 
   @Override
@@ -272,6 +281,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
+  public void toNetSocket(Handler<AsyncResult<NetSocket>> handler) {
+    delegate.toNetSocket(handler);
+  }
+
+  @Override
   public Future<NetSocket> toNetSocket() {
     return delegate.toNetSocket();
   }
@@ -304,10 +318,21 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
-  public Future<ServerWebSocket> toWebSocket() {
-    return delegate.toWebSocket().map(ws -> {
-      return new ServerWebSocketWrapper(ws, host(), scheme(), isSSL(), remoteAddress());
+  public void toWebSocket(Handler<AsyncResult<ServerWebSocket>> handler) {
+    delegate.toWebSocket(toWebSocket -> {
+      if (toWebSocket.succeeded()) {
+        handler.handle(Future.succeededFuture(
+          new ServerWebSocketWrapper(toWebSocket.result(), host(), scheme(), isSSL(), remoteAddress())));
+      } else {
+        handler.handle(toWebSocket);
+      }
     });
+  }
+
+  @Override
+  public Future<ServerWebSocket> toWebSocket() {
+    return delegate.toWebSocket()
+      .map(ws -> new ServerWebSocketWrapper(ws, host(), scheme(), isSSL(), remoteAddress()));
   }
 
   @Override
@@ -347,6 +372,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
+  public void end(Handler<AsyncResult<Void>> handler) {
+    delegate.end(handler);
+  }
+
+  @Override
   public Future<Void> end() {
     return delegate.end();
   }
@@ -355,5 +385,20 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   public HttpServerRequest routed(String route) {
     delegate.routed(route);
     return this;
+  }
+
+  @Override
+  public Pipe<Buffer> pipe() {
+    return delegate.pipe();
+  }
+
+  @Override
+  public Future<Void> pipeTo(WriteStream<Buffer> dst) {
+    return delegate.pipeTo(dst);
+  }
+
+  @Override
+  public void pipeTo(WriteStream<Buffer> dst, Handler<AsyncResult<Void>> handler) {
+    delegate.pipeTo(dst, handler);
   }
 }

@@ -69,12 +69,25 @@ class WebSocketTransport extends BaseTransport {
         rc.response().setStatusCode(400);
         rc.response().end("Can \"Upgrade\" only to \"WebSocket\".");
       } else {
-        rc.request().toWebSocket().onSuccess(ws -> {
-          if (log.isTraceEnabled()) {
-            log.trace("WS, handler");
+        // we're about to upgrade the connection, which means an asynchronous
+        // operation. We have to pause the request otherwise we will loose the
+        // body of the request once the upgrade completes
+        rc.request().pause();
+        // upgrade
+        rc.request().toWebSocket(toWebSocket -> {
+          if (toWebSocket.succeeded()) {
+            if (log.isTraceEnabled()) {
+              log.trace("WS, handler");
+            }
+            // resume the parsing
+            rc.request().resume();
+            // handle the sockjs session as usual
+            SockJSSession session = new SockJSSession(vertx, sessions, rc, options.getHeartbeatInterval(), sockHandler);
+            session.register(req, new WebSocketListener(toWebSocket.result(), session));
+          } else {
+            // the upgrade failed
+            rc.fail(toWebSocket.cause());
           }
-          SockJSSession session = new SockJSSession(vertx, sessions, rc, options.getHeartbeatInterval(), sockHandler);
-          session.register(req, new WebSocketListener(ws, session));
         });
       }
     });

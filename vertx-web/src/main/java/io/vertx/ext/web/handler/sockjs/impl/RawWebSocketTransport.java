@@ -198,9 +198,22 @@ class RawWebSocketTransport {
     String wsRE = "/websocket";
 
     router.get(wsRE).handler(rc -> {
-      rc.request().toWebSocket().onSuccess(ws -> {
-        SockJSSocket sock = new RawWSSockJSSocket(vertx, rc.session(), rc.user(), ws);
-        sockHandler.handle(sock);
+      // we're about to upgrade the connection, which means an asynchronous
+      // operation. We have to pause the request otherwise we will loose the
+      // body of the request once the upgrade completes
+      rc.request().pause();
+      // upgrade
+      rc.request().toWebSocket(toWebSocket -> {
+        if (toWebSocket.succeeded()) {
+          // resume the parsing
+          rc.request().resume();
+          // handle the sockjs session as usual
+          SockJSSocket sock = new RawWSSockJSSocket(vertx, rc.session(), rc.user(), toWebSocket.result());
+          sockHandler.handle(sock);
+        } else {
+          // the upgrade failed
+          rc.fail(toWebSocket.cause());
+        }
       });
     });
 
