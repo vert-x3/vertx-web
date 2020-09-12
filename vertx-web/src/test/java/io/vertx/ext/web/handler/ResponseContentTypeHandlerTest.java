@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -27,7 +28,8 @@ import org.junit.Test;
 
 import java.util.Random;
 
-import static io.vertx.core.http.HttpHeaders.*;
+import static io.vertx.core.http.HttpHeaders.CONTENT_LENGTH;
+import static io.vertx.core.http.HttpHeaders.CONTENT_TYPE;
 
 /**
  * @author Thomas Segismont
@@ -86,9 +88,9 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
           return resp.body();
         })
       ).onComplete(onSuccess(buf -> {
-        assertEquals(buffer, buf);
-        testComplete();
-      }));
+      assertEquals(buffer, buf);
+      testComplete();
+    }));
     await();
   }
 
@@ -148,6 +150,22 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       assertEquals(buffer, buf);
       testComplete();
     }));
+    await();
+  }
+
+  @Test
+  public void testProducesOrderGuaranteeOnWildcardHeader() {
+    testRoute.produces("application/json").produces("text/plain")
+      .handler(rc -> rc.response().putHeader(CONTENT_TYPE, rc.getAcceptableContentType()).end());
+
+    client.request(HttpMethod.GET, testRoute.getPath())
+      .compose(req -> req
+        .putHeader(HttpHeaders.ACCEPT, "*/*")
+        .send())
+      .onComplete(onSuccess(resp -> {
+        assertEquals("application/json", contentType(resp));
+        testComplete();
+      }));
     await();
   }
 
