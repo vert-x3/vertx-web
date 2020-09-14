@@ -98,6 +98,19 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
   OAuth2AuthHandler prompt(String prompt);
 
   /**
+   * PKCE (RFC 7636) is an extension to the Authorization Code flow to prevent several attacks and to be able to
+   * securely perform the OAuth exchange from public clients.
+   *
+   * It was originally designed to protect mobile apps, but its ability to prevent authorization code injection
+   * makes it useful for every OAuth client, even web apps that use a client secret.
+   *
+   * @param length A number between 43 and 128. Or -1 to disable.
+   * @return self
+   */
+  @Fluent
+  OAuth2AuthHandler pkceVerifierLength(int length);
+
+  /**
    * add the callback handler to a given route.
    * @param route a given route e.g.: `/callback`
    * @return self

@@ -27,6 +27,7 @@ import io.vertx.ext.auth.impl.jose.JWK;
 import io.vertx.ext.auth.impl.jose.JWT;
 import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.Test;
 
 import java.util.Base64;
@@ -106,6 +107,74 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // fake the redirect
     testRequest(HttpMethod.GET, "/callback?state=/protected/somepage&code=1", null, resp -> {
     }, 200, "OK", "Welcome to the protected resource!");
+
+    server.close();
+  }
+
+  @Test
+  public void testAuthPKCECodeFlow() throws Exception {
+
+    // lets mock a oauth2 server using code auth code flow
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+      .setClientID("client-id")
+      .setFlow(OAuth2FlowType.AUTH_CODE)
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:10000"));
+
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    HttpServer server = vertx.createHttpServer().requestHandler(req -> {
+      if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
+        req.setExpectMultipart(true)
+          .bodyHandler(buffer -> {
+            req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
+          });
+      } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().end());
+      } else {
+        req.response().setStatusCode(400).end();
+      }
+    }).listen(10000, ready -> {
+      if (ready.failed()) {
+        throw new RuntimeException(ready.cause());
+      }
+      // ready
+      latch.countDown();
+    });
+
+    latch.await();
+
+    // ensure that there's a session
+    router.route().handler(SessionHandler.create(SessionStore.create(vertx)));
+
+    // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
+      .create(vertx, oauth2, "http://localhost:8080/callback")
+      .pkceVerifierLength(64);
+
+    // setup the callback handler for receiving the callback
+    oauth2Handler.setupCallback(router.route());
+
+    // protect everything under /protected
+    router.route("/protected/*").handler(oauth2Handler);
+    // mount some handler under the protected zone
+    router.route("/protected/somepage").handler(rc -> {
+      assertNotNull(rc.user());
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+
+    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
+      // in this case we should get a redirect
+      redirectURL = resp.getHeader("Location");
+      assertNotNull(redirectURL);
+      assertTrue(redirectURL.contains("&code_verifier="));
+      assertTrue(redirectURL.contains("&code_challenge_method="));
+    }, 302, "Found", null);
+
+    // fake the redirect
+    testRequest(HttpMethod.GET, "/callback?state=/protected/somepage&code=1", null, resp -> {
+    }, 302, "Found", "Redirecting to /.");
 
     server.close();
   }

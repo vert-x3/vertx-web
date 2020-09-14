@@ -36,6 +36,8 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.impl.Origin;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,11 +51,13 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   private final VertxContextPRNG prng;
   private final String host;
   private final String callbackPath;
+  private final MessageDigest sha256;
 
   private Route callback;
   private JsonObject extraParams;
   private final List<String> scopes = new ArrayList<>();
   private String prompt;
+  private int pkce = -1;
 
   // explicit signal that tokens are handled as bearer only (meaning, no backend server known)
   private boolean bearerOnly = true;
@@ -62,7 +66,13 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     super(authProvider, Type.BEARER);
     // get a reference to the prng
     this.prng = VertxContextPRNG.current(vertx);
-
+    // get a reference to the sha-256 digest
+    try {
+      sha256 = MessageDigest.getInstance("SHA-256");
+    } catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException("Cannot get instance of SHA-256 MessageDigest", e);
+    }
+    // process callback
     if (callbackURL != null) {
       final Origin origin = Origin.parse(callbackURL);
       this.host = origin.toString();
@@ -114,18 +124,27 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
           // the redirect is processed as a failure to abort the chain
           String redirectUri = context.request().uri();
           String state = null;
+          String codeVerifier = null;
 
           if (context.session() != null) {
             // there's a session we can make this request comply to the Oauth2 spec and add an opaque state
             context.session()
               .put("redirect_uri", context.request().uri());
 
+            // create a state value to mitigate replay attacks
             state = prng.nextString(6);
             // store the state in the session
             context.session()
               .put("state", state);
+
+            if (pkce > 0) {
+              codeVerifier = prng.nextString(pkce);
+              // store the code verifier in the session
+              context.session()
+                .put("pkce", codeVerifier);
+            }
           }
-          handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(redirectUri, state))));
+          handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(redirectUri, state, codeVerifier))));
         }
       } else {
         // attempt to decode the token and handle it as a user
@@ -143,7 +162,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     });
   }
 
-  private String authURI(String redirectURL, String state) {
+  private String authURI(String redirectURL, String state, String codeVerifier) {
     final JsonObject config = new JsonObject()
       .put("state", state != null ? state : redirectURL);
 
@@ -157,6 +176,15 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
     if (prompt != null) {
       config.put("prompt", prompt);
+    }
+
+    if (codeVerifier != null) {
+      synchronized (sha256) {
+        sha256.update(codeVerifier.getBytes());
+        config
+          .put("code_verifier", sha256.digest())
+          .put("code_challenge_method", "S256");
+      }
     }
 
     if (extraParams != null) {
@@ -181,6 +209,18 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   @Override
   public OAuth2AuthHandler prompt(String prompt) {
     this.prompt = prompt;
+    return this;
+  }
+
+  @Override
+  public OAuth2AuthHandler pkceVerifierLength(int length) {
+    if (length >= 0) {
+      // requires verification
+      if (length < 43 || length > 128) {
+        throw new IllegalArgumentException("Length must be between 34 and 128");
+      }
+    }
+    this.pkce = length;
     return this;
   }
 
@@ -228,6 +268,10 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         return;
       }
 
+      final Oauth2Credentials credentials = new Oauth2Credentials()
+        .setCode(code)
+        .setExtra(extraParams);
+
       // the state that was passed to the IdP server. The state can be
       // an opaque random string (to protect against replay attacks)
       // or if there was no session available the target resource to
@@ -247,14 +291,26 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
             return;
           }
         }
+        // remove the code verifier
+        String codeVerifier = ctx.session().remove("pkce");
+        if (codeVerifier != null) {
+          JsonObject extras = credentials.getExtra();
+          if (extras != null) {
+            credentials
+              .setExtra(new JsonObject()
+                .mergeIn(extras)
+                .put("code_verifier", codeVerifier));
+          } else {
+            credentials
+              .setExtra(new JsonObject()
+                .put("code_verifier", codeVerifier));
+          }
+        }
         // state is valid, extract the redirectUri from the session
         resource = ctx.session().get("redirect_uri");
       } else {
         resource = state;
       }
-
-      final Oauth2Credentials credentials = new Oauth2Credentials()
-        .setCode(code);
 
       if (host == null) {
         // warn that the setup is wrong, if this route is called
@@ -266,10 +322,6 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         // The valid callback URL set in your IdP application settings.
         // This must exactly match the redirect_uri passed to the authorization URL in the previous step.
         credentials.setRedirectUri(host + route.getPath());
-      }
-
-      if (extraParams != null) {
-        credentials.setExtra(extraParams);
       }
 
       authProvider.authenticate(credentials, res -> {
