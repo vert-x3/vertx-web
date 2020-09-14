@@ -104,6 +104,13 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
           }
           handler.handle(Future.failedFuture(new HttpStatusException(500, "Infinite redirect loop [oauth2 callback]")));
         } else {
+          if (context.request().method() != HttpMethod.GET) {
+            // we can only redirect GET requests
+            LOG.error("OAuth2 redirect attempt to non GET resource");
+            context.fail(400);
+            return;
+          }
+
           // the redirect is processed as a failure to abort the chain
           String redirectUri = context.request().uri();
           String state = null;
