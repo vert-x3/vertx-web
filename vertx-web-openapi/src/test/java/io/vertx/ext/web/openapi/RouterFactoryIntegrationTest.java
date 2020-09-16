@@ -94,6 +94,16 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   }
 
   @Test
+  public void loadPetStoreFromFile(Vertx vertx, VertxTestContext testContext) {
+    RouterFactory.create(vertx, "src/test/resources/specs/petstore.yaml",
+      routerFactoryAsyncResult -> {
+        assertThat(routerFactoryAsyncResult.succeeded()).isTrue();
+        assertThat(routerFactoryAsyncResult.result()).isNotNull();
+        testContext.completeNow();
+      });
+  }
+
+  @Test
   public void failLoadSpecFromFile(Vertx vertx, VertxTestContext testContext) {
     RouterFactory.create(vertx, "src/test/resources/specs/aaa.yaml",
       routerFactoryAsyncResult -> {
