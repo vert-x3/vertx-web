@@ -45,22 +45,22 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
     this.webAuthn = webAuthN;
   }
 
-  private static boolean isEmptyString(JsonObject json, String key) {
+  private static boolean containsRequiredString(JsonObject json, String key) {
     try {
       if (json == null) {
-        return true;
+        return false;
       }
       if (!json.containsKey(key)) {
-        return true;
+        return false;
       }
-      String s = json.getString(key);
-      return s == null || "".equals(s);
-    } catch (RuntimeException e) {
-      return true;
+      Object s = json.getValue(key);
+      return s != null && (s instanceof String) && !"".equals(s);
+    } catch (ClassCastException e) {
+      return false;
     }
   }
 
-  private static boolean isEmptyObject(JsonObject json, String key) {
+  private static boolean containsOptionalString(JsonObject json, String key) {
     try {
       if (json == null) {
         return true;
@@ -68,10 +68,25 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
       if (!json.containsKey(key)) {
         return true;
       }
+      Object s = json.getValue(key);
+      return s != null && (s instanceof String);
+    } catch (ClassCastException e) {
+      return false;
+    }
+  }
+
+  private static boolean containsRequiredObject(JsonObject json, String key) {
+    try {
+      if (json == null) {
+        return false;
+      }
+      if (!json.containsKey(key)) {
+        return false;
+      }
       JsonObject s = json.getJsonObject(key);
-      return s == null;
-    } catch (RuntimeException e) {
-      return true;
+      return s != null;
+    } catch (ClassCastException e) {
+      return false;
     }
   }
 
@@ -137,7 +152,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
           // the register object should match a Webauthn user.
           // A user has only a required field: name
           // And optional fields: displayName and icon
-          if (isEmptyString(webauthnRegister, "name")) {
+          if (!containsRequiredString(webauthnRegister, "name")) {
             LOG.warn("missing 'name' field from request json");
             ctx.fail(400);
           } else {
@@ -162,6 +177,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
                 .put("challenge", credentialsOptions.getString("challenge"))
                 .put("username", webauthnRegister.getString("name"));
 
+//              ctx.json(credentialsOptions.put("status", "ok").put("errorMessage", ""));
               ctx.json(credentialsOptions);
             });
           }
@@ -173,7 +189,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
           ctx.fail(e);
         }
       });
-      return this;
+    return this;
   }
 
   @Override
@@ -187,7 +203,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
           final JsonObject webauthnLogin = ctx.getBodyAsJson();
           final Session session = ctx.session();
 
-          if (isEmptyString(webauthnLogin, "name")) {
+          if (!containsRequiredString(webauthnLogin, "name")) {
             LOG.debug("Request missing 'name' field");
             ctx.fail(400);
             return;
@@ -217,6 +233,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
               .put("challenge", getAssertion.getString("challenge"))
               .put("username", username);
 
+//            ctx.json(getAssertion.put("status", "ok").put("errorMessage", ""));
             ctx.json(getAssertion);
           });
         } catch (IllegalArgumentException e) {
@@ -241,13 +258,14 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
           final JsonObject webauthnResp = ctx.getBodyAsJson();
           // input validation
           if (
-            isEmptyString(webauthnResp, "id") ||
-              isEmptyString(webauthnResp, "rawId") ||
-              isEmptyObject(webauthnResp, "response") ||
-              isEmptyString(webauthnResp, "type") ||
+            !containsRequiredString(webauthnResp, "id") ||
+              !containsRequiredString(webauthnResp, "rawId") ||
+              !containsRequiredObject(webauthnResp, "response") ||
+              !containsOptionalString(webauthnResp.getJsonObject("response"), "userHandle") ||
+              !containsRequiredString(webauthnResp, "type") ||
               !"public-key".equals(webauthnResp.getString("type"))) {
 
-            LOG.debug("Response missing one or more of id/rawId/response/type fields, or type is not public-key");
+            LOG.debug("Response missing one or more of id/rawId/response[.userHandle]/type fields, or type is not public-key");
             ctx.fail(400);
             return;
           }
@@ -281,6 +299,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
                 // the user has upgraded from unauthenticated to authenticated
                 // session should be upgraded as recommended by owasp
                 session.regenerateId();
+//                ctx.json(new JsonObject().put("status", "ok").put("errorMessage", ""));
                 ctx.response().end();
               } else {
                 LOG.error("Unexpected exception", authenticate.cause());
