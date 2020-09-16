@@ -4,7 +4,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.openapi.impl.OpenAPI3Utils;
 import io.vertx.ext.web.openapi.service.*;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
@@ -16,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static io.vertx.ext.web.validation.testutils.TestRequest.*;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * These tests are about OpenAPI3RouterFactory and Service Proxy integrations
@@ -30,18 +28,6 @@ public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTes
     .setMountNotImplementedHandler(false);
 
   List<MessageConsumer<JsonObject>> consumers = new ArrayList<>();
-
-  @Test
-  public void testOperationIdSanitizer() {
-    assertThat(OpenAPI3Utils.sanitizeOperationId("operationId")).isEqualTo("operationId");
-    assertThat(OpenAPI3Utils.sanitizeOperationId("operation id")).isEqualTo("operationId");
-    assertThat(OpenAPI3Utils.sanitizeOperationId("operation Id")).isEqualTo("operationId");
-    assertThat(OpenAPI3Utils.sanitizeOperationId("operation-id")).isEqualTo("operationId");
-    assertThat(OpenAPI3Utils.sanitizeOperationId("operation_id")).isEqualTo("operationId");
-    assertThat(OpenAPI3Utils.sanitizeOperationId("operation__id-")).isEqualTo("operationId");
-    assertThat(OpenAPI3Utils.sanitizeOperationId("operation_- id ")).isEqualTo("operationId");
-    assertThat(OpenAPI3Utils.sanitizeOperationId("operation_- A B")).isEqualTo("operationAB");
-  }
 
   @AfterEach
   public void stopServices() {
