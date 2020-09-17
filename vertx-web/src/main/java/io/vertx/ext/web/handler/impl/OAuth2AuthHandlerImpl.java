@@ -123,7 +123,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
           if (context.session() == null) {
             if (pkce > 0) {
-              // we can only redirect GET requests
+              // we can only handle PKCE with a session
               LOG.error("OAuth2 PKCE requires a session to be present");
               context.fail(500);
               return;
