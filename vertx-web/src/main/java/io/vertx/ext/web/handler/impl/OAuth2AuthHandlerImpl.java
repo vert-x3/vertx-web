@@ -22,9 +22,9 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.TokenCredentials;
@@ -91,12 +91,12 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         handler.handle(Future.failedFuture(parseAuthorization.cause()));
         return;
       }
-      // Authorization header can be null when in bearerOnly mode
+      // Authorization header can be null when in not in bearerOnly mode
       final String token = parseAuthorization.result();
 
       if (token == null) {
         // redirect request to the oauth2 server as we know nothing about this request
-        if (callback == null) {
+        if (bearerOnly || callback == null) {
           // it's a failure both cases but the cause is not the same
           handler.handle(Future.failedFuture("callback route is not configured."));
           return;
@@ -105,13 +105,8 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         // as it would shade the callback route. When a request matches the callback path and has the
         // method GET the exceptional case should not redirect to the oauth2 server as it would become
         // an infinite redirect loop. In this case an exception must be raised.
-        if (
-          context.request().method() == HttpMethod.GET &&
-            context.normalizedPath().equals(callback.getPath())) {
-
-          if (LOG.isWarnEnabled()) {
-            LOG.warn("The callback route is shaded by the OAuth2AuthHandler, ensure the callback route is added BEFORE the OAuth2AuthHandler route!");
-          }
+        if (context.request().method() == HttpMethod.GET && context.normalizedPath().equals(callback.getPath())) {
+          LOG.warn("The callback route is shaded by the OAuth2AuthHandler, ensure the callback route is added BEFORE the OAuth2AuthHandler route!");
           handler.handle(Future.failedFuture(new HttpStatusException(500, "Infinite redirect loop [oauth2 callback]")));
         } else {
           if (context.request().method() != HttpMethod.GET) {
@@ -126,7 +121,14 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
           String state = null;
           String codeVerifier = null;
 
-          if (context.session() != null) {
+          if (context.session() == null) {
+            if (pkce > 0) {
+              // we can only redirect GET requests
+              LOG.error("OAuth2 PKCE requires a session to be present");
+              context.fail(500);
+              return;
+            }
+          } else {
             // there's a session we can make this request comply to the Oauth2 spec and add an opaque state
             context.session()
               .put("redirect_uri", context.request().uri());
@@ -182,7 +184,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       synchronized (sha256) {
         sha256.update(codeVerifier.getBytes());
         config
-          .put("code_verifier", sha256.digest())
+          .put("code_challenge", sha256.digest())
           .put("code_challenge_method", "S256");
       }
     }
@@ -277,23 +279,33 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       // or if there was no session available the target resource to
       // server after validation
       final String state = ctx.request().getParam("state");
+
+      // state is a required field
+      if (state == null) {
+        LOG.error("Missing IdP state parameter to the callback endpoint");
+        ctx.fail(400);
+        return;
+      }
+
       final String resource;
 
-      // validate the state
       if (ctx.session() != null) {
-        // remove the nonce
+        // validate the state. Here we are a bit lenient, if there is no session
+        // we always assume valid, however if there is session it must match
         String ctxState = ctx.session().remove("state");
-        if (ctxState != null) {
-          // if there's a state in the context they must match
-          if (!ctxState.equals(state)) {
-            // forbidden, the state is not valid (this is a replay attack
-            ctx.fail(401);
-            return;
-          }
+        // if there's a state in the context they must match
+        if (!state.equals(ctxState)) {
+          // forbidden, the state is not valid (this is a replay attack
+          ctx.fail(401);
+          return;
         }
-        // remove the code verifier
+
+        // remove the code verifier, from the session as it will be trade for the
+        // token during the final leg of the oauth2 handshake
         String codeVerifier = ctx.session().remove("pkce");
         if (codeVerifier != null) {
+          // if there are already extras by the end user
+          // we make a copy to avoid leaking the verifier
           JsonObject extras = credentials.getExtra();
           if (extras != null) {
             credentials
