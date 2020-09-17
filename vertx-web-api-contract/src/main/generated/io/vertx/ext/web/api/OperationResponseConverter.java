@@ -2,6 +2,7 @@ package io.vertx.ext.web.api;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.impl.JsonUtil;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 
@@ -17,7 +18,7 @@ public class OperationResponseConverter {
       switch (member.getKey()) {
         case "payload":
           if (member.getValue() instanceof String) {
-            obj.setPayload(io.vertx.core.buffer.Buffer.buffer(java.util.Base64.getDecoder().decode((String)member.getValue())));
+            obj.setPayload(io.vertx.core.buffer.Buffer.buffer(JsonUtil.BASE64_DECODER.decode((String)member.getValue())));
           }
           break;
         case "statusCode":
@@ -40,7 +41,7 @@ public class OperationResponseConverter {
 
    static void toJson(OperationResponse obj, java.util.Map<String, Object> json) {
     if (obj.getPayload() != null) {
-      json.put("payload", java.util.Base64.getEncoder().encodeToString(obj.getPayload().getBytes()));
+      json.put("payload", JsonUtil.BASE64_ENCODER.encodeToString(obj.getPayload().getBytes()));
     }
     if (obj.getStatusCode() != null) {
       json.put("statusCode", obj.getStatusCode());

@@ -19,18 +19,22 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.PubSecKeyOptions;
-import io.vertx.ext.auth.oauth2.OAuth2Auth;
-import io.vertx.ext.auth.oauth2.OAuth2Options;
-import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.impl.jose.JWK;
 import io.vertx.ext.auth.impl.jose.JWT;
-import io.vertx.ext.auth.JWTOptions;
+import io.vertx.ext.auth.oauth2.OAuth2Auth;
+import io.vertx.ext.auth.oauth2.OAuth2FlowType;
+import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.Test;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Paulo Lopes
@@ -106,6 +110,193 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // fake the redirect
     testRequest(HttpMethod.GET, "/callback?state=/protected/somepage&code=1", null, resp -> {
     }, 200, "OK", "Welcome to the protected resource!");
+
+    server.close();
+  }
+
+  @Test
+  public void testAuthCodeFlowBypass() throws Exception {
+
+    // lets mock a oauth2 server using code auth code flow
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+      .setClientID("client-id")
+      .setFlow(OAuth2FlowType.AUTH_CODE)
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:10000"));
+
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    HttpServer server = vertx.createHttpServer().requestHandler(req -> {
+      if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
+        req.setExpectMultipart(true).bodyHandler(buffer ->
+          req.response()
+            .setStatusCode(400)
+            .putHeader("Content-Type", "application/json")
+            .end(new JsonObject()
+              .put("error", 400)
+              .put("error_description", "invalid code").encode()));
+      } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().end());
+      } else {
+        req.response().setStatusCode(400).end();
+      }
+    }).listen(10000, ready -> {
+      if (ready.failed()) {
+        throw new RuntimeException(ready.cause());
+      }
+      // ready
+      latch.countDown();
+    });
+
+    latch.await();
+
+    // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/callback");
+
+    // setup the callback handler for receiving the callback
+    oauth2Handler.setupCallback(router.route());
+
+    // protect everything under /protected
+    router.route("/protected/*").handler(oauth2Handler);
+    // mount some handler under the protected zone
+    router.route("/protected/somepage").handler(rc -> {
+      assertNotNull(rc.user());
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+    // fake the redirect
+    testRequest(HttpMethod.GET, "/callback?state=/protected/somepage&code=1", 500, "Internal Server Error");
+
+    server.close();
+  }
+
+  @Test
+  public void testAuthPKCECodeFlow() throws Exception {
+
+    final AtomicReference<String> verifier = new AtomicReference<>();
+
+    // lets mock a oauth2 server using code auth code flow
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+      .setClientID("client-id")
+      .setFlow(OAuth2FlowType.AUTH_CODE)
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:10000"));
+
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    HttpServer server = vertx.createHttpServer().requestHandler(req -> {
+      if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
+        req.setExpectMultipart(true)
+          .bodyHandler(buffer -> {
+            String[] parts = buffer.toString().split("&");
+            int matches = 0;
+            for (String part : parts) {
+              if (part.equals("code=1")) {
+                matches++;
+              }
+              if (part.startsWith("code_verifier=")) {
+                MessageDigest md;
+                try {
+                  md = MessageDigest.getInstance("SHA-256");
+                  md.update(part.substring(14).getBytes());
+                  if (verifier.get().equals(Base64.getUrlEncoder().withoutPadding().encodeToString(md.digest()))) {
+                    matches++;
+                  }
+                } catch (NoSuchAlgorithmException e) {
+                  e.printStackTrace();
+                }
+              }
+              if (part.equals("grant_type=authorization_code")) {
+                matches++;
+              }
+            }
+            assertEquals(3, matches);
+            req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
+          });
+      } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
+        req.setExpectMultipart(true).bodyHandler(buffer -> {
+          req.response().end();
+        });
+      } else {
+        req.response().setStatusCode(400).end();
+      }
+    }).listen(10000, ready -> {
+      if (ready.failed()) {
+        throw new RuntimeException(ready.cause());
+      }
+      // ready
+      latch.countDown();
+    });
+
+    latch.await();
+
+    // ensure that there's a session
+    router.route().handler(SessionHandler.create(SessionStore.create(vertx)));
+
+    // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
+      .create(vertx, oauth2, "http://localhost:8080/callback")
+      .pkceVerifierLength(64);
+    // setup the callback handler for receiving the callback
+    oauth2Handler.setupCallback(router.route("/callback"));
+    // protect everything under /protected
+    router.route("/protected/*").handler(oauth2Handler);
+    // mount some handler under the protected zone
+    router.route("/protected/somepage").handler(rc -> {
+      assertNotNull(rc.user());
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+    final AtomicReference<String> cookie = new AtomicReference<>();
+    final AtomicReference<String> state = new AtomicReference<>();
+
+    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
+      // in this case we should get a redirect
+      redirectURL = resp.getHeader("Location");
+      assertNotNull(redirectURL);
+      assertTrue(redirectURL.contains("&code_challenge="));
+      assertTrue(redirectURL.contains("&code_challenge_method="));
+      // save the params
+      String[] parts = redirectURL.substring(redirectURL.indexOf('?') + 1).split("&");
+      String codeChallenge = null;
+      String codeChallengeMethod = null;
+      String nonce = null;
+      for (String part : parts) {
+        if (part.startsWith("code_challenge=")) {
+          codeChallenge = part.substring(15);
+        }
+        if (part.startsWith("code_challenge_method=")) {
+          codeChallengeMethod = part.substring(22);
+        }
+        if (part.startsWith("state=")) {
+          nonce = part.substring(6);
+        }
+      }
+      assertNotNull(nonce);
+      assertNotNull(codeChallenge);
+      assertNotNull(codeChallengeMethod);
+      assertTrue(codeChallenge.length() >= 43 && codeChallenge.length() <= 128);
+      assertEquals("S256", codeChallengeMethod);
+
+      // save state
+      verifier.set(codeChallenge);
+      state.set(nonce);
+      cookie.set(resp.getHeader("set-cookie"));
+    }, 302, "Found", null);
+
+    // fake the redirect from IdP
+    testRequest(
+      HttpMethod.GET,
+      "/callback?state=" + state.get() + "&code=1",
+      req -> {
+        // add the session cookie back to ensure the session gets updated
+        req.putHeader("cookie", cookie.get());
+      },
+      resp -> {
+      },
+      302,
+      "Found",
+      "Redirecting to /protected/somepage.");
 
     server.close();
   }
