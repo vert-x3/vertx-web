@@ -29,6 +29,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -1065,6 +1066,25 @@ public class WebClientTest extends WebClientTestBase {
     startServer();
     MultiMap form = MultiMap.caseInsensitiveMultiMap();
     form.add("param1", "param1_value");
+    HttpRequest<Buffer> builder = webClient.post("/somepath");
+    builder.sendForm(form, onSuccess(resp -> complete()));
+    await();
+  }
+
+  @Test
+  public void testFormUrlEncodedUnescaped() throws Exception {
+    server.requestHandler(req -> {
+      req.setExpectMultipart(true);
+      req.bodyHandler(body -> {
+        assertEquals("grant_type=client_credentials&resource=https%3A%2F%2Fmanagement.core.windows.net%2F", body.toString());
+        req.response().end();
+      });
+    });
+    startServer();
+    MultiMap form = MultiMap.caseInsensitiveMultiMap();
+    form
+      .set("grant_type", "client_credentials")
+      .set("resource", "https://management.core.windows.net/");
     HttpRequest<Buffer> builder = webClient.post("/somepath");
     builder.sendForm(form, onSuccess(resp -> complete()));
     await();
