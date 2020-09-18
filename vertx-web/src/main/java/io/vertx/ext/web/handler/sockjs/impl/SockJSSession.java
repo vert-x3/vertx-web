@@ -43,6 +43,7 @@ import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.Shareable;
 import io.vertx.core.streams.impl.InboundBuffer;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
 import java.util.ArrayList;
@@ -91,24 +92,22 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private MultiMap headers;
   private Context transportCtx;
 
-  SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, long heartbeatInterval,
-                Handler<SockJSSocket> sockHandler) {
-    this(vertx, sessions, rc, null, -1, heartbeatInterval, sockHandler);
+  SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
+    this(vertx, sessions, rc, null, options, sockHandler);
   }
 
-  SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, String id, long timeout, long heartbeatInterval,
-                Handler<SockJSSocket> sockHandler) {
-    super(vertx, rc.session(), rc.user());
+  SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, String id, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
+    super(vertx, rc.session(), rc.user(), options);
     this.sessions = sessions;
     this.id = id;
-    this.timeout = timeout;
+    this.timeout = id == null ? -1:options.getSessionTimeout();
     this.sockHandler = sockHandler;
     context = vertx.getOrCreateContext();
     pendingReads = new InboundBuffer<>(context);
 
     // Start a heartbeat
 
-    heartbeatID = vertx.setPeriodic(heartbeatInterval, tid -> {
+    heartbeatID = vertx.setPeriodic(options.getHeartbeatInterval(), tid -> {
       if (listener != null) {
         listener.sendFrame("h", null);
       }

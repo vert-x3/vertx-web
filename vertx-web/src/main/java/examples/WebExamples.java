@@ -1,7 +1,11 @@
 package examples;
 
-import io.vertx.core.*;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -14,11 +18,11 @@ import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
 import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
-import io.vertx.ext.auth.oauth2.OAuth2Options;
-import io.vertx.ext.auth.webauthn.*;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
+import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
+import io.vertx.ext.auth.webauthn.*;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.*;
@@ -964,7 +968,6 @@ public class WebExamples {
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
-    router.route("/myapp/*").handler(sockJSHandler);
   }
 
   public void example44(Vertx vertx) {
@@ -976,14 +979,39 @@ public class WebExamples {
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
-    sockJSHandler.socketHandler(sockJSSocket -> {
+    router.mountSubRouter("/myapp", sockJSHandler.socketHandler(sockJSSocket -> {
 
       // Just echo the data back
       sockJSSocket.handler(sockJSSocket::write);
-    });
 
-    router.route("/myapp/*").handler(sockJSHandler);
+    }));
+
   }
+
+  public void sockJsWriteHandler(Vertx vertx) {
+    Router router = Router.router(vertx);
+
+    SockJSHandlerOptions options = new SockJSHandlerOptions().setRegisterWriteHandler(true);
+
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
+
+    router.mountSubRouter("/myapp", sockJSHandler.socketHandler(sockJSSocket -> {
+
+      // Retrieve the writeHandlerID and store it (e.g. in a local map)
+      String writeHandlerID = sockJSSocket.writeHandlerID();
+
+    }));
+
+  }
+
+  public void sockJsSendBufferEventBus(EventBus eventBus, String writeHandlerID) {
+
+    // Send buffers directly to the SockJS socket
+
+    eventBus.send(writeHandlerID, Buffer.buffer("foo"));
+
+  }
+
 
   public void example45(Vertx vertx) {
 

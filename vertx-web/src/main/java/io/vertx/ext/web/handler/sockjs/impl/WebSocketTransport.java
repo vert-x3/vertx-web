@@ -39,9 +39,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
-import io.vertx.core.net.impl.ConnectionBase;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.net.impl.ConnectionBase;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
@@ -82,7 +82,7 @@ class WebSocketTransport extends BaseTransport {
             // resume the parsing
             rc.request().resume();
             // handle the sockjs session as usual
-            SockJSSession session = new SockJSSession(vertx, sessions, rc, options.getHeartbeatInterval(), sockHandler);
+            SockJSSession session = new SockJSSession(vertx, sessions, rc, options, sockHandler);
             session.register(req, new WebSocketListener(toWebSocket.result(), session));
           } else {
             // the upgrade failed

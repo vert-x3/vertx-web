@@ -34,17 +34,13 @@ package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Promise;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
-import io.vertx.ext.web.Session;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.web.Session;
 
 /**
  *
@@ -110,12 +106,14 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   SockJSSocket drainHandler(Handler<Void> handler);
 
   /**
-   * When a {@code SockJSSocket} is created it automatically registers an event handler with the event bus, the ID of that
+   * When a {@code SockJSSocket} is created it can register an event handler with the event bus, the ID of that
    * handler is given by {@code writeHandlerID}.
    * <p>
    * Given this ID, a different event loop can send a buffer to that event handler using the event bus and
    * that buffer will be received by this instance in its own event loop and written to the underlying socket. This
    * allows you to write data to other sockets which are owned by different event loops.
+   *
+   * @return the {@code writeHandlerID} or {@code null} if {@code writeHandler} registration is disabled in {@link SockJSHandlerOptions}
    */
   String writeHandlerID();
 
