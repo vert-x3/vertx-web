@@ -148,7 +148,7 @@ public class RequestParametersImpl implements RequestParameters {
       .stream()
       .collect(Collector.of(
         JsonObject::new,
-        (j, e) -> j.put(e.getKey(), e.getValue().get()),
+        (j, e) -> j.put(e.getKey(), e.getValue() != null ? e.getValue().get() : null),
         JsonObject::mergeIn
       ));
   }
