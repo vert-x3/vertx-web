@@ -48,14 +48,9 @@ import io.vertx.ext.web.handler.sockjs.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import static io.vertx.core.buffer.Buffer.*;
+import static io.vertx.core.buffer.Buffer.buffer;
 
 /**
  *
@@ -146,7 +141,7 @@ public class SockJSHandlerImpl implements SockJSHandler {
     }
     if (enabledTransports.contains(Transport.WEBSOCKET.toString())) {
       new WebSocketTransport(vertx, router, sessions, options, sockHandler);
-      new RawWebSocketTransport(vertx, router, sockHandler);
+      new RawWebSocketTransport(vertx, router, options, sockHandler);
     }
 
     return router;

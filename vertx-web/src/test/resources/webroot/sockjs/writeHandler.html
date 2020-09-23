@@ -1,0 +1,63 @@
+<!--
+  ~ Copyright 2020 Red Hat, Inc.
+  ~
+  ~ Red Hat licenses this file to you under the Apache License, version 2.0
+  ~ (the 'License'); you may not use this file except in compliance with the
+  ~ License.  You may obtain a copy of the License at:
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an 'AS IS' BASIS, WITHOUT
+  ~ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+  ~ License for the specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <title>SockJS writeHandler test</title>
+  <script src='https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js'></script>
+  <script>
+    function doTest(transport, registered, local) {
+      let address = '/transport/' + transport
+        + '/' + (registered ? 'registered' : 'unregistered')
+        + '/' + (local ? 'local' : 'clustered');
+      let writeHandlerId;
+      let received = []
+      let sock = new SockJS(address);
+      sock.onmessage = function (e) {
+        let data = e.data;
+        if (!writeHandlerId) {
+          writeHandlerId = data;
+          postMessage(JSON.stringify({'address': writeHandlerId, 'content': 'foo'}), false)
+            .then(() => postMessage(JSON.stringify({'address': writeHandlerId, 'content': 'bar'}), true))
+            .finally(() => {
+              setTimeout(() => {
+                let divElement = document.createElement('div');
+                divElement.innerHTML = received.join('');
+                document.body.appendChild(divElement);
+              }, 1000);
+            });
+        } else {
+          received.push(data);
+        }
+      };
+    }
+
+    function postMessage(msg, relay) {
+      let path = '/message';
+      if (relay) path += '?relay'
+      return fetch(path, {
+        method: 'post',
+        headers: {'Content-Type': 'application/json'},
+        body: msg
+      });
+    }
+  </script>
+</head>
+<body>
+</body>
+</html>

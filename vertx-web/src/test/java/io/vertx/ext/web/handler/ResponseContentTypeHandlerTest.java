@@ -17,7 +17,6 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -122,7 +121,6 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       ).onComplete(onSuccess(resp -> {
       assertNull(contentType(resp));
       assertEquals(Integer.valueOf(0), contentLength(resp));
-      testComplete();
       testComplete();
     }));
     await();

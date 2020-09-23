@@ -10,6 +10,8 @@ cache:
     - $HOME/.m2
 before_cache:
   - rm -rf $HOME/.m2/repository/io/vertx/
+env:
+  - NODE_VERSION=10.19.0
 jobs:
   include:
     - stage: test
@@ -33,6 +35,21 @@ jobs:
         - npm run test
       after_failure: cat ${HOME}/ApolloTestsServer.log
       after_script: cat ${HOME}/ApolloTestsServer.pid | xargs kill -9
+    - name: "SockJS writeHandler tests"
+      jdk: openjdk8
+      before_script:
+        - cd vertx-web
+        - mvn exec:java -Dexec.mainClass=io.vertx.ext.web.handler.sockjs.SockJSWriteHandlerTestServer -Dexec.classpathScope=test > ${HOME}/SockJSWriteHandlerTestServer.log 2>&1 &
+        - echo $! > ${HOME}/SockJSWriteHandlerTestServer.pid
+        - ( tail -f ${HOME}/SockJSWriteHandlerTestServer.log & ) | grep -q "SockJS writeHandler tests server started"
+      script:
+        - cd tests/sockjs
+        - nvm install $NODE_VERSION
+        - nvm use $NODE_VERSION
+        - npm install
+        - npm run test
+      after_failure: cat ${HOME}/SockJSWriteHandlerTestServer.log
+      after_script: cat ${HOME}/SockJSWriteHandlerTestServer.pid | xargs kill -9
     - stage: deploy
       name: "Deploy to Sonatype's snapshots repository"
       jdk: openjdk8

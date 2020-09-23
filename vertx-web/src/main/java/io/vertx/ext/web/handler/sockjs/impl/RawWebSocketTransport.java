@@ -32,11 +32,7 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.ServerWebSocket;
@@ -45,6 +41,7 @@ import io.vertx.core.net.impl.ConnectionBase;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
 /**
@@ -58,8 +55,8 @@ class RawWebSocketTransport {
     MultiMap headers;
     boolean closed;
 
-    RawWSSockJSSocket(Vertx vertx, Session webSession, User webUser, ServerWebSocket ws) {
-      super(vertx, webSession, webUser);
+    RawWSSockJSSocket(Vertx vertx, Session webSession, User webUser, SockJSHandlerOptions options, ServerWebSocket ws) {
+      super(vertx, webSession, webUser, options);
       this.ws = ws;
       ws.closeHandler(v -> {
         // Make sure the writeHandler gets unregistered
@@ -192,8 +189,7 @@ class RawWebSocketTransport {
     }
   }
 
-  RawWebSocketTransport(Vertx vertx, Router router,
-                        Handler<SockJSSocket> sockHandler) {
+  RawWebSocketTransport(Vertx vertx, Router router, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
 
     String wsRE = "/websocket";
 
@@ -208,7 +204,7 @@ class RawWebSocketTransport {
           // resume the parsing
           rc.request().resume();
           // handle the sockjs session as usual
-          SockJSSocket sock = new RawWSSockJSSocket(vertx, rc.session(), rc.user(), toWebSocket.result());
+          SockJSSocket sock = new RawWSSockJSSocket(vertx, rc.session(), rc.user(), options, toWebSocket.result());
           sockHandler.handle(sock);
         } else {
           // the upgrade failed

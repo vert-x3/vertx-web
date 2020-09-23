@@ -32,8 +32,6 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
-import static io.vertx.core.buffer.Buffer.buffer;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -49,6 +47,8 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
+
+import static io.vertx.core.buffer.Buffer.buffer;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -110,7 +110,7 @@ class XhrTransport extends BaseTransport {
       if (log.isTraceEnabled()) log.trace("XHR, post, " + rc.request().uri());
       setNoCacheHeaders(rc);
       String sessionID = rc.request().getParam("param0");
-      SockJSSession session = getSession(rc, options.getSessionTimeout(), options.getHeartbeatInterval(), sessionID, sockHandler);
+      SockJSSession session = getSession(rc, options, sessionID, sockHandler);
       HttpServerRequest req = rc.request();
       session.register(req, streaming? new XhrStreamingListener(options.getMaxBytesStreaming(), rc, session) : new XhrPollingListener(rc, session));
     });
