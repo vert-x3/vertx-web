@@ -21,7 +21,7 @@ import io.vertx.ext.web.validation.ValidationHandler;
 public class OpenAPI3Examples {
 
   public void constructRouterFactory(Vertx vertx) {
-    RouterFactory.create(vertx, "src/main/resources/petstore.yaml", ar -> {
+    RouterFactory.create(vertx, "src/main/resources/petstore.yaml").onComplete(ar -> {
       if (ar.succeeded()) {
         // Spec loaded with success
         RouterFactory routerFactory = ar.result();
@@ -35,16 +35,17 @@ public class OpenAPI3Examples {
   public void constructRouterFactoryFromUrl(Vertx vertx) {
     RouterFactory.create(
       vertx,
-      "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml",
-      ar -> {
-        if (ar.succeeded()) {
-          // Spec loaded with success
-          RouterFactory routerFactory = ar.result();
-        } else {
-          // Something went wrong during router factory initialization
-          Throwable exception = ar.cause();
-        }
-      });
+      "https://raw.githubusercontent" +
+        ".com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml"
+    ).onComplete(ar -> {
+      if (ar.succeeded()) {
+        // Spec loaded with success
+        RouterFactory routerFactory = ar.result();
+      } else {
+        // Something went wrong during router factory initialization
+        Throwable exception = ar.cause();
+      }
+    });
   }
 
   public void constructRouterFactoryFromUrlWithAuthenticationHeader(Vertx vertx) {
@@ -52,17 +53,18 @@ public class OpenAPI3Examples {
       .putAuthHeader("Authorization", "Bearer xx.yy.zz");
     RouterFactory.create(
       vertx,
-      "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml",
-      loaderOptions,
-      ar -> {
-        if (ar.succeeded()) {
-          // Spec loaded with success
-          RouterFactory routerFactory = ar.result();
-        } else {
-          // Something went wrong during router factory initialization
-          Throwable exception = ar.cause();
-        }
-      });
+      "https://raw.githubusercontent" +
+        ".com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml",
+      loaderOptions
+    ).onComplete(ar -> {
+      if (ar.succeeded()) {
+        // Spec loaded with success
+        RouterFactory routerFactory = ar.result();
+      } else {
+        // Something went wrong during router factory initialization
+        Throwable exception = ar.cause();
+      }
+    });
   }
 
   public void setOptions(RouterFactory routerFactory) {
@@ -73,24 +75,28 @@ public class OpenAPI3Examples {
     routerFactory
       .operation("awesomeOperation")
       .handler(routingContext -> {
-        RequestParameters params = routingContext.get(ValidationHandler.REQUEST_CONTEXT_KEY);
+        RequestParameters params =
+          routingContext.get(ValidationHandler.REQUEST_CONTEXT_KEY);
         RequestParameter body = params.body();
         JsonObject jsonBody = body.getJsonObject();
         // Do something with body
       }).failureHandler(routingContext -> {
-        // Handle failure
-      });
+      // Handle failure
+    });
   }
 
-  public void addSecurityHandler(RouterFactory routerFactory, AuthenticationHandler authenticationHandler) {
+  public void addSecurityHandler(RouterFactory routerFactory,
+                                 AuthenticationHandler authenticationHandler) {
     routerFactory.securityHandler("security_scheme_name", authenticationHandler);
   }
 
   public void addJWT(RouterFactory routerFactory, JWTAuth jwtAuthProvider) {
-    routerFactory.securityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider));
+    routerFactory.securityHandler("jwt_auth",
+      JWTAuthHandler.create(jwtAuthProvider));
   }
 
-  public void addOperationModelKey(RouterFactory routerFactory, RouterFactoryOptions options) {
+  public void addOperationModelKey(RouterFactory routerFactory,
+                                   RouterFactoryOptions options) {
     // Configure the operation model key and set options in router factory
     options.setOperationModelKey("operationModel");
     routerFactory.setOptions(options);
@@ -100,32 +106,32 @@ public class OpenAPI3Examples {
       .operation("listPets")
       .handler(
         routingContext -> {
-        JsonObject operation = routingContext.get("operationModel");
+          JsonObject operation = routingContext.get("operationModel");
 
-        routingContext
-          .response()
-          .setStatusCode(200)
-          .setStatusMessage("OK")
-          // Write the response with operation id "listPets"
-          .end(operation.getString("operationId"));
-    });
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+            // Write the response with operation id "listPets"
+            .end(operation.getString("operationId"));
+        });
   }
 
   public void generateRouter(Vertx vertx, RouterFactory routerFactory) {
     Router router = routerFactory.createRouter();
 
-    HttpServer server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
+    HttpServer server =
+      vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost(
+        "localhost"));
     server.requestHandler(router).listen();
   }
 
   public void mainExample(Vertx vertx, JWTAuth jwtAuth) {
     // Load the api spec. This operation is asynchronous
-    RouterFactory.create(vertx, "src/main/resources/petstore.yaml",
-      routerFactoryAsyncResult -> {
-      if (routerFactoryAsyncResult.succeeded()) {
-        // Spec loaded with success, retrieve the router
-        RouterFactory routerFactory = routerFactoryAsyncResult.result();
-        // You can enable or disable different features of router factory using RouterFactoryOptions
+    RouterFactory.create(vertx, "src/main/resources/petstore.yaml")
+      .onSuccess(routerFactory -> {
+        // You can enable or disable different features of router factory using
+        //RouterFactoryOptions
         RouterFactoryOptions options = new RouterFactoryOptions();
         // Set the options
         routerFactory.setOptions(options);
@@ -133,7 +139,8 @@ public class OpenAPI3Examples {
         routerFactory.operation("listPets").handler(routingContext -> {
           // Handle listPets operation
           routingContext.response().setStatusMessage("Called listPets").end();
-        }).handler(routingContext -> { // Add a failure handler to the same operation
+        }).handler(routingContext -> { // Add a failure handler to the same
+          // operation
           // This is the failure handler
           Throwable failure = routingContext.failure();
           if (failure instanceof BadRequestException)
@@ -142,7 +149,7 @@ public class OpenAPI3Examples {
               .response()
               .setStatusCode(400)
               .putHeader("content-type", "application/json")
-              .end(((BadRequestException)failure).toJson().toBuffer());
+              .end(((BadRequestException) failure).toJson().toBuffer());
         });
 
         // Add a security handler
@@ -156,13 +163,12 @@ public class OpenAPI3Examples {
         Router router = routerFactory.createRouter();
 
         // Now you can use your Router instance
-        HttpServer server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
+        HttpServer server =
+          vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost(
+            "localhost"));
         server.requestHandler(router).listen();
-
-      } else {
-        // Something went wrong during router factory initialization
-        Throwable exception = routerFactoryAsyncResult.cause();
-      }
+      }).onFailure(exception -> {
+      // Something went wrong during router factory initialization
     });
   }
 }
