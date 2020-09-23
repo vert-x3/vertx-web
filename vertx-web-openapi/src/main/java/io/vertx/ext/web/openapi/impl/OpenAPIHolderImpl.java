@@ -98,6 +98,10 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     return object.containsKey("$ref");
   }
 
+  private boolean hasDiscriminatorMapping(JsonObject object) {
+    return object.containsKey("discriminator") && object.getJsonObject("discriminator").containsKey("mapping");
+  }
+
   @Override
   public JsonObject getOpenAPI() {
     return openapiRoot;
@@ -117,6 +121,28 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
                                     Map<JsonPointer, JsonObject> additionalSchemasToRegister) {
     if (schema instanceof JsonObject) {
       JsonObject schemaObject = (JsonObject) schema;
+      if (hasDiscriminatorMapping(schemaObject)){
+        JsonObject mapping = schemaObject.getJsonObject("discriminator").getJsonObject("mapping");
+        mapping.forEach(e->{
+            JsonPointer refPointer = JsonPointer.fromURI(URI.create(e.getValue().toString()));
+            JsonObject resolved = getCached(refPointer);
+            if(resolved!=null){
+              if (!resolved.containsKey("x-$id")) { // This schema was never touched
+                // And now the trick: I apply this function to this schema and then i register it in definitions
+                JsonPointer id = new SchemaURNId().toPointer();
+                resolved.put("x-$id", id.toURI().toString());
+
+                // Now we make a copy of resolved to don't mess up original openapi json
+                JsonObject resolvedCopy = resolved.copy();
+                innerNormalizeSchema(resolvedCopy, refPointer, additionalSchemasToRegister);
+
+                // Resolved it's ready to be consumed by the parser
+                additionalSchemasToRegister.put(id, resolvedCopy);
+              }
+              e.setValue(resolved.getString("x-$id"));
+            }
+        });
+      }
       if (isRef(schemaObject)) {
         // Ok so we found a $ref
         JsonPointer refPointer = JsonPointer.fromURI(URI.create(schemaObject.getString("$ref")));
