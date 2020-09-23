@@ -85,7 +85,7 @@ class JsonPTransport extends BaseTransport {
 
       HttpServerRequest req = rc.request();
       String sessionID = req.params().get("param0");
-      SockJSSession session = getSession(rc, options.getSessionTimeout(), options.getHeartbeatInterval(), sessionID, sockHandler);
+      SockJSSession session = getSession(rc, options, sessionID, sockHandler);
       session.register(req, new JsonPListener(rc, session, callback));
     });
 

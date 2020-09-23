@@ -22,8 +22,9 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
-
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -114,25 +115,29 @@ public class SockJSProtocolTest {
     router.mountSubRouter(
       "/broadcast",
       SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096))
+        new SockJSHandlerOptions().setMaxBytesStreaming(4096).setRegisterWriteHandler(true))
         .socketHandler(new Handler<SockJSSocket>() {
           Set<String> connections = new HashSet<>();
 
           public void handle(SockJSSocket sock) {
-            connections.add(sock.writeHandlerID());
-            sock.handler(buffer -> {
-              for (String actorID : connections) {
-                vertx.eventBus().publish(actorID, buffer);
-              }
-            });
-            sock.endHandler(v -> connections.remove(sock.writeHandlerID()));
+            String writeHandlerID = sock.writeHandlerID();
+            if (writeHandlerID != null) {
+              connections.add(writeHandlerID);
+              sock.handler(buffer -> {
+                for (String actorID : connections) {
+                  vertx.eventBus().publish(actorID, buffer);
+                }
+              });
+              sock.endHandler(v -> connections.remove(writeHandlerID));
+            }
           }
         }));
-    router.mountSubRouter(
-      "/cookie_needed_echo",
-      SockJSHandler.create(vertx, new SockJSHandlerOptions().
-        setMaxBytesStreaming(4096).setInsertJSESSIONID(true))
-        .socketHandler(sock -> sock.handler(sock::write)));
+    SockJSHandlerOptions options = new SockJSHandlerOptions().
+      setMaxBytesStreaming(4096)
+      .setInsertJSESSIONID(true);
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
+    Router socketHandler = sockJSHandler.socketHandler(sock -> sock.handler(sock::write));
+    router.mountSubRouter("/cookie_needed_echo", socketHandler);
   }
 
   /*

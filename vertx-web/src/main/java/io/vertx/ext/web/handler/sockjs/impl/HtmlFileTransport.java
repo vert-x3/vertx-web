@@ -111,7 +111,7 @@ class HtmlFileTransport extends BaseTransport {
 
       HttpServerRequest req = rc.request();
       String sessionID = req.params().get("param0");
-      SockJSSession session = getSession(rc, options.getSessionTimeout(), options.getHeartbeatInterval(), sessionID, sockHandler);
+      SockJSSession session = getSession(rc, options, sessionID, sockHandler);
       session.register(req, new HtmlFileListener(options.getMaxBytesStreaming(), rc, callback, session));
     });
   }
