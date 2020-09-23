@@ -169,14 +169,19 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
                      List<JsonObject> auth,
                      Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
     List<AuthorizationValue> authorizationValues = auth.stream()
-      .map(obj -> obj.mapTo(AuthorizationValue.class))
+      .map(obj -> {
+        AuthorizationValue authorizationValue = obj.mapTo(AuthorizationValue.class);
+        authorizationValue.setUrlMatcher(u -> true);
+        return authorizationValue;
+      })
       .collect(Collectors.toList());
     vertx.executeBlocking((Promise<OpenAPI3RouterFactory> future) -> {
-      SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(url, authorizationValues, OpenApi3Utils.getParseOptions());
+      SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser()
+        .readLocation(url, authorizationValues, OpenApi3Utils.getParseOptions());
       if (swaggerParseResult.getMessages().isEmpty()) {
         future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI(), new ResolverCache(swaggerParseResult.getOpenAPI(), null, url)));
       } else {
-        if (swaggerParseResult.getMessages().size() == 1 && swaggerParseResult.getMessages().get(0).matches("unable to read location `?\\Q" + url + "\\E`?"))
+        if (swaggerParseResult.getMessages().size() == 1 && swaggerParseResult.getMessages().get(0).matches("Unable to read location `?\\Q" + url + "\\E`?"))
           future.fail(RouterFactoryException.createSpecNotExistsException(url));
         else
           future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
