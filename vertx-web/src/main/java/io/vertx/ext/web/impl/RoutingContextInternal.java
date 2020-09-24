@@ -41,4 +41,12 @@ public interface RoutingContextInternal extends RoutingContext {
    * @return true if the {@link #visitHandler(int)} has been called with the same id.
    */
   boolean seenHandler(int id);
+
+  /**
+   * propagates a matching failure across routers.
+   *
+   * @param matchFailure the desired match failure
+   * @return fluent self
+   */
+  RoutingContextInternal setMatchFailure(int matchFailure);
 }

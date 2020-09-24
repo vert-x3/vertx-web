@@ -558,4 +558,18 @@ public class SubRouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/primary/", 200, "Hi");
     testRequest(HttpMethod.GET, "/primary/random", 404, "Not Found");
   }
+
+  @Test
+  public void testWrongMethodSubRouter() throws Exception {
+    Router subRouter = Router.router(vertx);
+
+    subRouter.post("/order/deposit").handler(ctx -> {
+      ctx.response().end();
+    });
+
+    router.mountSubRouter("/bank", subRouter);
+
+    testRequest(HttpMethod.POST, "/bank/order/deposit", 200, "OK");
+    testRequest(HttpMethod.GET, "/bank/order/deposit", 405, "Method Not Allowed");
+  }
 }

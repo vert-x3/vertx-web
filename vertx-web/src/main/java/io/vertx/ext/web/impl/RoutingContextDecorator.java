@@ -49,6 +49,11 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  public RoutingContextInternal setMatchFailure(int matchFailure) {
+    return ((RoutingContextInternal) decoratedContext).setMatchFailure(matchFailure);
+  }
+
+  @Override
   public int addBodyEndHandler(Handler<Void> handler) {
     return decoratedContext.addBodyEndHandler(handler);
   }

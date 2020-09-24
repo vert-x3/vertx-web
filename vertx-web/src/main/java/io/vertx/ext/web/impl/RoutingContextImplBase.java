@@ -38,10 +38,10 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   private final Set<RouteImpl> routes;
 
   protected final String mountPoint;
+  private final AtomicInteger currentRouteNextHandlerIndex;
+  private final AtomicInteger currentRouteNextFailureHandlerIndex;
   protected Iterator<RouteImpl> iter;
   protected RouteState currentRoute;
-  private AtomicInteger currentRouteNextHandlerIndex;
-  private AtomicInteger currentRouteNextFailureHandlerIndex;
   // When Route#matches executes, if it returns != 0 this flag is configured
   // to write the correct status code at the end of routing process
   int matchFailure;
@@ -69,6 +69,12 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   @Override
   public boolean seenHandler(int id) {
     return (seen & id) != 0;
+  }
+
+  @Override
+  public synchronized RoutingContextInternal setMatchFailure(int matchFailure) {
+    this.matchFailure = matchFailure;
+    return this;
   }
 
   @Override
