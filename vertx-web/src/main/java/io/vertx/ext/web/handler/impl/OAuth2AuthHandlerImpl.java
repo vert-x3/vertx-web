@@ -342,24 +342,31 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         } else {
           ctx.setUser(res.result());
           Session session = ctx.session();
+          String location = resource != null ? resource : "/";
           if (session != null) {
             // the user has upgraded from unauthenticated to authenticated
             // session should be upgraded as recommended by owasp
             session.regenerateId();
-            // we should redirect the UA so this link becomes invalid
-            ctx.response()
-              // disable all caching
-              .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-              .putHeader("Pragma", "no-cache")
-              .putHeader(HttpHeaders.EXPIRES, "0")
-              // redirect (when there is no state, redirect to home
-              .putHeader(HttpHeaders.LOCATION, resource != null ? resource : "/")
-              .setStatusCode(302)
-              .end("Redirecting to " + (resource != null ? resource : "/") + ".");
           } else {
-            // there is no session object so we cannot keep state
-            ctx.reroute(resource != null ? resource : "/");
+            // there is no session object so we cannot keep state.
+            // if there is no session and the resource is relative
+            // we will reroute to "location"
+            if (location.length() != 0 && location.charAt(0) == '/') {
+              ctx.reroute(location);
+              return;
+            }
           }
+
+          // we should redirect the UA so this link becomes invalid
+          ctx.response()
+            // disable all caching
+            .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+            .putHeader("Pragma", "no-cache")
+            .putHeader(HttpHeaders.EXPIRES, "0")
+            // redirect (when there is no state, redirect to home
+            .putHeader(HttpHeaders.LOCATION, location)
+            .setStatusCode(302)
+            .end("Redirecting to " + location + ".");
         }
       });
     });
