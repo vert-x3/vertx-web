@@ -944,11 +944,11 @@ public class WebExamples {
 
   }
 
-  public void example41_3(Router router) {
+  public void example41_3(Vertx vertx, Router router) {
 
     // Any errors on paths beginning with '/somepath/' will
     // be handled by this error handler
-    router.route("/somepath/").failureHandler(ErrorHandler.create());
+    router.route("/somepath/").failureHandler(ErrorHandler.create(vertx));
 
   }
 

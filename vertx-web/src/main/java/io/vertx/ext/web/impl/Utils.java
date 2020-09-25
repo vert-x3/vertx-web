@@ -17,18 +17,10 @@
 package io.vertx.ext.web.impl;
 
 import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
-import io.vertx.core.VertxException;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -45,51 +37,6 @@ public class Utils extends io.vertx.core.impl.Utils {
   public static ClassLoader getClassLoader() {
     ClassLoader tccl = Thread.currentThread().getContextClassLoader();
     return tccl == null ? Utils.class.getClassLoader() : tccl;
-  }
-
-  public static Buffer readResourceToBuffer(String resource) {
-    ClassLoader cl = getClassLoader();
-    try {
-      Buffer buffer = Buffer.buffer();
-      try (InputStream in = cl.getResourceAsStream(resource)) {
-        if (in == null) {
-          return null;
-        }
-        int read;
-        byte[] data = new byte[4096];
-        while ((read = in.read(data, 0, data.length)) != -1) {
-          if (read == data.length) {
-            buffer.appendBytes(data);
-          } else {
-            byte[] slice = new byte[read];
-            System.arraycopy(data, 0, slice, 0, slice.length);
-            buffer.appendBytes(slice);
-          }
-        }
-      }
-      return buffer;
-    } catch (IOException ioe) {
-      throw new RuntimeException(ioe);
-    }
-  }
-
-  /**
-   * Reads from file or classpath using UTF-8
-   */
-  public static String readFileToString(Vertx vertx, String resource) {
-    return readFileToString(vertx, resource, StandardCharsets.UTF_8);
-  }
-
-  /**
-   * Reads from file or classpath using the provided charset
-   */
-  private static String readFileToString(Vertx vertx, String resource, Charset charset) {
-    try {
-      Buffer buff = vertx.fileSystem().readFileBlocking(resource);
-      return buff.toString(charset);
-    } catch (Exception e) {
-      throw new VertxException(e);
-    }
   }
 
   private static final ZoneId ZONE_GMT = ZoneId.of("GMT");

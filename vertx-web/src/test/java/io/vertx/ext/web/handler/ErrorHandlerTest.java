@@ -34,7 +34,7 @@ public class ErrorHandlerTest extends WebTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    router.route().failureHandler(ErrorHandler.create());
+    router.route().failureHandler(ErrorHandler.create(vertx));
   }
 
   @Test
@@ -137,7 +137,7 @@ public class ErrorHandlerTest extends WebTestBase {
       // clear the previous setup
       .clear()
       // new handler should use development mode
-      .route().failureHandler(ErrorHandler.create());
+      .route().failureHandler(ErrorHandler.create(vertx));
     // unset the system property
     System.setProperty(SYSTEM_PROPERTY_NAME, "test");
 
@@ -158,7 +158,7 @@ public class ErrorHandlerTest extends WebTestBase {
   @Test
   public void testFailWithExceptionNoExceptionDetails() throws Exception {
     router.clear();
-    router.route().failureHandler(ErrorHandler.create());
+    router.route().failureHandler(ErrorHandler.create(vertx));
     int statusCode = 500;
     String statusMessage = "Something happened!";
     Exception e = new Exception(statusMessage);
@@ -177,7 +177,7 @@ public class ErrorHandlerTest extends WebTestBase {
   @Test
   public void testSpecifyTemplate() throws Exception {
     router.clear();
-    router.route().failureHandler(ErrorHandler.create("test-error-template.html"));
+    router.route().failureHandler(ErrorHandler.create(vertx, "test-error-template.html"));
     int statusCode = 404;
     String statusMessage = "Not Found";
 

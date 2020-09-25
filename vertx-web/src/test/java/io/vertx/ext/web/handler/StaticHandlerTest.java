@@ -623,7 +623,7 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setDirectoryListing(true);
 
 
-    String directoryTemplate = Utils.readResourceToBuffer(dirTemplateFile).toString();
+    String directoryTemplate = vertx.fileSystem().readFileBlocking(dirTemplateFile).toString();
 
     String parentLink = "<a href=\"/\">..</a>";
     String files = "<ul id=\"files\"><li><a href=\"/somedir2/foo2.json\" title=\"foo2.json\">foo2.json</a></li>" +

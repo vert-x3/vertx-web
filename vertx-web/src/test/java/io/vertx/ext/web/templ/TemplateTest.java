@@ -29,6 +29,7 @@ import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -151,7 +152,7 @@ public class TemplateTest extends WebTestBase {
       if (fail) {
         handler.handle(Future.failedFuture(new Exception("eek")));
       } else {
-        String templ = Utils.readFileToString(vertx, templateFileName);
+        String templ = vertx.fileSystem().readFileBlocking(templateFileName).toString(StandardCharsets.UTF_8);
         String rendered = templ.replace("{foo}", (String) context.get("foo"));
         rendered = rendered.replace("{bar}", (String) context.get("bar"));
         handler.handle(Future.succeededFuture(Buffer.buffer(rendered)));
