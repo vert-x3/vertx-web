@@ -128,13 +128,16 @@ public class StaticHandlerImpl implements StaticHandler {
       if (log.isTraceEnabled()) log.trace("Not GET or HEAD so ignoring request");
       context.next();
     } else {
-      String path = HttpUtils.removeDots(URIDecoder.decodeURIComponent(context.normalisedPath(), false));
+      // decode URL path
+      String uriDecodedPath = URIDecoder.decodeURIComponent(context.normalisedPath(), false);
       // if the normalized path is null it cannot be resolved
-      if (path == null) {
+      if (uriDecodedPath == null) {
         log.warn("Invalid path: " + context.request().path());
         context.next();
         return;
       }
+      // will normalize and handle all paths as UNIX paths
+      String path = HttpUtils.removeDots(uriDecodedPath.replace('\\', '/'));
 
       // only root is known for sure to be a directory. all other directories must be identified as such.
       if (!directoryListing && "/".equals(path)) {
@@ -764,7 +767,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private static class FSTune {
     // These members are all related to auto tuning of synchronous vs asynchronous file system access
-    private static int NUM_SERVES_TUNING_FS_ACCESS = 1000;
+    private static final int NUM_SERVES_TUNING_FS_ACCESS = 1000;
 
     // these variables are read often and should always represent the
     // real value, no caching should be allowed

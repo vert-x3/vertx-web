@@ -53,6 +53,15 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testGetSubdirectoryWithoutSlashDefaultIndex() throws Exception {
+    // in the case the file is a directory, it redirects to the root.
+    testRequest(HttpMethod.GET, "/somedir", null, res -> {
+      String location = res.headers().get("location");
+      assertEquals("/somedir/", location);
+    }, 301, "Moved Permanently", null);
+  }
+
+  @Test
   public void testGetSubdirectorySlashDefaultIndex() throws Exception {
     testRequest(HttpMethod.GET, "/somedir/", 200, "OK", "<html><body>Subdirectory index page</body></html>");
   }
@@ -844,6 +853,28 @@ public class StaticHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/not-existing-file.html", 200, "OK", "Howdy!");
   }
 
+  @Test
+  public void testWriteResponseWhenAlreadyClosed() throws Exception {
+    router.clear();
+    router
+      .route()
+      .handler(rc -> {
+        rc.next();
+        rc.response().end("OtherResponse");
+      })
+      .handler(stat);
+    testRequest(HttpMethod.GET, "/index.html", 200, "OK", "OtherResponse");
+  }
+
+  @Test
+  public void testEscapeWindows() throws Exception {
+    router.clear();
+    router
+      .route()
+      .handler(stat);
+    // /\..\index.html -> /index.html
+    testRequest(HttpMethod.GET, "/%5c..%5cindex.html", 200, "OK");
+  }
 
   // TODO
   // 1.Test all the params including invalid values
