@@ -874,6 +874,15 @@ public class StaticHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/index.html", 200, "OK", "OtherResponse");
   }
 
+  @Test
+  public void testEscapeWindows() throws Exception {
+    router.clear();
+    router
+      .route()
+      .handler(stat);
+    // /\..\index.html -> /index.html
+    testRequest(HttpMethod.GET, "/%5c..%5cindex.html", 200, "OK");
+  }
 
   // TODO
   // 1.Test all the params including invalid values
