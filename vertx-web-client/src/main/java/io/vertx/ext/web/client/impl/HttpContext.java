@@ -471,6 +471,9 @@ public class HttpContext<T> {
         continuation = ar -> {
           if (ar.succeeded()) {
             HttpClientRequest req = ar.result();
+            if (!req.headers().contains(HttpHeaders.CONTENT_LENGTH)) {
+              req.setChunked(true);
+            }
             if (this.request.headers == null || !this.request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
               req.setChunked(true);
             }
