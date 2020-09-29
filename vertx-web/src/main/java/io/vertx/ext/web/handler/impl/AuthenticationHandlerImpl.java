@@ -34,6 +34,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
 
   static final HttpStatusException UNAUTHORIZED = new HttpStatusException(401);
   static final HttpStatusException BAD_REQUEST = new HttpStatusException(400);
+  static final HttpStatusException BAD_METHOD = new HttpStatusException(405);
 
   protected final String realm;
   protected final T authProvider;
@@ -57,7 +58,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
     User user = ctx.user();
     if (user != null) {
       // proceed with the router
-      ctx.next();
+      postAuthentication(ctx);
       return;
     }
     // parse the request in order to extract the credentials object
@@ -77,7 +78,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
           session.regenerateId();
         }
         // proceed with the router
-        ctx.next();
+        postAuthentication(ctx);
         return;
       }
 
@@ -93,7 +94,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
             session.regenerateId();
           }
           // proceed with the router
-          ctx.next();
+          postAuthentication(ctx);
         } else {
           String header = authenticateHeader(ctx);
           if (header != null) {

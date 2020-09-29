@@ -66,4 +66,15 @@ public interface AuthenticationHandler extends Handler<RoutingContext> {
   default String authenticateHeader(RoutingContext context) {
     return null;
   }
+
+  /**
+   * This method is called to perform any post authentication tasks, such as redirects.
+   * Overrides must call context.next() on success.
+   *
+   * @param ctx the routing context
+   */
+  default void postAuthentication(RoutingContext ctx) {
+    ctx.next();
+  }
+
 }
