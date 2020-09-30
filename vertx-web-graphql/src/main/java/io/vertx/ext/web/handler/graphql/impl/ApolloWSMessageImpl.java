@@ -29,11 +29,14 @@ public class ApolloWSMessageImpl implements ApolloWSMessage {
   private final ServerWebSocket serverWebSocket;
   private final ApolloWSMessageType type;
   private final JsonObject content;
+  private final Object connectionParams;
 
-  public ApolloWSMessageImpl(ServerWebSocket serverWebSocket, ApolloWSMessageType type, JsonObject content) {
+  public ApolloWSMessageImpl(ServerWebSocket serverWebSocket, ApolloWSMessageType type,
+                             JsonObject content, Object connectionParams) {
     this.serverWebSocket = serverWebSocket;
     this.type = type;
     this.content = content;
+    this.connectionParams = connectionParams;
   }
 
   @Override
@@ -49,5 +52,10 @@ public class ApolloWSMessageImpl implements ApolloWSMessage {
   @Override
   public JsonObject content() {
     return content;
+  }
+
+  @Override
+  public Object connectionParams() {
+    return connectionParams;
   }
 }

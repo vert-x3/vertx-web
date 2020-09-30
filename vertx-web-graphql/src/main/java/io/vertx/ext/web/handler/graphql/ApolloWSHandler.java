@@ -21,12 +21,15 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.http.ServerWebSocket;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.impl.ApolloWSHandlerImpl;
 import org.dataloader.DataLoaderRegistry;
 
 import java.util.Locale;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
@@ -67,6 +70,17 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
    */
   @Fluent
   ApolloWSHandler connectionHandler(Handler<ServerWebSocket> connectionHandler);
+
+  /**
+   * Customize the connection params {@link Handler}.
+   * This handler will be called at CONNECTION_INIT message.
+   * Failed promise or promise resolved to null will result in denied connection, if promise completes
+   * with the object then resulting object will be available at {@link ApolloWSMessage#connectionParams()}.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  ApolloWSHandler connectionParamsHandler(BiConsumer<JsonObject, Promise<Object>> connectionParamsHandler);
 
   /**
    * Customize the message {@link Handler}.

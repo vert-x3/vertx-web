@@ -43,4 +43,9 @@ public interface ApolloWSMessage {
    */
   JsonObject content();
 
+  /**
+   * @return the connection params
+   */
+  Object connectionParams();
+
 }

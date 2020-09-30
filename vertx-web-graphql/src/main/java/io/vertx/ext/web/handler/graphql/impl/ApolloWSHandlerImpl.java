@@ -20,7 +20,9 @@ import graphql.GraphQL;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Promise;
 import io.vertx.core.http.ServerWebSocket;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
@@ -29,6 +31,7 @@ import org.dataloader.DataLoaderRegistry;
 
 import java.util.Locale;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static io.vertx.core.http.HttpHeaders.*;
@@ -39,6 +42,8 @@ import static io.vertx.core.http.HttpHeaders.*;
 public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   private static final Function<ApolloWSMessage, Object> DEFAULT_QUERY_CONTEXT_FACTORY = context -> context;
+  private static final BiConsumer<JsonObject, Promise<Object>> DEFAULT_INIT_PAYLOAD_FACTORY =
+    (jsonObject, promise) -> promise.complete(jsonObject);
   private static final Function<ApolloWSMessage, DataLoaderRegistry> DEFAULT_DATA_LOADER_REGISTRY_FACTORY = rc -> null;
   private static final Function<ApolloWSMessage, Locale> DEFAULT_LOCALE_FACTORY = rc -> null;
 
@@ -48,6 +53,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   private Function<ApolloWSMessage, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
   private Function<ApolloWSMessage, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
   private Function<ApolloWSMessage, Locale> localeFactory = DEFAULT_LOCALE_FACTORY;
+  private BiConsumer<JsonObject, Promise<Object>> connectionParamsHandler = DEFAULT_INIT_PAYLOAD_FACTORY;
   private Handler<ServerWebSocket> connectionHandler;
   private Handler<ServerWebSocket> endHandler;
   private Handler<ApolloWSMessage> messageHandler;
@@ -71,6 +77,18 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   public synchronized ApolloWSHandler connectionHandler(Handler<ServerWebSocket> connectionHandler) {
     this.connectionHandler = connectionHandler;
     return this;
+  }
+
+  @Override
+  public synchronized ApolloWSHandler connectionParamsHandler(BiConsumer<JsonObject,
+    Promise<Object>> connectionParamsHandler) {
+    this.connectionParamsHandler = connectionParamsHandler != null
+      ? connectionParamsHandler : DEFAULT_INIT_PAYLOAD_FACTORY;
+    return this;
+  }
+
+  synchronized BiConsumer<JsonObject, Promise<Object>> getConnectionParamsHandler() {
+    return connectionParamsHandler;
   }
 
   synchronized Handler<ServerWebSocket> getConnectionHandler() {

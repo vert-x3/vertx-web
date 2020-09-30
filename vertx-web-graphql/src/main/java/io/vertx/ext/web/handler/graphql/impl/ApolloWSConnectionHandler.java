@@ -18,9 +18,7 @@ package io.vertx.ext.web.handler.graphql.impl;
 
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
-import io.vertx.core.Context;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
@@ -58,6 +56,7 @@ class ApolloWSConnectionHandler {
   private final Vertx vertx;
   private final Executor ctxExecutor;
   private final ConcurrentMap<String, Subscription> subscriptions;
+  private final AtomicReference<Future<Object>> connectionParamsFutureAtomic;
 
   ApolloWSConnectionHandler(ApolloWSHandlerImpl apolloWSHandler, Context context, ServerWebSocket serverWebSocket) {
     this.apolloWSHandler = apolloWSHandler;
@@ -65,6 +64,7 @@ class ApolloWSConnectionHandler {
     this.ctxExecutor = command -> context.runOnContext(v -> command.run());
     this.serverWebSocket = serverWebSocket;
     subscriptions = new ConcurrentHashMap<>();
+    connectionParamsFutureAtomic = new AtomicReference<>(Future.succeededFuture(null));
   }
 
   void handleConnection() {
@@ -86,6 +86,20 @@ class ApolloWSConnectionHandler {
     handleMessage(new JsonObject(text));
   }
 
+  private void executeWithConnectionParams(Handler<Object> connectionParamsHandler) {
+    connectionParamsFutureAtomic.get().onComplete(ar -> {
+      if (ar.succeeded()) {
+        if (ar.result() == null) {
+          sendMessage(null, ERROR, "Prohibited connection!");
+        } else {
+          connectionParamsHandler.handle(ar.result());
+        }
+      } else {
+        sendMessage(null, ERROR, ar.cause().getMessage());
+      }
+    });
+  }
+
   private void handleMessage(JsonObject jsonObject) {
     String opId = jsonObject.getString("id");
     ApolloWSMessageType type = from(jsonObject.getString("type"));
@@ -95,22 +109,26 @@ class ApolloWSConnectionHandler {
       return;
     }
 
-    ApolloWSMessage message = new ApolloWSMessageImpl(serverWebSocket, type, jsonObject);
-
-    Handler<ApolloWSMessage> mh = apolloWSHandler.getMessageHandler();
-    if (mh != null) {
-      mh.handle(message);
-    }
-
     switch (type) {
       case CONNECTION_INIT:
-        connect();
+        JsonObject payload = jsonObject.getJsonObject("payload");
+        Promise<Object> connectionParamsPromise = Promise.promise();
+        connectionParamsFutureAtomic.set(connectionParamsPromise.future());
+        apolloWSHandler.getConnectionParamsHandler().accept(payload, connectionParamsPromise);
+        executeWithConnectionParams(connectionParams -> connect());
         break;
       case CONNECTION_TERMINATE:
         serverWebSocket.close();
         break;
       case START:
-        start(message);
+        executeWithConnectionParams(connectionParams -> {
+          ApolloWSMessage message = new ApolloWSMessageImpl(serverWebSocket, type, jsonObject, connectionParams);
+          Handler<ApolloWSMessage> mh = apolloWSHandler.getMessageHandler();
+          if (mh != null) {
+            mh.handle(message);
+          }
+          start(message);
+        });
         break;
       case STOP:
         stop(opId);
