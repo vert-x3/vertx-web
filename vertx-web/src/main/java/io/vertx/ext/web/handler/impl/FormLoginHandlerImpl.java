@@ -16,24 +16,29 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.impl.NoStackTraceThrowable;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.FormLoginHandler;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class FormLoginHandlerImpl implements FormLoginHandler {
+public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements FormLoginHandler {
 
   private static final Logger log = LoggerFactory.getLogger(FormLoginHandlerImpl.class);
 
@@ -70,6 +75,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
 
   public FormLoginHandlerImpl(AuthenticationProvider authProvider, String usernameParam, String passwordParam,
                               String returnURLParam, String directLoggedInOKURL) {
+    super(authProvider);
     this.authProvider = authProvider;
     this.usernameParam = usernameParam;
     this.passwordParam = passwordParam;
@@ -78,55 +84,47 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
   }
 
   @Override
-  public void handle(RoutingContext context) {
+  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
     HttpServerRequest req = context.request();
     if (req.method() != HttpMethod.POST) {
-      context.fail(405); // Must be a POST
+      handler.handle(Future.failedFuture(BAD_METHOD)); // Must be a POST
     } else {
-      if (!req.isExpectMultipart()) {
-        throw new IllegalStateException("HttpServerRequest should have setExpectMultipart set to true, but it is currently set to false.");
-      }
-      MultiMap params = req.formAttributes();
-      String username = params.get(usernameParam);
-      String password = params.get(passwordParam);
-      if (username == null || password == null) {
-        log.warn("No username or password provided in form - did you forget to include a BodyHandler?");
-        context.fail(400);
+      if (!((RoutingContextInternal) context).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+        handler.handle(Future.failedFuture(new NoStackTraceThrowable("BodyHandler is required to process POST requests")));
       } else {
-        Session session = context.session();
-        UsernamePasswordCredentials authInfo = new UsernamePasswordCredentials(username, password);
-
-        authProvider.authenticate(authInfo, res -> {
-          if (res.succeeded()) {
-            User user = res.result();
-            context.setUser(user);
-            if (session != null) {
-              // the user has upgraded from unauthenticated to authenticated
-              // session should be upgraded as recommended by owasp
-              session.regenerateId();
-
-              String returnURL = session.remove(returnURLParam);
-              if (returnURL != null) {
-                // Now redirect back to the original url
-                doRedirect(req.response(), returnURL);
-                return;
-              }
-            }
-            // Either no session or no return url
-            if (directLoggedInOKURL != null) {
-              // Redirect to the default logged in OK page - this would occur
-              // if the user logged in directly at this URL without being redirected here first from another
-              // url
-              doRedirect(req.response(), directLoggedInOKURL);
-            } else {
-              // Just show a basic page
-              req.response().end(DEFAULT_DIRECT_LOGGED_IN_OK_PAGE);
-            }
-          } else {
-            context.fail(401);  // Failed login
-          }
-        });
+        MultiMap params = req.formAttributes();
+        String username = params.get(usernameParam);
+        String password = params.get(passwordParam);
+        if (username == null || password == null) {
+          handler.handle(Future.failedFuture(BAD_REQUEST));
+        } else {
+          handler.handle(Future.succeededFuture(new UsernamePasswordCredentials(username, password)));
+        }
       }
+    }
+  }
+
+  @Override
+  public void postAuthentication(RoutingContext ctx) {
+    HttpServerRequest req = ctx.request();
+    Session session = ctx.session();
+    if (session != null) {
+      String returnURL = session.remove(returnURLParam);
+      if (returnURL != null) {
+        // Now redirect back to the original url
+        doRedirect(req.response(), returnURL);
+        return;
+      }
+    }
+    // Either no session or no return url
+    if (directLoggedInOKURL != null) {
+      // Redirect to the default logged in OK page - this would occur
+      // if the user logged in directly at this URL without being redirected here first from another
+      // url
+      doRedirect(req.response(), directLoggedInOKURL);
+    } else {
+      // Just show a basic page
+      req.response().end(DEFAULT_DIRECT_LOGGED_IN_OK_PAGE);
     }
   }
 

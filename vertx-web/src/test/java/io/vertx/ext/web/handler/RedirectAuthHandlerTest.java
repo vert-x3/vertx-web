@@ -22,12 +22,14 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
+import io.vertx.ext.unit.Async;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.Test;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -144,6 +146,38 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   @Test
   public void testLoginFailBadPassword() throws Exception {
     testLoginFail(false);
+  }
+
+  @Test
+  public void testFormLoginFailures() throws Exception {
+    router.route().handler(BodyHandler.create());
+    SessionStore store = LocalSessionStore.create(vertx);
+    router.route().handler(SessionHandler.create(store));
+    FormLoginHandler loginHandler = FormLoginHandler.create(authProvider);
+    router.route("/login").handler(loginHandler);
+    // only POST is allowed
+    testRequest(HttpMethod.GET, "/login", 405, "Method Not Allowed");
+    // missing username in the form
+    loginHandler.setUsernameParam("username-not-in-form");
+    testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), 400, "Bad Request", null);
+  }
+
+  @Test
+  public void testFormLoginWithoutBodyHandlerFailure() throws Exception {
+    SessionStore store = LocalSessionStore.create(vertx);
+    router.route().handler(SessionHandler.create(store));
+    FormLoginHandler loginHandler = FormLoginHandler.create(authProvider);
+    router.route("/login").handler(loginHandler);
+    CountDownLatch latch = new CountDownLatch(1);
+    router.errorHandler(500, ctx -> {
+      Throwable cause = ctx.failure();
+      assertNotNull(cause);
+      assertEquals("BodyHandler is required to process POST requests", cause.getMessage());
+      latch.countDown();
+    });
+    // not a multi-part form
+    testRequest(HttpMethod.POST, "/login", 500, "Internal Server Error");
+    latch.await();
   }
 
   @Test
