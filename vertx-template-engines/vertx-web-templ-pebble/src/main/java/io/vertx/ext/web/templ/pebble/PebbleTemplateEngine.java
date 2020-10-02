@@ -62,7 +62,7 @@ public interface PebbleTemplateEngine extends TemplateEngine {
    */
   @GenIgnore
   static PebbleTemplateEngine create(Vertx vertx, PebbleEngine engine) {
-    return new PebbleTemplateEngineImpl(vertx, DEFAULT_TEMPLATE_EXTENSION, engine);
+    return create(vertx, DEFAULT_TEMPLATE_EXTENSION, engine);
   }
 
   /**
