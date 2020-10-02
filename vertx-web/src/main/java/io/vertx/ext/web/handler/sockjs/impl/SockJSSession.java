@@ -404,7 +404,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
       if (context == Vertx.currentContext()) {
         eh.handle(t);
       } else {
-        context.runOnContext(v -> eh.handle(t));
+        context.runOnContext(v -> handleException(t));
       }
     } else {
       log.error("Unhandled exception", t);

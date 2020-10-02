@@ -73,10 +73,12 @@ public class WebTestBase extends VertxTestBase {
   @Override
   public void tearDown() throws Exception {
     if (client != null) {
-      try {
-        client.close();
-      } catch (IllegalStateException e) {
-      }
+      CountDownLatch latch = new CountDownLatch(1);
+      client.close((asyncResult) -> {
+        assertTrue(asyncResult.succeeded());
+        latch.countDown();
+      });
+      awaitLatch(latch);
     }
     if (server != null) {
       CountDownLatch latch = new CountDownLatch(1);
