@@ -91,9 +91,7 @@ public class SharedDataSessionImpl extends AbstractSession implements ClusterSer
     pos += 8;
     setVersion(buffer.getInt(pos));
     pos += 4;
-    int start = pos;
     pos = readDataFromBuffer(pos, buffer);
-    int end = pos;
     return pos;
   }
 

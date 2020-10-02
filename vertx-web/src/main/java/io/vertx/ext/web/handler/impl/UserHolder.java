@@ -68,9 +68,6 @@ public class UserHolder implements ClusterSerializable {
     if (user instanceof ClusterSerializable) {
       buffer.appendByte((byte)1);
       String className = user.getClass().getName();
-      if (className == null) {
-        throw new IllegalStateException("Cannot serialize " + user.getClass().getName());
-      }
       byte[] bytes = className.getBytes(StandardCharsets.UTF_8);
       buffer.appendInt(bytes.length);
       buffer.appendBytes(bytes);

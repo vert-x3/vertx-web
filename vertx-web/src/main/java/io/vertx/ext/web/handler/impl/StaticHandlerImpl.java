@@ -34,6 +34,7 @@ import io.vertx.ext.web.impl.Utils;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -73,7 +74,9 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private String directoryTemplate(Vertx vertx) {
     if (directoryTemplate == null) {
-      directoryTemplate = Utils.readFileToString(vertx, directoryTemplateResource);
+      directoryTemplate = vertx.fileSystem()
+        .readFileBlocking(directoryTemplateResource)
+        .toString(StandardCharsets.UTF_8);
     }
     return directoryTemplate;
   }

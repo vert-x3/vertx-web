@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.FaviconHandlerImpl;
 
@@ -41,8 +42,8 @@ public interface FaviconHandler extends Handler<RoutingContext> {
    *
    * @return the handler
    */
-  static FaviconHandler create() {
-    return new FaviconHandlerImpl();
+  static FaviconHandler create(Vertx vertx) {
+    return new FaviconHandlerImpl(vertx);
   }
 
   /**
@@ -51,8 +52,8 @@ public interface FaviconHandler extends Handler<RoutingContext> {
    * @param path  the path
    * @return the handler
    */
-  static FaviconHandler create(String path) {
-    return new FaviconHandlerImpl(path);
+  static FaviconHandler create(Vertx vertx, String path) {
+    return new FaviconHandlerImpl(vertx, path);
   }
 
   /**
@@ -62,8 +63,8 @@ public interface FaviconHandler extends Handler<RoutingContext> {
    * @param maxAgeSeconds max how long the file will be cached by browser, in seconds
    * @return the handler
    */
-  static FaviconHandler create(String path, long maxAgeSeconds) {
-    return new FaviconHandlerImpl(path, maxAgeSeconds);
+  static FaviconHandler create(Vertx vertx, String path, long maxAgeSeconds) {
+    return new FaviconHandlerImpl(vertx, path, maxAgeSeconds);
   }
 
   /**
@@ -72,8 +73,8 @@ public interface FaviconHandler extends Handler<RoutingContext> {
    * @param maxAgeSeconds max how long the file will be cached by browser, in seconds
    * @return the handler
    */
-  static FaviconHandler create(long maxAgeSeconds) {
-    return new FaviconHandlerImpl(maxAgeSeconds);
+  static FaviconHandler create(Vertx vertx, long maxAgeSeconds) {
+    return new FaviconHandlerImpl(vertx, maxAgeSeconds);
   }
 
 }

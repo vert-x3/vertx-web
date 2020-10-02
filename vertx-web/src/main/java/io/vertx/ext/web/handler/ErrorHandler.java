@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.ext.web.common.WebEnvironment;
 import io.vertx.ext.web.handler.impl.ErrorHandlerImpl;
 import io.vertx.ext.web.RoutingContext;
@@ -47,8 +48,8 @@ public interface ErrorHandler extends Handler<RoutingContext> {
    *
    * @return the handler
    */
-  static ErrorHandler create() {
-    return create(DEFAULT_ERROR_HANDLER_TEMPLATE, WebEnvironment.development());
+  static ErrorHandler create(Vertx vertx) {
+    return create(vertx, DEFAULT_ERROR_HANDLER_TEMPLATE, WebEnvironment.development());
   }
 
   /**
@@ -58,8 +59,8 @@ public interface ErrorHandler extends Handler<RoutingContext> {
    * @param displayExceptionDetails  true if exception details should be displayed
    * @return the handler
    */
-  static ErrorHandler create(String errorTemplateName, boolean displayExceptionDetails) {
-    return new ErrorHandlerImpl(errorTemplateName, displayExceptionDetails);
+  static ErrorHandler create(Vertx vertx, String errorTemplateName, boolean displayExceptionDetails) {
+    return new ErrorHandlerImpl(vertx, errorTemplateName, displayExceptionDetails);
   }
 
   /**
@@ -68,8 +69,8 @@ public interface ErrorHandler extends Handler<RoutingContext> {
    * @param displayExceptionDetails  true if exception details should be displayed
    * @return the handler
    */
-  static ErrorHandler create(boolean displayExceptionDetails) {
-    return create(DEFAULT_ERROR_HANDLER_TEMPLATE, displayExceptionDetails);
+  static ErrorHandler create(Vertx vertx, boolean displayExceptionDetails) {
+    return create(vertx, DEFAULT_ERROR_HANDLER_TEMPLATE, displayExceptionDetails);
   }
 
   /**
@@ -78,8 +79,8 @@ public interface ErrorHandler extends Handler<RoutingContext> {
    * @param errorTemplateName  the error template name - will be looked up from the classpath
    * @return the handler
    */
-  static ErrorHandler create(String errorTemplateName) {
-    return create(errorTemplateName, WebEnvironment.development());
+  static ErrorHandler create(Vertx vertx, String errorTemplateName) {
+    return create(vertx, errorTemplateName, WebEnvironment.development());
   }
 
 }

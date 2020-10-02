@@ -98,70 +98,20 @@ public class FaviconHandlerImpl implements FaviconHandler {
    *
    * <pre>
    * Router router = Router.router(vertx);
-   * router.route().handler(FaviconHandler.create("/icons/icon.ico", 1000));
+   * router.route().handler(FaviconHandler.create(vertx, "/icons/icon.ico", 1000));
    * </pre>
    *
    * @param path file path to icon
    * @param maxAgeSeconds max allowed time to be cached in seconds
    */
-  public FaviconHandlerImpl(String path, long maxAgeSeconds) {
+  public FaviconHandlerImpl(Vertx vertx, String path, long maxAgeSeconds) {
     this.path = path;
     this.maxAgeSeconds = maxAgeSeconds;
     if (maxAgeSeconds < 0) {
       throw new IllegalArgumentException("maxAgeSeconds must be > 0");
     }
-  }
 
-  /**
-   * Create a new Favicon instance from the classpath and customizable cache period
-   *
-   * <pre>
-   * Router router = Router.router(vertx);
-   * router.route().handler(FaviconHandler.create(1000));
-   * </pre>
-   *
-   * @param maxAgeSeconds max allowed time to be cached in seconds
-   */
-  public FaviconHandlerImpl(long maxAgeSeconds) {
-    this(null, maxAgeSeconds);
-  }
-
-  /**
-   * Create a new Favicon instance using a file in the file system and cache for 1 day.
-   *
-   * <pre>
-   * Router router = Router.router(vertx);
-   * router.route().handler(FaviconHandler.create("/icons/icon.ico"));
-   * </pre>
-   *
-   * @param path file path to icon
-   */
-  public FaviconHandlerImpl(String path) {
-    this(path, DEFAULT_MAX_AGE_SECONDS);
-  }
-
-  /**
-   * Create a new Favicon instance using a the default icon and cache for 1 day.
-   *
-   * <pre>
-   * Router router = Router.router(vertx);
-   * router.route().handler(FaviconHandler.create());
-   * </pre>
-   */
-  public FaviconHandlerImpl() {
-    this(null);
-  }
-
-  private Buffer readFile(FileSystem fs, String path) {
-    if (fs.existsBlocking(path)) {
-      return fs.readFileBlocking(path);
-    } else {
-      throw new RuntimeException(path + " not found!");
-    }
-  }
-
-  private void init(Vertx vertx) {
-    final FileSystem fs = vertx.fileSystem();
+    FileSystem fs = vertx.fileSystem();
 
     Buffer buffer = null;
 
@@ -196,11 +146,56 @@ public class FaviconHandlerImpl implements FaviconHandler {
     }
   }
 
+  /**
+   * Create a new Favicon instance from the classpath and customizable cache period
+   *
+   * <pre>
+   * Router router = Router.router(vertx);
+   * router.route().handler(FaviconHandler.create(vertx, 1000));
+   * </pre>
+   *
+   * @param maxAgeSeconds max allowed time to be cached in seconds
+   */
+  public FaviconHandlerImpl(Vertx vertx, long maxAgeSeconds) {
+    this(vertx, null, maxAgeSeconds);
+  }
+
+  /**
+   * Create a new Favicon instance using a file in the file system and cache for 1 day.
+   *
+   * <pre>
+   * Router router = Router.router(vertx);
+   * router.route().handler(FaviconHandler.create(vertx, "/icons/icon.ico"));
+   * </pre>
+   *
+   * @param path file path to icon
+   */
+  public FaviconHandlerImpl(Vertx vertx, String path) {
+    this(vertx, path, DEFAULT_MAX_AGE_SECONDS);
+  }
+
+  /**
+   * Create a new Favicon instance using a the default icon and cache for 1 day.
+   *
+   * <pre>
+   * Router router = Router.router(vertx);
+   * router.route().handler(FaviconHandler.create(vertx));
+   * </pre>
+   */
+  public FaviconHandlerImpl(Vertx vertx) {
+    this(vertx, null);
+  }
+
+  private Buffer readFile(FileSystem fs, String path) {
+    if (fs.existsBlocking(path)) {
+      return fs.readFileBlocking(path);
+    } else {
+      throw new RuntimeException(path + " not found!");
+    }
+  }
+
   @Override
   public void handle(RoutingContext ctx) {
-    if (icon == null) {
-      init(ctx.vertx());
-    }
     if ("/favicon.ico".equals(ctx.request().path())) {
       HttpServerResponse resp = ctx.response();
       if (icon == NULL_ICON) {

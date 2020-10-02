@@ -76,7 +76,7 @@ public class SockJSWriteHandlerTestServer {
 
       router.get().handler(StaticHandler.create());
 
-      router.route().failureHandler(ErrorHandler.create(true));
+      router.route().failureHandler(ErrorHandler.create(vertx, true));
 
       vertx.createHttpServer()
         .requestHandler(router)

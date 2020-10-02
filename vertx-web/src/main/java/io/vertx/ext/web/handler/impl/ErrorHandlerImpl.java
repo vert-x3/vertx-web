@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
@@ -23,8 +24,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.ErrorHandler;
-import io.vertx.ext.web.impl.Utils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 
@@ -44,10 +45,12 @@ public class ErrorHandlerImpl implements ErrorHandler {
    */
   private final String errorTemplate;
 
-  public ErrorHandlerImpl(String errorTemplateName, boolean displayExceptionDetails) {
+  public ErrorHandlerImpl(Vertx vertx, String errorTemplateName, boolean displayExceptionDetails) {
     Objects.requireNonNull(errorTemplateName);
+    this.errorTemplate = vertx.fileSystem()
+      .readFileBlocking(errorTemplateName)
+      .toString(StandardCharsets.UTF_8);
     this.displayExceptionDetails = displayExceptionDetails;
-    this.errorTemplate = Utils.readResourceToBuffer(errorTemplateName).toString();
   }
 
   @Override
@@ -72,7 +75,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
       errorMessage = failure == null ? null : failure.getMessage();
       if (errorMessage != null) {
         // no new lines are allowed in the status message
-        errorMessage = errorMessage.replaceAll("\\r|\\n", " ");
+        errorMessage = errorMessage.replaceAll("[\\r\\n]", " ");
         // apply the newly desired message
         response.setStatusMessage(errorMessage);
       }

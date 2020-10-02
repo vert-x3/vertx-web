@@ -18,7 +18,6 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
@@ -29,32 +28,32 @@ public class FaviconHandlerTest extends WebTestBase {
 
   @Test
   public void testFaviconClasspath() throws Exception {
-    testFaviconPath(FaviconHandler.create(), FaviconHandler.DEFAULT_MAX_AGE_SECONDS);
+    testFaviconPath(FaviconHandler.create(vertx), FaviconHandler.DEFAULT_MAX_AGE_SECONDS);
   }
 
   @Test
   public void testFaviconPath() throws Exception {
     String path = "src/test/resources/favicon.ico";
-    testFaviconPath(FaviconHandler.create(path), FaviconHandler.DEFAULT_MAX_AGE_SECONDS);
+    testFaviconPath(FaviconHandler.create(vertx, path), FaviconHandler.DEFAULT_MAX_AGE_SECONDS);
   }
 
   @Test
   public void testFaviconPathMaxAge() throws Exception {
     String path = "src/test/resources/favicon.ico";
     long maxAge = FaviconHandler.DEFAULT_MAX_AGE_SECONDS * 2;
-    testFaviconPath(FaviconHandler.create(path, maxAge), maxAge);
+    testFaviconPath(FaviconHandler.create(vertx, path, maxAge), maxAge);
   }
 
   @Test
   public void testFaviconMaxAge() throws Exception {
     long maxAge = FaviconHandler.DEFAULT_MAX_AGE_SECONDS * 2;
-    testFaviconPath(FaviconHandler.create(maxAge), maxAge);
+    testFaviconPath(FaviconHandler.create(vertx, maxAge), maxAge);
   }
 
   private void testFaviconPath(FaviconHandler favicon, long maxAgeSeconds) throws Exception {
     router.route().handler(favicon);
     router.route().handler(rc -> rc.response().end());
-    Buffer icon = Utils.readResourceToBuffer("favicon.ico");
+    Buffer icon = vertx.fileSystem().readFileBlocking("favicon.ico");
     testRequestBuffer(HttpMethod.GET, "/favicon.ico", null, resp -> {
       assertEquals("image/x-icon", resp.headers().get("content-type"));
       assertEquals(icon.length(), Integer.valueOf(resp.headers().get("content-length")).intValue());
@@ -65,7 +64,7 @@ public class FaviconHandlerTest extends WebTestBase {
   @Test
   public void testUnresolvedFavicon() throws Exception {
     String path = "does/not/exist";
-    router.route().handler(FaviconHandler.create(path));
+    router.route().handler(FaviconHandler.create(vertx, path));
     router.route().handler(rc -> rc.response().end());
     testRequestBuffer(HttpMethod.GET, "/favicon.ico", null, resp -> {
     }, 404, "Not Found", Buffer.buffer());
@@ -74,7 +73,7 @@ public class FaviconHandlerTest extends WebTestBase {
   @Test
   public void testDefaultIcon() throws Exception {
     String path = "META-INF/vertx/web/favicon.ico";
-    router.route().handler(FaviconHandler.create(path));
+    router.route().handler(FaviconHandler.create(vertx, path));
     router.route().handler(rc -> rc.response().end());
     testRequest(HttpMethod.GET, "/favicon.ico", 200, "OK");
   }
