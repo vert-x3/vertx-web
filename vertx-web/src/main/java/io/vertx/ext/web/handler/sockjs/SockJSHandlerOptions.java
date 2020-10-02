@@ -71,7 +71,7 @@ public class SockJSHandlerOptions {
   private long heartbeatInterval;
   private int maxBytesStreaming;
   private String libraryURL;
-  private Set<String> disabledTransports = new HashSet<>();
+  private final Set<String> disabledTransports = new HashSet<>();
   private boolean registerWriteHandler;
   private boolean localWriteHandler;
 

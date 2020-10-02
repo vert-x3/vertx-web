@@ -236,7 +236,7 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public Route setName(String name) {
+  public synchronized Route setName(String name) {
     state = state.setName(name);
     return this;
   }

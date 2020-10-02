@@ -48,6 +48,8 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
+import java.util.Arrays;
+
 import static io.vertx.core.buffer.Buffer.buffer;
 
 /**
@@ -62,9 +64,7 @@ class XhrTransport extends BaseTransport {
 
   static {
     byte[] bytes = new byte[2048 + 1];
-    for (int i = 0; i < bytes.length; i++) {
-      bytes[i] = (byte)'h';
-    }
+    Arrays.fill(bytes, 0, 2048, (byte) 'h');
     bytes[bytes.length - 1] = (byte)'\n';
     H_BLOCK = buffer(bytes);
   }

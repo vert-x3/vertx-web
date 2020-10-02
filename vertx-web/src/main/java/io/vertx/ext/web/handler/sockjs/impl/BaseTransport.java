@@ -81,8 +81,7 @@ class BaseTransport {
   }
 
   protected SockJSSession getSession(RoutingContext rc, SockJSHandlerOptions options, String sessionID, Handler<SockJSSocket> sockHandler) {
-    SockJSSession session = sessions.computeIfAbsent(sessionID, s -> new SockJSSession(vertx, sessions, rc, s, options, sockHandler));
-    return session;
+    return sessions.computeIfAbsent(sessionID, s -> new SockJSSession(vertx, sessions, rc, s, options, sockHandler));
   }
 
   protected void sendInvalidJSON(HttpServerResponse response) {
@@ -174,7 +173,7 @@ class BaseTransport {
 
   static Handler<RoutingContext> createInfoHandler(final SockJSHandlerOptions options) {
     return new Handler<RoutingContext>() {
-      boolean websocket = !options.getDisabledTransports().contains(Transport.WEBSOCKET.toString());
+      final boolean websocket = !options.getDisabledTransports().contains(Transport.WEBSOCKET.toString());
       public void handle(RoutingContext rc) {
         if (log.isTraceEnabled()) log.trace("In Info handler");
         rc.response().putHeader(CONTENT_TYPE, "application/json; charset=UTF-8");

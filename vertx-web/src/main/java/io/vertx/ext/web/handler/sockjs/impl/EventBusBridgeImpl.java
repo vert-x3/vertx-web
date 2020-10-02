@@ -75,7 +75,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   private final long replyTimeout;
   private final Vertx vertx;
   private final EventBus eb;
-  private final Map<String, Message> messagesAwaitingReply = new HashMap<>();
+  private final Map<String, Message<?>> messagesAwaitingReply = new HashMap<>();
   private final Map<String, Pattern> compiledREs = new HashMap<>();
   private final Handler<BridgeEvent> bridgeEventHandler;
   private final AuthorizationProvider authzProvider;
@@ -93,7 +93,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     this.bridgeEventHandler = bridgeEventHandler;
   }
 
-  private void handleSocketClosed(SockJSSocket sock, Map<String, MessageConsumer> registrations) {
+  private void handleSocketClosed(SockJSSocket sock, Map<String, MessageConsumer<?>> registrations) {
     // On close unregister any handlers that haven't been unregistered
     registrations.forEach((key, value) -> {
       value.unregister();
@@ -113,7 +113,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       null, null);
   }
 
-  private void handleSocketData(SockJSSocket sock, Buffer data, Map<String, MessageConsumer> registrations) {
+  private void handleSocketData(SockJSSocket sock, Buffer data, Map<String, MessageConsumer<?>> registrations) {
     JsonObject msg;
 
     try {
@@ -208,7 +208,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
   }
 
-  private void internalHandleRegister(SockJSSocket sock, JsonObject rawMsg, Map<String, MessageConsumer> registrations) {
+  private void internalHandleRegister(SockJSSocket sock, JsonObject rawMsg, Map<String, MessageConsumer<?>> registrations) {
     final SockInfo info = sockInfos.get(sock);
     if (!checkMaxHandlers(sock, info)) {
       return;
@@ -257,7 +257,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
               }
             }
           };
-          MessageConsumer reg = eb.consumer(address).handler(handler);
+          MessageConsumer<?> reg = eb.consumer(address).handler(handler);
           registrations.put(address, reg);
           info.handlerCount++;
           // Notify registration completed
@@ -272,7 +272,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }, () -> replyError(sock, "rejected"));
   }
 
-  private void internalHandleUnregister(SockJSSocket sock, JsonObject rawMsg, Map<String, MessageConsumer> registrations) {
+  private void internalHandleUnregister(SockJSSocket sock, JsonObject rawMsg, Map<String, MessageConsumer<?>> registrations) {
     checkCallHook(() -> new BridgeEventImpl(BridgeEventType.UNREGISTER, rawMsg, sock),
       () -> {
         String address = rawMsg.getString("address");
@@ -282,7 +282,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         }
         Match match = checkMatches(false, address, null);
         if (match.doesMatch) {
-          MessageConsumer reg = registrations.remove(address);
+          MessageConsumer<?> reg = registrations.remove(address);
           if (reg != null) {
             reg.unregister();
             SockInfo info = sockInfos.get(sock);
@@ -313,7 +313,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   public void handle(final SockJSSocket sock) {
     checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CREATED, null, sock),
       () -> {
-        Map<String, MessageConsumer> registrations = new HashMap<>();
+        Map<String, MessageConsumer<?>> registrations = new HashMap<>();
 
         sock.endHandler(v -> handleSocketClosed(sock, registrations));
         sock.handler(data -> handleSocketData(sock, data, registrations));
@@ -335,7 +335,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }, sock::close);
   }
 
-  private void checkAddAccceptedReplyAddress(Message message) {
+  private void checkAddAccceptedReplyAddress(Message<?> message) {
     String replyAddress = message.replyAddress();
     if (replyAddress != null) {
       // This message has a reply address
@@ -351,7 +351,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
   }
 
-  private void deliverMessage(SockJSSocket sock, String address, Message message) {
+  private void deliverMessage(SockJSSocket sock, String address, Message<?> message) {
     JsonObject envelope = new JsonObject().put("type", "rec").put("address", address).put("body", message.body());
     if (message.replyAddress() != null) {
       envelope.put("replyAddress", message.replyAddress());
@@ -389,7 +389,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (debug) {
       log.debug("Received msg from client in bridge. address:" + address + " message:" + body);
     }
-    final Message awaitingReply = messagesAwaitingReply.remove(address);
+    final Message<?> awaitingReply = messagesAwaitingReply.remove(address);
     Match curMatch;
     if (awaitingReply != null) {
       curMatch = new Match(true);
@@ -439,7 +439,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
                             JsonObject headers,
                             SockJSSocket sock,
                             String replyAddress,
-                            Message awaitingReply) {
+                            Message<?> awaitingReply) {
     SockInfo info = sockInfos.get(sock);
     if (replyAddress != null && !checkMaxHandlers(sock, info)) {
       return;
@@ -448,7 +448,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (replyAddress != null) {
       replyHandler = result -> {
         if (result.succeeded()) {
-          Message message = result.result();
+          Message<?> message = result.result();
           // Note we don't check outbound matches for replies
           // Replies are always let through if the original message
           // was approved

@@ -61,10 +61,10 @@ public class SockJSHandlerImpl implements SockJSHandler {
 
   private static final Logger log = LoggerFactory.getLogger(SockJSHandlerImpl.class);
 
-  private Vertx vertx;
-  private Router router;
-  private LocalMap<String, SockJSSession> sessions;
-  private SockJSHandlerOptions options;
+  private final Vertx vertx;
+  private final Router router;
+  private final LocalMap<String, SockJSSession> sessions;
+  private final SockJSHandlerOptions options;
 
   public SockJSHandlerImpl(Vertx vertx, SockJSHandlerOptions options) {
     this.vertx = vertx;
@@ -151,8 +151,8 @@ public class SockJSHandlerImpl implements SockJSHandler {
     return new Handler<RoutingContext>() {
 
       class TimeoutInfo {
-        long timeout;
-        Buffer buff;
+        final long timeout;
+        final Buffer buff;
 
         TimeoutInfo(long timeout, Buffer buff) {
           this.timeout = timeout;

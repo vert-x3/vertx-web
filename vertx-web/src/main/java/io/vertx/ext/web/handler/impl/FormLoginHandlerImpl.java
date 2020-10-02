@@ -25,8 +25,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.impl.NoStackTraceThrowable;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
@@ -39,10 +37,6 @@ import io.vertx.ext.web.impl.RoutingContextInternal;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements FormLoginHandler {
-
-  private static final Logger log = LoggerFactory.getLogger(FormLoginHandlerImpl.class);
-
-  private final AuthenticationProvider authProvider;
 
   private String usernameParam;
   private String passwordParam;
@@ -76,7 +70,6 @@ public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   public FormLoginHandlerImpl(AuthenticationProvider authProvider, String usernameParam, String passwordParam,
                               String returnURLParam, String directLoggedInOKURL) {
     super(authProvider);
-    this.authProvider = authProvider;
     this.usernameParam = usernameParam;
     this.passwordParam = passwordParam;
     this.returnURLParam = returnURLParam;

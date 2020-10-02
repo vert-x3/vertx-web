@@ -92,9 +92,7 @@ class RawWebSocketTransport {
     private synchronized boolean canWrite(Handler<AsyncResult<Void>> handler) {
       if (closed) {
         if (handler != null) {
-          vertx.runOnContext(v -> {
-            handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION));
-          });
+          vertx.runOnContext(v -> handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION)));
         }
         return false;
       }

@@ -10,11 +10,11 @@ import java.util.List;
 
 public class ParsableHeaderValuesContainer implements ParsedHeaderValues {
 
-  private List<MIMEHeader> accept;
-  private List<ParsedHeaderValue> acceptCharset;
-  private List<ParsedHeaderValue> acceptEncoding;
-  private List<LanguageHeader> acceptLanguage;
-  private ParsableMIMEValue contentType;
+  private final List<MIMEHeader> accept;
+  private final List<ParsedHeaderValue> acceptCharset;
+  private final List<ParsedHeaderValue> acceptEncoding;
+  private final List<LanguageHeader> acceptLanguage;
+  private final ParsableMIMEValue contentType;
 
   public ParsableHeaderValuesContainer(
       List<MIMEHeader> accept, List<ParsedHeaderValue> acceptCharset, List<ParsedHeaderValue> acceptEncoding,

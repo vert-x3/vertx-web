@@ -38,8 +38,8 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
   private final static int FORBIDDEN_CODE = 403;
   private final static HttpStatusException FORBIDDEN_EXCEPTION = new HttpStatusException(FORBIDDEN_CODE);
 
-  private Authorization authorization;
-  private Collection<AuthorizationProvider> authorizationProviders;
+  private final Authorization authorization;
+  private final Collection<AuthorizationProvider> authorizationProviders;
   private BiConsumer<RoutingContext, AuthorizationContext> variableHandler;
 
   public AuthorizationHandlerImpl(Authorization authorization) {

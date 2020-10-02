@@ -23,24 +23,24 @@ import java.util.Objects;
 
 /**
  * Wraps a handler that would normally block and turn it into a non-blocking handler.
- * This is done by calling {@link io.vertx.core.Vertx#executeBlocking(Handler, Handler)} 
+ * This is done by calling {@link io.vertx.core.Vertx#executeBlocking(Handler, Handler)}
  * and wrapping the context to overload {@link RoutingContext#next()} so that
  * the next handler is run on the original event loop
- * 
+ *
  * @author <a href="mailto:stephane.bastian.dev@gmail.com>Stéphane Bastian</a>
  *
  */
 public class BlockingHandlerDecorator implements Handler<RoutingContext> {
 
-  private boolean ordered;
+  private final boolean ordered;
   private final Handler<RoutingContext> decoratedHandler;
-  
+
   public BlockingHandlerDecorator(Handler<RoutingContext> decoratedHandler, boolean ordered) {
     Objects.requireNonNull(decoratedHandler);
     this.decoratedHandler = decoratedHandler;
     this.ordered = ordered;
   }
-  
+
   @Override
   public void handle(RoutingContext context) {
     Route currentRoute = context.currentRoute();

@@ -84,7 +84,6 @@ public class LoggerHandlerImpl implements LoggerHandler {
           contentLength = Long.parseLong(obj.toString());
         } catch (NumberFormatException e) {
           // ignore it and continue
-          contentLength = 0;
         }
       }
     } else {

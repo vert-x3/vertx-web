@@ -81,12 +81,7 @@ public class FaviconHandlerImpl implements FaviconHandler {
   /**
    * favicon cache
    */
-  private Icon icon;
-
-  /**
-   * Location of the icon in the file system
-   */
-  private final String path;
+  private final Icon icon;
 
   /**
    * Cache control for the resource
@@ -105,7 +100,6 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * @param maxAgeSeconds max allowed time to be cached in seconds
    */
   public FaviconHandlerImpl(Vertx vertx, String path, long maxAgeSeconds) {
-    this.path = path;
     this.maxAgeSeconds = maxAgeSeconds;
     if (maxAgeSeconds < 0) {
       throw new IllegalArgumentException("maxAgeSeconds must be > 0");

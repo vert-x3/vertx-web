@@ -11,7 +11,7 @@ import io.vertx.ext.web.ParsedHeaderValue;
 
 public class ParsableHeaderValue implements ParsedHeaderValue {
 
-  private String headerContent;
+  private final String headerContent;
 
   protected String value;
   private float weight;

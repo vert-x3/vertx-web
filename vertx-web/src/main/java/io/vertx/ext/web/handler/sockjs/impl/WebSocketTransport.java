@@ -64,7 +64,7 @@ class WebSocketTransport extends BaseTransport {
 
     router.getWithRegex(wsRE).handler(rc -> {
       HttpServerRequest req = rc.request();
-      String connectionHeader = req.headers().get(io.vertx.core.http.HttpHeaders.CONNECTION);
+      String connectionHeader = req.headers().get(HttpHeaders.CONNECTION);
       if (connectionHeader == null || !connectionHeader.toLowerCase().contains("upgrade")) {
         rc.response().setStatusCode(400);
         rc.response().end("Can \"Upgrade\" only to \"WebSocket\".");

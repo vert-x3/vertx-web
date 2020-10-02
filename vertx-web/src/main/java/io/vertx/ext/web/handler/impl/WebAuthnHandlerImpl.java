@@ -54,7 +54,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
         return false;
       }
       Object s = json.getValue(key);
-      return s != null && (s instanceof String) && !"".equals(s);
+      return (s instanceof String) && !"".equals(s);
     } catch (ClassCastException e) {
       return false;
     }
@@ -69,7 +69,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
         return true;
       }
       Object s = json.getValue(key);
-      return s != null && (s instanceof String);
+      return (s instanceof String);
     } catch (ClassCastException e) {
       return false;
     }
