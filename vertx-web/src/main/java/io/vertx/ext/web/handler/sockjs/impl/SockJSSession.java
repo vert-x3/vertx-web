@@ -395,12 +395,16 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     }
   }
 
-  synchronized void handleException(Throwable t) {
-    if (exceptionHandler != null) {
+  void handleException(Throwable t) {
+    Handler<Throwable> eh;
+    synchronized (this) {
+      eh = exceptionHandler;
+    }
+    if (eh != null) {
       if (context == Vertx.currentContext()) {
-        exceptionHandler.handle(t);
+        eh.handle(t);
       } else {
-        context.runOnContext(v -> exceptionHandler.handle(t));
+        context.runOnContext(v -> eh.handle(t));
       }
     } else {
       log.error("Unhandled exception", t);
