@@ -19,6 +19,8 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.MIMEHeader;
@@ -34,6 +36,8 @@ import java.util.Objects;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class ErrorHandlerImpl implements ErrorHandler {
+
+  private final Logger log = LoggerFactory.getLogger(ErrorHandlerImpl.class);
 
   /**
    * Flag to enable/disable printing the full stack trace of exceptions.
@@ -59,6 +63,21 @@ public class ErrorHandlerImpl implements ErrorHandler {
     HttpServerResponse response = context.response();
 
     Throwable failure = context.failure();
+
+    if (response.headWritten()) {
+      // response is already being processed, so we can't really
+      // format the error as a "pretty print" message
+      log.error("Unexpected error on route", failure);
+
+      try {
+        // force a close of the socket to
+        // avoid dangling connections
+        response.close();
+      } catch (RuntimeException e) {
+        // ignore
+      }
+      return;
+    }
 
     int errorCode = context.statusCode();
 
@@ -130,7 +149,8 @@ public class ErrorHandlerImpl implements ErrorHandler {
       }
       response.putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
       response.end(
-        errorTemplate.replace("{title}", title)
+        errorTemplate
+          .replace("{title}", title)
           .replace("{errorCode}", Integer.toString(errorCode))
           .replace("{errorMessage}", errorMessage)
           .replace("{stackTrace}", stack.toString())
