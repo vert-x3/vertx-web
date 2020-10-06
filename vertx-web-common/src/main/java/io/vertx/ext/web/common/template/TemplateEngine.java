@@ -88,4 +88,15 @@ public interface TemplateEngine {
     render(context, templateFileName, promise);
     return promise.future();
   }
+
+  /**
+   * Returns the underlying engine, so further configurations or customizations may be applied.
+   * @param <T> the engine object type.
+   * @return the engine instance.
+   * @throws ClassCastException when the expected type does not match the internal type.
+   */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  default <T> T unwrap() throws ClassCastException {
+    return null;
+  }
 }

@@ -26,6 +26,7 @@ import io.vertx.ext.web.templ.handlebars.impl.HandlebarsTemplateEngineImpl;
 
 /**
  * A template engine that uses the Handlebars library.
+ * The {@link #unwrap()} shall return an object of class {@link Handlebars}
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -56,27 +57,34 @@ public interface HandlebarsTemplateEngine extends TemplateEngine {
   }
 
   /**
+   * @deprecated see {@link #unwrap()}
    * Get a reference to the internal Handlebars object so it
    * can be configured.
    *
    * @return a reference to the internal Handlebars instance.
    */
   @GenIgnore
+  @Deprecated
   Handlebars getHandlebars();
 
   /**
+   * @deprecated see {@link #unwrap()}
    * Return the array of configured handlebars context value resolvers.
+   *
    * @return array of configured resolvers
    */
+  @Deprecated
   @GenIgnore
   ValueResolver[] getResolvers();
 
   /**
+   * @deprecated see {@link #unwrap()}
    * Set the array of handlebars context value resolvers.
    *
    * @param resolvers the value resolvers to be used
    * @return a reference to the internal Handlebars instance.
    */
+  @Deprecated
   @GenIgnore
   HandlebarsTemplateEngine setResolvers(ValueResolver... resolvers);
 }

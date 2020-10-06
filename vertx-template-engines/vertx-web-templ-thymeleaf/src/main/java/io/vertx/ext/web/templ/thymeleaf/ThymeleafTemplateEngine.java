@@ -26,6 +26,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 
 /**
  * A template engine that uses the Thymeleaf library.
+ * The {@link #unwrap()} shall return an object of class {@link org.thymeleaf.TemplateEngine}
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -43,20 +44,24 @@ public interface ThymeleafTemplateEngine extends TemplateEngine {
   }
 
   /**
+   * @deprecated see {@link #unwrap()}
    * Set the mode for the engine
    *
    * @param mode the mode
    * @return a reference to this for fluency
    */
   @Fluent
+  @Deprecated
   ThymeleafTemplateEngine setMode(TemplateMode mode);
 
   /**
+   * @deprecated see {@link #unwrap()}
    * Get a reference to the internal Thymeleaf TemplateEngine object so it
    * can be configured.
    *
    * @return a reference to the internal Thymeleaf TemplateEngine instance.
    */
   @GenIgnore
+  @Deprecated
   org.thymeleaf.TemplateEngine getThymeleafTemplateEngine();
 }

@@ -25,6 +25,7 @@ import io.vertx.ext.web.templ.jade.impl.JadeTemplateEngineImpl;
 
 /**
  * A template engine that uses Jade.
+ * The {@link #unwrap()} shall return an object of class {@link JadeConfiguration}
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -55,11 +56,13 @@ public interface JadeTemplateEngine extends TemplateEngine {
   }
 
   /**
+   * @deprecated see {@link #unwrap()}
    * Get a reference to the internal JadeConfiguration object so it
    * can be configured.
    *
    * @return a reference to the internal JadeConfiguration instance.
    */
   @GenIgnore
+  @Deprecated
   JadeConfiguration getJadeConfiguration();
 }
