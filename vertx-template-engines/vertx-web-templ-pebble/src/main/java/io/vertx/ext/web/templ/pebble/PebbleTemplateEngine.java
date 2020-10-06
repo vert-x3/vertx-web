@@ -25,6 +25,7 @@ import io.vertx.ext.web.templ.pebble.impl.PebbleTemplateEngineImpl;
 
 /**
  * A template engine that uses the Pebble library.
+ * The {@link #unwrap()} shall return an object of class {@link PebbleEngine}
  *
  * @author Dan Kristensen
  */
@@ -60,7 +61,7 @@ public interface PebbleTemplateEngine extends TemplateEngine {
    *
    * @return the engine
    */
-  @GenIgnore
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static PebbleTemplateEngine create(Vertx vertx, PebbleEngine engine) {
     return create(vertx, DEFAULT_TEMPLATE_EXTENSION, engine);
   }
@@ -71,7 +72,7 @@ public interface PebbleTemplateEngine extends TemplateEngine {
    *
    * @return the engine
    */
-  @GenIgnore
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static PebbleTemplateEngine create(Vertx vertx, String extension, PebbleEngine engine) {
     return new PebbleTemplateEngineImpl(vertx, extension, engine);
   }

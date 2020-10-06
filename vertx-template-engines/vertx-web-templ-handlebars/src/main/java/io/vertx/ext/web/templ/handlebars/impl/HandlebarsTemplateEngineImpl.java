@@ -87,6 +87,11 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
+  public <T> T unwrap() {
+    return (T) handlebars;
+  }
+
+  @Override
   public Handlebars getHandlebars() {
     return handlebars;
   }

@@ -49,6 +49,11 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
+  public <T> T unwrap() {
+    return (T) config;
+  }
+
+  @Override
   public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
       String src = adjustLocation(templateFile);

@@ -23,6 +23,7 @@ import io.vertx.ext.web.templ.httl.impl.HTTLTemplateEngineImpl;
 
 /**
  * A template engine that uses the HTTL library.
+ * The {@link #unwrap()} shall return an object of class {@link httl.Engine}
  *
  * @author <a href="mailto:victorqrsilva@gmail.com">Victor Quezado</a>
  */

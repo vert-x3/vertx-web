@@ -69,6 +69,11 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
   }
 
   @Override
+  public <T> T unwrap() {
+    return (T) templateEngine;
+  }
+
+  @Override
   public ThymeleafTemplateEngine setMode(TemplateMode mode) {
     templateResolver.setTemplateMode(mode);
     return this;

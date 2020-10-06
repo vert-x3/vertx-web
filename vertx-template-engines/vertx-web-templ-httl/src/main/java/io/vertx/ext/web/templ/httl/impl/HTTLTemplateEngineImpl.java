@@ -44,6 +44,11 @@ public class HTTLTemplateEngineImpl extends CachingTemplateEngine<Template> impl
   }
 
   @Override
+  public <T> T unwrap() {
+    return (T) engine;
+  }
+
+  @Override
   public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
       String src = adjustLocation(templateFile);

@@ -54,6 +54,11 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
   }
 
   @Override
+  public <T> T unwrap() {
+    return (T) pebbleEngine;
+  }
+
+  @Override
   public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
       String src = adjustLocation(templateFile);

@@ -22,6 +22,7 @@ import io.vertx.ext.web.templ.freemarker.impl.FreeMarkerTemplateEngineImpl;
 
 /**
  * A template engine that uses the FreeMarker library.
+ * The {@link #unwrap()} shall return an object of class {@link freemarker.template.Configuration}
  *
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
