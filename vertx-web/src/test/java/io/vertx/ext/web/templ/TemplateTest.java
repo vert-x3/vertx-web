@@ -88,6 +88,25 @@ public class TemplateTest extends WebTestBase {
   }
 
   @Test
+  public void testTemplateEngineWithPathVariables() throws Exception {
+    TemplateEngine engine = new TestEngine(false);
+    router.route().handler(context -> {
+      context.put("foo", "badger");
+      context.put("bar", "fox");
+      context.next();
+    });
+    router.route("/:project/*").handler(TemplateHandler.create(engine, "somedir", "text/html"));
+    String expected =
+      "<html>\n" +
+        "<body>\n" +
+        "<h1>Test template</h1>\n" +
+        "foo is badger bar is fox<br>\n" +
+        "</body>\n" +
+        "</html>";
+    testRequest(HttpMethod.GET, "/1/test-template.html", 200, "OK", expected);
+  }
+
+  @Test
   public void testRenderDirectly() throws Exception {
     TemplateEngine engine = new TestEngine(false);
     router.route().handler(context -> {
@@ -158,6 +177,5 @@ public class TemplateTest extends WebTestBase {
         handler.handle(Future.succeededFuture(Buffer.buffer(rendered)));
       }
     }
-
   }
 }
