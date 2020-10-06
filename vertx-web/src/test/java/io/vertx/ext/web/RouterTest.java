@@ -2790,4 +2790,21 @@ public class RouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/somepath/path1", 500, "Internal Server Error");
 
   }
+
+  @Test
+  public void testRouteRestParam() throws Exception {
+    router
+      .route("/p*")
+      .handler(rc -> {
+        if (rc.pathParam("*") != null) {
+          rc.response().setStatusMessage(rc.pathParam("*")).end();
+        } else {
+          rc.fail(500);
+        }
+      });
+
+    testRequest(HttpMethod.GET, "/p", 200, "");
+    testRequest(HttpMethod.GET, "/pa", 200, "a");
+    testRequest(HttpMethod.GET, "/q", 404, "Not Found");
+  }
 }

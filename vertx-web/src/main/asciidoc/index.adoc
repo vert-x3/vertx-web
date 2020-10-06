@@ -271,6 +271,8 @@ numeric character or underscore.
 In the above example, if a POST request is made to path: `/catalogue/products/tools/drill123/` then the route will match
 and `productType` will receive the value `tools` and `productID` will receive the value `drill123`.
 
+Note: You can also capture `*` as path param `*`.
+
 == Routing with regular expressions
 
 Regular expressions can also be used to match URI paths in routes.
