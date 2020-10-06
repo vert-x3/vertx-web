@@ -55,6 +55,19 @@ public class Utils extends io.vertx.core.impl.Utils {
   }
 
   public static String pathOffset(String path, RoutingContext context) {
+    final String rest = context.pathParam("*");
+    if (rest != null) {
+      // normalize
+      if (rest.length() > 0) {
+        if (rest.charAt(0) == '/') {
+          return rest;
+        } else {
+          return "/" + rest;
+        }
+      } else {
+        return "/";
+      }
+    }
     int prefixLen = 0;
     String mountPoint = context.mountPoint();
     if (mountPoint != null) {
