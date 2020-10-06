@@ -886,6 +886,9 @@ final class RouteState {
         if (m.groupCount() > 0) {
           if (!exactPath) {
             context.matchRest = m.start("rest");
+            // always replace
+            context.pathParams()
+              .put("*", path.substring(context.matchRest));
           }
 
           if (!isEmpty(groups)) {
@@ -1025,7 +1028,13 @@ final class RouteState {
           }
         }
       }
-      return requestPath.startsWith(thePath);
+      if (requestPath.startsWith(thePath)) {
+        // handle the "rest" as path param *
+        ctx.pathParams()
+          .put("*", requestPath.substring(thePath.length()));
+        return true;
+      }
+      return false;
     }
   }
 
