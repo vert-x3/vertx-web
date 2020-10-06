@@ -51,11 +51,12 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
       // just use the override
       this.mountPoint = mountPoint;
     } else {
-      if (parentMountPoint.charAt(parentMountPoint.length() - 1) == '/') {
-        // Remove the trailing slash or we won't match
-        this.mountPoint = parentMountPoint.substring(0, parentMountPoint.length() - 1) + mountPoint;
+      // special case: when a sub router is mounting on / basically it's telling
+      // that it wants to use the parent mount, otherwise it's extending the parent
+      // path
+      if ("/".equals(mountPoint)) {
+        this.mountPoint = parentMountPoint;
       } else {
-        // slashes are ok, just concat
         this.mountPoint = parentMountPoint + mountPoint;
       }
     }
