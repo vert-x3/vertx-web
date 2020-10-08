@@ -59,8 +59,9 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     }
 
     Iterable<Cookie> cookies = webclient.cookieStore().get(request.ssl, domain, request.uri);
-    for (Cookie c : cookies) {
-      request.headers().add("cookie", ClientCookieEncoder.STRICT.encode(c));
+    String encodedCookies = ClientCookieEncoder.STRICT.encode(cookies);
+    if (encodedCookies != null) {
+      request.headers().add(HttpHeaders.COOKIE, encodedCookies);
     }
   }
 
@@ -119,8 +120,9 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     WebClientSessionAware webclient = (WebClientSessionAware) originalRequest.client;
     String path = parsePath(redirectRequest.getURI());
     Iterable<Cookie> cookies = webclient.cookieStore().get(originalRequest.ssl, domain, path);
-    for (Cookie c : cookies) {
-      redirectRequest.putHeader("cookie", ClientCookieEncoder.STRICT.encode(c));
+    String encodedCookies = ClientCookieEncoder.STRICT.encode(cookies);
+    if (encodedCookies != null) {
+      redirectRequest.putHeader(HttpHeaders.COOKIE, encodedCookies);
     }
   }
 
