@@ -44,7 +44,7 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
 
     router.route("/protected/page1").handler(rc -> {
       assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().principal().getString("sub"));
+      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -67,7 +67,7 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
 
     router.route("/protected/page1").handler(rc -> {
       assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().principal().getString("sub"));
+      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -94,7 +94,7 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
 
     router.route("/protected/page1").handler(rc -> {
       assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().principal().getString("sub"));
+      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -123,7 +123,7 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
 
     router.route("/protected/page1").handler(rc -> {
       assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().principal().getString("sub"));
+      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -152,7 +152,7 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
 
     router.route("/protected/page1").handler(rc -> {
       assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().principal().getString("sub"));
+      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 

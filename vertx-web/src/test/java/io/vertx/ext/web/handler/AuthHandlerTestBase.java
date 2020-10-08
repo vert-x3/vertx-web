@@ -18,8 +18,8 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.auth.authorization.Authorization;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
@@ -77,7 +77,7 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
     router.route().handler(rc -> {
       // we need to be logged in
       if (rc.user() == null) {
-        JsonObject authInfo = new JsonObject().put("username", username).put("password", "delicious:sausages");
+        UsernamePasswordCredentials authInfo = new UsernamePasswordCredentials(username, "delicious:sausages");
         authNProvider.authenticate(authInfo, res -> {
           if (res.succeeded()) {
             rc.setUser(res.result());

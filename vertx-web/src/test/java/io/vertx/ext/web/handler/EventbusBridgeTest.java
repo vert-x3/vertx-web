@@ -23,6 +23,7 @@ import io.vertx.core.http.WebSocketBase;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.auth.properties.PropertyFileAuthorization;
 import io.vertx.ext.bridge.BridgeEventType;
@@ -1093,7 +1094,7 @@ public class EventbusBridgeTest extends WebTestBase {
     router.route("/eventbus/*").handler(rc -> {
       // we need to be logged in
       if (rc.user() == null) {
-        JsonObject authInfo = new JsonObject().put("username", "tim").put("password", "delicious:sausages");
+        UsernamePasswordCredentials authInfo = new UsernamePasswordCredentials("tim", "delicious:sausages");
         HttpServerRequest request = rc.request();
         request.pause();
         authProvider.authenticate(authInfo, res -> {
