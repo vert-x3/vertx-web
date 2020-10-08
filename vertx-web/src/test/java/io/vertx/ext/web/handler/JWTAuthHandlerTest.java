@@ -19,9 +19,10 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.JWTOptions;
+import io.vertx.ext.auth.KeyStoreOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
-import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Before;
@@ -36,12 +37,11 @@ public class JWTAuthHandlerTest extends WebTestBase {
 
   @Before
   public void setup() throws Exception {
-    JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-        .put("type", "jceks")
-        .put("path", "keystore.jceks")
-        .put("password", "secret"));
-
-    authProvider = JWTAuth.create(vertx, new JWTAuthOptions(authConfig));
+    authProvider = JWTAuth.create(vertx, new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret")));
   }
 
   @Test

@@ -1,24 +1,24 @@
 package io.vertx.ext.web.handler;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.ext.auth.User;
-import io.vertx.ext.auth.authorization.Authorization;
-import org.junit.Before;
-import org.junit.Test;
-
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.KeyStoreOptions;
+import io.vertx.ext.auth.JWTOptions;
+import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authorization.Authorization;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
-import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.web.WebTestBase;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class MultiAuthorizationHandlerTest extends WebTestBase {
 
@@ -26,10 +26,11 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
 
   @Before
   public void setup() throws Exception {
-    JsonObject authConfig = new JsonObject().put("keyStore",
-        new JsonObject().put("type", "jceks").put("path", "keystore.jceks").put("password", "secret"));
-
-    authProvider = JWTAuth.create(vertx, new JWTAuthOptions(authConfig));
+    authProvider = JWTAuth.create(vertx, new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret")));
   }
 
   @Test
@@ -49,9 +50,9 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
 
     // login with correct credentials
     testRequest(HttpMethod.GET, "/protected/page1",
-        req -> req.putHeader("Authorization",
-            "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
-        200, "OK", "Welcome");
+      req -> req.putHeader("Authorization",
+        "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
+      200, "OK", "Welcome");
   }
 
   @Test
@@ -72,9 +73,9 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
 
     // login with correct credentials
     testRequest(HttpMethod.GET, "/protected/page1",
-        req -> req.putHeader("Authorization",
-            "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
-        403, "Forbidden", "Forbidden");
+      req -> req.putHeader("Authorization",
+        "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
+      403, "Forbidden", "Forbidden");
   }
 
   @Test
@@ -86,10 +87,10 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     // => the test should succeed
     router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
     router.route("/protected/*")
-        .handler(
-            AuthorizationHandler.create(RoleBasedAuthorization.create("role1"))
-            .addAuthorizationProvider(createProvider("authzProvider1", RoleBasedAuthorization.create("role1")))
-        );
+      .handler(
+        AuthorizationHandler.create(RoleBasedAuthorization.create("role1"))
+          .addAuthorizationProvider(createProvider("authzProvider1", RoleBasedAuthorization.create("role1")))
+      );
 
     router.route("/protected/page1").handler(rc -> {
       assertNotNull(rc.user());
@@ -99,9 +100,9 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
 
     // login with correct credentials
     testRequest(HttpMethod.GET, "/protected/page1",
-        req -> req.putHeader("Authorization",
-            "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
-        200, "OK", "Welcome");
+      req -> req.putHeader("Authorization",
+        "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
+      200, "OK", "Welcome");
   }
 
   @Test
@@ -113,12 +114,12 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     // => the test should succeed
     router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
     router.route("/protected/*")
-        .handler(
-            AuthorizationHandler.create(RoleBasedAuthorization.create("role3"))
-            .addAuthorizationProvider(createProvider("authzProvider1", RoleBasedAuthorization.create("role1")))
-            .addAuthorizationProvider(createProvider("authzProvider2", RoleBasedAuthorization.create("role2")))
-            .addAuthorizationProvider(createProvider("authzProvider3", RoleBasedAuthorization.create("role3")))
-        );
+      .handler(
+        AuthorizationHandler.create(RoleBasedAuthorization.create("role3"))
+          .addAuthorizationProvider(createProvider("authzProvider1", RoleBasedAuthorization.create("role1")))
+          .addAuthorizationProvider(createProvider("authzProvider2", RoleBasedAuthorization.create("role2")))
+          .addAuthorizationProvider(createProvider("authzProvider3", RoleBasedAuthorization.create("role3")))
+      );
 
     router.route("/protected/page1").handler(rc -> {
       assertNotNull(rc.user());
@@ -128,9 +129,9 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
 
     // login with correct credentials
     testRequest(HttpMethod.GET, "/protected/page1",
-        req -> req.putHeader("Authorization",
-            "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
-        200, "OK", "Welcome");
+      req -> req.putHeader("Authorization",
+        "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
+      200, "OK", "Welcome");
   }
 
   @Test
@@ -142,12 +143,12 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     // => the test should fail since no authorization providers provide the correct authorization
     router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
     router.route("/protected/*")
-        .handler(
-            AuthorizationHandler.create(RoleBasedAuthorization.create("role4"))
-            .addAuthorizationProvider(createProvider("authzProvider1", RoleBasedAuthorization.create("role1")))
-            .addAuthorizationProvider(createProvider("authzProvider2", RoleBasedAuthorization.create("role2")))
-            .addAuthorizationProvider(createProvider("authzProvider3", RoleBasedAuthorization.create("role3")))
-        );
+      .handler(
+        AuthorizationHandler.create(RoleBasedAuthorization.create("role4"))
+          .addAuthorizationProvider(createProvider("authzProvider1", RoleBasedAuthorization.create("role1")))
+          .addAuthorizationProvider(createProvider("authzProvider2", RoleBasedAuthorization.create("role2")))
+          .addAuthorizationProvider(createProvider("authzProvider3", RoleBasedAuthorization.create("role3")))
+      );
 
     router.route("/protected/page1").handler(rc -> {
       assertNotNull(rc.user());
@@ -157,9 +158,9 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
 
     // login with correct credentials
     testRequest(HttpMethod.GET, "/protected/page1",
-        req -> req.putHeader("Authorization",
-            "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
-        403, "Forbidden", "Forbidden");
+      req -> req.putHeader("Authorization",
+        "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
+      403, "Forbidden", "Forbidden");
   }
 
   private AuthorizationProvider createProvider(String id, Authorization authorization) {
