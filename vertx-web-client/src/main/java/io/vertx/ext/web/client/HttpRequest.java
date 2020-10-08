@@ -25,9 +25,11 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.ext.web.common.AuthenticationType;
 import io.vertx.ext.web.multipart.MultipartForm;
 
 import java.util.function.Function;
@@ -165,18 +167,31 @@ public interface HttpRequest<T> {
   MultiMap headers();
 
   /**
-   * Configure the request to perform basic access authentication.
+   * Authenticate the request
    * <p>
-   * In basic HTTP authentication, a request contains a header field of the form 'Authorization: Basic &#60;credentials&#62;',
-   * where credentials is the base64 encoding of id and password joined by a colon.
-   * </p>
+   * Perform a generic authentication providing an AuthenticationType
    *
-   * @param id the id
-   * @param password the password
+   * @param type the authentication type to be used as BASIC, BEARER, DIGEST
+   * @param user the user info
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest<T> basicAuthentication(String id, String password);
+  default HttpRequest<T> authentication(AuthenticationType type, User user) {
+    return authentication(type, user, null);
+  }
+
+  /**
+   * Authenticate the request
+   * <p>
+   * Perform a generic authentication providing an AuthenticationType
+   *
+   * @param type the authentication type to be used as BASIC, BEARER, DIGEST
+   * @param user the user info
+   * @param options extra data info to be used on the specific authentication type
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> authentication(AuthenticationType type, User user, JsonObject options);
 
   /**
    * Configure the request to perform basic access authentication.
@@ -190,7 +205,31 @@ public interface HttpRequest<T> {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest<T> basicAuthentication(Buffer id, Buffer password);
+  @Deprecated
+  default HttpRequest<T> basicAuthentication(String id, String password){
+      JsonObject principal = new JsonObject()
+              .put("username", id)
+              .put("password", password);
+     User user = User.create(principal);
+     return authentication(AuthenticationType.BASIC, user);
+  }
+
+  /**
+   * Configure the request to perform basic access authentication.
+   * <p>
+   * In basic HTTP authentication, a request contains a header field of the form 'Authorization: Basic &#60;credentials&#62;',
+   * where credentials is the base64 encoding of id and password joined by a colon.
+   * </p>
+   *
+   * @param id the id
+   * @param password the password
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  @Deprecated
+  default HttpRequest<T> basicAuthentication(Buffer id, Buffer password){
+      return basicAuthentication(id.toString(), password.toString());
+  }
 
   /**
    * Configure the request to perform bearer token authentication.
@@ -203,7 +242,13 @@ public interface HttpRequest<T> {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest<T> bearerTokenAuthentication(String bearerToken);
+  @Deprecated
+  default HttpRequest<T> bearerTokenAuthentication(String bearerToken){
+      JsonObject principal = new JsonObject()
+              .put("bearerToken", bearerToken);
+      User user = User.create(principal);
+      return authentication(AuthenticationType.BEARER, user);
+  }
 
   @Fluent
   HttpRequest<T> ssl(Boolean value);
