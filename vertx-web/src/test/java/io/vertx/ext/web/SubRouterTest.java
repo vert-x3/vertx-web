@@ -572,4 +572,25 @@ public class SubRouterTest extends WebTestBase {
     testRequest(HttpMethod.POST, "/bank/order/deposit", 200, "OK");
     testRequest(HttpMethod.GET, "/bank/order/deposit", 405, "Method Not Allowed");
   }
+
+
+  @Test
+  public void testMountMultiLevel() throws Exception {
+    Router routerFirstLevel = Router.router(vertx);
+    router.mountSubRouter("/primary", routerFirstLevel);
+
+    Router routerSecondLevel = Router.router(vertx);
+    routerSecondLevel.get("/").handler(ctx -> {
+      ctx.response().setStatusMessage("Hi").end();
+    });
+    routerFirstLevel.mountSubRouter("/", routerSecondLevel);
+
+    // Below two scenarios will fail with 3.8.4 and higher, pass with 3.8.1 and lower.
+    testRequest(HttpMethod.GET, "/primary", 200, "Hi");
+    testRequest(HttpMethod.GET, "/primary?query=1", 200, "Hi");
+
+    // Below scenarios will pass
+    testRequest(HttpMethod.GET, "/primary/", 200, "Hi");
+    testRequest(HttpMethod.GET, "/primary/random", 404, "Not Found");
+  }
 }
