@@ -203,12 +203,14 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
         break;
 
       case BEARER:
-        String bearerToken = principal.getString("bearerToken");
+        String bearerToken = principal.getString("access_token");
         putHeader(HttpHeaders.AUTHORIZATION.toString(), "Bearer " + bearerToken);
         break;
 
       case DIGEST:
         //TODO implement
+      default:
+        throw new UnsupportedOperationException("not implemented/unsupported");
     }
 
     return this;

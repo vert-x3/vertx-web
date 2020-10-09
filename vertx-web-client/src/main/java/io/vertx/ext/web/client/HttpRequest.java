@@ -245,7 +245,7 @@ public interface HttpRequest<T> {
   @Deprecated
   default HttpRequest<T> bearerTokenAuthentication(String bearerToken){
       JsonObject principal = new JsonObject()
-              .put("bearerToken", bearerToken);
+              .put("access_token", bearerToken);
       User user = User.create(principal);
       return authentication(AuthenticationType.BEARER, user);
   }
