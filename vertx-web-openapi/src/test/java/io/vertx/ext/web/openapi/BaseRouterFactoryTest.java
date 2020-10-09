@@ -13,7 +13,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.ext.web.handler.ErrorHandler;
 import io.vertx.ext.web.validation.testutils.ValidationTestUtils;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -44,7 +43,7 @@ public abstract class BaseRouterFactoryTest {
   @AfterEach
   public void tearDown(VertxTestContext testContext) {
     if (client != null) client.close();
-    if (server != null) server.close(testContext.completing());
+    if (server != null) server.close(testContext.succeedingThenComplete());
     else testContext.completeNow();
   }
 
