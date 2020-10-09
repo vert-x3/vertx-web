@@ -1,12 +1,12 @@
 package io.vertx.ext.web.openapi;
 
-import java.util.function.Function;
-
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
+
+import java.util.function.Function;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -40,11 +40,23 @@ public class RouterFactoryOptions {
    */
   public final static RouteNamingStrategy DEFAULT_ROUTE_NAMING_STRATEGY = RouteNamingStrategy.OPERATION_OPENAPI_PATH;
 
+  /**
+   * By default, RouterFactory won't serve the contract
+   */
+  public final static String DEFAULT_CONTRACT_ENDPOINT = null;
+
+  /**
+   * Standard OpenAPI contract endpoint as defined by
+   * <a href="https://github.com/eclipse/microprofile-open-api/blob/master/spec/src/main/asciidoc/microprofile-openapi-spec.adoc#openapi-endpoint">Microprofile OpenAPI spec</a>
+   */
+  public final static String STANDARD_CONTRACT_ENDPOINT = "/openapi";
+
   private boolean mountNotImplementedHandler;
   private boolean requireSecurityHandlers;
   private boolean mountResponseContentTypeHandler;
   private String operationModelKey;
   private RouteNamingStrategy routeNamingStrategy;
+  private String contractEndpoint;
 
   public RouterFactoryOptions() {
     init();
@@ -61,6 +73,7 @@ public class RouterFactoryOptions {
     this.mountResponseContentTypeHandler = other.isMountResponseContentTypeHandler();
     this.operationModelKey = other.getOperationModelKey();
     this.routeNamingStrategy = other.getRouteNamingStrategy();
+    this.contractEndpoint = other.getContractEndpoint();
   }
 
   public JsonObject toJson() {
@@ -75,6 +88,7 @@ public class RouterFactoryOptions {
     this.mountResponseContentTypeHandler = DEFAULT_MOUNT_RESPONSE_CONTENT_TYPE_HANDLER;
     this.operationModelKey = DEFAULT_OPERATION_MODEL_KEY;
     this.routeNamingStrategy = DEFAULT_ROUTE_NAMING_STRATEGY;
+    this.contractEndpoint = DEFAULT_CONTRACT_ENDPOINT;
   }
 
   public boolean isMountNotImplementedHandler() {
@@ -148,12 +162,31 @@ public class RouterFactoryOptions {
 
   /**
    * The strategy to follow when naming the generated routes.
+   *
    * @param routeNamingStrategy
    * @return this object
    */
   @Fluent
   public RouterFactoryOptions setRouteNamingStrategy(RouteNamingStrategy routeNamingStrategy) {
     this.routeNamingStrategy = routeNamingStrategy;
+    return this;
+  }
+
+  public String getContractEndpoint() {
+    return contractEndpoint;
+  }
+
+  /**
+   * Configures the endpoint where the contract is served.
+   * The contract is served using the
+   * <a href="https://github.com/eclipse/microprofile-open-api/blob/master/spec/src/main/asciidoc/microprofile-openapi-spec.adoc#openapi-endpoint">Microprofile OpenAPI spec</a>.
+   *
+   * @param contractEndpoint
+   * @return this object
+   */
+  @Fluent
+  public RouterFactoryOptions setContractEndpoint(String contractEndpoint) {
+    this.contractEndpoint = contractEndpoint;
     return this;
   }
 

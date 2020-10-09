@@ -340,6 +340,12 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
       for (Handler failureHandler : failureHandlersToLoad)
         route.failureHandler(failureHandler);
     }
+
+    if (this.options.getContractEndpoint() != null) {
+      router.get(this.options.getContractEndpoint())
+        .handler(ContractEndpointHandler.create(this.openapi));
+    }
+
     return router;
   }
 
