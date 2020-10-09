@@ -1,0 +1,20 @@
+= Enums
+
+[[AuthenticationType]]
+== AuthenticationType
+
+++++
+
+ https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
+++++
+'''
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[BEARER]]`BEARER`|-
+|[[BASIC]]`BASIC`|-
+|[[DIGEST]]`DIGEST`|-
+|===
+
