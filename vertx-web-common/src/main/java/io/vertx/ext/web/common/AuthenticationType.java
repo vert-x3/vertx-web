@@ -15,13 +15,15 @@
  */
 package io.vertx.ext.web.common;
 
+import io.vertx.codegen.annotations.VertxGen;
+
 /**
- *
  *
  * https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
  *
  * @author <a href="mailto:hectorvent@gmail.com">Hector Ventura</a>
  */
+@VertxGen
 public enum AuthenticationType {
 
     BEARER,
