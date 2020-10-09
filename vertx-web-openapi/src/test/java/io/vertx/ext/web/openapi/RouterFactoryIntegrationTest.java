@@ -7,6 +7,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -1274,6 +1275,60 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
         .expect(bodyResponse(body, "application/octet-stream"))
         .with(requestHeader("content-type", "application/octet-stream"))
         .sendBuffer(body, testContext);
+    });
+  }
+
+  @Test
+  public void mountContractEndpoint(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(5);
+    loadFactoryAndStartServer(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext,
+      routerFactory -> {
+      routerFactory.setOptions(
+        new RouterFactoryOptions()
+          .setMountNotImplementedHandler(true)
+          .setRequireSecurityHandlers(false)
+          .setContractEndpoint(RouterFactoryOptions.STANDARD_CONTRACT_ENDPOINT)
+      );
+    }).onComplete(h -> {
+      testRequest(client, HttpMethod.GET, "/openapi")
+        .expect(
+          statusCode(200),
+          responseHeader(HttpHeaders.CONTENT_TYPE.toString(), "text/yaml"),
+          stringBody(body -> assertThat(body).containsIgnoringCase("openapi"))
+        )
+        .send(testContext, checkpoint);
+      testRequest(client, HttpMethod.GET, "/openapi")
+        .with(requestHeader("Accept", "application/json"))
+        .expect(
+          statusCode(200),
+          responseHeader(HttpHeaders.CONTENT_TYPE.toString(), "application/json"),
+          stringBody(body -> assertThat(body).containsIgnoringCase("openapi"))
+        )
+        .send(testContext, checkpoint);
+      testRequest(client, HttpMethod.GET, "/openapi")
+        .with(queryParam("format", "yaml"))
+        .expect(
+          statusCode(200),
+          responseHeader(HttpHeaders.CONTENT_TYPE.toString(), "text/yaml"),
+          stringBody(body -> assertThat(body).containsIgnoringCase("openapi"))
+        )
+        .send(testContext, checkpoint);
+      testRequest(client, HttpMethod.GET, "/openapi")
+        .with(queryParam("format", "json"))
+        .expect(
+          statusCode(200),
+          responseHeader(HttpHeaders.CONTENT_TYPE.toString(), "application/json"),
+          stringBody(body -> assertThat(body).containsIgnoringCase("openapi"))
+        )
+        .send(testContext, checkpoint);
+      testRequest(client, HttpMethod.GET, "/openapi")
+        .with(queryParam("format", "JSON"))
+        .expect(
+          statusCode(200),
+          responseHeader(HttpHeaders.CONTENT_TYPE.toString(), "application/json"),
+          stringBody(body -> assertThat(body).containsIgnoringCase("openapi"))
+        )
+        .send(testContext, checkpoint);
     });
   }
 

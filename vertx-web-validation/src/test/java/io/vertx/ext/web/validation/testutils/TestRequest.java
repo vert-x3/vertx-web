@@ -374,6 +374,12 @@ public class TestRequest {
     };
   }
 
+  public static Consumer<HttpResponse<Buffer>> stringBody(Consumer<String> assertBody) {
+    return res -> {
+      assertBody.accept(res.bodyAsString());
+    };
+  }
+
   public static Consumer<HttpResponse<Buffer>> emptyResponse() {
     return res -> {
       assertNull(res.body());
