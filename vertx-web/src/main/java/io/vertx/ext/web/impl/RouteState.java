@@ -23,6 +23,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.ext.web.MIMEHeader;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.*;
 
@@ -105,8 +106,9 @@ final class RouteState {
   private final boolean pathEndsWithSlash;
   private final boolean exclusive;
   private final boolean exactPath;
+  private final Router subRouter;
 
-  private RouteState(RouteImpl route, Map<String, Object> metadata, String path, String name, int order, boolean enabled, Set<HttpMethod> methods, Set<MIMEHeader> consumes, boolean emptyBodyPermittedWithConsumes, Set<MIMEHeader> produces, List<Handler<RoutingContext>> contextHandlers, List<Handler<RoutingContext>> failureHandlers, boolean added, Pattern pattern, List<String> groups, boolean useNormalizedPath, Set<String> namedGroupsInRegex, Pattern virtualHostPattern, boolean pathEndsWithSlash, boolean exclusive, boolean exactPath) {
+  private RouteState(RouteImpl route, Map<String, Object> metadata, String path, String name, int order, boolean enabled, Set<HttpMethod> methods, Set<MIMEHeader> consumes, boolean emptyBodyPermittedWithConsumes, Set<MIMEHeader> produces, List<Handler<RoutingContext>> contextHandlers, List<Handler<RoutingContext>> failureHandlers, boolean added, Pattern pattern, List<String> groups, boolean useNormalizedPath, Set<String> namedGroupsInRegex, Pattern virtualHostPattern, boolean pathEndsWithSlash, boolean exclusive, boolean exactPath, Router subRouter) {
     this.route = route;
     this.metadata = metadata;
     this.path = path;
@@ -128,6 +130,7 @@ final class RouteState {
     this.pathEndsWithSlash = pathEndsWithSlash;
     this.exclusive = exclusive;
     this.exactPath = exactPath;
+    this.subRouter = subRouter;
   }
 
   RouteState(RouteImpl route, int order) {
@@ -152,7 +155,8 @@ final class RouteState {
       null,
       false,
       false,
-      true);
+      true,
+      null);
   }
 
   public RouteImpl getRoute() {
@@ -192,7 +196,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   public Map<String, Object> getMetadata() {
@@ -225,7 +230,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   public int getOrder() {
@@ -254,7 +260,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   public boolean isEnabled() {
@@ -283,7 +290,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   public Set<HttpMethod> getMethods() {
@@ -312,7 +320,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   public RouteState addMethod(HttpMethod method) {
@@ -337,7 +346,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
 
     newState.methods.add(method);
     return newState;
@@ -369,7 +379,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   RouteState addConsume(MIMEHeader mime) {
@@ -394,7 +405,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
 
     newState.consumes.add(mime);
     return newState;
@@ -426,7 +438,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   public Set<MIMEHeader> getProduces() {
@@ -455,7 +468,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   RouteState addProduce(MIMEHeader mime) {
@@ -480,7 +494,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
 
     newState.produces.add(mime);
     return newState;
@@ -516,7 +531,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   RouteState addContextHandler(Handler<RoutingContext> contextHandler) {
@@ -541,7 +557,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
 
     int len = newState.contextHandlers.size();
     final Priority weight = weight(contextHandler);
@@ -601,7 +618,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   RouteState addFailureHandler(Handler<RoutingContext> failureHandler) {
@@ -626,7 +644,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
 
     newState.failureHandlers.add(failureHandler);
     return newState;
@@ -658,7 +677,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   public Pattern getPattern() {
@@ -687,7 +707,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   public List<String> getGroups() {
@@ -716,7 +737,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   RouteState addGroup(String group) {
@@ -741,7 +763,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
 
     newState.groups.add(group);
     return newState;
@@ -773,7 +796,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   public Set<String> getNamedGroupsInRegex() {
@@ -802,7 +826,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   RouteState addNamedGroupInRegex(String namedGroupInRegex) {
@@ -827,7 +852,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
 
     newState.namedGroupsInRegex.add(namedGroupInRegex);
     return newState;
@@ -859,7 +885,8 @@ final class RouteState {
       virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   public boolean isPathEndsWithSlash() {
@@ -888,11 +915,42 @@ final class RouteState {
       this.virtualHostPattern,
       pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   public boolean isExclusive() {
     return exclusive;
+  }
+
+  public Router getSubRouter() {
+    return subRouter;
+  }
+
+  RouteState setSubRouter(Router subRouter) {
+    return new RouteState(
+      this.route,
+      this.metadata,
+      this.path,
+      this.name,
+      this.order,
+      this.enabled,
+      this.methods,
+      this.consumes,
+      this.emptyBodyPermittedWithConsumes,
+      this.produces,
+      this.contextHandlers,
+      this.failureHandlers,
+      this.added,
+      this.pattern,
+      this.groups,
+      this.useNormalizedPath,
+      this.namedGroupsInRegex,
+      this.virtualHostPattern,
+      this.pathEndsWithSlash,
+      this.exclusive,
+      this.exactPath,
+      subRouter);
   }
 
   RouteState setExclusive(boolean exclusive) {
@@ -917,7 +975,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   public boolean isExactPath() {
@@ -946,7 +1005,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      exactPath);
+      exactPath,
+      this.subRouter);
   }
   RouteState setName(String name) {
     return new RouteState(
@@ -970,7 +1030,8 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.exactPath,
+      this.subRouter);
   }
 
   private boolean containsMethod(HttpServerRequest request) {
@@ -1328,6 +1389,7 @@ final class RouteState {
       ", pathEndsWithSlash=" + pathEndsWithSlash +
       ", exclusive=" + exclusive +
       ", exactPath=" + exactPath +
+      ", subRouter=" + subRouter +
       '}';
   }
 }
