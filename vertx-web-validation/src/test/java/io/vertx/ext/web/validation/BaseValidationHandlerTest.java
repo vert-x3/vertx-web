@@ -12,6 +12,7 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.validation.testutils.ValidationTestUtils;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -36,9 +37,14 @@ public abstract class BaseValidationHandlerTest {
     server = vertx
       .createHttpServer()
       .requestHandler(router)
-      .listen(9000, testContext.succeeding(h -> {
-        testContext.completeNow();
-      }));
+      .listen(9000, testContext.succeedingThenComplete());
+  }
+
+  @AfterEach
+  public void tearDown(VertxTestContext testContext) {
+    if (client != null) client.close();
+    if (server != null) server.close(testContext.succeedingThenComplete());
+    else testContext.completeNow();
   }
 
 }
