@@ -46,13 +46,4 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
       handler.handle(Future.succeededFuture(new TokenCredentials(parseAuthorization.result())));
     });
   }
-
-  @Override
-  public String authenticateHeader(RoutingContext context) {
-    if (realm != null && realm.length() > 0) {
-      return "Bearer realm=\"" + realm + "\"";
-    } else {
-      return null;
-    }
-  }
 }

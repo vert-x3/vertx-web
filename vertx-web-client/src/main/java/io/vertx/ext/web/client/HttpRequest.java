@@ -15,21 +15,18 @@
  */
 package io.vertx.ext.web.client;
 
-import io.vertx.codegen.annotations.CacheReturn;
-import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.codegen.annotations.Nullable;
-import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.codegen.annotations.*;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authentication.Credentials;
+import io.vertx.ext.auth.authentication.TokenCredentials;
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
-import io.vertx.ext.web.common.AuthenticationType;
 import io.vertx.ext.web.multipart.MultipartForm;
 
 import java.util.function.Function;
@@ -142,7 +139,7 @@ public interface HttpRequest<T> {
   /**
    * Configure the request to set a new HTTP header.
    *
-   * @param name the header name
+   * @param name  the header name
    * @param value the header value
    * @return a reference to this, so the API can be used fluently
    */
@@ -152,11 +149,11 @@ public interface HttpRequest<T> {
   /**
    * Configure the request to set a new HTTP header with multiple values.
    *
-   * @param name the header name
+   * @param name  the header name
    * @param value the header value
    * @return a reference to this, so the API can be used fluently
    */
-  @GenIgnore({"permitted-type"})
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   @Fluent
   HttpRequest<T> putHeader(String name, Iterable<String> value);
 
@@ -171,27 +168,11 @@ public interface HttpRequest<T> {
    * <p>
    * Perform a generic authentication providing an AuthenticationType
    *
-   * @param type the authentication type to be used as BASIC, BEARER, DIGEST
-   * @param user the user info
+   * @param credentials    the credentials to use.
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  default HttpRequest<T> authentication(AuthenticationType type, User user) {
-    return authentication(type, user, null);
-  }
-
-  /**
-   * Authenticate the request
-   * <p>
-   * Perform a generic authentication providing an AuthenticationType
-   *
-   * @param type the authentication type to be used as BASIC, BEARER, DIGEST
-   * @param user the user info
-   * @param options extra data info to be used on the specific authentication type
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  HttpRequest<T> authentication(AuthenticationType type, User user, JsonObject options);
+  HttpRequest<T> authentication(Credentials credentials);
 
   /**
    * Configure the request to perform basic access authentication.
@@ -200,18 +181,14 @@ public interface HttpRequest<T> {
    * where credentials is the base64 encoding of id and password joined by a colon.
    * </p>
    *
-   * @param id the id
+   * @param id       the id
    * @param password the password
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
   @Deprecated
-  default HttpRequest<T> basicAuthentication(String id, String password){
-      JsonObject principal = new JsonObject()
-              .put("username", id)
-              .put("password", password);
-     User user = User.create(principal);
-     return authentication(AuthenticationType.BASIC, user);
+  default HttpRequest<T> basicAuthentication(String id, String password) {
+    return authentication(new UsernamePasswordCredentials(id, password));
   }
 
   /**
@@ -221,14 +198,14 @@ public interface HttpRequest<T> {
    * where credentials is the base64 encoding of id and password joined by a colon.
    * </p>
    *
-   * @param id the id
+   * @param id       the id
    * @param password the password
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
   @Deprecated
-  default HttpRequest<T> basicAuthentication(Buffer id, Buffer password){
-      return basicAuthentication(id.toString(), password.toString());
+  default HttpRequest<T> basicAuthentication(Buffer id, Buffer password) {
+    return basicAuthentication(id.toString(), password.toString());
   }
 
   /**
@@ -243,11 +220,8 @@ public interface HttpRequest<T> {
    */
   @Fluent
   @Deprecated
-  default HttpRequest<T> bearerTokenAuthentication(String bearerToken){
-      JsonObject principal = new JsonObject()
-              .put("access_token", bearerToken);
-      User user = User.create(principal);
-      return authentication(AuthenticationType.BEARER, user);
+  default HttpRequest<T> bearerTokenAuthentication(String bearerToken) {
+    return authentication(new TokenCredentials(bearerToken));
   }
 
   @Fluent
@@ -268,7 +242,7 @@ public interface HttpRequest<T> {
   /**
    * Add a query parameter to the request.
    *
-   * @param paramName the param name
+   * @param paramName  the param name
    * @param paramValue the param value
    * @return a reference to this, so the API can be used fluently
    */
@@ -278,7 +252,7 @@ public interface HttpRequest<T> {
   /**
    * Set a query parameter to the request.
    *
-   * @param paramName the param name
+   * @param paramName  the param name
    * @param paramValue the param value
    * @return a reference to this, so the API can be used fluently
    */
@@ -353,8 +327,8 @@ public interface HttpRequest<T> {
   void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
-   * @see HttpRequest#sendStream(ReadStream, Handler)
    * @param body the body
+   * @see HttpRequest#sendStream(ReadStream, Handler)
    */
   default Future<HttpResponse<T>> sendStream(ReadStream<Buffer> body) {
     Promise<HttpResponse<T>> promise = Promise.promise();
@@ -370,8 +344,8 @@ public interface HttpRequest<T> {
   void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
-   * @see HttpRequest#sendBuffer(Buffer, Handler)
    * @param body the body
+   * @see HttpRequest#sendBuffer(Buffer, Handler)
    */
   default Future<HttpResponse<T>> sendBuffer(Buffer body) {
     Promise<HttpResponse<T>> promise = Promise.promise();
@@ -388,8 +362,8 @@ public interface HttpRequest<T> {
   void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
-   * @see HttpRequest#sendJsonObject(JsonObject, Handler)
    * @param body the body
+   * @see HttpRequest#sendJsonObject(JsonObject, Handler)
    */
   default Future<HttpResponse<T>> sendJsonObject(JsonObject body) {
     Promise<HttpResponse<T>> promise = Promise.promise();
@@ -406,8 +380,8 @@ public interface HttpRequest<T> {
   void sendJson(@Nullable Object body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
-   * @see HttpRequest#sendJson(Object, Handler)
    * @param body the body
+   * @see HttpRequest#sendJson(Object, Handler)
    */
   default Future<HttpResponse<T>> sendJson(@Nullable Object body) {
     Promise<HttpResponse<T>> promise = Promise.promise();
@@ -426,8 +400,8 @@ public interface HttpRequest<T> {
   void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
-   * @see HttpRequest#sendForm(MultiMap, Handler)
    * @param body the body
+   * @see HttpRequest#sendForm(MultiMap, Handler)
    */
   default Future<HttpResponse<T>> sendForm(MultiMap body) {
     Promise<HttpResponse<T>> promise = Promise.promise();
@@ -444,8 +418,8 @@ public interface HttpRequest<T> {
   void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
-   * @see HttpRequest#sendMultipartForm(MultipartForm, Handler)
    * @param body the body
+   * @see HttpRequest#sendMultipartForm(MultipartForm, Handler)
    */
   default Future<HttpResponse<T>> sendMultipartForm(MultipartForm body) {
     Promise<HttpResponse<T>> promise = Promise.promise();

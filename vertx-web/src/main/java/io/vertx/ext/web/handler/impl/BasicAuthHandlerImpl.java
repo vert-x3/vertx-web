@@ -69,9 +69,4 @@ public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler<Authenticatio
       handler.handle(Future.succeededFuture(new UsernamePasswordCredentials(suser, spass)));
     });
   }
-
-  @Override
-  public String authenticateHeader(RoutingContext context) {
-    return "Basic realm=\"" + realm + "\"";
-  }
 }

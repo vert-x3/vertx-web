@@ -378,13 +378,4 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
     return this;
   }
-
-  @Override
-  public String authenticateHeader(RoutingContext context) {
-    if (realm != null && realm.length() > 0) {
-      return "Bearer realm=\"" + realm + "\"";
-    } else {
-      return null;
-    }
-  }
 }

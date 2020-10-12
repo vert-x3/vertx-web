@@ -19,9 +19,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
@@ -40,6 +42,7 @@ import io.vertx.ext.web.codec.impl.BodyCodecImpl;
  */
 public class WebClientBase implements WebClientInternal {
 
+  private final AtomicInteger counter = new AtomicInteger(1);
   final HttpClient client;
   final WebClientOptions options;
   private final List<Handler<HttpContext<?>>> interceptors;
@@ -57,6 +60,16 @@ public class WebClientBase implements WebClientInternal {
     this.client = webClient.client;
     this.options = new WebClientOptions(webClient.options);
     this.interceptors = new CopyOnWriteArrayList<>(webClient.interceptors);
+  }
+
+  @Override
+  public Vertx getVertx() {
+    return ((HttpClientImpl) client).getVertx();
+  }
+
+  @Override
+  public int updateNc() {
+    return counter.incrementAndGet();
   }
 
   @Override
@@ -258,7 +271,7 @@ public class WebClientBase implements WebClientInternal {
 
   @Override
   public WebClientInternal addInterceptor(Handler<HttpContext<?>> interceptor) {
-    interceptors.add((Handler) interceptor);
+    interceptors.add(interceptor);
     return this;
   }
 

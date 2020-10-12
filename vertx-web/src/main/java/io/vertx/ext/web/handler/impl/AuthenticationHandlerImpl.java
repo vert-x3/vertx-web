@@ -40,12 +40,16 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
   protected final T authProvider;
 
   public AuthenticationHandlerImpl(T authProvider) {
-    this(authProvider, "");
+    this(authProvider, null);
   }
 
   public AuthenticationHandlerImpl(T authProvider, String realm) {
     this.authProvider = authProvider;
-    this.realm = realm;
+    this.realm = realm == null ? null : realm
+      // avoid breaking lines
+      .replaceAll("\\r\\n?", "")
+      // escape quotes
+      .replaceAll("\"", "\\\"");
   }
 
   @Override

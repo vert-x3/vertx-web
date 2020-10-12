@@ -25,20 +25,15 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
-import io.vertx.ext.web.common.AuthenticationType;
-import static io.vertx.ext.web.common.AuthenticationType.BASIC;
-import static io.vertx.ext.web.common.AuthenticationType.BEARER;
-import static io.vertx.ext.web.common.AuthenticationType.DIGEST;
 import io.vertx.ext.web.multipart.MultipartForm;
 
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 /**
@@ -189,29 +184,10 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
-  public HttpRequest<T> authentication(AuthenticationType type, User user, JsonObject options) {
-    JsonObject principal = user.principal();
-
-    switch(type){
-      case BASIC:
-        String username = principal.getString("username");
-        String password = principal.getString("password");
-
-        Buffer buff = Buffer.buffer().appendString(username).appendString(":").appendString(password);
-        String credentials =  new String(Base64.getEncoder().encode(buff.getBytes()));
-        putHeader(HttpHeaders.AUTHORIZATION.toString(), "Basic " + credentials);
-        break;
-
-      case BEARER:
-        String bearerToken = principal.getString("access_token");
-        putHeader(HttpHeaders.AUTHORIZATION.toString(), "Bearer " + bearerToken);
-        break;
-
-      case DIGEST:
-        //TODO implement
-      default:
-        throw new UnsupportedOperationException("not implemented/unsupported");
-    }
+  public HttpRequest<T> authentication(Credentials credentials) {
+    putHeader(
+      HttpHeaders.AUTHORIZATION.toString(),
+      credentials.toHttpAuthorization(client.getVertx(), method, uri, client.updateNc()));
 
     return this;
   }
