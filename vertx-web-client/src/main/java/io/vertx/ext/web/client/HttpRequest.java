@@ -153,8 +153,8 @@ public interface HttpRequest<T> {
    * @param value the header value
    * @return a reference to this, so the API can be used fluently
    */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   HttpRequest<T> putHeader(String name, Iterable<String> value);
 
   /**
@@ -182,15 +182,15 @@ public interface HttpRequest<T> {
    * In basic HTTP authentication, a request contains a header field of the form 'Authorization: Basic &#60;credentials&#62;',
    * where credentials is the base64 encoding of id and password joined by a colon.
    * </p>
+   * In practical terms the arguments are converted to a {@link UsernamePasswordCredentials} object.
    *
    * @param id       the id
    * @param password the password
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  @Deprecated
   default HttpRequest<T> basicAuthentication(String id, String password) {
-    return authentication(new UsernamePasswordCredentials(id, password).applyHttpChallenge("Basic realm=\"\""));
+    return authentication(new UsernamePasswordCredentials(id, password).applyHttpChallenge(null));
   }
 
   /**
@@ -199,15 +199,15 @@ public interface HttpRequest<T> {
    * In basic HTTP authentication, a request contains a header field of the form 'Authorization: Basic &#60;credentials&#62;',
    * where credentials is the base64 encoding of id and password joined by a colon.
    * </p>
+   * In practical terms the arguments are converted to a {@link UsernamePasswordCredentials} object.
    *
    * @param id       the id
    * @param password the password
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  @Deprecated
   default HttpRequest<T> basicAuthentication(Buffer id, Buffer password) {
-    return authentication(new UsernamePasswordCredentials(id.toString(), password.toString()).applyHttpChallenge("Basic realm=\"\""));
+    return basicAuthentication(id.toString(), password.toString());
   }
 
   /**
@@ -216,14 +216,14 @@ public interface HttpRequest<T> {
    * In OAuth 2.0, a request contains a header field of the form 'Authorization: Bearer &#60;bearerToken&#62;',
    * where bearerToken is the bearer token issued by an authorization server to access protected resources.
    * </p>
+   * In practical terms the arguments are converted to a {@link TokenCredentials} object.
    *
    * @param bearerToken the bearer token
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  @Deprecated
   default HttpRequest<T> bearerTokenAuthentication(String bearerToken) {
-    return authentication(new TokenCredentials(bearerToken).applyHttpChallenge("Bearer realm=\"\""));
+    return authentication(new TokenCredentials(bearerToken).applyHttpChallenge(null));
   }
 
   @Fluent
