@@ -17,7 +17,6 @@ package io.vertx.ext.web.client.impl;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 
@@ -25,14 +24,6 @@ import io.vertx.ext.web.client.WebClient;
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 public interface WebClientInternal extends WebClient {
-
-  Vertx getVertx();
-
-  /**
-   * Internal client counter updater. This counter is required to implement <a href="https://tools.ietf.org/html/rfc7235">HTTP Authorization</a>.
-   * @return returns the next value of this client sequence.
-   */
-  int updateNc();
 
   <T> HttpContext<T> createContext(Handler<AsyncResult<HttpResponse<T>>> handler);
 

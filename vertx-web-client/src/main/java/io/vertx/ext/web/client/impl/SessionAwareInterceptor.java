@@ -77,7 +77,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       return;
     }
 
-    WebClientSessionAware webclient = (WebClientSessionAware) ((HttpRequestImpl)context.request()).client;
+    WebClientSessionAware webclient = (WebClientSessionAware) ((HttpRequestImpl<?>)context.request()).client;
     HttpRequestImpl<?> originalRequest = (HttpRequestImpl<?>) context.request();
     CookieStore cookieStore = webclient.cookieStore();
     String domain = URI.create(context.clientResponse().request().absoluteURI()).getHost();
@@ -159,7 +159,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       return;
     }
 
-    WebClientSessionAware webclient = (WebClientSessionAware) ((HttpRequestImpl)context.request()).client;
+    WebClientSessionAware webclient = (WebClientSessionAware) ((HttpRequestImpl<?>)context.request()).client;
     HttpRequestImpl<?> request = (HttpRequestImpl<?>) context.request();
     CookieStore cookieStore = webclient.cookieStore();
     cookieHeaders.forEach(header -> {

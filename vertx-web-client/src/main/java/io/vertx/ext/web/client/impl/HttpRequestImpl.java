@@ -187,7 +187,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   public HttpRequest<T> authentication(Credentials credentials) {
     putHeader(
       HttpHeaders.AUTHORIZATION.toString(),
-      credentials.toHttpAuthorization(client.getVertx(), method, uri, client.updateNc()));
+      credentials.toHttpAuthorization());
 
     return this;
   }

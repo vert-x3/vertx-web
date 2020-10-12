@@ -15,6 +15,9 @@ import io.vertx.core.net.ProxyType;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
+import io.vertx.ext.auth.authentication.TokenCredentials;
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
+import io.vertx.ext.auth.htdigest.HtdigestCredentials;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.ext.web.client.predicate.ErrorConverter;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
@@ -72,7 +75,7 @@ public class WebClientTest extends WebClientTestBase {
   @Test
   public void testBasicAuthentication() throws Exception {
     testRequest(
-      client -> client.get("somehost", "somepath").basicAuthentication("ém$¨=!$€", "&@#§$*éà#\"'"),
+      client -> client.get("somehost", "somepath").authentication(new UsernamePasswordCredentials("ém$¨=!$€", "&@#§$*éà#\"'")),
       req -> {
         String auth = req.headers().get(HttpHeaders.AUTHORIZATION);
         assertEquals("Was expecting authorization header to contain a basic authentication string", "Basic w6ltJMKoPSEk4oKsOiZAI8KnJCrDqcOgIyIn", auth);
@@ -83,10 +86,34 @@ public class WebClientTest extends WebClientTestBase {
   @Test
   public void testBearerTokenAuthentication() throws Exception {
     testRequest(
-      client -> client.get("somehost", "somepath").bearerTokenAuthentication("sometoken"),
+      client -> client.get("somehost", "somepath").authentication(new TokenCredentials("sometoken")),
       req -> {
         String auth = req.headers().get(HttpHeaders.AUTHORIZATION);
         assertEquals("Was expecting authorization header to contain a bearer token authentication string", "Bearer sometoken", auth);
+      }
+    );
+  }
+
+  @Test
+  public void testDigestAuthentication() throws Exception {
+    testRequest(
+      client -> client.get("somehost", "/dir/index.html")
+        .authentication(
+          // like on wikipedia
+          new HtdigestCredentials("Mufasa", "Circle Of Life")
+          .applyHttpChallenge(
+            "Digest realm=\"testrealm@host.com\", qop=\"auth,auth-int\", nonce=\"dcd98b7102dd2f0e8b11d0f600bfb0c093\", opaque=\"5ccc069c403ebaf9f0171e9517f40e41\"",
+            HttpMethod.GET,
+            "/dir/index.html",
+            1,
+            "0a4f113b"
+          )
+        ),
+      req -> {
+        String auth = req.headers().get(HttpHeaders.AUTHORIZATION);
+        String expected = "Digest username=\"Mufasa\", realm=\"testrealm@host.com\", nonce=\"dcd98b7102dd2f0e8b11d0f600bfb0c093\", uri=\"/dir/index.html\", qop=auth, nc=1, cnonce=\"0a4f113b\", response=\"95c727b8ed724ea2be8e9318e0e4f619\", opaque=\"5ccc069c403ebaf9f0171e9517f40e41\"";
+
+        assertEquals("Was expecting authorization header to contain a digest authentication string", expected, auth);
       }
     );
   }

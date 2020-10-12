@@ -164,9 +164,11 @@ public interface HttpRequest<T> {
   MultiMap headers();
 
   /**
-   * Authenticate the request
+   * Configure the request to perform HTTP Authentication.
    * <p>
-   * Perform a generic authentication providing an AuthenticationType
+   * Performs a generic authentication using the credentials provided by the user. For the sake of validation safety
+   * it is recommended that {@link Credentials#applyHttpChallenge(String)} is called to ensure that the credentials
+   * are applicable to the HTTP Challenged received on a previous request that returned a 401 response code.
    *
    * @param credentials    the credentials to use.
    * @return a reference to this, so the API can be used fluently
@@ -188,7 +190,7 @@ public interface HttpRequest<T> {
   @Fluent
   @Deprecated
   default HttpRequest<T> basicAuthentication(String id, String password) {
-    return authentication(new UsernamePasswordCredentials(id, password));
+    return authentication(new UsernamePasswordCredentials(id, password).applyHttpChallenge("Basic realm=\"\""));
   }
 
   /**
@@ -205,7 +207,7 @@ public interface HttpRequest<T> {
   @Fluent
   @Deprecated
   default HttpRequest<T> basicAuthentication(Buffer id, Buffer password) {
-    return basicAuthentication(id.toString(), password.toString());
+    return authentication(new UsernamePasswordCredentials(id.toString(), password.toString()).applyHttpChallenge("Basic realm=\"\""));
   }
 
   /**
@@ -221,7 +223,7 @@ public interface HttpRequest<T> {
   @Fluent
   @Deprecated
   default HttpRequest<T> bearerTokenAuthentication(String bearerToken) {
-    return authentication(new TokenCredentials(bearerToken));
+    return authentication(new TokenCredentials(bearerToken).applyHttpChallenge("Bearer realm=\"\""));
   }
 
   @Fluent

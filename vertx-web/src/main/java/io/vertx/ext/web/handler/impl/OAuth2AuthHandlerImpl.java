@@ -149,17 +149,8 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
           handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(redirectUri, state, codeVerifier))));
         }
       } else {
-        // attempt to decode the token and handle it as a user
-        authProvider.authenticate(new TokenCredentials(token), decodeToken -> {
-          if (decodeToken.failed()) {
-            handler.handle(Future.failedFuture(new HttpStatusException(401, decodeToken.cause().getMessage())));
-            return;
-          }
-
-          context.setUser(decodeToken.result());
-          // continue
-          handler.handle(Future.succeededFuture());
-        });
+        // continue
+        handler.handle(Future.succeededFuture(new TokenCredentials(token)));
       }
     });
   }

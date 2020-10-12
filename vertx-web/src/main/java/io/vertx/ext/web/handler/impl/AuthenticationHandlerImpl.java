@@ -46,10 +46,13 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
   public AuthenticationHandlerImpl(T authProvider, String realm) {
     this.authProvider = authProvider;
     this.realm = realm == null ? null : realm
-      // avoid breaking lines
-      .replaceAll("\\r\\n?", "")
       // escape quotes
       .replaceAll("\"", "\\\"");
+
+    if (this.realm != null &&
+      (this.realm.indexOf('\r') != -1 || this.realm.indexOf('\n') != -1)) {
+      throw new IllegalArgumentException("Not allowed [\\r|\\n] characters detected on realm name");
+    }
   }
 
   @Override
@@ -71,21 +74,6 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
         processException(ctx, res.cause());
         return;
       }
-      // check if the user has been set
-      User updatedUser = ctx.user();
-
-      if (updatedUser != null) {
-        Session session = ctx.session();
-        if (session != null) {
-          // the user has upgraded from unauthenticated to authenticated
-          // session should be upgraded as recommended by owasp
-          session.regenerateId();
-        }
-        // proceed with the router
-        postAuthentication(ctx);
-        return;
-      }
-
       // proceed to authN
       getAuthProvider(ctx).authenticate(res.result(), authN -> {
         if (authN.succeeded()) {
