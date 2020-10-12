@@ -2,7 +2,7 @@ package io.vertx.ext.web.openapi.impl;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.openapi.OpenAPIHolder;
-import io.vertx.ext.web.openapi.RouterFactoryException;
+import io.vertx.ext.web.openapi.RouterBuilderException;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -51,7 +51,7 @@ public class OpenAPI3PathResolver {
    */
   public Optional<Pattern> solve() {
     if (ILLEGAL_PATH_MATCHER.matcher(oasPath).matches())
-      throw RouterFactoryException.createUnsupportedSpecFeature("Path template not supported");
+      throw RouterBuilderException.createUnsupportedSpecFeature("Path template not supported");
 
     Matcher parametersMatcher = OAS_PATH_PARAMETERS_PATTERN.matcher(oasPath);
 
@@ -214,7 +214,8 @@ public class OpenAPI3PathResolver {
             }
           }
         } else {
-          throw RouterFactoryException.createUnsupportedSpecFeature("Missing parameter definition for parameter name: " + paramName);
+          throw RouterBuilderException.createUnsupportedSpecFeature("Missing parameter definition for parameter name:" +
+            " " + paramName);
         }
         i++;
       }

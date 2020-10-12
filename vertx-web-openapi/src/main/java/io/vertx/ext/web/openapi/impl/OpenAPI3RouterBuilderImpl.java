@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class OpenAPI3RouterFactoryImpl implements RouterFactory {
+public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
 
   private final static String OPENAPI_EXTENSION = "x-vertx-event-bus";
   private final static String OPENAPI_EXTENSION_ADDRESS = "address";
@@ -50,7 +50,7 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
 
   private Vertx vertx;
   private OpenAPIHolder openapi;
-  private RouterFactoryOptions options;
+  private RouterBuilderOptions options;
   private Map<String, OperationImpl> operations;
   private BodyHandler bodyHandler;
   private AuthenticationHandlersStore securityHandlers;
@@ -60,10 +60,10 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
   private OpenAPI3SchemaParser schemaParser;
   private OpenAPI3ValidationHandlerGenerator validationHandlerGenerator;
 
-  public OpenAPI3RouterFactoryImpl(Vertx vertx, OpenAPIHolderImpl spec, OpenAPILoaderOptions options) {
+  public OpenAPI3RouterBuilderImpl(Vertx vertx, OpenAPIHolderImpl spec, OpenAPILoaderOptions options) {
     this.vertx = vertx;
     this.openapi = spec;
-    this.options = new RouterFactoryOptions();
+    this.options = new RouterBuilderOptions();
     this.bodyHandler = BodyHandler.create();
     this.globalHandlers = new ArrayList<>();
     this.schemaRouter = SchemaRouter.create(vertx, options.toSchemaRouterOptions());
@@ -119,14 +119,14 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
   }
 
   @Override
-  public RouterFactory setOptions(RouterFactoryOptions options) {
+  public RouterBuilder setOptions(RouterBuilderOptions options) {
     Objects.requireNonNull(options);
     this.options = options;
     return this;
   }
 
   @Override
-  public RouterFactoryOptions getOptions() {
+  public RouterBuilderOptions getOptions() {
     return options;
   }
 
@@ -146,13 +146,13 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
   }
 
   @Override
-  public RouterFactory serviceExtraPayloadMapper(Function<RoutingContext, JsonObject> serviceExtraPayloadMapper) {
+  public RouterBuilder serviceExtraPayloadMapper(Function<RoutingContext, JsonObject> serviceExtraPayloadMapper) {
     this.serviceExtraPayloadMapper = serviceExtraPayloadMapper;
     return this;
   }
 
   @Override
-  public RouterFactory securityHandler(String securitySchemaName, AuthenticationHandler handler) {
+  public RouterBuilder securityHandler(String securitySchemaName, AuthenticationHandler handler) {
     Objects.requireNonNull(securitySchemaName);
     Objects.requireNonNull(handler);
     securityHandlers.addAuthnRequirement(securitySchemaName, handler);
@@ -167,23 +167,26 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
   @Override
   public Operation operation(String operationId) {
     Objects.requireNonNull(operationId);
+    if (!this.operations.containsKey(operationId)) {
+      throw new IllegalArgumentException("Cannot find the operation " + operationId);
+    }
     return this.operations.get(operationId);
   }
 
   @Override
-  public RouterFactory bodyHandler(BodyHandler bodyHandler) {
+  public RouterBuilder bodyHandler(BodyHandler bodyHandler) {
     this.bodyHandler = bodyHandler;
     return this;
   }
 
   @Override
-  public RouterFactory rootHandler(Handler<RoutingContext> rootHandler) {
+  public RouterBuilder rootHandler(Handler<RoutingContext> rootHandler) {
     this.globalHandlers.add(rootHandler);
     return this;
   }
 
   @Override
-  public RouterFactory mountServiceInterface(Class interfaceClass, String address) {
+  public RouterBuilder mountServiceInterface(Class interfaceClass, String address) {
     for (Method m : interfaceClass.getMethods()) {
       if (OpenAPI3Utils.serviceProxyMethodIsCompatibleHandler(m)) {
         String methodName = m.getName();
@@ -201,10 +204,11 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
   }
 
   @Override
-  public RouterFactory mountServicesFromExtensions() {
+  public RouterBuilder mountServicesFromExtensions() {
     for (Map.Entry<String, OperationImpl> opEntry : operations.entrySet()) {
       OperationImpl operation = opEntry.getValue();
-      Object extensionVal = OpenAPI3Utils.getAndMergeServiceExtension(OPENAPI_EXTENSION, OPENAPI_EXTENSION_ADDRESS, OPENAPI_EXTENSION_METHOD_NAME, operation.getPathModel(), operation.getOperationModel());
+      Object extensionVal = OpenAPI3Utils.getAndMergeServiceExtension(OPENAPI_EXTENSION, OPENAPI_EXTENSION_ADDRESS,
+        OPENAPI_EXTENSION_METHOD_NAME, operation.getPathModel(), operation.getOperationModel());
 
       if (extensionVal != null) {
         if (extensionVal instanceof String) {
@@ -215,13 +219,14 @@ public class OpenAPI3RouterFactoryImpl implements RouterFactory {
           String methodName = extensionMap.getString(OPENAPI_EXTENSION_METHOD_NAME);
           JsonObject sanitizedMap = OpenAPI3Utils.sanitizeDeliveryOptionsExtension(extensionMap);
           if (address == null)
-            throw RouterFactoryException.createWrongExtension("Extension " + OPENAPI_EXTENSION + " must define " + OPENAPI_EXTENSION_ADDRESS); //TODO specify where
+            throw RouterBuilderException.createWrongExtension("Extension " + OPENAPI_EXTENSION + " must define " + OPENAPI_EXTENSION_ADDRESS); //TODO specify where
           if (methodName == null)
             operation.mountRouteToService(address, opEntry.getKey());
           else
             operation.mountRouteToService(address, methodName, new DeliveryOptions(sanitizedMap));
         } else {
-          throw RouterFactoryException.createWrongExtension("Extension " + OPENAPI_EXTENSION + " must be or string or a JsonObject"); //TODO specify where
+          throw RouterBuilderException.createWrongExtension("Extension " + OPENAPI_EXTENSION + " must be or string or" +
+            " a JsonObject"); //TODO specify where
         }
       }
     }

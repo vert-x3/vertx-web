@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: Test spec for OpenAPI3RouterFactoryTest.customBodyHandlerTest()
+  title: Test spec for OpenAPI3RouterBuilderTest.customBodyHandlerTest()
 paths:
   /upload:
     post:

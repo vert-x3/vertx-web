@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: Test spec for OpenAPI3RouterFactoryTest consumes and produces tests
+  title: Test spec for OpenAPI3RouterBuilderTest consumes and produces tests
   license:
     name: Apache 2.0 License
 paths:

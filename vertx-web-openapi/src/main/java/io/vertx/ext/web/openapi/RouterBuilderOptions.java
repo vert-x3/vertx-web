@@ -12,36 +12,36 @@ import java.util.function.Function;
  * @author Francesco Guardiani @slinkydeveloper
  */
 @DataObject(generateConverter = true, publicConverter = false)
-public class RouterFactoryOptions {
+public class RouterBuilderOptions {
 
   /**
-   * By default, RouterFactory mounts Not Implemented/Method Not Allowed handler
+   * By default, RouterBuilder mounts Not Implemented/Method Not Allowed handler
    */
   public final static boolean DEFAULT_MOUNT_NOT_IMPLEMENTED_HANDLER = true;
 
   /**
-   * By default, RouterFactory requires security handlers
+   * By default, RouterBuilder requires security handlers
    * to be defined while calling getRouter() or it will throw an Exception
    */
   public final static boolean DEFAULT_REQUIRE_SECURITY_HANDLERS = true;
 
   /**
-   * By default, RouterFactory will mount ResponseContentTypeHandler when required
+   * By default, RouterBuilder will mount ResponseContentTypeHandler when required
    */
   public final static boolean DEFAULT_MOUNT_RESPONSE_CONTENT_TYPE_HANDLER = true;
 
   /**
-   * By default, RouterFactory will not expose operation configuration in the the routing context
+   * By default, RouterBuilder will not expose operation configuration in the the routing context
    */
   public final static String DEFAULT_OPERATION_MODEL_KEY = null;
 
   /**
-   * By default, RouterFactory will name routes by open api path.
+   * By default, RouterBuilder will name routes by open api path.
    */
   public final static RouteNamingStrategy DEFAULT_ROUTE_NAMING_STRATEGY = RouteNamingStrategy.OPERATION_OPENAPI_PATH;
 
   /**
-   * By default, RouterFactory won't serve the contract
+   * By default, RouterBuilder won't serve the contract
    */
   public final static String DEFAULT_CONTRACT_ENDPOINT = null;
 
@@ -58,16 +58,16 @@ public class RouterFactoryOptions {
   private RouteNamingStrategy routeNamingStrategy;
   private String contractEndpoint;
 
-  public RouterFactoryOptions() {
+  public RouterBuilderOptions() {
     init();
   }
 
-  public RouterFactoryOptions(JsonObject json) {
+  public RouterBuilderOptions(JsonObject json) {
     init();
-    RouterFactoryOptionsConverter.fromJson(json, this);
+    RouterBuilderOptionsConverter.fromJson(json, this);
   }
 
-  public RouterFactoryOptions(RouterFactoryOptions other) {
+  public RouterBuilderOptions(RouterBuilderOptions other) {
     this.mountNotImplementedHandler = other.isMountNotImplementedHandler();
     this.requireSecurityHandlers = other.isRequireSecurityHandlers();
     this.mountResponseContentTypeHandler = other.isMountResponseContentTypeHandler();
@@ -78,7 +78,7 @@ public class RouterFactoryOptions {
 
   public JsonObject toJson() {
     JsonObject json = new JsonObject();
-    RouterFactoryOptionsConverter.toJson(this, json);
+    RouterBuilderOptionsConverter.toJson(this, json);
     return json;
   }
 
@@ -96,14 +96,15 @@ public class RouterFactoryOptions {
   }
 
   /**
-   * If true, Router Factory will automatically mount an handler that return HTTP 405/501 status code for each operation where you didn't specify an handler.
+   * If true, Router builder will automatically mount an handler that return HTTP 405/501 status code for each
+   * operation where you didn't specify an handler.
    * You can customize the response with {@link io.vertx.ext.web.Router#errorHandler(int, Handler)}
    *
    * @param mountOperationsWithoutHandler
    * @return this object
    */
   @Fluent
-  public RouterFactoryOptions setMountNotImplementedHandler(boolean mountOperationsWithoutHandler) {
+  public RouterBuilderOptions setMountNotImplementedHandler(boolean mountOperationsWithoutHandler) {
     this.mountNotImplementedHandler = mountOperationsWithoutHandler;
     return this;
   }
@@ -113,14 +114,15 @@ public class RouterFactoryOptions {
   }
 
   /**
-   * If true, when you call {@link RouterFactory#createRouter()} ()} the factory will mount for every path
-   * the required security handlers and, if a security handler is not defined, it throws an {@link RouterFactoryException}
+   * If true, when you call {@link RouterBuilder#createRouter()} ()} the factory will mount for every path
+   * the required security handlers and, if a security handler is not defined, it throws an
+   * {@link RouterBuilderException}
    *
    * @param requireSecurityHandlers
    * @return this object
    */
   @Fluent
-  public RouterFactoryOptions setRequireSecurityHandlers(boolean requireSecurityHandlers) {
+  public RouterBuilderOptions setRequireSecurityHandlers(boolean requireSecurityHandlers) {
     this.requireSecurityHandlers = requireSecurityHandlers;
     return this;
   }
@@ -131,11 +133,12 @@ public class RouterFactoryOptions {
 
   /**
    * If true, when required, the factory will mount a {@link io.vertx.ext.web.handler.ResponseContentTypeHandler}
+   *
    * @param mountResponseContentTypeHandler
    * @return
    */
   @Fluent
-  public RouterFactoryOptions setMountResponseContentTypeHandler(boolean mountResponseContentTypeHandler) {
+  public RouterBuilderOptions setMountResponseContentTypeHandler(boolean mountResponseContentTypeHandler) {
     this.mountResponseContentTypeHandler = mountResponseContentTypeHandler;
     return this;
   }
@@ -147,11 +150,12 @@ public class RouterFactoryOptions {
   /**
    * When set, an additional handler will be created to expose the operation model in the routing
    * context under the given key. When the key is null, the handler is not added.
+   *
    * @param operationModelKey
    * @return
    */
   @Fluent
-  public RouterFactoryOptions setOperationModelKey(String operationModelKey) {
+  public RouterBuilderOptions setOperationModelKey(String operationModelKey) {
     this.operationModelKey = operationModelKey;
     return this;
   }
@@ -167,7 +171,7 @@ public class RouterFactoryOptions {
    * @return this object
    */
   @Fluent
-  public RouterFactoryOptions setRouteNamingStrategy(RouteNamingStrategy routeNamingStrategy) {
+  public RouterBuilderOptions setRouteNamingStrategy(RouteNamingStrategy routeNamingStrategy) {
     this.routeNamingStrategy = routeNamingStrategy;
     return this;
   }
@@ -185,7 +189,7 @@ public class RouterFactoryOptions {
    * @return this object
    */
   @Fluent
-  public RouterFactoryOptions setContractEndpoint(String contractEndpoint) {
+  public RouterBuilderOptions setContractEndpoint(String contractEndpoint) {
     this.contractEndpoint = contractEndpoint;
     return this;
   }

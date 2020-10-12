@@ -14,29 +14,29 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.openapi.impl.OpenAPI3RouterFactoryImpl;
+import io.vertx.ext.web.openapi.impl.OpenAPI3RouterBuilderImpl;
 import io.vertx.ext.web.openapi.impl.OpenAPIHolderImpl;
 
 import java.util.List;
 import java.util.function.Function;
 
 /**
- * Interface for OpenAPI3RouterFactory. <br/>
- * To add an handler, use {@link RouterFactory#operation(String)} (String, Handler)}<br/>
+ * Interface to build a Vert.x Web {@link Router} from an OpenAPI 3 contract. <br/>
+ * To add an handler, use {@link RouterBuilder#operation(String)} (String, Handler)}<br/>
  * Usage example:
  * <pre>
  * {@code
- * RouterFactory.create(vertx, "src/resources/spec.yaml", asyncResult -> {
+ * RouterBuilder.create(vertx, "src/resources/spec.yaml", asyncResult -> {
  *  if (!asyncResult.succeeded()) {
  *     // IO failure or spec invalid
  *  } else {
- *     OpenAPI3RouterFactory routerFactory = asyncResult.result();
- *     routerFactory.operation("operation_id").handler(routingContext -> {
+ *     RouterBuilder routerBuilder = asyncResult.result();
+ *     RouterBuilder.operation("operation_id").handler(routingContext -> {
  *        // Do something
  *     }, routingContext -> {
  *        // Do something with failure handler
  *     });
- *     Router router = routerFactory.createRouter();
+ *     Router router = routerBuilder.createRouter();
  *  }
  * });
  * }
@@ -55,20 +55,19 @@ import java.util.function.Function;
  * @author Francesco Guardiani @slinkydeveloper
  */
 @VertxGen
-public interface RouterFactory {
+public interface RouterBuilder {
 
   /**
    * Access to an operation defined in the contract with {@code operationId}
    *
-   * @param operationId
-   * @return
+   * @param operationId the id of the operation
+   * @return the requested operation
+   * @throws IllegalArgumentException if the operation id doesn't exist in the contract
    */
   @Nullable Operation operation(String operationId);
 
   /**
-   * Access to all operations defined in the contract
-   *
-   * @return
+   * @return all operations defined in the contract
    */
   List<Operation> operations();
 
@@ -81,81 +80,89 @@ public interface RouterFactory {
    * @return self
    */
   @Fluent
-  RouterFactory bodyHandler(@Nullable BodyHandler bodyHandler);
+  RouterBuilder bodyHandler(@Nullable BodyHandler bodyHandler);
 
   /**
    * Add global handler to be applied prior to {@link Router} being generated. <br/>
-   * Please note that you should not add a body handler inside that list. If you want to modify the body handler, please use {@link RouterFactory#bodyHandler(BodyHandler)}
+   * Please note that you should not add a body handler inside that list. If you want to modify the body handler,
+   * please use {@link RouterBuilder#bodyHandler(BodyHandler)}
    *
    * @param rootHandler
-   * @return this factory
+   * @return self
    */
   @Fluent
-  RouterFactory rootHandler(Handler<RoutingContext> rootHandler);
+  RouterBuilder rootHandler(Handler<RoutingContext> rootHandler);
 
   /**
    * Mount to paths that have to follow a security schema a security handler
    *
    * @param securitySchemaName
    * @param handler
-   * @return this factory
+   * @return self
    */
   @Fluent
-  RouterFactory securityHandler(String securitySchemaName, AuthenticationHandler handler);
+  RouterBuilder securityHandler(String securitySchemaName, AuthenticationHandler handler);
 
   /**
-   * Introspect the OpenAPI spec to mount handlers for all operations that specifies a x-vertx-event-bus annotation. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-service/java/">vertx-web-api-service documentation</a> for more informations
+   * Introspect the OpenAPI spec to mount handlers for all operations that specifies a x-vertx-event-bus annotation.
+   * Please give a look at
+   * <a href="https://vertx.io/docs/vertx-web-api-service/java/">vertx-web-api-service documentation</a>
+   * for more informations
    *
-   * @return this factory
+   * @return self
    */
   @Fluent
-  RouterFactory mountServicesFromExtensions();
+  RouterBuilder mountServicesFromExtensions();
 
   /**
-   * Introspect the Web Api Service interface to route to service all matching method names with operation ids. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-service/java/">vertx-web-api-service documentation</a> for more informations
+   * Introspect the Web Api Service interface to route to service all matching method names with operation ids.
+   * Please give a look at
+   * <a href="https://vertx.io/docs/vertx-web-api-service/java/">vertx-web-api-service documentation</a>
+   * for more informations
    *
-   * @return this factory
+   * @return self
    */
   @Fluent
   @GenIgnore
-  RouterFactory mountServiceInterface(Class interfaceClass, String address);
+  RouterBuilder mountServiceInterface(Class interfaceClass, String address);
 
   /**
-   * Set options of router factory. For more info {@link RouterFactoryOptions}
+   * Set options of router builder. For more info {@link RouterBuilderOptions}
    *
    * @param options
-   * @return this factory
+   * @return self
    */
   @Fluent
-  RouterFactory setOptions(RouterFactoryOptions options);
+  RouterBuilder setOptions(RouterBuilderOptions options);
 
   /**
-   * @return options of router factory. For more info {@link RouterFactoryOptions}
+   * @return options of router builder. For more info {@link RouterBuilderOptions}
    */
-  RouterFactoryOptions getOptions();
+  RouterBuilderOptions getOptions();
 
   /**
-   * @return holder used by this factory to process the OpenAPI. You can use it to resolve {@code $ref}s
+   * @return holder used by self to process the OpenAPI. You can use it to resolve {@code $ref}s
    */
   OpenAPIHolder getOpenAPI();
 
   /**
-   * @return schema router used by this factory to internally manage all {@link io.vertx.ext.json.schema.Schema} instances
+   * @return schema router used by self to internally manage all {@link io.vertx.ext.json.schema.Schema} instances
    */
   SchemaRouter getSchemaRouter();
 
   /**
-   * @return schema parser used by this factory to parse all {@link io.vertx.ext.json.schema.Schema}
+   * @return schema parser used by self to parse all {@link io.vertx.ext.json.schema.Schema}
    */
   SchemaParser getSchemaParser();
 
   /**
    * When set, this function is called while creating the payload of {@link io.vertx.ext.web.api.service.ServiceRequest}
+   *
    * @param serviceExtraPayloadMapper
-   * @return this factory
+   * @return self
    */
   @Fluent
-  RouterFactory serviceExtraPayloadMapper(Function<RoutingContext, JsonObject> serviceExtraPayloadMapper);
+  RouterBuilder serviceExtraPayloadMapper(Function<RoutingContext, JsonObject> serviceExtraPayloadMapper);
 
   /**
    * Construct a new router based on spec. It will fail if you are trying to mount a spec with security schemes
@@ -169,51 +176,53 @@ public interface RouterFactory {
 
 
   /**
-   * Create a new {@link RouterFactory}
+   * Create a new {@link RouterBuilder}
    *
    * @param vertx
-   * @param url location of your spec. It can be an absolute path, a local path or remote url (with HTTP/HTTPS protocol)
+   * @param url   location of your spec. It can be an absolute path, a local path or remote url (with HTTP/HTTPS
+   *              protocol)
    * @return Future completed with success when specification is loaded and valid
    */
-  static Future<RouterFactory> create(Vertx vertx, String url) {
+  static Future<RouterBuilder> create(Vertx vertx, String url) {
     return create(vertx, url, new OpenAPILoaderOptions());
   }
 
   /**
    * Like {@link this#create(Vertx, String)}
    */
-  static void create(Vertx vertx, String url, Handler<AsyncResult<RouterFactory>> handler) {
-    RouterFactory.create(vertx, url).onComplete(handler);
+  static void create(Vertx vertx, String url, Handler<AsyncResult<RouterBuilder>> handler) {
+    RouterBuilder.create(vertx, url).onComplete(handler);
   }
 
   /**
-   * Create a new {@link RouterFactory}
+   * Create a new {@link RouterBuilder}
    *
    * @param vertx
-   * @param url location of your spec. It can be an absolute path, a local path or remote url (with HTTP/HTTPS protocol)
+   * @param url     location of your spec. It can be an absolute path, a local path or remote url (with HTTP/HTTPS
+   *                protocol)
    * @param options options for specification loading
    * @return Future completed with success when specification is loaded and valid
    */
-  static Future<RouterFactory> create(Vertx vertx,
-                     String url,
-                     OpenAPILoaderOptions options) {
+  static Future<RouterBuilder> create(Vertx vertx,
+                                      String url,
+                                      OpenAPILoaderOptions options) {
     ContextInternal ctx = (ContextInternal) vertx.getOrCreateContext();
-    Promise<RouterFactory> promise = ctx.promise();
+    Promise<RouterBuilder> promise = ctx.promise();
 
     OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx.createHttpClient(), vertx.fileSystem(), options);
     loader.loadOpenAPI(url).onComplete(ar -> {
       if (ar.failed()) {
         if (ar.cause() instanceof ValidationException) {
-          promise.fail(RouterFactoryException.createInvalidSpecException(ar.cause()));
+          promise.fail(RouterBuilderException.createInvalidSpecException(ar.cause()));
         } else {
-          promise.fail(RouterFactoryException.createInvalidFileSpec(url, ar.cause()));
+          promise.fail(RouterBuilderException.createInvalidFileSpec(url, ar.cause()));
         }
       } else {
-        RouterFactory factory;
+        RouterBuilder factory;
         try {
-          factory = new OpenAPI3RouterFactoryImpl(vertx, loader, options);
+          factory = new OpenAPI3RouterBuilderImpl(vertx, loader, options);
         } catch (Exception e) {
-          promise.fail(RouterFactoryException.createRouterFactoryInstantiationError(e, url));
+          promise.fail(RouterBuilderException.createRouterBuilderInstantiationError(e, url));
           return;
         }
         promise.complete(factory);
@@ -229,8 +238,8 @@ public interface RouterFactory {
   static void create(Vertx vertx,
                      String url,
                      OpenAPILoaderOptions options,
-                     Handler<AsyncResult<RouterFactory>> handler) {
-    RouterFactory.create(vertx, url, options).onComplete(handler);
+                     Handler<AsyncResult<RouterBuilder>> handler) {
+    RouterBuilder.create(vertx, url, options).onComplete(handler);
   }
 
 }

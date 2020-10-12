@@ -3,13 +3,14 @@ package io.vertx.ext.web.openapi;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Converter and mapper for {@link io.vertx.ext.web.openapi.RouterFactoryOptions}.
- * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.openapi.RouterFactoryOptions} original class using Vert.x codegen.
+ * Converter and mapper for {@link io.vertx.ext.web.openapi.RouterBuilderOptions}.
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.openapi.RouterBuilderOptions}
+ * original class using Vert.x codegen.
  */
-public class RouterFactoryOptionsConverter {
+public class RouterBuilderOptionsConverter {
 
 
-   static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, RouterFactoryOptions obj) {
+  static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, RouterBuilderOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
         case "contractEndpoint":
@@ -39,29 +40,29 @@ public class RouterFactoryOptionsConverter {
           break;
         case "routeNamingStrategy":
           if (member.getValue() instanceof String) {
-            obj.setRouteNamingStrategy(io.vertx.ext.web.openapi.RouterFactoryOptions.RouteNamingStrategy.valueOf((String)member.getValue()));
+            obj.setRouteNamingStrategy(io.vertx.ext.web.openapi.RouterBuilderOptions.RouteNamingStrategy.valueOf((String) member.getValue()));
           }
           break;
       }
     }
   }
 
-   static void toJson(RouterFactoryOptions obj, JsonObject json) {
+  static void toJson(RouterBuilderOptions obj, JsonObject json) {
     toJson(obj, json.getMap());
   }
 
-   static void toJson(RouterFactoryOptions obj, java.util.Map<String, Object> json) {
-     if (obj.getContractEndpoint() != null) {
-       json.put("contractEndpoint", obj.getContractEndpoint());
-     }
-     json.put("mountNotImplementedHandler", obj.isMountNotImplementedHandler());
-     json.put("mountResponseContentTypeHandler", obj.isMountResponseContentTypeHandler());
-     if (obj.getOperationModelKey() != null) {
-       json.put("operationModelKey", obj.getOperationModelKey());
-     }
-     json.put("requireSecurityHandlers", obj.isRequireSecurityHandlers());
-     if (obj.getRouteNamingStrategy() != null) {
-       json.put("routeNamingStrategy", obj.getRouteNamingStrategy().name());
-     }
-   }
+  static void toJson(RouterBuilderOptions obj, java.util.Map<String, Object> json) {
+    if (obj.getContractEndpoint() != null) {
+      json.put("contractEndpoint", obj.getContractEndpoint());
+    }
+    json.put("mountNotImplementedHandler", obj.isMountNotImplementedHandler());
+    json.put("mountResponseContentTypeHandler", obj.isMountResponseContentTypeHandler());
+    if (obj.getOperationModelKey() != null) {
+      json.put("operationModelKey", obj.getOperationModelKey());
+    }
+    json.put("requireSecurityHandlers", obj.isRequireSecurityHandlers());
+    if (obj.getRouteNamingStrategy() != null) {
+      json.put("routeNamingStrategy", obj.getRouteNamingStrategy().name());
+    }
+  }
 }

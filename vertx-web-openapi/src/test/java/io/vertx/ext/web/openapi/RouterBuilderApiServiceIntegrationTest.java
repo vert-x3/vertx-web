@@ -17,13 +17,14 @@ import java.util.List;
 import static io.vertx.ext.web.validation.testutils.TestRequest.*;
 
 /**
- * These tests are about OpenAPI3RouterFactory and Service Proxy integrations
+ * These tests are about OpenAPI3RouterBuilder and Service Proxy integrations
+ *
  * @author Francesco Guardiani @slinkydeveloper
  */
 @SuppressWarnings("unchecked")
-public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTest {
+public class RouterBuilderApiServiceIntegrationTest extends BaseRouterBuilderTest {
 
-  private final RouterFactoryOptions HANDLERS_TESTS_OPTIONS = new RouterFactoryOptions()
+  private final RouterBuilderOptions HANDLERS_TESTS_OPTIONS = new RouterBuilderOptions()
     .setRequireSecurityHandlers(false)
     .setMountNotImplementedHandler(false);
 
@@ -41,10 +42,10 @@ public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTes
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
     consumers.add(serviceBinder.register(TestService.class, service));
 
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/service_proxy_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/service_proxy_test.yaml", testContext, routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
 
-      routerFactory.operation("testA").routeToEventBus("someAddress");
+      routerBuilder.operation("testA").routeToEventBus("someAddress");
     }).onComplete(h ->
       testRequest(client, HttpMethod.POST, "/testA")
         .expect(statusCode(200))
@@ -61,9 +62,9 @@ public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTes
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
     consumers.add(serviceBinder.register(TestService.class, service));
 
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/service_proxy_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
-      routerFactory.mountServiceInterface(service.getClass(), "someAddress");
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/service_proxy_test.yaml", testContext, routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+      routerBuilder.mountServiceInterface(service.getClass(), "someAddress");
     }).onComplete(h -> {
       testRequest(client, HttpMethod.POST, "/testA")
         .expect(statusCode(200))
@@ -88,9 +89,9 @@ public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTes
     final ServiceBinder anotherServiceBinder = new ServiceBinder(vertx).setAddress("anotherAddress");
     consumers.add(anotherServiceBinder.register(AnotherTestService.class, anotherService));
 
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/extension_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
-      routerFactory.mountServicesFromExtensions();
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/extension_test.yaml", testContext, routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+      routerBuilder.mountServicesFromExtensions();
     }).onComplete(h -> {
       testRequest(client, HttpMethod.POST, "/testA")
         .expect(jsonBodyResponse(new JsonObject().put("result", "Ciao Francesco!")), statusCode(200))
@@ -118,9 +119,9 @@ public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTes
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("address");
     consumers.add(serviceBinder.register(PathExtensionTestService.class, service));
 
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/extension_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
-      routerFactory.mountServicesFromExtensions();
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/extension_test.yaml", testContext, routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+      routerBuilder.mountServicesFromExtensions();
     }).onComplete(h -> {
       testRequest(client, HttpMethod.GET, "/testPathLevel")
         .expect(statusCode(200), statusMessage("pathLevelGet"))
@@ -139,9 +140,9 @@ public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTes
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("address");
     consumers.add(serviceBinder.register(PathExtensionTestService.class, service));
 
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/extension_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
-      routerFactory.mountServicesFromExtensions();
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/extension_test.yaml", testContext, routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+      routerBuilder.mountServicesFromExtensions();
     }).onComplete(h -> {
       testRequest(client, HttpMethod.GET, "/testMerge")
         .expect(statusCode(200), statusMessage("getPathLevel"))
@@ -160,9 +161,9 @@ public class RouterFactoryApiServiceIntegrationTest extends BaseRouterFactoryTes
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("address");
     consumers.add(serviceBinder.register(PathExtensionTestService.class, service));
 
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/extension_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
-      routerFactory.mountServicesFromExtensions();
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/extension_test.yaml", testContext, routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+      routerBuilder.mountServicesFromExtensions();
     }).onComplete(h -> {
       testRequest(client, HttpMethod.GET, "/testMerge2")
         .expect(statusCode(200), statusMessage("getPathLevel"))
