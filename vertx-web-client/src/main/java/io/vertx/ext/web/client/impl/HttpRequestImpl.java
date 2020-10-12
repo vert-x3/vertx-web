@@ -25,6 +25,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -33,7 +34,6 @@ import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 /**
@@ -184,20 +184,12 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
-  public HttpRequest<T> basicAuthentication(String id, String password) {
-    return this.basicAuthentication(Buffer.buffer(id), Buffer.buffer(password));
-  }
+  public HttpRequest<T> authentication(Credentials credentials) {
+    putHeader(
+      HttpHeaders.AUTHORIZATION.toString(),
+      credentials.toHttpAuthorization());
 
-  @Override
-  public HttpRequest<T> basicAuthentication(Buffer id, Buffer password) {
-    Buffer buff = Buffer.buffer().appendBuffer(id).appendString(":").appendBuffer(password);
-    String credentials =  new String(Base64.getEncoder().encode(buff.getBytes()));
-    return putHeader(HttpHeaders.AUTHORIZATION.toString(), "Basic " + credentials);
-  }
-
-  @Override
-  public HttpRequest<T> bearerTokenAuthentication(String bearerToken) {
-    return putHeader(HttpHeaders.AUTHORIZATION.toString(), "Bearer " + bearerToken);
+    return this;
   }
 
   @Override

@@ -28,6 +28,8 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.core.parsetools.JsonParser;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
+import io.vertx.ext.auth.authentication.TokenCredentials;
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
@@ -318,13 +320,13 @@ public class WebClientExamples {
   public void addBasicAccessAuthentication(WebClient client) {
     HttpRequest<Buffer> request = client
       .get(8080, "myserver.mycompany.com", "/some-uri")
-      .basicAuthentication("myid", "mypassword");
+      .authentication(new UsernamePasswordCredentials("myid", "mypassword"));
   }
 
   public void addBearerTokenAuthentication(WebClient client) {
     HttpRequest<Buffer> request = client
       .get(8080, "myserver.mycompany.com", "/some-uri")
-      .bearerTokenAuthentication("myBearerToken");
+      .authentication(new TokenCredentials("myBearerToken"));
   }
 
   public void receiveResponse(WebClient client) {

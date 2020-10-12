@@ -25,6 +25,12 @@
       <version>${project.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- Testing -->
     <dependency>
       <groupId>io.vertx</groupId>
@@ -34,6 +40,11 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-htdigest</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

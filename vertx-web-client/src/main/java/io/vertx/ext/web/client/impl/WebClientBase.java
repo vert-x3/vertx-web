@@ -258,7 +258,7 @@ public class WebClientBase implements WebClientInternal {
 
   @Override
   public WebClientInternal addInterceptor(Handler<HttpContext<?>> interceptor) {
-    interceptors.add((Handler) interceptor);
+    interceptors.add(interceptor);
     return this;
   }
 

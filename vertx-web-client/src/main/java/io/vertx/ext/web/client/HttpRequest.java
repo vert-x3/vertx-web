@@ -15,16 +15,15 @@
  */
 package io.vertx.ext.web.client;
 
-import io.vertx.codegen.annotations.CacheReturn;
-import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.codegen.annotations.Nullable;
-import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.codegen.annotations.*;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.ext.auth.authentication.Credentials;
+import io.vertx.ext.auth.authentication.TokenCredentials;
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -140,7 +139,7 @@ public interface HttpRequest<T> {
   /**
    * Configure the request to set a new HTTP header.
    *
-   * @param name the header name
+   * @param name  the header name
    * @param value the header value
    * @return a reference to this, so the API can be used fluently
    */
@@ -150,12 +149,12 @@ public interface HttpRequest<T> {
   /**
    * Configure the request to set a new HTTP header with multiple values.
    *
-   * @param name the header name
+   * @param name  the header name
    * @param value the header value
    * @return a reference to this, so the API can be used fluently
    */
-  @GenIgnore({"permitted-type"})
   @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   HttpRequest<T> putHeader(String name, Iterable<String> value);
 
   /**
@@ -165,18 +164,17 @@ public interface HttpRequest<T> {
   MultiMap headers();
 
   /**
-   * Configure the request to perform basic access authentication.
+   * Configure the request to perform HTTP Authentication.
    * <p>
-   * In basic HTTP authentication, a request contains a header field of the form 'Authorization: Basic &#60;credentials&#62;',
-   * where credentials is the base64 encoding of id and password joined by a colon.
-   * </p>
+   * Performs a generic authentication using the credentials provided by the user. For the sake of validation safety
+   * it is recommended that {@link Credentials#applyHttpChallenge(String)} is called to ensure that the credentials
+   * are applicable to the HTTP Challenged received on a previous request that returned a 401 response code.
    *
-   * @param id the id
-   * @param password the password
+   * @param credentials    the credentials to use.
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest<T> basicAuthentication(String id, String password);
+  HttpRequest<T> authentication(Credentials credentials);
 
   /**
    * Configure the request to perform basic access authentication.
@@ -184,13 +182,33 @@ public interface HttpRequest<T> {
    * In basic HTTP authentication, a request contains a header field of the form 'Authorization: Basic &#60;credentials&#62;',
    * where credentials is the base64 encoding of id and password joined by a colon.
    * </p>
+   * In practical terms the arguments are converted to a {@link UsernamePasswordCredentials} object.
    *
-   * @param id the id
+   * @param id       the id
    * @param password the password
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest<T> basicAuthentication(Buffer id, Buffer password);
+  default HttpRequest<T> basicAuthentication(String id, String password) {
+    return authentication(new UsernamePasswordCredentials(id, password).applyHttpChallenge(null));
+  }
+
+  /**
+   * Configure the request to perform basic access authentication.
+   * <p>
+   * In basic HTTP authentication, a request contains a header field of the form 'Authorization: Basic &#60;credentials&#62;',
+   * where credentials is the base64 encoding of id and password joined by a colon.
+   * </p>
+   * In practical terms the arguments are converted to a {@link UsernamePasswordCredentials} object.
+   *
+   * @param id       the id
+   * @param password the password
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  default HttpRequest<T> basicAuthentication(Buffer id, Buffer password) {
+    return basicAuthentication(id.toString(), password.toString());
+  }
 
   /**
    * Configure the request to perform bearer token authentication.
@@ -198,12 +216,15 @@ public interface HttpRequest<T> {
    * In OAuth 2.0, a request contains a header field of the form 'Authorization: Bearer &#60;bearerToken&#62;',
    * where bearerToken is the bearer token issued by an authorization server to access protected resources.
    * </p>
+   * In practical terms the arguments are converted to a {@link TokenCredentials} object.
    *
    * @param bearerToken the bearer token
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest<T> bearerTokenAuthentication(String bearerToken);
+  default HttpRequest<T> bearerTokenAuthentication(String bearerToken) {
+    return authentication(new TokenCredentials(bearerToken).applyHttpChallenge(null));
+  }
 
   @Fluent
   HttpRequest<T> ssl(Boolean value);
@@ -223,7 +244,7 @@ public interface HttpRequest<T> {
   /**
    * Add a query parameter to the request.
    *
-   * @param paramName the param name
+   * @param paramName  the param name
    * @param paramValue the param value
    * @return a reference to this, so the API can be used fluently
    */
@@ -233,7 +254,7 @@ public interface HttpRequest<T> {
   /**
    * Set a query parameter to the request.
    *
-   * @param paramName the param name
+   * @param paramName  the param name
    * @param paramValue the param value
    * @return a reference to this, so the API can be used fluently
    */
@@ -308,8 +329,8 @@ public interface HttpRequest<T> {
   void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
-   * @see HttpRequest#sendStream(ReadStream, Handler)
    * @param body the body
+   * @see HttpRequest#sendStream(ReadStream, Handler)
    */
   default Future<HttpResponse<T>> sendStream(ReadStream<Buffer> body) {
     Promise<HttpResponse<T>> promise = Promise.promise();
@@ -325,8 +346,8 @@ public interface HttpRequest<T> {
   void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
-   * @see HttpRequest#sendBuffer(Buffer, Handler)
    * @param body the body
+   * @see HttpRequest#sendBuffer(Buffer, Handler)
    */
   default Future<HttpResponse<T>> sendBuffer(Buffer body) {
     Promise<HttpResponse<T>> promise = Promise.promise();
@@ -343,8 +364,8 @@ public interface HttpRequest<T> {
   void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
-   * @see HttpRequest#sendJsonObject(JsonObject, Handler)
    * @param body the body
+   * @see HttpRequest#sendJsonObject(JsonObject, Handler)
    */
   default Future<HttpResponse<T>> sendJsonObject(JsonObject body) {
     Promise<HttpResponse<T>> promise = Promise.promise();
@@ -361,8 +382,8 @@ public interface HttpRequest<T> {
   void sendJson(@Nullable Object body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
-   * @see HttpRequest#sendJson(Object, Handler)
    * @param body the body
+   * @see HttpRequest#sendJson(Object, Handler)
    */
   default Future<HttpResponse<T>> sendJson(@Nullable Object body) {
     Promise<HttpResponse<T>> promise = Promise.promise();
@@ -381,8 +402,8 @@ public interface HttpRequest<T> {
   void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
-   * @see HttpRequest#sendForm(MultiMap, Handler)
    * @param body the body
+   * @see HttpRequest#sendForm(MultiMap, Handler)
    */
   default Future<HttpResponse<T>> sendForm(MultiMap body) {
     Promise<HttpResponse<T>> promise = Promise.promise();
@@ -399,8 +420,8 @@ public interface HttpRequest<T> {
   void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
-   * @see HttpRequest#sendMultipartForm(MultipartForm, Handler)
    * @param body the body
+   * @see HttpRequest#sendMultipartForm(MultipartForm, Handler)
    */
   default Future<HttpResponse<T>> sendMultipartForm(MultipartForm body) {
     Promise<HttpResponse<T>> promise = Promise.promise();

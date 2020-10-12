@@ -52,6 +52,11 @@ abstract class HTTPAuthorizationHandler<T extends AuthenticationProvider> extend
     public boolean is(String other) {
       return label.equalsIgnoreCase(other);
     }
+
+    @Override
+    public String toString() {
+      return label;
+    }
   }
 
   protected final Type type;
@@ -99,4 +104,18 @@ abstract class HTTPAuthorizationHandler<T extends AuthenticationProvider> extend
       handler.handle(Future.failedFuture(e));
     }
   }
+
+  /**
+   * Returns
+   * @param context
+   * @return
+   */
+  @Override
+  public String authenticateHeader(RoutingContext context) {
+    if (realm != null && realm.length() > 0) {
+      return type + " realm=\"" +realm + "\"";
+    }
+    return null;
+  }
+
 }
