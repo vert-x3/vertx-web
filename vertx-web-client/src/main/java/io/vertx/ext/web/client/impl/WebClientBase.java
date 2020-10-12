@@ -22,7 +22,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
@@ -58,10 +57,6 @@ public class WebClientBase implements WebClientInternal {
     this.client = webClient.client;
     this.options = new WebClientOptions(webClient.options);
     this.interceptors = new CopyOnWriteArrayList<>(webClient.interceptors);
-  }
-
-  public Vertx getVertx() {
-    return ((HttpClientImpl) client).getVertx();
   }
 
   @Override
