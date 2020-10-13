@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 @ExtendWith(VertxExtension.class)
-public abstract class BaseRouterFactoryTest {
+public abstract class BaseRouterBuilderTest {
 
   public SchemaRouter schemaRouter;
   public SchemaParser parser;
@@ -47,7 +47,8 @@ public abstract class BaseRouterFactoryTest {
     else testContext.completeNow();
   }
 
-  protected Future<Void> startServer(Vertx vertx, RouterFactory factory, Map.Entry<Integer, Handler<RoutingContext>>... additionalErrorHandlers) {
+  protected Future<Void> startServer(Vertx vertx, RouterBuilder factory,
+                                     Map.Entry<Integer, Handler<RoutingContext>>... additionalErrorHandlers) {
     try {
       router = factory.createRouter();
     } catch (Throwable e) {
@@ -67,9 +68,11 @@ public abstract class BaseRouterFactoryTest {
     return server.listen(9000).mapEmpty();
   }
 
-  protected Future<Void> loadFactoryAndStartServer(Vertx vertx, String specUri, VertxTestContext testContext, Consumer<RouterFactory> configurator, Map.Entry<Integer, Handler<RoutingContext>>... additionalErrorHandlers) {
+  protected Future<Void> loadBuilderAndStartServer(Vertx vertx, String specUri, VertxTestContext testContext,
+                                                   Consumer<RouterBuilder> configurator, Map.Entry<Integer,
+    Handler<RoutingContext>>... additionalErrorHandlers) {
     Promise<Void> f = Promise.promise();
-    RouterFactory.create(vertx, specUri, testContext.succeeding(rf -> {
+    RouterBuilder.create(vertx, specUri, testContext.succeeding(rf -> {
       try {
         configurator.accept(rf);
         startServer(vertx, rf, additionalErrorHandlers).

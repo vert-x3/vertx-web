@@ -4,7 +4,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -26,16 +25,17 @@ import static io.vertx.ext.web.validation.testutils.TestRequest.*;
 
 /**
  * This tests check the building of JSON schemas from OAS schemas and validation of JSON
+ *
  * @author Francesco Guardiani @slinkydeveloper
  */
 @ExtendWith(VertxExtension.class)
 @SuppressWarnings("unchecked")
-public class RouterFactoryBodyValidationIntegrationTest extends BaseRouterFactoryTest {
+public class RouterBuilderBodyValidationIntegrationTest extends BaseRouterBuilderTest {
 
   final String OAS_PATH = "specs/schemas_test_spec.yaml";
 
   final Handler<RoutingContext> handler = routingContext -> {
-    RequestParameter body = ((RequestParameters)routingContext.get("parsedParameters")).body();
+    RequestParameter body = ((RequestParameters) routingContext.get("parsedParameters")).body();
     if (body.isJsonObject())
       routingContext
         .response()
@@ -55,9 +55,9 @@ public class RouterFactoryBodyValidationIntegrationTest extends BaseRouterFactor
   @BeforeEach
   void setUp(Vertx vertx, VertxTestContext testContext) {
     startFileServer(vertx, testContext).compose(v ->
-      loadFactoryAndStartServer(vertx, OAS_PATH, testContext, routerFactory -> {
-        routerFactory.operations().forEach(op -> op.handler(handler));
-        routerFactory
+      loadBuilderAndStartServer(vertx, OAS_PATH, testContext, routerBuilder -> {
+        routerBuilder.operations().forEach(op -> op.handler(handler));
+        routerBuilder
           .getSchemaParser()
           .withStringFormatValidator("phone", s -> s.matches("^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\\s\\./0-9]*$"));
       })

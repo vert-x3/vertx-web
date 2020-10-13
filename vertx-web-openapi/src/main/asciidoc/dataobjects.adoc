@@ -12,8 +12,8 @@
 |[[authQueryParams]]`@authQueryParams`|`String`|-
 |===
 
-[[RouterFactoryOptions]]
-== RouterFactoryOptions
+[[RouterBuilderOptions]]
+== RouterBuilderOptions
 
 ++++
 ++++
@@ -25,10 +25,11 @@
 ^|Name | Type ^| Description
 |[[contractEndpoint]]`@contractEndpoint`|`String`|+++
 Configures the endpoint where the contract is served.
- The contract is served using the <a href="https://github.com/eclipse/microprofile-open-api/blob/master/spec/src/main/asciidoc/microprofile-openapi-spec.adoc#openapi-endpoint">Microprofile OpenAPI spec</a>.
+ The contract is served using the
+ <a href="https://github.com/eclipse/microprofile-open-api/blob/master/spec/src/main/asciidoc/microprofile-openapi-spec.adoc#openapi-endpoint">Microprofile OpenAPI spec</a>.
 +++
 |[[mountNotImplementedHandler]]`@mountNotImplementedHandler`|`Boolean`|+++
-If true, Router Factory will automatically mount an handler that return HTTP 405/501 status code for each operation where you didn't specify an handler.
+If true, Router builder will automatically mount an handler that return HTTP 405/501 status code for each operation where you didn't specify an handler.
  You can customize the response with link
 +++
 |[[mountResponseContentTypeHandler]]`@mountResponseContentTypeHandler`|`Boolean`|+++

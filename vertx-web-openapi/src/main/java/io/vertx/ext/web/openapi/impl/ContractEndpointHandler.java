@@ -13,7 +13,7 @@ import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
 import io.vertx.ext.web.openapi.OpenAPIHolder;
-import io.vertx.ext.web.openapi.RouterFactoryException;
+import io.vertx.ext.web.openapi.RouterBuilderException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -69,8 +69,8 @@ public class ContractEndpointHandler implements Handler<RoutingContext> {
       return new ContractEndpointHandler(openapi.toBuffer(), Buffer.buffer(yamlBytes));
     } catch (JsonProcessingException e) {
       e.printStackTrace();
-      throw new RouterFactoryException("Cannot generate yaml contract",
-        RouterFactoryException.ErrorType.UNSUPPORTED_SPEC, e);
+      throw new RouterBuilderException("Cannot generate yaml contract",
+        RouterBuilderException.ErrorType.UNSUPPORTED_SPEC, e);
     }
   }
 

@@ -6,7 +6,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.openapi.OpenAPIHolder;
-import io.vertx.ext.web.openapi.RouterFactoryException;
+import io.vertx.ext.web.openapi.RouterBuilderException;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -79,7 +79,7 @@ class OpenAPI3Utils {
     Map<String, JsonObject> properties = new HashMap<>();
     for (JsonObject schema : allOfSchemas) {
       if ("object".equals(schema.getString("type")))
-        throw RouterFactoryException.createUnsupportedSpecFeature("allOf allows only inner object types in parameters" +
+        throw RouterBuilderException.createUnsupportedSpecFeature("allOf allows only inner object types in parameters" +
           ". Schema: " + schema.encode());
       schema.forEach(e -> properties.put(e.getKey(), (JsonObject) e.getValue()));
     }
@@ -152,7 +152,7 @@ class OpenAPI3Utils {
       result.put(addressKey, operationExtension);
       JsonObject pathExtensionMap = (JsonObject) pathExtension;
       if (pathExtensionMap.containsKey(methodKey))
-        throw RouterFactoryException.createWrongExtension("Extension " + extensionKey + " in path declaration must " +
+        throw RouterBuilderException.createWrongExtension("Extension " + extensionKey + " in path declaration must " +
           "not contain " + methodKey);
       result.mergeIn(pathExtensionMap);
       return result;

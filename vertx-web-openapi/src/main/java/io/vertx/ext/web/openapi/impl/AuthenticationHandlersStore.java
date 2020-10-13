@@ -13,7 +13,7 @@ import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.ChainAuthHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.impl.AuthenticationHandlerImpl;
-import io.vertx.ext.web.openapi.RouterFactoryException;
+import io.vertx.ext.web.openapi.RouterBuilderException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -56,7 +56,7 @@ class AuthenticationHandlersStore {
     if (failOnNotFound) {
       authenticationHandlers = Optional
         .ofNullable(this.securityHandlers.get(e.getKey()))
-        .orElseThrow(() -> RouterFactoryException.createMissingSecurityHandler(e.getKey()));
+        .orElseThrow(() -> RouterBuilderException.createMissingSecurityHandler(e.getKey()));
     } else {
       authenticationHandlers = Optional
         .ofNullable(this.securityHandlers.get(e.getKey()))

@@ -43,17 +43,17 @@ import static io.vertx.ext.web.validation.testutils.ValidationTestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * This tests are about RouterFactory behaviours
+ * This tests are about RouterBuilder behaviours
  *
  * @author Francesco Guardiani @slinkydeveloper
  */
 @SuppressWarnings("unchecked")
 @ExtendWith(VertxExtension.class)
 @Timeout(1000)
-public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
+public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
   public static final String VALIDATION_SPEC = "src/test/resources/specs/validation_test.yaml";
-  private final RouterFactoryOptions HANDLERS_TESTS_OPTIONS = new RouterFactoryOptions()
+  private final RouterBuilderOptions HANDLERS_TESTS_OPTIONS = new RouterBuilderOptions()
     .setMountNotImplementedHandler(false)
     .setRequireSecurityHandlers(false);
 
@@ -86,46 +86,46 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void loadSpecFromFile(Vertx vertx, VertxTestContext testContext) {
-    RouterFactory.create(vertx, "src/test/resources/specs/router_factory_test.yaml",
-      routerFactoryAsyncResult -> {
-        assertThat(routerFactoryAsyncResult.succeeded()).isTrue();
-        assertThat(routerFactoryAsyncResult.result()).isNotNull();
+    RouterBuilder.create(vertx, "src/test/resources/specs/router_builder_test.yaml",
+      routerBuilderAsyncResult -> {
+        assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
+        assertThat(routerBuilderAsyncResult.result()).isNotNull();
         testContext.completeNow();
       });
   }
 
   @Test
   public void loadPetStoreFromFile(Vertx vertx, VertxTestContext testContext) {
-    RouterFactory.create(vertx, "src/test/resources/specs/petstore.yaml",
-      routerFactoryAsyncResult -> {
-        assertThat(routerFactoryAsyncResult.succeeded()).isTrue();
-        assertThat(routerFactoryAsyncResult.result()).isNotNull();
+    RouterBuilder.create(vertx, "src/test/resources/specs/petstore.yaml",
+      routerBuilderAsyncResult -> {
+        assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
+        assertThat(routerBuilderAsyncResult.result()).isNotNull();
         testContext.completeNow();
       });
   }
 
   @Test
   public void failLoadSpecFromFile(Vertx vertx, VertxTestContext testContext) {
-    RouterFactory.create(vertx, "src/test/resources/specs/aaa.yaml",
-      routerFactoryAsyncResult -> {
-        assertThat(routerFactoryAsyncResult.failed()).isTrue();
-        assertThat(routerFactoryAsyncResult.cause().getClass())
-          .isEqualTo(RouterFactoryException.class);
-        assertThat(((RouterFactoryException) routerFactoryAsyncResult.cause()).type())
-          .isEqualTo(RouterFactoryException.ErrorType.INVALID_FILE);
+    RouterBuilder.create(vertx, "src/test/resources/specs/aaa.yaml",
+      routerBuilderAsyncResult -> {
+        assertThat(routerBuilderAsyncResult.failed()).isTrue();
+        assertThat(routerBuilderAsyncResult.cause().getClass())
+          .isEqualTo(RouterBuilderException.class);
+        assertThat(((RouterBuilderException) routerBuilderAsyncResult.cause()).type())
+          .isEqualTo(RouterBuilderException.ErrorType.INVALID_FILE);
         testContext.completeNow();
       });
   }
 
   @Test
   public void loadWrongSpecFromFile(Vertx vertx, VertxTestContext testContext) {
-    RouterFactory.create(vertx, "src/test/resources/specs/bad_spec.yaml",
-      routerFactoryAsyncResult -> {
-        assertThat(routerFactoryAsyncResult.failed()).isTrue();
-        assertThat(routerFactoryAsyncResult.cause().getClass())
-          .isEqualTo(RouterFactoryException.class);
-        assertThat(((RouterFactoryException) routerFactoryAsyncResult.cause()).type())
-          .isEqualTo(RouterFactoryException.ErrorType.INVALID_FILE);
+    RouterBuilder.create(vertx, "src/test/resources/specs/bad_spec.yaml",
+      routerBuilderAsyncResult -> {
+        assertThat(routerBuilderAsyncResult.failed()).isTrue();
+        assertThat(routerBuilderAsyncResult.cause().getClass())
+          .isEqualTo(RouterBuilderException.class);
+        assertThat(((RouterBuilderException) routerBuilderAsyncResult.cause()).type())
+          .isEqualTo(RouterBuilderException.ErrorType.INVALID_FILE);
         testContext.completeNow();
       });
   }
@@ -133,12 +133,12 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void loadSpecFromURL(Vertx vertx, VertxTestContext testContext) {
     startFileServer(vertx, testContext).onComplete(h -> {
-      RouterFactory.create(vertx, "http://localhost:9001/specs/router_factory_test.yaml",
-        routerFactoryAsyncResult -> {
+      RouterBuilder.create(vertx, "http://localhost:9001/specs/router_builder_test.yaml",
+        routerBuilderAsyncResult -> {
           testContext.verify(() -> {
-            assertThat(routerFactoryAsyncResult.succeeded())
+            assertThat(routerBuilderAsyncResult.succeeded())
               .isTrue();
-            assertThat(routerFactoryAsyncResult.result())
+            assertThat(routerBuilderAsyncResult.result())
               .isNotNull();
           });
           testContext.completeNow();
@@ -148,15 +148,15 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void bodyHandlerNull(Vertx vertx, VertxTestContext testContext) {
-    RouterFactory.create(vertx, "src/test/resources/specs/router_factory_test.yaml",
-      routerFactoryAsyncResult -> {
-        assertThat(routerFactoryAsyncResult.succeeded()).isTrue();
+    RouterBuilder.create(vertx, "src/test/resources/specs/router_builder_test.yaml",
+      routerBuilderAsyncResult -> {
+        assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
 
-        RouterFactory routerFactory = routerFactoryAsyncResult.result();
-        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
-        routerFactory.bodyHandler(null);
+        RouterBuilder routerBuilder = routerBuilderAsyncResult.result();
+        routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+        routerBuilder.bodyHandler(null);
 
-        Router router = routerFactory.createRouter();
+        Router router = routerBuilder.createRouter();
 
         testContext.verify(() -> {
           assertThat(router.getRoutes())
@@ -172,14 +172,14 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void loadSpecFromURLWithAuthorizationValues(Vertx vertx, VertxTestContext testContext) {
     startSecuredFileServer(vertx, testContext).onComplete(h -> {
-      RouterFactory.create(
+      RouterBuilder.create(
         vertx,
-        "http://localhost:9001/specs/router_factory_test.yaml",
+        "http://localhost:9001/specs/router_builder_test.yaml",
         new OpenAPILoaderOptions()
           .putAuthHeader("Authorization", "Bearer xx.yy.zz"),
-        routerFactoryAsyncResult -> {
-          assertThat(routerFactoryAsyncResult.succeeded()).isTrue();
-          assertThat(routerFactoryAsyncResult.result()).isNotNull();
+        routerBuilderAsyncResult -> {
+          assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
+          assertThat(routerBuilderAsyncResult.result()).isNotNull();
           testContext.completeNow();
         });
     });
@@ -188,11 +188,11 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void failLoadSpecFromURL(Vertx vertx, VertxTestContext testContext) {
     startFileServer(vertx, testContext).onComplete(h -> {
-      RouterFactory.create(vertx, "http://localhost:9001/specs/does_not_exist.yaml",
-        routerFactoryAsyncResult -> {
-          assertThat(routerFactoryAsyncResult.failed()).isTrue();
-          assertThat(routerFactoryAsyncResult.cause().getClass()).isEqualTo(RouterFactoryException.class);
-          assertThat(((RouterFactoryException) routerFactoryAsyncResult.cause()).type()).isEqualTo(RouterFactoryException.ErrorType.INVALID_FILE);
+      RouterBuilder.create(vertx, "http://localhost:9001/specs/does_not_exist.yaml",
+        routerBuilderAsyncResult -> {
+          assertThat(routerBuilderAsyncResult.failed()).isTrue();
+          assertThat(routerBuilderAsyncResult.cause().getClass()).isEqualTo(RouterBuilderException.class);
+          assertThat(((RouterBuilderException) routerBuilderAsyncResult.cause()).type()).isEqualTo(RouterBuilderException.ErrorType.INVALID_FILE);
           testContext.completeNow();
         });
     });
@@ -201,10 +201,11 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void mountHandlerTest(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
+      routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
 
-      routerFactory.operation("listPets").handler(routingContext ->
+      routerBuilder.operation("listPets").handler(routingContext ->
         routingContext
           .response()
           .setStatusCode(200)
@@ -220,10 +221,11 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void mountFailureHandlerTest(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
+      routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
 
-      routerFactory
+      routerBuilder
         .operation("listPets")
         .handler(routingContext -> routingContext.fail(null))
         .failureHandler(routingContext -> routingContext
@@ -242,10 +244,11 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void mountMultipleHandlers(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
+      routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
 
-      routerFactory
+      routerBuilder
         .operation("listPets")
         .handler(routingContext ->
           routingContext.put("message", "A").next()
@@ -254,7 +257,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
           routingContext.put("message", routingContext.get("message") + "B");
           routingContext.fail(500);
         });
-      routerFactory
+      routerBuilder
         .operation("listPets")
         .failureHandler(routingContext ->
           routingContext.put("message", routingContext.get("message") + "E").next()
@@ -276,13 +279,14 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void mountNotImplementedHandler(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(
-        new RouterFactoryOptions()
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
+      routerBuilder -> {
+      routerBuilder.setOptions(
+        new RouterBuilderOptions()
           .setRequireSecurityHandlers(false)
           .setMountNotImplementedHandler(true)
       );
-      routerFactory.operation("showPetById").handler(RoutingContext::next);
+      routerBuilder.operation("showPetById").handler(RoutingContext::next);
     }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(501), statusMessage("Not Implemented"))
@@ -294,15 +298,16 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   public void mountNotAllowedHandler(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
 
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(
-        new RouterFactoryOptions()
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
+      routerBuilder -> {
+      routerBuilder.setOptions(
+        new RouterBuilderOptions()
           .setRequireSecurityHandlers(false)
           .setMountNotImplementedHandler(true)
       );
 
-      routerFactory.operation("deletePets").handler(RoutingContext::next);
-      routerFactory.operation("createPets").handler(RoutingContext::next);
+      routerBuilder.operation("deletePets").handler(RoutingContext::next);
+      routerBuilder.operation("createPets").handler(RoutingContext::next);
     }).onComplete(rc ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(405), statusMessage("Method Not Allowed"))
@@ -315,10 +320,11 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void addGlobalHandlersTest(Vertx vertx, VertxTestContext testContext) {
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
+      routerBuilder -> {
+      routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false));
 
-      routerFactory.rootHandler(rc -> {
+      routerBuilder.rootHandler(rc -> {
         rc.response().putHeader("header-from-global-handler", "some dummy data");
         rc.next();
       }).rootHandler(rc -> {
@@ -326,7 +332,7 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
         rc.next();
       });
 
-      routerFactory.operation("listPets").handler(routingContext -> routingContext
+      routerBuilder.operation("listPets").handler(routingContext -> routingContext
         .response()
         .setStatusCode(200)
         .setStatusMessage("OK")
@@ -344,18 +350,20 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   public void exposeConfigurationTest(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
 
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext, routerFactory -> {
-        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false).setOperationModelKey("fooBarKey"));
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
+      routerBuilder -> {
+      routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false).setOperationModelKey(
+        "fooBarKey"));
 
-        routerFactory.operation("listPets").handler(routingContext -> {
-          JsonObject operation = routingContext.get("fooBarKey");
+      routerBuilder.operation("listPets").handler(routingContext -> {
+        JsonObject operation = routingContext.get("fooBarKey");
 
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(operation.getString("operationId"))
-            .end();
-        });
+        routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(operation.getString("operationId"))
+          .end();
+      });
     }).onComplete(h ->
         testRequest(client, HttpMethod.GET, "/pets")
           .expect(statusCode(200), statusMessage("listPets"))
@@ -367,20 +375,21 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   public void consumesTest(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(4);
 
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/produces_consumes_test.yaml", testContext, routerFactory -> {
-        routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/produces_consumes_test.yaml", testContext,
+      routerBuilder -> {
+      routerBuilder.setOptions(new RouterBuilderOptions().setMountNotImplementedHandler(false));
 
-        routerFactory.operation("consumesTest").handler(routingContext -> {
-          RequestParameters params = routingContext.get("parsedParameters");
-          if (params.body() != null && params.body().isJsonObject()) {
-            routingContext
-              .response()
-              .setStatusCode(200)
-              .putHeader("Content-Type", "application/json")
-              .end(params.body().getJsonObject().encode());
-          } else {
-            routingContext
-              .response()
+      routerBuilder.operation("consumesTest").handler(routingContext -> {
+        RequestParameters params = routingContext.get("parsedParameters");
+        if (params.body() != null && params.body().isJsonObject()) {
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .putHeader("Content-Type", "application/json")
+            .end(params.body().getJsonObject().encode());
+        } else {
+          routingContext
+            .response()
               .setStatusCode(200)
               .end();
           }
@@ -417,19 +426,20 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   public void producesTest(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
 
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/produces_consumes_test.yaml", testContext, routerFactory -> {
-        routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/produces_consumes_test.yaml", testContext,
+      routerBuilder -> {
+      routerBuilder.setOptions(new RouterBuilderOptions().setMountNotImplementedHandler(false));
 
-        routerFactory.operation("producesTest").handler(routingContext -> {
-          if (((RequestParameters) routingContext.get("parsedParameters")).queryParameter("fail").getBoolean())
-            routingContext
-              .response()
-              .putHeader("content-type", "text/plain")
-              .setStatusCode(500)
-              .end("Hate it");
-          else
-            routingContext.response().setStatusCode(200).end("{}"); // ResponseContentTypeHandler does the job for me
-        });
+      routerBuilder.operation("producesTest").handler(routingContext -> {
+        if (((RequestParameters) routingContext.get("parsedParameters")).queryParameter("fail").getBoolean())
+          routingContext
+            .response()
+            .putHeader("content-type", "text/plain")
+            .setStatusCode(500)
+            .end("Hate it");
+        else
+          routingContext.response().setStatusCode(200).end("{}"); // ResponseContentTypeHandler does the job for me
+      });
     }).onComplete(h -> {
       String acceptableContentTypes = String.join(", ", "application/json", "text/plain");
       testRequest(client, HttpMethod.GET, "/producesTest")
@@ -447,17 +457,17 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   public void mountHandlersOrderTest(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
 
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/test_order_spec.yaml", testContext, routerFactory -> {
-        routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/test_order_spec.yaml", testContext, routerBuilder -> {
+      routerBuilder.setOptions(new RouterBuilderOptions().setMountNotImplementedHandler(false));
 
-        routerFactory.operation("showSpecialProduct").handler(routingContext ->
-          routingContext.response().setStatusMessage("special").end()
-        );
+      routerBuilder.operation("showSpecialProduct").handler(routingContext ->
+        routingContext.response().setStatusMessage("special").end()
+      );
 
-        routerFactory.operation("showProductById").handler(routingContext -> {
-          RequestParameters params = routingContext.get("parsedParameters");
-          routingContext.response().setStatusMessage(params.pathParameter("id").getInteger().toString()).end();
-        });
+      routerBuilder.operation("showProductById").handler(routingContext -> {
+        RequestParameters params = routingContext.get("parsedParameters");
+        routingContext.response().setStatusMessage(params.pathParameter("id").getInteger().toString()).end();
+      });
 
         testContext.completeNow();
     }).onComplete(h -> {
@@ -474,19 +484,20 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   public void mountHandlerEncodedTest(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
 
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext, routerFactory -> {
-        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
+      routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
 
-        routerFactory.operation("encodedParamTest").handler(routingContext -> {
-          RequestParameters params = routingContext.get("parsedParameters");
-          assertThat(params.pathParameter("p1").toString()).isEqualTo("a:b");
-          assertThat(params.queryParameter("p2").toString()).isEqualTo("a:b");
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(params.pathParameter("p1").toString())
-            .end();
-        });
+      routerBuilder.operation("encodedParamTest").handler(routingContext -> {
+        RequestParameters params = routingContext.get("parsedParameters");
+        assertThat(params.pathParameter("p1").toString()).isEqualTo("a:b");
+        assertThat(params.queryParameter("p2").toString()).isEqualTo("a:b");
+        routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(params.pathParameter("p1").toString())
+          .end();
+      });
 
         testContext.completeNow();
     }).onComplete(h ->
@@ -503,17 +514,17 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
    */
   @Test
   public void customBodyHandlerTest(Vertx vertx, VertxTestContext testContext) {
-    RouterFactory.create(vertx, "src/test/resources/specs/upload_test.yaml", testContext.succeeding(routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
+    RouterBuilder.create(vertx, "src/test/resources/specs/upload_test.yaml", testContext.succeeding(routerBuilder -> {
+      routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false));
 
       BodyHandler bodyHandler = BodyHandler.create("my-uploads");
 
-      routerFactory.bodyHandler(bodyHandler);
+      routerBuilder.bodyHandler(bodyHandler);
 
-      routerFactory.operation("upload").handler(routingContext -> routingContext.response().setStatusCode(201).end());
+      routerBuilder.operation("upload").handler(routingContext -> routingContext.response().setStatusCode(201).end());
 
       testContext.verify(() -> {
-        assertThat(routerFactory.createRouter().getRoutes().get(0))
+        assertThat(routerBuilder.createRouter().getRoutes().get(0))
           .extracting("state")
           .extracting("contextHandlers")
           .asList()
@@ -529,23 +540,24 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   public void testSharedRequestBody(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
 
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/shared_request_body.yaml", testContext, routerFactory -> {
-        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/shared_request_body.yaml", testContext,
+      routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
 
-        final Handler<RoutingContext> handler = routingContext -> {
-          RequestParameters params = routingContext.get("parsedParameters");
-          RequestParameter body = params.body();
-          JsonObject jsonBody = body.getJsonObject();
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage("OK")
-            .putHeader("Content-Type", "application/json")
-            .end(jsonBody.toBuffer());
-        };
+      final Handler<RoutingContext> handler = routingContext -> {
+        RequestParameters params = routingContext.get("parsedParameters");
+        RequestParameter body = params.body();
+        JsonObject jsonBody = body.getJsonObject();
+        routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage("OK")
+          .putHeader("Content-Type", "application/json")
+          .end(jsonBody.toBuffer());
+      };
 
-        routerFactory.operation("thisWayWorks").handler(handler);
-        routerFactory.operation("thisWayBroken").handler(handler);
+      routerBuilder.operation("thisWayWorks").handler(handler);
+      routerBuilder.operation("thisWayBroken").handler(handler);
     }).onComplete(h -> {
       JsonObject obj = new JsonObject().put("id", "aaa").put("name", "bla");
       testRequest(client, HttpMethod.POST, "/v1/working")
@@ -561,18 +573,19 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void pathResolverShouldNotCreateRegex(Vertx vertx, VertxTestContext testContext) {
-    RouterFactory.create(vertx, "src/test/resources/specs/produces_consumes_test.yaml", testContext.succeeding(routerFactory -> {
-        routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
+    RouterBuilder.create(vertx, "src/test/resources/specs/produces_consumes_test.yaml",
+      testContext.succeeding(routerBuilder -> {
+      routerBuilder.setOptions(new RouterBuilderOptions().setMountNotImplementedHandler(false));
 
-        routerFactory.operation("consumesTest").handler(routingContext ->
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage("OK")
-        );
+      routerBuilder.operation("consumesTest").handler(routingContext ->
+        routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage("OK")
+      );
 
-        testContext.verify(() ->
-          assertThat(routerFactory.createRouter().getRoutes())
+      testContext.verify(() ->
+          assertThat(routerBuilder.createRouter().getRoutes())
             .extracting(Route::getPath)
             .anyMatch("/consumesTest"::equals)
         );
@@ -583,19 +596,20 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void testJsonEmptyBody(Vertx vertx, VertxTestContext testContext) {
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext, routerFactory -> {
-        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false).setMountNotImplementedHandler(false));
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
+      routerBuilder -> {
+      routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false).setMountNotImplementedHandler(false));
 
-        routerFactory.operation("jsonEmptyBody").handler(routingContext -> {
-          RequestParameters params = routingContext.get("parsedParameters");
-          RequestParameter body = params.body();
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage("OK")
-            .putHeader("Content-Type", "application/json")
-            .end(new JsonObject().put("bodyEmpty", body == null).toBuffer());
-        });
+      routerBuilder.operation("jsonEmptyBody").handler(routingContext -> {
+        RequestParameters params = routingContext.get("parsedParameters");
+        RequestParameter body = params.body();
+        routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage("OK")
+          .putHeader("Content-Type", "application/json")
+          .end(new JsonObject().put("bodyEmpty", body == null).toBuffer());
+      });
 
         testContext.completeNow();
     }).onComplete(h ->
@@ -608,9 +622,9 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void commaSeparatedMultipartEncoding(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/multipart.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
-      routerFactory.operation("testMultipartMultiple").handler(routingContext -> {
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/multipart.yaml", testContext, routerBuilder -> {
+      routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false));
+      routerBuilder.operation("testMultipartMultiple").handler(routingContext -> {
         RequestParameters params = routingContext.get("parsedParameters");
         routingContext
           .response()
@@ -651,9 +665,9 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void wildcardMultipartEncoding(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/multipart.yaml", testContext, routerFactory -> {
-      routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
-      routerFactory.operation("testMultipartWildcard").handler(routingContext -> {
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/multipart.yaml", testContext, routerBuilder -> {
+      routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false));
+      routerBuilder.operation("testMultipartWildcard").handler(routingContext -> {
         RequestParameters params = routingContext.get("parsedParameters");
         routingContext
           .response()
@@ -693,8 +707,8 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void testQueryParamNotRequired(Vertx vertx, VertxTestContext testContext) {
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("listPets")
         .handler(routingContext -> routingContext.response().setStatusMessage("ok").end());
     }).onComplete(h ->
@@ -707,8 +721,8 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void testPathParameter(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("showPetById")
         .handler(routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
@@ -727,8 +741,8 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void testQueryParameterArrayExploded(Vertx vertx, VertxTestContext testContext) {
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("arrayTestFormExploded")
         .handler(routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
@@ -760,9 +774,9 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void testQueryParameterArrayDefaultStyle(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+      routerBuilder
         .operation("arrayTest")
         .handler(routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
@@ -788,12 +802,12 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void testDefaultStringQueryParameter(Vertx vertx, VertxTestContext testContext) {
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("testDefaultString")
         .handler(routingContext ->
           routingContext.response().setStatusMessage(
-            ((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").getString()
+            ((RequestParameters) routingContext.get("parsedParameters")).queryParameter("parameter").getString()
           ).end()
         );
     }).onComplete(h ->
@@ -806,12 +820,12 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void testDefaultIntQueryParameter(Vertx vertx, VertxTestContext testContext) {
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("testDefaultInt")
         .handler(routingContext ->
           routingContext.response().setStatusMessage(
-            ((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").getInteger().toString()
+            ((RequestParameters) routingContext.get("parsedParameters")).queryParameter("parameter").getInteger().toString()
           ).end()
         );
     }).onComplete(h ->
@@ -823,12 +837,12 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void testDefaultFloatQueryParameter(Vertx vertx, VertxTestContext testContext) {
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("testDefaultFloat")
         .handler(routingContext ->
           routingContext.response().setStatusMessage(
-            ((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").getFloat().toString()
+            ((RequestParameters) routingContext.get("parsedParameters")).queryParameter("parameter").getFloat().toString()
           ).end()
         );
     }).onComplete(h ->
@@ -840,12 +854,12 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void testDefaultDoubleQueryParameter(Vertx vertx, VertxTestContext testContext) {
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("testDefaultDouble")
         .handler(routingContext ->
           routingContext.response().setStatusMessage(
-            ((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").getDouble().toString()
+            ((RequestParameters) routingContext.get("parsedParameters")).queryParameter("parameter").getDouble().toString()
           ).end()
         );
     }).onComplete(h ->
@@ -857,12 +871,12 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void testAllowEmptyValueStringQueryParameter(Vertx vertx, VertxTestContext testContext) {
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("testDefaultString")
         .handler(routingContext ->
           routingContext.response().setStatusMessage(
-            "" + ((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").getString().length()
+            "" + ((RequestParameters) routingContext.get("parsedParameters")).queryParameter("parameter").getString().length()
           ).end()
         );
     }).onComplete(h ->
@@ -875,12 +889,12 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void testAllowEmptyValueBooleanQueryParameter(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("testDefaultBoolean")
         .handler(routingContext ->
           routingContext.response().setStatusMessage(
-            "" + ((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").toString()
+            "" + ((RequestParameters) routingContext.get("parsedParameters")).queryParameter("parameter").toString()
           ).end()
         );
     }).onComplete(h -> {
@@ -898,12 +912,12 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void testQueryParameterByteFormat(Vertx vertx, VertxTestContext testContext) {
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("byteFormatTest")
         .handler(routingContext ->
           routingContext.response().setStatusMessage(
-            "" + ((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").toString()
+            "" + ((RequestParameters) routingContext.get("parsedParameters")).queryParameter("parameter").toString()
           ).end()
         );
     }).onComplete(h ->
@@ -916,9 +930,9 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void testFormArrayParameter(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+      routerBuilder
         .operation("formArrayTest")
         .handler(routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
@@ -948,8 +962,8 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void testJsonBody(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(4);
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("jsonBodyTest")
         .handler(routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
@@ -989,9 +1003,9 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void testRequiredJsonBody(Vertx vertx, VertxTestContext testContext) {
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+      routerBuilder
         .operation("createPets")
         .handler(routingContext ->
           routingContext
@@ -1010,9 +1024,9 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void testAllOfQueryParam(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(4);
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+      routerBuilder
         .operation("alloftest")
         .handler(routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
@@ -1049,13 +1063,13 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void testQueryParameterAnyOf(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(5);
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("anyOfTest")
         .handler(routingContext ->
           routingContext
             .response()
-            .setStatusMessage(((RequestParameters)routingContext.get("parsedParameters")).queryParameter("parameter").toString())
+            .setStatusMessage(((RequestParameters) routingContext.get("parsedParameters")).queryParameter("parameter").toString())
             .end()
         );
     }).onComplete(h -> {
@@ -1089,9 +1103,9 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void testComplexMultipart(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+      routerBuilder
         .operation("complexMultipartRequest")
         .handler(routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
@@ -1141,12 +1155,13 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void testEmptyParametersNotNull(Vertx vertx, VertxTestContext testContext) {
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("createPets")
         .handler(routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
-          routingContext.response().setStatusCode(200).setStatusMessage( //Here it should not throw exception (issue #850)
+          routingContext.response().setStatusCode(200).setStatusMessage( //Here it should not throw exception (issue
+            // #850)
             "" + params.queryParametersNames().size() + params.pathParametersNames().size() +
               params.cookieParametersNames().size() + params.headerParametersNames().size()
           ).end();
@@ -1161,9 +1176,9 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void testQueryExpandedObjectTestOnlyAdditionalProperties(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+      routerBuilder
         .operation("objectTestOnlyAdditionalProperties")
         .handler(routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
@@ -1196,8 +1211,8 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
 
   @Test
   public void testJsonBodyWithDate(Vertx vertx, VertxTestContext testContext) {
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("jsonBodyWithDate")
         .handler(routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
@@ -1229,8 +1244,8 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void testQueryOptionalFormExplodeObject(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("query_form_explode_object")
         .handler(routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
@@ -1258,8 +1273,8 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void testOctetStreamBody(Vertx vertx, VertxTestContext testContext) {
     Buffer body = Buffer.buffer("Hello World!");
-    loadFactoryAndStartServer(vertx, VALIDATION_SPEC, testContext, routerFactory -> {
-      routerFactory
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
         .operation("binary_test")
         .handler(routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
@@ -1281,15 +1296,15 @@ public class RouterFactoryIntegrationTest extends BaseRouterFactoryTest {
   @Test
   public void mountContractEndpoint(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(5);
-    loadFactoryAndStartServer(vertx, "src/test/resources/specs/router_factory_test.yaml", testContext,
-      routerFactory -> {
-      routerFactory.setOptions(
-        new RouterFactoryOptions()
-          .setMountNotImplementedHandler(true)
-          .setRequireSecurityHandlers(false)
-          .setContractEndpoint(RouterFactoryOptions.STANDARD_CONTRACT_ENDPOINT)
-      );
-    }).onComplete(h -> {
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
+      routerBuilder -> {
+        routerBuilder.setOptions(
+          new RouterBuilderOptions()
+            .setMountNotImplementedHandler(true)
+            .setRequireSecurityHandlers(false)
+            .setContractEndpoint(RouterBuilderOptions.STANDARD_CONTRACT_ENDPOINT)
+        );
+      }).onComplete(h -> {
       testRequest(client, HttpMethod.GET, "/openapi")
         .expect(
           statusCode(200),

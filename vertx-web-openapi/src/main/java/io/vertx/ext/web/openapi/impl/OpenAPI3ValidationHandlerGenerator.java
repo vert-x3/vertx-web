@@ -3,7 +3,7 @@ package io.vertx.ext.web.openapi.impl;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.json.schema.SchemaParser;
-import io.vertx.ext.web.openapi.RouterFactoryException;
+import io.vertx.ext.web.openapi.RouterBuilderException;
 import io.vertx.ext.web.validation.RequestPredicate;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.ValidationHandlerImpl;
@@ -57,14 +57,15 @@ public class OpenAPI3ValidationHandlerGenerator {
       String parsedStyle = OpenAPI3Utils.resolveStyle(pe.getValue());
 
       if (pe.getValue().getBoolean("allowReserved", false))
-        throw RouterFactoryException
-          .createUnsupportedSpecFeature("You are using allowReserved keyword in parameter " + pe.getKey() + " which is not supported");
+        throw RouterBuilderException
+          .createUnsupportedSpecFeature("You are using allowReserved keyword in parameter " + pe.getKey() + " which " +
+            "is not supported");
 
       JsonObject fakeSchema = context.fakeSchema(pe.getValue().getJsonObject("schema", new JsonObject()));
 
       ParameterProcessorGenerator generator = parameterProcessorGenerators.stream()
         .filter(g -> g.canGenerate(pe.getValue(), fakeSchema, parsedLocation, parsedStyle))
-        .findFirst().orElseThrow(() -> RouterFactoryException.cannotFindParameterProcessorGenerator(pe.getKey(), pe.getValue()));
+        .findFirst().orElseThrow(() -> RouterBuilderException.cannotFindParameterProcessorGenerator(pe.getKey(), pe.getValue()));
 
       try {
         ParameterProcessor generated = generator
@@ -74,9 +75,10 @@ public class OpenAPI3ValidationHandlerGenerator {
           parameterProcessors.put(generated.getLocation(), new ArrayList<>());
         parameterProcessors.get(generated.getLocation()).add(generated);
       } catch (Exception e) {
-        throw RouterFactoryException
+        throw RouterBuilderException
           .createErrorWhileGeneratingValidationHandler(
-            String.format("Cannot generate parameter validator for parameter %s in %s", pe.getKey().toURI(), parsedLocation), e
+            String.format("Cannot generate parameter validator for parameter %s in %s", pe.getKey().toURI(),
+              parsedLocation), e
           );
       }
     }
