@@ -27,6 +27,7 @@ import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.tls.Cert;
+
 import org.junit.Test;
 
 import java.io.File;
@@ -48,6 +49,8 @@ import java.util.function.Function;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -1479,6 +1482,21 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> req = webClient.request(HttpMethod.GET, addr, 8080, "another-host", "/test");
     req.send(onSuccess(resp -> testComplete()));
     await();
+  }
+
+  @Test
+  public void testRequest() throws Exception {
+    String headerKey = "header1", headerValue = "value1";
+    RequestOptions options = new RequestOptions().addHeader(headerKey, headerValue);
+
+    HttpRequest<Buffer> request = webClient.request(HttpMethod.GET, options);
+    assertThat(request.headers().get(headerKey), equalTo(headerValue));
+
+    request = webClient.request(HttpMethod.GET, SocketAddress.inetSocketAddress(8080, "localhost"), options);
+    assertThat(request.headers().get(headerKey), equalTo(headerValue));
+
+    request = webClient.request(HttpMethod.GET, new RequestOptions());
+    assertThat(request.headers().get(headerKey), nullValue());
   }
 
   @Test
