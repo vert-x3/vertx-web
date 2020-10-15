@@ -71,10 +71,11 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private final FSTune tune = new FSTune();
   private final FSPropsCache cache = new FSPropsCache();
+  private FileSystem fileSystem;
 
-  private String directoryTemplate(Vertx vertx) {
+  private String directoryTemplate(FileSystem fileSystem) {
     if (directoryTemplate == null) {
-      directoryTemplate = vertx.fileSystem()
+      directoryTemplate = fileSystem
         .readFileBlocking(directoryTemplateResource)
         .toString(StandardCharsets.UTF_8);
     }
@@ -129,12 +130,19 @@ public class StaticHandlerImpl implements StaticHandler {
         path = indexPage;
       }
 
+      // Access fileSystem once here to be safe
+      FileSystem fs = fileSystem;
+      if (fs == null) {
+        fs = context.vertx().fileSystem();
+        fileSystem = fs;
+      }
+
       // can be called recursive for index pages
-      sendStatic(context, path);
+      sendStatic(context, fs, path);
     }
   }
 
-  private void sendStatic(RoutingContext context, String path) {
+  private void sendStatic(RoutingContext context, FileSystem fileSystem, String path) {
 
     String file = null;
 
@@ -180,8 +188,7 @@ public class StaticHandlerImpl implements StaticHandler {
     final String sfile = file == null ? getFile(path, context) : file;
 
     // verify if the file exists
-    context.vertx()
-      .fileSystem()
+    fileSystem
       .exists(sfile, exists -> {
         if (exists.failed()) {
           context.fail(exists.cause());
@@ -198,7 +205,7 @@ public class StaticHandlerImpl implements StaticHandler {
         }
 
         // Need to read the props from the filesystem
-        getFileProps(context, sfile, res -> {
+        getFileProps(fileSystem, sfile, res -> {
           if (res.succeeded()) {
             FileProps fprops = res.result();
             if (fprops == null) {
@@ -211,7 +218,7 @@ public class StaticHandlerImpl implements StaticHandler {
               if (dirty) {
                 cache.remove(path);
               }
-              sendDirectory(context, path, sfile);
+              sendDirectory(context, fileSystem, path, sfile);
             } else {
               if (cache.enabled()) {
                 cache.put(path, fprops);
@@ -221,7 +228,7 @@ public class StaticHandlerImpl implements StaticHandler {
                   return;
                 }
               }
-              sendFile(context, sfile, fprops);
+              sendFile(context, fileSystem, sfile, fprops);
             }
           } else {
             context.fail(res.cause());
@@ -230,7 +237,7 @@ public class StaticHandlerImpl implements StaticHandler {
       });
   }
 
-  private void sendDirectory(RoutingContext context, String path, String file) {
+  private void sendDirectory(RoutingContext context, FileSystem fileSystem, String path, String file) {
     // in order to keep caches in a valid state we need to assert that
     // the user is requesting a directory (ends with /)
     if (!path.endsWith("/")) {
@@ -242,7 +249,7 @@ public class StaticHandlerImpl implements StaticHandler {
     }
 
     if (directoryListing) {
-      sendDirectoryListing(file, context);
+      sendDirectoryListing(fileSystem, file, context);
     } else if (indexPage != null) {
       // send index page
       String indexPath;
@@ -252,23 +259,22 @@ public class StaticHandlerImpl implements StaticHandler {
         indexPath = path + indexPage;
       }
       // recursive call
-      sendStatic(context, indexPath);
+      sendStatic(context, fileSystem, indexPath);
     } else {
       // Directory listing denied
       context.fail(FORBIDDEN.code());
     }
   }
 
-  private void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
-    FileSystem fs = context.vertx().fileSystem();
+  private void getFileProps(FileSystem fileSystem, String file, Handler<AsyncResult<FileProps>> resultHandler) {
     if (tune.useAsyncFS()) {
-      fs.props(file, resultHandler);
+      fileSystem.props(file, resultHandler);
     } else {
       // Use synchronous access - it might well be faster!
       try {
         final boolean tuneEnabled = tune.enabled();
         final long start = tuneEnabled ? System.nanoTime() : 0;
-        FileProps props = fs.propsBlocking(file);
+        FileProps props = fileSystem.propsBlocking(file);
         if (tuneEnabled) {
           tune.update(start, System.nanoTime());
         }
@@ -281,7 +287,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private static final Pattern RANGE = Pattern.compile("^bytes=(\\d+)-(\\d*)$");
 
-  private void sendFile(RoutingContext context, String file, FileProps fileProps) {
+  private void sendFile(RoutingContext context, FileSystem fileSystem, String file, FileProps fileProps) {
     final HttpServerRequest request = context.request();
     final HttpServerResponse response = context.response();
 
@@ -383,7 +389,7 @@ public class StaticHandlerImpl implements StaticHandler {
             if (!dependency.isNoPush()) {
               final String dep = webRoot + "/" + dependency.getFilePath();
               // get the file props
-              getFileProps(context, dep, filePropsAsyncResult -> {
+              getFileProps(fileSystem, dep, filePropsAsyncResult -> {
                 if (filePropsAsyncResult.succeeded()) {
                   // push
                   writeCacheHeaders(request, filePropsAsyncResult.result());
@@ -412,7 +418,7 @@ public class StaticHandlerImpl implements StaticHandler {
           for (Http2PushMapping dependency : http2PushMappings) {
             final String dep = webRoot + "/" + dependency.getFilePath();
             // get the file props
-            getFileProps(context, dep, filePropsAsyncResult -> {
+            getFileProps(fileSystem, dep, filePropsAsyncResult -> {
               if (filePropsAsyncResult.succeeded()) {
                 // push
                 writeCacheHeaders(request, filePropsAsyncResult.result());
@@ -585,8 +591,7 @@ public class StaticHandlerImpl implements StaticHandler {
     this.webRoot = webRoot;
   }
 
-  private void sendDirectoryListing(String dir, RoutingContext context) {
-    final FileSystem fileSystem = context.vertx().fileSystem();
+  private void sendDirectoryListing(FileSystem fileSystem, String dir, RoutingContext context) {
     final HttpServerRequest request = context.request();
     final HttpServerResponse response = context.response();
 
@@ -644,7 +649,7 @@ public class StaticHandlerImpl implements StaticHandler {
           response
             .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
             .end(
-              directoryTemplate(context.vertx()).replace("{directory}", normalizedDir)
+              directoryTemplate(fileSystem).replace("{directory}", normalizedDir)
                 .replace("{parent}", parent)
                 .replace("{files}", files.toString()));
         } else if (accept.contains("json")) {
