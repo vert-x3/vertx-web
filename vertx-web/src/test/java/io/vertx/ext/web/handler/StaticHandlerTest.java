@@ -27,9 +27,11 @@ import io.vertx.ext.web.impl.Utils;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 
@@ -882,6 +884,25 @@ public class StaticHandlerTest extends WebTestBase {
       .handler(stat);
     // /\..\index.html -> /index.html
     testRequest(HttpMethod.GET, "/%5c..%5cindex.html", 200, "OK");
+  }
+
+  @Test
+  public void testWithClassLoader() throws Exception {
+    Set<String> used = Collections.synchronizedSet(new HashSet<>());
+    ClassLoader classLoader = new ClassLoader(Thread.currentThread().getContextClassLoader()) {
+      @Override
+      public URL getResource(String name) {
+        used.add(name);
+        return super.getResource(name);
+      }
+    };
+    StaticHandler stat = StaticHandler.create(classLoader);
+    router.clear();
+    router
+      .route()
+      .handler(stat);
+    testRequest(HttpMethod.GET, "/index.html", 200, "OK", "<html><body>Index page</body></html>");
+    assertTrue(used.contains("webroot"));
   }
 
   // TODO

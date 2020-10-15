@@ -126,6 +126,15 @@ public interface StaticHandler extends Handler<RoutingContext> {
   }
 
   /**
+   * Create a handler using defaults
+   *
+   * @return the handler
+   */
+  static StaticHandler create(ClassLoader classLoader) {
+    return new StaticHandlerImpl(classLoader);
+  }
+
+  /**
    * Create a handler, specifying web-root
    *
    * @param root the web-root

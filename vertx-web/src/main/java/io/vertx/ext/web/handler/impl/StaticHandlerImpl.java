@@ -22,6 +22,7 @@ import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.http.impl.MimeMapping;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
@@ -69,9 +70,18 @@ public class StaticHandlerImpl implements StaticHandler {
   private Set<String> compressedMediaTypes = Collections.emptySet();
   private Set<String> compressedFileSuffixes = Collections.emptySet();
 
+  private final ClassLoader classLoader;
   private final FSTune tune = new FSTune();
   private final FSPropsCache cache = new FSPropsCache();
   private FileSystem fileSystem;
+
+  public StaticHandlerImpl() {
+    this.classLoader = null;
+  }
+
+  public StaticHandlerImpl(ClassLoader classLoader) {
+    this.classLoader = classLoader;
+  }
 
   private String directoryTemplate(FileSystem fileSystem) {
     if (directoryTemplate == null) {
@@ -133,7 +143,11 @@ public class StaticHandlerImpl implements StaticHandler {
       // Access fileSystem once here to be safe
       FileSystem fs = fileSystem;
       if (fs == null) {
-        fs = context.vertx().fileSystem();
+        if (classLoader == null) {
+          fs = context.vertx().fileSystem();
+        } else {
+          fs = ((VertxInternal)context.vertx()).fileSystem(classLoader);
+        }
         fileSystem = fs;
       }
 
