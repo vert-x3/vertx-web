@@ -33,7 +33,7 @@ import io.vertx.ext.web.handler.impl.BodyHandlerImpl;
 public interface BodyHandler extends Handler<RoutingContext> {
 
   /**
-   * Default max size for a request body. -1 means unlimited
+   * Default max size for a request body = {@code -1} means unlimited
    */
   long DEFAULT_BODY_LIMIT = -1;
 
@@ -85,10 +85,10 @@ public interface BodyHandler extends Handler<RoutingContext> {
   static BodyHandler create(String uploadDirectory) {
     return new BodyHandlerImpl(uploadDirectory);
   }
-  
+
   /**
    * Set whether file uploads will be handled
-   * 
+   *
    * @param handleFileUploads  true if they should be handled
    * @return reference to this for fluency
    */
@@ -96,9 +96,9 @@ public interface BodyHandler extends Handler<RoutingContext> {
   BodyHandler setHandleFileUploads(boolean handleFileUploads);
 
   /**
-   * Set the maximum body size -1 means unlimited
+   * Set the maximum body size in bytes, {@code -1} means no limit
    *
-   * @param bodyLimit  the max size
+   * @param bodyLimit  the max size in bytes
    * @return reference to this for fluency
    */
   @Fluent
