@@ -16,6 +16,9 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Promise;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.net.PemKeyCertOptions;
@@ -27,9 +30,11 @@ import io.vertx.ext.web.impl.Utils;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 
@@ -882,6 +887,42 @@ public class StaticHandlerTest extends WebTestBase {
       .handler(stat);
     // /\..\index.html -> /index.html
     testRequest(HttpMethod.GET, "/%5c..%5cindex.html", 200, "OK");
+  }
+
+  @Test
+  public void testWithClassLoader() throws Exception {
+    File tmp = File.createTempFile("vertx_", ".txt");
+    tmp.deleteOnExit();
+    URL url = tmp.toURI().toURL();
+    Files.write(tmp.toPath(), "hello".getBytes());
+    AtomicBoolean used = new AtomicBoolean();
+    ClassLoader classLoader = new ClassLoader(Thread.currentThread().getContextClassLoader()) {
+      @Override
+      public URL getResource(String name) {
+        if (name.equals("webroot/index.html")) {
+          used.set(true);
+          return url;
+        }
+        return super.getResource(name);
+      }
+    };
+    server.close();
+    CountDownLatch latch = new CountDownLatch(1);
+    vertx.deployVerticle(new AbstractVerticle() {
+      @Override
+      public void start(Promise<Void> startPromise) throws Exception {
+        server = vertx.createHttpServer(getHttpServerOptions());
+        server.requestHandler(router)
+          .listen()
+          .<Void>mapEmpty()
+          .onComplete(startPromise);
+      }
+    }, new DeploymentOptions().setClassLoader(classLoader), onSuccess(v -> {
+      latch.countDown();
+    }));
+    awaitLatch(latch);
+    testRequest(HttpMethod.GET, "/index.html", 200, "OK", "hello");
+    assertTrue(used.get());
   }
 
   // TODO

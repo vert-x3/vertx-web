@@ -131,11 +131,7 @@ public class StaticHandlerImpl implements StaticHandler {
       }
 
       // Access fileSystem once here to be safe
-      FileSystem fs = fileSystem;
-      if (fs == null) {
-        fs = context.vertx().fileSystem();
-        fileSystem = fs;
-      }
+      FileSystem fs = fileSystem = context.vertx().fileSystem();
 
       // can be called recursive for index pages
       sendStatic(context, fs, path);
