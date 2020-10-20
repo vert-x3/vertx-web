@@ -967,7 +967,7 @@ final class RouteState {
         }
       }
     }
-    if (!virtualHostMatches(context.request().host())) {
+    if (!virtualHostMatches(context.request())) {
       return 404;
     }
     return 0;
@@ -1038,9 +1038,15 @@ final class RouteState {
     }
   }
 
-  private boolean virtualHostMatches(String host) {
-    if (virtualHostPattern == null) return true;
+  private boolean virtualHostMatches(HttpServerRequest request) {
+    if (virtualHostPattern == null) {
+      return true;
+    }
     boolean match = false;
+    String host = request.host();
+    if (host == null) {
+      return match;
+    }
     for (String h : host.split(":")) {
       if (virtualHostPattern.matcher(h).matches()) {
         match = true;

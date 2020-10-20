@@ -29,7 +29,8 @@ Configures the endpoint where the contract is served.
  <a href="https://github.com/eclipse/microprofile-open-api/blob/master/spec/src/main/asciidoc/microprofile-openapi-spec.adoc#openapi-endpoint">Microprofile OpenAPI spec</a>.
 +++
 |[[mountNotImplementedHandler]]`@mountNotImplementedHandler`|`Boolean`|+++
-If true, Router builder will automatically mount an handler that return HTTP 405/501 status code for each operation where you didn't specify an handler.
+If true, Router builder will automatically mount an handler that return HTTP 405/501 status code for each
+ operation where you didn't specify an handler.
  You can customize the response with link
 +++
 |[[mountResponseContentTypeHandler]]`@mountResponseContentTypeHandler`|`Boolean`|+++
@@ -41,7 +42,8 @@ When set, an additional handler will be created to expose the operation model in
 +++
 |[[requireSecurityHandlers]]`@requireSecurityHandlers`|`Boolean`|+++
 If true, when you call link ()} the factory will mount for every path
- the required security handlers and, if a security handler is not defined, it throws an link
+ the required security handlers and, if a security handler is not defined, it throws an
+ link
 +++
 |[[routeNamingStrategy]]`@routeNamingStrategy`|`link:enums.html#RouteNamingStrategy[RouteNamingStrategy]`|+++
 The strategy to follow when naming the generated routes.
