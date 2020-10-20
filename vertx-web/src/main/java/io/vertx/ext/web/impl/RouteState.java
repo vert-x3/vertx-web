@@ -911,8 +911,10 @@ final class RouteState {
         }
       }
     }
-    if (!virtualHostMatches(context.request.host())) {
-      return 404;
+    if(virtualHostPattern != null) {
+      if (!virtualHostMatches(context.request.host())) {
+        return 404;
+      }
     }
     return 0;
   }
