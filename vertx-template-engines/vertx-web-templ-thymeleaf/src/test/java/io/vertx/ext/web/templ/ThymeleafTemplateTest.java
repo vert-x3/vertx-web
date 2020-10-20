@@ -78,7 +78,6 @@ public class ThymeleafTemplateTest {
       should.assertEquals(expected, render.result().toString());
       test.complete();
     });
-    test.await();
   }
 
   @Test

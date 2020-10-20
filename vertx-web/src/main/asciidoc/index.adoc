@@ -1803,6 +1803,40 @@ Hello ${foo} and ${bar}
 Please consult the https://httl.github.io/en/[HTTL documentation] for how to write
 HTTL templates.
 
+=== Rythm template engine
+
+To use Rythm, you need to add the following _dependency_ to your project:
+`${maven.groupId}:vertx-web-templ-rythm:${maven.version}`. Create an instance of the Rythm template engine
+using: `io.vertx.ext.web.templ.rythm.RythmTemplateEngine#create(io.vertx.core.Vertx)`.
+
+When using the Rythm template engine, it will by default look for
+templates with the `.html` extension if no extension is specified in the file name.
+
+The values of the JSON context object passed to the `render` method are then exposed as template parameters.
+Given:
+
+----
+[snip]
+TemplateEngine engine = RythmTemplateEngine.create(vertx);
+final JsonObject context = new JsonObject()
+  .put("foo", "badger")
+  .put("bar", "fox");
+
+engine.render(context, "somedir/test-rythm-template1.html", render -> {
+  // (...)
+});
+[snip]
+----
+
+then the template can be as the following `somedir/test-rythm-template1.httl` resource file:
+
+----
+<!-- #set(String foo, String bar) -->
+Hello @foo and @bar
+----
+
+Please consult the http://www.rythmengine.org/[RythmEngine documentation] for how to write templates.
+
 === Caching
 
 Many of the engines support caching of the compiled templates. The cache is stored inside a vert.x shared data local map
