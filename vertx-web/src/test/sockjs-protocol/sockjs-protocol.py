@@ -497,10 +497,7 @@ import websocket
 # protocol. A decent SockJS server should support at least the
 # following variants:
 #
-#   - hixie-75 (Chrome 4, Safari 5.0.0)
-#   - hixie-76/hybi-00 (Chrome 6, Safari 5.0.1)
-#   - hybi-07 (Firefox 6)
-#   - hybi-10 (Firefox 7, Chrome 14)
+#   - hybi-13/rfc6455 (Firefox 11, Chrome 16, Safari 6, Opera 12.10, IE 10)
 #
 class WebsocketHttpErrors(Test):
     # Normal requests to websocket should not succeed.
@@ -524,8 +521,8 @@ class WebsocketHttpErrors(Test):
             self.verify405(r)
 
 
-# Support WebSocket Hixie-76 protocol
-class WebsocketHixie76(Test):
+# Support WebSocket protocol
+class Websocket(Test):
     def test_transport(self):
         ws_url = 'ws:' + base_url.split(':',1)[1] + \
                  '/000/' + str(uuid.uuid4()) + '/websocket'
@@ -543,10 +540,34 @@ class WebsocketHixie76(Test):
         self.assertEqual(ws.recv(), u'c[3000,"Go away!"]')
 
         # The connection should be closed after the close frame.
-        with self.assertRaises(websocket.ConnectionClosedException):
-            if ws.recv() is None:
-                raise websocket.ConnectionClosedException
+        with self.assertRaises(websocket.WebSocketConnectionClosedException):
+            if not ws.recv():
+                raise websocket.WebSocketConnectionClosedException
         ws.close()
+
+    # Verify WebSocket headers sanity. Server must support
+    # Hybi-13
+    def test_headersSanity(self):
+        for version in ['13']:
+            url = base_url.split(':',1)[1] + \
+                '/000/' + str(uuid.uuid4()) + '/websocket'
+            ws_url = 'ws:' + url
+            http_url = 'http:' + url
+            origin = '/'.join(http_url.split('/')[:3])
+            h = {'Upgrade': 'websocket',
+                 'Connection': 'Upgrade',
+                 'Sec-WebSocket-Version': version,
+                 'Sec-WebSocket-Origin': 'http://asd',
+                 'Sec-WebSocket-Key': 'x3JJHMbDL1EzLkh9GBhXDw==',
+                 }
+
+            r = GET_async(http_url, headers=h)
+            self.assertEqual(r.status, 101)
+            self.assertEqual(r['sec-websocket-accept'], 'HSmrc0sMlYUkAGmm5OPpG2HaGWk=')
+            self.assertEqual(r['connection'].lower(), 'upgrade')
+            self.assertEqual(r['upgrade'].lower(), 'websocket')
+            self.assertFalse(r['content-length'])
+            r.close()
 
     # Empty frames must be ignored by the server side.
     def test_empty_frame(self):
@@ -641,87 +662,11 @@ class WebsocketHixie76(Test):
         ws = websocket.create_connection(ws_url)
         self.assertEqual(ws.recv(), u'o')
         ws.send(u'["a')
-        with self.assertRaises(websocket.ConnectionClosedException):
+        with self.assertRaises(websocket.WebSocketConnectionClosedException):
+            ws.recv()
             if ws.recv() is None:
-                raise websocket.ConnectionClosedException
+                raise websocket.WebSocketConnectionClosedException
         ws.close()
-
-
-# The server must support Hybi-10 protocol
-class WebsocketHybi10(Test):
-    def test_transport(self):
-        trans_url = base_url.replace('http', 'ws') + '/000/' + str(uuid.uuid4()) + '/websocket'
-        ws = WebSocket8Client(trans_url)
-
-        self.assertEqual(ws.recv(), 'o')
-        # Server must ignore empty messages.
-        ws.send(u'')
-        ws.send(u'["a"]')
-        self.assertEqual(ws.recv(), 'a["a"]')
-        ws.close()
-
-    def test_close(self):
-        trans_url = close_base_url.replace('http', 'ws') + '/000/' + str(uuid.uuid4()) + '/websocket'
-        ws = WebSocket8Client(trans_url)
-        self.assertEqual(ws.recv(), u'o')
-        self.assertEqual(ws.recv(), u'c[3000,"Go away!"]')
-        with self.assertRaises(ws.ConnectionClosedException):
-            ws.recv()
-        ws.close()
-
-    # Verify WebSocket headers sanity. Server must support both
-    # Hybi-07 and Hybi-10.
-    def test_headersSanity(self):
-        for version in ['7', '8', '13']:
-            url = base_url.split(':',1)[1] + \
-                '/000/' + str(uuid.uuid4()) + '/websocket'
-            ws_url = 'ws:' + url
-            http_url = 'http:' + url
-            origin = '/'.join(http_url.split('/')[:3])
-            h = {'Upgrade': 'websocket',
-                 'Connection': 'Upgrade',
-                 'Sec-WebSocket-Version': version,
-                 'Sec-WebSocket-Origin': 'http://asd',
-                 'Sec-WebSocket-Key': 'x3JJHMbDL1EzLkh9GBhXDw==',
-                 }
-
-            r = GET_async(http_url, headers=h)
-            self.assertEqual(r.status, 101)
-            self.assertEqual(r['sec-websocket-accept'], 'HSmrc0sMlYUkAGmm5OPpG2HaGWk=')
-            self.assertEqual(r['connection'].lower(), 'upgrade')
-            self.assertEqual(r['upgrade'].lower(), 'websocket')
-            self.assertFalse(r['content-length'])
-            r.close()
-
-    # When user sends broken data - broken JSON for example, the
-    # server must abruptly terminate the ws connection.
-    def test_broken_json(self):
-        ws_url = 'ws:' + base_url.split(':',1)[1] + \
-                 '/000/' + str(uuid.uuid4()) + '/websocket'
-        ws = WebSocket8Client(ws_url)
-        self.assertEqual(ws.recv(), u'o')
-        ws.send(u'["a')
-        with self.assertRaises(ws.ConnectionClosedException):
-            ws.recv()
-        ws.close()
-
-    # As a fun part, Firefox 6.0.2 supports Websockets protocol '7'. But,
-    # it doesn't send a normal 'Connection: Upgrade' header. Instead it
-    # sends: 'Connection: keep-alive, Upgrade'. Brilliant.
-    def test_firefox_602_connection_header(self):
-        url = base_url.split(':',1)[1] + \
-            '/000/' + str(uuid.uuid4()) + '/websocket'
-        ws_url = 'ws:' + url
-        http_url = 'http:' + url
-        origin = '/'.join(http_url.split('/')[:3])
-        h = {'Upgrade': 'websocket',
-             'Connection': 'keep-alive, Upgrade',
-             'Sec-WebSocket-Version': '7',
-             'Sec-WebSocket-Origin': 'http://asd',
-             'Sec-WebSocket-Key': 'x3JJHMbDL1EzLkh9GBhXDw==',
-             }
-        r = GET_async(http_url, headers=h)
-        self.assertEqual(r.status, 101)
 
 
 # XhrPolling: `/*/*/xhr`, `/*/*/xhr_send`
