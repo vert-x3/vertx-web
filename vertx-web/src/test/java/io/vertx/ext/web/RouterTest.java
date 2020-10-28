@@ -18,6 +18,7 @@ package io.vertx.ext.web;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.*;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
@@ -49,9 +50,20 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testSimpleFunction() throws Exception {
     router.route()
-      .withJson(rc -> vertx.fileSystem().readFile(rc.queryParams().get("file")));
+      .respond(rc -> vertx.fileSystem().readFile(rc.queryParams().get("file")));
 
     testRequest(HttpMethod.GET, "/?file=.htdigest", null, res -> assertEquals(res.getHeader("Content-Type"), "application/json; charset=utf-8"), 200, "OK", "\"TXVmYXNhOnRlc3RyZWFsbUBob3N0LmNvbTo5MzllNzU3OGVkOWUzYzUxOGE0NTJhY2VlNzYzYmNlOQo\"");
+  }
+
+  @Test
+  public void testSimpleFunction2() throws Exception {
+    router.route()
+      .respond(ctx ->
+        ctx.response()
+          .putHeader("Content-Type", "octet/binary")
+          .end(Buffer.buffer("durp")));
+
+    testRequest(HttpMethod.GET, "/", null, res -> assertEquals("octet/binary", res.getHeader("Content-Type")), 200, "OK", "durp");
   }
 
   @Test
@@ -60,7 +72,7 @@ public class RouterTest extends WebTestBase {
       .get("/hello")
       .produces("application/json")
       .handler(ResponseContentTypeHandler.create())
-      .withJson(rc -> succeededFuture(new JsonObject().put("hello", "world")));
+      .respond(rc -> succeededFuture(new JsonObject().put("hello", "world")));
 
     testRequest(
       HttpMethod.GET,
@@ -78,7 +90,7 @@ public class RouterTest extends WebTestBase {
       .get("/hello")
       .produces("application/json")
       .handler(ResponseContentTypeHandler.create())
-      .withJson(rc -> {
+      .respond(rc -> {
         throw new RuntimeException("Boom!");
       });
 

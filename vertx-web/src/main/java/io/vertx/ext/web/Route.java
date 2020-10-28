@@ -21,6 +21,7 @@ import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 
 import java.util.List;
@@ -269,8 +270,10 @@ public interface Route {
   /**
    * Append a function request handler to the route handlers list. The function expects to receive the routing context
    * and users are expected to return a {@link Future}. The use of this functional interface allows users to quickly
-   * link the responses from other vert.x APIs or clients directly to a handler. The response of the future is then
-   * passed to the method {@link RoutingContext#json(Object)} to perform a JSON serialization of the result.
+   * link the responses from other vert.x APIs or clients directly to a handler. If the context response has been ended,
+   * for example, {@link RoutingContext#end()} has been called, then nothing shall happen. For the remaining cases, the
+   * response of the future is then passed to the method {@link RoutingContext#json(Object)} to perform a
+   * JSON serialization of the result.
    *
    * Internally the function is wrapped as a handler that handles error cases for the user too. For example, if the
    * function throws an exception the error will be catched and a proper error will be propagated throw the router.
@@ -282,12 +285,16 @@ public interface Route {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  default <T> Route withJson(Function<RoutingContext, Future<T>> function) {
+  default <T> Route respond(Function<RoutingContext, Future<T>> function) {
     return handler(ctx -> {
       try {
         function.apply(ctx)
           .onFailure(ctx::fail)
-          .onSuccess(ctx::json);
+          .onSuccess(body -> {
+            if (!ctx.response().ended()) {
+              ctx.json(body);
+            }
+          });
       } catch (RuntimeException e) {
         ctx.fail(e);
       }
