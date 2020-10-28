@@ -17,11 +17,11 @@
 package io.vertx.ext.web;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Promise;
+import io.vertx.core.*;
 import io.vertx.core.http.*;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static io.vertx.core.Future.succeededFuture;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,6 +44,49 @@ public class RouterTest extends WebTestBase {
   public void testSimpleRoute() throws Exception {
     router.route().handler(rc -> rc.response().end());
     testRequest(HttpMethod.GET, "/", 200, "OK");
+  }
+
+  @Test
+  public void testSimpleFunction() throws Exception {
+    router.route()
+      .withJson(rc -> vertx.fileSystem().readFile(rc.queryParams().get("file")));
+
+    testRequest(HttpMethod.GET, "/?file=.htdigest", null, res -> assertEquals(res.getHeader("Content-Type"), "application/json; charset=utf-8"), 200, "OK", "\"TXVmYXNhOnRlc3RyZWFsbUBob3N0LmNvbTo5MzllNzU3OGVkOWUzYzUxOGE0NTJhY2VlNzYzYmNlOQo\"");
+  }
+
+  @Test
+  public void testRouteFunctionWithBufferedPayload() throws Exception {
+    router
+      .get("/hello")
+      .produces("application/json")
+      .handler(ResponseContentTypeHandler.create())
+      .withJson(rc -> succeededFuture(new JsonObject().put("hello", "world")));
+
+    testRequest(
+      HttpMethod.GET,
+      "/hello",
+      null,
+      res -> assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type")),
+      200,
+      "OK",
+      "{\"hello\":\"world\"}");
+  }
+
+  @Test
+  public void testRouteFunctionWithException() throws Exception {
+    router
+      .get("/hello")
+      .produces("application/json")
+      .handler(ResponseContentTypeHandler.create())
+      .withJson(rc -> {
+        throw new RuntimeException("Boom!");
+      });
+
+    testRequest(
+      HttpMethod.GET,
+      "/hello",
+      500,
+      "Internal Server Error");
   }
 
   @Test
