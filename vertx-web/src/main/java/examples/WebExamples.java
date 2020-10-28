@@ -1,5 +1,6 @@
 package examples;
 
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -1848,5 +1849,45 @@ public class WebExamples {
     // connection is secure (using TLS/SSL, or
     // the forwarding parsing is enabled
     router.route().handler(HSTSHandler.create());
+  }
+
+  @DataObject
+  static class Pojo {}
+
+  public void example82(Router router) {
+
+    router
+      .get("/some/path")
+      // this handler will ensure that the response is serialized to json
+      // the content type is set to "application/json"
+      .respond(
+        ctx -> Future.succeededFuture(new JsonObject().put("hello", "world")));
+
+    router
+      .get("/some/path")
+      // this handler will ensure that the Pojo is serialized to json
+      // the content type is set to "application/json"
+      .respond(
+        ctx -> Future.succeededFuture(new Pojo()));
+  }
+
+  public void example83(Router router) {
+
+    router
+      .get("/some/path")
+      .respond(
+        ctx -> ctx
+          .response()
+            .putHeader("Content-Type", "text/plain")
+            .end("hello world!"));
+
+    router
+      .get("/some/path")
+      // in this case, the handler ensures that the connection is ended
+      .respond(
+        ctx -> ctx
+          .response()
+            .setChunked(true)
+            .write("Write some text..."));
   }
 }

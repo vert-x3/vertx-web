@@ -67,6 +67,18 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testSimpleFunction3() throws Exception {
+    router.route()
+      .respond(ctx ->
+        ctx.response()
+          .putHeader("Content-Type", "octet/binary")
+          .setChunked(true)
+          .write("XYZ"));
+
+    testRequest(HttpMethod.GET, "/", null, res -> assertEquals("octet/binary", res.getHeader("Content-Type")), 200, "OK", "XYZ");
+  }
+
+  @Test
   public void testRouteFunctionWithBufferedPayload() throws Exception {
     router
       .get("/hello")

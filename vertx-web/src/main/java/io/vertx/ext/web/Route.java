@@ -23,6 +23,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.handler.impl.HttpStatusException;
 
 import java.util.List;
 import java.util.Set;
@@ -291,8 +292,16 @@ public interface Route {
         function.apply(ctx)
           .onFailure(ctx::fail)
           .onSuccess(body -> {
-            if (!ctx.response().ended()) {
+            if (!ctx.response().headWritten()) {
               ctx.json(body);
+            } else {
+              if (body == null) {
+                if (!ctx.response().ended()) {
+                  ctx.end();
+                }
+              } else {
+                ctx.fail(new HttpStatusException(500, "Response already written"));
+              }
             }
           });
       } catch (RuntimeException e) {
