@@ -1966,13 +1966,28 @@ Here's an example of a simple SockJS handler that simply echoes back any back an
 
 === The client side
 
-In client side JavaScript you use the SockJS client side library to make connections.
+In client side JavaScript you use the SockJS client side library to make connections. For convenience the package is
+available on https://www.npmjs.com/package/sockjs-client[https://www.npmjs.com/package/sockjs-client].
 
-You can find that http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js[here].
+This means you can refer to it from bundlers or build tools. If however you want to get a `CDN` version to use directly
+on your `HTML` document, first you need to refer to the sockjs dependency:
+
+[source,html]
+----
+<html>
+<head>
+  <script src="https://unpkg.io/sockjs-client@1.5.0/dist/sockjs.min.js"></script>
+</head>
+<body>
+  ...
+</body>
+</html>
+----
 
 Full details for using the SockJS JavaScript client are on the https://github.com/sockjs/sockjs-client[SockJS website],
 but in summary you use it something like this:
 
+[source,js]
 ----
 var sock = new SockJS('http://mydomain.com/myapp');
 
@@ -2059,22 +2074,24 @@ SockJS handler.
 {@link examples.WebExamples#example45}
 ----
 
-In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send
-and receive messages:
+In client side JavaScript you use the http://npmjs.com/package/@vertx/eventbus-bridge-client.js[@vertx/eventbus-bridge-client.js]
+library to create connections to the event bus and to send and receive messages. The library is available on http://npmjs.com/package/@vertx/eventbus-bridge-client.js[NPM]
+so it can easily be used with bundlers or build tools, but in can easily be used from a CDN (like the sockJS example
+before):
 
 [source,html]
 ----
-<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-<script src='vertx-eventbus.js'></script>
+<script src="https://unpkg.io/sockjs-client@1.5.0/dist/sockjs.min.js"></script>
+<script src='https://unpkg.io/@vertx/eventbus-bridge-client.js@1.0.0-1/vertx-eventbus.js'></script>
 
 <script>
 
 var eb = new EventBus('http://localhost:8080/eventbus');
 
-eb.onopen = function() {
+eb.onopen = () => {
 
   // set a handler to receive a message
-  eb.registerHandler('some-address', function(error, message) {
+  eb.registerHandler('some-address', (error, message) => {
     console.log('received a message: ' + JSON.stringify(message));
   });
 
@@ -2120,38 +2137,6 @@ var eb2 = new EventBus('http://localhost:8080/eventbus', options);
 eb2.enableReconnect(true);
 // Set up handlers...
 ----
-
-You can retrieve the client library using a dependency manager:
-
-* Maven (in your `pom.xml`):
-
-[source,xml,subs="+attributes"]
-----
-<dependency>
-  <groupId>${maven.groupId}</groupId>
-  <artifactId>${maven.artifactId}</artifactId>
-  <version>${maven.version}</version>
-  <classifier>client</classifier>
-  <type>js</type>
-</dependency>
-----
-
-* Gradle (in your `build.gradle` file):
-
-[source,groovy,subs="+attributes"]
-----
-compile '${maven.groupId}:${maven.artifactId}:${maven.version}:client'
-----
-
-The library is also available on:
-
-* https://www.npmjs.com/package/vertx3-eventbus-client[NPM]
-* https://github.com/vert-x3/vertx-bus-bower[Bower]
-* https://cdnjs.com/libraries/vertx[cdnjs]
-
-Notice that the API has changed between the 3.0.0 and 3.1.0 version. Please check the changelog. The previous client
-is still compatible and can still be used, but the new client offers more feature and is closer to the vert.x
-event bus API.
 
 === Securing the Bridge
 
@@ -2296,8 +2281,8 @@ In client side JavaScript you use the 'vertx-eventbus.js` library to create conn
 
 [source,html]
 ----
-<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-<script src='vertx-eventbus.js'></script>
+<script src="https://unpkg.io/sockjs-client@1.5.0/dist/sockjs.min.js"></script>
+<script src='https://unpkg.io/@vertx/eventbus-bridge-client.js@1.0.0-1/vertx-eventbus.js'></script>
 
 <script>
 
