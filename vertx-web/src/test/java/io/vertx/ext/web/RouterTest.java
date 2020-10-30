@@ -17,11 +17,12 @@
 package io.vertx.ext.web;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Promise;
+import io.vertx.core.*;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static io.vertx.core.Future.succeededFuture;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,6 +45,72 @@ public class RouterTest extends WebTestBase {
   public void testSimpleRoute() throws Exception {
     router.route().handler(rc -> rc.response().end());
     testRequest(HttpMethod.GET, "/", 200, "OK");
+  }
+
+  @Test
+  public void testSimpleFunction() throws Exception {
+    router.route()
+      .respond(rc -> vertx.fileSystem().readFile(rc.queryParams().get("file")));
+
+    testRequest(HttpMethod.GET, "/?file=.htdigest", null, res -> assertEquals(res.getHeader("Content-Type"), "application/json; charset=utf-8"), 200, "OK", "\"TXVmYXNhOnRlc3RyZWFsbUBob3N0LmNvbTo5MzllNzU3OGVkOWUzYzUxOGE0NTJhY2VlNzYzYmNlOQo\"");
+  }
+
+  @Test
+  public void testSimpleFunction2() throws Exception {
+    router.route()
+      .respond(ctx ->
+        ctx.response()
+          .putHeader("Content-Type", "octet/binary")
+          .end(Buffer.buffer("durp")));
+
+    testRequest(HttpMethod.GET, "/", null, res -> assertEquals("octet/binary", res.getHeader("Content-Type")), 200, "OK", "durp");
+  }
+
+  @Test
+  public void testSimpleFunction3() throws Exception {
+    router.route()
+      .respond(ctx ->
+        ctx.response()
+          .putHeader("Content-Type", "octet/binary")
+          .setChunked(true)
+          .write("XYZ"));
+
+    testRequest(HttpMethod.GET, "/", null, res -> assertEquals("octet/binary", res.getHeader("Content-Type")), 200, "OK", "XYZ");
+  }
+
+  @Test
+  public void testRouteFunctionWithBufferedPayload() throws Exception {
+    router
+      .get("/hello")
+      .produces("application/json")
+      .handler(ResponseContentTypeHandler.create())
+      .respond(rc -> succeededFuture(new JsonObject().put("hello", "world")));
+
+    testRequest(
+      HttpMethod.GET,
+      "/hello",
+      null,
+      res -> assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type")),
+      200,
+      "OK",
+      "{\"hello\":\"world\"}");
+  }
+
+  @Test
+  public void testRouteFunctionWithException() throws Exception {
+    router
+      .get("/hello")
+      .produces("application/json")
+      .handler(ResponseContentTypeHandler.create())
+      .respond(rc -> {
+        throw new RuntimeException("Boom!");
+      });
+
+    testRequest(
+      HttpMethod.GET,
+      "/hello",
+      500,
+      "Internal Server Error");
   }
 
   @Test

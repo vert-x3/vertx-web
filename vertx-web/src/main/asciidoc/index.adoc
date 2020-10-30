@@ -187,6 +187,28 @@ then 5 seconds later `route3` is written to the response and the response is end
 
 Note, all this happens without any thread blocking.
 
+== Simple responses
+
+Handlers are quite powerful as they allow you to build quite complex applications. For simple responses, for example,
+returning an asynchronous response from a vert.x API directly, the router includes a shortcut to a handler that ensures
+that:
+
+1. The response is returned in JSON.
+2. If there is an error processing the handler, a proper error is returned.
+3. If there is an error serializing the response to JSON, a proper error is returned.
+
+[source,$lang]
+----
+{@link examples.WebExamples#example82}
+----
+
+However you can also use it for non JSON responses if the function supplied calls either `write` or `end`:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example83}
+----
+
 == Using blocking handlers
 
 Sometimes, you might have to do something in a handler that might block the event loop for some time, e.g. call
