@@ -209,7 +209,7 @@ public interface RouterBuilder {
     ContextInternal ctx = (ContextInternal) vertx.getOrCreateContext();
     Promise<RouterBuilder> promise = ctx.promise();
 
-    OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx.createHttpClient(), vertx.fileSystem(), options);
+    OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(), options);
     loader.loadOpenAPI(url).onComplete(ar -> {
       if (ar.failed()) {
         if (ar.cause() instanceof ValidationException) {

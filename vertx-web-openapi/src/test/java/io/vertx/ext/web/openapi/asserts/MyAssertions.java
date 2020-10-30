@@ -10,7 +10,9 @@ public class MyAssertions {
 
   public static JsonAssert assertThat(JsonArray actual) { return new JsonAssert(actual); }
 
-  public static OpenAPILoaderAssert assertThat(OpenAPIHolder actual) { return new OpenAPILoaderAssert(actual); }
+  public static OpenAPIHolderAssert assertThat(OpenAPIHolder actual) {
+    return new OpenAPIHolderAssert(actual);
+  }
 
   public static JsonAssert assertThatJson(Object actual) { return new JsonAssert(actual); }
 
