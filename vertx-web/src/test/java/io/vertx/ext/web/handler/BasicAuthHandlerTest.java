@@ -186,6 +186,34 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
   }
 
+  @Test
+  public void testLoginFailWithBadBase64() throws Exception {
+
+    String realm = "vertx-web";
+
+    Handler<RoutingContext> handler = rc -> {
+      fail("should not get here");
+      rc.response().end("Welcome to the protected resource!");
+    };
+
+    AuthenticationProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
+    router.route("/protected/*").handler(BasicAuthHandler.create(authProvider));
+
+    router.route("/protected/somepage").handler(handler);
+
+    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
+      String wwwAuth = resp.headers().get("WWW-Authenticate");
+      assertNotNull(wwwAuth);
+      assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
+    }, 401, "Unauthorized", null);
+
+    // Now try again with bad credentials
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOn5hdXdhZ2Vz="), resp -> {
+
+    }, 400, "Bad Request", null);
+
+  }
+
   @Override
   protected AuthenticationHandler createAuthHandler(AuthenticationProvider authProvider) {
     return BasicAuthHandler.create(authProvider);

@@ -62,7 +62,7 @@ public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler<Authenticatio
           spass = null;
         }
       } catch (RuntimeException e) {
-        context.fail(e);
+        context.fail(400,e);
         return;
       }
 
