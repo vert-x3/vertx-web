@@ -155,6 +155,30 @@ public class ErrorHandlerTest extends WebTestBase {
     await();
   }
 
+
+  @Test
+  public void testFailOnNoDisplayExceptionDetailsAndNoException() throws Exception {
+    router
+      // clear the previous setup
+      .clear()
+      // new handler should use development mode
+      .route().failureHandler(ErrorHandler.create(vertx, true));
+    // unset the system property
+
+
+    int statusCode = 404;
+    String statusMessage = "Not Found";
+    router.route().handler(rc -> {
+      rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
+      rc.fail(statusCode);
+    });
+    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
+      checkHtmlResponse(buff, resp, statusCode, statusMessage);
+      testComplete();
+    }), statusCode, statusMessage, null);
+    await();
+  }
+
   @Test
   public void testFailWithExceptionNoExceptionDetails() throws Exception {
     router.clear();

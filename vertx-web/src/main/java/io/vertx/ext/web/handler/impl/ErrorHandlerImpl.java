@@ -91,12 +91,14 @@ public class ErrorHandlerImpl implements ErrorHandler {
 
     if (displayExceptionDetails) {
       // failure message may be null
-      errorMessage = failure == null ? null : failure.getMessage();
-      if (errorMessage != null) {
+      String exceptionMessage = failure == null ? null : failure.getMessage();
+      if (exceptionMessage != null) {
         // no new lines are allowed in the status message
-        errorMessage = errorMessage.replaceAll("[\\r\\n]", " ");
+        exceptionMessage = exceptionMessage.replaceAll("[\\r\\n]", " ");
         // apply the newly desired message
-        response.setStatusMessage(errorMessage);
+        response.setStatusMessage(exceptionMessage);
+        //Override the default errorMessage
+        errorMessage = exceptionMessage;
       }
     }
 
