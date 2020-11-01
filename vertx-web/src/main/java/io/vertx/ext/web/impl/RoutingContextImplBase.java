@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public abstract class RoutingContextImplBase implements RoutingContext {
+public abstract class RoutingContextImplBase implements RoutingContextInternal {
 
   private static final Logger LOG = LoggerFactory.getLogger(RoutingContextImplBase.class);
 
@@ -59,6 +59,12 @@ public abstract class RoutingContextImplBase implements RoutingContext {
     this.currentRouteNextHandlerIndex = new AtomicInteger(0);
     this.currentRouteNextFailureHandlerIndex = new AtomicInteger(0);
     resetMatchFailure();
+  }
+
+  @Override
+  public synchronized RoutingContextInternal setMatchFailure(int matchFailure) {
+    this.matchFailure = matchFailure;
+    return this;
   }
 
   @Override
