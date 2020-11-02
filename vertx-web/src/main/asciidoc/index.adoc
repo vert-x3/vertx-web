@@ -2444,7 +2444,7 @@ standard same-origin policy.
 
 [source,$lang]
 ----
-{@link examples.WebExamples#example82}
+{@link examples.WebExamples#example84}
 ----
 
 
