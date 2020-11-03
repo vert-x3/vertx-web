@@ -19,6 +19,7 @@ package io.vertx.ext.web.sstore;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.sstore.impl.SessionInternal;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public abstract class AbstractSession implements Session {
+public abstract class AbstractSession implements Session, SessionInternal {
 
   private static final char[] HEX = "0123456789abcdef".toCharArray();
 
@@ -103,6 +104,17 @@ public abstract class AbstractSession implements Session {
 
   public void setPRNG(VertxContextPRNG prng) {
     this.prng = prng;
+  }
+
+  @Override
+  public void flushed(boolean skipCrc) {
+    renewed = false;
+    if (oldId != null) {
+      if (!skipCrc) {
+        crc = checksum();
+      }
+      oldId = null;
+    }
   }
 
   @Override
