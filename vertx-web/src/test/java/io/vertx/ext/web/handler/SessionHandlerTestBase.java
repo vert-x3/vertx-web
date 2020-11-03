@@ -555,4 +555,42 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       assertTrue(setCookie.startsWith(sessionCookieName + "="));
     }, 200, "OK", null);
   }
+
+  @Test
+  public void testRegenerateAndCookies() throws Exception {
+
+    final SessionHandler sessionHandler =
+      SessionHandler.create(LocalSessionStore.create(vertx))
+        .setLazySession(true)
+        .setCookieHttpOnlyFlag(true)
+        .setSessionCookieName("vid");
+
+    router.route("/login")
+      .handler(sessionHandler)
+      .handler(ctx -> {
+        ctx.session().regenerateId();
+        ctx.end(ctx.request().path());
+      });
+
+    router.route("/user")
+      .handler(sessionHandler)
+      .handler(ctx -> ctx.end(ctx.request().path()));
+
+    final AtomicReference<String> sessionID = new AtomicReference<>();
+
+    testRequest(HttpMethod.GET, "/login", null, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+      sessionID.set(setCookie);
+    }, 200, "OK", null);
+
+    // second call
+    testRequest(HttpMethod.GET, "/user", req -> {
+      req.putHeader("Cookie", sessionID.get());
+    }, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      // cookie doesn't change, no need to re-issue it again
+      assertNull(setCookie);
+    }, 200, "OK", null);
+  }
 }

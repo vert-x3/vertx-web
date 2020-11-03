@@ -29,6 +29,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.SessionStore;
+import io.vertx.ext.web.sstore.impl.SessionInternal;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -134,6 +135,10 @@ public class SessionHandlerImpl implements SessionHandler {
 
   @Override
   public SessionHandler flush(RoutingContext context, Handler<AsyncResult<Void>> handler) {
+    return flush(context, false, handler);
+  }
+
+  private SessionHandler flush(RoutingContext context, boolean skipCrc, Handler<AsyncResult<Void>> handler) {
     boolean sessionUsed = context.isSessionAccessed();
     Session session = context.session();
     if (!session.isDestroyed()) {
@@ -183,6 +188,9 @@ public class SessionHandlerImpl implements SessionHandler {
                   handler.handle(Future.failedFuture(put.cause()));
                 } else {
                   context.put(SESSION_FLUSHED_KEY, true);
+                  if (session instanceof SessionInternal) {
+                    ((SessionInternal) session).flushed(skipCrc);
+                  }
                   handler.handle(Future.succeededFuture());
                 }
               });
@@ -199,6 +207,9 @@ public class SessionHandlerImpl implements SessionHandler {
               handler.handle(Future.failedFuture(put.cause()));
             } else {
               context.put(SESSION_FLUSHED_KEY, true);
+              if (session instanceof SessionInternal) {
+                ((SessionInternal) session).flushed(skipCrc);
+              }
               handler.handle(Future.succeededFuture());
             }
           });
@@ -357,7 +368,7 @@ public class SessionHandlerImpl implements SessionHandler {
       // skip flush if we already flushed
       Boolean flushed = context.get(SESSION_FLUSHED_KEY);
       if (flushed == null || !flushed) {
-        flush(context, flush -> {
+        flush(context, true, flush -> {
           if (flush.failed()) {
             log.warn("Failed to flush the session to the underlying store", flush.cause());
           }
