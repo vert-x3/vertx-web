@@ -1,0 +1,104 @@
+package io.vertx.ext.web.handler.impl;
+
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.CSPHandler;
+
+import java.util.*;
+
+public class CSPHandlerImpl implements CSPHandler {
+
+  private static final List<String> MUST_BE_QUOTED = Arrays.asList(
+    "none",
+    "self",
+    "unsafe-inline",
+    "unsafe-eval"
+  );
+
+  private final Map<String, String> policy = new LinkedHashMap<>();
+  private boolean reportOnly;
+
+  public CSPHandlerImpl() {
+    addDirective("default-src", "self");
+  }
+
+  @Override
+  public synchronized CSPHandler setDirective(String name, String value) {
+    if (name == null) {
+      throw new IllegalArgumentException("name cannot be null");
+    }
+
+    if (value == null) {
+      policy.remove(name);
+    }
+
+    if (MUST_BE_QUOTED.contains(value)) {
+      // these policies are special, they must be quoted
+      value = "'" + value + "'";
+    }
+
+    policy.put(name, value);
+
+    return this;
+  }
+
+  @Override
+  public CSPHandler addDirective(String name, String value) {
+    if (name == null) {
+      throw new IllegalArgumentException("name cannot be null");
+    }
+
+    if (value == null) {
+      policy.remove(name);
+    }
+
+    if (MUST_BE_QUOTED.contains(value)) {
+      // these policies are special, they must be quoted
+      value = "'" + value + "'";
+    }
+
+    String previous = policy.get(name);
+    if (previous == null || "".equals(previous)) {
+      policy.put(name, value);
+    } else {
+      policy.put(name, previous + " " + value);
+    }
+
+    return this;
+  }
+
+  @Override
+  public CSPHandler setReportOnly(boolean reportOnly) {
+    this.reportOnly = reportOnly;
+    return this;
+  }
+
+    @Override
+  public void handle(RoutingContext ctx) {
+
+    final StringBuilder policyString = new StringBuilder();
+
+    for (Map.Entry<String, String> entry : policy.entrySet()) {
+      if (policyString.length() > 0) {
+        policyString.append("; ");
+      }
+      policyString
+        .append(entry.getKey())
+        .append(' ')
+        .append(entry.getValue());
+    }
+
+    if (reportOnly) {
+      if (!policy.containsKey("report-uri")) {
+        ctx.fail(new HttpStatusException(500, "Please disable CSP reportOnly or add a report-uri policy."));
+      } else {
+        ctx.response()
+          .putHeader("Content-Security-Policy-Report-Only", policyString.toString());
+        ctx.next();
+      }
+    } else {
+      ctx.response()
+        .putHeader("Content-Security-Policy", policyString.toString());
+      ctx.next();
+    }
+  }
+}

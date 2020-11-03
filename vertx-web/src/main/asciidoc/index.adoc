@@ -2416,7 +2416,7 @@ fetch('/process', {
 })
 ----
 
-== HSTSHandler
+== HSTS Handler
 
 HTTP Strict Transport Security (HSTS) is a web security policy mechanism that helps to protect websites against
 man-in-the-middle attacks such as protocol downgrade attacks and cookie hijacking. It allows web servers to declare that
@@ -2430,6 +2430,23 @@ This handler will configure the correct header for your application in a single 
 ----
 {@link examples.WebExamples#example80}
 ----
+
+== CSP Handler
+
+Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of
+attacks, including Cross Site Scripting (XSS) and data injection attacks. These attacks are used for everything from
+data theft to site defacement to distribution of malware.
+
+CSP is designed to be fully backward compatible. Browsers that don't support it still work with servers that
+implement it, and vice-versa: browsers that don't support CSP simply ignore it, functioning as usual, defaulting to
+the standard same-origin policy for web content. If the site doesn't offer the CSP header, browsers likewise use the
+standard same-origin policy.
+
+[source,$lang]
+----
+{@link examples.WebExamples#example84}
+----
+
 
 == OAuth2AuthHandler Handler
 
