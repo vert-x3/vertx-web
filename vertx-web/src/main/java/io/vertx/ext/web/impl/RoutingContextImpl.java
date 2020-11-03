@@ -30,6 +30,8 @@ import io.vertx.ext.web.*;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -446,24 +448,38 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public MultiMap queryParams() {
-    return getQueryParams();
+    return getQueryParams(null);
+  }
+
+  @Override
+  public MultiMap queryParams(Charset charset) {
+    return getQueryParams(charset);
   }
 
   @Override
   public @Nullable List<String> queryParam(String query) {
-    return getQueryParams().getAll(query);
+    return queryParams().getAll(query);
   }
 
-  private MultiMap getQueryParams() {
+  private MultiMap getQueryParams(Charset charset) {
     // Check if query params are already parsed
-    if (queryParams == null) {
+    if (charset != null || queryParams == null) {
       try {
-        queryParams = MultiMap.caseInsensitiveMultiMap();
-
         // Decode query parameters and put inside context.queryParams
-        Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
-        for (Map.Entry<String, List<String>> entry : decodedParams.entrySet())
-          queryParams.add(entry.getKey(), entry.getValue());
+        if (charset == null) {
+          queryParams = MultiMap.caseInsensitiveMultiMap();
+          Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
+          for (Map.Entry<String, List<String>> entry : decodedParams.entrySet()) {
+            queryParams.add(entry.getKey(), entry.getValue());
+          }
+        } else {
+          MultiMap queryParams = MultiMap.caseInsensitiveMultiMap();
+          Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri(), charset).parameters();
+          for (Map.Entry<String, List<String>> entry : decodedParams.entrySet()) {
+            queryParams.add(entry.getKey(), entry.getValue());
+          }
+          return queryParams;
+        }
       } catch (IllegalArgumentException e) {
         throw new HttpStatusException(400, "Error while decoding query params", e);
       }
