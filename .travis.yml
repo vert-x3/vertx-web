@@ -19,10 +19,6 @@ env:
 jobs:
   include:
     - stage: test
-      name: "OpenJDK 8"
-      jdk: openjdk8
-      script: mvn clean verify -B
-    - if: type != pull_request
       name: "OpenJDK 11"
       jdk: openjdk11
       script: mvn clean verify -B
