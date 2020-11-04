@@ -1776,6 +1776,29 @@ public class WebClientTest extends WebClientTestBase {
   }
 
   @Test
+  public void testExpectCustomExceptionWithStatusCode() throws Exception {
+    UUID uuid = UUID.randomUUID();
+    int statusCode = 400;
+
+    ResponsePredicate predicate = ResponsePredicate.create(ResponsePredicate.SC_SUCCESS, ErrorConverter.create(result -> {
+        int code = result.response().statusCode();
+        return new CustomException(uuid, String.valueOf(code));
+      }));
+
+    testExpectation(true, req -> req.expect(predicate), httpServerResponse -> {
+      httpServerResponse
+        .setStatusCode(statusCode)
+        .end(TestUtils.randomBuffer(2048));
+    }, ar -> {
+      Throwable cause = ar.cause();
+      assertThat(cause, instanceOf(CustomException.class));
+      CustomException customException = (CustomException) cause;
+      assertEquals(String.valueOf(statusCode), customException.getMessage());
+      assertEquals(uuid, customException.tag);
+    });
+  }
+
+  @Test
   public void testExpectFunctionThrowsException() throws Exception {
     ResponsePredicate predicate = ResponsePredicate.create(r -> {
       throw new IndexOutOfBoundsException("boom");
