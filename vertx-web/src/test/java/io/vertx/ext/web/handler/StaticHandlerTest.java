@@ -209,16 +209,15 @@ public class StaticHandlerTest extends WebTestBase {
     HttpClient client = vertx.createHttpClient(options);
     client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
       .onComplete(onSuccess(req -> {
-        req.onComplete(onSuccess(resp -> {
+        req.pushHandler(pushedReq -> pushedReq.response(pushedResp -> {
+          fail();
+        }));
+        req.send(onSuccess(resp -> {
           assertEquals(200, resp.statusCode());
           assertEquals(HttpVersion.HTTP_2, resp.version());
           resp.bodyHandler(this::assertNotNull);
           testComplete();
         }));
-        req.pushHandler(pushedReq -> pushedReq.onComplete(pushedResp -> {
-          fail();
-        }));
-        req.end();
       }));
     await();
   }
@@ -246,17 +245,16 @@ public class StaticHandlerTest extends WebTestBase {
     CountDownLatch latch = new CountDownLatch(2);
     client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
       .onComplete(onSuccess(req -> {
-        req.onComplete(onSuccess(resp -> {
-          assertEquals(200, resp.statusCode());
-          assertEquals(HttpVersion.HTTP_2, resp.version());
-          resp.bodyHandler(this::assertNotNull);
-        }))
-          .pushHandler(pushedReq -> pushedReq.onComplete(onSuccess(pushedResp -> {
+        req.pushHandler(pushedReq -> pushedReq.response(onSuccess(pushedResp -> {
             assertNotNull(pushedResp);
             pushedResp.bodyHandler(this::assertNotNull);
             latch.countDown();
           })))
-          .end();
+          .send(onSuccess(resp -> {
+            assertEquals(200, resp.statusCode());
+            assertEquals(HttpVersion.HTTP_2, resp.version());
+            resp.bodyHandler(this::assertNotNull);
+          }));
       }));
     latch.await();
   }

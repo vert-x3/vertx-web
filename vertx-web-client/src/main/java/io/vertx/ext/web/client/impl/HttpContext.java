@@ -557,7 +557,7 @@ public class HttpContext<T> {
       if (ar1.succeeded()) {
         clientRequest = ar1.result();
         HttpClientRequest req = ar1.result();
-        req.onComplete(ar2 -> {
+        req.response(ar2 -> {
           if (ar2.succeeded()) {
             HttpClientResponse resp = ar2.result();
             resp.pause();

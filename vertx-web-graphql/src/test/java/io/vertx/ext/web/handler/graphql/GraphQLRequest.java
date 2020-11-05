@@ -133,7 +133,7 @@ public class GraphQLRequest {
         if (contentType != null) {
           request.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
         }
-        request.onComplete(ar2 -> {
+        Handler<AsyncResult<HttpClientResponse>> h = ar2 -> {
           if (ar2.succeeded()) {
             HttpClientResponse response = ar2.result();
             if (expectedStatus != response.statusCode()) {
@@ -146,7 +146,7 @@ public class GraphQLRequest {
           } else {
             promise.fail(ar2.cause());
           }
-        });
+        };
         Buffer buffer;
         if (requestBody != null) {
           buffer = requestBody;
@@ -156,9 +156,9 @@ public class GraphQLRequest {
           buffer = getJsonBody();
         }
         if (buffer != null) {
-          request.end(buffer);
+          request.send(buffer, h);
         } else {
-          request.end();
+          request.send(h);
         }
       } else {
         promise.fail(ar1.cause());

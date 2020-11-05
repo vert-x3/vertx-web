@@ -39,7 +39,7 @@ public class BatchRequestsTest extends GraphQLTestBase {
   public void testEmptyBatch() throws Exception {
     client.request(HttpMethod.POST, 8080, "localhost", "/graphql")
       .onComplete(onSuccess(request -> {
-        request.onComplete(onSuccess(response -> {
+        request.send(new JsonArray().toBuffer(), onSuccess(response -> {
           if (response.statusCode() != 200) {
             fail(response.statusCode() + " " + response.statusMessage());
           } else {
@@ -51,7 +51,7 @@ public class BatchRequestsTest extends GraphQLTestBase {
               complete();
             });
           }
-        })).exceptionHandler(this::fail).end(new JsonArray().toBuffer());
+        }));
     }));
     await();
   }
@@ -62,7 +62,7 @@ public class BatchRequestsTest extends GraphQLTestBase {
       .onComplete(onSuccess(request -> {
         JsonObject query = new JsonObject()
           .put("query", "query { allLinks { url } }");
-        request.onComplete(onSuccess(response -> {
+        request.send(new JsonArray().add(query).toBuffer(), onSuccess(response -> {
           if (response.statusCode() != 200) {
             fail(response.statusCode() + " " + response.statusMessage());
           } else {
@@ -75,7 +75,7 @@ public class BatchRequestsTest extends GraphQLTestBase {
               complete();
             });
           }
-        })).exceptionHandler(this::fail).end(new JsonArray().add(query).toBuffer());
+        }));
     }));
     await();
   }
@@ -86,13 +86,13 @@ public class BatchRequestsTest extends GraphQLTestBase {
       .onComplete(onSuccess(request -> {
         JsonObject query = new JsonObject()
           .put("foo", "bar");
-        request.onComplete(onSuccess(response -> {
+        request.send(new JsonArray().add(query).toBuffer(), onSuccess(response -> {
           if (response.statusCode() == 400) {
             complete();
           } else {
             fail(response.statusCode() + " " + response.statusMessage());
           }
-        })).exceptionHandler(this::fail).end(new JsonArray().add(query).toBuffer());
+        }));
     }));
     await();
   }
