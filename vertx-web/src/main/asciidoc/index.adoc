@@ -2276,10 +2276,10 @@ The raw message is a JSON object with the following structure:
 }
 ----
 
-The event is also an instance of {@link io.vertx.core.Future}. When you are finished handling the event you can
-complete the future with `true` to enable further processing.
+The event is also an instance of {@link io.vertx.core.Promise}. When you are finished handling the event you can
+complete the promise with `true` to enable further processing.
 
-If you don't want the event to be processed you can complete the future with `false`. This is a useful feature that
+If you don't want the event to be processed you can complete the promise with `false`. This is a useful feature that
 enables you to do your own filtering on messages passing through the bridge, or perhaps apply some fine grained
 authorization or metrics.
 
