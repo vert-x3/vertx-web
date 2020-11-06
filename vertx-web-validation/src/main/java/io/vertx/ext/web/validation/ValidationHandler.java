@@ -3,9 +3,9 @@ package io.vertx.ext.web.validation;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
-import io.vertx.ext.json.schema.SchemaParser;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
+import io.vertx.json.schema.SchemaParser;
 
 /**
  * This is the entry point of this module. Provides the parsing, validation and puts the parsed objects into {@link RoutingContext}. <br/>

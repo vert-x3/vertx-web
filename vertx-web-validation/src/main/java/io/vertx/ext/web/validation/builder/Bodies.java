@@ -1,14 +1,14 @@
 package io.vertx.ext.web.validation.builder;
 
-import io.vertx.ext.json.schema.Schema;
-import io.vertx.ext.json.schema.common.dsl.ObjectSchemaBuilder;
-import io.vertx.ext.json.schema.common.dsl.SchemaBuilder;
-import io.vertx.ext.json.schema.common.dsl.StringSchemaBuilder;
 import io.vertx.ext.web.validation.impl.ValueParserInferenceUtils;
 import io.vertx.ext.web.validation.impl.body.FormBodyProcessorImpl;
 import io.vertx.ext.web.validation.impl.body.JsonBodyProcessorImpl;
 import io.vertx.ext.web.validation.impl.body.TextPlainBodyProcessorImpl;
 import io.vertx.ext.web.validation.impl.validator.SchemaValidator;
+import io.vertx.json.schema.Schema;
+import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
+import io.vertx.json.schema.common.dsl.SchemaBuilder;
+import io.vertx.json.schema.common.dsl.StringSchemaBuilder;
 
 /**
  * In this interface you can find all available {@link BodyProcessorFactory} to use in {@link ValidationHandlerBuilder}. <br/>

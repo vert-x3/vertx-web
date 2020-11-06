@@ -1,15 +1,15 @@
 package io.vertx.ext.web.validation.impl;
 
 import io.vertx.core.Vertx;
-import io.vertx.ext.json.schema.SchemaParser;
-import io.vertx.ext.json.schema.SchemaRouter;
-import io.vertx.ext.json.schema.SchemaRouterOptions;
-import io.vertx.ext.json.schema.ValidationException;
-import io.vertx.ext.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.ext.web.validation.ParameterProcessorException;
 import io.vertx.ext.web.validation.builder.Parameters;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
 import io.vertx.ext.web.validation.testutils.TestSchemas;
+import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.SchemaRouter;
+import io.vertx.json.schema.SchemaRouterOptions;
+import io.vertx.json.schema.ValidationException;
+import io.vertx.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;

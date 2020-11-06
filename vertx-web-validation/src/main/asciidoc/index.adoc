@@ -58,7 +58,7 @@ Vert.x Web Validation provides an easy to use API to build an handler that perfo
 
 This module provides an easy to use builder API to create your {@link io.vertx.ext.web.validation.ValidationHandler}, the {@link io.vertx.core.Handler} that performs the parsing and validation of the request.
 To create this builder use {@link io.vertx.ext.web.validation.ValidationHandler#builder(SchemaParser)}.
-The provided {@link io.vertx.ext.json.schema.SchemaParser} will be used to parse all schemas created with https://vertx.io/docs/vertx-json-schema/$lang/[Vert.x Json Schema DSL]
+The provided {@link io.vertx.json.schema.SchemaParser} will be used to parse all schemas created with https://vertx.io/docs/vertx-json-schema/$lang/[Vert.x Json Schema DSL]
 
 === Defining parameters
 

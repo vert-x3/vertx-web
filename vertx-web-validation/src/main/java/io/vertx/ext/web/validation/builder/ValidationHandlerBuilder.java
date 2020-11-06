@@ -1,13 +1,13 @@
 package io.vertx.ext.web.validation.builder;
 
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.ext.json.schema.SchemaParser;
 import io.vertx.ext.web.validation.RequestPredicate;
 import io.vertx.ext.web.validation.ValidationHandler;
 import io.vertx.ext.web.validation.builder.impl.ValidationHandlerBuilderImpl;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
+import io.vertx.json.schema.SchemaParser;
 
 /**
  * Builder for a {@link ValidationHandler}. <br/>

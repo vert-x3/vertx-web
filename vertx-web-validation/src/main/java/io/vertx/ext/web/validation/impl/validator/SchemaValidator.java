@@ -1,11 +1,11 @@
 package io.vertx.ext.web.validation.impl.validator;
 
 import io.vertx.core.Future;
-import io.vertx.ext.json.schema.NoSyncValidationException;
-import io.vertx.ext.json.schema.Schema;
-import io.vertx.ext.json.schema.ValidationException;
-import io.vertx.ext.json.schema.common.SchemaImpl;
 import io.vertx.ext.web.validation.RequestParameter;
+import io.vertx.json.schema.NoSyncValidationException;
+import io.vertx.json.schema.Schema;
+import io.vertx.json.schema.ValidationException;
+import io.vertx.json.schema.common.SchemaImpl;
 
 public class SchemaValidator implements ValueValidator {
 

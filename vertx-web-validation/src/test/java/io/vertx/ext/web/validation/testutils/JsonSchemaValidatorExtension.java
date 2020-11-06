@@ -1,11 +1,11 @@
 package io.vertx.ext.web.validation.testutils;
 
 import io.vertx.core.Vertx;
-import io.vertx.ext.json.schema.SchemaParser;
-import io.vertx.ext.json.schema.SchemaRouter;
-import io.vertx.ext.json.schema.SchemaRouterOptions;
-import io.vertx.ext.json.schema.draft7.Draft7SchemaParser;
-import io.vertx.ext.json.schema.openapi3.OpenAPI3SchemaParser;
+import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.SchemaRouter;
+import io.vertx.json.schema.SchemaRouterOptions;
+import io.vertx.json.schema.draft7.Draft7SchemaParser;
+import io.vertx.json.schema.openapi3.OpenAPI3SchemaParser;
 import io.vertx.junit5.VertxExtension;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;

@@ -7,15 +7,15 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.*;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.json.schema.SchemaParser;
-import io.vertx.ext.json.schema.SchemaRouter;
-import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.openapi.impl.OpenAPI3RouterBuilderImpl;
 import io.vertx.ext.web.openapi.impl.OpenAPIHolderImpl;
+import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.SchemaRouter;
+import io.vertx.json.schema.ValidationException;
 
 import java.util.List;
 import java.util.function.Function;
@@ -146,12 +146,12 @@ public interface RouterBuilder {
   OpenAPIHolder getOpenAPI();
 
   /**
-   * @return schema router used by self to internally manage all {@link io.vertx.ext.json.schema.Schema} instances
+   * @return schema router used by self to internally manage all {@link io.vertx.json.schema.Schema} instances
    */
   SchemaRouter getSchemaRouter();
 
   /**
-   * @return schema parser used by self to parse all {@link io.vertx.ext.json.schema.Schema}
+   * @return schema parser used by self to parse all {@link io.vertx.json.schema.Schema}
    */
   SchemaParser getSchemaParser();
 

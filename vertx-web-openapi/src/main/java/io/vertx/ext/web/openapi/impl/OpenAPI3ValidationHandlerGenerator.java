@@ -2,13 +2,13 @@ package io.vertx.ext.web.openapi.impl;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.SchemaParser;
 import io.vertx.ext.web.openapi.RouterBuilderException;
 import io.vertx.ext.web.validation.RequestPredicate;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.ValidationHandlerImpl;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
+import io.vertx.json.schema.SchemaParser;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,10 +1,5 @@
 package io.vertx.ext.web.validation.builder.impl;
 
-import io.vertx.ext.json.schema.Schema;
-import io.vertx.ext.json.schema.SchemaParser;
-import io.vertx.ext.json.schema.common.dsl.ArraySchemaBuilder;
-import io.vertx.ext.json.schema.common.dsl.ObjectSchemaBuilder;
-import io.vertx.ext.json.schema.common.dsl.TupleSchemaBuilder;
 import io.vertx.ext.web.validation.builder.ArrayParserFactory;
 import io.vertx.ext.web.validation.builder.ObjectParserFactory;
 import io.vertx.ext.web.validation.builder.StyledParameterProcessorFactory;
@@ -14,6 +9,11 @@ import io.vertx.ext.web.validation.impl.ValueParserInferenceUtils;
 import io.vertx.ext.web.validation.impl.parameter.*;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
 import io.vertx.ext.web.validation.impl.validator.SchemaValidator;
+import io.vertx.json.schema.Schema;
+import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.common.dsl.ArraySchemaBuilder;
+import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
+import io.vertx.json.schema.common.dsl.TupleSchemaBuilder;
 
 import java.util.function.BiFunction;
 
