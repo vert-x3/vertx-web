@@ -3,7 +3,7 @@ package io.vertx.ext.web.api.contract.openapi3.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.networknt.schema.SchemaValidatorsConfig;
+import com.networknt.schema.*;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -32,10 +32,23 @@ import java.util.stream.Collectors;
  */
 public class OpenApi3Utils {
 
-  public static final SchemaValidatorsConfig VALIDATOR_CONFIG = new SchemaValidatorsConfig();
+  private static final JsonMetaSchema META_SCHEMA = JsonMetaSchema
+    .builder(JsonMetaSchema.getV4().getUri(), JsonMetaSchema.getV4())
+    .addKeyword(new NonValidationKeyword("example"))
+    .build();
+  private static final JsonSchemaFactory SCHEMA_FACTORY = new JsonSchemaFactory.Builder()
+    .defaultMetaSchemaURI(META_SCHEMA.getUri())
+    .addMetaSchema(META_SCHEMA)
+    .build();
+  private static final SchemaValidatorsConfig VALIDATOR_CONFIG = new SchemaValidatorsConfig();
 
   static {
     VALIDATOR_CONFIG.setTypeLoose(false);
+    VALIDATOR_CONFIG.setHandleNullableField(true);
+  }
+
+  public static JsonSchema parseJsonSchema(JsonNode schema) {
+    return SCHEMA_FACTORY.getSchema(schema, VALIDATOR_CONFIG);
   }
 
   public static ParseOptions getParseOptions() {
