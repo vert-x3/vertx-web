@@ -2523,6 +2523,9 @@ public class RouterTest extends WebTestBase {
           future.fail(e);
         }
       }, asyncResult -> {
+        if (asyncResult.failed()) {
+          asyncResult.cause().printStackTrace();
+        }
         assertFalse(asyncResult.failed());
         assertNull(asyncResult.cause());
         latch.countDown();

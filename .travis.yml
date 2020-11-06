@@ -1,3 +1,7 @@
+arch: amd64
+os: linux
+dist: focal
+
 language: java
 services:
   - docker
