@@ -2,32 +2,41 @@ arch: amd64
 os: linux
 dist: focal
 
-language: java
+language: generic
+
 services:
   - docker
+
 branches:
   only:
   - master
   - /^\d+\.\d+$/
+
 cache:
   directories:
     - $HOME/.m2
+
 before_cache:
   - rm -rf $HOME/.m2/repository/io/vertx/
+
 env:
   - NODE_VERSION=10.19.0
+
+before_install:
+- wget https://github.com/sormuras/bach/raw/master/install-jdk.sh
+
 jobs:
   include:
     - stage: test
       name: "OpenJDK 8"
-      jdk: openjdk8
+      install: . ./install-jdk.sh --url "https://api.adoptopenjdk.net/v3/binary/latest/8/ga/linux/x64/jdk/hotspot/normal/adoptopenjdk"
       script: mvn clean verify -B
     - if: type != pull_request
       name: "OpenJDK 11"
-      jdk: openjdk11
+      install: . ./install-jdk.sh --url "https://api.adoptopenjdk.net/v3/binary/latest/11/ga/linux/x64/jdk/hotspot/normal/adoptopenjdk"
       script: mvn clean verify -B
     - name: "Apollo Link tests"
-      jdk: openjdk8
+      install: . ./install-jdk.sh --url "https://api.adoptopenjdk.net/v3/binary/latest/8/ga/linux/x64/jdk/hotspot/normal/adoptopenjdk"
       before_script:
         - cd vertx-web-graphql
         - mvn exec:java -Dexec.mainClass=io.vertx.ext.web.handler.graphql.ApolloTestsServer -Dexec.classpathScope=test > ${HOME}/ApolloTestsServer.log 2>&1 &
@@ -40,7 +49,7 @@ jobs:
       after_failure: cat ${HOME}/ApolloTestsServer.log
       after_script: cat ${HOME}/ApolloTestsServer.pid | xargs kill -9
     - name: "SockJS writeHandler tests"
-      jdk: openjdk8
+      install: . ./install-jdk.sh --url "https://api.adoptopenjdk.net/v3/binary/latest/8/ga/linux/x64/jdk/hotspot/normal/adoptopenjdk"
       before_script:
         - cd vertx-web
         - mvn exec:java -Dexec.mainClass=io.vertx.ext.web.handler.sockjs.SockJSWriteHandlerTestServer -Dexec.classpathScope=test > ${HOME}/SockJSWriteHandlerTestServer.log 2>&1 &
@@ -56,7 +65,7 @@ jobs:
       after_script: cat ${HOME}/SockJSWriteHandlerTestServer.pid | xargs kill -9
     - stage: deploy
       name: "Deploy to Sonatype's snapshots repository"
-      jdk: openjdk8
+      install: . ./install-jdk.sh --url "https://api.adoptopenjdk.net/v3/binary/latest/8/ga/linux/x64/jdk/hotspot/normal/adoptopenjdk"
       if: type != pull_request AND env(SONATYPE_NEXUS_USERNAME) IS present
       script:
         - bash .travis.deploy.artifacts.sh
