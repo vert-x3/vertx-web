@@ -3,16 +3,16 @@ package examples;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.docgen.Source;
-import io.vertx.ext.json.schema.SchemaParser;
-import io.vertx.ext.json.schema.common.dsl.ObjectSchemaBuilder;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.validation.*;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.builder.Parameters;
+import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
 
-import static io.vertx.ext.json.schema.common.dsl.Schemas.*;
-import static io.vertx.ext.json.schema.draft7.dsl.Keywords.maximum;
 import static io.vertx.ext.web.validation.builder.Parameters.param;
+import static io.vertx.json.schema.common.dsl.Schemas.*;
+import static io.vertx.json.schema.draft7.dsl.Keywords.maximum;
 
 @Source
 public class WebValidationExamples {

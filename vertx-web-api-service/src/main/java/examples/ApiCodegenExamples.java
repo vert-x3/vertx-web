@@ -8,7 +8,6 @@ import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.docgen.Source;
-import io.vertx.ext.json.schema.SchemaParser;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.api.service.RouteToEBServiceHandler;
 import io.vertx.ext.web.api.service.ServiceRequest;
@@ -16,12 +15,13 @@ import io.vertx.ext.web.api.service.ServiceResponse;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 import io.vertx.ext.web.validation.ValidationHandler;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
+import io.vertx.json.schema.SchemaParser;
 import io.vertx.serviceproxy.ServiceBinder;
 
-import static io.vertx.ext.json.schema.common.dsl.Schemas.objectSchema;
-import static io.vertx.ext.json.schema.common.dsl.Schemas.stringSchema;
 import static io.vertx.ext.web.validation.builder.Bodies.json;
 import static io.vertx.ext.web.validation.builder.Parameters.optionalParam;
+import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.stringSchema;
 
 /**
  * @author <a href="https://github.com/slinkydeveloper">Francesco Guardiani</a>

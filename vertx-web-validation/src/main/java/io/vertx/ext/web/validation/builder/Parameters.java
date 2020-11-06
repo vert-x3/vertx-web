@@ -1,11 +1,11 @@
 package io.vertx.ext.web.validation.builder;
 
-import io.vertx.ext.json.schema.common.dsl.*;
 import io.vertx.ext.web.validation.builder.impl.ValidationDSLUtils;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessorImpl;
 import io.vertx.ext.web.validation.impl.parameter.SingleValueParameterParser;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
 import io.vertx.ext.web.validation.impl.validator.SchemaValidator;
+import io.vertx.json.schema.common.dsl.*;
 
 /**
  * In this interface you can find all available {@link ParameterProcessorFactory} to use in {@link ValidationHandlerBuilder}. <br/>

@@ -2,14 +2,14 @@ package io.vertx.ext.web.validation.testutils;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.json.schema.common.dsl.ArraySchemaBuilder;
-import io.vertx.ext.json.schema.common.dsl.ObjectSchemaBuilder;
-import io.vertx.ext.json.schema.common.dsl.StringSchemaBuilder;
+import io.vertx.json.schema.common.dsl.ArraySchemaBuilder;
+import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
+import io.vertx.json.schema.common.dsl.StringSchemaBuilder;
 
 import java.util.regex.Pattern;
 
-import static io.vertx.ext.json.schema.draft7.dsl.Keywords.maxLength;
-import static io.vertx.ext.json.schema.draft7.dsl.Schemas.*;
+import static io.vertx.json.schema.draft7.dsl.Keywords.maxLength;
+import static io.vertx.json.schema.draft7.dsl.Schemas.*;
 
 public class TestSchemas {
 

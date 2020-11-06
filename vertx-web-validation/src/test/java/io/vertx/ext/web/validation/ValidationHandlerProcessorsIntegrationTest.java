@@ -6,7 +6,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.common.dsl.ObjectSchemaBuilder;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.ext.web.validation.builder.Bodies;
@@ -15,6 +14,7 @@ import io.vertx.ext.web.validation.builder.Parsers;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
+import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -26,12 +26,12 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
 
-import static io.vertx.ext.json.schema.draft7.dsl.Keywords.multipleOf;
-import static io.vertx.ext.json.schema.draft7.dsl.Schemas.*;
 import static io.vertx.ext.web.validation.builder.Parameters.*;
 import static io.vertx.ext.web.validation.testutils.TestRequest.*;
 import static io.vertx.ext.web.validation.testutils.ValidationTestUtils.badBodyResponse;
 import static io.vertx.ext.web.validation.testutils.ValidationTestUtils.badParameterResponse;
+import static io.vertx.json.schema.draft7.dsl.Keywords.multipleOf;
+import static io.vertx.json.schema.draft7.dsl.Schemas.*;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper

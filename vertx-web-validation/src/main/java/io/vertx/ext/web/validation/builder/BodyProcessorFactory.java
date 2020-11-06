@@ -1,7 +1,7 @@
 package io.vertx.ext.web.validation.builder;
 
-import io.vertx.ext.json.schema.SchemaParser;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
+import io.vertx.json.schema.SchemaParser;
 
 /**
  * This interface is used to build body processors. <br/>

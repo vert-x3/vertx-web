@@ -8,18 +8,18 @@ import org.assertj.core.api.AbstractAssert;
 
 import java.net.URI;
 
-public class OpenAPILoaderAssert extends AbstractAssert<OpenAPILoaderAssert, OpenAPIHolder> {
+public class OpenAPIHolderAssert extends AbstractAssert<OpenAPIHolderAssert, OpenAPIHolder> {
 
   private final JsonPointerIteratorWithLoader iterator;
 
-  public OpenAPILoaderAssert(OpenAPIHolder actual) {
-    super(actual, OpenAPILoaderAssert.class);
+  public OpenAPIHolderAssert(OpenAPIHolder actual) {
+    super(actual, OpenAPIHolderAssert.class);
     iterator = new JsonPointerIteratorWithLoader(actual);
   }
 
   public JsonAssert hasCached(JsonPointer pointer) {
     return new JsonAssert(actual.getCached(pointer))
-        .isNotNull();
+      .isNotNull();
   }
 
   public JsonAssert hasCached(URI uri) {

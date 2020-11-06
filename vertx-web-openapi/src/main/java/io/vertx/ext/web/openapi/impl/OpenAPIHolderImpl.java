@@ -4,24 +4,26 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.netty.handler.codec.http.QueryStringEncoder;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.Schema;
-import io.vertx.ext.json.schema.SchemaParser;
-import io.vertx.ext.json.schema.SchemaRouter;
-import io.vertx.ext.json.schema.common.SchemaURNId;
-import io.vertx.ext.json.schema.common.URIUtils;
-import io.vertx.ext.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.ext.web.openapi.OpenAPIHolder;
 import io.vertx.ext.web.openapi.OpenAPILoaderOptions;
+import io.vertx.json.schema.Schema;
+import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.SchemaRouter;
+import io.vertx.json.schema.common.SchemaURNId;
+import io.vertx.json.schema.common.URIUtils;
+import io.vertx.json.schema.draft7.Draft7SchemaParser;
 
 import java.io.IOException;
 import java.net.URI;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 
 public class OpenAPIHolderImpl implements OpenAPIHolder {
 
+  private final Vertx vertx;
   private final Map<URI, JsonObject> absolutePaths;
   private final HttpClient client;
   private final FileSystem fs;
@@ -45,7 +48,8 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   private final YAMLMapper yamlMapper;
   private JsonObject openapiRoot;
 
-  public OpenAPIHolderImpl(HttpClient client, FileSystem fs, OpenAPILoaderOptions options) {
+  public OpenAPIHolderImpl(Vertx vertx, HttpClient client, FileSystem fs, OpenAPILoaderOptions options) {
+    this.vertx = vertx;
     absolutePaths = new ConcurrentHashMap<>();
     externalSolvingRefs = new ConcurrentHashMap<>();
     this.client = client;
@@ -61,7 +65,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     URI uri = URIUtils.removeFragment(URI.create(u));
     Future<JsonObject> resolvedOpenAPIDocumentUnparsed = (URIUtils.isRemoteURI(uri)) ? solveRemoteRef(uri) :
       solveLocalRef(uri);
-    initialScope = (URIUtils.isRemoteURI(uri)) ? uri : URI.create(sanitizeLocalRef(uri));
+    initialScope = (URIUtils.isRemoteURI(uri)) ? uri : resolveAbsoluteUriWithVertx(uri);
     initialScopeDirectory = Paths.get(initialScope.getPath()).resolveSibling("").toString();
     return resolvedOpenAPIDocumentUnparsed
       .compose(openapi -> {
@@ -72,7 +76,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
       .compose(openapi -> {
         JsonObject openapiCopy = openapi.copy();
         deepSubstituteForValidation(openapiCopy, JsonPointer.fromURI(initialScope), new HashMap<>());
-        // We need this shitty flattened spec just to validate it
+        // We need this flattened spec just to validate it
         return openapiSchema.validateAsync(openapiCopy).map(openapi);
       });
   }
@@ -328,6 +332,10 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
         return URIUtils.removeFragment(URIUtils.resolvePath(scope, ref.getPath()));
     }
     return scope;
+  }
+
+  private URI resolveAbsoluteUriWithVertx(URI uri) {
+    return ((VertxInternal) this.vertx).resolveFile(uri.toString()).toPath().toUri();
   }
 
   private String sanitizeLocalRef(URI ref) {

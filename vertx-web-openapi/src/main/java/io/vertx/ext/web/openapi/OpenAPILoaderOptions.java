@@ -4,7 +4,7 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.json.schema.SchemaRouterOptions;
+import io.vertx.json.schema.SchemaRouterOptions;
 
 import java.util.HashMap;
 import java.util.Map;

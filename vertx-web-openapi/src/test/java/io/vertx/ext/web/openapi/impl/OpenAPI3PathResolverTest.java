@@ -29,7 +29,7 @@ public class OpenAPI3PathResolverTest {
 
   @BeforeEach
   void setUp(Vertx vertx, VertxTestContext context) {
-    loader = new OpenAPIHolderImpl(vertx.createHttpClient(), vertx.fileSystem(), new OpenAPILoaderOptions());
+    loader = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(), new OpenAPILoaderOptions());
     loader
       .loadOpenAPI("src/test/resources/specs/path_resolver_test.yaml")
       .onComplete(ar -> {

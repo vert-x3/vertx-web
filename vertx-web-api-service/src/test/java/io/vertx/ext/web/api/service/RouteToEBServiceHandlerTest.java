@@ -25,10 +25,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.net.URI;
 
-import static io.vertx.ext.json.schema.draft7.dsl.Schemas.*;
 import static io.vertx.ext.web.validation.builder.Bodies.json;
 import static io.vertx.ext.web.validation.builder.Parameters.param;
 import static io.vertx.ext.web.validation.testutils.TestRequest.*;
+import static io.vertx.json.schema.draft7.dsl.Schemas.*;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
