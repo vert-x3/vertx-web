@@ -244,6 +244,9 @@ components:
   schemas:
     Person:
       type: object
+      example:
+        name: "Francesco"
+        surname: "Guardiani"
       properties:
         name:
           type: string
