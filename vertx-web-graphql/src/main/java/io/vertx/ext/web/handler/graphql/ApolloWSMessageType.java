@@ -34,7 +34,7 @@ public enum ApolloWSMessageType {
   START("start"),
   STOP("stop"),
   CONNECTION_ACK("connection_ack"),
-  CONNECTION_ERROR("error"),
+  CONNECTION_ERROR("connection_error"),
   CONNECTION_KEEP_ALIVE("ka"),
   DATA("data"),
   ERROR("error"),
