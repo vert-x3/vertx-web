@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.graphql.impl;
 
+import io.vertx.core.Future;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
@@ -29,11 +30,20 @@ public class ApolloWSMessageImpl implements ApolloWSMessage {
   private final ServerWebSocket serverWebSocket;
   private final ApolloWSMessageType type;
   private final JsonObject content;
+  private final Object connectionParams;
 
   public ApolloWSMessageImpl(ServerWebSocket serverWebSocket, ApolloWSMessageType type, JsonObject content) {
     this.serverWebSocket = serverWebSocket;
     this.type = type;
     this.content = content;
+    this.connectionParams = null;
+  }
+
+  public ApolloWSMessageImpl(ServerWebSocket serverWebSocket, ApolloWSMessageType type, JsonObject content, Object connectionParams) {
+    this.serverWebSocket = serverWebSocket;
+    this.type = type;
+    this.content = content;
+    this.connectionParams = connectionParams;
   }
 
   @Override
@@ -49,5 +59,10 @@ public class ApolloWSMessageImpl implements ApolloWSMessage {
   @Override
   public JsonObject content() {
     return content;
+  }
+
+  @Override
+  public Object connectionParams() {
+    return connectionParams;
   }
 }

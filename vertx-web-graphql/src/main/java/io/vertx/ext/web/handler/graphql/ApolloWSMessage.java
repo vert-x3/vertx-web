@@ -17,11 +17,12 @@
 package io.vertx.ext.web.handler.graphql;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Future;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
 
 /**
- * A message recevied over Apollo's {@code subscriptions-transport-ws} transport.
+ * A message received over Apollo's {@code subscriptions-transport-ws} transport.
  *
  * @author Rogelio Orts
  */
@@ -42,5 +43,10 @@ public interface ApolloWSMessage {
    * @return the message content
    */
   JsonObject content();
+
+  /**
+   * @return the connection params
+   */
+  Object connectionParams();
 
 }

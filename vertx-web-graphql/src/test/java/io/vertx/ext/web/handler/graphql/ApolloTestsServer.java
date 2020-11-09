@@ -27,6 +27,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -59,7 +60,15 @@ public class ApolloTestsServer extends AbstractVerticle {
 
     router.route().handler(CorsHandler.create("*").allowedMethod(GET).allowedMethod(POST));
     router.route().handler(BodyHandler.create());
-    router.route("/graphql").handler(ApolloWSHandler.create(setupWsGraphQL()));
+    router.route("/graphql").handler(ApolloWSHandler.create(setupWsGraphQL())
+      .connectionInitHandler(connectionInitEvent -> {
+        JsonObject payload = connectionInitEvent.message().content().getJsonObject("payload");
+        if (payload != null && payload.containsKey("rejectMessage")) {
+          connectionInitEvent.fail(payload.getString("rejectMessage"));
+          return;
+        }
+        connectionInitEvent.complete(payload);
+    }));
 
     GraphQLHandlerOptions graphQLHandlerOptions = new GraphQLHandlerOptions()
       .setRequestBatchingEnabled(true)
@@ -135,8 +144,12 @@ public class ApolloTestsServer extends AbstractVerticle {
 
   private Publisher<Object> counter(DataFetchingEnvironment env) {
     return subscriber -> {
+      ApolloWSMessage message = env.getContext();
+      JsonObject connectionParams = message.connectionParams() == null
+        ? new JsonObject()
+        : (JsonObject) message.connectionParams();
       Map<String, Object> counter = new HashMap<>();
-      counter.put("count", 1);
+      counter.put("count", connectionParams.getInteger("count", 1));
 
       subscriber.onNext(counter);
       subscriber.onComplete();
