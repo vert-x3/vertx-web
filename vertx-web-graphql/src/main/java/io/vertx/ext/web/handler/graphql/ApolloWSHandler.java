@@ -69,6 +69,15 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
   ApolloWSHandler connectionHandler(Handler<ServerWebSocket> connectionHandler);
 
   /**
+   * Customize the connection init {@link Handler}.
+   * This handler will be called when the {@link ApolloWSMessageType#CONNECTION_INIT} message is received.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  ApolloWSHandler connectionInitHandler(Handler<ApolloWSConnectionInitEvent> connectionInitHandler);
+
+  /**
    * Customize the message {@link Handler}.
    * This handler will be called for each {@link ApolloWSMessage} received.
    *

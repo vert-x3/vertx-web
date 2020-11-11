@@ -7,6 +7,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.DecodeException;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.BodyProcessorException;
+import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.testutils.TestSchemas;
@@ -152,5 +153,19 @@ class JsonBodyProcessorImplTest {
       });
       testContext.completeNow();
     }));
+  }
+
+  @Test
+  public void testNullBody() {
+    when(mockerServerRequest.getHeader(HttpHeaders.CONTENT_TYPE)).thenReturn("application/json");
+    when(mockedContext.request()).thenReturn(mockerServerRequest);
+    when(mockedContext.getBody()).thenReturn(null);
+
+    BodyProcessor processor = Bodies.json(schema().withKeyword("type", "null")).create(parser);
+
+    assertThatCode(() -> processor.process(mockedContext))
+      .isInstanceOf(BodyProcessorException.class)
+      .hasFieldOrPropertyWithValue("actualContentType", "application/json")
+      .hasCauseInstanceOf(MalformedValueException.class);
   }
 }

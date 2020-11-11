@@ -22,6 +22,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.graphql.ApolloWSConnectionInitEvent;
 import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
 import io.vertx.ext.web.handler.graphql.ApolloWSOptions;
@@ -49,6 +50,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   private Function<ApolloWSMessage, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
   private Function<ApolloWSMessage, Locale> localeFactory = DEFAULT_LOCALE_FACTORY;
   private Handler<ServerWebSocket> connectionHandler;
+  private Handler<ApolloWSConnectionInitEvent> connectionInitHandler;
   private Handler<ServerWebSocket> endHandler;
   private Handler<ApolloWSMessage> messageHandler;
 
@@ -75,6 +77,16 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   synchronized Handler<ServerWebSocket> getConnectionHandler() {
     return connectionHandler;
+  }
+
+  @Override
+  public ApolloWSHandler connectionInitHandler(Handler<ApolloWSConnectionInitEvent> connectionInitHandler) {
+    this.connectionInitHandler = connectionInitHandler;
+    return this;
+  }
+
+  synchronized Handler<ApolloWSConnectionInitEvent> getConnectionInitHandler() {
+    return connectionInitHandler;
   }
 
   @Override
