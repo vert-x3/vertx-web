@@ -23,6 +23,8 @@ import io.vertx.ext.web.sstore.impl.SessionInternal;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * The abstract session class provides a barebones implementation for session storage implementors.
@@ -159,6 +161,20 @@ public abstract class AbstractSession implements Session, SessionInternal {
     } else {
       data.put(key, obj);
     }
+    return this;
+  }
+
+  @Override
+  public Session putIfAbsent(String key, Object obj) {
+    data()
+      .putIfAbsent(key, obj);
+    return this;
+  }
+
+  @Override
+  public Session computeIfAbsent(String key, Function<String, Object> mappingFunction) {
+    data()
+      .computeIfAbsent(key, mappingFunction);
     return this;
   }
 

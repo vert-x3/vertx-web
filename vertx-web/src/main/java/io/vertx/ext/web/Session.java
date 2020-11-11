@@ -21,6 +21,8 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * Represents a browser session.
@@ -57,6 +59,30 @@ public interface Session {
    */
   @Fluent
   Session put(String key, Object obj);
+
+  /**
+   * Put some data in a session if absent
+   *
+   * @param key  the key for the data
+   * @param obj  the data
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Session putIfAbsent(String key, Object obj);
+
+  /**
+   * Put some data in a session if absent.
+   *
+   * If the specified key is not already associated with a value (or is mapped
+   * to {@code null}), attempts to compute its value using the given mapping
+   * function and enters it into this map unless {@code null}.
+   *
+   * @param key  the key for the data
+   * @param mappingFunction  a mapping function
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Session computeIfAbsent(String key, Function<String, Object> mappingFunction);
 
   /**
    * Get some data from the session
