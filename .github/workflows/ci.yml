@@ -70,7 +70,7 @@ jobs:
   Deploy:
     name: Deploy to OSSRH
     if: ${{ github.repository_owner == 'vert-x3' && github.event_name == 'push' }}
-    needs: Test, Apollo-Link-Tests
+    needs: [Test, Apollo-Link-Tests]
     runs-on: ubuntu-latest
     env:
       SONATYPE_NEXUS_USERNAME: ${{ secrets.SONATYPE_NEXUS_USERNAME }}
