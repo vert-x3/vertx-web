@@ -1,0 +1,126 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+      - '[0-9]+.[0-9]+'
+  pull_request:
+    branches:
+      - master
+      - '[0-9]+.[0-9]+'
+  schedule:
+    - cron:  '0 4 * * *'
+jobs:
+  Test:
+    name: Run tests
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        jdk: [8, 11]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: maven-java-${{ matrix.jdk }}
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install JDK
+        uses: joschi/setup-jdk@v2
+        with:
+          java-version: ${{ matrix.jdk }}
+      - name: Run tests
+        run: mvn -q clean verify -B
+      - name: Publish Unit Test Results
+        uses: scacap/action-surefire-report@v1
+        if: ${{ always() }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+  Apollo-Link-Tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [10.19.0]
+    steps:
+      - uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: maven-java-8
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install JDK
+        uses: joschi/setup-jdk@v2
+        with:
+          java-version: 8
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: sh start-apollo-tests-server.sh
+        working-directory: vertx-web-graphql
+      - run: npm install
+        working-directory: vertx-web-graphql/tests/apollo
+      - run: npm run test
+        working-directory: vertx-web-graphql/tests/apollo
+      - run: sh show-apollo-tests-server-logs.sh
+        working-directory: vertx-web-graphql
+        if: ${{ failure() }}
+      - run: sh stop-apollo-tests-server.sh
+        working-directory: vertx-web-graphql
+        if: ${{ always() }}
+  SockJS-WriteHandler-Tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [10.19.0]
+    steps:
+      - uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: maven-java-8
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install JDK
+        uses: joschi/setup-jdk@v2
+        with:
+          java-version: 8
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: sh start-sockjs-write-handler-tests-server.sh
+        working-directory: vertx-web
+      - run: npm install
+        working-directory: vertx-web/tests/sockjs
+      - run: npm run test
+        working-directory: vertx-web/tests/sockjs
+      - run: sh show-sockjs-write-handler-tests-server-logs.sh
+        working-directory: vertx-web
+        if: ${{ failure() }}
+      - run: sh stop-sockjs-write-handler-tests-server.sh
+        working-directory: vertx-web
+        if: ${{ always() }}
+  Deploy:
+    name: Deploy to OSSRH
+    if: ${{ github.repository_owner == 'vert-x3' && github.event_name == 'push' }}
+    needs: [Test, Apollo-Link-Tests, SockJS-WriteHandler-Tests]
+    runs-on: ubuntu-latest
+    env:
+      SONATYPE_NEXUS_USERNAME: ${{ secrets.SONATYPE_NEXUS_USERNAME }}
+      SONATYPE_NEXUS_PASSWORD: ${{ secrets.SONATYPE_NEXUS_PASSWORD }}
+    steps:
+      - uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: maven-java-${{ matrix.jdk }}
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install JDK
+        uses: joschi/setup-jdk@v2
+        with:
+          java-version: 8
+      - name: Get project version
+        run: echo "PROJECT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version -B | grep -v '\[')" >> $GITHUB_ENV
+      - name: Maven deploy
+        if: ${{ endsWith(env.PROJECT_VERSION, '-SNAPSHOT') }}
+        run: mvn deploy -s .travis.maven.settings.xml -DskipTests -B
