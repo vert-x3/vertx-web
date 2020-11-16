@@ -138,6 +138,23 @@ public class SessionHandlerImpl implements SessionHandler {
     return flush(context, false, handler);
   }
 
+  /**
+   * Ensure that the cookie properties are always set the same way
+   * on generation and on update.
+   *
+   * @param cookie the cookie to set
+   */
+  private void setCookieProperties(Cookie cookie) {
+    cookie.setPath(sessionCookiePath);
+    cookie.setSecure(sessionCookieSecure);
+    cookie.setHttpOnly(sessionCookieHttpOnly);
+    cookie.setSameSite(cookieSameSite);
+    // set max age if user requested it - else it's a session cookie
+    if (cookieMaxAge >= 0) {
+      cookie.setMaxAge(cookieMaxAge);
+    }
+  }
+
   private SessionHandler flush(RoutingContext context, boolean skipCrc, Handler<AsyncResult<Void>> handler) {
     boolean sessionUsed = context.isSessionAccessed();
     Session session = context.session();
@@ -170,11 +187,8 @@ public class SessionHandlerImpl implements SessionHandler {
             final Cookie cookie = sessionCookie(context, session);
             // restore defaults
             session.setAccessed();
-            cookie
-              .setValue(session.value())
-              .setPath(sessionCookiePath)
-              .setSecure(sessionCookieSecure)
-              .setHttpOnly(sessionCookieHttpOnly);
+            cookie.setValue(session.value());
+            setCookieProperties(cookie);
           }
 
           // we must invalidate the old id
@@ -394,14 +408,7 @@ public class SessionHandlerImpl implements SessionHandler {
       return cookie;
     }
     cookie = Cookie.cookie(sessionCookieName, session.value());
-    cookie.setPath(sessionCookiePath);
-    cookie.setSecure(sessionCookieSecure);
-    cookie.setHttpOnly(sessionCookieHttpOnly);
-    cookie.setSameSite(cookieSameSite);
-    // set max age if user requested it - else it's a session cookie
-    if (cookieMaxAge >= 0) {
-      cookie.setMaxAge(cookieMaxAge);
-    }
+    setCookieProperties(cookie);
     context.addCookie(cookie);
     return cookie;
   }
