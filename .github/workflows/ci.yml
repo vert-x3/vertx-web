@@ -36,10 +36,40 @@ jobs:
         if: ${{ always() }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+  Apollo-Link-Tests:
+    strategy:
+      matrix:
+        node-version: [10.19.0]
+    steps:
+      - uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: maven-java-8
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install JDK
+        uses: joschi/setup-jdk@v2
+        with:
+          java-version: 8
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: cd vertx-web-graphql
+      - run: mvn exec:java -Dexec.mainClass=io.vertx.ext.web.handler.graphql.ApolloTestsServer -Dexec.classpathScope=test > ${HOME}/ApolloTestsServer.log 2>&1 &
+      - run: echo $! > ${HOME}/ApolloTestsServer.pid
+      - run: ( tail -f ${HOME}/ApolloTestsServer.log & ) | grep -q "Apollo tests server started"
+      - run: cd tests/apollo
+      - run: npm install
+      - run: npm run test
+      - run: cat ${HOME}/ApolloTestsServer.log
+        if: ${{ failure() }}
+      - run: cat ${HOME}/ApolloTestsServer.pid | xargs kill -9
+        if: ${{ always() }}
   Deploy:
     name: Deploy to OSSRH
     if: ${{ github.repository_owner == 'vert-x3' && github.event_name == 'push' }}
-    needs: Test
+    needs: Test, Apollo-Link-Tests
     runs-on: ubuntu-latest
     env:
       SONATYPE_NEXUS_USERNAME: ${{ secrets.SONATYPE_NEXUS_USERNAME }}
