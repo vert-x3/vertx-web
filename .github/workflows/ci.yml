@@ -37,6 +37,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
   Apollo-Link-Tests:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [10.19.0]
