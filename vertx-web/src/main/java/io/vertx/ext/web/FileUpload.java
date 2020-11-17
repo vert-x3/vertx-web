@@ -62,5 +62,11 @@ public interface FileUpload {
    */
   String charSet();
 
+  /**
+   * Try to cancel the file upload.
+   *
+   * @return {@code true} when the upload was cancelled, {@code false} when the upload is finished and the file is available
+   */
+  boolean cancel();
 
 }
