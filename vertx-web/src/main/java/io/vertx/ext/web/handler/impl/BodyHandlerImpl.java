@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
@@ -199,14 +200,17 @@ public class BodyHandlerImpl implements BodyHandler {
             // we actually upload to a file with a generated filename
             uploadCount.incrementAndGet();
             String uploadedFileName = new File(uploadsDir, UUID.randomUUID().toString()).getPath();
-            upload.streamToFileSystem(uploadedFileName);
             FileUploadImpl fileUpload = new FileUploadImpl(uploadedFileName, upload);
             fileUploads.add(fileUpload);
-            upload.exceptionHandler(t -> {
-              cancelAndCleanupFileUploads();
-              context.fail(t);
+            Future<Void> fut = upload.streamToFileSystem(uploadedFileName);
+            fut.onComplete(ar -> {
+              if (fut.succeeded()) {
+                uploadEnded();
+              } else {
+                cancelAndCleanupFileUploads();
+                context.fail(ar.cause());
+              }
             });
-            upload.endHandler(v -> uploadEnded());
           }
         });
       }
