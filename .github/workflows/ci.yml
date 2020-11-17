@@ -62,6 +62,11 @@ jobs:
         working-directory: vertx-web-graphql/tests/apollo
       - run: npm run test
         working-directory: vertx-web-graphql/tests/apollo
+      - uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: ApolloTestsServer.log
+          path: ~/ApolloTestsServer.log
       - run: sh show-apollo-tests-server-logs.sh
         working-directory: vertx-web-graphql
         if: ${{ failure() }}
