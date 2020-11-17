@@ -56,8 +56,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: sh start-apollo-tests-server.sh
-        working-directory: vertx-web-graphql
+      - run: sh vertx-web-graphql/start-apollo-tests-server.sh
       - run: npm install
         working-directory: vertx-web-graphql/tests/apollo
       - run: npm run test
