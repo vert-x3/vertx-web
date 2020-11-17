@@ -66,9 +66,6 @@ jobs:
         with:
           name: ApolloTestsServer.log
           path: ~/ApolloTestsServer.log
-      - run: sh show-apollo-tests-server-logs.sh
-        working-directory: vertx-web-graphql
-        if: ${{ failure() }}
       - run: sh stop-apollo-tests-server.sh
         working-directory: vertx-web-graphql
         if: ${{ always() }}
