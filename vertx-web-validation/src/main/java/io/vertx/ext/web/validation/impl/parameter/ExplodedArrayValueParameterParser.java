@@ -16,7 +16,7 @@ public class ExplodedArrayValueParameterParser extends ArrayParser implements Pa
 
   String parameterName;
 
-  public ExplodedArrayValueParameterParser(ValueParser<String> itemsParser, String parameterName) {
+  public ExplodedArrayValueParameterParser(String parameterName, ValueParser<String> itemsParser) {
     super(itemsParser);
     this.parameterName = parameterName;
   }

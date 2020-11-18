@@ -75,7 +75,8 @@ public class ExplodedSimpleObjectParameterProcessorGenerator implements Paramete
       new SingleValueParameterParser(
         parameter.getString("name"),
         new ExplodedSimpleObjectValueParser(
-          ValueParserInferenceUtils.infeerPropertiesParsersForObjectSchema(schemas.getFakeSchema()),
+          ValueParserInferenceUtils.infeerPropertiesParsersForObjectSchema(schemas.getFakeSchema(),
+            parsedLocation::lowerCaseIfNeeded),
           ValueParserInferenceUtils.infeerPatternPropertiesParsersForObjectSchema(schemas.getFakeSchema()),
           ValueParserInferenceUtils.infeerAdditionalPropertiesParserForObjectSchema(schemas.getFakeSchema())
         )

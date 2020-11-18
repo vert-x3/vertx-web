@@ -38,10 +38,9 @@ public class DeepObjectValueParameterParserTest {
   @Test
   public void testValid() {
     DeepObjectValueParameterParser parser = new DeepObjectValueParameterParser(
-      TestParsers.SAMPLE_PROPERTIES_PARSERS,
+      "bla", TestParsers.SAMPLE_PROPERTIES_PARSERS,
       TestParsers.SAMPLE_PATTERN_PROPERTIES_PARSERS,
-      ValueParser.NOOP_PARSER,
-      "bla"
+      ValueParser.NOOP_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -68,10 +67,9 @@ public class DeepObjectValueParameterParserTest {
   @Test
   public void testNoAdditionalProperties() {
     DeepObjectValueParameterParser parser = new DeepObjectValueParameterParser(
-      TestParsers.SAMPLE_PROPERTIES_PARSERS,
+      "bla", TestParsers.SAMPLE_PROPERTIES_PARSERS,
       TestParsers.SAMPLE_PATTERN_PROPERTIES_PARSERS,
-      null,
-      "bla"
+      null
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -98,10 +96,9 @@ public class DeepObjectValueParameterParserTest {
   @Test
   public void testNull() {
     DeepObjectValueParameterParser parser = new DeepObjectValueParameterParser(
-      TestParsers.SAMPLE_PROPERTIES_PARSERS,
+      "bla", TestParsers.SAMPLE_PROPERTIES_PARSERS,
       TestParsers.SAMPLE_PATTERN_PROPERTIES_PARSERS,
-      ValueParser.NOOP_PARSER,
-      "bla"
+      ValueParser.NOOP_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -126,10 +123,9 @@ public class DeepObjectValueParameterParserTest {
   @Test
   public void testEmptyString() {
     DeepObjectValueParameterParser parser = new DeepObjectValueParameterParser(
-      TestParsers.SAMPLE_PROPERTIES_PARSERS,
+      "bla", TestParsers.SAMPLE_PROPERTIES_PARSERS,
       TestParsers.SAMPLE_PATTERN_PROPERTIES_PARSERS,
-      ValueParser.NOOP_PARSER,
-      "bla"
+      ValueParser.NOOP_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -154,10 +150,9 @@ public class DeepObjectValueParameterParserTest {
   @Test
   public void testMissingProp() {
     DeepObjectValueParameterParser parser = new DeepObjectValueParameterParser(
-      TestParsers.SAMPLE_PROPERTIES_PARSERS,
+      "bla", TestParsers.SAMPLE_PROPERTIES_PARSERS,
       TestParsers.SAMPLE_PATTERN_PROPERTIES_PARSERS,
-      ValueParser.NOOP_PARSER,
-      "bla"
+      ValueParser.NOOP_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -183,10 +178,9 @@ public class DeepObjectValueParameterParserTest {
   @Test
   public void testInvalid() {
     DeepObjectValueParameterParser parser = new DeepObjectValueParameterParser(
-      TestParsers.SAMPLE_PROPERTIES_PARSERS,
+      "bla", TestParsers.SAMPLE_PROPERTIES_PARSERS,
       TestParsers.SAMPLE_PATTERN_PROPERTIES_PARSERS,
-      ValueParser.NOOP_PARSER,
-      "bla"
+      ValueParser.NOOP_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();

@@ -29,7 +29,8 @@ public class JsonParameterProcessorGenerator implements ParameterProcessorGenera
       parameter.getString("name"),
       parsedLocation,
       !parameter.getBoolean("required", false),
-      new SingleValueParameterParser(parameter.getString("name"), ValueParser.JSON_PARSER),
+      new SingleValueParameterParser(parsedLocation.lowerCaseIfNeeded(parameter.getString("name")),
+        ValueParser.JSON_PARSER),
       schemas.getValidator()
     );
   }

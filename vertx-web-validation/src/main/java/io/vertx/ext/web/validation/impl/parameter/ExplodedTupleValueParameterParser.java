@@ -18,7 +18,8 @@ public class ExplodedTupleValueParameterParser extends TupleParser implements Pa
 
   String parameterName;
 
-  public ExplodedTupleValueParameterParser(List<ValueParser<String>> itemsParser, ValueParser<String> additionalItemsParser, String parameterName) {
+  public ExplodedTupleValueParameterParser(String parameterName, List<ValueParser<String>> itemsParser,
+                                           ValueParser<String> additionalItemsParser) {
     super(itemsParser, additionalItemsParser);
     this.parameterName = parameterName;
   }

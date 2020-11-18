@@ -470,6 +470,18 @@ paths:
       responses:
         200:
           description: Ok
+  /headerCaseInsensitive:
+    get:
+      operationId: headerCaseInsensitive
+      parameters:
+        - name: CaseInsensitive
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        default:
+          description: ok
 components:
   schemas:
     Pet:
