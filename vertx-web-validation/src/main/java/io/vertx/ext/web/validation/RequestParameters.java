@@ -53,7 +53,8 @@ public interface RequestParameters {
   List<String> headerParametersNames();
 
   /**
-   * Get header parameter by name
+   * Get header parameter by name.
+   * This getter is case insensitive.
    *
    * @param name Parameter name
    * @return

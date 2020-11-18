@@ -2,7 +2,6 @@ package io.vertx.ext.web.validation.impl;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.Future;
-import io.vertx.core.MultiMap;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.*;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
@@ -197,7 +196,7 @@ public class ValidationHandlerImpl implements ValidationHandler {
 
     Map<String, RequestParameter> parsedParams = new HashMap<>();
 
-    return processParams(parsedParams, pathParams, pathParameters);
+    return processParams(parsedParams, pathParams, pathParameters, false);
   }
 
   private Future<Map<String, RequestParameter>> validateCookieParams(RoutingContext routingContext) {
@@ -217,19 +216,29 @@ public class ValidationHandlerImpl implements ValidationHandler {
     }
     Map<String, RequestParameter> parsedParams = new HashMap<>();
 
-    return processParams(parsedParams, cookies, cookieParameters);
+    return processParams(parsedParams, cookies, cookieParameters, false);
   }
 
   private Future<Map<String, RequestParameter>> validateQueryParams(RoutingContext routingContext) {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
     Map<String, RequestParameter> parsedParams = new HashMap<>();
-    return processParams(parsedParams, routingContext.queryParams(), queryParameters);
+    Map<String, List<String>> queryParams = new HashMap<>();
+    routingContext.queryParams().forEach((e) -> queryParams.computeIfAbsent(e.getKey(), k -> new ArrayList<>()).add(e.getValue()));
+    return processParams(parsedParams, queryParams, queryParameters, false);
   }
 
   private Future<Map<String, RequestParameter>> validateHeaderParams(RoutingContext routingContext) {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
     Map<String, RequestParameter> parsedParams = new HashMap<>();
-    return processParams(parsedParams, routingContext.request().headers(), headerParameters);
+
+    // We must force lowercase because parameters are recognized by their lowercase value for headers
+    Map<String, List<String>> headers = new HashMap<>();
+    routingContext
+      .request()
+      .headers()
+      .forEach((e) -> headers.computeIfAbsent(e.getKey().toLowerCase(), k -> new ArrayList<>()).add(e.getValue()));
+
+    return processParams(parsedParams, headers, headerParameters, true);
   }
 
   private Future<RequestParameter> validateBody(RoutingContext routingContext) {
@@ -240,17 +249,8 @@ public class ValidationHandlerImpl implements ValidationHandler {
     throw BodyProcessorException.createMissingMatchingBodyProcessor(routingContext.parsedHeaders().contentType().value());
   }
 
-  private Map<String, List<String>> copyMultiMapInMap(MultiMap multiMap) {
-    Map<String, List<String>> map = new HashMap<>();
-    multiMap.forEach((e) -> map.computeIfAbsent(e.getKey(), k -> new ArrayList<>()).add(e.getValue()));
-    return map;
-  }
-
-  private Future<Map<String, RequestParameter>> processParams(Map<String, RequestParameter> parsedParams, MultiMap params, ParameterProcessor[] processors) {
-    return processParams(parsedParams, copyMultiMapInMap(params), processors);
-  }
-
-  private Future<Map<String, RequestParameter>> processParams(Map<String, RequestParameter> parsedParams, Map<String, List<String>> params, ParameterProcessor[] processors) {
+  private Future<Map<String, RequestParameter>> processParams(Map<String, RequestParameter> parsedParams, Map<String,
+    List<String>> params, ParameterProcessor[] processors, boolean forceLowercase) {
     Future<Map<String, RequestParameter>> waitingFutureChain = Future.succeededFuture(parsedParams);
 
     for (ParameterProcessor processor : processors) {
@@ -258,7 +258,7 @@ public class ValidationHandlerImpl implements ValidationHandler {
         Future<RequestParameter> fut = processor.process(params);
         if (fut.isComplete()) {
           if (fut.succeeded()) {
-            parsedParams.put(processor.getName(), fut.result());
+            parsedParams.put(forceLowercase ? processor.getName().toLowerCase() : processor.getName(), fut.result());
           } else if (fut.failed()) {
             return Future.failedFuture(fut.cause());
           }

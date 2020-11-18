@@ -15,7 +15,9 @@ public class ExplodedObjectValueParameterParser extends ObjectParser<String> imp
 
   String parameterName;
 
-  public ExplodedObjectValueParameterParser(Map<String, ValueParser<String>> propertiesParsers, Map<Pattern, ValueParser<String>> patternPropertiesParsers, ValueParser<String> additionalPropertiesParsers, String parameterName) {
+  public ExplodedObjectValueParameterParser(String parameterName, Map<String, ValueParser<String>> propertiesParsers,
+                                            Map<Pattern, ValueParser<String>> patternPropertiesParsers,
+                                            ValueParser<String> additionalPropertiesParsers) {
     super(propertiesParsers, patternPropertiesParsers, additionalPropertiesParsers);
     this.parameterName = parameterName;
   }

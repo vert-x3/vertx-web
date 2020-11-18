@@ -40,7 +40,7 @@ public class ExplodedTupleValueParameterParserTest {
   @Test
   public void testValid() {
     ExplodedTupleValueParameterParser parser = new ExplodedTupleValueParameterParser(
-      TestParsers.SAMPLE_TUPLE_ITEMS_PARSERS, ValueParser.BOOLEAN_PARSER, "bla"
+      "bla", TestParsers.SAMPLE_TUPLE_ITEMS_PARSERS, ValueParser.BOOLEAN_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -63,7 +63,7 @@ public class ExplodedTupleValueParameterParserTest {
   @Test
   public void testNoAdditionalItems() {
     ExplodedTupleValueParameterParser parser = new ExplodedTupleValueParameterParser(
-      TestParsers.SAMPLE_TUPLE_ITEMS_PARSERS, null, "bla"
+      "bla", TestParsers.SAMPLE_TUPLE_ITEMS_PARSERS, null
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -86,7 +86,7 @@ public class ExplodedTupleValueParameterParserTest {
   @Test
   public void testNullAndEmptyString() {
     ExplodedTupleValueParameterParser parser = new ExplodedTupleValueParameterParser(
-      TestParsers.SAMPLE_TUPLE_ITEMS_PARSERS, ValueParser.BOOLEAN_PARSER, "bla"
+      "bla", TestParsers.SAMPLE_TUPLE_ITEMS_PARSERS, ValueParser.BOOLEAN_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -109,7 +109,7 @@ public class ExplodedTupleValueParameterParserTest {
   @Test
   public void testInvalid() {
     ExplodedArrayValueParameterParser parser = new ExplodedArrayValueParameterParser(
-      ValueParser.BOOLEAN_PARSER, "bla"
+      "bla", ValueParser.BOOLEAN_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();

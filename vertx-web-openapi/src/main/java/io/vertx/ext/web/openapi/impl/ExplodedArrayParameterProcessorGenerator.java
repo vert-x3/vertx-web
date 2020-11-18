@@ -33,8 +33,8 @@ public class ExplodedArrayParameterProcessorGenerator implements ParameterProces
       parsedLocation,
       !parameter.getBoolean("required", false),
       new ExplodedArrayValueParameterParser(
-        ValueParserInferenceUtils.infeerItemsParserForArraySchema(schemas.getFakeSchema()),
-        parameter.getString("name")
+        parsedLocation.lowerCaseIfNeeded(parameter.getString("name")),
+        ValueParserInferenceUtils.infeerItemsParserForArraySchema(schemas.getFakeSchema())
       ),
       schemas.getValidator()
     );

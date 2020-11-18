@@ -38,10 +38,9 @@ public class ExplodedObjectValueParameterParserTest {
   @Test
   public void testValid() {
     ExplodedObjectValueParameterParser parser = new ExplodedObjectValueParameterParser(
-      TestParsers.SAMPLE_PROPERTIES_PARSERS,
+      "bla", TestParsers.SAMPLE_PROPERTIES_PARSERS,
       TestParsers.SAMPLE_PATTERN_PROPERTIES_PARSERS,
-      ValueParser.NOOP_PARSER,
-      "bla"
+      ValueParser.NOOP_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -66,10 +65,9 @@ public class ExplodedObjectValueParameterParserTest {
   @Test
   public void testNoAdditionalProperties() {
     ExplodedObjectValueParameterParser parser = new ExplodedObjectValueParameterParser(
-      TestParsers.SAMPLE_PROPERTIES_PARSERS,
+      "bla", TestParsers.SAMPLE_PROPERTIES_PARSERS,
       TestParsers.SAMPLE_PATTERN_PROPERTIES_PARSERS,
-      null,
-      "bla"
+      null
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -94,10 +92,9 @@ public class ExplodedObjectValueParameterParserTest {
   @Test
   public void testNull() {
     ExplodedObjectValueParameterParser parser = new ExplodedObjectValueParameterParser(
-      TestParsers.SAMPLE_PROPERTIES_PARSERS,
+      "bla", TestParsers.SAMPLE_PROPERTIES_PARSERS,
       TestParsers.SAMPLE_PATTERN_PROPERTIES_PARSERS,
-      ValueParser.NOOP_PARSER,
-      "bla"
+      ValueParser.NOOP_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -121,10 +118,9 @@ public class ExplodedObjectValueParameterParserTest {
   @Test
   public void testEmptyString() {
     ExplodedObjectValueParameterParser parser = new ExplodedObjectValueParameterParser(
-      TestParsers.SAMPLE_PROPERTIES_PARSERS,
+      "bla", TestParsers.SAMPLE_PROPERTIES_PARSERS,
       TestParsers.SAMPLE_PATTERN_PROPERTIES_PARSERS,
-      ValueParser.NOOP_PARSER,
-      "bla"
+      ValueParser.NOOP_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -149,10 +145,9 @@ public class ExplodedObjectValueParameterParserTest {
   @Test
   public void testMissingProp() {
     ExplodedObjectValueParameterParser parser = new ExplodedObjectValueParameterParser(
-      TestParsers.SAMPLE_PROPERTIES_PARSERS,
+      "bla", TestParsers.SAMPLE_PROPERTIES_PARSERS,
       TestParsers.SAMPLE_PATTERN_PROPERTIES_PARSERS,
-      ValueParser.NOOP_PARSER,
-      "bla"
+      ValueParser.NOOP_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -180,10 +175,9 @@ public class ExplodedObjectValueParameterParserTest {
   @Test
   public void testInvalid() {
     ExplodedObjectValueParameterParser parser = new ExplodedObjectValueParameterParser(
-      TestParsers.SAMPLE_PROPERTIES_PARSERS,
+      "bla", TestParsers.SAMPLE_PROPERTIES_PARSERS,
       TestParsers.SAMPLE_PATTERN_PROPERTIES_PARSERS,
-      ValueParser.NOOP_PARSER,
-      "bla"
+      ValueParser.NOOP_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();

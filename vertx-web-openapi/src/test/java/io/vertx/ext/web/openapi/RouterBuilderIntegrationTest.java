@@ -1347,4 +1347,26 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
     });
   }
 
+  @Test
+  public void testHeaderCaseInsensitive(Vertx vertx, VertxTestContext testContext) {
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+      routerBuilder
+        .operation("headerCaseInsensitive")
+        .handler(routingContext -> {
+          RequestParameters params = routingContext.get("parsedParameters");
+          testContext.verify(() -> {
+            assertThat(params.headerParameter("CASEINSENSITIVE").getString())
+              .isEqualTo("hello");
+          });
+          routingContext.response().setStatusCode(200).end();
+        });
+    }).onComplete(h -> {
+      testRequest(client, HttpMethod.GET, "/headerCaseInsensitive")
+        .with(requestHeader("cASEiNSENSITIVE", "hello"))
+        .expect(statusCode(200))
+        .send(testContext);
+    });
+  }
+
 }
