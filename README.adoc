@@ -1,6 +1,6 @@
 = Vert.x-Web
 
-image:https://travis-ci.org/vert-x3/vertx-web.svg?branch=master["Build Status",link="https://travis-ci.org/vert-x3/vertx-web"]
+image:https://github.com/vert-x3/vertx-web/workflows/CI/badge.svg?branch=master["Build Status",link="https://github.com/vert-x3/vertx-web/actions?query=workflow%3ACI"]
 image:https://img.shields.io/maven-central/v/io.vertx/vertx-web.svg["Maven Central"]
 image:https://bestpractices.coreinfrastructure.org/projects/540/badge["CII Best Practices",link="https://bestpractices.coreinfrastructure.org/projects/540"]
 
