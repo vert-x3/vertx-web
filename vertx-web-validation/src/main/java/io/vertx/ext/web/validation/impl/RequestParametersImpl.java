@@ -95,7 +95,7 @@ public class RequestParametersImpl implements RequestParameters {
 
   @Override
   public RequestParameter headerParameter(String name) {
-    return headerParameters.get(name);
+    return headerParameters.get(name.toLowerCase());
   }
 
   @Override

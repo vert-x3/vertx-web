@@ -951,4 +951,27 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
       .send(testContext, checkpoint);
   }
 
+  @Test
+  public void testSimpleHeaderCaseInsensitivity(VertxTestContext testContext) {
+    ValidationHandler validationHandler = ValidationHandler
+      .builder(parser)
+      .headerParameter(param("AnHeader", intSchema()))
+      .build();
+
+    router.get("/test")
+      .handler(validationHandler)
+      .handler(routingContext -> {
+        RequestParameters params = routingContext.get("parsedParameters");
+        routingContext
+          .response()
+          .putHeader("content-type", "application/json")
+          .end(params.headerParameter("anHeader").getInteger().toString());
+      });
+
+    testRequest(client, HttpMethod.GET, "/test")
+      .with(requestHeader("anheader", "10"))
+      .expect(statusCode(200), jsonBodyResponse(10))
+      .send(testContext);
+  }
+
 }

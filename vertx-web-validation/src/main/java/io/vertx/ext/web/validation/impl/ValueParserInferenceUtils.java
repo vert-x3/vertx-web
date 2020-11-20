@@ -42,6 +42,16 @@ public class ValueParserInferenceUtils {
     );
   }
 
+  public static Map<String, ValueParser<String>> infeerPropertiesParsersForObjectSchema(Object s, Function<String,
+    String> keyMapper) {
+    return jsonObjectSchemaToMapOfValueParser(
+      s,
+      "properties",
+      keyMapper,
+      ValueParserInferenceUtils::infeerPrimitiveParser
+    );
+  }
+
   public static Map<Pattern, ValueParser<String>> infeerPatternPropertiesParsersForObjectSchema(Object s) {
     return jsonObjectSchemaToMapOfValueParser(
       s,

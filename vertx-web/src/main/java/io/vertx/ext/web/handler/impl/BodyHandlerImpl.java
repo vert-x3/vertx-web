@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
@@ -190,7 +191,7 @@ public class BodyHandlerImpl implements BodyHandler {
             long size = uploadSize + upload.size();
             if (size > bodyLimit) {
               failed = true;
-              deleteFileUploads();
+              cancelAndCleanupFileUploads();
               context.fail(413);
               return;
             }
@@ -199,20 +200,23 @@ public class BodyHandlerImpl implements BodyHandler {
             // we actually upload to a file with a generated filename
             uploadCount.incrementAndGet();
             String uploadedFileName = new File(uploadsDir, UUID.randomUUID().toString()).getPath();
-            upload.streamToFileSystem(uploadedFileName);
             FileUploadImpl fileUpload = new FileUploadImpl(uploadedFileName, upload);
             fileUploads.add(fileUpload);
-            upload.exceptionHandler(t -> {
-              deleteFileUploads();
-              context.fail(t);
+            Future<Void> fut = upload.streamToFileSystem(uploadedFileName);
+            fut.onComplete(ar -> {
+              if (fut.succeeded()) {
+                uploadEnded();
+              } else {
+                cancelAndCleanupFileUploads();
+                context.fail(ar.cause());
+              }
             });
-            upload.endHandler(v -> uploadEnded());
           }
         });
       }
 
       context.request().exceptionHandler(t -> {
-        deleteFileUploads();
+        cancelAndCleanupFileUploads();
         if (t instanceof DecoderException) {
           // bad request
           context.fail(400, t.getCause());
@@ -253,7 +257,7 @@ public class BodyHandlerImpl implements BodyHandler {
       uploadSize += buff.length();
       if (bodyLimit != -1 && uploadSize > bodyLimit) {
         failed = true;
-        deleteFileUploads();
+        cancelAndCleanupFileUploads();
         context.fail(413);
       } else {
         // multipart requests will not end up in the request body
@@ -290,12 +294,12 @@ public class BodyHandlerImpl implements BodyHandler {
     void doEnd() {
 
       if (failed) {
-        deleteFileUploads();
+        cancelAndCleanupFileUploads();
         return;
       }
 
       if (deleteUploadedFilesOnEnd) {
-        context.addBodyEndHandler(x -> deleteFileUploads());
+        context.addBodyEndHandler(x -> cancelAndCleanupFileUploads());
       }
 
       HttpServerRequest req = context.request();
@@ -309,22 +313,21 @@ public class BodyHandlerImpl implements BodyHandler {
       context.next();
     }
 
-    private void deleteFileUploads() {
+    /**
+     * Cancel all unfinished file upload in progress and delete all uploaded files.
+     */
+    private void cancelAndCleanupFileUploads() {
       if (cleanup.compareAndSet(false, true) && handleFileUploads) {
         for (FileUpload fileUpload : context.fileUploads()) {
           FileSystem fileSystem = context.vertx().fileSystem();
-          String uploadedFileName = fileUpload.uploadedFileName();
-          fileSystem.exists(uploadedFileName, existResult -> {
-            if (existResult.failed()) {
-              log.warn("Could not detect if uploaded file exists, not deleting: " + uploadedFileName, existResult.cause());
-            } else if (existResult.result()) {
-              fileSystem.delete(uploadedFileName, deleteResult -> {
-                if (deleteResult.failed()) {
-                  log.warn("Delete of uploaded file failed: " + uploadedFileName, deleteResult.cause());
-                }
-              });
-            }
-          });
+          if (!fileUpload.cancel()) {
+            String uploadedFileName = fileUpload.uploadedFileName();
+            fileSystem.delete(uploadedFileName, deleteResult -> {
+              if (deleteResult.failed()) {
+                log.warn("Delete of uploaded file failed: " + uploadedFileName, deleteResult.cause());
+              }
+            });
+          }
         }
       }
     }

@@ -67,4 +67,8 @@ public class FileUploadImpl implements FileUpload {
     return upload.charset();
   }
 
+  @Override
+  public boolean cancel() {
+    return upload.cancelStreamToFileSystem();
+  }
 }

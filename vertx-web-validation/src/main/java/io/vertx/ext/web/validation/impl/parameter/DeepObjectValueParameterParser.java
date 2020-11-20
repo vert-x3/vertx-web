@@ -17,7 +17,9 @@ public class DeepObjectValueParameterParser extends ObjectParser<String> impleme
 
   String parameterName;
 
-  public DeepObjectValueParameterParser(Map<String, ValueParser<String>> propertiesParsers, Map<Pattern, ValueParser<String>> patternPropertiesParsers, ValueParser<String> additionalPropertiesParsers, String parameterName) {
+  public DeepObjectValueParameterParser(String parameterName, Map<String, ValueParser<String>> propertiesParsers,
+                                        Map<Pattern, ValueParser<String>> patternPropertiesParsers,
+                                        ValueParser<String> additionalPropertiesParsers) {
     super(propertiesParsers, patternPropertiesParsers, additionalPropertiesParsers);
     this.parameterName = parameterName;
   }

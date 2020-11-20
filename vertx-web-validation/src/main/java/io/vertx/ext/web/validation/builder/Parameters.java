@@ -26,7 +26,10 @@ public interface Parameters {
       parameterName,
       location,
       false,
-      new SingleValueParameterParser(parameterName, schemaBuilder.isIntegerSchema() ? ValueParser.LONG_PARSER : ValueParser.DOUBLE_PARSER),
+      new SingleValueParameterParser(
+        location.lowerCaseIfNeeded(parameterName),
+        schemaBuilder.isIntegerSchema() ? ValueParser.LONG_PARSER : ValueParser.DOUBLE_PARSER
+      ),
       new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
     );
   }
@@ -43,7 +46,10 @@ public interface Parameters {
       parameterName,
       location,
       true,
-      new SingleValueParameterParser(parameterName, schemaBuilder.isIntegerSchema() ? ValueParser.LONG_PARSER : ValueParser.DOUBLE_PARSER),
+      new SingleValueParameterParser(
+        location.lowerCaseIfNeeded(parameterName),
+        schemaBuilder.isIntegerSchema() ? ValueParser.LONG_PARSER : ValueParser.DOUBLE_PARSER
+      ),
       new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
     );
   }
@@ -60,7 +66,7 @@ public interface Parameters {
       parameterName,
       location,
       false,
-      new SingleValueParameterParser(parameterName, ValueParser.NOOP_PARSER),
+      new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.NOOP_PARSER),
       new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
     );
   }
@@ -77,7 +83,7 @@ public interface Parameters {
       parameterName,
       location,
       true,
-      new SingleValueParameterParser(parameterName, ValueParser.NOOP_PARSER),
+      new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.NOOP_PARSER),
       new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
     );
   }
@@ -94,7 +100,7 @@ public interface Parameters {
       parameterName,
       location,
       false,
-      new SingleValueParameterParser(parameterName, ValueParser.BOOLEAN_PARSER),
+      new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.BOOLEAN_PARSER),
       new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
     );
   }
@@ -111,7 +117,7 @@ public interface Parameters {
       parameterName,
       location,
       true,
-      new SingleValueParameterParser(parameterName, ValueParser.BOOLEAN_PARSER),
+      new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.BOOLEAN_PARSER),
       new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
     );
   }
@@ -225,7 +231,7 @@ public interface Parameters {
       parameterName,
       location,
       false,
-      new SingleValueParameterParser(parameterName, valueParser),
+      new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), valueParser),
       new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
     );
   }
@@ -243,7 +249,7 @@ public interface Parameters {
       parameterName,
       location,
       true,
-      new SingleValueParameterParser(parameterName, valueParser),
+      new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), valueParser),
       new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
     );
   }
@@ -260,7 +266,7 @@ public interface Parameters {
       parameterName,
       location,
       false,
-      new SingleValueParameterParser(parameterName, ValueParser.JSON_PARSER),
+      new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.JSON_PARSER),
       new SchemaValidator(builder.build(parser))
     );
   }
@@ -277,7 +283,7 @@ public interface Parameters {
       parameterName,
       location,
       true,
-      new SingleValueParameterParser(parameterName, ValueParser.JSON_PARSER),
+      new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.JSON_PARSER),
       new SchemaValidator(builder.build(parser))
     );
   }

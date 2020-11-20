@@ -34,7 +34,7 @@ public class ExplodedArrayValueParameterParserTest {
   @Test
   public void testValid() {
     ExplodedArrayValueParameterParser parser = new ExplodedArrayValueParameterParser(
-      ValueParser.BOOLEAN_PARSER, "bla"
+      "bla", ValueParser.BOOLEAN_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -57,7 +57,7 @@ public class ExplodedArrayValueParameterParserTest {
   @Test
   public void testNull() {
     ExplodedArrayValueParameterParser parser = new ExplodedArrayValueParameterParser(
-      ValueParser.BOOLEAN_PARSER, "bla"
+      "bla", ValueParser.BOOLEAN_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();
@@ -80,7 +80,7 @@ public class ExplodedArrayValueParameterParserTest {
   @Test
   public void testInvalid() {
     ExplodedArrayValueParameterParser parser = new ExplodedArrayValueParameterParser(
-      ValueParser.BOOLEAN_PARSER, "bla"
+      "bla", ValueParser.BOOLEAN_PARSER
     );
 
     Map<String, List<String>> map = new HashMap<>();

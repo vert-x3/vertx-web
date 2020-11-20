@@ -56,15 +56,16 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: sh start-apollo-tests-server.sh
-        working-directory: vertx-web-graphql
+      - run: sh vertx-web-graphql/start-apollo-tests-server.sh
       - run: npm install
         working-directory: vertx-web-graphql/tests/apollo
       - run: npm run test
         working-directory: vertx-web-graphql/tests/apollo
-      - run: sh show-apollo-tests-server-logs.sh
-        working-directory: vertx-web-graphql
-        if: ${{ failure() }}
+      - uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: ApolloTestsServer.log
+          path: ~/ApolloTestsServer.log
       - run: sh stop-apollo-tests-server.sh
         working-directory: vertx-web-graphql
         if: ${{ always() }}

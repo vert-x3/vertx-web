@@ -24,10 +24,10 @@ public class DeepObjectParameterProcessorGenerator implements ParameterProcessor
       parsedLocation,
       !parameter.getBoolean("required", false),
       new DeepObjectValueParameterParser(
+        parameter.getString("name"),
         ValueParserInferenceUtils.infeerPropertiesParsersForObjectSchema(schemas.getFakeSchema()),
         ValueParserInferenceUtils.infeerPatternPropertiesParsersForObjectSchema(schemas.getFakeSchema()),
-        ValueParserInferenceUtils.infeerAdditionalPropertiesParserForObjectSchema(schemas.getFakeSchema()),
-        parameter.getString("name")
+        ValueParserInferenceUtils.infeerAdditionalPropertiesParserForObjectSchema(schemas.getFakeSchema())
       ),
       schemas.getValidator()
     );

@@ -12,5 +12,10 @@ public enum ParameterLocation {
   HEADER,
   QUERY,
   PATH,
-  COOKIE
+  COOKIE;
+
+  public String lowerCaseIfNeeded(String parameterName) {
+    return this == HEADER ? parameterName.toLowerCase() : parameterName;
+  }
+
 }

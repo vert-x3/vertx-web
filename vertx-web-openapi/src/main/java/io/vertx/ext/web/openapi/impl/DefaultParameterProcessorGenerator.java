@@ -51,7 +51,7 @@ public class DefaultParameterProcessorGenerator implements ParameterProcessorGen
         parsedLocation,
         !parameter.getBoolean("required", false),
         new AnyOfOneOfSingleParameterParser(
-          parameter.getString("name"),
+          parsedLocation.lowerCaseIfNeeded(parameter.getString("name")),
           valueParsers
         ),
         schemas.getValidator()
@@ -65,7 +65,7 @@ public class DefaultParameterProcessorGenerator implements ParameterProcessorGen
         parsedLocation,
         !parameter.getBoolean("required", false),
         new SingleValueParameterParser(
-          parameter.getString("name"),
+          parsedLocation.lowerCaseIfNeeded(parameter.getString("name")),
           valueParser
         ),
         schemas.getValidator()

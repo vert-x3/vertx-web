@@ -69,7 +69,7 @@ public class ExplodedMatrixArrayParameterProcessorGenerator implements Parameter
       parsedLocation,
       !parameter.getBoolean("required", false),
       new SingleValueParameterParser(
-        parameter.getString("name"),
+        parsedLocation.lowerCaseIfNeeded(parameter.getString("name")),
         new ExplodedMatrixArrayValueParser(ValueParserInferenceUtils.infeerItemsParserForArraySchema(schemas.getFakeSchema()))
       ),
       schemas.getValidator()

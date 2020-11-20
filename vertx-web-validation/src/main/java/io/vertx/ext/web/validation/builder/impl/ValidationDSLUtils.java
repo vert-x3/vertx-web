@@ -22,14 +22,14 @@ public class ValidationDSLUtils {
   public static BiFunction<ParameterLocation, SchemaParser, ParameterProcessor> createArrayParamFactory(String parameterName, ArrayParserFactory arrayParserFactory, ArraySchemaBuilder schemaBuilder, boolean isOptional) {
     return (location, jsonSchemaParser) -> {
       Schema s = schemaBuilder.build(jsonSchemaParser);
-      ValueParser parser = arrayParserFactory.newArrayParser(
+      ValueParser<String> parser = arrayParserFactory.newArrayParser(
         ValueParserInferenceUtils.infeerItemsParserForArraySchema(s.getJson())
       );
       return new ParameterProcessorImpl(
         parameterName,
         location,
         isOptional,
-        new SingleValueParameterParser(parameterName, parser),
+        new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), parser),
         new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
       );
     };
@@ -38,15 +38,15 @@ public class ValidationDSLUtils {
   public static BiFunction<ParameterLocation, SchemaParser, ParameterProcessor> createTupleParamFactory(String parameterName, TupleParserFactory tupleParserFactory, TupleSchemaBuilder schemaBuilder, boolean isOptional) {
     return (location, jsonSchemaParser) -> {
       Schema s = schemaBuilder.build(jsonSchemaParser);
-      ValueParser parser = tupleParserFactory.newTupleParser(
-          ValueParserInferenceUtils.infeerTupleParsersForArraySchema(s.getJson()),
-          ValueParserInferenceUtils.infeerAdditionalItemsParserForArraySchema(s.getJson())
+      ValueParser<String> parser = tupleParserFactory.newTupleParser(
+        ValueParserInferenceUtils.infeerTupleParsersForArraySchema(s.getJson()),
+        ValueParserInferenceUtils.infeerAdditionalItemsParserForArraySchema(s.getJson())
       );
       return new ParameterProcessorImpl(
         parameterName,
         location,
         isOptional,
-        new SingleValueParameterParser(parameterName, parser),
+        new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), parser),
         new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
       );
     };
@@ -55,7 +55,7 @@ public class ValidationDSLUtils {
   public static BiFunction<ParameterLocation, SchemaParser, ParameterProcessor> createObjectParamFactory(String parameterName, ObjectParserFactory objectParserFactory, ObjectSchemaBuilder schemaBuilder, boolean isOptional) {
     return (location, jsonSchemaParser) -> {
       Schema s = schemaBuilder.build(jsonSchemaParser);
-      ValueParser parser =
+      ValueParser<String> parser =
         objectParserFactory.newObjectParser(
           ValueParserInferenceUtils.infeerPropertiesParsersForObjectSchema(s.getJson()),
           ValueParserInferenceUtils.infeerPatternPropertiesParsersForObjectSchema(s.getJson()),
@@ -65,7 +65,7 @@ public class ValidationDSLUtils {
         parameterName,
         location,
         isOptional,
-        new SingleValueParameterParser(parameterName, parser),
+        new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), parser),
         new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
       );
     };
@@ -75,9 +75,9 @@ public class ValidationDSLUtils {
     return (location, jsonSchemaParser) -> {
       Schema s = schemaBuilder.build(jsonSchemaParser);
       ParameterParser parser = new ExplodedArrayValueParameterParser(
-          ValueParserInferenceUtils.infeerItemsParserForArraySchema(s.getJson()),
-          parameterName
-        );
+        location.lowerCaseIfNeeded(parameterName),
+        ValueParserInferenceUtils.infeerItemsParserForArraySchema(s.getJson())
+      );
       return new ParameterProcessorImpl(
         parameterName,
         location,
@@ -92,9 +92,9 @@ public class ValidationDSLUtils {
     return (location, jsonSchemaParser) -> {
       Schema s = schemaBuilder.build(jsonSchemaParser);
       ParameterParser parser = new ExplodedTupleValueParameterParser(
-          ValueParserInferenceUtils.infeerTupleParsersForArraySchema(s.getJson()),
-          ValueParserInferenceUtils.infeerAdditionalItemsParserForArraySchema(s.getJson()),
-          parameterName
+        location.lowerCaseIfNeeded(parameterName),
+        ValueParserInferenceUtils.infeerTupleParsersForArraySchema(s.getJson()),
+        ValueParserInferenceUtils.infeerAdditionalItemsParserForArraySchema(s.getJson())
       );
       return new ParameterProcessorImpl(
         parameterName,
@@ -114,10 +114,10 @@ public class ValidationDSLUtils {
         location,
         isOptional,
         new ExplodedObjectValueParameterParser(
-          ValueParserInferenceUtils.infeerPropertiesParsersForObjectSchema(s.getJson()),
+          parameterName,
+          ValueParserInferenceUtils.infeerPropertiesParsersForObjectSchema(s.getJson(), location::lowerCaseIfNeeded),
           ValueParserInferenceUtils.infeerPatternPropertiesParsersForObjectSchema(s.getJson()),
-          ValueParserInferenceUtils.infeerAdditionalPropertiesParserForObjectSchema(s.getJson()),
-          parameterName
+          ValueParserInferenceUtils.infeerAdditionalPropertiesParserForObjectSchema(s.getJson())
         ),
         new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
       );
@@ -132,10 +132,9 @@ public class ValidationDSLUtils {
         location,
         isOptional,
         new DeepObjectValueParameterParser(
-          ValueParserInferenceUtils.infeerPropertiesParsersForObjectSchema(s.getJson()),
+          parameterName, ValueParserInferenceUtils.infeerPropertiesParsersForObjectSchema(s.getJson()),
           ValueParserInferenceUtils.infeerPatternPropertiesParsersForObjectSchema(s.getJson()),
-          ValueParserInferenceUtils.infeerAdditionalPropertiesParserForObjectSchema(s.getJson()),
-          parameterName
+          ValueParserInferenceUtils.infeerAdditionalPropertiesParserForObjectSchema(s.getJson())
         ),
         new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
       );
