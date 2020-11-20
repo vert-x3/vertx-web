@@ -68,9 +68,16 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
       postAuthentication(ctx);
       return;
     }
+    // before starting any potential async operation here
+    // pause parsing the request body. The reason is that
+    // we don't want to loose the body or protocol upgrades
+    // for async operations
+    ctx.request().pause();
     // parse the request in order to extract the credentials object
     parseCredentials(ctx, res -> {
       if (res.failed()) {
+        // resume as the error handler may allow this request to become valid again
+        ctx.request().resume();
         processException(ctx, res.cause());
         return;
       }
@@ -86,6 +93,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
             session.regenerateId();
           }
           // proceed with the router
+          ctx.request().resume();
           postAuthentication(ctx);
         } else {
           String header = authenticateHeader(ctx);
@@ -95,8 +103,12 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
           }
           // to allow further processing if needed
           if (authN.cause() instanceof HttpStatusException) {
+            // resume as the error handler may allow this request to become valid again
+            ctx.request().resume();
             processException(ctx, authN.cause());
           } else {
+            // resume as the error handler may allow this request to become valid again
+            ctx.request().resume();
             processException(ctx, new HttpStatusException(401, authN.cause()));
           }
         }
