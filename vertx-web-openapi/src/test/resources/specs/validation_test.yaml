@@ -79,6 +79,94 @@ paths:
       responses:
         default:
           description: ok
+  /pets/{storeId}/{petId}:
+    get:
+      summary: Info for a specific pet in specific store
+      operationId: showPetByIdInStoreById
+      tags:
+        - pets
+      parameters:
+        - name: storeId
+          in: path
+          required: true
+          description: The id of the petstore
+          schema:
+            type: integer
+            format: int32
+        - name: petId
+          in: path
+          required: true
+          description: The id of the pet to retrieve
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pets"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /pets/storex/{petId}:
+    get:
+      summary: Info for a specific pet in Storex petstore
+      operationId: showPetByIdInStorex
+      tags:
+        - pets
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          description: The id of the pet to retrieve
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pets"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /pets/{storeId}/dogs:
+    get:
+      summary: Info for dogs in specific store
+      operationId: showDogsInStoreById
+      tags:
+        - pets
+      parameters:
+        - name: storeId
+          in: path
+          required: true
+          description: The id of the petstore
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pets"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /pets/{petId}:
     get:
       summary: Info for a specific pet
@@ -106,6 +194,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /pets/mine:
+    get:
+      summary: Info for a specific pet
+      operationId: showMyPets
+      tags:
+        - pets
+      responses:
+        200:
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pets"
   /queryTests/arrayTests/formExploded:
     get:
       operationId: arrayTestFormExploded

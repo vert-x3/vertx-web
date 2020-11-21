@@ -307,6 +307,7 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
         .solve() // If this optional is empty, this route doesn't need regex
         .map(solvedRegex -> router.routeWithRegex(operation.getHttpMethod(), solvedRegex.toString()))
         .orElseGet(() -> router.route(operation.getHttpMethod(), operation.getOpenAPIPath()))
+        .order(pathResolver.parameters.size())
         .setName(options.getRouteNamingStrategy().apply(operation));
 
       String exposeConfigurationKey = this.getOptions().getOperationModelKey();

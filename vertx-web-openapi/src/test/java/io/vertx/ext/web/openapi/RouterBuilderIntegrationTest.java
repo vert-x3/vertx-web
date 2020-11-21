@@ -14,6 +14,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.multipart.MultipartForm;
@@ -22,6 +23,7 @@ import io.vertx.ext.web.validation.ParameterProcessorException;
 import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.RequestParameters;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
+import io.vertx.ext.web.validation.testutils.TestRequest;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
@@ -737,6 +739,52 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
         .expect(badParameterResponse(ParameterProcessorException.ParameterProcessorErrorType.PARSING_ERROR, "petId", ParameterLocation.PATH))
         .send(testContext, checkpoint);
     });
+  }
+
+  @Test
+  public void testPathSingleParameterTemplateMatching(Vertx vertx, VertxTestContext testContext) {
+    final Checkpoint checkpoint = testContext.checkpoint(2);
+    final String expectedMessageById = "byId";
+    final String expectedMessageMine = "mine";
+
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      defineOperation("showPetById", expectedMessageById, routerBuilder);
+      defineOperation("showMyPets", expectedMessageMine, routerBuilder);
+    }).onComplete(h -> {
+      testGetRequest200WithMessage(client, "/pets/3", expectedMessageById).send(testContext, checkpoint);
+      testGetRequest200WithMessage(client, "/pets/mine", expectedMessageMine).send(testContext, checkpoint);
+    });
+  }
+
+  @Test
+  public void testPathMultipleParametersTemplateMatching(Vertx vertx, VertxTestContext testContext) {
+    final Checkpoint checkpoint = testContext.checkpoint(3);
+    final String expectedMessagePetByIdInStoreById = "showPetByIdInStoreById";
+    final String expectedMessagePetByIdInStorex = "showPetByIdInStorex";
+    final String expectedMessageDogsInStoreById = "showDogsInStoreById";
+
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      defineOperation("showPetByIdInStoreById", expectedMessagePetByIdInStoreById, routerBuilder);
+      defineOperation("showPetByIdInStorex", expectedMessagePetByIdInStorex, routerBuilder);
+      defineOperation("showDogsInStoreById", expectedMessageDogsInStoreById, routerBuilder);
+    }).onComplete(h -> {
+      testGetRequest200WithMessage(client, "/pets/1/1", expectedMessagePetByIdInStoreById)
+        .send(testContext, checkpoint);
+      testGetRequest200WithMessage(client, "/pets/storex/1", expectedMessagePetByIdInStorex)
+        .send(testContext, checkpoint);
+      testGetRequest200WithMessage(client, "/pets/1/dogs", expectedMessageDogsInStoreById)
+        .send(testContext, checkpoint);
+    });
+  }
+
+  private static void defineOperation(String operationId, String expectedMessage, RouterBuilder routerBuilder) {
+    routerBuilder
+      .operation(operationId)
+      .handler(routingContext -> routingContext.response().setStatusMessage(expectedMessage).end());
+  }
+
+  private static TestRequest testGetRequest200WithMessage(WebClient client, String path, String expectedMessage) {
+    return testRequest(client, HttpMethod.GET, path).expect(statusCode(200), statusMessage(expectedMessage));
   }
 
   @Test
