@@ -198,4 +198,22 @@ public class FreeMarkerTemplateTest {
     test.await();
   }
 
+  @Test
+  public void testLang(TestContext should) {
+    final Async test = should.async(2);
+    TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
+    engine.render(new JsonObject(), "somedir/lang.ftl", render -> {
+      should.assertTrue(render.succeeded());
+      should.assertEquals("Hello world\n", render.result().toString());
+      test.countDown();
+    });
+
+    engine.render(new JsonObject().put("lang", "el"), "somedir/lang.ftl", render -> {
+      should.assertTrue(render.succeeded());
+      should.assertEquals("Γειά σου Κόσμε\n", render.result().toString());
+      test.countDown();
+    });
+    test.await();
+  }
+
 }
