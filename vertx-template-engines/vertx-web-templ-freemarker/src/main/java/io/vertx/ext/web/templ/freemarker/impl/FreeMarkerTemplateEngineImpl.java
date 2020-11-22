@@ -30,6 +30,7 @@ import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -56,15 +57,20 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
   @Override
   public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
+      // respect the locale if present
+      Locale locale = context.containsKey("lang") ?
+        Locale.forLanguageTag((String) context.get("lang")) :
+        Locale.getDefault();
       String src = adjustLocation(templateFile);
-      TemplateHolder<Template> template = getTemplate(src);
+      String key = src + "_" + locale.toLanguageTag();
+      TemplateHolder<Template> template = getTemplate(key);
       if (template == null) {
         // real compile
         synchronized (this) {
           // Compile
-          template = new TemplateHolder<>(config.getTemplate(src));
+          template = new TemplateHolder<>(config.getTemplate(src, locale));
         }
-        putTemplate(src, template);
+        putTemplate(key, template);
       }
 
       try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
