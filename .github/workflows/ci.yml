@@ -31,11 +31,6 @@ jobs:
           java-version: ${{ matrix.jdk }}
       - name: Run tests
         run: mvn -q clean verify -B
-      - name: Publish Unit Test Results
-        uses: scacap/action-surefire-report@v1
-        if: ${{ always() }}
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
   Apollo-Link-Tests:
     runs-on: ubuntu-latest
     strategy:
