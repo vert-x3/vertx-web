@@ -10,7 +10,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpClientRequest;
-import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.client.spi.CookieStore;
 
 /**
@@ -19,7 +19,7 @@ import io.vertx.ext.web.client.spi.CookieStore;
 public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
 
   private static final String HEADERS_CONTEXT_KEY = "_originalHeaders";
-  
+
   @Override
   public void handle(HttpContext<?> context) {
     switch(context.phase()) {
@@ -35,12 +35,12 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     default:
       break;
     }
-    
+
     context.next();
   }
 
   private void prepareRequest(HttpContext<?> context) {
-    
+
     HttpRequestImpl<?> request = (HttpRequestImpl<?>) context.request();
     WebClientSessionAware webclient = (WebClientSessionAware) request.client;
 
@@ -49,7 +49,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       headers = new CaseInsensitiveHeaders().addAll(request.headers());
       context.set(SessionAwareInterceptor.HEADERS_CONTEXT_KEY, headers);
     }
-    
+
     // we need to reset the headers at every "send" because cookies can be changed,
     // either by the server (that sent new ones) or by the user.
     request.headers().clear().addAll(headers).addAll(webclient.headers());
@@ -58,10 +58,11 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     if (domain == null) {
       domain = request.host;
     }
-    
+
     Iterable<Cookie> cookies = webclient.cookieStore().get(request.ssl, domain, request.uri);
-    for (Cookie c : cookies) {
-      request.headers().add("cookie", ClientCookieEncoder.STRICT.encode(c));
+    String encodedCookies = ClientCookieEncoder.STRICT.encode(cookies);
+    if (encodedCookies != null) {
+      request.headers().add(HttpHeaders.COOKIE, encodedCookies);
     }
   }
 
@@ -119,8 +120,9 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     }
 
     Iterable<Cookie> cookies = webclient.cookieStore().get(originalRequest.ssl, domain, redirectRequest.path());
-    for (Cookie c : cookies) {
-      redirectRequest.headers().add("cookie", ClientCookieEncoder.STRICT.encode(c));
+    String encodedCookies = ClientCookieEncoder.STRICT.encode(cookies);
+    if (encodedCookies != null) {
+      redirectRequest.headers().add(HttpHeaders.COOKIE, encodedCookies);
     }
   }
 
