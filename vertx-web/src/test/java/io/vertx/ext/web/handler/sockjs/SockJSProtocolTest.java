@@ -19,10 +19,12 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.impl.Utils;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -146,6 +148,7 @@ public class SockJSProtocolTest {
    */
   @Test
   public void testProtocol() throws Exception {
+    Assume.assumeFalse(Utils.isWindows());
     // does this system have python 2.x?
     Process p = Runtime.getRuntime().exec("python pythonversion.py", null, new File("src/test"));
     int res = p.waitFor();
@@ -178,6 +181,7 @@ public class SockJSProtocolTest {
    */
   @Test
   public void testQuirks() throws Exception {
+    Assume.assumeFalse(Utils.isWindows());
     // does this system have python 2.x?
     Process p = Runtime.getRuntime().exec("python pythonversion.py", null, new File("src/test"));
     int res = p.waitFor();
