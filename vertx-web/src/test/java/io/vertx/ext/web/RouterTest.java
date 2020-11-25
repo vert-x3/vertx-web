@@ -20,6 +20,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
@@ -48,13 +49,13 @@ public class RouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", 200, "OK");
   }
 
-  @Repeat(times = 1000)
   @Test
   public void testSimpleFunction() throws Exception {
     router.route()
       .respond(rc -> vertx.fileSystem().readFile(rc.queryParams().get("file")));
 
-    testRequest(HttpMethod.GET, "/?file=.htdigest", null, res -> assertEquals(res.getHeader("Content-Type"), "application/json; charset=utf-8"), 200, "OK", "\"TXVmYXNhOnRlc3RyZWFsbUBob3N0LmNvbTo5MzllNzU3OGVkOWUzYzUxOGE0NTJhY2VlNzYzYmNlOQo\"");
+    Buffer expected = Json.encodeToBuffer(vertx.fileSystem().readFileBlocking(".htdigest"));
+    testRequest(HttpMethod.GET, "/?file=.htdigest", null, res -> assertEquals(res.getHeader("Content-Type"), "application/json; charset=utf-8"), 200, "OK", expected.toString());
   }
 
   @Test
