@@ -26,14 +26,19 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.test.core.VertxTestBase;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -291,4 +296,18 @@ public class WebTestBase extends VertxTestBase {
     }
 
   }
+
+  /**
+   * Cleanup upload files left by {@link BodyHandler} at location {@link BodyHandler#DEFAULT_UPLOADS_DIRECTORY}
+   */
+  public static void cleanupFileUploadDir() throws IOException {
+    File f = new File(BodyHandler.DEFAULT_UPLOADS_DIRECTORY);
+    if (f.exists() && f.isDirectory()) {
+      Files.walk(f.toPath())
+        .sorted(Comparator.reverseOrder())
+        .map(Path::toFile)
+        .forEach(File::delete);
+    }
+  }
+
 }

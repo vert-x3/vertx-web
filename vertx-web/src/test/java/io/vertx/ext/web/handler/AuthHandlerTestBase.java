@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.handler;
 
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
@@ -31,17 +30,16 @@ import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import java.io.IOException;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public abstract class AuthHandlerTestBase extends WebTestBase {
 
   @AfterClass
-  public static void oneTimeTearDown() {
-    Vertx vertx = Vertx.vertx();
-    if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
-      vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
-    }
+  public static void oneTimeTearDown() throws IOException {
+    cleanupFileUploadDir();
   }
 
   @Test

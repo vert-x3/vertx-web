@@ -15,12 +15,13 @@
  */
 package io.vertx.ext.web.handler;
 
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.AfterClass;
 import org.junit.Test;
+
+import java.io.IOException;
 
 /**
  * @author Paulo Lopes
@@ -28,11 +29,8 @@ import org.junit.Test;
 public class RerouteTest extends WebTestBase {
 
   @AfterClass
-  public static void oneTimeTearDown() {
-    Vertx vertx = Vertx.vertx();
-    if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
-      vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
-    }
+  public static void oneTimeTearDown() throws IOException {
+    cleanupFileUploadDir();
   }
 
   @Test

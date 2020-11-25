@@ -1,7 +1,6 @@
 package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
@@ -11,17 +10,15 @@ import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Collections;
 
 
 public class RoutingContextImplTest extends WebTestBase {
 
   @AfterClass
-  public static void oneTimeTearDown() {
-    Vertx vertx = Vertx.vertx();
-    if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
-      vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
-    }
+  public static void oneTimeTearDown() throws IOException {
+    cleanupFileUploadDir();
   }
 
   @Override
