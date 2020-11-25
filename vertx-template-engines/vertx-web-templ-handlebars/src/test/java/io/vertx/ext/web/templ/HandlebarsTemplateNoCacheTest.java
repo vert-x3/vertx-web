@@ -19,7 +19,6 @@ package io.vertx.ext.web.templ;
 import io.vertx.core.Vertx;
 import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
@@ -33,6 +32,8 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import static io.vertx.ext.web.templ.HandlebarsTemplateTest.normalizeCRLF;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -49,40 +50,32 @@ public class HandlebarsTemplateNoCacheTest {
 
   @Test
   public void testCachingDisabled(TestContext should) throws IOException {
-    final Async test = should.async();
-
     System.setProperty("vertxweb.environment", "development");
     TemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
-    PrintWriter out;
     File temp = File.createTempFile("template", ".hbs", new File("target/classes"));
     temp.deleteOnExit();
 
-    out = new PrintWriter(temp);
-    out.print("before");
-    out.flush();
-    out.close();
+    try (PrintWriter out = new PrintWriter(temp)) {
+      out.print("before");
+      out.flush();
+    }
 
     engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render -> {
       should.assertTrue(render.succeeded());
       should.assertEquals("before", render.result().toString());
       // cache is enabled so if we change the content that should not affect the result
 
-      try {
-        PrintWriter out2 = new PrintWriter(temp);
+      try(PrintWriter out2 = new PrintWriter(temp)) {
         out2.print("after");
         out2.flush();
-        out2.close();
       } catch (IOException e) {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render2 -> {
-        should.assertTrue(render2.succeeded());
-        should.assertEquals("after", render2.result().toString());
-        test.complete();
-      });
+      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render2 -> {
+        should.assertEquals("after", normalizeCRLF(render2.toString()));
+      }));
     });
-    test.await();
   }
 }

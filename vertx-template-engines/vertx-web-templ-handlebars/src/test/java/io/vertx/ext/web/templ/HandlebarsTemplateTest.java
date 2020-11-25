@@ -18,7 +18,6 @@ package io.vertx.ext.web.templ;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.file.FileSystemOptions;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
@@ -57,57 +56,44 @@ public class HandlebarsTemplateTest {
 
   @Test
   public void testTemplateOnClasspath(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-handlebars-template2.hbs", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/test-handlebars-template2.hbs", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Hello badger and fox", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testTemplateJsonObjectResolver(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
     JsonObject json = new JsonObject();
     json.put("bar", new JsonObject().put("one", "badger").put("two", "fox"));
 
-    engine.render(new JsonObject().put("foo", json), "src/test/filesystemtemplates/test-handlebars-template4.hbs", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Goodbye badger and fox", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(new JsonObject().put("foo", json), "src/test/filesystemtemplates/test-handlebars-template4.hbs", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Goodbye badger and fox", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testTemplateJsonArrayResolver(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
     JsonArray jsonArray = new JsonArray();
     jsonArray.add("badger").add("fox").add(new JsonObject().put("name", "joe"));
     String expected = "Iterator: badger,fox,{&quot;name&quot;:&quot;joe&quot;}, Element by index:fox - joe - Out of bounds:  - Size:3";
 
-    engine.render(new JsonObject().put("foo", jsonArray), "src/test/filesystemtemplates/test-handlebars-template5.hbs", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals(expected, render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(new JsonObject().put("foo", jsonArray), "src/test/filesystemtemplates/test-handlebars-template5.hbs", should.asyncAssertSuccess(render -> {
+      should.assertEquals(expected, normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testCustomResolver(TestContext should) {
-    final Async test = should.async();
     HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
     engine.setResolvers(new ValueResolver() {
@@ -127,17 +113,13 @@ public class HandlebarsTemplateTest {
       }
     });
 
-    engine.render(new JsonObject().put("foo", "Badger").put("bar", "Fox"), "src/test/filesystemtemplates/test-handlebars-template3.hbs", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Goodbye custom and custom", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(new JsonObject().put("foo", "Badger").put("bar", "Fox"), "src/test/filesystemtemplates/test-handlebars-template3.hbs", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Goodbye custom and custom", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testTemplateJsonArrayResolverError(TestContext should) {
-    final Async test = should.async();
     HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
     JsonArray jsonArray = new JsonArray();
@@ -145,17 +127,13 @@ public class HandlebarsTemplateTest {
 
     final JsonObject context = new JsonObject().put("foo", jsonArray);
 
-    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template6.hbs", render -> {
-      should.assertFalse(render.succeeded());
-      should.assertTrue(render.cause().getMessage().contains("test-handlebars-template6.hbs:1:19"));
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template6.hbs", should.asyncAssertFailure(cause -> {
+      should.assertTrue(cause.getMessage().contains("test-handlebars-template6.hbs:1:19"));
+    }));
   }
 
   @Test
   public void testTemplateOnFileSystem(TestContext should) {
-    final Async test = should.async();
     HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -163,12 +141,9 @@ public class HandlebarsTemplateTest {
       .put("bar", "fox");
 
 
-    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template3.hbs", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Goodbye badger and fox", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template3.hbs", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Goodbye badger and fox", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
@@ -179,86 +154,65 @@ public class HandlebarsTemplateTest {
 
   @Test
   public void testTemplateWithPartial(TestContext should) {
-    final Async test = should.async();
     HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("\ntext from template8\n\ntext from template7\n\n\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7", should.asyncAssertSuccess(render -> {
+      should.assertEquals("\ntext from template8\n\ntext from template7\n\n\n", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testTemplateWithPartialFromSubdir(TestContext should) {
-    final Async test = should.async();
     HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "src/test/filesystemtemplates/sub/test-handlebars-template9", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("\ntext from template8\n\ntext from template9\n\n\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "src/test/filesystemtemplates/sub/test-handlebars-template9", should.asyncAssertSuccess(render -> {
+      should.assertEquals("\ntext from template8\n\ntext from template9\n\n\n", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testTemplateNoExtension(TestContext should) {
-    final Async test = should.async();
     HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-handlebars-template2", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/test-handlebars-template2", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Hello badger and fox", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testTemplateChangeExtension(TestContext should) {
-    final Async test = should.async();
     HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx, "zbs");
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-handlebars-template2", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Cheerio badger and fox", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/test-handlebars-template2", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Cheerio badger and fox", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testNoSuchTemplate(TestContext should) {
-    final Async test = should.async();
     HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx, "zbs");
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/foo.hbs", render -> {
-      should.assertFalse(render.succeeded());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/foo.hbs", should.asyncAssertFailure());
   }
 
   @Test
@@ -269,46 +223,36 @@ public class HandlebarsTemplateTest {
 
   @Test
   public void testCachingEnabled(TestContext should) throws IOException {
-    final Async test = should.async();
-
     System.setProperty("vertxweb.environment", "production");
     TemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
-    PrintWriter out;
     File temp = File.createTempFile("template", ".hbs", new File("target/classes"));
     temp.deleteOnExit();
 
-    out = new PrintWriter(temp);
-    out.print("before");
-    out.flush();
-    out.close();
+    try (PrintWriter out = new PrintWriter(temp)) {
+      out.print("before");
+      out.flush();
+    }
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("before", render.result().toString());
+    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render -> {
+      should.assertEquals("before", normalizeCRLF(render.toString()));
       // cache is enabled so if we change the content that should not affect the result
 
-      try {
-        PrintWriter out2 = new PrintWriter(temp);
+      try (PrintWriter out2 = new PrintWriter(temp)) {
         out2.print("after");
         out2.flush();
-        out2.close();
       } catch (IOException e) {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render2 -> {
-        should.assertTrue(render2.succeeded());
-        should.assertEquals("before", render2.result().toString());
-        test.complete();
-      });
-    });
-    test.await();
+      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render2 -> {
+        should.assertEquals("before", normalizeCRLF(render2.toString()));
+      }));
+    }));
   }
 
   @Test
   public void testTemplatePerf(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -318,16 +262,18 @@ public class HandlebarsTemplateTest {
     final AtomicInteger cnt = new AtomicInteger(0);
     final long t0 = System.currentTimeMillis();
     for (int i = 0; i < 1000000; i++) {
-      engine.render(context, "somedir/test-handlebars-template2.hbs", render -> {
-        should.assertTrue(render.succeeded());
-        should.assertEquals("Hello badger and fox", render.result().toString());
+      engine.render(context, "somedir/test-handlebars-template2.hbs", should.asyncAssertSuccess(render -> {
+        should.assertEquals("Hello badger and fox", normalizeCRLF(render.toString()));
         if (cnt.incrementAndGet() == 1000000) {
           final long t1 = System.currentTimeMillis();
           System.out.println(t1 - t0);
-          test.complete();
         }
-      });
+      }));
     }
   }
 
+  // For windows testing
+  static String normalizeCRLF(String s) {
+    return s.replace("\r\n", "\n");
+  }
 }
