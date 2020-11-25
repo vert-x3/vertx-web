@@ -20,7 +20,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
@@ -48,7 +47,6 @@ public class FreeMarkerTemplateTest {
 
   @Test
   public void testTemplateHandlerOnClasspath(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -57,56 +55,43 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
 
-    engine.render(context, "somedir/test-freemarker-template2.ftl", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template2.ftl\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/test-freemarker-template2.ftl", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template2.ftl\n", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testCachingEnabled(TestContext should) throws IOException {
-    final Async test = should.async();
-
     System.setProperty("vertxweb.environment", "production");
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
-    PrintWriter out;
     File temp = File.createTempFile("template", ".ftl", new File("target/classes"));
     temp.deleteOnExit();
 
-    out = new PrintWriter(temp);
-    out.print("before");
-    out.flush();
-    out.close();
+    try (PrintWriter out = new PrintWriter(temp)) {
+      out.print("before");
+      out.flush();
+    }
 
-    engine.render(new JsonObject(), temp.getName(), render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("before", render.result().toString());
+    engine.render(new JsonObject(), temp.getName(), should.asyncAssertSuccess(render -> {
+      should.assertEquals("before", normalizeCRLF(render.toString()));
       // cache is enabled so if we change the content that should not affect the result
 
-      try {
-        PrintWriter out2 = new PrintWriter(temp);
+      try (PrintWriter out2 = new PrintWriter(temp)) {
         out2.print("after");
         out2.flush();
-        out2.close();
       } catch (IOException e) {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getName(), render2 -> {
-        should.assertTrue(render2.succeeded());
-        should.assertEquals("before", render2.result().toString());
-        test.complete();
-      });
-    });
-    test.await();
+      engine.render(new JsonObject(), temp.getName(), should.asyncAssertSuccess(render2 -> {
+        should.assertEquals("before", normalizeCRLF(render2.toString()));
+      }));
+    }));
   }
 
   @Test
   public void testTemplateHandlerOnFileSystem(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -115,12 +100,9 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template3.ftl"));
 
-    engine.render(context, "src/test/filesystemtemplates/test-freemarker-template3.ftl", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template3.ftl\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "src/test/filesystemtemplates/test-freemarker-template3.ftl", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template3.ftl\n", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
@@ -131,7 +113,6 @@ public class FreeMarkerTemplateTest {
 
   @Test
   public void testTemplateHandlerNoExtension(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -140,17 +121,13 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
 
-    engine.render(context, "somedir/test-freemarker-template2", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template2.ftl\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/test-freemarker-template2", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template2.ftl\n", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testTemplateHandlerChangeExtension(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx, "mvl");
 
     final JsonObject context = new JsonObject()
@@ -159,17 +136,13 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
 
-    engine.render(context, "somedir/test-freemarker-template2", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Cheerio badger and fox\nRequest path is /test-freemarker-template2.ftl\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/test-freemarker-template2", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Cheerio badger and fox\nRequest path is /test-freemarker-template2.ftl\n",  normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testTemplateHandlerIncludes(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -178,42 +151,32 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
 
-    engine.render(context, "somedir/base", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Vert.x rules", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/base", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Vert.x rules", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testNoSuchTemplate(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
-    engine.render(new JsonObject(), "not-found", render -> {
-      should.assertTrue(render.failed());
-      test.complete();
-    });
-    test.await();
+    engine.render(new JsonObject(), "not-found", should.asyncAssertFailure());
   }
 
   @Test
   public void testLang(TestContext should) {
-    final Async test = should.async(2);
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
-    engine.render(new JsonObject(), "somedir/lang.ftl", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Hello world\n", render.result().toString());
-      test.countDown();
-    });
+    engine.render(new JsonObject(), "somedir/lang.ftl", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Hello world\n", normalizeCRLF(render.toString()));
+    }));
 
-    engine.render(new JsonObject().put("lang", "el"), "somedir/lang.ftl", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Γειά σου Κόσμε\n", render.result().toString());
-      test.countDown();
-    });
-    test.await();
+    engine.render(new JsonObject().put("lang", "el"), "somedir/lang.ftl", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Γειά σου Κόσμε\n", normalizeCRLF(render.toString()));
+    }));
   }
 
+  // For windows testing
+  static String normalizeCRLF(String s) {
+    return s.replace("\r\n", "\n");
+  }
 }
