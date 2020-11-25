@@ -93,7 +93,13 @@ public class SockJSSessionTest extends SockJSTestBase {
         complete();
       }
     })));
-    await();
+    try {
+      await();
+    } catch (Throwable e) {
+      System.out.println(clientReceived.get());
+      System.out.println(serverReceived.get());
+      throw e;
+    }
   }
 
   @Test

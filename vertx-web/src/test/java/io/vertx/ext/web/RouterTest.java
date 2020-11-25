@@ -23,6 +23,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
+import io.vertx.test.core.Repeat;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -47,6 +48,7 @@ public class RouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", 200, "OK");
   }
 
+  @Repeat(times = 1000)
   @Test
   public void testSimpleFunction() throws Exception {
     router.route()
