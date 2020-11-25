@@ -77,11 +77,12 @@ public class WebClientTest extends WebClientTestBase {
 
   @Test
   public void testBasicAuthentication() throws Exception {
+    UsernamePasswordCredentials creds = new UsernamePasswordCredentials("ém$¨=!$€", "&@#§$*éà#\"'");
     testRequest(
-      client -> client.get("somehost", "somepath").authentication(new UsernamePasswordCredentials("ém$¨=!$€", "&@#§$*éà#\"'")),
+      client -> client.get("somehost", "somepath").authentication(creds),
       req -> {
         String auth = req.headers().get(HttpHeaders.AUTHORIZATION);
-        assertEquals("Was expecting authorization header to contain a basic authentication string", "Basic w6ltJMKoPSEk4oKsOiZAI8KnJCrDqcOgIyIn", auth);
+        assertEquals("Was expecting authorization header to contain a basic authentication string", creds.toHttpAuthorization(), auth);
       }
     );
   }
