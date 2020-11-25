@@ -17,7 +17,6 @@
 package io.vertx.ext.web.templ;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
@@ -34,7 +33,6 @@ public class RockerTemplateEngineTest {
 
   @Test
   public void testTemplateHandler(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = RockerTemplateEngine.create();
 
     final JsonObject context = new JsonObject()
@@ -42,17 +40,13 @@ public class RockerTemplateEngineTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/TestRockerTemplate2.rocker.html"));
 
-    engine.render(context, "somedir/TestRockerTemplate2.rocker.html", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox\nRequest path is /TestRockerTemplate2.rocker.html\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/TestRockerTemplate2.rocker.html", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Hello badger and fox\nRequest path is /TestRockerTemplate2.rocker.html\n", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testTemplateHandlerNoExtension(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = RockerTemplateEngine.create();
 
     final JsonObject context = new JsonObject()
@@ -60,17 +54,13 @@ public class RockerTemplateEngineTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/TestRockerTemplate2"));
 
-    engine.render(context, "somedir/TestRockerTemplate2", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox\nRequest path is /TestRockerTemplate2\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/TestRockerTemplate2", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Hello badger and fox\nRequest path is /TestRockerTemplate2\n", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testTemplateHandlerChangeExtension(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = RockerTemplateEngine.create("rocker.raw");
 
     final JsonObject context = new JsonObject()
@@ -78,17 +68,13 @@ public class RockerTemplateEngineTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/TestRockerTemplate3"));
 
-    engine.render(context, "somedir/TestRockerTemplate3", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("\nCheerio badger and fox\nRequest path is /TestRockerTemplate3\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/TestRockerTemplate3", should.asyncAssertSuccess(render -> {
+      should.assertEquals("\nCheerio badger and fox\nRequest path is /TestRockerTemplate3\n", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testTemplateHandlerIncludes(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = RockerTemplateEngine.create();
 
     final JsonObject context = new JsonObject()
@@ -96,31 +82,22 @@ public class RockerTemplateEngineTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/TestRockerTemplate3"));
 
-    engine.render(context, "somedir/Base", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Vert.x rules\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/Base", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Vert.x rules\n", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testNoSuchTemplate(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = RockerTemplateEngine.create();
 
     final JsonObject context = new JsonObject();
 
-    engine.render(context, "nosuchtemplate.rocker.html", render -> {
-      should.assertFalse(render.succeeded());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "nosuchtemplate.rocker.html", should.asyncAssertFailure());
   }
 
   @Test
   public void testTemplateWithUndrescoreKeysHandler(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = RockerTemplateEngine.create();
 
     final JsonObject context = new JsonObject()
@@ -129,11 +106,13 @@ public class RockerTemplateEngineTest {
       .put("context", new JsonObject().put("path", "/TestRockerTemplate2.rocker.html"))
       .put("__body-handled", true);
 
-    engine.render(context, "somedir/TestRockerTemplate2.rocker.html", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox\nRequest path is /TestRockerTemplate2.rocker.html\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/TestRockerTemplate2.rocker.html", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Hello badger and fox\nRequest path is /TestRockerTemplate2.rocker.html\n", normalizeCRLF(render.toString()));
+    }));
+  }
+
+  // For windows testing
+  static String normalizeCRLF(String s) {
+    return s.replace("\r\n", "\n");
   }
 }
