@@ -286,7 +286,7 @@ public interface Route {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  default <T> Route respond(Function<RoutingContext, Future<T>> function) {
+  default <T> Route respond(Function<RoutingContext, Future<@Nullable T>> function) {
     return handler(ctx -> {
       try {
         function.apply(ctx)
