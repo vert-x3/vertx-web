@@ -36,6 +36,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.impl.Origin;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -173,7 +174,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
     if (codeVerifier != null) {
       synchronized (sha256) {
-        sha256.update(codeVerifier.getBytes());
+        sha256.update(codeVerifier.getBytes(StandardCharsets.US_ASCII));
         config
           .put("code_challenge", sha256.digest())
           .put("code_challenge_method", "S256");

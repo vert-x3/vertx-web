@@ -21,6 +21,7 @@ import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.sstore.AbstractSession;
 
 import javax.crypto.Mac;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
@@ -59,7 +60,7 @@ public class CookieSession extends AbstractSession {
       .toBuffer();
 
     String b64 = ENCODER.encodeToString(payload.getBytes());
-    String signature = ENCODER.encodeToString(mac.doFinal(b64.getBytes()));
+    String signature = ENCODER.encodeToString(mac.doFinal(b64.getBytes(StandardCharsets.US_ASCII)));
 
     return b64 + "." + signature;
   }
@@ -88,7 +89,7 @@ public class CookieSession extends AbstractSession {
       return null;
     }
 
-    String signature = ENCODER.encodeToString(mac.doFinal(tokens[0].getBytes()));
+    String signature = ENCODER.encodeToString(mac.doFinal(tokens[0].getBytes(StandardCharsets.US_ASCII)));
 
     if(!signature.equals(tokens[1])) {
       throw new RuntimeException("Session data was Tampered!");

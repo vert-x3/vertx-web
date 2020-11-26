@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -235,7 +236,7 @@ public class WebClientTest extends WebClientTestBase {
     String expected = TestUtils.randomAlphaString(1024 * 1024);
     File f = File.createTempFile("vertx", ".data");
     f.deleteOnExit();
-    Files.write(f.toPath(), expected.getBytes());
+    Files.write(f.toPath(), expected.getBytes(StandardCharsets.UTF_8));
     waitFor(2);
     server.requestHandler(req -> req.bodyHandler(buff -> {
       assertEquals(method, req.method());
