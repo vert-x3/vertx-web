@@ -18,7 +18,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.openapi.impl.JsonPointerIteratorWithLoader;
 import io.vertx.ext.web.openapi.impl.OpenAPIHolderImpl;
 import io.vertx.json.schema.ValidationException;
@@ -26,8 +25,8 @@ import io.vertx.json.schema.common.URIUtils;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import org.junit.Assume;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -139,9 +138,9 @@ public class OpenAPIHolderTest {
     }));
   }
 
+  @Disabled
   @Test
   public void loadFromFile(Vertx vertx, VertxTestContext testContext) {
-    Assume.assumeFalse(Utils.isWindows());
     OpenAPIHolderImpl parser = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(),
       new OpenAPILoaderOptions());
 
@@ -213,9 +212,9 @@ public class OpenAPIHolderTest {
     }));
   }
 
+  @Disabled
   @Test
   public void loadFromFileLocalRelativeRef(Vertx vertx, VertxTestContext testContext) {
-    Assume.assumeFalse(Utils.isWindows());
     OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(),
       new OpenAPILoaderOptions());
 
