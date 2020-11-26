@@ -20,7 +20,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
@@ -47,58 +46,45 @@ public class HTTLTemplateEngineTest {
 
   @Test
   public void testTemplateHandlerOnClasspath(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = HTTLTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-httl-template1.httl", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("<!--  -->\nHello badger and fox\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/test-httl-template1.httl", should.asyncAssertSuccess(render -> {
+      should.assertEquals("<!--  -->\nHello badger and fox\n", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testCachingEnabled(TestContext should) throws IOException {
-    final Async test = should.async();
-
     System.setProperty("vertxweb.environment", "production");
     TemplateEngine engine = HTTLTemplateEngine.create(vertx);
 
-    PrintWriter out;
     File temp = File.createTempFile("template", ".httl", new File("target/classes"));
     temp.deleteOnExit();
 
-    out = new PrintWriter(temp);
-    out.print("before");
-    out.flush();
-    out.close();
+    try (PrintWriter out = new PrintWriter(temp)) {
+      out.print("before");
+      out.flush();
+    }
 
-    engine.render(new JsonObject(), temp.getName(), render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("before", render.result().toString());
+    engine.render(new JsonObject(), temp.getName(), should.asyncAssertSuccess(render -> {
+      should.assertEquals("before", normalizeCRLF(render.toString()));
       // cache is enabled so if we change the content that should not affect the result
 
-      try {
-        PrintWriter out2 = new PrintWriter(temp);
+      try (PrintWriter out2 = new PrintWriter(temp)) {
         out2.print("after");
         out2.flush();
-        out2.close();
       } catch (IOException e) {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getName(), render2 -> {
-        should.assertTrue(render2.succeeded());
-        should.assertEquals("before", render2.result().toString());
-        test.complete();
-      });
-    });
-    test.await();
+      engine.render(new JsonObject(), temp.getName(), should.asyncAssertSuccess(render2 -> {
+        should.assertEquals("before", normalizeCRLF(render2.toString()));
+      }));
+    }));
   }
 
   @Test
@@ -109,48 +95,39 @@ public class HTTLTemplateEngineTest {
 
   @Test
   public void testTemplateHandlerNoExtension(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = HTTLTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-httl-template1", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("<!--  -->\nHello badger and fox\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/test-httl-template1", should.asyncAssertSuccess(render -> {
+      should.assertEquals("<!--  -->\nHello badger and fox\n", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testTemplateHandlerChangeExtension(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = HTTLTemplateEngine.create(vertx, "mvl");
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-httl-template1", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("<!--  -->\nCheerio badger and fox\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    engine.render(context, "somedir/test-httl-template1", should.asyncAssertSuccess(render -> {
+      should.assertEquals("<!--  -->\nCheerio badger and fox\n", normalizeCRLF(render.toString()));
+    }));
   }
 
   @Test
   public void testNoSuchTemplate(TestContext should) {
-    final Async test = should.async();
     TemplateEngine engine = HTTLTemplateEngine.create(vertx);
 
-    engine.render(new JsonObject(), "not-found", render -> {
-      should.assertTrue(render.failed());
-      test.complete();
-    });
-    test.await();
+    engine.render(new JsonObject(), "not-found", should.asyncAssertFailure());
   }
 
+  // For windows testing
+  static String normalizeCRLF(String s) {
+    return s.replace("\r\n", "\n");
+  }
 }

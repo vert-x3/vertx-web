@@ -18,7 +18,6 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -27,7 +26,6 @@ import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import org.junit.AfterClass;
 import org.junit.Rule;
@@ -55,11 +53,8 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @AfterClass
-  public static void oneTimeTearDown() {
-    Vertx vertx = Vertx.vertx();
-    if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
-      vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
-    }
+  public static void oneTimeTearDown() throws Exception {
+    cleanupFileUploadDir();
   }
 
   @Test

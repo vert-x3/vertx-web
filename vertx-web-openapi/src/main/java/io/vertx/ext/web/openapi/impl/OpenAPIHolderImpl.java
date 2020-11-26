@@ -25,6 +25,7 @@ import io.vertx.json.schema.common.SchemaURNId;
 import io.vertx.json.schema.common.URIUtils;
 import io.vertx.json.schema.draft7.Draft7SchemaParser;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Paths;
@@ -65,8 +66,16 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     URI uri = URIUtils.removeFragment(URI.create(u));
     Future<JsonObject> resolvedOpenAPIDocumentUnparsed = (URIUtils.isRemoteURI(uri)) ? solveRemoteRef(uri) :
       solveLocalRef(uri);
-    initialScope = (URIUtils.isRemoteURI(uri)) ? uri : resolveAbsoluteUriWithVertx(uri);
-    initialScopeDirectory = Paths.get(initialScope.getPath()).resolveSibling("").toString();
+    if (URIUtils.isRemoteURI(uri)) {
+      initialScope = uri;
+      initialScopeDirectory = Paths.get(initialScope.getPath()).resolveSibling("").toString();
+    } else {
+      // Convert without using Path API otherwise we get issue on Windows
+      // java.nio.file.InvalidPathException: Illegal char <:> at index 2: /D:/a/vertx-web/vertx-web/vertx-web-openapi/src/test/resources/specs/security_test.yaml
+      File f = resolveAbsoluteUriWithVertx(uri);
+      initialScope = f.toURI();
+      initialScopeDirectory = f.getParentFile().getAbsolutePath();
+    }
     return resolvedOpenAPIDocumentUnparsed
       .compose(openapi -> {
         absolutePaths.put(initialScope, openapi); // Circular refs hell!
@@ -334,8 +343,8 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     return scope;
   }
 
-  private URI resolveAbsoluteUriWithVertx(URI uri) {
-    return ((VertxInternal) this.vertx).resolveFile(uri.toString()).toPath().toUri();
+  private File resolveAbsoluteUriWithVertx(URI uri) {
+    return ((VertxInternal) this.vertx).resolveFile(uri.toString());
   }
 
   private String sanitizeLocalRef(URI ref) {

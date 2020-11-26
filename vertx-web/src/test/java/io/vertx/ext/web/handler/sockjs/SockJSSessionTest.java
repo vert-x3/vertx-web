@@ -63,7 +63,7 @@ public class SockJSSessionTest extends SockJSTestBase {
 
   @Test
   public void testNoDeadlockWhenWritingFromAnotherThreadWithWebsocketTransport() throws Exception {
-    int numMsg = 4000;
+    int numMsg = 1000;
     waitFor(1);
     AtomicInteger clientReceived = new AtomicInteger();
     AtomicInteger serverReceived = new AtomicInteger();
@@ -93,7 +93,13 @@ public class SockJSSessionTest extends SockJSTestBase {
         complete();
       }
     })));
-    await();
+    try {
+      await();
+    } catch (Throwable e) {
+      System.out.println(clientReceived.get());
+      System.out.println(serverReceived.get());
+      throw e;
+    }
   }
 
   @Test
