@@ -645,6 +645,15 @@ public interface RoutingContext {
   }
 
   /**
+   * See {@link #redirect(String)}.
+   */
+  @Fluent
+  default RoutingContext redirect(String url, Handler<AsyncResult<Void>> handler) {
+    redirect(url).onComplete(handler);
+    return this;
+  }
+
+  /**
    * Encode an Object to JSON and end the request.
    * The method will apply the correct content type to the response,
    * perform the encoding and end.
@@ -673,6 +682,15 @@ public interface RoutingContext {
         return Future.failedFuture(e);
       }
     }
+  }
+
+  /**
+   * See {@link #json(Object)}.
+   */
+  @Fluent
+  default RoutingContext json(Object json, Handler<AsyncResult<Void>> handler) {
+    json(json).onComplete(handler);
+    return this;
   }
 
   /**
@@ -804,6 +822,15 @@ public interface RoutingContext {
   }
 
   /**
+   * See {@link #end(String)}
+   */
+  @Fluent
+  default RoutingContext end(String chunk, Handler<AsyncResult<Void>> handler) {
+    end(chunk).onComplete(handler);
+    return this;
+  }
+
+  /**
    * Shortcut to the response end.
    * @param buffer a chunk
    * @return future
@@ -813,10 +840,28 @@ public interface RoutingContext {
   }
 
   /**
+   * See {@link #end(Buffer)}
+   */
+  @Fluent
+  default RoutingContext end(Buffer buffer, Handler<AsyncResult<Void>> handler) {
+    end(buffer).onComplete(handler);
+    return this;
+  }
+
+  /**
    * Shortcut to the response end.
    * @return future
    */
   default Future<Void> end() {
     return response().end();
+  }
+
+  /**
+   * See {@link #end()}
+   */
+  @Fluent
+  default RoutingContext end(Handler<AsyncResult<Void>> handler) {
+    end().onComplete(handler);
+    return this;
   }
 }
