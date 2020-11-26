@@ -174,6 +174,7 @@ public interface HttpRequest<T> {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   HttpRequest<T> authentication(Credentials credentials);
 
   /**

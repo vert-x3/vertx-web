@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -45,6 +46,7 @@ public interface AuthenticationHandler extends Handler<RoutingContext> {
    * @param context the routing context
    * @param handler the handler to be called once the information is available.
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler);
 
   /**
@@ -52,6 +54,7 @@ public interface AuthenticationHandler extends Handler<RoutingContext> {
    * @param context the routing context
    * @return Future json
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   default Future<Credentials> parseCredentials(RoutingContext context) {
     Promise<Credentials> promise = Promise.promise();
     parseCredentials(context, promise);
