@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.sstore;
 
-import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
@@ -45,9 +44,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    VertxOptions options = new VertxOptions();
-    options.setClusterManager(getClusterManager());
-    startNodes(numNodes, options);
+    startNodes(numNodes);
     store = ClusteredSessionStore.create(vertices[0], 3000);
   }
 
