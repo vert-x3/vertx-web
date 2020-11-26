@@ -28,6 +28,7 @@ import io.vertx.ext.web.sstore.cookie.CookieSessionStore;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -54,7 +55,7 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
 
     try {
       mac = Mac.getInstance("HmacSHA256");
-      mac.init(new SecretKeySpec(options.getString("secret").getBytes(), "HmacSHA256"));
+      mac.init(new SecretKeySpec(options.getString("secret").getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
     } catch (NoSuchAlgorithmException | InvalidKeyException e) {
       throw new RuntimeException(e);
     }

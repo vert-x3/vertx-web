@@ -23,6 +23,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -52,7 +53,7 @@ public class DigestAuthHandlerTest extends WebTestBase {
   public void checkNoncesCleanup() throws Exception {
     router.clear();
     HtdigestAuth authProvider = HtdigestAuth.create(vertx);
-    /* set nonceExpireTimeout to a negative value so the cached nonces must be deleted as soon as a new request 
+    /* set nonceExpireTimeout to a negative value so the cached nonces must be deleted as soon as a new request
      * is done
      */
     router.route("/dir/*").handler(DigestAuthHandler.create(vertx, authProvider, -100));
@@ -131,7 +132,7 @@ public class DigestAuthHandlerTest extends WebTestBase {
 
   private static synchronized String md5(String payload) {
     MD5.reset();
-    return bytesToHex(MD5.digest(payload.getBytes()));
+    return bytesToHex(MD5.digest(payload.getBytes(StandardCharsets.UTF_8)));
   }
 
 }

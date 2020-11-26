@@ -31,6 +31,7 @@ import io.vertx.ext.web.impl.Origin;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -60,7 +61,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     try {
       random = VertxContextPRNG.current(vertx);
       mac = Mac.getInstance("HmacSHA256");
-      mac.init(new SecretKeySpec(secret.getBytes(), "HmacSHA256"));
+      mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
     } catch (NoSuchAlgorithmException | InvalidKeyException e) {
       throw new RuntimeException(e);
     }
@@ -113,7 +114,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     random.nextBytes(salt);
 
     String saltPlusToken = BASE64.encodeToString(salt) + "." + System.currentTimeMillis();
-    String signature = BASE64.encodeToString(mac.doFinal(saltPlusToken.getBytes()));
+    String signature = BASE64.encodeToString(mac.doFinal(saltPlusToken.getBytes(StandardCharsets.US_ASCII)));
 
     final String token = saltPlusToken + "." + signature;
     // a new token was generated add it to the cookie
@@ -248,7 +249,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
       return false;
     }
 
-    byte[] saltPlusToken = (tokens[0] + "." + tokens[1]).getBytes();
+    byte[] saltPlusToken = (tokens[0] + "." + tokens[1]).getBytes(StandardCharsets.US_ASCII);
 
     synchronized (mac) {
       saltPlusToken = mac.doFinal(saltPlusToken);

@@ -31,6 +31,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -892,7 +893,7 @@ public class StaticHandlerTest extends WebTestBase {
     File tmp = File.createTempFile("vertx_", ".txt");
     tmp.deleteOnExit();
     URL url = tmp.toURI().toURL();
-    Files.write(tmp.toPath(), "hello".getBytes());
+    Files.write(tmp.toPath(), "hello".getBytes(StandardCharsets.UTF_8));
     AtomicBoolean used = new AtomicBoolean();
     ClassLoader classLoader = new ClassLoader(Thread.currentThread().getContextClassLoader()) {
       @Override

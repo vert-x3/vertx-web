@@ -30,6 +30,7 @@ import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -198,7 +199,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
                 MessageDigest md;
                 try {
                   md = MessageDigest.getInstance("SHA-256");
-                  md.update(part.substring(14).getBytes());
+                  md.update(part.substring(14).getBytes(StandardCharsets.US_ASCII));
                   if (verifier.get().equals(Base64.getUrlEncoder().withoutPadding().encodeToString(md.digest()))) {
                     matches++;
                   }
@@ -434,7 +435,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     });
 
 
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("paulo:bananas".getBytes())), res -> {
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("paulo:bananas".getBytes(StandardCharsets.UTF_8))), res -> {
       // in this case we should get the resource
     }, 200, "OK", "Welcome to the protected resource!");
 
