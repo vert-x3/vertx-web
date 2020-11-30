@@ -27,6 +27,7 @@ import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.tls.Cert;
 import org.junit.Rule;
+
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -54,6 +55,8 @@ import java.util.stream.IntStream;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -1537,6 +1540,21 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testRequest() throws Exception {
+    String headerKey = "header1", headerValue = "value1";
+    RequestOptions options = new RequestOptions().addHeader(headerKey, headerValue);
+
+    HttpRequest<Buffer> request = client.request(HttpMethod.GET, options);
+    assertThat(request.headers().get(headerKey), equalTo(headerValue));
+
+    request = client.request(HttpMethod.GET, SocketAddress.inetSocketAddress(8080, "localhost"), options);
+    assertThat(request.headers().get(headerKey), equalTo(headerValue));
+
+    request = client.request(HttpMethod.GET, new RequestOptions());
+    assertThat(request.headers().get(headerKey), nullValue());
+  }
+
+  @Test
   public void testTLSEnabled() throws Exception {
     testTLS(true, true, client -> client.get("/"));
   }
@@ -1808,6 +1826,29 @@ public class WebClientTest extends HttpTestBase {
       assertThat(cause, instanceOf(CustomException.class));
       CustomException customException = (CustomException) cause;
       assertEquals("tilt", customException.getMessage());
+      assertEquals(uuid, customException.tag);
+    });
+  }
+
+  @Test
+  public void testExpectCustomExceptionWithStatusCode() throws Exception {
+    UUID uuid = UUID.randomUUID();
+    int statusCode = 400;
+
+    ResponsePredicate predicate = ResponsePredicate.create(ResponsePredicate.SC_SUCCESS, ErrorConverter.create(result -> {
+        int code = result.response().statusCode();
+        return new CustomException(uuid, String.valueOf(code));
+      }));
+
+    testExpectation(true, req -> req.expect(predicate), httpServerResponse -> {
+      httpServerResponse
+        .setStatusCode(statusCode)
+        .end(TestUtils.randomBuffer(2048));
+    }, ar -> {
+      Throwable cause = ar.cause();
+      assertThat(cause, instanceOf(CustomException.class));
+      CustomException customException = (CustomException) cause;
+      assertEquals(String.valueOf(statusCode), customException.getMessage());
       assertEquals(uuid, customException.tag);
     });
   }
