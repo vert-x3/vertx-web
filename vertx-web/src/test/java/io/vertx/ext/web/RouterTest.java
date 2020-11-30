@@ -28,6 +28,7 @@ import io.vertx.test.core.Repeat;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -55,7 +56,7 @@ public class RouterTest extends WebTestBase {
       .respond(rc -> vertx.fileSystem().readFile(rc.queryParams().get("file")));
 
     Buffer expected = vertx.fileSystem().readFileBlocking(".htdigest");
-    testRequest(HttpMethod.GET, "/?file=.htdigest", null, res -> assertEquals(res.getHeader("Content-Type"), "application/octet-stream"), 200, "OK", expected.toString());
+    testRequest(HttpMethod.GET, "/?file=.htdigest", null, res -> assertEquals(res.getHeader("Content-Type"), "application/octet-stream"), 200, "OK", expected.toString(StandardCharsets.ISO_8859_1));
   }
 
   @Test

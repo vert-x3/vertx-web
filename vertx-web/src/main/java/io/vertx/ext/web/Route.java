@@ -321,7 +321,6 @@ public interface Route {
                   ctx.json(body);
                 }
               }
-              ctx.json(body);
             } else {
               if (body == null) {
                 if (!ctx.response().ended()) {
