@@ -22,6 +22,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 
@@ -273,15 +274,21 @@ public interface Route {
    * and users are expected to return a {@link Future}. The use of this functional interface allows users to quickly
    * link the responses from other vert.x APIs or clients directly to a handler. If the context response has been ended,
    * for example, {@link RoutingContext#end()} has been called, then nothing shall happen. For the remaining cases, the
-   * response of the future is then passed to the method {@link RoutingContext#json(Object)} to perform a
-   * JSON serialization of the result.
+   * following rules apply:
+   *
+   * <ol>
+   *   <li>When {@code body} is {@code null} then the status code of the response shall be 204 (NO CONTENT)</li>
+   *   <li>When {@code body} is of type {@link Buffer} and the {@code Content-Type} isn't set then the {@code Content-Type} shall be {@code application/octet-stream}</li>
+   *   <li>When {@code body} is of type {@link String} and the {@code Content-Type} isn't set then the {@code Content-Type} shall be {@code text/html}</li>
+   *   <li>Otherwise the response of the future is then passed to the method {@link RoutingContext#json(Object)} to perform a JSON serialization of the result</li>
+   * </ol>
    *
    * Internally the function is wrapped as a handler that handles error cases for the user too. For example, if the
    * function throws an exception the error will be catched and a proper error will be propagated throw the router.
    *
    * Also if the same happens while encoding the response, errors are catched and propagated to the router.
    *
-   * @param <T> a generic type to allow type safe API
+   * @param <T>      a generic type to allow type safe API
    * @param function the request handler function
    * @return a reference to this, so the API can be used fluently
    */
@@ -293,6 +300,27 @@ public interface Route {
           .onFailure(ctx::fail)
           .onSuccess(body -> {
             if (!ctx.response().headWritten()) {
+              if (body == null) {
+                ctx
+                  .response()
+                  .setStatusCode(204)
+                  .end();
+              } else {
+                final boolean hasContentType = ctx.response().headers().contains(HttpHeaders.CONTENT_TYPE);
+                if (body instanceof Buffer) {
+                  if (!hasContentType) {
+                    ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+                  }
+                  ctx.end((Buffer) body);
+                } else if (body instanceof String) {
+                  if (!hasContentType) {
+                    ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
+                  }
+                  ctx.end((String) body);
+                } else {
+                  ctx.json(body);
+                }
+              }
               ctx.json(body);
             } else {
               if (body == null) {

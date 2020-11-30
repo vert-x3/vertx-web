@@ -54,8 +54,8 @@ public class RouterTest extends WebTestBase {
     router.route()
       .respond(rc -> vertx.fileSystem().readFile(rc.queryParams().get("file")));
 
-    Buffer expected = Json.encodeToBuffer(vertx.fileSystem().readFileBlocking(".htdigest"));
-    testRequest(HttpMethod.GET, "/?file=.htdigest", null, res -> assertEquals(res.getHeader("Content-Type"), "application/json; charset=utf-8"), 200, "OK", expected.toString());
+    Buffer expected = vertx.fileSystem().readFileBlocking(".htdigest");
+    testRequest(HttpMethod.GET, "/?file=.htdigest", null, res -> assertEquals(res.getHeader("Content-Type"), "application/octet-stream"), 200, "OK", expected.toString());
   }
 
   @Test
