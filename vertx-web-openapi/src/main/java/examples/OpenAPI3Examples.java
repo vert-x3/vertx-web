@@ -171,4 +171,11 @@ public class OpenAPI3Examples {
       // Something went wrong during router builder initialization
     });
   }
+
+  public void subRouter(Vertx vertx, RouterBuilder routerBuilder) {
+    Router global = Router.router(vertx);
+
+    Router generated = routerBuilder.createRouter();
+    global.mountSubRouter("/v1", generated);
+  }
 }
