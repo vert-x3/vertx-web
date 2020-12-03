@@ -413,11 +413,8 @@ public interface ResponsePredicate extends Function<HttpResponse<Void>, Response
       if (contentType == null) {
         return ResponsePredicateResult.failure("Missing response content type");
       }
-      String mediaType = contentType;
-      int idx = mediaType.indexOf(';');
-      if (idx != -1) {
-        mediaType = mediaType.substring(0, idx);
-      }
+      int paramIdx = contentType.indexOf(';');
+      String mediaType = paramIdx != -1 ? contentType.substring(0, paramIdx):contentType;
 
       for (String mimeType : mimeTypes) {
         if (mediaType.equalsIgnoreCase(mimeType)) {
