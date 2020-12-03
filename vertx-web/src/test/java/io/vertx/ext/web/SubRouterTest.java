@@ -593,4 +593,27 @@ public class SubRouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/primary/", 200, "Hi");
     testRequest(HttpMethod.GET, "/primary/random", 404, "Not Found");
   }
-}
+
+  @Test
+  public void testMountMultiLevel2() throws Exception {
+
+    // router
+    // * -> routerFirstLevel
+    //      /test -> Hi
+    //      /secondary -> routerSecondLevel
+    //                    /test -> H2
+
+    Router routerFirstLevel = Router.router(vertx);
+    router.route().subRouter(routerFirstLevel);
+
+    routerFirstLevel.route("/test")
+      .handler(ctx -> ctx.response().setStatusMessage("Hi").end());
+
+    Router routerSecondLevel = Router.router(vertx);
+    routerSecondLevel.route("/test")
+      .handler(ctx -> ctx.response().setStatusMessage("H2").end());
+    routerFirstLevel.mountSubRouter("/secondary", routerSecondLevel);
+
+    testRequest(HttpMethod.GET, "/test", 200, "Hi");
+    testRequest(HttpMethod.GET, "/secondary/test", 200, "H2");
+  }}

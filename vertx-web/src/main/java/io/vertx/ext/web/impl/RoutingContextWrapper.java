@@ -51,14 +51,19 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
       // just use the override
       this.mountPoint = mountPoint;
     } else {
-      // special case: when a sub router is mounting on / basically it's telling
-      // that it wants to use the parent mount, otherwise it's extending the parent
-      // path
+      // special cases:
+      // * when a sub router is mounting on / basically it's telling that it wants to use the parent mount
       if ("/".equals(mountPoint)) {
         this.mountPoint = parentMountPoint;
-      } else {
-        this.mountPoint = parentMountPoint + mountPoint;
-      }
+      } else
+        // * when the parent mount is / basically it's telling that it wants to use the sub router mount
+        if ("/".equals(parentMountPoint)) {
+          this.mountPoint = mountPoint;
+        } else
+        // * otherwise it's extending the parent path
+        {
+          this.mountPoint = parentMountPoint + mountPoint;
+        }
     }
   }
 
