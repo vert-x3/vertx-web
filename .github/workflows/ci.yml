@@ -81,9 +81,11 @@ jobs:
         working-directory: vertx-web/tests/sockjs
       - run: npm run test
         working-directory: vertx-web/tests/sockjs
-      - run: sh show-sockjs-write-handler-tests-server-logs.sh
-        working-directory: vertx-web
-        if: ${{ failure() }}
+      - uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: SockJSWriteHandlerTestServer.log
+          path: ~/SockJSWriteHandlerTestServer.log
       - run: sh stop-sockjs-write-handler-tests-server.sh
         working-directory: vertx-web
         if: ${{ always() }}
