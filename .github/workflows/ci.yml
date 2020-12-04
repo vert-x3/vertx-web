@@ -75,8 +75,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: sh start-sockjs-write-handler-tests-server.sh
-        working-directory: vertx-web
+      - run: sh vertx-web/start-sockjs-write-handler-tests-server.sh
       - run: npm install
         working-directory: vertx-web/tests/sockjs
       - run: npm run test
