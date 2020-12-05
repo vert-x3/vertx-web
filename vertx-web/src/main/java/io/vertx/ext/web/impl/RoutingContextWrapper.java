@@ -31,6 +31,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.*;
 
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -317,6 +318,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public MultiMap queryParams() {
     return inner.queryParams();
+  }
+
+  @Override
+  public MultiMap queryParams(Charset charset) {
+    return inner.queryParams(charset);
   }
 
   @Override

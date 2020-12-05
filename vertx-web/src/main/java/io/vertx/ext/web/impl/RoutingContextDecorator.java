@@ -15,6 +15,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.*;
 
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -264,6 +265,11 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   @Override
   public MultiMap queryParams() {
     return decoratedContext.queryParams();
+  }
+
+  @Override
+  public MultiMap queryParams(Charset charset) {
+    return decoratedContext.queryParams(charset);
   }
 
   @Override

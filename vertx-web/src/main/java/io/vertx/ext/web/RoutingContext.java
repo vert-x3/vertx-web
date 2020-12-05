@@ -29,6 +29,7 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
 import io.vertx.ext.web.impl.Utils;
 
+import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -570,6 +571,19 @@ public interface RoutingContext {
    * @return the multimap of query parameters
    */
   MultiMap queryParams();
+
+  /**
+   * Always decode the current query string with the given {@code encoding}. The decode result is never cached. Callers
+   * to this method are expected to cache the result if needed. Usually users should use {@link #queryParams()}.
+   *
+   * This method is only useful when the requests without content type ({@code GET} requests as an example) expect that
+   * query params are in the ASCII format {@code ISO-5559-1}.
+   *
+   * @param encoding a non null character set.
+   * @return the multimap of query parameters
+   */
+  @GenIgnore(PERMITTED_TYPE)
+  MultiMap queryParams(Charset encoding);
 
   /**
    * Gets the value of a single query parameter. For more info {@link RoutingContext#queryParams()}
