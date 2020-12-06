@@ -82,7 +82,6 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-service-proxy</artifactId>
       <scope>test</scope>
-      <classifier>processor</classifier>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
