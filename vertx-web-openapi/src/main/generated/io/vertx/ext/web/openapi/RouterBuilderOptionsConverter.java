@@ -43,7 +43,7 @@ public class RouterBuilderOptionsConverter {
           break;
         case "routeNamingStrategy":
           if (member.getValue() instanceof String) {
-            obj.setRouteNamingStrategy(io.vertx.ext.web.openapi.RouterBuilderOptions.RouteNamingStrategy.valueOf((String)member.getValue()));
+            obj.setRouteNamingStrategy(io.vertx.ext.web.openapi.RouteNamingStrategy.valueOf((String)member.getValue()));
           }
           break;
       }

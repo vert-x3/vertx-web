@@ -12,6 +12,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
+import io.vertx.ext.web.openapi.ErrorType;
 import io.vertx.ext.web.openapi.OpenAPIHolder;
 import io.vertx.ext.web.openapi.RouterBuilderException;
 
@@ -70,7 +71,7 @@ public class ContractEndpointHandler implements Handler<RoutingContext> {
     } catch (JsonProcessingException e) {
       e.printStackTrace();
       throw new RouterBuilderException("Cannot generate yaml contract",
-        RouterBuilderException.ErrorType.UNSUPPORTED_SPEC, e);
+        ErrorType.UNSUPPORTED_SPEC, e);
     }
   }
 

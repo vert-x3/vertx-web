@@ -112,7 +112,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
         assertThat(routerBuilderAsyncResult.cause().getClass())
           .isEqualTo(RouterBuilderException.class);
         assertThat(((RouterBuilderException) routerBuilderAsyncResult.cause()).type())
-          .isEqualTo(RouterBuilderException.ErrorType.INVALID_FILE);
+          .isEqualTo(ErrorType.INVALID_FILE);
         testContext.completeNow();
       });
   }
@@ -125,7 +125,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
         assertThat(routerBuilderAsyncResult.cause().getClass())
           .isEqualTo(RouterBuilderException.class);
         assertThat(((RouterBuilderException) routerBuilderAsyncResult.cause()).type())
-          .isEqualTo(RouterBuilderException.ErrorType.INVALID_FILE);
+          .isEqualTo(ErrorType.INVALID_FILE);
         testContext.completeNow();
       });
   }
@@ -192,7 +192,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
         routerBuilderAsyncResult -> {
           assertThat(routerBuilderAsyncResult.failed()).isTrue();
           assertThat(routerBuilderAsyncResult.cause().getClass()).isEqualTo(RouterBuilderException.class);
-          assertThat(((RouterBuilderException) routerBuilderAsyncResult.cause()).type()).isEqualTo(RouterBuilderException.ErrorType.INVALID_FILE);
+          assertThat(((RouterBuilderException) routerBuilderAsyncResult.cause()).type()).isEqualTo(ErrorType.INVALID_FILE);
           testContext.completeNow();
         });
     });
