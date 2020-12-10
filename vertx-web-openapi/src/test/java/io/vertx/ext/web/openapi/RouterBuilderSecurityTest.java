@@ -347,7 +347,7 @@ public class RouterBuilderSecurityTest extends BaseRouterBuilderTest {
         assertThatCode(routerBuilder::createRouter)
           .isInstanceOfSatisfying(RouterBuilderException.class, rfe ->
             assertThat(rfe.type())
-              .isEqualTo(RouterBuilderException.ErrorType.MISSING_SECURITY_HANDLER)
+              .isEqualTo(ErrorType.MISSING_SECURITY_HANDLER)
           )
       );
 
@@ -387,7 +387,7 @@ public class RouterBuilderSecurityTest extends BaseRouterBuilderTest {
         assertThatCode(routerBuilder::createRouter)
           .isInstanceOfSatisfying(RouterBuilderException.class, rfe ->
             assertThat(rfe.type())
-              .isEqualTo(RouterBuilderException.ErrorType.MISSING_SECURITY_HANDLER)
+              .isEqualTo(ErrorType.MISSING_SECURITY_HANDLER)
           )
       );
 
