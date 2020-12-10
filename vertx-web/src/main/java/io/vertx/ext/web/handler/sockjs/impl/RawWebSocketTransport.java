@@ -195,12 +195,17 @@ class RawWebSocketTransport {
       // we're about to upgrade the connection, which means an asynchronous
       // operation. We have to pause the request otherwise we will loose the
       // body of the request once the upgrade completes
-      rc.request().pause();
+      final boolean parseEnded = rc.request().isEnded();
+      if (!parseEnded) {
+        rc.request().pause();
+      }
       // upgrade
       rc.request().toWebSocket(toWebSocket -> {
         if (toWebSocket.succeeded()) {
           // resume the parsing
-          rc.request().resume();
+          if (!parseEnded) {
+            rc.request().resume();
+          }
           // handle the sockjs session as usual
           SockJSSocket sock = new RawWSSockJSSocket(vertx, rc.session(), rc.user(), options, toWebSocket.result());
           sockHandler.handle(sock);

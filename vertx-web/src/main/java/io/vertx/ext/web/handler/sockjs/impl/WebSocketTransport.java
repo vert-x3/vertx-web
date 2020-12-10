@@ -72,15 +72,20 @@ class WebSocketTransport extends BaseTransport {
         // we're about to upgrade the connection, which means an asynchronous
         // operation. We have to pause the request otherwise we will loose the
         // body of the request once the upgrade completes
-        rc.request().pause();
+        final boolean parseEnded = req.isEnded();
+        if (!parseEnded) {
+          req.pause();
+        }
         // upgrade
-        rc.request().toWebSocket(toWebSocket -> {
+        req.toWebSocket(toWebSocket -> {
           if (toWebSocket.succeeded()) {
             if (log.isTraceEnabled()) {
               log.trace("WS, handler");
             }
             // resume the parsing
-            rc.request().resume();
+            if (!parseEnded) {
+              req.resume();
+            }
             // handle the sockjs session as usual
             SockJSSession session = new SockJSSession(vertx, sessions, rc, options, sockHandler);
             session.register(req, new WebSocketListener(toWebSocket.result(), session));
