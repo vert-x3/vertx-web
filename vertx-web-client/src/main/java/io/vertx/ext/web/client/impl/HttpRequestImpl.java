@@ -79,6 +79,8 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.options = options;
     if (options.isUserAgentEnabled()) {
       headers = HttpHeaders.set(HttpHeaders.USER_AGENT, options.getUserAgent());
+    } else {
+      headers = HttpHeaders.headers();
     }
   }
 
@@ -92,7 +94,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.host = other.host;
     this.timeout = other.timeout;
     this.uri = other.uri;
-    this.headers = other.headers != null ? HttpHeaders.headers().addAll(other.headers) : null;
+    this.headers = other.headers != null ? HttpHeaders.headers().addAll(other.headers) : HttpHeaders.headers();
     this.params = other.params != null ? HttpHeaders.headers().addAll(other.params) : null;
     this.codec = other.codec;
     this.followRedirects = other.followRedirects;
