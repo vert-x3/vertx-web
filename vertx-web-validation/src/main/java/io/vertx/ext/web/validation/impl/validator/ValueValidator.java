@@ -21,6 +21,6 @@ public interface ValueValidator {
    *
    * @return
    */
-  Object getDefault();
+  Future<Object> getDefault();
 
 }

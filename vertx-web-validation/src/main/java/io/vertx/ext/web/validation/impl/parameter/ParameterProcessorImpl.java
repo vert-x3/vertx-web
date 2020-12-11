@@ -40,12 +40,8 @@ public class ParameterProcessorImpl implements ParameterProcessor, Comparable<Pa
     else if (!isOptional)
       throw createMissingParameterWhenRequired(parameterName, location);
     else {
-      if (validator.getDefault() != null)
-        return Future.succeededFuture(RequestParameter.create(validator.getDefault()));
-      else
-        return Future.succeededFuture();
+      return validator.getDefault().map(defaultValue -> null != defaultValue ? RequestParameter.create(defaultValue) : null);
     }
-
   }
 
   @Override

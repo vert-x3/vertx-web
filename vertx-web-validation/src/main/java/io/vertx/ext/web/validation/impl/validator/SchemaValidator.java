@@ -20,7 +20,7 @@ public class SchemaValidator implements ValueValidator {
     if (s.isSync()) {
       try {
         s.validateSync(json);
-        ((SchemaImpl)s).doApplyDefaultValues(json);
+        ((SchemaImpl) s).doApplyDefaultValues(json);
         return Future.succeededFuture(RequestParameter.create(json));
       } catch (ValidationException e) {
         return Future.failedFuture(e);
@@ -28,8 +28,8 @@ public class SchemaValidator implements ValueValidator {
     }
     return s.validateAsync(json).map(v -> {
       try {
-        ((SchemaImpl)s).doApplyDefaultValues(json);
-      } catch (NoSyncValidationException e){
+        ((SchemaImpl) s).doApplyDefaultValues(json);
+      } catch (NoSyncValidationException e) {
         // This happens if I try to apply default values to an async ref schema
       }
       return RequestParameter.create(json);
@@ -37,8 +37,12 @@ public class SchemaValidator implements ValueValidator {
   }
 
   @Override
-  public Object getDefault() {
-    return s.getDefaultValue();
+  public Future<Object> getDefault() {
+    if (s.isSync()) {
+      return Future.succeededFuture(s.getDefaultValue());
+    }
+    return s.validateAsync(null) // validate a dummy to trigger syncing
+      .map(s.getDefaultValue())
+      .otherwise(s.getDefaultValue());
   }
-
 }

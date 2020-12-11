@@ -77,6 +77,7 @@ public class ParameterProcessorUnitTest {
     );
 
     when(mockedParser.parseParameter(any())).thenReturn(null);
+    when(mockedValidator.getDefault()).thenReturn(Future.succeededFuture());
 
     processor.process(new HashMap<>()).onComplete(testContext.succeeding(value -> {
       testContext.verify(() ->
@@ -98,7 +99,7 @@ public class ParameterProcessorUnitTest {
     );
 
     when(mockedParser.parseParameter(any())).thenReturn(null);
-    when(mockedValidator.getDefault()).thenReturn("bla");
+    when(mockedValidator.getDefault()).thenReturn(Future.succeededFuture("bla"));
 
     processor.process(new HashMap<>()).onComplete(testContext.succeeding(value -> {
       testContext.verify(() ->
