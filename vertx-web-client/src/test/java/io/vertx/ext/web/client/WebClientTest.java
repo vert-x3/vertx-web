@@ -33,7 +33,6 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
@@ -133,6 +132,32 @@ public class WebClientTest extends WebClientTestBase {
   public void testUserAgentDisabled() throws Exception {
     webClient = WebClient.wrap(client, new WebClientOptions().setUserAgentEnabled(false));
     testRequest(client -> client.get("somehost", "somepath"), req -> assertEquals(Collections.emptyList(), req.headers().getAll(HttpHeaders.USER_AGENT)));
+  }
+
+  @Test
+  public void testSendingJsonWithUserAgentDisabled() throws Exception {
+    waitFor(2);
+    server.requestHandler(req -> {
+      assertEquals(Collections.emptyList(), req.headers().getAll(HttpHeaders.USER_AGENT));
+      try {
+        complete();
+      } finally {
+        req.response().end();
+      }
+    });
+    startServer();
+
+    JsonObject payload = new JsonObject().put("meaning", 42);
+
+    WebClientOptions clientOptions = new WebClientOptions()
+      .setDefaultHost(DEFAULT_HTTP_HOST)
+      .setDefaultPort(DEFAULT_HTTP_PORT)
+      .setUserAgentEnabled(false);
+
+    WebClient agentFreeClient = WebClient.create(vertx, clientOptions);
+    HttpRequest<Buffer> builder = agentFreeClient.post("somehost", "somepath");
+    builder.sendJson(payload, onSuccess(resp -> complete()));
+    await();
   }
 
   @Test
