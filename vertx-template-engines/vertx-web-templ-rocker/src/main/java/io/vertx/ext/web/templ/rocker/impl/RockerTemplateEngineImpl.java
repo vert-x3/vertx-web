@@ -49,6 +49,11 @@ public class RockerTemplateEngineImpl implements RockerTemplateEngine {
     }
   }
 
+  @Override
+  public void clearCache() {
+    // No-Op
+  }
+
   private String adjustLocation(String location) {
     if (extension != null) {
       if (!location.endsWith(extension)) {

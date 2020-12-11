@@ -66,4 +66,9 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
     }
     return location;
   }
+
+  @Override
+  public void clearCache() {
+    cache.clear();
+  }
 }

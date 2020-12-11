@@ -177,5 +177,10 @@ public class TemplateTest extends WebTestBase {
         handler.handle(Future.succeededFuture(Buffer.buffer(rendered)));
       }
     }
+
+    @Override
+    public void clearCache() {
+      // no-op
+    }
   }
 }

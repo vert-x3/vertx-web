@@ -74,6 +74,11 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
   }
 
   @Override
+  public void clearCache() {
+    templateEngine.clearTemplateCache();
+  }
+
+  @Override
   public ThymeleafTemplateEngine setMode(TemplateMode mode) {
     templateResolver.setTemplateMode(mode);
     return this;

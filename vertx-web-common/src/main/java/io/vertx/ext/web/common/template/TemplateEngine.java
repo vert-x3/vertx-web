@@ -99,4 +99,10 @@ public interface TemplateEngine {
   default <T> T unwrap() throws ClassCastException {
     return null;
   }
+
+  /**
+   * Clears any internal caches used by this engine. For most engines this means clearing the
+   * vert.x cache, implementations that do not use vert.x as a cache should clear their own cache.
+   */
+  void clearCache();
 }
