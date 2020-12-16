@@ -67,7 +67,9 @@ public class ErrorHandlerImpl implements ErrorHandler {
     if (response.headWritten()) {
       // response is already being processed, so we can't really
       // format the error as a "pretty print" message
-      log.error("Unexpected error on route", failure);
+      if (log.isDebugEnabled()) {
+        log.debug("Unexpected error on route", failure);
+      }
 
       try {
         // force a close of the socket to
