@@ -223,7 +223,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
 
   @Test
   public void serviceProxyManualFailureTest(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+    Checkpoint checkpoint = testContext.checkpoint(3);
 
     FailureTestService service = new FailureTestServiceImpl(vertx);
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
@@ -263,6 +263,21 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
         RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "testException")
       );
 
+    router
+      .post("/testServiceException")
+      .handler(BodyHandler.create())
+      .handler(
+        ValidationHandler.builder(parser)
+          .body(json(
+            objectSchema()
+              .requiredProperty("hello", stringSchema())
+              .requiredProperty("name", stringSchema())
+              .allowAdditionalProperties(false)
+          )).build()
+      ).handler(
+      RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "testServiceException")
+    );
+
     testRequest(client, HttpMethod.POST, "/testFailure")
       .expect(statusCode(501), statusMessage("error for Francesco"))
       .sendJson(new JsonObject().put("hello", "Ciao").put("name", "Francesco"), testContext, checkpoint);
@@ -270,6 +285,10 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     testRequest(client, HttpMethod.POST, "/testException")
       .expect(statusCode(500), statusMessage("Unknown failure: (RECIPIENT_FAILURE,-1)"))
       .sendJson(new JsonObject().put("hello", "Ciao").put("name", "Francesco"), testContext, checkpoint);
+
+    testRequest(client, HttpMethod.POST, "/testServiceException")
+      .expect(statusCode(409), statusMessage("Conflict"))
+      .sendJson(new JsonObject().put("hello", "Hej").put("name", "Thomas"), testContext, checkpoint);
   }
 
 
