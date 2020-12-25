@@ -12,7 +12,7 @@ import io.vertx.ext.web.api.service.RouteToEBServiceHandler;
 import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.api.service.ServiceResponse;
 import io.vertx.ext.web.validation.RequestParameters;
-
+import io.vertx.serviceproxy.ServiceException;
 import java.util.function.Function;
 
 public class RouteToEBServiceHandlerImpl implements RouteToEBServiceHandler {
@@ -43,7 +43,12 @@ public class RouteToEBServiceHandlerImpl implements RouteToEBServiceHandler {
         else
           response.end();
       } else {
-        routingContext.fail(500, res.cause());
+        if (res.cause() instanceof ServiceException) {
+          ServiceException ex = (ServiceException) res.cause();
+          routingContext.fail(ex.failureCode(), ex);
+        } else {
+          routingContext.fail(500, res.cause());
+        }
       }
     });
   }
