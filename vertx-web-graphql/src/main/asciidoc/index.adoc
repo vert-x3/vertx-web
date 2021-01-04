@@ -40,14 +40,14 @@ Create a Vert.x Web {@link io.vertx.ext.web.Route} and a {@link io.vertx.ext.web
 ----
 
 The handler serves both `GET` and `POST` requests.
-However you can restrict the service to one type of HTTP method:
+However, you can restrict the service to one type of HTTP method:
 
 [source,$lang]
 ----
 {@link examples.GraphQLExamples#handlerSetupPost}
 ----
 
-TIP: The {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} does not require a {@link io.vertx.ext.web.handler.BodyHandler} to read `POST` requests content.
+IMPORTANT: The {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} requires a {@link io.vertx.ext.web.handler.BodyHandler} to read `POST` requests content.
 
 ==== Query batching
 
