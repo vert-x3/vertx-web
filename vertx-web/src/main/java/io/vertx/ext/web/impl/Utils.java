@@ -161,7 +161,8 @@ public class Utils extends io.vertx.core.impl.Utils {
       int end = 0;
       int start = 0;
 
-      loop: for (int i = 0; i < noneMatch.length(); i++) {
+      loop:
+      for (int i = 0; i < noneMatch.length(); i++) {
         switch (noneMatch.charAt(i)) {
           case ' ':
             if (start == end) {
@@ -183,7 +184,11 @@ public class Utils extends io.vertx.core.impl.Utils {
       }
 
       if (etagStale) {
-        return false;
+        // the parser run out of bytes, need to check if the match is valid
+        String match = noneMatch.substring(start, end);
+        if (!match.equals(etag) && !match.equals("W/" + etag) && !("W/" + match).equals(etag)) {
+          return false;
+        }
       }
     }
 
@@ -196,7 +201,7 @@ public class Utils extends io.vertx.core.impl.Utils {
 
       boolean modifiedStale = lastModified == -1 || !(lastModified <= parseRFC1123DateTime(modifiedSince));
 
-        return !modifiedStale;
+      return !modifiedStale;
     }
 
     return true;

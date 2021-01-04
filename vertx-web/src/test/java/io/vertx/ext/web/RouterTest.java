@@ -2904,4 +2904,25 @@ public class RouterTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/?u=" + utf8 + "&l=" + latin1, 200, "OK");
   }
+
+  @Test
+  public void testETag() throws Exception {
+    router.route("/check/e-tag").handler(ctx -> {
+      ctx.etag("1234");
+
+      if (ctx.isFresh()) {
+        ctx.response().setStatusCode(304).end("Not Modified");
+      } else {
+        ctx.response().setStatusCode(200).end("OK");
+      }
+    });
+
+    testRequest(HttpMethod.GET, "/check/e-tag", req -> {
+      req.putHeader("IF-NONE-MATCH", "\"1234\",");
+    }, 304, "Not Modified", "");
+
+    testRequest(HttpMethod.GET, "/check/e-tag", req -> {
+      req.putHeader("IF-NONE-MATCH", "\"1234\"");
+    }, 304, "Not Modified", "");
+  }
 }
