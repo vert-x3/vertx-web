@@ -29,11 +29,13 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
+import io.vertx.ext.web.handler.impl.UserHolder;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static io.vertx.ext.web.handler.impl.SessionHandlerImpl.SESSION_USER_HOLDER_KEY;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -329,6 +331,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public void setSession(Session session) {
     this.session = session;
+    // attempt to load the user from the session if one exists
+    UserHolder holder = session.get(SESSION_USER_HOLDER_KEY);
+    if (holder != null) {
+      holder.refresh(this);
+    }
   }
 
   @Override

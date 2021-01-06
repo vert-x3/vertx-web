@@ -28,15 +28,21 @@ import io.vertx.core.http.impl.ws.WebSocketFrameImpl;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.bridge.PermittedOptions;
+import io.vertx.ext.web.Session;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -359,6 +365,67 @@ public class SockJSHandlerTest extends WebTestBase {
       assertEquals(404, resp.statusCode());
       complete();
     }))));
+  }
+
+  @Test
+  public void testWebContext() throws Exception {
+    waitFor(2);
+    SessionStore store = SessionStore.create(vertx);
+    SessionHandler handler = SessionHandler.create(store);
+    CompletableFuture<String> sessionID = new CompletableFuture();
+    CompletableFuture<User> sessionUser = new CompletableFuture();
+    router.mountSubRouter("/webcontext", SockJSHandler.create(vertx)
+      .socketHandler(sock -> {
+        JsonObject principal = new JsonObject().put("key", "val");
+        Session oldSession = sock.webSession();
+        Session session = handler.newSession(sock.routingContext());
+        User user = User.create(principal);
+        sock.routingContext().setUser(user);
+        handler.flush(sock.routingContext()).result();
+        assertNotSame(session, oldSession);
+        assertEquals(session, sock.webSession());
+        sock.routingContext().setSession(session);
+        assertEquals(sock.webSession(), sock.routingContext().session());
+        assertEquals(sock.webUser(), sock.routingContext().user());
+        assertEquals(sock.webUser(), user);
+        assertEquals(session, sock.webSession());
+        assertEquals(session, store.get(session.id()).result());
+        sessionID.complete(session.id());
+        sessionUser.complete(sock.webUser());
+      }));
+
+    router.mountSubRouter("/webcontextuser", SockJSHandler.create(vertx)
+      .socketHandler(sock -> {
+        Session session = null;
+        try {
+          session = store.get(sessionID.get()).result();
+        } catch (InterruptedException | ExecutionException e) {
+          fail();
+        }
+        sock.routingContext().setSession(session);
+        try {
+          assertEquals(sessionID.get(), store.get(sessionID.get()).result().id());
+          assertEquals(sessionUser.get(), sock.webUser());
+        } catch (InterruptedException | ExecutionException e) {
+          fail();
+        }
+        complete();
+      }));
+
+    client.webSocket(new WebSocketConnectOptions()
+      .setPort(8080)
+      .setURI("/webcontext/websocket"),
+      onSuccess(
+        ws -> {
+          client.webSocket(new WebSocketConnectOptions()
+              .setPort(8080)
+              .setURI("/webcontextuser/websocket"),
+            onSuccess(wsuser -> complete())
+          );
+        }
+      ));
+
+    await();
   }
 
   @Test

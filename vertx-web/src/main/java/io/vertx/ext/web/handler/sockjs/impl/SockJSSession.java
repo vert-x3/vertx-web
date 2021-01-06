@@ -97,7 +97,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   }
 
   SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, String id, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
-    super(vertx, rc.session(), rc.user(), options);
+    super(vertx, rc, options);
     this.sessions = sessions;
     this.id = id;
     this.timeout = id == null ? -1:options.getSessionTimeout();

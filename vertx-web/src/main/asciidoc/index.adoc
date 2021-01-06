@@ -1977,7 +1977,11 @@ this will be called every time a SockJS connection is made from a client:
 The object passed into the handler is a {@link io.vertx.ext.web.handler.sockjs.SockJSSocket}. This has a familiar
 socket-like interface which you can read and write to similarly to a {@link io.vertx.core.net.NetSocket} or
 a {@link io.vertx.core.http.WebSocket}. It also implements {@link io.vertx.core.streams.ReadStream} and
-{@link io.vertx.core.streams.WriteStream} so you can pump it to and from other read and write streams.
+{@link io.vertx.core.streams.WriteStream} so you can pump it to and from other read and write streams. The
+{@link io.vertx.ext.web.RoutingContext} is accessible for manual session management while the SockJS connection
+is loaded using {@link io.vertx.ext.web.handler.sockjs.SockJSSocket#routingContext()}. With this you can manage
+the users and sessions accessible through {@link io.vertx.ext.web.handler.sockjs.SockJSSocket#webSession()}
+and {@link io.vertx.ext.web.handler.sockjs.SockJSSocket#webUser()}.
 
 Here's an example of a simple SockJS handler that simply echoes back any back any data that it reads:
 
