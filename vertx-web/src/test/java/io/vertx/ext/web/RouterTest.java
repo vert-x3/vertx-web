@@ -2581,7 +2581,8 @@ public class RouterTest extends WebTestBase {
         vertx.executeBlocking(future -> {
           event.next();
           future.complete();
-        }, asyncResult -> {});
+        }, asyncResult -> {
+        });
       }
     });
 
@@ -2644,7 +2645,7 @@ public class RouterTest extends WebTestBase {
     }).handler(rc -> {
       rc.response().setStatusCode(500).end();
     });
-    testRequest(HttpMethod.GET, "/path?q=" + BAD_PARAM, 500,"Dumb");
+    testRequest(HttpMethod.GET, "/path?q=" + BAD_PARAM, 500, "Dumb");
   }
 
   @Test
@@ -2744,7 +2745,8 @@ public class RouterTest extends WebTestBase {
     testRequest(new RequestOptions()
       .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
       .setPort(80)
-      .setHost("www.mysite.com"), req -> { }, 200, "OK", null);
+      .setHost("www.mysite.com"), req -> {
+    }, 200, "OK", null);
   }
 
   @Test
@@ -2756,7 +2758,8 @@ public class RouterTest extends WebTestBase {
     testRequest(new RequestOptions()
       .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
       .setPort(80)
-      .setHost("www.mysite.net"), req -> {}, 500, "Internal Server Error", null);
+      .setHost("www.mysite.net"), req -> {
+    }, 500, "Internal Server Error", null);
   }
 
   @Test
@@ -2924,5 +2927,19 @@ public class RouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/check/e-tag", req -> {
       req.putHeader("IF-NONE-MATCH", "\"1234\"");
     }, 304, "Not Modified", "");
+  }
+
+  @Test
+  public void testRegexOptionals() throws Exception {
+    router
+      .routeWithRegex("/help/(.+)/(txt|tab)?")
+      .setRegexGroupsNames(Arrays.asList("id", "format"))
+      .handler(rc -> {
+        MultiMap params = rc.request().params();
+        System.out.println(params);
+        rc.end();
+      });
+    testRequest(HttpMethod.GET, "/help/abcd/", 200, "OK");
+    testRequest(HttpMethod.GET, "/help/abcd/txt", 200, "OK");
   }
 }

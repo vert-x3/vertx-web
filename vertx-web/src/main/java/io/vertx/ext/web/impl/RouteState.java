@@ -894,7 +894,8 @@ final class RouteState {
           if (!isEmpty(groups)) {
             // Pattern - named params
             // decode the path as it could contain escaped chars.
-            for (int i = 0; i < Math.min(groups.size(), m.groupCount()); i++) {
+            final int len = Math.min(groups.size(), m.groupCount());
+            for (int i = 0; i < len; i++) {
               final String k = groups.get(i);
               String undecodedValue;
               // We try to take value in three ways:
@@ -911,7 +912,9 @@ final class RouteState {
                   undecodedValue = m.group(i + 1);
                 }
               }
-              addPathParam(context, k, undecodedValue);
+              if (undecodedValue != null) {
+                addPathParam(context, k, undecodedValue);
+              }
             }
           } else {
             // Straight regex - un-named params
