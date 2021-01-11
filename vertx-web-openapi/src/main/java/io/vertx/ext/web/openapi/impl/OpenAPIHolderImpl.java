@@ -74,7 +74,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
       // java.nio.file.InvalidPathException: Illegal char <:> at index 2: /D:/a/vertx-web/vertx-web/vertx-web-openapi/src/test/resources/specs/security_test.yaml
       File f = resolveAbsoluteUriWithVertx(uri);
       initialScope = f.toURI();
-      initialScopeDirectory = f.getParentFile().getAbsolutePath();
+      initialScopeDirectory = f.getAbsoluteFile().getParent();
     }
     return resolvedOpenAPIDocumentUnparsed
       .compose(openapi -> {
