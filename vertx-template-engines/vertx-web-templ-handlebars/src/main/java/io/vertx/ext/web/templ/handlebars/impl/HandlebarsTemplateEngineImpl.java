@@ -16,6 +16,8 @@
 
 package io.vertx.ext.web.templ.handlebars.impl;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Map;
 
@@ -117,7 +119,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
     }
 
     @Override
-    public TemplateSource sourceAt(String location) {
+    public TemplateSource sourceAt(String location) throws IOException {
       final String loc = resolve(location);
       final Buffer templ;
 
@@ -125,11 +127,11 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
         templ = vertx.fileSystem()
           .readFileBlocking(loc);
       } else {
-        templ = null;
+        throw new FileNotFoundException(loc);
       }
 
       if (templ == null) {
-        throw new IllegalArgumentException("Cannot find resource " + loc);
+        throw new IOException("Cannot read resource " + loc);
       }
 
       long lastMod = System.currentTimeMillis();

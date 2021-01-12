@@ -272,6 +272,16 @@ public class HandlebarsTemplateTest {
     }
   }
 
+  @Test
+  public void testBlock(TestContext should) {
+    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
+
+    final JsonObject context = new JsonObject();
+
+    engine.render(context, "templates/index.hbs", should.asyncAssertSuccess());
+  }
+
+
   // For windows testing
   static String normalizeCRLF(String s) {
     return s.replace("\r\n", "\n");
