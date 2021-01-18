@@ -2377,6 +2377,11 @@ Note that this handler is session aware. If there is a session available the for
 during the `POST` action as it will be read from the session. This also implies that tokens will only be regenerated
 on session upgrades.
 
+Note, for extra security users are advised to rotate the key that signs the tokens. This can be done online by replacing
+the handler, or by restarting the application with a new configuration. Clickjacking could still affect applications. If
+this is a critical application consider setting the header: `X-Frame-Options` as described in:
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+
 === Using AJAX
 
 When accessing protected routes via ajax both the csrf token will need to be passed in the request. Typically this is
