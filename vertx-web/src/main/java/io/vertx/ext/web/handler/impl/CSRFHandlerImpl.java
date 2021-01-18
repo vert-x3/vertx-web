@@ -33,6 +33,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
@@ -211,13 +212,23 @@ public class CSRFHandlerImpl implements CSRFHandler {
     }
 
     // both the header and the cookie must be present, not null and not empty
-    if (header == null || cookie == null || isBlank(header) || isBlank(cookie.getValue())) {
+    if (header == null || cookie == null || isBlank(header)) {
       log.trace("Token provided via HTTP Header/Form is absent/empty");
       return false;
     }
 
+    final String cookieValue = cookie.getValue();
+
+    if (cookieValue == null || isBlank(cookieValue)) {
+      log.trace("Token provided via HTTP Header/Form is absent/empty");
+      return false;
+    }
+
+    final byte[] headerBytes = header.getBytes(StandardCharsets.UTF_8);
+    final byte[] cookieBytes = cookieValue.getBytes(StandardCharsets.UTF_8);
+
     //Verify that token from header and one from cookie are the same
-    if (!header.equals(cookie.getValue())) {
+    if (!MessageDigest.isEqual(headerBytes, cookieBytes)) {
       log.trace("Token provided via HTTP Header and via Cookie are not equal");
       return false;
     }
@@ -233,7 +244,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
         if (idx != -1 && session.id() != null && session.id().equals(sessionToken.substring(0, idx))) {
           String challenge = sessionToken.substring(idx + 1);
           // the challenge must match the user-agent input
-          if (!challenge.equals(header)) {
+          if (!MessageDigest.isEqual(challenge.getBytes(StandardCharsets.UTF_8), headerBytes)) {
             log.trace("Token has been used or is outdated");
             return false;
           }
@@ -258,9 +269,9 @@ public class CSRFHandlerImpl implements CSRFHandler {
       saltPlusToken = mac.doFinal(saltPlusToken);
     }
 
-    String signature = BASE64.encodeToString(saltPlusToken);
+    final byte[] signature = BASE64.encode(saltPlusToken);
 
-    if(!signature.equals(tokens[2])) {
+    if(!MessageDigest.isEqual(signature, tokens[2].getBytes(StandardCharsets.US_ASCII))) {
       log.trace("Token signature does not match");
       return false;
     }
