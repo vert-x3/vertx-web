@@ -59,6 +59,9 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
   public CSRFHandlerImpl(final Vertx vertx, final String secret) {
     try {
+      if (secret.length() <= 8) {
+        log.warn("CSRF secret is very short (<= 8 bytes)");
+      }
       random = VertxContextPRNG.current(vertx);
       mac = Mac.getInstance("HmacSHA256");
       mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
