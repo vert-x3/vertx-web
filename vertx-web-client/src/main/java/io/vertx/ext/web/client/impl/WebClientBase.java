@@ -15,15 +15,8 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
@@ -34,6 +27,11 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.*;
 import io.vertx.ext.web.client.impl.predicate.PredicateInterceptor;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -237,6 +235,11 @@ public class WebClientBase implements WebClientInternal {
   @Override
   public HttpRequest<Buffer> head(int port, String host, String requestURI) {
     return request(HttpMethod.HEAD, port, host, requestURI);
+  }
+
+  @Override
+  public HttpRequest<Buffer> head(int port, String host, PathTemplate pathTemplate, PathParameters pathParameters) {
+    return head(port, host, pathTemplate.expand(pathParameters));
   }
 
   @Override
