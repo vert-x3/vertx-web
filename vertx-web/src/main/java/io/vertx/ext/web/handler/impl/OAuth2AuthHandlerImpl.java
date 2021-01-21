@@ -151,7 +151,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         }
       } else {
         // continue
-        handler.handle(Future.succeededFuture(new TokenCredentials(token)));
+        handler.handle(Future.succeededFuture(new TokenCredentials(token).setScopes(scopes)));
       }
     });
   }
