@@ -1,0 +1,87 @@
+= Vert.x Web Proxy
+:toc: left
+
+Vert.x Web Proxy provides a handler that handles the reverse proxy logic using
+https://github.com/eclipse-vertx/vertx-http-proxy[Vert.x Http Proxy].
+
+WARNING: This module has _Tech Preview_ status, this means the API can change between versions.
+
+== Using Vert.x Web Proxy
+To use Vert.x Web Proxy, add the following dependency to the _dependencies_ section of your build descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-proxy</artifactId>
+  <version>${maven.version}</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-proxy:${maven.version}'
+}
+----
+
+== Basic Web Proxy
+
+In order to accomplish local reverse proxy with Vert.x Web Proxy you need the following:
+
+1. *Proxy Server* that handles front requests and forward them to the *origin server* using `ProxyHandler`.
+2. *Origin Server* that handles requests from the *proxy server* and handles responses accordingly.
+
+Now, you have the overall concept so let's dive in implementation and begin with *origin server* then
+the *proxy server* using `ProxyHandler`:
+
+== Origin Server (Backend)
+
+You simply create the *origin server* and handle requests with Vert.x Web `Router`, the *origin server*
+listens to port `7070`
+
+[source,java]
+----
+{@link examples.WebProxyExamples#origin}
+----
+
+== Proxy Server
+
+Create the *proxy server* that listens to port `8080`
+
+[source,java]
+----
+{@link examples.WebProxyExamples#proxy}
+----
+== Using `ProxyHandler`
+
+The last interesting part is to route *proxy server* requests to the *origin server*, so you need to create `HttpProxy`
+with specified target and `ProxyHandler`.
+
+[source,java]
+----
+{@link examples.WebProxyExamples#route}
+----
+
+Or you can specify the target in `ProxyHandler` instead.
+
+[source,java]
+----
+{@link examples.WebProxyExamples#routeShort}
+----
+
+Finally, the *proxy server* requests will be routed as a reverse proxy to the *origin server* conveniently.
+
+== Using `ProxyHandler` for multiple targets
+
+In order to route *proxy server* requests to multiple *origin servers* you simply create `HttpProxy` for
+each one and specify the target independently.
+
+[source,java]
+----
+{@link examples.WebProxyExamples#multi}
+----
