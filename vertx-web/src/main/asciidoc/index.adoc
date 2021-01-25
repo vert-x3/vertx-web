@@ -2452,6 +2452,25 @@ standard same-origin policy.
 {@link examples.WebExamples#example84}
 ----
 
+== XFrame Handler
+
+The `X-Frame-Options` HTTP response header can be used to indicate whether or not a browser should be allowed to render
+a page in a `frame`, `iframe`, `embed` or `object`. Sites can use this to avoid click-jacking attacks, by ensuring that
+their content is not embedded into other sites.
+
+The added security is provided only if the user accessing the document is using a browser that supports
+`X-Frame-Options`.
+
+If you specify `DENY`, not only will attempts to load the page in a frame fail when loaded from other sites, attempts to
+do so will fail when loaded from the same site. On the other hand, if you specify `SAMEORIGIN`, you can still use the
+page in a frame as long as the site including it in a frame is the same as the one serving the page.
+
+This handler will configure the correct header for your application in a single step:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example85}
+----
 
 == OAuth2AuthHandler Handler
 

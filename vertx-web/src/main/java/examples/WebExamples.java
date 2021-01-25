@@ -1900,4 +1900,11 @@ public class WebExamples {
       CSPHandler.create()
         .addDirective("default-src", "*.trusted.com"));
   }
+
+  public void example85(Router router) {
+
+    // all responses will then include the right
+    // X-Frame-Options header with the value "DENY"
+    router.route().handler(XFrameHandler.create(XFrameHandler.DENY));
+  }
 }
