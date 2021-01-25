@@ -1,6 +1,6 @@
 package io.vertx.ext.web.client.impl;
 
-import io.vertx.ext.web.client.PathParameters;
+import io.vertx.ext.web.client.UriParameters;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -10,32 +10,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class PathParametersImpl implements PathParameters {
+public class UriParametersImpl implements UriParameters {
 
   Map<String, List<String>> escapedParams;
 
-  public PathParametersImpl() {
+  public UriParametersImpl() {
     this.escapedParams = new HashMap<>();
   }
 
   @Override
-  public PathParameters param(String key, String value) {
+  public UriParameters param(String key, String value) {
     return escapedParam(key, urlEncode(value));
   }
 
   @Override
-  public PathParameters param(String key, List<String> value) {
-    return escapedParam(key, value.stream().map(PathParametersImpl::urlEncode).collect(Collectors.toList()));
+  public UriParameters param(String key, List<String> value) {
+    return escapedParam(key, value.stream().map(UriParametersImpl::urlEncode).collect(Collectors.toList()));
   }
 
   @Override
-  public PathParameters escapedParam(String key, String value) {
+  public UriParameters escapedParam(String key, String value) {
     escapedParams.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
     return this;
   }
 
   @Override
-  public PathParameters escapedParam(String key, List<String> value) {
+  public UriParameters escapedParam(String key, List<String> value) {
     escapedParams.computeIfAbsent(key, k -> new ArrayList<>()).addAll(value);
     return this;
   }

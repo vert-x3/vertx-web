@@ -10,80 +10,80 @@ public class PathTemplateTest {
 
   @Test
   public void testParam() {
-    PathTemplate template = PathTemplate.parse("/:x");
+    UriTemplate template = PathTemplate.parse("/:x");
     assertEquals(
       "/1",
-      template.expand(PathParameters.create().param("x", 1))
+      template.expand(UriParameters.create().param("x", 1))
     );
   }
 
   @Test
   public void testArrayParam() {
-    PathTemplate template = PathTemplate.parse("/:x/y");
+    UriTemplate template = PathTemplate.parse("/:x/y");
     assertEquals(
       "/a/b/c/y",
-      template.expand(PathParameters.create().param("x", Arrays.asList("a", "b", "c")))
+      template.expand(UriParameters.create().param("x", Arrays.asList("a", "b", "c")))
     );
   }
 
   @Test
   public void testEncodingParam() {
-    PathTemplate template = PathTemplate.parse("/:semi/:dot/:comma");
+    UriTemplate template = PathTemplate.parse("/:semi/:dot/:comma");
     assertEquals(
       "/%3B/./%2C",
-      template.expand(PathParameters.create().param("semi", ";").param("dot", ".").param("comma", ","))
+      template.expand(UriParameters.create().param("semi", ";").param("dot", ".").param("comma", ","))
     );
   }
 
   @Test
   public void testAlreadyEscapedParam1() {
-    PathTemplate template = PathTemplate.parse("/:semi/:dot/:comma");
+    UriTemplate template = PathTemplate.parse("/:semi/:dot/:comma");
     assertEquals(
       "/%3B/./%2C",
-      template.expand(PathParameters.create().param("semi", ";").param("dot", ".").escapedParam("comma", "%2C"))
+      template.expand(UriParameters.create().param("semi", ";").param("dot", ".").escapedParam("comma", "%2C"))
     );
   }
 
   @Test
   public void testAlreadyEscapedArrayParam() {
-    PathTemplate template = PathTemplate.parse("/:symbol");
+    UriTemplate template = PathTemplate.parse("/:symbol");
     assertEquals(
       "/%3B/%2C/.",
-      template.expand(PathParameters.create().escapedParam("symbol", Arrays.asList("%3B", "%2C")).param("symbol", "."))
+      template.expand(UriParameters.create().escapedParam("symbol", Arrays.asList("%3B", "%2C")).param("symbol", "."))
     );
   }
 
   @Test
   public void testAlreadyEscapedParam2() {
-    PathTemplate template = PathTemplate.parse("/:semi/:dot/:comma");
+    UriTemplate template = PathTemplate.parse("/:semi/:dot/:comma");
     assertEquals(
       "/%3B/./,",
-      template.expand(PathParameters.create().param("semi", ";").param("dot", ".").escapedParam("comma", ","))
+      template.expand(UriParameters.create().param("semi", ";").param("dot", ".").escapedParam("comma", ","))
     );
   }
 
   @Test
   public void testPrependPostpendParam() {
-    PathTemplate template = PathTemplate.parse("/a/x=:x/:y/b");
+    UriTemplate template = PathTemplate.parse("/a/x=:x/:y/b");
     assertEquals(
       "/a/x=1/2/b",
-      template.expand(PathParameters.create().param("x", 1).param("y", 2))
+      template.expand(UriParameters.create().param("x", 1).param("y", 2))
     );
   }
 
   @Test
   public void testDontEraseQueryParams() {
-    PathTemplate template = PathTemplate.parse("/a/:x/:y/b?hello=world:a");
+    UriTemplate template = PathTemplate.parse("/a/:x/:y/b?hello=world:a");
     assertEquals(
       "/a/1/2/b?hello=world:a",
-      template.expand(PathParameters.create().param("x", 1).param("y", 2))
+      template.expand(UriParameters.create().param("x", 1).param("y", 2))
     );
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testMissingParameter() {
-    PathTemplate template = PathTemplate.parse("/a/:x/:y/b?hello=world");
-    template.expand(PathParameters.create().param("x", 1));
+    UriTemplate template = PathTemplate.parse("/a/:x/:y/b?hello=world");
+    template.expand(UriParameters.create().param("x", 1));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -93,28 +93,28 @@ public class PathTemplateTest {
 
   @Test
   public void testEmptyTemplate1() {
-    PathTemplate template = PathTemplate.parse("/");
+    UriTemplate template = PathTemplate.parse("/");
     assertEquals(
       "/",
-      template.expand(PathParameters.create())
+      template.expand(UriParameters.create())
     );
   }
 
   @Test
   public void testEmptyTemplate2() {
-    PathTemplate template = PathTemplate.parse("");
+    UriTemplate template = PathTemplate.parse("");
     assertEquals(
       "",
-      template.expand(PathParameters.create())
+      template.expand(UriParameters.create())
     );
   }
 
   @Test
   public void testEmptyTemplate3() {
-    PathTemplate template = PathTemplate.parse("/hello/world");
+    UriTemplate template = PathTemplate.parse("/hello/world");
     assertEquals(
       "/hello/world",
-      template.expand(PathParameters.create())
+      template.expand(UriParameters.create())
     );
   }
 

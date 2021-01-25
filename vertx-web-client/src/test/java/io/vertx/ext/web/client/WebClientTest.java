@@ -27,7 +27,6 @@ import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.tls.Cert;
-
 import org.junit.Test;
 
 import java.io.File;
@@ -47,10 +46,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -1992,7 +1988,7 @@ public class WebClientTest extends WebClientTestBase {
   @Test
   public void testRendersPathTemplate() throws Exception {
     testRequest(
-      client -> client.get(PathTemplate.parse("/:name"), PathParameters.create().param("name", "francesco")),
+      client -> client.get(PathTemplate.parse("/:name"), UriParameters.create().param("name", "francesco")),
       req -> assertEquals("/francesco", req.path())
     );
   }

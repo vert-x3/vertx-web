@@ -122,7 +122,7 @@ public class WebClientExamples {
     PathTemplate template = PathTemplate.parse("/users/:username");
 
     HttpRequest<Buffer> request = client.get(
-      template, PathParameters.create().param("username", "slinkydeveloper")
+      template, UriParameters.create().param("username", "slinkydeveloper")
     );
 
     // This will render to "/users/slinkydeveloper"

@@ -1,7 +1,7 @@
 package io.vertx.ext.web.client.impl;
 
-import io.vertx.ext.web.client.PathParameters;
 import io.vertx.ext.web.client.PathTemplate;
+import io.vertx.ext.web.client.UriParameters;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,14 +10,14 @@ import java.util.stream.Collectors;
 
 public class PathTemplateImpl implements PathTemplate {
 
-  List<Function<PathParameters, String>> templateChunksGenerators;
+  List<Function<UriParameters, String>> templateChunksGenerators;
 
-  private PathTemplateImpl(List<Function<PathParameters, String>> templateChunksGenerators) {
+  private PathTemplateImpl(List<Function<UriParameters, String>> templateChunksGenerators) {
     this.templateChunksGenerators = templateChunksGenerators;
   }
 
   @Override
-  public String expand(PathParameters parameters) {
+  public String expand(UriParameters parameters) {
     return templateChunksGenerators.stream().map(f -> f.apply(parameters)).collect(Collectors.joining());
   }
 
@@ -25,8 +25,9 @@ public class PathTemplateImpl implements PathTemplate {
     if (pathTemplate.isEmpty()) return new PathTemplateImpl(new ArrayList<>());
     if (!pathTemplate.startsWith("/")) throw new IllegalArgumentException("Path template must start with /");
 
-    List<Function<PathParameters, String>> templateChunksGenerators = new ArrayList<>();
-    String tempPathTemplate = (pathTemplate.contains("?")) ? pathTemplate.substring(0, pathTemplate.lastIndexOf("?")) : pathTemplate;
+    List<Function<UriParameters, String>> templateChunksGenerators = new ArrayList<>();
+    String tempPathTemplate = (pathTemplate.contains("?")) ?
+      pathTemplate.substring(0, pathTemplate.lastIndexOf("?")) : pathTemplate;
 
     while(!tempPathTemplate.isEmpty()) {
       int firstColon = tempPathTemplate.indexOf(':');

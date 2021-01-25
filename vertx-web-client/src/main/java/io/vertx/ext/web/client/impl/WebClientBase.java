@@ -63,8 +63,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> get(int port, String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return get(port, host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> get(int port, String host, PathTemplate pathTemplate, UriParameters uriParameters) {
+    return get(port, host, pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -73,8 +73,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> get(PathTemplate pathTemplate, PathParameters pathParameters) {
-    return get(pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> get(PathTemplate pathTemplate, UriParameters uriParameters) {
+    return get(pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -83,8 +83,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> get(String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return get(host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> get(String host, PathTemplate pathTemplate, UriParameters uriParameters) {
+    return get(host, pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -98,8 +98,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> post(PathTemplate pathTemplate, PathParameters pathParameters) {
-    return post(pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> post(PathTemplate pathTemplate, UriParameters uriParameters) {
+    return post(pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -108,8 +108,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> post(String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return post(host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> post(String host, PathTemplate pathTemplate, UriParameters uriParameters) {
+    return post(host, pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -118,8 +118,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> post(int port, String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return post(port, host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> post(int port, String host, PathTemplate pathTemplate, UriParameters uriParameters) {
+    return post(port, host, pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -128,8 +128,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> put(PathTemplate pathTemplate, PathParameters pathParameters) {
-    return put(pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> put(PathTemplate pathTemplate, UriParameters uriParameters) {
+    return put(pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -138,8 +138,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> put(String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return put(host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> put(String host, PathTemplate pathTemplate, UriParameters uriParameters) {
+    return put(host, pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -148,8 +148,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> put(int port, String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return put(port, host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> put(int port, String host, PathTemplate pathTemplate, UriParameters uriParameters) {
+    return put(port, host, pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -158,8 +158,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> delete(String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return delete(host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> delete(String host, PathTemplate pathTemplate, UriParameters uriParameters) {
+    return delete(host, pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -168,8 +168,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> delete(PathTemplate pathTemplate, PathParameters pathParameters) {
-    return delete(pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> delete(PathTemplate pathTemplate, UriParameters uriParameters) {
+    return delete(pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -178,8 +178,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> delete(int port, String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return delete(port, host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> delete(int port, String host, PathTemplate pathTemplate, UriParameters uriParameters) {
+    return delete(port, host, pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -188,8 +188,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> patch(PathTemplate pathTemplate, PathParameters pathParameters) {
-    return patch(pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> patch(PathTemplate pathTemplate, UriParameters uriParameters) {
+    return patch(pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -198,8 +198,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> patch(String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return patch(host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> patch(String host, PathTemplate pathTemplate, UriParameters uriParameters) {
+    return patch(host, pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -208,8 +208,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> patch(int port, String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return patch(port, host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> patch(int port, String host, PathTemplate pathTemplate, UriParameters uriParameters) {
+    return patch(port, host, pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -218,8 +218,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> head(PathTemplate pathTemplate, PathParameters pathParameters) {
-    return head(pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> head(PathTemplate pathTemplate, UriParameters uriParameters) {
+    return head(pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -228,8 +228,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> head(String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return head(host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> head(String host, PathTemplate pathTemplate, UriParameters uriParameters) {
+    return head(host, pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -238,8 +238,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> head(int port, String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return head(port, host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> head(int port, String host, PathTemplate pathTemplate, UriParameters uriParameters) {
+    return head(port, host, pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -272,8 +272,8 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> request(HttpMethod method, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return request(method, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> request(HttpMethod method, PathTemplate pathTemplate, UriParameters uriParameters) {
+    return request(method, pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -283,8 +283,9 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return request(method, serverAddress, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, PathTemplate pathTemplate,
+                                     UriParameters uriParameters) {
+    return request(method, serverAddress, pathTemplate.expand(uriParameters));
   }
 
   @Override
@@ -304,18 +305,21 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> request(HttpMethod method, String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return request(method, host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> request(HttpMethod method, String host, PathTemplate pathTemplate,
+                                     UriParameters uriParameters) {
+    return request(method, host, pathTemplate.expand(uriParameters));
   }
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, String host, String requestURI) {
-    return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), options.getDefaultPort(), host, requestURI, BodyCodecImpl.BUFFER, options);
+    return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), options.getDefaultPort(), host,
+      requestURI, BodyCodecImpl.BUFFER, options);
   }
 
   @Override
-  public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return request(method, serverAddress, host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, String host,
+                                     PathTemplate pathTemplate, UriParameters uriParameters) {
+    return request(method, serverAddress, host, pathTemplate.expand(uriParameters));
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, int port, String host, String requestURI) {
@@ -323,18 +327,20 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public HttpRequest<Buffer> request(HttpMethod method, int port, String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return request(method, port, host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> request(HttpMethod method, int port, String host, PathTemplate pathTemplate, UriParameters uriParameters) {
+    return request(method, port, host, pathTemplate.expand(uriParameters));
   }
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, int port, String host, String requestURI) {
-    return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), port, host, requestURI, BodyCodecImpl.BUFFER, options);
+    return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), port, host, requestURI,
+      BodyCodecImpl.BUFFER, options);
   }
 
   @Override
-  public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, int port, String host, PathTemplate pathTemplate, PathParameters pathParameters) {
-    return request(method, serverAddress, port, host, pathTemplate.expand(pathParameters));
+  public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, int port, String host,
+                                     PathTemplate pathTemplate, UriParameters uriParameters) {
+    return request(method, serverAddress, port, host, pathTemplate.expand(uriParameters));
   }
 
   @Override
