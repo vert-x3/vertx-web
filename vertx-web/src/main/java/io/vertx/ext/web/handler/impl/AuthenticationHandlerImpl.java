@@ -72,17 +72,15 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
     // pause parsing the request body. The reason is that
     // we don't want to loose the body or protocol upgrades
     // for async operations
-    final boolean parseEnded = ctx.request().isEnded();
+    HttpServerRequest request = ctx.request();
+    final boolean parseEnded = request.isEnded();
     if (!parseEnded) {
-      ctx.request().pause();
+      request.pause();
     }
     // parse the request in order to extract the credentials object
     parseCredentials(ctx, res -> {
       if (res.failed()) {
-        // resume as the error handler may allow this request to become valid again
-        if (!parseEnded) {
-          ctx.request().resume();
-        }
+        resume(request, parseEnded);
         processException(ctx, res.cause());
         return;
       }
@@ -98,9 +96,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
             session.regenerateId();
           }
           // proceed with the router
-          if (!parseEnded) {
-            ctx.request().resume();
-          }
+          resume(request, parseEnded);
           postAuthentication(ctx);
         } else {
           String header = authenticateHeader(ctx);
@@ -109,22 +105,19 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
               .putHeader("WWW-Authenticate", header);
           }
           // to allow further processing if needed
-          if (authN.cause() instanceof HttpStatusException) {
-            // resume as the error handler may allow this request to become valid again
-            if (!parseEnded) {
-              ctx.request().resume();
-            }
-            processException(ctx, authN.cause());
-          } else {
-            // resume as the error handler may allow this request to become valid again
-            if (!parseEnded) {
-              ctx.request().resume();
-            }
-            processException(ctx, new HttpStatusException(401, authN.cause()));
-          }
+          resume(request, parseEnded);
+          Throwable cause = authN.cause();
+          processException(ctx, cause instanceof HttpStatusException?cause:new HttpStatusException(401, cause));
         }
       });
     });
+  }
+
+  private void resume(HttpServerRequest request, boolean parseEnded) {
+    // resume as the error handler may allow this request to become valid again
+    if (!parseEnded && !request.headers().contains(HttpHeaders.UPGRADE, HttpHeaders.WEBSOCKET, true)) {
+      request.resume();
+    }
   }
 
   /**
