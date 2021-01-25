@@ -175,4 +175,21 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     long val = doTestSessionRetryTimeout();
     assertTrue(String.valueOf(val), val >= 3000 && val < 5000);
   }
+
+  @Test
+  public void testDelayedLookupWithRequestUpgrade() {
+    String sessionCookieName = "session";
+    router.route().handler(SessionHandler.create(store).setSessionCookieName(sessionCookieName).setMinLength(0));
+    router.route().handler(rc -> {
+      rc.request().toWebSocket(onSuccess(serverWebSocket -> serverWebSocket.textMessageHandler(msg -> {
+        assertEquals("foo", msg);
+        testComplete();
+      })));
+    });
+    WebSocketConnectOptions options = new WebSocketConnectOptions()
+      .setURI("/")
+      .addHeader("cookie", sessionCookieName + "=" + TestUtils.randomAlphaString(32));
+    client.webSocket(options, onSuccess(ws -> ws.writeTextMessage("foo")));
+    await();
+  }
 }

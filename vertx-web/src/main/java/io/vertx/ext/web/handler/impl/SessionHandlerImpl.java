@@ -22,6 +22,8 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.AuthProvider;
@@ -269,8 +271,9 @@ public class SessionHandlerImpl implements SessionHandler {
 
   @Override
   public void handle(RoutingContext context) {
+    HttpServerRequest request = context.request();
     if (nagHttps && log.isDebugEnabled()) {
-      String uri = context.request().absoluteURI();
+      String uri = request.absoluteURI();
       if (!uri.startsWith("https:")) {
         log.debug(
           "Using session cookies without https could make you susceptible to session hijacking: " + uri);
@@ -280,8 +283,19 @@ public class SessionHandlerImpl implements SessionHandler {
     // Look for existing session id
     String sessionID = getSessionId(context);
     if (sessionID != null && sessionID.length() > minLength) {
+      // before starting any potential async operation here
+      // pause parsing the request body. The reason is that
+      // we don't want to loose the body or protocol upgrades
+      // for async operations
+      final boolean parseEnded = request.isEnded();
+      if (!parseEnded) {
+        request.pause();
+      }
       // we passed the OWASP min length requirements
       getSession(context.vertx(), sessionID, res -> {
+        if (!parseEnded && !request.headers().contains(HttpHeaders.UPGRADE, HttpHeaders.WEBSOCKET, true)) {
+          request.resume();
+        }
         if (res.succeeded()) {
           Session session = res.result();
           if (session != null) {
