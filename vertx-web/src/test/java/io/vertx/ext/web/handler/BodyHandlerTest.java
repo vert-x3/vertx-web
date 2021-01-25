@@ -493,13 +493,13 @@ public class BodyHandlerTest extends WebTestBase {
     router.route().handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
       assertNotNull(attrs);
-      assertEquals(2, attrs.size());
+      assertEquals(3, attrs.size());
       assertEquals("Tim", attrs.get("attr1"));
       assertEquals("Julien", attrs.get("attr2"));
       MultiMap params = rc.request().params();
       if (mergeAttributes) {
         assertNotNull(params);
-        assertEquals(3, params.size());
+        assertEquals(4, params.size());
         assertEquals("Tim", params.get("attr1"));
         assertEquals("Julien", params.get("attr2"));
         assertEquals("foo", params.get("p1"));
@@ -593,14 +593,14 @@ public class BodyHandlerTest extends WebTestBase {
     router.route().handler(BodyHandler.create(false).setMergeFormAttributes(mergeAttributes)).handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
       assertNotNull(attrs);
-      assertEquals(2, attrs.size());
+      assertEquals(6, attrs.size());
       assertEquals("Tim", attrs.get("attr1"));
       assertEquals("Tommaso", attrs.get("attr2"));
       MultiMap params = rc.request().params();
       assertEquals(0, rc.fileUploads().size());
       if (mergeAttributes) {
         assertNotNull(params);
-        assertEquals(3, params.size());
+        assertEquals(7, params.size());
         assertEquals("Tim", params.get("attr1"));
         assertEquals("Tommaso", params.get("attr2"));
         assertEquals("foo", params.get("p1"));
@@ -692,13 +692,13 @@ public class BodyHandlerTest extends WebTestBase {
     router.route("/rerouted").handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
       assertNotNull(attrs);
-      assertEquals(2, attrs.size());
+      assertEquals(6, attrs.size());
       assertEquals("Tim", attrs.get("attr1"));
       assertEquals("Tommaso", attrs.get("attr2"));
       MultiMap params = rc.request().params();
       assertEquals(0, rc.fileUploads().size());
       assertNotNull(params);
-      assertEquals(2, params.size());
+      assertEquals(6, params.size());
       assertEquals("Tim", params.get("attr1"));
       assertEquals("Tommaso", params.get("attr2"));
       rc.response().end();
