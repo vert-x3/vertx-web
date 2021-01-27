@@ -32,4 +32,4 @@ jobs:
         run: mvn clean install -DskipTests --file this_repo/pom.xml --no-transfer-progress
 
       - name: Verify stack
-        run: mvn clean verify --file stack/pom.xml --no-transfer-progress -am -pl stack-depchain,stack-manager
+        run: mvn clean verify --file stack/pom.xml --no-transfer-progress -am -pl stack-manager
