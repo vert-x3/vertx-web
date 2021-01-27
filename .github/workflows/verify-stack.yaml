@@ -1,4 +1,4 @@
-name: Verify stack
+name: Verify stack libraries version consistency
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Verify stack
+    name: Verify stack libraries version consistency
     runs-on: ubuntu-latest
     steps:
       - name: Check out this repo code
@@ -29,7 +29,7 @@ jobs:
           java-version: 1.8
 
       - name: Install new snapshot of this repo
-        run: mvn clean install -DskipTests --file this_repo/pom.xml --no-transfer-progress
+        run: mvn install -DskipTests --file this_repo/pom.xml --no-transfer-progress
 
       - name: Verify stack
-        run: mvn clean verify --file stack/pom.xml --no-transfer-progress -am -pl stack-manager
+        run: mvn verify --file stack/pom.xml --no-transfer-progress -am -pl stack-manager
