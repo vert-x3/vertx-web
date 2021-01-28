@@ -63,14 +63,15 @@ public class MultipartFormUploadTest {
   public void testSimpleAttribute(TestContext ctx) throws Exception {
     Async async = ctx.async();
     Buffer result = Buffer.buffer();
-    MultipartFormUpload upload = new MultipartFormUpload(vertx.getOrCreateContext(), MultipartForm.create().attribute("foo", "bar"), false, HttpPostRequestEncoder.EncoderMode.RFC1738);
-    upload.run();
+    Context context = vertx.getOrCreateContext();
+    MultipartFormUpload upload = new MultipartFormUpload(context, MultipartForm.create().attribute("foo", "bar"), false, HttpPostRequestEncoder.EncoderMode.RFC1738);
     upload.endHandler(v -> {
       assertEquals("foo=bar", result.toString());
       async.complete();
     });
     upload.handler(result::appendBuffer);
     upload.resume();
+    context.runOnContext(v -> upload.run());
   }
 
   @Test

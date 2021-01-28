@@ -519,7 +519,6 @@ public class HttpContext<T> {
         multipartForm.headers().forEach(header -> {
           requestOptions.putHeader(header.getKey(), header.getValue());
         });
-        multipartForm.run();
       }
       if (body instanceof ReadStream<?>) {
         ReadStream<Buffer> stream = (ReadStream<Buffer>) body;
@@ -537,6 +536,9 @@ public class HttpContext<T> {
                 req.reset(0L, ar2.cause());
               }
             });
+            if (body instanceof MultipartFormUpload) {
+              ((MultipartFormUpload) body).run();
+            }
           } else {
             // Test this
             clientRequest = null;
