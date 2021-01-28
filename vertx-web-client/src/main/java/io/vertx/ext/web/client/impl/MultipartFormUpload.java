@@ -123,10 +123,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
 
   public void run() {
     if (Vertx.currentContext() != context) {
-      context.runOnContext(v -> {
-        run();
-      });
-      return;
+      throw new IllegalArgumentException();
     }
     while (!ended) {
       if (encoder.isChunked()) {

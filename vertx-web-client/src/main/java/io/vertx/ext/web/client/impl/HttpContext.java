@@ -58,6 +58,7 @@ public class HttpContext<T> {
   private RequestOptions requestOptions;
   private HttpClientRequest clientRequest;
   private HttpClientResponse clientResponse;
+  private Promise<HttpClientRequest> requestPromise;
   private HttpResponse<T> response;
   private Throwable failure;
   private int redirects;
@@ -170,7 +171,7 @@ public class HttpContext<T> {
    * Prepare the HTTP request, this executes the {@link ClientPhase#PREPARE_REQUEST} phase:
    * <ul>
    *   <li>Traverse the interceptor chain</li>
-   *   <li>Execute the {@link ClientPhase#SEND_REQUEST} phase</li>
+   *   <li>Execute the {@link ClientPhase#CREATE_REQUEST} phase</li>
    * </ul>
    */
   public void prepareRequest(HttpRequest<T> request, String contentType, Object body) {
@@ -181,15 +182,26 @@ public class HttpContext<T> {
   }
 
   /**
+   * Create the HTTP request, this executes the {@link ClientPhase#CREATE_REQUEST} phase:
+   * <ul>
+   *   <li>Traverse the interceptor chain</li>
+   *   <li>Create the {@link HttpClientRequest}</li>
+   * </ul>
+   */
+  public void createRequest(RequestOptions requestOptions) {
+    this.requestOptions = requestOptions;
+    fire(ClientPhase.CREATE_REQUEST);
+  }
+
+  /**
    * Send the HTTP request, this executes the {@link ClientPhase#SEND_REQUEST} phase:
    * <ul>
-   *   <li>Create the {@link HttpClientRequest}</li>
    *   <li>Traverse the interceptor chain</li>
    *   <li>Send the actual request</li>
    * </ul>
    */
-  public void sendRequest(RequestOptions requestOptions) {
-    this.requestOptions = requestOptions;
+  public void sendRequest(HttpClientRequest clientRequest) {
+    this.clientRequest = clientRequest;
     fire(ClientPhase.SEND_REQUEST);
   }
 
@@ -201,7 +213,7 @@ public class HttpContext<T> {
    * </ul>
    */
   public void followRedirect() {
-    fire(ClientPhase.SEND_REQUEST);
+    fire(ClientPhase.CREATE_REQUEST);
   }
 
   /**
@@ -328,6 +340,9 @@ public class HttpContext<T> {
       case PREPARE_REQUEST:
         handlePrepareRequest();
         break;
+      case CREATE_REQUEST:
+        handleCreateRequest();
+        break;
       case SEND_REQUEST:
         handleSendRequest();
         break;
@@ -401,7 +416,110 @@ public class HttpContext<T> {
       }
       options.setHost(request.virtualHost);
     }
-    sendRequest(options);
+    createRequest(options);
+  }
+
+  private void handleCreateRequest() {
+    if (request.headers != null) {
+      MultiMap headers = requestOptions.getHeaders();
+      if (headers == null) {
+        headers = MultiMap.caseInsensitiveMultiMap();
+        requestOptions.setHeaders(headers);
+      }
+      headers.addAll(request.headers);
+    }
+    if (contentType != null) {
+      String prev = requestOptions.getHeaders().get(HttpHeaders.CONTENT_TYPE);
+      if (prev == null) {
+        requestOptions.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
+      } else {
+        contentType = prev;
+      }
+    }
+    requestOptions.setTimeout(this.request.timeout);
+    requestPromise = Promise.promise();
+    if (body != null || "application/json".equals(contentType)) {
+      if (body instanceof MultiMap) {
+        MultipartForm parts = MultipartForm.create();
+        MultiMap attributes = (MultiMap) body;
+        for (Map.Entry<String, String> attribute : attributes) {
+          parts.attribute(attribute.getKey(), attribute.getValue());
+        }
+        body = parts;
+      }
+      if (body instanceof MultipartForm) {
+        MultipartFormUpload multipartForm;
+        try {
+          boolean multipart = "multipart/form-data".equals(contentType);
+          HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
+          multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
+          this.body = multipartForm;
+        } catch (Exception e) {
+          fail(e);
+          return;
+        }
+        for (String headerName : this.request.headers().names()) {
+          requestOptions.putHeader(headerName, this.request.headers().get(headerName));
+        }
+        multipartForm.headers().forEach(header -> {
+          requestOptions.putHeader(header.getKey(), header.getValue());
+        });
+      }
+      if (body instanceof ReadStream<?>) {
+        ReadStream<Buffer> stream = (ReadStream<Buffer>) body;
+        Pipe<Buffer> pipe = stream.pipe(); // Shouldn't this be called in an earlier phase ?
+        requestPromise.future().onComplete(ar -> {
+          if (ar.succeeded()) {
+            HttpClientRequest req = ar.result();
+            if (this.request.headers == null || !this.request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
+              req.setChunked(true);
+            }
+            pipe.endOnFailure(false);
+            pipe.to(req, ar2 -> {
+              clientRequest = null;
+              if (ar2.failed()) {
+                req.reset(0L, ar2.cause());
+              }
+            });
+            if (body instanceof MultipartFormUpload) {
+              ((MultipartFormUpload) body).run();
+            }
+          } else {
+            // Test this
+            clientRequest = null;
+            pipe.close();
+          }
+        });
+      } else {
+        Buffer buffer;
+        if (body instanceof Buffer) {
+          buffer = (Buffer) body;
+        } else if (body instanceof JsonObject) {
+          buffer = Buffer.buffer(((JsonObject)body).encode());
+        } else {
+          buffer = Buffer.buffer(Json.encode(body));
+        }
+        requestOptions.putHeader(HttpHeaders.CONTENT_LENGTH, "" + buffer.length());
+        requestPromise.future().onSuccess(request -> {
+          clientRequest = null;
+          request.end(buffer);
+        });
+      }
+    } else {
+      requestPromise.future().onSuccess(request -> {
+        clientRequest = null;
+        request.end();
+      });
+    }
+    client.request(requestOptions)
+      .onComplete(ar1 -> {
+        if (ar1.succeeded()) {
+          sendRequest(ar1.result());
+        } else {
+          fail(ar1.cause());
+          requestPromise.fail(ar1.cause());
+        }
+      });
   }
 
   private void handleReceiveResponse() {
@@ -457,120 +575,14 @@ public class HttpContext<T> {
   }
 
   private void handleSendRequest() {
-    if (request.headers != null) {
-      MultiMap headers = requestOptions.getHeaders();
-      if (headers == null) {
-        headers = MultiMap.caseInsensitiveMultiMap();
-        requestOptions.setHeaders(headers);
-      }
-      headers.addAll(request.headers);
-    }
-    if (contentType != null) {
-      String prev = requestOptions.getHeaders().get(HttpHeaders.CONTENT_TYPE);
-      if (prev == null) {
-        requestOptions.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
+    clientRequest.response(ar -> {
+      if (ar.succeeded()) {
+        receiveResponse(ar.result().pause());
       } else {
-        contentType = prev;
+        fail(ar.cause());
       }
-    }
-    requestOptions.setTimeout(this.request.timeout);
-    Handler<AsyncResult<HttpClientRequest>> continuation;
-    if (body != null || "application/json".equals(contentType)) {
-      if (body instanceof MultiMap) {
-        MultipartForm parts = MultipartForm.create();
-        MultiMap attributes = (MultiMap) body;
-        for (Map.Entry<String, String> attribute : attributes) {
-          parts.attribute(attribute.getKey(), attribute.getValue());
-        }
-        body = parts;
-      }
-      if (body instanceof MultipartForm) {
-        MultipartFormUpload multipartForm;
-        try {
-          boolean multipart = "multipart/form-data".equals(contentType);
-          HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
-          multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
-          this.body = multipartForm;
-        } catch (Exception e) {
-          fail(e);
-          return;
-        }
-        for (String headerName : this.request.headers().names()) {
-          requestOptions.putHeader(headerName, this.request.headers().get(headerName));
-        }
-        multipartForm.headers().forEach(header -> {
-          requestOptions.putHeader(header.getKey(), header.getValue());
-        });
-        multipartForm.run();
-      }
-      if (body instanceof ReadStream<?>) {
-        ReadStream<Buffer> stream = (ReadStream<Buffer>) body;
-        Pipe<Buffer> pipe = stream.pipe(); // Shouldn't this be called in an earlier phase ?
-        continuation = ar -> {
-          if (ar.succeeded()) {
-            HttpClientRequest req = ar.result();
-            if (this.request.headers == null || !this.request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
-              req.setChunked(true);
-            }
-            pipe.endOnFailure(false);
-            pipe.to(req, ar2 -> {
-              clientRequest = null;
-              if (ar2.failed()) {
-                req.reset(0L, ar2.cause());
-              }
-            });
-          } else {
-            // Test this
-            clientRequest = null;
-            pipe.close();
-          }
-        };
-      } else {
-        Buffer buffer;
-        if (body instanceof Buffer) {
-          buffer = (Buffer) body;
-        } else if (body instanceof JsonObject) {
-          buffer = Buffer.buffer(((JsonObject)body).encode());
-        } else {
-          buffer = Buffer.buffer(Json.encode(body));
-        }
-        continuation = ar -> {
-          if (ar.succeeded()) {
-            clientRequest = null;
-            HttpClientRequest req = ar.result();
-            req.putHeader(HttpHeaders.CONTENT_LENGTH, "" + buffer.length());
-            req.end(buffer);
-          }
-        };
-      }
-    } else {
-      continuation = ar -> {
-        if (ar.succeeded()) {
-          clientRequest = null;
-          HttpClientRequest req = ar.result();
-          req.end();
-        }
-      };
-    }
-    Future<HttpClientRequest> f = client.request(requestOptions);
-    f.onComplete(ar1 -> {
-      if (ar1.succeeded()) {
-        clientRequest = ar1.result();
-        HttpClientRequest req = ar1.result();
-        req.response(ar2 -> {
-          if (ar2.succeeded()) {
-            HttpClientResponse resp = ar2.result();
-            resp.pause();
-            receiveResponse(resp);
-          } else {
-            fail(ar2.cause());
-          }
-        });
-      } else {
-        fail(ar1.cause());
-      }
-      continuation.handle(ar1);
     });
+    requestPromise.complete(clientRequest);
   }
 
   public <T> T get(String key) {
