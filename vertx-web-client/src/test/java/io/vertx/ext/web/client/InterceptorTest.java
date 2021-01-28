@@ -157,6 +157,7 @@ public class InterceptorTest extends HttpTestBase {
     builder.send(onSuccess(resp -> {
       assertEquals(Arrays.asList(
         "PREPARE_REQUEST_1", "PREPARE_REQUEST_2",
+        "CREATE_REQUEST_1", "CREATE_REQUEST_2",
         "SEND_REQUEST_1", "SEND_REQUEST_2",
         "RECEIVE_RESPONSE_1", "RECEIVE_RESPONSE_2",
         "DISPATCH_RESPONSE_1", "DISPATCH_RESPONSE_2"), events);
@@ -169,7 +170,7 @@ public class InterceptorTest extends HttpTestBase {
   public void testPhasesThreadFromNonVertxThread() throws Exception {
     server.requestHandler(req -> req.response().end());
     startServer();
-    testPhasesThread((t1, t2) -> Arrays.asList(t1, t1, t2, t2));
+    testPhasesThread((t1, t2) -> Arrays.asList(t1, t1, t1, t2, t2));
     await();
   }
 
@@ -180,7 +181,7 @@ public class InterceptorTest extends HttpTestBase {
     startServer();
     vertx.getOrCreateContext().runOnContext(v -> {
       setUpClient();
-      testPhasesThread((t1, t2) -> Arrays.asList(t2, t2, t2, t2));
+      testPhasesThread((t1, t2) -> Arrays.asList(t2, t2, t2, t2, t2));
     });
     await();
   }
@@ -359,8 +360,10 @@ public class InterceptorTest extends HttpTestBase {
       assertEquals(200, resp.statusCode());
       assertEquals(Arrays.asList(
         ClientPhase.PREPARE_REQUEST,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.RECEIVE_RESPONSE,
         ClientPhase.DISPATCH_RESPONSE), phases);
@@ -388,38 +391,55 @@ public class InterceptorTest extends HttpTestBase {
       assertEquals(302, resp.statusCode());
       assertEquals(Arrays.asList(
         ClientPhase.PREPARE_REQUEST,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.FOLLOW_REDIRECT,
+        ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
         ClientPhase.RECEIVE_RESPONSE,
         ClientPhase.DISPATCH_RESPONSE

@@ -26,6 +26,12 @@ public enum ClientPhase {
    * The {@link io.vertx.core.http.HttpClientRequest} has been created but not yet sent, the HTTP method, URI or request parameters
    * cannot be modified anymore.
    */
+  CREATE_REQUEST,
+
+  /**
+   * The {@link io.vertx.core.http.HttpClientRequest} has been created but not yet sent, the HTTP method, URI or request parameters
+   * cannot be modified anymore.
+   */
   SEND_REQUEST,
 
   /**

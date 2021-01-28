@@ -170,7 +170,7 @@ public class HttpContext<T> {
    * Prepare the HTTP request, this executes the {@link ClientPhase#PREPARE_REQUEST} phase:
    * <ul>
    *   <li>Traverse the interceptor chain</li>
-   *   <li>Execute the {@link ClientPhase#SEND_REQUEST} phase</li>
+   *   <li>Execute the {@link ClientPhase#CREATE_REQUEST} phase</li>
    * </ul>
    */
   public void prepareRequest(HttpRequest<T> request, String contentType, Object body) {
@@ -181,15 +181,26 @@ public class HttpContext<T> {
   }
 
   /**
+   * Create the HTTP request, this executes the {@link ClientPhase#CREATE_REQUEST} phase:
+   * <ul>
+   *   <li>Traverse the interceptor chain</li>
+   *   <li>Create the {@link HttpClientRequest}</li>
+   * </ul>
+   */
+  public void createRequest(RequestOptions requestOptions) {
+    this.requestOptions = requestOptions;
+    fire(ClientPhase.CREATE_REQUEST);
+  }
+
+  /**
    * Send the HTTP request, this executes the {@link ClientPhase#SEND_REQUEST} phase:
    * <ul>
-   *   <li>Create the {@link HttpClientRequest}</li>
    *   <li>Traverse the interceptor chain</li>
    *   <li>Send the actual request</li>
    * </ul>
    */
-  public void sendRequest(RequestOptions requestOptions) {
-    this.requestOptions = requestOptions;
+  public void sendRequest() {
+    // this.clientRequest = clientRequest;
     fire(ClientPhase.SEND_REQUEST);
   }
 
@@ -201,7 +212,7 @@ public class HttpContext<T> {
    * </ul>
    */
   public void followRedirect() {
-    fire(ClientPhase.SEND_REQUEST);
+    fire(ClientPhase.CREATE_REQUEST);
   }
 
   /**
@@ -328,6 +339,9 @@ public class HttpContext<T> {
       case PREPARE_REQUEST:
         handlePrepareRequest();
         break;
+      case CREATE_REQUEST:
+        handleCreateRequest();
+        break;
       case SEND_REQUEST:
         handleSendRequest();
         break;
@@ -401,7 +415,11 @@ public class HttpContext<T> {
       }
       options.setHost(request.virtualHost);
     }
-    sendRequest(options);
+    createRequest(options);
+  }
+
+  private void handleCreateRequest() {
+    sendRequest();
   }
 
   private void handleReceiveResponse() {
