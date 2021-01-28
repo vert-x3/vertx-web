@@ -58,7 +58,9 @@ public class CSRFHandlerTest extends WebTestBase {
     // we need to wait getting failure Throwable
     CountDownLatch latch = new CountDownLatch(1);
 
-    router.route().handler(CSRFHandler.create(vertx, "Abracadabra"));
+    router.route()
+      .handler(BodyHandler.create())
+      .handler(CSRFHandler.create(vertx, "Abracadabra"));
     router.route().handler(rc -> rc.response().end());
     router.errorHandler(403, rc -> latch.countDown());
 

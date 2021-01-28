@@ -28,6 +28,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.CSRFHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.Origin;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -208,19 +209,24 @@ public class CSRFHandlerImpl implements CSRFHandler {
     String header = ctx.request().getHeader(headerName);
     if (header == null) {
       // fallback to form attributes
-      header = ctx.request().getFormAttribute(headerName);
+      if (((RoutingContextInternal) ctx).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+        header = ctx.request().getFormAttribute(headerName);
+      } else {
+        ctx.fail(new IllegalStateException("BodyHandler is required to process POST requests"));
+        return false;
+      }
     }
 
     // both the header and the cookie must be present, not null and not empty
     if (header == null || cookie == null || isBlank(header)) {
-      LOG.trace("Token provided via HTTP Header/Form is absent/empty");
+      ctx.fail(403, new IllegalArgumentException("Token provided via HTTP Header/Form is absent/empty"));
       return false;
     }
 
     final String cookieValue = cookie.getValue();
 
     if (cookieValue == null || isBlank(cookieValue)) {
-      LOG.trace("Token provided via HTTP Header/Form is absent/empty");
+      ctx.fail(403, new IllegalArgumentException("Token provided via HTTP Header/Form is absent/empty"));
       return false;
     }
 
@@ -229,7 +235,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
     //Verify that token from header and one from cookie are the same
     if (!MessageDigest.isEqual(headerBytes, cookieBytes)) {
-      LOG.trace("Token provided via HTTP Header and via Cookie are not equal");
+      ctx.fail(403, new IllegalArgumentException("Token provided via HTTP Header and via Cookie are not equal"));
       return false;
     }
 
@@ -245,21 +251,22 @@ public class CSRFHandlerImpl implements CSRFHandler {
           String challenge = sessionToken.substring(idx + 1);
           // the challenge must match the user-agent input
           if (!MessageDigest.isEqual(challenge.getBytes(StandardCharsets.UTF_8), headerBytes)) {
-            LOG.trace("Token has been used or is outdated");
+            ctx.fail(403, new IllegalArgumentException("Token has been used or is outdated"));
             return false;
           }
         } else {
-          LOG.trace("Token has been issued for a different session");
+          ctx.fail(403, new IllegalArgumentException("Token has been issued for a different session"));
           return false;
         }
       } else {
-        LOG.trace("No Token has been added to the session");
+        ctx.fail(403, new IllegalArgumentException("No Token has been added to the session"));
         return false;
       }
     }
 
     String[] tokens = header.split("\\.");
     if (tokens.length != 3) {
+      ctx.fail(403);
       return false;
     }
 
@@ -272,7 +279,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     final byte[] signature = BASE64.encode(saltPlusToken);
 
     if(!MessageDigest.isEqual(signature, tokens[2].getBytes(StandardCharsets.US_ASCII))) {
-      LOG.trace("Token signature does not match");
+      ctx.fail(403, new IllegalArgumentException("Token signature does not match"));
       return false;
     }
 
@@ -284,11 +291,17 @@ public class CSRFHandlerImpl implements CSRFHandler {
     final long ts = parseLong(tokens[1]);
 
     if (ts == -1) {
+      ctx.fail(403);
       return false;
     }
 
     // validate validity
-    return !(System.currentTimeMillis() > ts + timeout);
+    if (System.currentTimeMillis() > ts + timeout) {
+      ctx.fail(403, new IllegalArgumentException("CSRF validity expired"));
+      return false;
+    }
+
+    return true;
   }
 
   @Override
@@ -366,8 +379,6 @@ public class CSRFHandlerImpl implements CSRFHandler {
           // render the token directly on the HTML
           ctx.put(headerName, token);
           ctx.next();
-        } else {
-          ctx.fail(403);
         }
         break;
       default:
