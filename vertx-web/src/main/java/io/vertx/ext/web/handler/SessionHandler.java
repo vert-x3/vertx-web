@@ -26,6 +26,7 @@ import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.impl.VertxInternal;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.impl.SessionHandlerImpl;
 import io.vertx.ext.web.sstore.SessionStore;
 
@@ -221,12 +222,33 @@ public interface SessionHandler extends Handler<RoutingContext> {
   SessionHandler flush(RoutingContext ctx, Handler<AsyncResult<Void>> handler);
 
   /**
+   * Flush a context session earlier to the store, this will allow the end user to have full control on the event of
+   * a failure at the store level. Once a session is flushed no automatic save will be performed at end of request.
+   *
+   * @param ctx the current context
+   * @param ignoreStatus flush regardless of response status code
+   * @param handler the event handler to signal a asynchronous response.
+   * @return fluent self
+   */
+  @Fluent
+  SessionHandler flush(RoutingContext ctx, boolean ignoreStatus, Handler<AsyncResult<Void>> handler);
+
+  /**
    * Promisified flush. See {@link #flush(RoutingContext, Handler)}.
    */
 	default Future<Void> flush(RoutingContext ctx) {
 	  Promise<Void> promise = ((VertxInternal)ctx.vertx()).promise();
 	  flush(ctx, promise);
 	  return promise.future();
+  }
+
+  /**
+   * Promisified flush. See {@link #flush(RoutingContext, boolean, Handler)}.
+   */
+  default Future<Void> flush(RoutingContext ctx, boolean ignoreStatus) {
+    Promise<Void> promise = ((VertxInternal)ctx.vertx()).promise();
+    flush(ctx, ignoreStatus, promise);
+    return promise.future();
   }
 
   /**
@@ -239,4 +261,12 @@ public interface SessionHandler extends Handler<RoutingContext> {
    */
   @Fluent
   SessionHandler setCookieless(boolean cookieless);
+
+  /**
+   * Create a new session
+   *
+   * @param context the routing context
+   * @return the session
+   */
+  Session newSession(RoutingContext context);
 }

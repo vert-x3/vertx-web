@@ -37,6 +37,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
@@ -47,8 +48,7 @@ public abstract class SockJSSocketBase implements SockJSSocket {
 
   private final MessageConsumer<Buffer> registration;
   protected final Vertx vertx;
-  protected Session webSession;
-  protected User webUser;
+  protected RoutingContext routingContext;
 
   /**
    * When a {@code SockJSSocket} is created it automatically registers an event handler with the event bus, the ID of that
@@ -63,10 +63,9 @@ public abstract class SockJSSocketBase implements SockJSSocket {
   @Override
   public abstract SockJSSocket exceptionHandler(Handler<Throwable> handler);
 
-  protected SockJSSocketBase(Vertx vertx, Session webSession, User webUser, SockJSHandlerOptions options) {
+  protected SockJSSocketBase(Vertx vertx, RoutingContext rc, SockJSHandlerOptions options) {
     this.vertx = vertx;
-    this.webSession = webSession;
-    this.webUser = webUser;
+    this.routingContext = rc;
     if (options.isRegisterWriteHandler()) {
       Handler<Message<Buffer>> writeHandler = msg -> write(msg.body());
       writeHandlerID = UUID.randomUUID().toString();
@@ -119,12 +118,17 @@ public abstract class SockJSSocketBase implements SockJSSocket {
   }
 
   @Override
+  public RoutingContext routingContext() {
+    return routingContext;
+  }
+
+  @Override
   public Session webSession() {
-    return webSession;
+    return routingContext.session();
   }
 
   @Override
   public User webUser() {
-    return webUser;
+    return routingContext.user();
   }
 }

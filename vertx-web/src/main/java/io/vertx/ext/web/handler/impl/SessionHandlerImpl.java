@@ -38,9 +38,9 @@ import io.vertx.ext.web.sstore.impl.SessionInternal;
  */
 public class SessionHandlerImpl implements SessionHandler {
 
-  private static final String SESSION_USER_HOLDER_KEY = "__vertx.userHolder";
-  private static final String SESSION_FLUSHED_KEY = "__vertx.session-flushed";
-  private static final String SESSION_STOREUSER_KEY = "__vertx.session-storeuser";
+  public static final String SESSION_USER_HOLDER_KEY = "__vertx.userHolder";
+  public static final String SESSION_FLUSHED_KEY = "__vertx.session-flushed";
+  public static final String SESSION_STOREUSER_KEY = "__vertx.session-storeuser";
 
   private static final Logger log = LoggerFactory.getLogger(SessionHandlerImpl.class);
 
@@ -137,7 +137,12 @@ public class SessionHandlerImpl implements SessionHandler {
 
   @Override
   public SessionHandler flush(RoutingContext context, Handler<AsyncResult<Void>> handler) {
-    return flush(context, false, handler);
+    return flush(context, false, false, handler);
+  }
+
+  @Override
+  public SessionHandler flush(RoutingContext context, boolean ignoreStatus, Handler<AsyncResult<Void>> handler) {
+    return flush(context, false, ignoreStatus, handler);
   }
 
   /**
@@ -157,13 +162,13 @@ public class SessionHandlerImpl implements SessionHandler {
     }
   }
 
-  private SessionHandler flush(RoutingContext context, boolean skipCrc, Handler<AsyncResult<Void>> handler) {
+  private SessionHandler flush(RoutingContext context, boolean skipCrc, boolean ignoreStatus, Handler<AsyncResult<Void>> handler) {
     boolean sessionUsed = context.isSessionAccessed();
     Session session = context.session();
     if (!session.isDestroyed()) {
       final int currentStatusCode = context.response().getStatusCode();
       // Store the session (only and only if there was no error)
-      if (currentStatusCode >= 200 && currentStatusCode < 400) {
+      if (ignoreStatus || (currentStatusCode >= 200 && currentStatusCode < 400)) {
         // store the current user into the session
         Boolean storeUser = context.get(SESSION_STOREUSER_KEY);
         if (storeUser != null && storeUser) {
@@ -332,6 +337,22 @@ public class SessionHandlerImpl implements SessionHandler {
     }
   }
 
+  public Session newSession(RoutingContext context) {
+    Session session = sessionStore.createSession(sessionTimeout, minLength);
+    context.setSession(session);
+    if (!cookieless) {
+      context.removeCookie(sessionCookieName, false);
+    }
+    // it's a new session we must store the user too otherwise it won't be linked
+    context.put(SESSION_STOREUSER_KEY, true);
+    flush(context, true, true, flush -> {
+      if (flush.failed()) {
+        log.warn("Failed to flush the session to the underlying store", flush.cause());
+      }
+    });
+    return session;
+  }
+
   private String getSessionId(RoutingContext  context) {
     if (cookieless) {
       // cookieless sessions store the session on the path or the request
@@ -396,7 +417,7 @@ public class SessionHandlerImpl implements SessionHandler {
       // skip flush if we already flushed
       Boolean flushed = context.get(SESSION_FLUSHED_KEY);
       if (flushed == null || !flushed) {
-        flush(context, true, flush -> {
+        flush(context, true, false, flush -> {
           if (flush.failed()) {
             log.warn("Failed to flush the session to the underlying store", flush.cause());
           }
