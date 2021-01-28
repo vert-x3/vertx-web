@@ -347,7 +347,7 @@ public class SessionHandlerImpl implements SessionHandler {
     context.put(SESSION_STOREUSER_KEY, true);
     flush(context, true, true, flush -> {
       if (flush.failed()) {
-        log.warn("Failed to flush the session to the underlying store", flush.cause());
+        LOG.warn("Failed to flush the session to the underlying store", flush.cause());
       }
     });
     return session;
