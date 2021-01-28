@@ -42,7 +42,7 @@ public class SessionHandlerImpl implements SessionHandler {
   public static final String SESSION_FLUSHED_KEY = "__vertx.session-flushed";
   public static final String SESSION_STOREUSER_KEY = "__vertx.session-storeuser";
 
-  private static final Logger log = LoggerFactory.getLogger(SessionHandlerImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SessionHandlerImpl.class);
 
   private final SessionStore sessionStore;
 
@@ -277,10 +277,10 @@ public class SessionHandlerImpl implements SessionHandler {
   @Override
   public void handle(RoutingContext context) {
     HttpServerRequest request = context.request();
-    if (nagHttps && log.isDebugEnabled()) {
+    if (nagHttps && LOG.isDebugEnabled()) {
       String uri = request.absoluteURI();
       if (!uri.startsWith("https:")) {
-        log.debug(
+        LOG.debug(
           "Using session cookies without https could make you susceptible to session hijacking: " + uri);
       }
     }
@@ -419,7 +419,7 @@ public class SessionHandlerImpl implements SessionHandler {
       if (flushed == null || !flushed) {
         flush(context, true, false, flush -> {
           if (flush.failed()) {
-            log.warn("Failed to flush the session to the underlying store", flush.cause());
+            LOG.warn("Failed to flush the session to the underlying store", flush.cause());
           }
         });
       }

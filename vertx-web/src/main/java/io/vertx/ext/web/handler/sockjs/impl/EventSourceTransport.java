@@ -54,7 +54,7 @@ import static io.vertx.core.buffer.Buffer.buffer;
  */
 class EventSourceTransport extends BaseTransport {
 
-  private static final Logger log = LoggerFactory.getLogger(EventSourceTransport.class);
+  private static final Logger LOG = LoggerFactory.getLogger(EventSourceTransport.class);
 
   EventSourceTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options,
                        Handler<SockJSSocket> sockHandler) {
@@ -63,7 +63,7 @@ class EventSourceTransport extends BaseTransport {
     String eventSourceRE = COMMON_PATH_ELEMENT_RE + "eventsource";
 
     router.getWithRegex(eventSourceRE).handler(rc -> {
-      if (log.isTraceEnabled()) log.trace("EventSource transport, get: " + rc.request().uri());
+      if (LOG.isTraceEnabled()) LOG.trace("EventSource transport, get: " + rc.request().uri());
       String sessionID = rc.request().getParam("param0");
       SockJSSession session = getSession(rc, options, sessionID, sockHandler);
       HttpServerRequest req = rc.request();
@@ -86,7 +86,7 @@ class EventSourceTransport extends BaseTransport {
 
     @Override
     public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
-      if (log.isTraceEnabled()) log.trace("EventSource, sending frame");
+      if (LOG.isTraceEnabled()) LOG.trace("EventSource, sending frame");
       if (!headersWritten) {
         // event stream data is always UTF8
         // https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format
@@ -104,7 +104,7 @@ class EventSourceTransport extends BaseTransport {
       rc.response().write(buff, handler);
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {
-        if (log.isTraceEnabled()) log.trace("More than maxBytes sent so closing connection");
+        if (LOG.isTraceEnabled()) LOG.trace("More than maxBytes sent so closing connection");
         // Reset and close the connection
         close();
       }

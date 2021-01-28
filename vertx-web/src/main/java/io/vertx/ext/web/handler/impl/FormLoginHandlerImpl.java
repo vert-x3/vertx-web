@@ -24,7 +24,6 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.impl.NoStackTraceThrowable;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
@@ -83,7 +82,7 @@ public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<Authenticati
       handler.handle(Future.failedFuture(BAD_METHOD)); // Must be a POST
     } else {
       if (!((RoutingContextInternal) context).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
-        handler.handle(Future.failedFuture(new NoStackTraceThrowable("BodyHandler is required to process POST requests")));
+        handler.handle(Future.failedFuture("BodyHandler is required to process POST requests"));
       } else {
         MultiMap params = req.formAttributes();
         String username = params.get(usernameParam);

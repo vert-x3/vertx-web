@@ -59,7 +59,7 @@ import static io.vertx.core.buffer.Buffer.buffer;
  */
 public class SockJSHandlerImpl implements SockJSHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(SockJSHandlerImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SockJSHandlerImpl.class);
 
   private final Vertx vertx;
   private final Router router;
@@ -77,8 +77,8 @@ public class SockJSHandlerImpl implements SockJSHandler {
   @Override
   @Deprecated
   public void handle(RoutingContext context) {
-    if (log.isTraceEnabled()) {
-      log.trace("Got request in sockjs server: " + context.request().uri());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Got request in sockjs server: " + context.request().uri());
     }
     router.handleContext(context);
   }
@@ -91,7 +91,7 @@ public class SockJSHandlerImpl implements SockJSHandler {
   @Override
   public Router socketHandler(Handler<SockJSSocket> sockHandler) {
     router.route("/").useNormalizedPath(false).handler(rc -> {
-      if (log.isTraceEnabled()) log.trace("Returning welcome response");
+      if (LOG.isTraceEnabled()) LOG.trace("Returning welcome response");
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8").end("Welcome to SockJS!\n");
     });
 
@@ -216,7 +216,7 @@ public class SockJSHandlerImpl implements SockJSHandler {
     String etag = getMD5String(iframeHTML);
     return rc -> {
       try {
-        if (log.isTraceEnabled()) log.trace("In Iframe handler");
+        if (LOG.isTraceEnabled()) LOG.trace("In Iframe handler");
         if (etag != null && etag.equals(rc.request().getHeader(HttpHeaders.IF_NONE_MATCH))) {
           rc.response().setStatusCode(304);
           rc.response().end();
@@ -231,7 +231,7 @@ public class SockJSHandlerImpl implements SockJSHandler {
             .end(iframeHTML);
         }
       } catch (Exception e) {
-        log.error("Failed to server iframe", e);
+        LOG.error("Failed to server iframe", e);
       }
     };
   }
@@ -247,7 +247,7 @@ public class SockJSHandlerImpl implements SockJSHandler {
         return sb.toString();
     }
     catch (Exception e) {
-        log.error("Failed to generate MD5 for iframe, If-None-Match headers will be ignored");
+        LOG.error("Failed to generate MD5 for iframe, If-None-Match headers will be ignored");
         return null;
     }
   }

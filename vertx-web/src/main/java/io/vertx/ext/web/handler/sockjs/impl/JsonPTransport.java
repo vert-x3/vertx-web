@@ -54,7 +54,7 @@ import java.util.regex.Pattern;
  */
 class JsonPTransport extends BaseTransport {
 
-  private static final Logger log = LoggerFactory.getLogger(JsonPTransport.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JsonPTransport.class);
 
   private static final Pattern CALLBACK_VALIDATION = Pattern.compile("[^a-zA-Z0-9-_.]");
 
@@ -65,7 +65,7 @@ class JsonPTransport extends BaseTransport {
     String jsonpRE = COMMON_PATH_ELEMENT_RE + "jsonp";
 
     router.getWithRegex(jsonpRE).handler(rc -> {
-      if (log.isTraceEnabled()) log.trace("JsonP, get: " + rc.request().uri());
+      if (LOG.isTraceEnabled()) LOG.trace("JsonP, get: " + rc.request().uri());
       String callback = rc.request().getParam("callback");
       if (callback == null) {
         callback = rc.request().getParam("c");
@@ -92,7 +92,7 @@ class JsonPTransport extends BaseTransport {
     String jsonpSendRE = COMMON_PATH_ELEMENT_RE + "jsonp_send";
 
     router.postWithRegex(jsonpSendRE).handler(rc -> {
-      if (log.isTraceEnabled()) log.trace("JsonP, post: " + rc.request().uri());
+      if (LOG.isTraceEnabled()) LOG.trace("JsonP, post: " + rc.request().uri());
       String sessionID = rc.request().getParam("param0");
       final SockJSSession session = sessions.get(sessionID);
       if (session != null && !session.isClosed()) {
@@ -137,7 +137,7 @@ class JsonPTransport extends BaseTransport {
         rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8");
         setNoCacheHeaders(rc);
         rc.response().end("ok");
-        if (log.isTraceEnabled()) log.trace("send handled ok");
+        if (LOG.isTraceEnabled()) LOG.trace("send handled ok");
       }
     });
   }
@@ -156,7 +156,7 @@ class JsonPTransport extends BaseTransport {
 
     @Override
     public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
-      if (log.isTraceEnabled()) log.trace("JsonP, sending frame");
+      if (LOG.isTraceEnabled()) LOG.trace("JsonP, sending frame");
 
       if (!headersWritten) {
         rc.response()

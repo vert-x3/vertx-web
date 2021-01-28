@@ -56,7 +56,7 @@ import static io.vertx.core.buffer.Buffer.buffer;
  */
 class HtmlFileTransport extends BaseTransport {
 
-  private static final Logger log = LoggerFactory.getLogger(HtmlFileTransport.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HtmlFileTransport.class);
 
   private static final Pattern CALLBACK_VALIDATION = Pattern.compile("[^a-zA-Z0-9-_.]");
 
@@ -93,7 +93,7 @@ class HtmlFileTransport extends BaseTransport {
     String htmlFileRE = COMMON_PATH_ELEMENT_RE + "htmlfile.*";
 
     router.getWithRegex(htmlFileRE).handler(rc -> {
-      if (log.isTraceEnabled()) log.trace("HtmlFile, get: " + rc.request().uri());
+      if (LOG.isTraceEnabled()) LOG.trace("HtmlFile, get: " + rc.request().uri());
       String callback = rc.request().getParam("callback");
       if (callback == null) {
         callback = rc.request().getParam("c");
@@ -133,7 +133,7 @@ class HtmlFileTransport extends BaseTransport {
 
     @Override
     public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
-      if (log.isTraceEnabled()) log.trace("HtmlFile, sending frame");
+      if (LOG.isTraceEnabled()) LOG.trace("HtmlFile, sending frame");
       if (!headersWritten) {
         String htmlFile = HTML_FILE_TEMPLATE.replace("{{ callback }}", callback);
         rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html; charset=UTF-8");
@@ -151,7 +151,7 @@ class HtmlFileTransport extends BaseTransport {
       rc.response().write(buff, handler);
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {
-        if (log.isTraceEnabled()) log.trace("More than maxBytes sent so closing connection");
+        if (LOG.isTraceEnabled()) LOG.trace("More than maxBytes sent so closing connection");
         // Reset and close the connection
         close();
       }

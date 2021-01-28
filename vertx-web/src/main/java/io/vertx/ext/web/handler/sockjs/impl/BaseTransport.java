@@ -64,7 +64,7 @@ import static io.vertx.core.http.HttpHeaders.*;
  */
 class BaseTransport {
 
-  private static final Logger log = LoggerFactory.getLogger(BaseTransport.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BaseTransport.class);
 
   protected final Vertx vertx;
   protected final LocalMap<String, SockJSSession> sessions;
@@ -85,7 +85,9 @@ class BaseTransport {
   }
 
   protected void sendInvalidJSON(HttpServerResponse response) {
-    if (log.isTraceEnabled()) log.trace("Broken JSON");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Broken JSON");
+    }
     response.setStatusCode(500);
     response.end("Broken JSON encoding.");
   }
@@ -94,7 +96,7 @@ class BaseTransport {
     try {
        str = StringEscapeUtils.escapeJavaScript(str);
     } catch (Exception e) {
-      log.error("Failed to escape", e);
+      LOG.error("Failed to escape", e);
       str = null;
     }
     return str;
@@ -111,7 +113,9 @@ class BaseTransport {
     }
     protected void addCloseHandler(HttpServerResponse resp, final SockJSSession session) {
       resp.closeHandler(v -> {
-          if (log.isTraceEnabled()) log.trace("Connection closed (from client?), closing session");
+          if (LOG.isTraceEnabled()) {
+            LOG.trace("Connection closed (from client?), closing session");
+          }
           // Connection has been closed from the client or network error so
           // we remove the session
           session.shutdown();
@@ -175,7 +179,9 @@ class BaseTransport {
     return new Handler<RoutingContext>() {
       final boolean websocket = !options.getDisabledTransports().contains(Transport.WEBSOCKET.toString());
       public void handle(RoutingContext rc) {
-        if (log.isTraceEnabled()) log.trace("In Info handler");
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("In Info handler");
+        }
         rc.response().putHeader(CONTENT_TYPE, "application/json; charset=UTF-8");
         setNoCacheHeaders(rc);
         JsonObject json = new JsonObject();
@@ -197,7 +203,9 @@ class BaseTransport {
 
   static Handler<RoutingContext> createCORSOptionsHandler(SockJSHandlerOptions options, String methods) {
     return rc -> {
-      if (log.isTraceEnabled()) log.trace("In CORS options handler");
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("In CORS options handler");
+      }
       rc.response().putHeader(CACHE_CONTROL, "public,max-age=31536000");
       long oneYearSeconds = 365 * 24 * 60 * 60;
       long oneYearms = oneYearSeconds * 1000;

@@ -14,7 +14,7 @@ import java.util.function.Function;
  * <a href="https://tools.ietf.org/html/rfc7231#section-5.3.1">rfc7231,section-5.3.1</a>'s specification.<br>
  */
 public class HeaderParser {
-  private static final Logger log = LoggerFactory.getLogger(HeaderParser.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HeaderParser.class);
 
   private static final Comparator<ParsedHeaderValue> HEADER_SORTER =
     (ParsedHeaderValue left, ParsedHeaderValue right) -> right.weightedOrder() - left.weightedOrder();
@@ -71,8 +71,8 @@ public class HeaderParser {
               try {
                 weightCallback.accept(Float.parseFloat(val));
               } catch (NumberFormatException e) {
-                if (log.isTraceEnabled())
-                log.trace("Found a \"q\" parameter with value \""+val+"\" that was unparsable");
+                if (LOG.isTraceEnabled())
+                LOG.trace("Found a \"q\" parameter with value \""+val+"\" that was unparsable");
               }
             } else {
               parameterCallback.accept(key, unquote(val));

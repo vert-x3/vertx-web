@@ -37,7 +37,7 @@ import java.util.Objects;
  */
 public class ErrorHandlerImpl implements ErrorHandler {
 
-  private final Logger log = LoggerFactory.getLogger(ErrorHandlerImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ErrorHandlerImpl.class);
 
   /**
    * Flag to enable/disable printing the full stack trace of exceptions.
@@ -67,8 +67,8 @@ public class ErrorHandlerImpl implements ErrorHandler {
     if (response.headWritten()) {
       // response is already being processed, so we can't really
       // format the error as a "pretty print" message
-      if (log.isDebugEnabled()) {
-        log.debug("Unexpected error on route", failure);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Unexpected error on route", failure);
       }
 
       try {
@@ -156,7 +156,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
         errorTemplate
           .replace("{title}", title)
           .replace("{errorCode}", Integer.toString(errorCode))
-          .replace("{errorMessage}", errorMessage)
+          .replace("{errorMessage}", htmlFormat(errorMessage))
           .replace("{stackTrace}", stack.toString())
       );
       return true;
@@ -194,5 +194,36 @@ public class ErrorHandlerImpl implements ErrorHandler {
     }
 
     return false;
+  }
+
+  /**
+   * Very incomplete html escape that will escape the most common characters on error messages.
+   * This is to avoid pulling a full dependency to perform a compliant escape. Error messages
+   * are created by developers as such that they should not be to complex for logging.
+   */
+  private static String escapeHTML(String s) {
+    StringBuilder out = new StringBuilder(Math.max(16, s.length()));
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c > 127 || c == '"' || c == '\'' || c == '<' || c == '>' || c == '&') {
+        out.append("&#");
+        out.append((int) c);
+        out.append(';');
+      } else {
+        out.append(c);
+      }
+    }
+    return out.toString();
+  }
+
+  private static String htmlFormat(String errorMessage) {
+    if (errorMessage == null) {
+      return null;
+    }
+
+    // step #1 (escape html entities)
+    String escaped = escapeHTML(errorMessage);
+    // step #2 (replace line endings with breaks)
+    return escaped.replaceAll("\\r?\\n", "<br>");
   }
 }
