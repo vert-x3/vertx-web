@@ -499,9 +499,9 @@ public class HttpContext<T> {
         } else {
           buffer = Buffer.buffer(Json.encode(body));
         }
+        requestOptions.putHeader(HttpHeaders.CONTENT_LENGTH, "" + buffer.length());
         requestPromise.future().onSuccess(request -> {
           clientRequest = null;
-          request.putHeader(HttpHeaders.CONTENT_LENGTH, "" + buffer.length());
           request.end(buffer);
         });
       }
