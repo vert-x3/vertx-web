@@ -16,8 +16,12 @@
 
 package io.vertx.ext.web;
 
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import org.junit.Test;
+
+import java.util.function.Consumer;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -616,4 +620,30 @@ public class SubRouterTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/test", 200, "Hi");
     testRequest(HttpMethod.GET, "/secondary/test", 200, "H2");
-  }}
+  }
+
+  @Test
+  public void testMountMultiLevel3() throws Exception {
+
+    class ApiHandler implements Handler<RoutingContext> {
+      final Router router;
+
+      ApiHandler(Vertx vertx, Consumer<Router> routerSetup) {
+        router = Router.router(vertx);
+        routerSetup.accept(router);
+      }
+
+      @Override
+      public void handle(RoutingContext ctx) {
+        router.handleContext(ctx);
+      }
+    }
+
+    ApiHandler level3 = new ApiHandler(vertx, rtr -> rtr.get("/level3").handler(req -> req.response().setStatusMessage("ok").end()));
+    ApiHandler level2 = new ApiHandler(vertx, rtr -> rtr.route("/level2/*").handler(level3));
+
+    router.route("/level1/*").handler(level2);
+    testRequest(HttpMethod.GET, "/level1/level2/level3", 200, "ok");
+  }
+}
+

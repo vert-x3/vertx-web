@@ -62,7 +62,9 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
           this.mountPoint = mountPoint;
         } else
         // * otherwise it's extending the parent path
-        {
+        if (parentMountPoint.endsWith("/")) {
+          this.mountPoint = parentMountPoint.substring(0, parentMountPoint.length() - 1) + mountPoint;
+        } else {
           this.mountPoint = parentMountPoint + mountPoint;
         }
     }
