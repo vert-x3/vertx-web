@@ -200,8 +200,8 @@ public class HttpContext<T> {
    *   <li>Send the actual request</li>
    * </ul>
    */
-  public void sendRequest() {
-    // this.clientRequest = clientRequest;
+  public void sendRequest(HttpClientRequest clientRequest) {
+    this.clientRequest = clientRequest;
     fire(ClientPhase.SEND_REQUEST);
   }
 
@@ -511,7 +511,15 @@ public class HttpContext<T> {
         request.end();
       });
     }
-    sendRequest();
+    client.request(requestOptions)
+      .onComplete(ar1 -> {
+        if (ar1.succeeded()) {
+          sendRequest(ar1.result());
+        } else {
+          fail(ar1.cause());
+          requestPromise.fail(ar1.cause());
+        }
+      });
   }
 
   private void handleReceiveResponse() {
@@ -567,25 +575,14 @@ public class HttpContext<T> {
   }
 
   private void handleSendRequest() {
-    Future<HttpClientRequest> f = client.request(requestOptions);
-    f.onComplete(ar1 -> {
-      if (ar1.succeeded()) {
-        clientRequest = ar1.result();
-        HttpClientRequest req = ar1.result();
-        req.response(ar2 -> {
-          if (ar2.succeeded()) {
-            HttpClientResponse resp = ar2.result();
-            resp.pause();
-            receiveResponse(resp);
-          } else {
-            fail(ar2.cause());
-          }
-        });
+    clientRequest.response(ar -> {
+      if (ar.succeeded()) {
+        receiveResponse(ar.result().pause());
       } else {
-        fail(ar1.cause());
+        fail(ar.cause());
       }
-      requestPromise.handle(ar1);
     });
+    requestPromise.complete(clientRequest);
   }
 
   public <T> T get(String key) {

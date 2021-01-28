@@ -19,6 +19,7 @@ import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
 import io.vertx.ext.web.codec.BodyCodec;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -170,7 +171,7 @@ public class InterceptorTest extends HttpTestBase {
   public void testPhasesThreadFromNonVertxThread() throws Exception {
     server.requestHandler(req -> req.response().end());
     startServer();
-    testPhasesThread((t1, t2) -> Arrays.asList(t1, t1, t1, t2, t2));
+    testPhasesThread((t1, t2) -> Arrays.asList(t1, t1, t2, t2, t2));
     await();
   }
 
@@ -513,6 +514,25 @@ public class InterceptorTest extends HttpTestBase {
     HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
     builder.send(onFailure(err -> {
       assertSame(failure, err);
+      testComplete();
+    }));
+    await();
+  }
+
+  @Test
+  public void testClientRequest() throws Exception {
+    server.requestHandler(req -> req.response().end());
+    startServer();
+    client.addInterceptor(ctx -> {
+      if (ctx.phase() == ClientPhase.SEND_REQUEST) {
+        assertNotNull(ctx.clientRequest());
+      } else {
+        assertNull(ctx.clientRequest());
+      }
+      ctx.next();
+    });
+    HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
+    builder.send(onSuccess(resp -> {
       testComplete();
     }));
     await();
