@@ -23,7 +23,6 @@ import io.vertx.ext.web.sstore.impl.SessionInternal;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**

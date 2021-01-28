@@ -31,7 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class ForwardedParser {
-  private static final Logger log = LoggerFactory.getLogger(RouterImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RouterImpl.class);
 
   private static final String HTTP_SCHEME = "http";
   private static final String HTTPS_SCHEME = "https";
@@ -212,7 +212,7 @@ class ForwardedParser {
     try {
       return Integer.parseInt(portToParse);
     } catch (NumberFormatException ignored) {
-      log.error("Failed to parse a port from \"forwarded\"-type headers.");
+      LOG.error("Failed to parse a port from \"forwarded\"-type headers.");
       return defaultPort;
     }
   }

@@ -35,7 +35,7 @@ import static io.vertx.core.http.HttpHeaders.*;
  */
 public class FaviconHandlerImpl implements FaviconHandler {
 
-  private static final Logger logger = LoggerFactory.getLogger(FaviconHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(FaviconHandler.class);
 
   // default framework branding
   private static final String DEFAULT_VERTX_ICON = "META-INF/vertx/web/favicon.ico";
@@ -128,7 +128,7 @@ public class FaviconHandlerImpl implements FaviconHandler {
       try {
         buffer = readFile(fs, path);
       } catch (RuntimeException e) {
-        logger.error("Could not load favicon " + path);
+        LOG.error("Could not load favicon " + path);
         // this will ensure the response is a 404 (Not Found)
       }
     }

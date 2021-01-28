@@ -65,7 +65,7 @@ import static io.vertx.core.buffer.Buffer.buffer;
  */
 class SockJSSession extends SockJSSocketBase implements Shareable {
 
-  private static final Logger log = LoggerFactory.getLogger(SockJSSession.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SockJSSession.class);
 
   private final LocalMap<String, SockJSSession> sessions;
   private final Deque<String> pendingWrites = new LinkedList<>();
@@ -407,7 +407,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
         context.runOnContext(v -> handleException(t));
       }
     } else {
-      log.error("Unhandled exception", t);
+      LOG.error("Unhandled exception", t);
     }
   }
 

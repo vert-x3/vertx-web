@@ -46,7 +46,7 @@ import java.util.function.Function;
  */
 public class LoggerHandlerImpl implements LoggerHandler {
 
-  private final Logger logger = LoggerFactory.getLogger(this.getClass());
+  private static final Logger LOG = LoggerFactory.getLogger(LoggerHandlerImpl.class);
 
   /** log before request or after
    */
@@ -157,11 +157,11 @@ public class LoggerHandlerImpl implements LoggerHandler {
 
   protected void doLog(int status, String message) {
     if (status >= 500) {
-      logger.error(message);
+      LOG.error(message);
     } else if (status >= 400) {
-      logger.warn(message);
+      LOG.warn(message);
     } else {
-      logger.info(message);
+      LOG.info(message);
     }
   }
 

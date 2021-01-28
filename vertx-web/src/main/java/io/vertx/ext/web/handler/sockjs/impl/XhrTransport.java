@@ -58,7 +58,7 @@ import static io.vertx.core.buffer.Buffer.buffer;
  */
 class XhrTransport extends BaseTransport {
 
-  private static final Logger log = LoggerFactory.getLogger(XhrTransport.class);
+  private static final Logger LOG = LoggerFactory.getLogger(XhrTransport.class);
 
   private static final Buffer H_BLOCK;
 
@@ -91,7 +91,7 @@ class XhrTransport extends BaseTransport {
     router.optionsWithRegex(xhrSendRE).handler(xhrOptionsHandler);
 
     router.postWithRegex(xhrSendRE).handler(rc -> {
-      if (log.isTraceEnabled()) log.trace("XHR send, post, " + rc.request().uri());
+      if (LOG.isTraceEnabled()) LOG.trace("XHR send, post, " + rc.request().uri());
       String sessionID = rc.request().getParam("param0");
       final SockJSSession session = sessions.get(sessionID);
       if (session != null && !session.isClosed()) {
@@ -107,7 +107,7 @@ class XhrTransport extends BaseTransport {
   private void registerHandler(Router router, Handler<SockJSSocket> sockHandler, String re,
                                boolean streaming, SockJSHandlerOptions options) {
     router.postWithRegex(re).handler(rc -> {
-      if (log.isTraceEnabled()) log.trace("XHR, post, " + rc.request().uri());
+      if (LOG.isTraceEnabled()) LOG.trace("XHR, post, " + rc.request().uri());
       setNoCacheHeaders(rc);
       String sessionID = rc.request().getParam("param0");
       SockJSSession session = getSession(rc, options, sessionID, sockHandler);
@@ -121,7 +121,7 @@ class XhrTransport extends BaseTransport {
     if (body != null) {
       handleSendMessage(rc, session, body);
     } else if (rc.request().isEnded()) {
-      log.error("Request ended before SockJS handler could read the body. Do you have an asynchronous request "
+      LOG.error("Request ended before SockJS handler could read the body. Do you have an asynchronous request "
           + "handler before the SockJS handler? If so, add a BodyHandler before the SockJS handler "
           + "(see the docs).");
       rc.fail(500);
@@ -147,7 +147,7 @@ class XhrTransport extends BaseTransport {
       rc.response().setStatusCode(204);
       rc.response().end();
     }
-    if (log.isTraceEnabled()) log.trace("XHR send processed ok");
+    if (LOG.isTraceEnabled()) LOG.trace("XHR send processed ok");
   }
 
   private abstract class BaseXhrListener extends BaseListener {
@@ -159,7 +159,7 @@ class XhrTransport extends BaseTransport {
     }
 
     final void beforeSend() {
-      if (log.isTraceEnabled()) log.trace("XHR sending frame");
+      if (LOG.isTraceEnabled()) LOG.trace("XHR sending frame");
       if (!headersWritten) {
         HttpServerResponse resp = rc.response();
         resp.putHeader(HttpHeaders.CONTENT_TYPE, "application/javascript; charset=UTF-8");
@@ -193,7 +193,7 @@ class XhrTransport extends BaseTransport {
     }
 
     public void close() {
-      if (log.isTraceEnabled()) log.trace("XHR poll closing listener");
+      if (LOG.isTraceEnabled()) LOG.trace("XHR poll closing listener");
       if (!closed) {
         try {
           session.resetListener();
@@ -235,7 +235,7 @@ class XhrTransport extends BaseTransport {
     }
 
     public void close() {
-      if (log.isTraceEnabled()) log.trace("XHR stream closing listener");
+      if (LOG.isTraceEnabled()) LOG.trace("XHR stream closing listener");
       if (!closed) {
         session.resetListener();
         try {

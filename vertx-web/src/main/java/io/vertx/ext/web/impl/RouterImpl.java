@@ -36,7 +36,7 @@ import java.util.*;
  */
 public class RouterImpl implements Router {
 
-  private static final Logger log = LoggerFactory.getLogger(RouterImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RouterImpl.class);
 
   private final Vertx vertx;
 
@@ -49,8 +49,8 @@ public class RouterImpl implements Router {
 
   @Override
   public void handle(HttpServerRequest request) {
-    if (log.isTraceEnabled()) {
-      log.trace("Router: " + System.identityHashCode(this) + " accepting request " + request.method() + " " + request.absoluteURI());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Router: " + System.identityHashCode(this) + " accepting request " + request.method() + " " + request.absoluteURI());
     }
     new RoutingContextImpl(null, this, request, state.getRoutes()).next();
   }
@@ -252,13 +252,13 @@ public class RouterImpl implements Router {
         try {
           previousHandler.handle(router);
         } catch (RuntimeException e) {
-          log.error("Router modified notification failed", e);
+          LOG.error("Router modified notification failed", e);
         }
         // invoke the next
         try {
           handler.handle(router);
         } catch (RuntimeException e) {
-          log.error("Router modified notification failed", e);
+          LOG.error("Router modified notification failed", e);
         }
       });
     }

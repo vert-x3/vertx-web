@@ -50,7 +50,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.*;
  */
 public class StaticHandlerImpl implements StaticHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(StaticHandlerImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(StaticHandlerImpl.class);
 
   private String webRoot = DEFAULT_WEB_ROOT;
   private long maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS; // One day
@@ -71,7 +71,6 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private final FSTune tune = new FSTune();
   private final FSPropsCache cache = new FSPropsCache();
-  private FileSystem fileSystem;
 
   private String directoryTemplate(FileSystem fileSystem) {
     if (directoryTemplate == null) {
@@ -111,14 +110,14 @@ public class StaticHandlerImpl implements StaticHandler {
   public void handle(RoutingContext context) {
     HttpServerRequest request = context.request();
     if (request.method() != HttpMethod.GET && request.method() != HttpMethod.HEAD) {
-      if (log.isTraceEnabled()) log.trace("Not GET or HEAD so ignoring request");
+      if (LOG.isTraceEnabled()) LOG.trace("Not GET or HEAD so ignoring request");
       context.next();
     } else {
       // decode URL path
       String uriDecodedPath = URIDecoder.decodeURIComponent(context.normalizedPath(), false);
       // if the normalized path is null it cannot be resolved
       if (uriDecodedPath == null) {
-        log.warn("Invalid path: " + context.request().path());
+        LOG.warn("Invalid path: " + context.request().path());
         context.next();
         return;
       }
@@ -131,7 +130,7 @@ public class StaticHandlerImpl implements StaticHandler {
       }
 
       // Access fileSystem once here to be safe
-      FileSystem fs = fileSystem = context.vertx().fileSystem();
+      FileSystem fs = context.vertx().fileSystem();
 
       // can be called recursive for index pages
       sendStatic(context, fs, path);
@@ -571,7 +570,9 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private String getFile(String path, RoutingContext context) {
     String file = webRoot + Utils.pathOffset(path, context);
-    if (log.isTraceEnabled()) log.trace("File to serve is " + file);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("File to serve is " + file);
+    }
     return file;
   }
 
@@ -759,7 +760,9 @@ public class StaticHandlerImpl implements StaticHandler {
         double avg = (double) totalTime / numServesBlocking;
         if (avg > maxAvgServeTimeNanoSeconds) {
           useAsyncFS = true;
-          log.info("Switching to async file system access in static file server as fs access is slow! (Average access time of " + avg + " ns)");
+          if (LOG.isInfoEnabled()) {
+            LOG.info("Switching to async file system access in static file server as fs access is slow! (Average access time of " + avg + " ns)");
+          }
           enabled = false;
         }
         nextAvgCheck += NUM_SERVES_TUNING_FS_ACCESS;

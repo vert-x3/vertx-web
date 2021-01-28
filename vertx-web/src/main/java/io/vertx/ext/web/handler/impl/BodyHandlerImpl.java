@@ -43,7 +43,7 @@ import io.vertx.ext.web.impl.RoutingContextInternal;
  */
 public class BodyHandlerImpl implements BodyHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(BodyHandlerImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BodyHandlerImpl.class);
 
   private long bodyLimit = DEFAULT_BODY_LIMIT;
   private boolean handleFileUploads;
@@ -324,7 +324,7 @@ public class BodyHandlerImpl implements BodyHandler {
             String uploadedFileName = fileUpload.uploadedFileName();
             fileSystem.delete(uploadedFileName, deleteResult -> {
               if (deleteResult.failed()) {
-                log.warn("Delete of uploaded file failed: " + uploadedFileName, deleteResult.cause());
+                LOG.warn("Delete of uploaded file failed: " + uploadedFileName, deleteResult.cause());
               }
             });
           }

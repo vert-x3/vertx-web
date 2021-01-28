@@ -16,8 +16,6 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.webauthn.WebAuthn;
@@ -29,8 +27,6 @@ import io.vertx.ext.web.handler.WebAuthnHandler;
 import io.vertx.ext.web.impl.Origin;
 
 public class WebAuthnHandlerImpl implements WebAuthnHandler {
-
-  private static final Logger LOG = LoggerFactory.getLogger(WebAuthnHandlerImpl.class);
 
   private final WebAuthn webAuthn;
   // the extra routes
@@ -101,32 +97,22 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
   public void handle(RoutingContext ctx) {
 
     if (response == null) {
-      LOG.error("No callback mounted!");
-      ctx.fail(500);
+      ctx.fail(500, new IllegalStateException("No callback mounted!"));
       return;
     }
 
     if (matchesRoute(ctx, response)) {
-      if (LOG.isWarnEnabled()) {
-        LOG.warn("The callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!");
-      }
-      ctx.fail(500);
+      ctx.fail(500, new IllegalStateException("The callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!"));
       return;
     }
 
     if (matchesRoute(ctx, register)) {
-      if (LOG.isWarnEnabled()) {
-        LOG.warn("The register callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!");
-      }
-      ctx.fail(500);
+      ctx.fail(500, new IllegalStateException("The register callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!"));
       return;
     }
 
     if (matchesRoute(ctx, login)) {
-      if (LOG.isWarnEnabled()) {
-        LOG.warn("The login callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!");
-      }
-      ctx.fail(500);
+      ctx.fail(500, new IllegalStateException("The login callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!"));
       return;
     }
 
@@ -153,14 +139,12 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
           // A user has only a required field: name
           // And optional fields: displayName and icon
           if (!containsRequiredString(webauthnRegister, "name")) {
-            LOG.warn("missing 'name' field from request json");
-            ctx.fail(400);
+            ctx.fail(400, new IllegalArgumentException("missing 'name' field from request json"));
           } else {
             // input basic validation is OK
 
             if (session == null) {
-              LOG.warn("No session or session handler is missing.");
-              ctx.fail(500);
+              ctx.fail(500, new IllegalStateException("No session or session handler is missing."));
               return;
             }
 
@@ -182,10 +166,8 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
             });
           }
         } catch (IllegalArgumentException e) {
-          LOG.error("Illegal request", e);
-          ctx.fail(400);
+          ctx.fail(400, e);
         } catch (RuntimeException e) {
-          LOG.error("Unexpected exception", e);
           ctx.fail(e);
         }
       });
@@ -204,16 +186,14 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
           final Session session = ctx.session();
 
           if (!containsRequiredString(webauthnLogin, "name")) {
-            LOG.debug("Request missing 'name' field");
-            ctx.fail(400);
+            ctx.fail(400, new IllegalArgumentException("Request missing 'name' field"));
             return;
           }
 
           // input basic validation is OK
 
           if (session == null) {
-            LOG.warn("No session or session handler is missing.");
-            ctx.fail(500);
+            ctx.fail(500, new IllegalStateException("No session or session handler is missing."));
             return;
           }
 
@@ -222,7 +202,6 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
           // STEP 18 Generate assertion
           webAuthn.getCredentialsOptions(username, generateServerGetAssertion -> {
             if (generateServerGetAssertion.failed()) {
-              LOG.error("Unexpected exception", generateServerGetAssertion.cause());
               ctx.fail(generateServerGetAssertion.cause());
               return;
             }
@@ -237,10 +216,8 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
             ctx.json(getAssertion);
           });
         } catch (IllegalArgumentException e) {
-          LOG.error("Illegal request", e);
-          ctx.fail(400);
+          ctx.fail(400, e);
         } catch (RuntimeException e) {
-          LOG.error("Unexpected exception", e);
           ctx.fail(e);
         }
       });
@@ -265,8 +242,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
               !containsRequiredString(webauthnResp, "type") ||
               !"public-key".equals(webauthnResp.getString("type"))) {
 
-            LOG.debug("Response missing one or more of id/rawId/response[.userHandle]/type fields, or type is not public-key");
-            ctx.fail(400);
+            ctx.fail(400, new IllegalArgumentException("Response missing one or more of id/rawId/response[.userHandle]/type fields, or type is not public-key"));
             return;
           }
 
@@ -275,8 +251,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
           final Session session = ctx.session();
 
           if (ctx.session() == null) {
-            LOG.error("No session or session handler is missing.");
-            ctx.fail(500);
+            ctx.fail(500, new IllegalStateException("No session or session handler is missing."));
             return;
           }
 
@@ -302,15 +277,12 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
 //                ctx.json(new JsonObject().put("status", "ok").put("errorMessage", ""));
                 ctx.response().end();
               } else {
-                LOG.error("Unexpected exception", authenticate.cause());
                 ctx.fail(authenticate.cause());
               }
             });
         } catch (IllegalArgumentException e) {
-          LOG.error("Illegal request", e);
-          ctx.fail(400);
+          ctx.fail(400, e);
         } catch (RuntimeException e) {
-          LOG.error("Unexpected exception", e);
           ctx.fail(e);
         }
       });

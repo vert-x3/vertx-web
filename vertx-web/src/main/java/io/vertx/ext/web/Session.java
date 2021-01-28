@@ -21,7 +21,6 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**

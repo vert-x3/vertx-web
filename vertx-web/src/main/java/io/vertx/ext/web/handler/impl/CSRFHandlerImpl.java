@@ -42,7 +42,7 @@ import java.util.Base64;
  */
 public class CSRFHandlerImpl implements CSRFHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(CSRFHandlerImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CSRFHandlerImpl.class);
 
   private static final Base64.Encoder BASE64 = Base64.getMimeEncoder();
 
@@ -61,7 +61,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
   public CSRFHandlerImpl(final Vertx vertx, final String secret) {
     try {
       if (secret.length() <= 8) {
-        log.warn("CSRF secret is very short (<= 8 bytes)");
+        LOG.warn("CSRF secret is very short (<= 8 bytes)");
       }
       random = VertxContextPRNG.current(vertx);
       mac = Mac.getInstance("HmacSHA256");
@@ -168,7 +168,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     try {
       return Long.parseLong(s);
     } catch (NumberFormatException e) {
-      log.trace("Invalid Token format", e);
+      LOG.trace("Invalid Token format", e);
       // fallback as the token is expired
       return -1;
     }
@@ -184,7 +184,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
         source = ctx.request().getHeader(HttpHeaders.REFERER);
         //If this one is empty too then we trace the event and we block the request (recommendation of the article)...
         if (isBlank(source)) {
-          log.trace("ORIGIN and REFERER request headers are both absent/empty");
+          LOG.trace("ORIGIN and REFERER request headers are both absent/empty");
           return false;
         }
       }
@@ -192,7 +192,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
       //Compare the source against the expected target origin
       if (!origin.sameOrigin(source)) {
         //One the part do not match so we trace the event and we block the request
-        log.trace("Protocol/Host/Port do not fully match");
+        LOG.trace("Protocol/Host/Port do not fully match");
         return false;
       }
     }
@@ -213,14 +213,14 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
     // both the header and the cookie must be present, not null and not empty
     if (header == null || cookie == null || isBlank(header)) {
-      log.trace("Token provided via HTTP Header/Form is absent/empty");
+      LOG.trace("Token provided via HTTP Header/Form is absent/empty");
       return false;
     }
 
     final String cookieValue = cookie.getValue();
 
     if (cookieValue == null || isBlank(cookieValue)) {
-      log.trace("Token provided via HTTP Header/Form is absent/empty");
+      LOG.trace("Token provided via HTTP Header/Form is absent/empty");
       return false;
     }
 
@@ -229,7 +229,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
     //Verify that token from header and one from cookie are the same
     if (!MessageDigest.isEqual(headerBytes, cookieBytes)) {
-      log.trace("Token provided via HTTP Header and via Cookie are not equal");
+      LOG.trace("Token provided via HTTP Header and via Cookie are not equal");
       return false;
     }
 
@@ -245,15 +245,15 @@ public class CSRFHandlerImpl implements CSRFHandler {
           String challenge = sessionToken.substring(idx + 1);
           // the challenge must match the user-agent input
           if (!MessageDigest.isEqual(challenge.getBytes(StandardCharsets.UTF_8), headerBytes)) {
-            log.trace("Token has been used or is outdated");
+            LOG.trace("Token has been used or is outdated");
             return false;
           }
         } else {
-          log.trace("Token has been issued for a different session");
+          LOG.trace("Token has been issued for a different session");
           return false;
         }
       } else {
-        log.trace("No Token has been added to the session");
+        LOG.trace("No Token has been added to the session");
         return false;
       }
     }
@@ -272,7 +272,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     final byte[] signature = BASE64.encode(saltPlusToken);
 
     if(!MessageDigest.isEqual(signature, tokens[2].getBytes(StandardCharsets.US_ASCII))) {
-      log.trace("Token signature does not match");
+      LOG.trace("Token signature does not match");
       return false;
     }
 
@@ -297,7 +297,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     if (nagHttps) {
       String uri = ctx.request().absoluteURI();
       if (uri != null && !uri.startsWith("https:")) {
-        log.trace("Using session cookies without https could make you susceptible to session hijacking: " + uri);
+        LOG.trace("Using session cookies without https could make you susceptible to session hijacking: " + uri);
       }
     }
 
@@ -307,7 +307,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     // if we're being strict with the origin
     // ensure that they are always valid
     if (!isValidOrigin(ctx)) {
-      ctx.fail(403);
+      ctx.fail(403, new IllegalStateException("Invalid Origin"));
       return;
     }
 

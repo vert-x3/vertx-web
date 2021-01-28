@@ -53,7 +53,7 @@ import io.vertx.ext.web.handler.sockjs.SockJSSocket;
  */
 class WebSocketTransport extends BaseTransport {
 
-  private static final Logger log = LoggerFactory.getLogger(WebSocketTransport.class);
+  private static final Logger LOG = LoggerFactory.getLogger(WebSocketTransport.class);
 
   WebSocketTransport(Vertx vertx,
                      Router router, LocalMap<String, SockJSSession> sessions,
@@ -79,8 +79,8 @@ class WebSocketTransport extends BaseTransport {
         // upgrade
         req.toWebSocket(toWebSocket -> {
           if (toWebSocket.succeeded()) {
-            if (log.isTraceEnabled()) {
-              log.trace("WS, handler");
+            if (LOG.isTraceEnabled()) {
+              LOG.trace("WS, handler");
             }
             // resume the parsing
             if (!parseEnded) {
@@ -98,13 +98,13 @@ class WebSocketTransport extends BaseTransport {
     });
 
     router.getWithRegex(wsRE).handler(rc -> {
-      if (log.isTraceEnabled()) log.trace("WS, get: " + rc.request().uri());
+      if (LOG.isTraceEnabled()) LOG.trace("WS, get: " + rc.request().uri());
       rc.response().setStatusCode(400);
       rc.response().end("Can \"Upgrade\" only to \"WebSocket\".");
     });
 
     router.routeWithRegex(wsRE).handler(rc -> {
-      if (log.isTraceEnabled()) log.trace("WS, all: " + rc.request().uri());
+      if (LOG.isTraceEnabled()) LOG.trace("WS, all: " + rc.request().uri());
       rc.response().putHeader(HttpHeaders.ALLOW, "GET").setStatusCode(405).end();
     });
   }
@@ -146,7 +146,7 @@ class WebSocketTransport extends BaseTransport {
 
     @Override
     public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
-      if (log.isTraceEnabled()) log.trace("WS, sending frame");
+      if (LOG.isTraceEnabled()) LOG.trace("WS, sending frame");
       if (!closed) {
         ws.writeTextMessage(body, handler);
       } else {

@@ -113,7 +113,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
           if (context.request().method() != HttpMethod.GET) {
             // we can only redirect GET requests
             LOG.error("OAuth2 redirect attempt to non GET resource");
-            context.fail(400);
+            context.fail(405, new IllegalStateException("OAuth2 redirect attempt to non GET resource"));
             return;
           }
 
@@ -125,8 +125,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
           if (context.session() == null) {
             if (pkce > 0) {
               // we can only handle PKCE with a session
-              LOG.error("OAuth2 PKCE requires a session to be present");
-              context.fail(500);
+              context.fail(500, new IllegalStateException("OAuth2 PKCE requires a session to be present"));
               return;
             }
           } else {
@@ -238,15 +237,27 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       String error = ctx.request().getParam("error");
 
       if (error != null) {
+        int errorCode;
+        // standard error's from the Oauth2 RFC
+        switch (error) {
+          case "invalid_token":
+            errorCode = 401;
+            break;
+          case "insufficient_scope":
+            errorCode = 403;
+            break;
+          case "invalid_request":
+          default:
+            errorCode = 400;
+            break;
+        }
+
         String errorDescription = ctx.request().getParam("error_description");
         if (errorDescription != null) {
-          ctx.response()
-            .setStatusMessage(error + ": " + errorDescription);
+          ctx.fail(errorCode, new IllegalStateException(error + ": " + errorDescription));
         } else {
-          ctx.response()
-            .setStatusMessage(error);
+          ctx.fail(errorCode, new IllegalStateException(error));
         }
-        ctx.fail(400);
         return;
       }
 
@@ -255,10 +266,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
       // code is a require value
       if (code == null) {
-        ctx.response()
-          .setStatusMessage("Missing code parameter");
-
-        ctx.fail(400);
+        ctx.fail(400, new IllegalStateException("Missing code parameter"));
         return;
       }
 
@@ -274,8 +282,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
       // state is a required field
       if (state == null) {
-        LOG.error("Missing IdP state parameter to the callback endpoint");
-        ctx.fail(400);
+        ctx.fail(400, new IllegalStateException("Missing IdP state parameter to the callback endpoint"));
         return;
       }
 
@@ -287,8 +294,8 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         String ctxState = ctx.session().remove("state");
         // if there's a state in the context they must match
         if (!state.equals(ctxState)) {
-          // forbidden, the state is not valid (this is a replay attack
-          ctx.fail(401);
+          // forbidden, the state is not valid (this is a replay attack)
+          ctx.fail(401, new IllegalStateException("Invalid oauth2 state"));
           return;
         }
 

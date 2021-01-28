@@ -209,7 +209,7 @@ public class CorsHandlerImpl implements CorsHandler {
         .response()
         .setStatusMessage("CORS Rejected - Invalid origin");
       context
-        .fail(403);
+        .fail(403, new IllegalStateException("CORS Rejected - Invalid origin"));
     }
   }
 
