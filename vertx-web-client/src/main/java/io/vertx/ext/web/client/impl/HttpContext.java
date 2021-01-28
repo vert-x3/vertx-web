@@ -58,6 +58,7 @@ public class HttpContext<T> {
   private RequestOptions requestOptions;
   private HttpClientRequest clientRequest;
   private HttpClientResponse clientResponse;
+  private Promise<HttpClientRequest> requestPromise;
   private HttpResponse<T> response;
   private Throwable failure;
   private int redirects;
@@ -419,6 +420,97 @@ public class HttpContext<T> {
   }
 
   private void handleCreateRequest() {
+    if (request.headers != null) {
+      MultiMap headers = requestOptions.getHeaders();
+      if (headers == null) {
+        headers = MultiMap.caseInsensitiveMultiMap();
+        requestOptions.setHeaders(headers);
+      }
+      headers.addAll(request.headers);
+    }
+    if (contentType != null) {
+      String prev = requestOptions.getHeaders().get(HttpHeaders.CONTENT_TYPE);
+      if (prev == null) {
+        requestOptions.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
+      } else {
+        contentType = prev;
+      }
+    }
+    requestOptions.setTimeout(this.request.timeout);
+    requestPromise = Promise.promise();
+    if (body != null || "application/json".equals(contentType)) {
+      if (body instanceof MultiMap) {
+        MultipartForm parts = MultipartForm.create();
+        MultiMap attributes = (MultiMap) body;
+        for (Map.Entry<String, String> attribute : attributes) {
+          parts.attribute(attribute.getKey(), attribute.getValue());
+        }
+        body = parts;
+      }
+      if (body instanceof MultipartForm) {
+        MultipartFormUpload multipartForm;
+        try {
+          boolean multipart = "multipart/form-data".equals(contentType);
+          HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
+          multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
+          this.body = multipartForm;
+        } catch (Exception e) {
+          fail(e);
+          return;
+        }
+        for (String headerName : this.request.headers().names()) {
+          requestOptions.putHeader(headerName, this.request.headers().get(headerName));
+        }
+        multipartForm.headers().forEach(header -> {
+          requestOptions.putHeader(header.getKey(), header.getValue());
+        });
+      }
+      if (body instanceof ReadStream<?>) {
+        ReadStream<Buffer> stream = (ReadStream<Buffer>) body;
+        Pipe<Buffer> pipe = stream.pipe(); // Shouldn't this be called in an earlier phase ?
+        requestPromise.future().onComplete(ar -> {
+          if (ar.succeeded()) {
+            HttpClientRequest req = ar.result();
+            if (this.request.headers == null || !this.request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
+              req.setChunked(true);
+            }
+            pipe.endOnFailure(false);
+            pipe.to(req, ar2 -> {
+              clientRequest = null;
+              if (ar2.failed()) {
+                req.reset(0L, ar2.cause());
+              }
+            });
+            if (body instanceof MultipartFormUpload) {
+              ((MultipartFormUpload) body).run();
+            }
+          } else {
+            // Test this
+            clientRequest = null;
+            pipe.close();
+          }
+        });
+      } else {
+        Buffer buffer;
+        if (body instanceof Buffer) {
+          buffer = (Buffer) body;
+        } else if (body instanceof JsonObject) {
+          buffer = Buffer.buffer(((JsonObject)body).encode());
+        } else {
+          buffer = Buffer.buffer(Json.encode(body));
+        }
+        requestPromise.future().onSuccess(request -> {
+          clientRequest = null;
+          request.putHeader(HttpHeaders.CONTENT_LENGTH, "" + buffer.length());
+          request.end(buffer);
+        });
+      }
+    } else {
+      requestPromise.future().onSuccess(request -> {
+        clientRequest = null;
+        request.end();
+      });
+    }
     sendRequest();
   }
 
@@ -475,103 +567,6 @@ public class HttpContext<T> {
   }
 
   private void handleSendRequest() {
-    if (request.headers != null) {
-      MultiMap headers = requestOptions.getHeaders();
-      if (headers == null) {
-        headers = MultiMap.caseInsensitiveMultiMap();
-        requestOptions.setHeaders(headers);
-      }
-      headers.addAll(request.headers);
-    }
-    if (contentType != null) {
-      String prev = requestOptions.getHeaders().get(HttpHeaders.CONTENT_TYPE);
-      if (prev == null) {
-        requestOptions.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
-      } else {
-        contentType = prev;
-      }
-    }
-    requestOptions.setTimeout(this.request.timeout);
-    Handler<AsyncResult<HttpClientRequest>> continuation;
-    if (body != null || "application/json".equals(contentType)) {
-      if (body instanceof MultiMap) {
-        MultipartForm parts = MultipartForm.create();
-        MultiMap attributes = (MultiMap) body;
-        for (Map.Entry<String, String> attribute : attributes) {
-          parts.attribute(attribute.getKey(), attribute.getValue());
-        }
-        body = parts;
-      }
-      if (body instanceof MultipartForm) {
-        MultipartFormUpload multipartForm;
-        try {
-          boolean multipart = "multipart/form-data".equals(contentType);
-          HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
-          multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
-          this.body = multipartForm;
-        } catch (Exception e) {
-          fail(e);
-          return;
-        }
-        for (String headerName : this.request.headers().names()) {
-          requestOptions.putHeader(headerName, this.request.headers().get(headerName));
-        }
-        multipartForm.headers().forEach(header -> {
-          requestOptions.putHeader(header.getKey(), header.getValue());
-        });
-      }
-      if (body instanceof ReadStream<?>) {
-        ReadStream<Buffer> stream = (ReadStream<Buffer>) body;
-        Pipe<Buffer> pipe = stream.pipe(); // Shouldn't this be called in an earlier phase ?
-        continuation = ar -> {
-          if (ar.succeeded()) {
-            HttpClientRequest req = ar.result();
-            if (this.request.headers == null || !this.request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
-              req.setChunked(true);
-            }
-            pipe.endOnFailure(false);
-            pipe.to(req, ar2 -> {
-              clientRequest = null;
-              if (ar2.failed()) {
-                req.reset(0L, ar2.cause());
-              }
-            });
-            if (body instanceof MultipartFormUpload) {
-              ((MultipartFormUpload) body).run();
-            }
-          } else {
-            // Test this
-            clientRequest = null;
-            pipe.close();
-          }
-        };
-      } else {
-        Buffer buffer;
-        if (body instanceof Buffer) {
-          buffer = (Buffer) body;
-        } else if (body instanceof JsonObject) {
-          buffer = Buffer.buffer(((JsonObject)body).encode());
-        } else {
-          buffer = Buffer.buffer(Json.encode(body));
-        }
-        continuation = ar -> {
-          if (ar.succeeded()) {
-            clientRequest = null;
-            HttpClientRequest req = ar.result();
-            req.putHeader(HttpHeaders.CONTENT_LENGTH, "" + buffer.length());
-            req.end(buffer);
-          }
-        };
-      }
-    } else {
-      continuation = ar -> {
-        if (ar.succeeded()) {
-          clientRequest = null;
-          HttpClientRequest req = ar.result();
-          req.end();
-        }
-      };
-    }
     Future<HttpClientRequest> f = client.request(requestOptions);
     f.onComplete(ar1 -> {
       if (ar1.succeeded()) {
@@ -589,7 +584,7 @@ public class HttpContext<T> {
       } else {
         fail(ar1.cause());
       }
-      continuation.handle(ar1);
+      requestPromise.handle(ar1);
     });
   }
 
