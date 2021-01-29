@@ -88,33 +88,20 @@ public class ErrorHandlerImpl implements ErrorHandler {
       errorCode = 500;
     }
 
-    response.setStatusCode(errorCode);
-    String errorMessage = response.getStatusMessage();
+    response
+      .setStatusCode(errorCode);
 
-    if (displayExceptionDetails) {
-      // failure message may be null
-      String exceptionMessage = failure == null ? null : failure.getMessage();
-      if (exceptionMessage != null) {
-        // no new lines are allowed in the status message
-        exceptionMessage = exceptionMessage.replaceAll("[\\r\\n]", " ");
-        // apply the newly desired message
-        response.setStatusMessage(exceptionMessage);
-        //Override the default errorMessage
-        errorMessage = exceptionMessage;
-      }
-    }
-
-    answerWithError(context, errorCode, errorMessage);
+    answerWithError(context, errorCode);
   }
 
-  private void answerWithError(RoutingContext context, int errorCode, String errorMessage) {
-    if (!sendErrorResponseMIME(context, errorCode, errorMessage) && !sendErrorAcceptMIME(context, errorCode, errorMessage)) {
+  private void answerWithError(RoutingContext context, int errorCode) {
+    if (!sendErrorResponseMIME(context, errorCode) && !sendErrorAcceptMIME(context, errorCode)) {
       // fallback plain/text
-      sendError(context, "text/plain", errorCode, errorMessage);
+      sendError(context, "text/plain", errorCode);
     }
   }
 
-  private boolean sendErrorResponseMIME(RoutingContext context, int errorCode, String errorMessage) {
+  private boolean sendErrorResponseMIME(RoutingContext context, int errorCode) {
     // does the response already set the mime type?
     String mime = context.response().headers().get(HttpHeaders.CONTENT_TYPE);
 
@@ -123,32 +110,49 @@ public class ErrorHandlerImpl implements ErrorHandler {
       mime = context.getAcceptableContentType();
     }
 
-    return mime != null && sendError(context, mime, errorCode, errorMessage);
+    return mime != null && sendError(context, mime, errorCode);
   }
 
-  private boolean sendErrorAcceptMIME(RoutingContext context, int errorCode, String errorMessage) {
+  private boolean sendErrorAcceptMIME(RoutingContext context, int errorCode) {
     // respect the client accept order
     List<MIMEHeader> acceptableMimes = context.parsedHeaders().accept();
 
     for (MIMEHeader accept : acceptableMimes) {
-      if (sendError(context, accept.value(), errorCode, errorMessage)) {
+      if (sendError(context, accept.value(), errorCode)) {
         return true;
       }
     }
     return false;
   }
 
-  private boolean sendError(RoutingContext context, String mime, int errorCode, String errorMessage) {
+  private boolean sendError(RoutingContext context, String mime, int errorCode) {
 
     final String title = "An unexpected error occurred";
 
-    HttpServerResponse response = context.response();
+    final HttpServerResponse response = context.response();
+    final Throwable exception = context.failure();
+
+    final String errorMessage;
+
+    if (displayExceptionDetails) {
+      if (exception == null) {
+        errorMessage = response.getStatusMessage();
+      } else {
+        errorMessage = exception.getMessage();
+      }
+    } else {
+      errorMessage = response.getStatusMessage();
+    }
 
     if (mime.startsWith("text/html")) {
-      StringBuilder stack = new StringBuilder();
-      if (context.failure() != null && displayExceptionDetails) {
-        for (StackTraceElement elem : context.failure().getStackTrace()) {
-          stack.append("<li>").append(elem).append("</li>");
+      StringBuilder stack = null;
+      if (exception != null && displayExceptionDetails) {
+        stack = new StringBuilder();
+        for (StackTraceElement elem : exception.getStackTrace()) {
+          stack
+            .append("<li>")
+            .append(escapeHTML(elem.toString()))
+            .append("</li>");
         }
       }
       response.putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
@@ -157,7 +161,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
           .replace("{title}", title)
           .replace("{errorCode}", Integer.toString(errorCode))
           .replace("{errorMessage}", htmlFormat(errorMessage))
-          .replace("{stackTrace}", stack.toString())
+          .replace("{stackTrace}", stack == null ? "" : stack.toString())
       );
       return true;
     }
@@ -165,9 +169,9 @@ public class ErrorHandlerImpl implements ErrorHandler {
     if (mime.startsWith("application/json")) {
       JsonObject jsonError = new JsonObject();
       jsonError.put("error", new JsonObject().put("code", errorCode).put("message", errorMessage));
-      if (context.failure() != null && displayExceptionDetails) {
+      if (exception != null && displayExceptionDetails) {
         JsonArray stack = new JsonArray();
-        for (StackTraceElement elem : context.failure().getStackTrace()) {
+        for (StackTraceElement elem : exception.getStackTrace()) {
           stack.add(elem.toString());
         }
         jsonError.put("stack", stack);
@@ -184,8 +188,8 @@ public class ErrorHandlerImpl implements ErrorHandler {
       sb.append(errorCode);
       sb.append(": ");
       sb.append(errorMessage);
-      if (context.failure() != null && displayExceptionDetails) {
-        for (StackTraceElement elem : context.failure().getStackTrace()) {
+      if (exception != null && displayExceptionDetails) {
+        for (StackTraceElement elem : exception.getStackTrace()) {
           sb.append("\tat ").append(elem).append("\n");
         }
       }

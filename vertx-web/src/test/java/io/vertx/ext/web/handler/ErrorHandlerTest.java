@@ -142,16 +142,16 @@ public class ErrorHandlerTest extends WebTestBase {
     System.setProperty(SYSTEM_PROPERTY_NAME, "test");
 
     int statusCode = 500;
-    String statusMessage = "Something happened!";
-    Exception e = new Exception(statusMessage);
+    String errorMessage = "Something happened!";
+    Exception e = new Exception(errorMessage);
     router.route().handler(rc -> {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
       rc.fail(e);
     });
     testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
-      checkHtmlResponse(buff, resp, statusCode, statusMessage, e);
+      checkHtmlResponse(buff, resp, statusCode, errorMessage, e);
       testComplete();
-    }), statusCode, statusMessage, null);
+    }), statusCode, "Internal Server Error", null);
     await();
   }
 
@@ -236,6 +236,8 @@ public class ErrorHandlerTest extends WebTestBase {
     assertTrue(page.contains("An unexpected error occurred"));
     if (e != null) {
       if (displayExceptionDetails) {
+        // in this case the status message is replaced by the exception message
+        assertTrue(page.contains(e.getMessage()));
         assertTrue(page.contains(e.getStackTrace()[0].toString()));
       } else {
         assertFalse(page.contains(e.getStackTrace()[0].toString()));
