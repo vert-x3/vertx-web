@@ -233,12 +233,12 @@ public interface Route {
   boolean isRegexPath();
 
   /**
-   * Returns true of the path ends with a wildcard {@code *}. Regular expression paths are always assumed to be
-   * wildcard.
+   * Returns true of the path doesn't end with a wildcard {@code *} or is {@code null}.
+   * Regular expression paths are always assumed to be exact.
    *
    * @return true if the path is exact.
    */
-  boolean isWildcard();
+  boolean isExactPath();
 
   /**
    * @return the http methods accepted by this route

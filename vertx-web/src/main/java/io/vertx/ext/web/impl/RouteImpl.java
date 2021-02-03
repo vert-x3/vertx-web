@@ -149,7 +149,7 @@ public class RouteImpl implements Route {
   public synchronized Route subRouter(Router subRouter) {
 
     // The route path must end with a wild card
-    if (state.getPath() != null && state.isStar()) {
+    if (state.getPath() != null && state.isExactPath()) {
       throw new IllegalStateException("Sub router cannot be mounted on an exact path.");
     }
     // Parameters are allowed but full regex patterns not
@@ -225,8 +225,8 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public boolean isWildcard() {
-    return state.isStar();
+  public boolean isExactPath() {
+    return state.isExactPath();
   }
 
   @Override
@@ -267,10 +267,10 @@ public class RouteImpl implements Route {
     // See if the path contains ":" - if so then it contains parameter capture groups and we have to generate
     // a regex for that
     if (path.charAt(path.length() - 1) != '*') {
-      state = state.setStar(true);
+      state = state.setExactPath(true);
       state = state.setPath(path);
     } else {
-      state = state.setStar(false);
+      state = state.setExactPath(false);
       state = state.setPath(path.substring(0, path.length() - 1));
     }
 
@@ -283,7 +283,7 @@ public class RouteImpl implements Route {
 
   private synchronized void setRegex(String regex) {
     state = state.setPattern(Pattern.compile(regex));
-    state = state.setStar(true);
+    state = state.setExactPath(true);
     findNamedGroups(state.getPattern().pattern());
   }
 
@@ -306,9 +306,9 @@ public class RouteImpl implements Route {
     // allow usage of * at the end as per documentation
     if (path.charAt(path.length() - 1) == '*') {
       path = path.substring(0, path.length() - 1) + "(?<rest>.*)";
-      state = state.setStar(false);
+      state = state.setExactPath(false);
     } else {
-      state = state.setStar(true);
+      state = state.setExactPath(true);
     }
 
     // We need to search for any :<token name> tokens in the String and replace them with named capture groups
