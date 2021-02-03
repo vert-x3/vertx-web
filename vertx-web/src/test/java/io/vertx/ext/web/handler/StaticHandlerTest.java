@@ -27,6 +27,7 @@ import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.impl.Utils;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -939,5 +940,20 @@ public class StaticHandlerTest extends WebTestBase {
 
   private long fileSize(String filename) {
     return new File(filename).length();
+  }
+
+  @Test
+  public void testSubRouterBeforeStaticHandler() throws Exception {
+    Router subRouter = Router.router(vertx);
+
+    router.clear();
+    router
+      .mountSubRouter("/test", subRouter);
+
+    router
+      .route()
+      .handler(stat);
+
+    testRequest(HttpMethod.GET, "/test", 404, "Not Found");
   }
 }

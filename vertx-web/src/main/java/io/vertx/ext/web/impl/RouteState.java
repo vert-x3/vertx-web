@@ -55,9 +55,9 @@ final class RouteState {
   private final Pattern virtualHostPattern;
   private final boolean pathEndsWithSlash;
   private final boolean exclusive;
-  private final boolean exactPath;
+  private final boolean star;
 
-  private RouteState(RouteImpl route, String path, String name, int order, boolean enabled, Set<HttpMethod> methods, Set<MIMEHeader> consumes, boolean emptyBodyPermittedWithConsumes, Set<MIMEHeader> produces, List<Handler<RoutingContext>> contextHandlers, List<Handler<RoutingContext>> failureHandlers, boolean added, Pattern pattern, List<String> groups, boolean useNormalizedPath, Set<String> namedGroupsInRegex, Pattern virtualHostPattern, boolean pathEndsWithSlash, boolean exclusive, boolean exactPath) {
+  private RouteState(RouteImpl route, String path, String name, int order, boolean enabled, Set<HttpMethod> methods, Set<MIMEHeader> consumes, boolean emptyBodyPermittedWithConsumes, Set<MIMEHeader> produces, List<Handler<RoutingContext>> contextHandlers, List<Handler<RoutingContext>> failureHandlers, boolean added, Pattern pattern, List<String> groups, boolean useNormalizedPath, Set<String> namedGroupsInRegex, Pattern virtualHostPattern, boolean pathEndsWithSlash, boolean exclusive, boolean star) {
     this.route = route;
     this.path = path;
     this.name = name;
@@ -77,7 +77,7 @@ final class RouteState {
     this.virtualHostPattern = virtualHostPattern;
     this.pathEndsWithSlash = pathEndsWithSlash;
     this.exclusive = exclusive;
-    this.exactPath = exactPath;
+    this.star = star;
   }
 
   RouteState(RouteImpl route, int order) {
@@ -137,7 +137,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   public int getOrder() {
@@ -165,7 +165,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   public boolean isEnabled() {
@@ -193,7 +193,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   public Set<HttpMethod> getMethods() {
@@ -221,7 +221,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   public RouteState addMethod(HttpMethod method) {
@@ -245,7 +245,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
 
     newState.methods.add(method);
     return newState;
@@ -276,7 +276,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   RouteState addConsume(MIMEHeader mime) {
@@ -300,7 +300,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
 
     newState.consumes.add(mime);
     return newState;
@@ -331,7 +331,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   public Set<MIMEHeader> getProduces() {
@@ -359,7 +359,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   RouteState addProduce(MIMEHeader mime) {
@@ -383,7 +383,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
 
     newState.produces.add(mime);
     return newState;
@@ -418,7 +418,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   RouteState addContextHandler(Handler<RoutingContext> contextHandler) {
@@ -442,7 +442,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
 
     newState.contextHandlers.add(contextHandler);
     return newState;
@@ -477,7 +477,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   RouteState addFailureHandler(Handler<RoutingContext> failureHandler) {
@@ -501,7 +501,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
 
     newState.failureHandlers.add(failureHandler);
     return newState;
@@ -532,7 +532,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   public Pattern getPattern() {
@@ -560,7 +560,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   public List<String> getGroups() {
@@ -588,7 +588,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   RouteState addGroup(String group) {
@@ -612,7 +612,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
 
     newState.groups.add(group);
     return newState;
@@ -643,7 +643,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   public Set<String> getNamedGroupsInRegex() {
@@ -671,7 +671,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   RouteState addNamedGroupInRegex(String namedGroupInRegex) {
@@ -695,7 +695,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
 
     newState.namedGroupsInRegex.add(namedGroupInRegex);
     return newState;
@@ -726,7 +726,7 @@ final class RouteState {
       virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   public boolean isPathEndsWithSlash() {
@@ -754,7 +754,7 @@ final class RouteState {
       this.virtualHostPattern,
       pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
 
   public boolean isExclusive() {
@@ -782,14 +782,14 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       exclusive,
-      this.exactPath);
+      this.star);
   }
 
-  public boolean isExactPath() {
-    return exactPath;
+  public boolean isStar() {
+    return star;
   }
 
-  RouteState setExactPath(boolean exactPath) {
+  RouteState setStar(boolean star) {
     return new RouteState(
       this.route,
       this.path,
@@ -810,7 +810,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      exactPath);
+      star);
   }
   RouteState setName(String name) {
     return new RouteState(
@@ -833,7 +833,7 @@ final class RouteState {
       this.virtualHostPattern,
       this.pathEndsWithSlash,
       this.exclusive,
-      this.exactPath);
+      this.star);
   }
   private boolean containsMethod(HttpServerRequest request) {
     if (!isEmpty(methods)) {
@@ -884,7 +884,7 @@ final class RouteState {
         context.matchNormalized = useNormalizedPath;
 
         if (m.groupCount() > 0) {
-          if (!exactPath) {
+          if (!star) {
             context.matchRest = m.start("rest");
             // always replace
             context.pathParams()
@@ -1017,7 +1017,7 @@ final class RouteState {
       }
     }
 
-    if (exactPath) {
+    if (star) {
       return pathMatchesExact(thePath, requestPath, pathEndsWithSlash);
     } else {
       if (pathEndsWithSlash) {
@@ -1147,7 +1147,7 @@ final class RouteState {
       ", virtualHostPattern=" + virtualHostPattern +
       ", pathEndsWithSlash=" + pathEndsWithSlash +
       ", exclusive=" + exclusive +
-      ", exactPath=" + exactPath +
+      ", star=" + star +
       '}';
   }
 }

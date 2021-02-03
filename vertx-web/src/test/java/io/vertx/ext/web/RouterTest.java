@@ -54,6 +54,12 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testSimpleRoute2() throws Exception {
+    router.route("/*").handler(rc -> rc.response().end());
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+  }
+
+  @Test
   public void testSimpleFunction() throws Exception {
     router.route()
       .respond(rc -> vertx.fileSystem().readFile(rc.queryParams().get("file")));
