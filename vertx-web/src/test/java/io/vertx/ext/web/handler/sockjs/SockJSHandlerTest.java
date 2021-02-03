@@ -405,7 +405,9 @@ public class SockJSHandlerTest extends WebTestBase {
         sock.routingContext().setSession(session);
         try {
           assertEquals(sessionID.get(), store.get(sessionID.get()).result().id());
-          assertEquals(sessionUser.get(), sock.webUser());
+          // the user cannot be the same, it's a new request, if it's not null it
+          // has been leaked from another context
+          assertNull(sock.webUser());
         } catch (InterruptedException | ExecutionException e) {
           fail();
         }
