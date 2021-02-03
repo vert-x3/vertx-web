@@ -1147,7 +1147,7 @@ final class RouteState {
       ", virtualHostPattern=" + virtualHostPattern +
       ", pathEndsWithSlash=" + pathEndsWithSlash +
       ", exclusive=" + exclusive +
-      ", partial=" + exactPath +
+      ", exactPath=" + exactPath +
       '}';
   }
 }
