@@ -487,7 +487,8 @@ public class SubRouterTest extends WebTestBase {
 
     router.route("/v/:version/*")
       .subRouter(subRouter)
-      .handler(ctx -> {});
+      .handler(ctx -> {
+      });
   }
 
   @Test(expected = IllegalStateException.class)
@@ -503,7 +504,8 @@ public class SubRouterTest extends WebTestBase {
     });
 
     router.route("/v/:version/*")
-      .handler(ctx -> {})
+      .handler(ctx -> {
+      })
       .subRouter(subRouter);
   }
 

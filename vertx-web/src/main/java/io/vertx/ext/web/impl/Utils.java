@@ -20,6 +20,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 
 import java.time.*;
@@ -55,17 +56,21 @@ public class Utils extends io.vertx.core.impl.Utils {
   }
 
   public static String pathOffset(String path, RoutingContext context) {
-    final String rest = context.pathParam("*");
-    if (rest != null) {
-      // normalize
-      if (rest.length() > 0) {
-        if (rest.charAt(0) == '/') {
-          return rest;
+    final Route route = context.currentRoute();
+
+    if (!route.isExactPath()) {
+      final String rest = context.pathParam("*");
+      if (rest != null) {
+        // normalize
+        if (rest.length() > 0) {
+          if (rest.charAt(0) == '/') {
+            return rest;
+          } else {
+            return "/" + rest;
+          }
         } else {
-          return "/" + rest;
+          return "/";
         }
-      } else {
-        return "/";
       }
     }
     int prefixLen = 0;
@@ -77,12 +82,15 @@ public class Utils extends io.vertx.core.impl.Utils {
         prefixLen--;
       }
     }
-    String routePath = context.currentRoute().getPath();
-    if (routePath != null) {
-      prefixLen += routePath.length();
-      // special case we need to verify if a trailing slash  is present and exclude
-      if (routePath.charAt(routePath.length() - 1) == '/') {
-        prefixLen--;
+    // we can only safely skip the route path if there are no variables or regex
+    if (!route.isRegexPath()) {
+      String routePath = route.getPath();
+      if (routePath != null) {
+        prefixLen += routePath.length();
+        // special case we need to verify if a trailing slash  is present and exclude
+        if (routePath.charAt(routePath.length() - 1) == '/') {
+          prefixLen--;
+        }
       }
     }
     return prefixLen != 0 ? path.substring(prefixLen) : path;

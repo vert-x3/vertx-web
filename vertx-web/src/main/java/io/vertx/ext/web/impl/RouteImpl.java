@@ -149,7 +149,7 @@ public class RouteImpl implements Route {
   public synchronized Route subRouter(Router subRouter) {
 
     // The route path must end with a wild card
-    if (state.isExactPath()) {
+    if (state.getPath() != null && state.isExactPath()) {
       throw new IllegalStateException("Sub router cannot be mounted on an exact path.");
     }
     // Parameters are allowed but full regex patterns not
@@ -222,6 +222,11 @@ public class RouteImpl implements Route {
   @Override
   public boolean isRegexPath() {
     return state.getPattern() != null;
+  }
+
+  @Override
+  public boolean isExactPath() {
+    return state.isExactPath();
   }
 
   @Override

@@ -101,7 +101,7 @@ final class RouteState {
       null,
       false,
       false,
-      false);
+      true);
   }
 
   public RouteImpl getRoute() {
