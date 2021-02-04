@@ -23,6 +23,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Route;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.impl.Utils;
@@ -172,9 +173,13 @@ public class TemplateTest extends WebTestBase {
         handler.handle(Future.failedFuture(new Exception("eek")));
       } else {
         String templ = vertx.fileSystem().readFileBlocking(templateFileName).toString(StandardCharsets.UTF_8);
-        String rendered = templ.replace("{foo}", (String) context.get("foo"));
-        rendered = rendered.replace("{bar}", (String) context.get("bar"));
-        handler.handle(Future.succeededFuture(Buffer.buffer(rendered)));
+        if (context.containsKey("foo")) {
+          templ = templ.replace("{foo}", (String) context.get("foo"));
+        }
+        if (context.containsKey("bar")) {
+          templ = templ.replace("{bar}", (String) context.get("bar"));
+        }
+        handler.handle(Future.succeededFuture(Buffer.buffer(templ)));
       }
     }
 
@@ -183,4 +188,33 @@ public class TemplateTest extends WebTestBase {
       // no-op
     }
   }
+
+  @Test
+  public void testSubRouterBeforeTemplateHandler() throws Exception {
+
+    String top =
+      "<html lang=\"en\">\n" +
+        "<body>\n" +
+        "<h1>Top index!</h1>\n" +
+        "</body>\n" +
+        "</html>\n";
+
+    String sub =
+      "<html lang=\"en\">\n" +
+        "<body>\n" +
+        "<h1>Sub index!</h1>\n" +
+        "</body>\n" +
+        "</html>\n";
+
+    router.clear();
+
+    router.mountSubRouter("/sub", Router.router(vertx));
+
+    router.getWithRegex(".+\\.ftl")
+      .handler(TemplateHandler.create(new TestEngine(false)));
+
+    testRequestBuffer(HttpMethod.GET, "/sub/index.ftl", null, null, 200, "OK", Buffer.buffer(sub), true);
+    testRequestBuffer(HttpMethod.GET, "/index.ftl", null, null, 200, "OK", Buffer.buffer(top), true);
+  }
+
 }
