@@ -1790,6 +1790,13 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testExpectContentTypeWithEncodingPass() throws Exception {
+    testExpectation(false,
+      req -> req.expect(ResponsePredicate.JSON),
+      resp -> resp.putHeader("content-type", "application/JSON;charset=UTF-8").end());
+  }
+
+  @Test
   public void testExpectOneOfContentTypesPass() throws Exception {
     testExpectation(false,
       req -> req.expect(ResponsePredicate.contentType(Arrays.asList("text/plain", "text/HTML"))),
