@@ -26,8 +26,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.nio.file.Paths;
-
 /**
  * @author <a href="mailto:andy@mazebert.com">Andreas Hager</a>
  */
@@ -39,7 +37,7 @@ public class JteTemplateEngineTest {
   @BeforeClass
   public static void before() {
     Vertx vertx = Vertx.vertx();
-    engine = JteTemplateEngine.create(vertx, Paths.get("src", "test", "jte"));
+    engine = JteTemplateEngine.create(vertx, "src/test/jte");
   }
 
   @Test

@@ -24,7 +24,6 @@ import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.jte.impl.JteTemplateEngineImpl;
 import io.vertx.ext.web.templ.jte.impl.VertxDirectoryCodeResolver;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -40,27 +39,11 @@ public interface JteTemplateEngine extends TemplateEngine {
    * <p>
    * Hot reloading is active, when {@link WebEnvironment#development()} is true.
    *
-   * @param vertx the vert.x instance
+   * @param vertx                 the vert.x instance
    * @param templateRootDirectory the directory where jte templates are located
    * @return the created vert.x template engine
    */
-  static JteTemplateEngine create(Vertx vertx, Path templateRootDirectory) {
-    return create(gg.jte.TemplateEngine.create(new VertxDirectoryCodeResolver(vertx, templateRootDirectory), Paths.get("target", "jte-classes"), ContentType.Html));
+  static JteTemplateEngine create(Vertx vertx, String templateRootDirectory) {
+    return new JteTemplateEngineImpl(gg.jte.TemplateEngine.create(new VertxDirectoryCodeResolver(vertx, templateRootDirectory), Paths.get("target", "jte-classes"), ContentType.Html));
   }
-
-  /**
-   * Creates a vert.x template engine for the given jte template engine.
-   * <p>
-   * Use this method if you want full control over the used engine.
-   * <p>
-   * For instance, it is recommended to use the jte-maven-plugin to precompile all jte templates
-   * during maven build. If you do so, you can pass a precompiled engine when running in production.
-   *
-   * @param templateEngine the configured jte template engine
-   * @return the created vert.x template engine
-   */
-  static JteTemplateEngine create(gg.jte.TemplateEngine templateEngine) {
-    return new JteTemplateEngineImpl(templateEngine);
-  }
-
 }

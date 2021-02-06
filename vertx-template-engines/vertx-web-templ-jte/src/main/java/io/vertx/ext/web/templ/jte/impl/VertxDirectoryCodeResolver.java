@@ -20,7 +20,6 @@ import gg.jte.CodeResolver;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.common.WebEnvironment;
 
-import java.nio.file.Path;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -29,12 +28,12 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class VertxDirectoryCodeResolver implements CodeResolver {
   private final Vertx vertx;
-  private final Path templateRootDirectory;
+  private final String templateRootDirectory;
   private final ConcurrentMap<String, Long> modificationTimes;
 
-  public VertxDirectoryCodeResolver(Vertx vertx, Path templateRootDirectory) {
+  public VertxDirectoryCodeResolver(Vertx vertx, String templateRootDirectory) {
     this.vertx = vertx;
-    this.templateRootDirectory = templateRootDirectory;
+    this.templateRootDirectory = templateRootDirectory.endsWith("/") ? templateRootDirectory : templateRootDirectory + "/";
 
     if (WebEnvironment.development()) {
       modificationTimes = new ConcurrentHashMap<>();
@@ -44,7 +43,7 @@ public class VertxDirectoryCodeResolver implements CodeResolver {
   }
 
   public String resolve(String name) {
-    name = templateRootDirectory.resolve(name).toString();
+    name = templateRootDirectory + name;
 
     String templateCode = vertx.fileSystem().readFileBlocking(name).toString();
     if (templateCode == null) {
@@ -63,7 +62,7 @@ public class VertxDirectoryCodeResolver implements CodeResolver {
       return false;
     }
 
-    name = templateRootDirectory.resolve(name).toString();
+    name = templateRootDirectory + name;
 
     Long lastResolveTime = this.modificationTimes.get(name);
     if (lastResolveTime == null) {

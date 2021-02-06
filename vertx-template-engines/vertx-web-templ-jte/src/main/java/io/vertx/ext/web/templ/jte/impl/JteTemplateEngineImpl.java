@@ -34,6 +34,16 @@ public class JteTemplateEngineImpl implements JteTemplateEngine {
 
   private final TemplateEngine templateEngine;
 
+  /**
+   * Creates a vert.x template engine for the given jte template engine.
+   * <p>
+   * Use this method if you want full control over the used engine.
+   * <p>
+   * For instance, it is recommended to use the jte-maven-plugin to precompile all jte templates
+   * during maven build. If you do so, you can pass a precompiled engine when running in production.
+   *
+   * @param templateEngine the configured jte template engine
+   */
   public JteTemplateEngineImpl(TemplateEngine templateEngine) {
     this.templateEngine = templateEngine;
   }
