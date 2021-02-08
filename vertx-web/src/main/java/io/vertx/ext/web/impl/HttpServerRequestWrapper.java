@@ -3,6 +3,7 @@ package io.vertx.ext.web.impl;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -13,6 +14,7 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.AllowForwardHeaders;
+import io.vertx.ext.web.RoutingContext;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
@@ -24,6 +26,7 @@ class HttpServerRequestWrapper implements HttpServerRequest {
 
   private final HttpServerRequest delegate;
   private final ForwardedParser forwardedParser;
+  private final RoutingContext context;
 
   private boolean modified;
 
@@ -34,9 +37,10 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   private String absoluteURI;
   private MultiMap params;
 
-  HttpServerRequestWrapper(HttpServerRequest request, AllowForwardHeaders allowForward) {
-    delegate = request;
-    forwardedParser = new ForwardedParser(delegate, allowForward);
+  HttpServerRequestWrapper(HttpServerRequest request, AllowForwardHeaders allowForward, RoutingContext context) {
+    this.delegate = request;
+    this.forwardedParser = new ForwardedParser(delegate, allowForward);
+    this.context = context;
   }
 
   void changeTo(HttpMethod method, String uri) {
@@ -385,6 +389,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   public HttpServerRequest routed(String route) {
     delegate.routed(route);
     return this;
+  }
+
+  @Override
+  public Context context() {
+    return (Context) context;
   }
 
   @Override
