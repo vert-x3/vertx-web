@@ -2951,14 +2951,20 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testQuarkusStar() throws Exception {
-    String path = "/swagger";
-    router.route(path + "/*")
+
+    router.clear();
+
+    Router swagger = Router.router(vertx);
+
+    swagger.route("/swagger/*")
       .handler(RoutingContext::end);
 
-    testRequest(HttpMethod.GET, "/swagge", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/swagger", 200, "OK");
-    testRequest(HttpMethod.GET, "/swaggery", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/swagger/", 200, "OK");
-    testRequest(HttpMethod.GET, "/swagger/index.html", 200, "OK");
+    router.mountSubRouter("/q", swagger);
+
+    testRequest(HttpMethod.GET, "/q/swagge", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/q/swagger", 200, "OK");
+    testRequest(HttpMethod.GET, "/q/swaggery", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/q/swagger/", 200, "OK");
+    testRequest(HttpMethod.GET, "/q/swagger/index.html", 200, "OK");
   }
 }

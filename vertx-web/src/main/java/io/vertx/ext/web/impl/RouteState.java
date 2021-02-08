@@ -862,7 +862,12 @@ final class RouteState {
       return 404;
     }
     if (pattern != null) {
+      // need to reset "rest"
+      context.pathParams()
+        .remove("*");
+
       String path = useNormalizedPath ? context.normalizedPath() : context.request().path();
+
       if (mountPoint != null) {
         int strip = mountPoint.length();
         // mount point can have significant slash
@@ -1018,6 +1023,10 @@ final class RouteState {
     }
 
     if (exactPath) {
+      // exact path has no "rest"
+      ctx.pathParams()
+        .remove("*");
+
       return pathMatchesExact(thePath, requestPath, pathEndsWithSlash);
     } else {
       if (pathEndsWithSlash) {
@@ -1036,16 +1045,14 @@ final class RouteState {
           // request misses 1 character, there is the chance that this request doesn't include the final slash
           // because the mount path ended with a wildcard we are relaxed in the check
           if (thePath.regionMatches(0, requestPath, 0, pathLen - 1)) {
+            // handle the "rest" as path param *, always known to be empty
+            ctx.pathParams()
+              .put("*", "/");
             return true;
           }
         }
-
-        // we have at least the same amount of characters as the mount path, we can match
-        // the mount path safely
-        if (thePath.regionMatches(0, requestPath, 0, thePath.length())) {
-          return true;
-        }
       }
+
       if (requestPath.startsWith(thePath)) {
         // handle the "rest" as path param *
         ctx.pathParams()
