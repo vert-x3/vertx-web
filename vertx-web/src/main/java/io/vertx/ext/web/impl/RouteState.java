@@ -1021,14 +1021,29 @@ final class RouteState {
       return pathMatchesExact(thePath, requestPath, pathEndsWithSlash);
     } else {
       if (pathEndsWithSlash) {
-        if (requestPath.charAt(requestPath.length() - 1) == '/') {
-          if (requestPath.equals(thePath)) {
+        // the route expects a path that ends in "/*". This is a special case
+        // we need to optionally allow any request just like if it was a "*" but
+        // treat the slash
+        final int pathLen = thePath.length();
+        final int reqLen = requestPath.length();
+
+        if (reqLen < pathLen - 2) {
+          // we miss at least 2 characters
+          return false;
+        }
+
+        if (reqLen == pathLen - 1) {
+          // request misses 1 character, there is the chance that this request doesn't include the final slash
+          // because the mount path ended with a wildcard we are relaxed in the check
+          if (thePath.regionMatches(0, requestPath, 0, pathLen - 1)) {
             return true;
           }
-        } else {
-          if (thePath.regionMatches(0, requestPath, 0, thePath.length())) {
-            return true;
-          }
+        }
+
+        // we have at least the same amount of characters as the mount path, we can match
+        // the mount path safely
+        if (thePath.regionMatches(0, requestPath, 0, thePath.length())) {
+          return true;
         }
       }
       if (requestPath.startsWith(thePath)) {

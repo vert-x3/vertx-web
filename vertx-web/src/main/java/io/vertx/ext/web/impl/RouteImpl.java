@@ -264,8 +264,7 @@ public class RouteImpl implements Route {
   }
 
   private synchronized void setPath(String path) {
-    // See if the path contains ":" - if so then it contains parameter capture groups and we have to generate
-    // a regex for that
+    // See if the path is a wildcard "*" is present - If so we need to configure this path to be not exact
     if (path.charAt(path.length() - 1) != '*') {
       state = state.setExactPath(true);
       state = state.setPath(path);
@@ -274,6 +273,8 @@ public class RouteImpl implements Route {
       state = state.setPath(path.substring(0, path.length() - 1));
     }
 
+    // See if the path contains ":" - if so then it contains parameter capture groups and we have to generate
+    // a regex for that
     if (path.indexOf(':') != -1) {
       createPatternRegex(path);
     }
