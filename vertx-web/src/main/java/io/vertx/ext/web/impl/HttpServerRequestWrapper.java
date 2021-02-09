@@ -70,11 +70,6 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
-  public Context context() {
-    return delegate.context();
-  }
-
-  @Override
   public HttpServerRequest body(Handler<AsyncResult<Buffer>> handler) {
     delegate.body(handler);
     return this;
