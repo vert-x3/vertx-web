@@ -320,11 +320,6 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
-  public int streamId() {
-    return delegate.streamId();
-  }
-
-  @Override
   public void toWebSocket(Handler<AsyncResult<ServerWebSocket>> handler) {
     delegate.toWebSocket(toWebSocket -> {
       if (toWebSocket.succeeded()) {
@@ -392,11 +387,6 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   public HttpServerRequest routed(String route) {
     delegate.routed(route);
     return this;
-  }
-
-  @Override
-  public Context context() {
-    return delegate.context();
   }
 
   @Override
