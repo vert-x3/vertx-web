@@ -2948,4 +2948,23 @@ public class RouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/help/abcd/", 200, "OK");
     testRequest(HttpMethod.GET, "/help/abcd/txt", 200, "OK");
   }
+
+  @Test
+  public void testQuarkusStar() throws Exception {
+
+    router.clear();
+
+    Router swagger = Router.router(vertx);
+
+    swagger.route("/swagger/*")
+      .handler(RoutingContext::end);
+
+    router.mountSubRouter("/q", swagger);
+
+    testRequest(HttpMethod.GET, "/q/swagge", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/q/swagger", 200, "OK");
+    testRequest(HttpMethod.GET, "/q/swaggery", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/q/swagger/", 200, "OK");
+    testRequest(HttpMethod.GET, "/q/swagger/index.html", 200, "OK");
+  }
 }

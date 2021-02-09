@@ -129,9 +129,13 @@ public class WebExamples {
       // `/some/path/subdir`
       // `/some/path/subdir/blah.html`
       //
-      // but not:
-      // `/some/path` the path is strict because it ends with slash
-      // `/some/bath`
+      // but **ALSO**:
+      // `/some/path` the final slash is always optional with a wildcard to preserve
+      //              compatibility with many client libraries.
+      // but **NOT**:
+      // `/some/patha`
+      // `/some/patha/`
+      // etc...
     });
 
   }

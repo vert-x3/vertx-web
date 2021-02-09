@@ -2,11 +2,7 @@ package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.net.NetSocket;
@@ -71,11 +67,6 @@ class HttpServerRequestWrapper implements HttpServerRequest {
         path = uri;
       }
     }
-  }
-
-  @Override
-  public Context context() {
-    return delegate.context();
   }
 
   @Override
@@ -324,6 +315,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
+  public int streamId() {
+    return delegate.streamId();
+  }
+
+  @Override
   public void toWebSocket(Handler<AsyncResult<ServerWebSocket>> handler) {
     delegate.toWebSocket(toWebSocket -> {
       if (toWebSocket.succeeded()) {
@@ -391,6 +387,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   public HttpServerRequest routed(String route) {
     delegate.routed(route);
     return this;
+  }
+
+  @Override
+  public Context context() {
+    return delegate.context();
   }
 
   @Override
