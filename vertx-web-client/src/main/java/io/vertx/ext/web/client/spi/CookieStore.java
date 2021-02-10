@@ -12,13 +12,16 @@ package io.vertx.ext.web.client.spi;
 
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.client.impl.CookieStoreImpl;
 
 /**
  * A cookie store that manages cookies for a single user; received for different domains and valid for different paths.
- * 
+ *
  * @author <a href="mailto:tommaso.nolli@gmail.com">Tommaso Nolli</a>
  */
+@VertxGen
 public interface CookieStore {
 
   /**
@@ -28,36 +31,39 @@ public interface CookieStore {
   static CookieStore build() {
     return new CookieStoreImpl();
   }
-  
+
   /**
    * Returns and {@link Iterable} of cookies satisfying the filters passed as paraemters.
    * <p>
    * It is implementation responsibility to return the appropriate cookies between the ones stored in this store
    * and to clean up the path.
-   * 
+   *
    * @param ssl true if is the connection secure
    * @param domain the domain we are calling
    * @param path the path we are calling
    * @return the matched cookies
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   Iterable<Cookie> get(Boolean ssl, String domain, String path);
-  
+
   /**
    * Add a cookie to this {@code CookieStore}.
    * <p>
    * If a cookie with the same name is received from the server, it will overwrite this setting.
-   * 
+   *
    * @param cookie the {@link Cookie} to add
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
+  @GenIgnore
   CookieStore put(Cookie cookie);
   /**
    * Removes a previously added cookie.
-   * 
+   *
    * @param cookie the {@link Cookie} to remove
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
+  @GenIgnore
   CookieStore remove(Cookie cookie);
 }
