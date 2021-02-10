@@ -12,7 +12,7 @@
   <artifactId>vertx-web-templ-jte</artifactId>
 
   <properties>
-    <jte.version>1.5.1</jte.version>
+    <jte.version>1.6.0</jte.version>
   </properties>
 
   <dependencies>
@@ -61,27 +61,5 @@
 
     </plugins>
   </build>
-
-  <profiles>
-    <profile>
-      <id>skip-tests</id>
-      <activation>
-        <jdk>1.8</jdk>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <configuration>
-                <skipTests>true</skipTests>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-  </profiles>
 
 </project>
