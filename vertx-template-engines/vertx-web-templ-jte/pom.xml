@@ -63,8 +63,8 @@
         <artifactId>jte-maven-plugin</artifactId>
         <version>${jte.version}</version>
         <configuration>
-          <sourceDirectory>src/test/templates</sourceDirectory>
-          <targetDirectory>target/test-classes</targetDirectory>
+          <sourceDirectory>${project.basedir}/src/test/templates</sourceDirectory>
+          <targetDirectory>${project.build.directory}/test-classes</targetDirectory>
           <contentType>Html</contentType>
         </configuration>
         <executions>
