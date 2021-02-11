@@ -364,7 +364,6 @@ public class SessionHandlerImpl implements SessionHandler {
     context.put(SESSION_STOREUSER_KEY, true);
     Promise<Void> promise = Promise.promise();
     flush(context, true, true, promise);
-    promise.future().onFailure(flush -> LOG.warn("Failed to flush the user to the underlying session store", flush));
     return promise.future();
   }
 
