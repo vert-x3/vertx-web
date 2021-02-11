@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
@@ -27,6 +28,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.SessionHandler;
@@ -351,6 +353,18 @@ public class SessionHandlerImpl implements SessionHandler {
       }
     });
     return session;
+  }
+
+  public Future<Void> setUser(RoutingContext context, User user) {
+    if (!cookieless) {
+      context.removeCookie(sessionCookieName, false);
+    }
+    context.setUser(user);
+    // signal we must store the user to link it to the session
+    context.put(SESSION_STOREUSER_KEY, true);
+    Promise<Void> promise = Promise.promise();
+    flush(context, true, true, promise);
+    return promise.future();
   }
 
   private String getSessionId(RoutingContext  context) {
