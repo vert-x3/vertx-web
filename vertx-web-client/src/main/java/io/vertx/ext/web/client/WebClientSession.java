@@ -56,7 +56,7 @@ public interface WebClientSession extends WebClient {
    * @param webClient the web client instance
    * @return the created client
    */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @GenIgnore
   static WebClientSession create(WebClient webClient, CookieStore cookieStore) {
     return new WebClientSessionAware(webClient, cookieStore);
   }
@@ -69,7 +69,7 @@ public interface WebClientSession extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @GenIgnore
   WebClientSession addHeader(CharSequence name, CharSequence value);
 
   /**
@@ -90,7 +90,7 @@ public interface WebClientSession extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @GenIgnore
   WebClientSession addHeader(CharSequence name, Iterable<CharSequence> values);
 
   /**
@@ -101,7 +101,7 @@ public interface WebClientSession extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @GenIgnore
   WebClientSession addHeader(String name, Iterable<String> values);
 
   /**
@@ -111,7 +111,7 @@ public interface WebClientSession extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @GenIgnore
   WebClientSession removeHeader(CharSequence name);
 
   /**
@@ -131,6 +131,6 @@ public interface WebClientSession extends WebClient {
    * and is automatically updated with cookies present in responses received by this client.
    * @return this client's cookie store
    */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @GenIgnore
   CookieStore cookieStore();
 }
