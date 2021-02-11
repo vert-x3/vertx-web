@@ -11,9 +11,6 @@
 package io.vertx.ext.web.client.spi;
 
 import io.netty.handler.codec.http.cookie.Cookie;
-import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.client.impl.CookieStoreImpl;
 
 /**
@@ -21,7 +18,6 @@ import io.vertx.ext.web.client.impl.CookieStoreImpl;
  *
  * @author <a href="mailto:tommaso.nolli@gmail.com">Tommaso Nolli</a>
  */
-@VertxGen
 public interface CookieStore {
 
   /**
@@ -43,7 +39,6 @@ public interface CookieStore {
    * @param path the path we are calling
    * @return the matched cookies
    */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   Iterable<Cookie> get(Boolean ssl, String domain, String path);
 
   /**
@@ -54,8 +49,6 @@ public interface CookieStore {
    * @param cookie the {@link Cookie} to add
    * @return a reference to this, so the API can be used fluently
    */
-  @Fluent
-  @GenIgnore
   CookieStore put(Cookie cookie);
   /**
    * Removes a previously added cookie.
@@ -63,7 +56,5 @@ public interface CookieStore {
    * @param cookie the {@link Cookie} to remove
    * @return a reference to this, so the API can be used fluently
    */
-  @Fluent
-  @GenIgnore
   CookieStore remove(Cookie cookie);
 }

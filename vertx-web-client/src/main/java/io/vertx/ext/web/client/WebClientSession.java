@@ -56,6 +56,7 @@ public interface WebClientSession extends WebClient {
    * @param webClient the web client instance
    * @return the created client
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static WebClientSession create(WebClient webClient, CookieStore cookieStore) {
     return new WebClientSessionAware(webClient, cookieStore);
   }
@@ -130,5 +131,6 @@ public interface WebClientSession extends WebClient {
    * and is automatically updated with cookies present in responses received by this client.
    * @return this client's cookie store
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   CookieStore cookieStore();
 }
