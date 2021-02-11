@@ -26,7 +26,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.templ.jte.JteTemplateEngine;
 
-import java.nio.file.Paths;
 import java.util.Map;
 
 
@@ -36,6 +35,7 @@ import java.util.Map;
 public class JteTemplateEngineImpl implements JteTemplateEngine {
 
   private final TemplateEngine templateEngine;
+  private final VertxDirectoryCodeResolver codeResolver;
 
   /**
    * Creates a vert.x template engine for the given jte template engine.
@@ -49,13 +49,13 @@ public class JteTemplateEngineImpl implements JteTemplateEngine {
    * @param templateRootDirectory the template root directory
    */
   public JteTemplateEngineImpl(Vertx vertx, String templateRootDirectory) {
-    this.templateEngine = TemplateEngine.create(
-      new VertxDirectoryCodeResolver(vertx, templateRootDirectory),
-      ContentType.Html);
+    codeResolver = new VertxDirectoryCodeResolver(vertx, templateRootDirectory);
+    templateEngine = TemplateEngine.create(codeResolver, ContentType.Html);
   }
 
   public JteTemplateEngineImpl() {
-    this.templateEngine = TemplateEngine.createPrecompiled(Paths.get("target", "jte-classes"), ContentType.Html);
+    codeResolver = null;
+    templateEngine = TemplateEngine.createPrecompiled(ContentType.Html);
   }
 
   @Override
@@ -71,7 +71,9 @@ public class JteTemplateEngineImpl implements JteTemplateEngine {
 
   @Override
   public void clearCache() {
-    // No-Op
+    if (codeResolver != null) {
+      codeResolver.clear();
+    }
   }
 
   @Override
