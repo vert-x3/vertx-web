@@ -25,6 +25,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.impl.VertxInternal;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.impl.SessionHandlerImpl;
@@ -269,4 +270,27 @@ public interface SessionHandler extends Handler<RoutingContext> {
    * @return the session
    */
   Session newSession(RoutingContext context);
+
+  /**
+   * Set the user for the session
+   *
+   * @param context the routing context
+   * @param user the user
+   * @return future that will be called when complete, or a failure
+   */
+  Future<Void> setUser(RoutingContext context, User user);
+
+  /**
+   * Set the user for the session
+   *
+   * @param context the routing context
+   * @param user the user
+   * @param handler the event handler to signal a asynchronous response.
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  default SessionHandler setUser(RoutingContext context, User user, Handler<AsyncResult<Void>> handler) {
+    setUser(context, user).onComplete(handler);
+    return this;
+  }
 }

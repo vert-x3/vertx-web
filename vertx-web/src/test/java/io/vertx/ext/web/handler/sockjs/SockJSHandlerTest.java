@@ -380,18 +380,19 @@ public class SockJSHandlerTest extends WebTestBase {
         Session oldSession = sock.webSession();
         Session session = handler.newSession(sock.routingContext());
         User user = User.create(principal);
-        sock.routingContext().setUser(user);
-        handler.flush(sock.routingContext()).result();
-        assertNotSame(session, oldSession);
-        assertEquals(session, sock.webSession());
-        sock.routingContext().setSession(session);
-        assertEquals(sock.webSession(), sock.routingContext().session());
-        assertEquals(sock.webUser(), sock.routingContext().user());
-        assertEquals(sock.webUser(), user);
-        assertEquals(session, sock.webSession());
-        assertEquals(session, store.get(session.id()).result());
-        sessionID.complete(session.id());
-        sessionUser.complete(sock.webUser());
+        handler.setUser(sock.routingContext(), user, (result) -> {
+          assertFalse(result.failed());
+          assertNotSame(session, oldSession);
+          assertEquals(session, sock.webSession());
+          sock.routingContext().setSession(session);
+          assertEquals(sock.webSession(), sock.routingContext().session());
+          assertEquals(sock.webUser(), sock.routingContext().user());
+          assertEquals(sock.webUser(), user);
+          assertEquals(session, sock.webSession());
+          assertEquals(session, store.get(session.id()).result());
+          sessionID.complete(session.id());
+          sessionUser.complete(sock.webUser());
+        });
       }));
 
     router.mountSubRouter("/webcontextuser", SockJSHandler.create(vertx)
@@ -405,9 +406,7 @@ public class SockJSHandlerTest extends WebTestBase {
         sock.routingContext().setSession(session);
         try {
           assertEquals(sessionID.get(), store.get(sessionID.get()).result().id());
-          // the user cannot be the same, it's a new request, if it's not null it
-          // has been leaked from another context
-          assertNull(sock.webUser());
+          assertEquals(sessionUser.get(), sock.webUser());
         } catch (InterruptedException | ExecutionException e) {
           fail();
         }
