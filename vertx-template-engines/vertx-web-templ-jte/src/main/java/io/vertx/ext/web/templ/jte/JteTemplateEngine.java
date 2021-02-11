@@ -16,15 +16,11 @@
 
 package io.vertx.ext.web.templ.jte;
 
-import gg.jte.ContentType;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.common.WebEnvironment;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.jte.impl.JteTemplateEngineImpl;
-import io.vertx.ext.web.templ.jte.impl.VertxDirectoryCodeResolver;
-
-import java.nio.file.Paths;
 
 /**
  * A template engine for <a href="https://jte.gg">jte</a> templates.
@@ -44,6 +40,17 @@ public interface JteTemplateEngine extends TemplateEngine {
    * @return the created vert.x template engine
    */
   static JteTemplateEngine create(Vertx vertx, String templateRootDirectory) {
-    return new JteTemplateEngineImpl(gg.jte.TemplateEngine.create(new VertxDirectoryCodeResolver(vertx, templateRootDirectory), Paths.get("target", "jte-classes"), ContentType.Html));
+    return new JteTemplateEngineImpl(vertx, templateRootDirectory);
+  }
+
+  /**
+   * Creates a vert.x template engine for <b>precompiled</b> jte templates with sane defaults.
+   * <p>
+   * Hot reloading is never active.
+   *
+   * @return the created vert.x template engine
+   */
+  static JteTemplateEngine create() {
+    return new JteTemplateEngineImpl();
   }
 }

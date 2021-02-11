@@ -16,14 +16,17 @@
 
 package io.vertx.ext.web.templ.jte.impl;
 
+import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.output.StringOutput;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.templ.jte.JteTemplateEngine;
 
+import java.nio.file.Paths;
 import java.util.Map;
 
 
@@ -42,10 +45,17 @@ public class JteTemplateEngineImpl implements JteTemplateEngine {
    * For instance, it is recommended to use the jte-maven-plugin to precompile all jte templates
    * during maven build. If you do so, you can pass a precompiled engine when running in production.
    *
-   * @param templateEngine the configured jte template engine
+   * @param vertx the vertx instance
+   * @param templateRootDirectory the template root directory
    */
-  public JteTemplateEngineImpl(TemplateEngine templateEngine) {
-    this.templateEngine = templateEngine;
+  public JteTemplateEngineImpl(Vertx vertx, String templateRootDirectory) {
+    this.templateEngine = TemplateEngine.create(
+      new VertxDirectoryCodeResolver(vertx, templateRootDirectory),
+      ContentType.Html);
+  }
+
+  public JteTemplateEngineImpl() {
+    this.templateEngine = TemplateEngine.createPrecompiled(Paths.get("target", "jte-classes"), ContentType.Html);
   }
 
   @Override
@@ -64,4 +74,9 @@ public class JteTemplateEngineImpl implements JteTemplateEngine {
     // No-Op
   }
 
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T> T unwrap() throws ClassCastException {
+    return (T) templateEngine;
+  }
 }
