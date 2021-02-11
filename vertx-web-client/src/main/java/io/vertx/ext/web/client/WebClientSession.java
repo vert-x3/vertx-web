@@ -11,6 +11,8 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.client.impl.WebClientSessionAware;
 import io.vertx.ext.web.client.spi.CookieStore;
 
@@ -35,11 +37,12 @@ import io.vertx.ext.web.client.spi.CookieStore;
  *
  * @author <a href="mailto:tommaso.nolli@gmail.com">Tommaso Nolli</a>
  */
+@VertxGen
 public interface WebClientSession extends WebClient {
 
   /**
    * Create a session aware web client using the provided {@code webClient} instance.
-   * 
+   *
    * @param webClient the web client instance
    * @return the created client
    */
@@ -49,10 +52,11 @@ public interface WebClientSession extends WebClient {
 
   /**
    * Create a session aware web client using the provided {@code webClient} instance.
-   * 
+   *
    * @param webClient the web client instance
    * @return the created client
    */
+  @GenIgnore
   static WebClientSession create(WebClient webClient, CookieStore cookieStore) {
     return new WebClientSessionAware(webClient, cookieStore);
   }
@@ -65,6 +69,7 @@ public interface WebClientSession extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
+  @GenIgnore
   WebClientSession addHeader(CharSequence name, CharSequence value);
 
   /**
@@ -85,6 +90,7 @@ public interface WebClientSession extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
+  @GenIgnore
   WebClientSession addHeader(CharSequence name, Iterable<CharSequence> values);
 
   /**
@@ -95,33 +101,36 @@ public interface WebClientSession extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
+  @GenIgnore
   WebClientSession addHeader(String name, Iterable<String> values);
 
   /**
    * Removes a previously added header.
-   * 
+   *
    * @param name the header name
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
+  @GenIgnore
   WebClientSession removeHeader(CharSequence name);
 
   /**
    * Removes a previously added header.
-   * 
+   *
    * @param name the header name
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
   WebClientSession removeHeader(String name);
-  
+
   /**
    * Returns this client's {@code CookieStore}
    * <p>
    * All cookies added to this store will be send with every request.
    * The CookieStore honors the domain, path, secure and max-age properties of received cookies
-   * and is automatically updated with cookies present in responses received by this client.  
+   * and is automatically updated with cookies present in responses received by this client.
    * @return this client's cookie store
    */
+  @GenIgnore
   CookieStore cookieStore();
 }

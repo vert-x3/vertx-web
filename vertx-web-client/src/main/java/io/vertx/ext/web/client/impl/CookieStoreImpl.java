@@ -25,8 +25,8 @@ import io.vertx.ext.web.client.spi.CookieStore;
  */
 public class CookieStoreImpl implements CookieStore {
 
-  private ConcurrentHashMap<Key, Cookie> noDomainCookies;
-  private ConcurrentSkipListMap<Key, Cookie> domainCookies;
+  private final ConcurrentHashMap<Key, Cookie> noDomainCookies;
+  private final ConcurrentSkipListMap<Key, Cookie> domainCookies;
 
   public CookieStoreImpl() {
     noDomainCookies = new ConcurrentHashMap<>();
@@ -130,18 +130,14 @@ public class CookieStoreImpl implements CookieStore {
         while (domain.charAt(domain.length() - 1) == '.') {
           domain = domain.substring(0, domain.length() - 1);
         }
-        if (domain.length() == 0) {
-          this.domain = NO_DOMAIN;
-        } else {
-          String[] tokens = domain.split("\\.");
-          String tmp;
-          for (int i = 0, j = tokens.length - 1; i < tokens.length / 2; ++i, --j) {
-            tmp = tokens[j];
-            tokens[j] = tokens[i];
-            tokens[i] = tmp;
-          }
-          this.domain = String.join(".", tokens);
+        String[] tokens = domain.split("\\.");
+        String tmp;
+        for (int i = 0, j = tokens.length - 1; i < tokens.length / 2; ++i, --j) {
+          tmp = tokens[j];
+          tokens[j] = tokens[i];
+          tokens[i] = tmp;
         }
+        this.domain = String.join(".", tokens);
       }
       this.path = path == null ? "" : path;
       this.name = name;
