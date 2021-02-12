@@ -27,9 +27,11 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.Http2PushMapping;
+import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.impl.LRUCache;
+import io.vertx.ext.web.impl.ParsableMIMEValue;
 import io.vertx.ext.web.impl.Utils;
 
 import java.io.File;
@@ -588,8 +590,13 @@ public class StaticHandlerImpl implements StaticHandler {
     this.webRoot = webRoot;
   }
 
+  private static final Collection<MIMEHeader> DIRECTORY_LISTING_ACCEPT = Arrays.asList(
+    new ParsableMIMEValue("text/html").forceParse(),
+    new ParsableMIMEValue("text/plain").forceParse(),
+    new ParsableMIMEValue("application/json").forceParse()
+  );
+
   private void sendDirectoryListing(FileSystem fileSystem, String dir, RoutingContext context) {
-    final HttpServerRequest request = context.request();
     final HttpServerResponse response = context.response();
 
     fileSystem.readDir(dir, asyncResult -> {
@@ -597,90 +604,98 @@ public class StaticHandlerImpl implements StaticHandler {
         context.fail(asyncResult.cause());
       } else {
 
-        String accept = request.headers().get("accept");
-        if (accept == null) {
-          accept = "text/plain";
+        final List<MIMEHeader> accepts = context.parsedHeaders().accept();
+        String accept = "text/plain";
+        String file;
+
+        if (accepts != null) {
+          MIMEHeader header = context.parsedHeaders()
+            .findBestUserAcceptedIn(context.parsedHeaders().accept(), DIRECTORY_LISTING_ACCEPT);
+
+          if (header != null) {
+            accept = header.component() + "/" + header.subComponent();
+          }
         }
 
-        if (accept.contains("html")) {
-          String normalizedDir = context.normalizedPath();
-          if (!normalizedDir.endsWith("/")) {
-            normalizedDir += "/";
-          }
-
-          String file;
-          StringBuilder files = new StringBuilder("<ul id=\"files\">");
-
-          List<String> list = asyncResult.result();
-          Collections.sort(list);
-
-          for (String s : list) {
-            file = s.substring(s.lastIndexOf(File.separatorChar) + 1);
-            // skip dot files
-            if (!includeHidden && file.charAt(0) == '.') {
-              continue;
+        switch (accept) {
+          case "text/html":
+            String normalizedDir = context.normalizedPath();
+            if (!normalizedDir.endsWith("/")) {
+              normalizedDir += "/";
             }
-            files.append("<li><a href=\"");
-            files.append(normalizedDir);
-            files.append(file);
-            files.append("\" title=\"");
-            files.append(file);
-            files.append("\">");
-            files.append(file);
-            files.append("</a></li>");
-          }
 
-          files.append("</ul>");
+            StringBuilder files = new StringBuilder("<ul id=\"files\">");
 
-          // link to parent dir
-          int slashPos = 0;
-          for (int i = normalizedDir.length() - 2; i > 0; i--) {
-            if (normalizedDir.charAt(i) == '/') {
-              slashPos = i;
-              break;
+            List<String> list = asyncResult.result();
+            Collections.sort(list);
+
+            for (String s : list) {
+              file = s.substring(s.lastIndexOf(File.separatorChar) + 1);
+              // skip dot files
+              if (!includeHidden && file.charAt(0) == '.') {
+                continue;
+              }
+              files.append("<li><a href=\"");
+              files.append(normalizedDir);
+              files.append(file);
+              files.append("\" title=\"");
+              files.append(file);
+              files.append("\">");
+              files.append(file);
+              files.append("</a></li>");
             }
-          }
 
-          String parent = "<a href=\"" + normalizedDir.substring(0, slashPos + 1) + "\">..</a>";
+            files.append("</ul>");
 
-          response
-            .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
-            .end(
-              directoryTemplate(fileSystem).replace("{directory}", normalizedDir)
-                .replace("{parent}", parent)
-                .replace("{files}", files.toString()));
-        } else if (accept.contains("json")) {
-          String file;
-          JsonArray json = new JsonArray();
-
-          for (String s : asyncResult.result()) {
-            file = s.substring(s.lastIndexOf(File.separatorChar) + 1);
-            // skip dot files
-            if (!includeHidden && file.charAt(0) == '.') {
-              continue;
+            // link to parent dir
+            int slashPos = 0;
+            for (int i = normalizedDir.length() - 2; i > 0; i--) {
+              if (normalizedDir.charAt(i) == '/') {
+                slashPos = i;
+                break;
+              }
             }
-            json.add(file);
-          }
-          response
-            .putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .end(json.encode());
-        } else {
-          String file;
-          StringBuilder buffer = new StringBuilder();
 
-          for (String s : asyncResult.result()) {
-            file = s.substring(s.lastIndexOf(File.separatorChar) + 1);
-            // skip dot files
-            if (!includeHidden && file.charAt(0) == '.') {
-              continue;
+            String parent = "<a href=\"" + normalizedDir.substring(0, slashPos + 1) + "\">..</a>";
+
+            response
+              .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+              .end(
+                directoryTemplate(fileSystem).replace("{directory}", normalizedDir)
+                  .replace("{parent}", parent)
+                  .replace("{files}", files.toString()));
+            break;
+          case "application/json":
+            JsonArray json = new JsonArray();
+
+            for (String s : asyncResult.result()) {
+              file = s.substring(s.lastIndexOf(File.separatorChar) + 1);
+              // skip dot files
+              if (!includeHidden && file.charAt(0) == '.') {
+                continue;
+              }
+              json.add(file);
             }
-            buffer.append(file);
-            buffer.append('\n');
-          }
+            response
+              .putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+              .end(json.encode());
+            break;
+          default:
+            StringBuilder buffer = new StringBuilder();
 
-          response
-            .putHeader(HttpHeaders.CONTENT_TYPE, "text/plain")
-            .end(buffer.toString());
+            for (String s : asyncResult.result()) {
+              file = s.substring(s.lastIndexOf(File.separatorChar) + 1);
+              // skip dot files
+              if (!includeHidden && file.charAt(0) == '.') {
+                continue;
+              }
+              buffer.append(file);
+              buffer.append('\n');
+            }
+
+            response
+              .putHeader(HttpHeaders.CONTENT_TYPE, "text/plain")
+              .end(buffer.toString());
         }
       }
     });
