@@ -57,6 +57,20 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testGetDirectoryFuzzyAccepts() throws Exception {
+    testRequest(HttpMethod.GET, "/",
+      req -> req.putHeader("Accept", "application/json, text/plain; q=0.9"),
+      res -> assertEquals("application/json", res.getHeader("Content-Type")), 200, "OK", null);
+  }
+
+  @Test
+  public void testGetDirectoryFuzzyAccepts2() throws Exception {
+    testRequest(HttpMethod.GET, "/",
+      req -> req.putHeader("Accept", "application/json; q=0.8, text/plain; q=0.9"),
+      res -> assertEquals("text/plain", res.getHeader("Content-Type")), 200, "OK", null);
+  }
+
+  @Test
   public void testGetDirectoryOnSubdirMount() throws Exception {
     router.clear();
     router.route("/c/*").handler(stat);
