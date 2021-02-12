@@ -45,9 +45,13 @@ public class JteTemplateEngineImpl implements JteTemplateEngine {
    * For instance, it is recommended to use the jte-maven-plugin to precompile all jte templates
    * during maven build. If you do so, you can pass a precompiled engine when running in production.
    *
-   * @param vertx the vertx instance
-   * @param templateRootDirectory the template root directory
+   * @param engine a configured engine instance
    */
+  public JteTemplateEngineImpl(gg.jte.TemplateEngine engine) {
+    templateEngine = engine;
+    codeResolver = null;
+  }
+
   public JteTemplateEngineImpl(Vertx vertx, String templateRootDirectory) {
     codeResolver = new VertxDirectoryCodeResolver(vertx, templateRootDirectory);
     templateEngine = TemplateEngine.create(codeResolver, ContentType.Html);

@@ -80,6 +80,8 @@ public class VertxDirectoryCodeResolver implements CodeResolver {
   }
 
   public void clear() {
-    modificationTimes.clear();
+    if (modificationTimes != null) {
+      modificationTimes.clear();
+    }
   }
 }

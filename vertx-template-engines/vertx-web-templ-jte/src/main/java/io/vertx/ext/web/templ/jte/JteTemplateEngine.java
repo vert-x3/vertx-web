@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.templ.jte;
 
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.common.WebEnvironment;
@@ -31,7 +32,7 @@ import io.vertx.ext.web.templ.jte.impl.JteTemplateEngineImpl;
 public interface JteTemplateEngine extends TemplateEngine {
 
   /**
-   * Creates a vert.x template engine for jte templates with sane defaults.
+   * Creates a vert.x template engine for jte HTML templates with sane defaults.
    * <p>
    * Hot reloading is active, when {@link WebEnvironment#development()} is true.
    *
@@ -44,7 +45,7 @@ public interface JteTemplateEngine extends TemplateEngine {
   }
 
   /**
-   * Creates a vert.x template engine for <b>precompiled</b> jte templates with sane defaults.
+   * Creates a vert.x template engine for <b>precompiled</b> HTML jte templates with sane defaults.
    * <p>
    * Hot reloading is never active.
    *
@@ -52,5 +53,16 @@ public interface JteTemplateEngine extends TemplateEngine {
    */
   static JteTemplateEngine create() {
     return new JteTemplateEngineImpl();
+  }
+
+
+  /**
+   * Creates a vert.x template engine for jte templates with a user custom engine.
+   *
+   * @return the created vert.x template engine
+   */
+  @GenIgnore
+  static JteTemplateEngine create(gg.jte.TemplateEngine engine) {
+    return new JteTemplateEngineImpl(engine);
   }
 }
