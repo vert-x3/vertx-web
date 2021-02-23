@@ -110,4 +110,4 @@ jobs:
         run: echo "PROJECT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version -B | grep -v '\[')" >> $GITHUB_ENV
       - name: Maven deploy
         if: ${{ endsWith(env.PROJECT_VERSION, '-SNAPSHOT') }}
-        run: mvn deploy -s .ci.maven.settings.xml -DskipTests -B
+        run: mvn deploy -s .ci.travis.settings.xml -DskipTests -B
