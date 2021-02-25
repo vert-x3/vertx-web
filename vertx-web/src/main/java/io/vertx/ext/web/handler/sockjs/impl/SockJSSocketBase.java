@@ -46,7 +46,7 @@ import java.util.UUID;
 
 public abstract class SockJSSocketBase implements SockJSSocket {
 
-  private final MessageConsumer<Buffer> registration;
+  private final MessageConsumer<Object> registration;
   protected final Vertx vertx;
   protected RoutingContext routingContext;
 
@@ -67,9 +67,16 @@ public abstract class SockJSSocketBase implements SockJSSocket {
     this.vertx = vertx;
     this.routingContext = rc;
     if (options.isRegisterWriteHandler()) {
-      Handler<Message<Buffer>> writeHandler = msg -> write(msg.body());
+      Handler<Message<Object>> writeHandler = msg -> {
+        Object body = msg.body();
+        if (body instanceof String) {
+          write((String) msg.body());
+        } else {
+          write((Buffer) msg.body());
+        }
+      };
       writeHandlerID = UUID.randomUUID().toString();
-      MessageConsumer<Buffer> consumer;
+      MessageConsumer<Object> consumer;
       if (options.isLocalWriteHandler()) {
         consumer = vertx.eventBus().localConsumer(writeHandlerID);
       } else {
