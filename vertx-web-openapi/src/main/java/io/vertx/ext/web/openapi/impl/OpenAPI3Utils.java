@@ -4,7 +4,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.openapi.OpenAPIHolder;
 import io.vertx.ext.web.openapi.RouterBuilderException;
 
@@ -102,7 +101,7 @@ class OpenAPI3Utils {
     java.lang.reflect.Parameter[] parameters = method.getParameters();
     if (parameters.length < 2) return false;
     if (!parameters[parameters.length - 1].getType().equals(Handler.class)) return false;
-    return parameters[parameters.length - 2].getType().equals(ServiceRequest.class);
+    return parameters[parameters.length - 2].getType().getName().equals("io.vertx.ext.web.api.service.ServiceRequest");
   }
 
   protected static JsonObject sanitizeDeliveryOptionsExtension(JsonObject jsonObject) {
