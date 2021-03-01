@@ -299,7 +299,7 @@ public class RouteImpl implements Route {
   private static final Pattern RE_OPERATORS_NO_STAR = Pattern.compile("([\\(\\)\\$\\+\\.])");
 
   // Pattern for :<token name> in path
-  private static final Pattern RE_TOKEN_SEARCH = Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)");
+  private static final Pattern RE_TOKEN_SEARCH = Pattern.compile(":([A-Za-z][A-Za-z0-9_-]*)");
 
   private synchronized void createPatternRegex(String path) {
     // escape path from any regex special chars
