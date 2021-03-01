@@ -48,7 +48,8 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web-api-service</artifactId>
       <version>${project.version}</version>
-      <scope>optional</scope>
+      <scope>compile</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
