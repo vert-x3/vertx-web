@@ -167,6 +167,16 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testRouteDashVariableOK() throws Exception {
+    router.route("/flights/:from-:to").handler(rc -> {
+      assertEquals("LAX", rc.pathParam("from"));
+      assertEquals("SFO", rc.pathParam("to"));
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/flights/LAX-SFO", 200, "OK");
+  }
+
+  @Test
   public void testSlashPaths() throws Exception {
     router.route("/foo/").handler(rc -> {
       rc.response().end();

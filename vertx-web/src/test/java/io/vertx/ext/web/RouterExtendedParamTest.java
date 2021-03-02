@@ -16,33 +16,8 @@
 
 package io.vertx.ext.web;
 
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Promise;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.http.RequestOptions;
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.SocketAddress;
-import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
-import static io.vertx.core.Future.succeededFuture;
-import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -64,4 +39,16 @@ public class RouterExtendedParamTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/foo/123", 200, "OK");
   }
+
+  @Test
+  public void testRouteDashVariableNOK() throws Exception {
+    router.route("/flights/:from-:to").handler(rc -> {
+      // from isn't set as the alphabet now includes -
+      assertNull(rc.pathParam("from"));
+      assertNotNull(rc.pathParam("from-"));
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/flights/LAX-SFO", 200, "OK");
+  }
+
 }
