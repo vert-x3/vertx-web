@@ -163,7 +163,7 @@ public class RouterTest extends WebTestBase {
       assertEquals("123", rc.pathParam("my-id"));
       rc.response().end();
     });
-    testRequest(HttpMethod.GET, "/foo/123", 200, "OK");
+    testRequest(HttpMethod.GET, "/foo/123", 404, "Not Found");
   }
 
   @Test
@@ -904,22 +904,14 @@ public class RouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, pathRoot + "/wibble/blibble", 404, "Not Found");
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void testInvalidPattern() throws Exception {
-    router.route("/blah/:!!!/").handler(rc -> {
-      MultiMap params = rc.request().params();
-      rc.response().setStatusMessage(params.get("!!!")).end();
-    });
-    testRequest(HttpMethod.GET, "/blah/tim", 404, "Not Found"); // Because it won't match
+    router.route("/blah/:!!!/").handler(rc -> {});
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void testInvalidPatternWithBuilder() throws Exception {
-    router.route().path("/blah/:!!!/").handler(rc -> {
-      MultiMap params = rc.request().params();
-      rc.response().setStatusMessage(params.get("!!!")).end();
-    });
-    testRequest(HttpMethod.GET, "/blah/tim", 404, "Not Found"); // Because it won't match
+    router.route().path("/blah/:!!!/").handler(rc -> {});
   }
 
   @Test

@@ -275,8 +275,17 @@ public class RouteImpl implements Route {
 
     // See if the path contains ":" - if so then it contains parameter capture groups and we have to generate
     // a regex for that
-    if (path.indexOf(':') != -1) {
-      createPatternRegex(path);
+    int colon = 0;
+    for (int i = 0; i <  path.length(); i++) {
+      if (path.charAt(i) == ':') {
+        colon++;
+      }
+    }
+    if (colon > 0) {
+      int found = createPatternRegex(path);
+      if (colon != found) {
+        throw new IllegalArgumentException("path param does not follow the variable naming rules, expected (" + colon + ") found (" + found + ")");
+      }
     }
 
     state = state.setPathEndsWithSlash(state.getPath().endsWith("/"));
@@ -289,7 +298,7 @@ public class RouteImpl implements Route {
   }
 
   private synchronized void findNamedGroups(String path) {
-    Matcher m = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>").matcher(path);
+    Matcher m = router.RE_TOKEN_NAME_SEARCH.matcher(path);
     while (m.find()) {
       state = state.addNamedGroupInRegex(m.group(1));
     }
@@ -298,10 +307,7 @@ public class RouteImpl implements Route {
   // intersection of regex chars and https://tools.ietf.org/html/rfc3986#section-3.3
   private static final Pattern RE_OPERATORS_NO_STAR = Pattern.compile("([\\(\\)\\$\\+\\.])");
 
-  // Pattern for :<token name> in path
-  private static final Pattern RE_TOKEN_SEARCH = Pattern.compile(":([A-Za-z][A-Za-z0-9_-]*)");
-
-  private synchronized void createPatternRegex(String path) {
+  private synchronized int createPatternRegex(String path) {
     // escape path from any regex special chars
     path = RE_OPERATORS_NO_STAR.matcher(path).replaceAll("\\\\$1");
     // allow usage of * at the end as per documentation
@@ -313,7 +319,7 @@ public class RouteImpl implements Route {
     }
 
     // We need to search for any :<token name> tokens in the String and replace them with named capture groups
-    Matcher m = RE_TOKEN_SEARCH.matcher(path);
+    Matcher m = router.RE_TOKEN_SEARCH.matcher(path);
     StringBuffer sb = new StringBuffer();
     List<String> groups = new ArrayList<>();
     int index = 0;
@@ -332,6 +338,7 @@ public class RouteImpl implements Route {
 
     state = state.setGroups(groups);
     state = state.setPattern(Pattern.compile(path));
+    return index;
   }
 
   private void checkPath(String path) {
@@ -376,7 +383,7 @@ public class RouteImpl implements Route {
         .replaceAll("\\\\$1");
 
       // We need to search for any :<token name> tokens in the String
-      Matcher m = RE_TOKEN_SEARCH.matcher(combinedPath);
+      Matcher m = ((RouterImpl) router).RE_TOKEN_SEARCH.matcher(combinedPath);
       Set<String> groups = new HashSet<>();
       while (m.find()) {
         String group = m.group();
