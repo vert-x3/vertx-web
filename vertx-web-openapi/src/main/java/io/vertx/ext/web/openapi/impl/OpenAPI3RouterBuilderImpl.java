@@ -9,7 +9,6 @@ import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.api.service.RouteToEBServiceHandler;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
@@ -271,19 +270,27 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
         handlersToLoad.addAll(operation.getUserHandlers());
         failureHandlersToLoad.addAll(operation.getUserFailureHandlers());
         if (operation.mustMountRouteToService()) {
-          RouteToEBServiceHandler routeToEBServiceHandler =
-            (operation.getEbServiceDeliveryOptions() != null) ? RouteToEBServiceHandler.build(
-              vertx.eventBus(),
-              operation.getEbServiceAddress(),
-              operation.getEbServiceMethodName(),
-              operation.getEbServiceDeliveryOptions()
-            ) : RouteToEBServiceHandler.build(
-              vertx.eventBus(),
-              operation.getEbServiceAddress(),
-              operation.getEbServiceMethodName()
+          try {
+            io.vertx.ext.web.api.service.RouteToEBServiceHandler routeToEBServiceHandler =
+              (operation.getEbServiceDeliveryOptions() != null) ? io.vertx.ext.web.api.service.RouteToEBServiceHandler.build(
+                vertx.eventBus(),
+                operation.getEbServiceAddress(),
+                operation.getEbServiceMethodName(),
+                operation.getEbServiceDeliveryOptions()
+              ) : io.vertx.ext.web.api.service.RouteToEBServiceHandler.build(
+                vertx.eventBus(),
+                operation.getEbServiceAddress(),
+                operation.getEbServiceMethodName()
+              );
+            routeToEBServiceHandler.extraPayloadMapper(serviceExtraPayloadMapper);
+            handlersToLoad.add(routeToEBServiceHandler);
+          } catch (NoClassDefFoundError exception) {
+            throw new IllegalStateException(
+              "You're trying to use api service without adding it to your classpath. " +
+                "Check you have included vertx-web-api-service in your dependencies",
+              exception
             );
-          routeToEBServiceHandler.extraPayloadMapper(serviceExtraPayloadMapper);
-          handlersToLoad.add(routeToEBServiceHandler);
+          }
         }
       } else {
         // Check if not implemented or method not allowed
