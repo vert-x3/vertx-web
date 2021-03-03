@@ -4,14 +4,11 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.netty.handler.codec.http.QueryStringEncoder;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.RequestOptions;
-import io.vertx.core.impl.VertxInternal;
+import io.vertx.core.http.*;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -25,9 +22,9 @@ import io.vertx.json.schema.common.SchemaURNId;
 import io.vertx.json.schema.common.URIUtils;
 import io.vertx.json.schema.draft7.Draft7SchemaParser;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -64,19 +61,18 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
 
   public Future<JsonObject> loadOpenAPI(String u) {
     URI uri = URIUtils.removeFragment(URI.create(u));
-    Future<JsonObject> resolvedOpenAPIDocumentUnparsed = (URIUtils.isRemoteURI(uri)) ? solveRemoteRef(uri) :
-      solveLocalRef(uri);
-    if (URIUtils.isRemoteURI(uri)) {
-      initialScope = uri;
-      initialScopeDirectory = Paths.get(initialScope.getPath()).resolveSibling("").toString();
-    } else {
-      // Convert without using Path API otherwise we get issue on Windows
-      // java.nio.file.InvalidPathException: Illegal char <:> at index 2: /D:/a/vertx-web/vertx-web/vertx-web-openapi/src/test/resources/specs/security_test.yaml
-      File f = resolveAbsoluteUriWithVertx(uri);
-      initialScope = f.toURI();
-      initialScopeDirectory = f.getAbsoluteFile().getParent();
-    }
-    return resolvedOpenAPIDocumentUnparsed
+    return ((URIUtils.isRemoteURI(uri)) ? solveRemoteRef(uri) : solveLocalRef(uri))
+      .onSuccess(openapiBytes -> {
+        // If we're here, the file exists.
+        // Now we need to set the proper initialScope and initialScopeDirectory in order
+        // to properly resolve refs
+        if (URIUtils.isRemoteURI(uri) || uri.isAbsolute()) {
+          initialScope = uri;
+        } else {
+          initialScope = getResourceAbsoluteURI(uri);
+        }
+        initialScopeDirectory = resolveContainingDirPath(initialScope);
+      })
       .compose(openapi -> {
         absolutePaths.put(initialScope, openapi); // Circular refs hell!
         openapiRoot = openapi;
@@ -280,36 +276,47 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
       .addHeader(HttpHeaders.ACCEPT.toString(), "application/json, application/yaml, application/x-yaml");
     options.getAuthHeaders().forEach(reqOptions::addHeader);
 
-    return client.request(reqOptions).compose(req ->
-      req.send().compose(res -> {
-        if (res.statusCode() != 200) {
-          return Future.failedFuture(new IllegalStateException("Wrong status " + res.statusCode() + " " + res.statusMessage() + " received while resolving remote ref"));
+    Promise<JsonObject> resultProm = Promise.promise();
+    client.request(reqOptions, httpClientRequestAsyncResult -> {
+      if (httpClientRequestAsyncResult.failed()) {
+        resultProm.fail(httpClientRequestAsyncResult.cause());
+        return;
+      }
+
+      httpClientRequestAsyncResult.result().send(responseAr -> {
+        if (responseAr.failed()) {
+          resultProm.fail(responseAr.cause());
+          return;
         }
 
-        String contentType = res.getHeader("Content-Type");
-        if ("application/json".equals(contentType)) {
-          return res.body().compose(buf -> {
-            try {
-              return Future.succeededFuture(buf.toJsonObject());
-            } catch (DecodeException e) {
-              return Future.failedFuture(new RuntimeException("Cannot decode the received Json Response: ", e));
-            }
-          });
-        } else {
-          return res.body().compose(buf -> {
-            try {
-              return Future.succeededFuture(yamlToJson(buf));
-            } catch (DecodeException e) {
-              return Future.failedFuture(new RuntimeException("Cannot decode the received Json Response: ", e));
-            }
-          });
+        HttpClientResponse res = responseAr.result();
+
+        if (res.statusCode() != 200) {
+          resultProm.fail(new IllegalStateException("Wrong status " + res.statusCode() + " " + res.statusMessage() + " received while resolving remote ref"));
+          return;
         }
-      })
-    );
+
+        boolean expectJson = "application/json".equals(res.getHeader("Content-Type"));
+
+        res.bodyHandler(buf -> {
+          try {
+            if (expectJson) {
+              resultProm.complete(buf.toJsonObject());
+            } else {
+              resultProm.complete(yamlToJson(buf));
+            }
+          } catch (DecodeException e) {
+            resultProm.fail(new RuntimeException("Cannot decode the received " + (expectJson ? "JSON" : "YAML") + " response: ", e));
+          }
+        });
+      });
+    });
+
+    return resultProm.future();
   }
 
   private Future<JsonObject> solveLocalRef(final URI ref) {
-    String filePath = sanitizeLocalRef(ref);
+    String filePath = extractPath(ref);
     return fs.readFile(filePath).compose(buf -> {
       try {
         return Future.succeededFuture(buf.toJsonObject());
@@ -328,7 +335,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     try {
       return JsonObject.mapFrom(yamlMapper.readTree(buf.getBytes()));
     } catch (IOException e) {
-      throw new RuntimeException("Cannot decode YAML", e);
+      throw new DecodeException("Cannot decode YAML", e);
     }
   }
 
@@ -343,12 +350,47 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     return scope;
   }
 
-  private File resolveAbsoluteUriWithVertx(URI uri) {
-    return ((VertxInternal) this.vertx).resolveFile(uri.toString());
+  private String extractPath(URI ref) {
+    return ("jar".equals(ref.getScheme())) ? ref.getSchemeSpecificPart().split("!")[1].substring(1) : ref.getPath();
   }
 
-  private String sanitizeLocalRef(URI ref) {
-    return ("jar".equals(ref.getScheme())) ? ref.getSchemeSpecificPart().split("!")[1].substring(1) : ref.getPath();
+  private String resolveContainingDirPath(URI absoluteURI) {
+    return Paths.get(extractPath(absoluteURI)).resolveSibling("").toString();
+  }
+
+  protected static URI getResourceAbsoluteURI(URI relativeURI) {
+    // If it's relative, it could be both in filesystem and in the classpath.
+    // Try to figure this out!
+    URI fromClasspath = getResourceAbsoluteURIFromClasspath(relativeURI);
+    if (fromClasspath != null) {
+      return fromClasspath;
+    } else {
+      // Then it must be local fs!
+      return Paths.get(relativeURI.getPath()).toAbsolutePath().toUri();
+    }
+  }
+
+  protected static URI getResourceAbsoluteURIFromClasspath(URI u) {
+    try {
+      return getClassLoader().getResource(u.toString()).toURI();
+    } catch (NullPointerException | URISyntaxException e) {
+      return null;
+    }
+  }
+
+  private static ClassLoader getClassLoader() {
+    ClassLoader cl = Thread.currentThread().getContextClassLoader();
+    if (cl == null) {
+      cl = OpenAPIHolderImpl.class.getClassLoader();
+    }
+    // when running on substratevm (graal) the access to class loaders
+    // is very limited and might be only available from compile time
+    // known classes. (Object is always known, so we do a final attempt
+    // to get it here).
+    if (cl == null) {
+      cl = Object.class.getClassLoader();
+    }
+    return cl;
   }
 
   public Map<URI, JsonObject> getAbsolutePaths() {

@@ -1,4 +1,4 @@
-package io.vertx.ext.web.openapi;
+package io.vertx.ext.web.openapi.impl;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -6,7 +6,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.auth.AbstractUser;
@@ -18,20 +17,20 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.openapi.impl.JsonPointerIteratorWithLoader;
-import io.vertx.ext.web.openapi.impl.OpenAPIHolderImpl;
+import io.vertx.ext.web.openapi.OpenAPILoaderOptions;
+import io.vertx.ext.web.openapi.asserts.MyAssertions;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.URIUtils;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -75,7 +74,8 @@ public class OpenAPIHolderTest {
         }
 
         @Override
-        public void setAuthProvider(AuthProvider authProvider) { }
+        public void setAuthProvider(AuthProvider authProvider) {
+        }
       }));
     else
       handler.handle(Future.failedFuture("Not match"));
@@ -97,7 +97,7 @@ public class OpenAPIHolderTest {
         OpenAPIHolderImpl parser = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(),
           new OpenAPILoaderOptions());
 
-        parser.loadOpenAPI("yaml/valid/simple_spec.yaml").onComplete(testContext.succeeding(container -> {
+        parser.loadOpenAPI("src/test/resources/yaml/valid/simple_spec.yaml").onComplete(testContext.succeeding(container -> {
           testContext.verify(() -> {
             assertThat(container)
               .extracting(JsonPointer.from("/info/title"))
@@ -137,7 +137,7 @@ public class OpenAPIHolderTest {
         OpenAPIHolderImpl parser = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(),
           new OpenAPILoaderOptions());
 
-        parser.loadOpenAPI("yaml/valid/inner_refs.yaml").onComplete(testContext.succeeding(openapi -> {
+        parser.loadOpenAPI("src/test/resources/yaml/valid/inner_refs.yaml").onComplete(testContext.succeeding(openapi -> {
           testContext.verify(() -> {
             assertThat(openapi)
               .extracting(JsonPointer.create()
@@ -159,11 +159,12 @@ public class OpenAPIHolderTest {
                 .append("schema")
                 .append("$ref")
               )
-              .isEqualTo(resolveAbsoluteUriWithVertx(vertx, URI.create("yaml/valid/inner_refs" +
-                ".yaml#/components/schemas/Simple")).toString())
+              .isEqualTo(resolveAbsoluteURIFromFS(
+                "src/test/resources/yaml/valid/inner_refs.yaml#/components/schemas/Simple"
+              ).toString())
               .satisfies(ref ->
                 assertThat(parser)
-                  .hasCached(URI.create((String)ref))
+                  .hasCached(URI.create((String) ref))
                   .extracting(JsonPointer.create().append("properties").append("fileName").append("type"))
                   .isEqualTo("string")
               );
@@ -196,7 +197,7 @@ public class OpenAPIHolderTest {
         OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(),
           new OpenAPILoaderOptions());
 
-        loader.loadOpenAPI("yaml/valid/local_refs.yaml").onComplete(testContext.succeeding(openapi -> {
+        loader.loadOpenAPI("src/test/resources/yaml/valid/local_refs.yaml").onComplete(testContext.succeeding(openapi -> {
           testContext.verify(() -> {
             assertThat(openapi)
               .extracting(JsonPointer.create()
@@ -219,14 +220,15 @@ public class OpenAPIHolderTest {
                 .append("schema")
                 .append("$ref")
               )
-              .isEqualTo(resolveAbsoluteUriWithVertx(vertx, URI.create("yaml/valid/local_refs" +
-                ".yaml#/components/schemas/Simple")).toString());
+              .isEqualTo(resolveAbsoluteURIFromFS(
+                "src/test/resources/yaml/valid/local_refs.yaml#/components/schemas/Simple"
+              ).toString());
 
             assertThat(loader)
-              .hasCached(resolveAbsoluteUriWithVertx(vertx, URI.create("yaml/valid/refs/Simple.yaml")));
+              .hasCached(resolveAbsoluteURIFromFS("src/test/resources/yaml/valid/refs/Simple.yaml"));
 
             assertThat(loader)
-              .hasCached(resolveAbsoluteUriWithVertx(vertx, URI.create("yaml/valid/refs/fileName.json")));
+              .hasCached(resolveAbsoluteURIFromFS("src/test/resources/yaml/valid/refs/fileName.json"));
 
             assertThat(loader)
               .extractingWithRefSolve(JsonPointer.create()
@@ -251,7 +253,7 @@ public class OpenAPIHolderTest {
         OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(),
           new OpenAPILoaderOptions());
 
-        loader.loadOpenAPI("json/valid/debts_manager_api.json").onComplete(testContext.succeeding(openapi -> {
+        loader.loadOpenAPI("src/test/resources/json/valid/debts_manager_api.json").onComplete(testContext.succeeding(openapi -> {
           testContext.verify(() -> {
             assertThat(loader)
               .extractingWithRefSolveFrom(openapi, JsonPointer.create()
@@ -282,10 +284,10 @@ public class OpenAPIHolderTest {
         OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(),
           new OpenAPILoaderOptions());
 
-        loader.loadOpenAPI("yaml/valid/local_circular_refs.yaml").onComplete(testContext.succeeding(openapi -> {
+        loader.loadOpenAPI("src/test/resources/yaml/valid/local_circular_refs.yaml").onComplete(testContext.succeeding(openapi -> {
           testContext.verify(() -> {
             assertThat(loader)
-              .hasCached(resolveAbsoluteUriWithVertx(vertx, URI.create("yaml/valid/refs/Circular.yaml")));
+              .hasCached(resolveAbsoluteURIFromFS("src/test/resources/yaml/valid/refs/Circular.yaml"));
 
             assertThat(loader)
               .extractingWithRefSolve(JsonPointer.create()
@@ -356,6 +358,83 @@ public class OpenAPIHolderTest {
 
     @Nested
     class FromClasspath {
+
+      @Test
+      public void simpleSpec(Vertx vertx, VertxTestContext testContext) {
+        OpenAPIHolderImpl parser = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(),
+          new OpenAPILoaderOptions());
+
+        parser.loadOpenAPI("yaml/valid/simple_spec.yaml").onComplete(testContext.succeeding(container -> {
+          testContext.verify(() ->
+            assertThat(container)
+              .extracting(JsonPointer.from("/info/title"))
+              .isEqualTo("Simple spec no $refs")
+          );
+          testContext.completeNow();
+        }));
+      }
+
+      @Test
+      public void innerRefs(Vertx vertx, VertxTestContext testContext) {
+        OpenAPIHolderImpl parser = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(),
+          new OpenAPILoaderOptions());
+
+        parser.loadOpenAPI("yaml/valid/inner_refs.yaml").onComplete(testContext.succeeding(container -> {
+          testContext.verify(() -> {
+            assertThat(container)
+              .extracting(JsonPointer.from("/info/title"))
+              .isEqualTo("Local inner ref spec");
+
+            MyAssertions.assertThat(container)
+              .extracting("paths", "/simple", "post", "requestBody", "content", "multipart/form-data", "schema", "$ref")
+              .isEqualTo(resolveAbsoluteURIFromClasspath(
+                "yaml/valid/inner_refs.yaml#/components/schemas/Simple"
+              ).toString())
+              .satisfies(ref ->
+                assertThat(parser)
+                  .hasCached(URI.create((String) ref))
+                  .extracting(JsonPointer.create().append("properties").append("fileName").append("type"))
+                  .isEqualTo("string")
+              );
+          });
+          testContext.completeNow();
+        }));
+      }
+
+      @Test
+      public void localRefs(Vertx vertx, VertxTestContext testContext) {
+        OpenAPIHolderImpl parser = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(),
+          new OpenAPILoaderOptions());
+
+        parser.loadOpenAPI("yaml/valid/local_refs.yaml").onComplete(testContext.succeeding(container -> {
+          testContext.verify(() ->
+            assertThat(container)
+              .extracting(JsonPointer.from("/info/title"))
+              .isEqualTo("Local relative refs")
+          );
+          testContext.completeNow();
+        }));
+      }
+
+      @Test
+      public void circularRefs(Vertx vertx, VertxTestContext testContext) {
+        OpenAPIHolderImpl parser = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(),
+          new OpenAPILoaderOptions());
+
+        parser.loadOpenAPI("yaml/valid/local_circular_refs.yaml").onComplete(testContext.succeeding(container -> {
+          testContext.verify(() ->
+            assertThat(container)
+              .extracting(JsonPointer.from("/info/title"))
+              .isEqualTo("Local circular relative refs")
+          );
+          testContext.completeNow();
+        }));
+      }
+
+    }
+
+    @Nested
+    class FromJars {
 
       @Test
       public void simpleSpec(Vertx vertx, VertxTestContext testContext) {
@@ -510,12 +589,14 @@ public class OpenAPIHolderTest {
         JsonPointer schemaPointer = JsonPointer.create().append(Arrays.asList(
           "paths", "/test10", "post", "requestBody", "content", "application/json", "schema"
         ));
-        JsonObject resolved = (JsonObject) schemaPointer.query(loader.getOpenAPI(), new JsonPointerIteratorWithLoader(loader));
+        JsonObject resolved = (JsonObject) schemaPointer.query(loader.getOpenAPI(),
+          new JsonPointerIteratorWithLoader(loader));
 
         assertThatJson(resolved.getString("$ref")).isEqualTo("http://localhost:8081/tree.yaml#/tree");
 
         Map<JsonPointer, JsonObject> additionalSchemasToRegister = new HashMap<>();
-        Map.Entry<JsonPointer, JsonObject> normalizedEntry = loader.normalizeSchema(resolved, schemaPointer, additionalSchemasToRegister);
+        Map.Entry<JsonPointer, JsonObject> normalizedEntry = loader.normalizeSchema(resolved, schemaPointer,
+          additionalSchemasToRegister);
         JsonObject normalized = normalizedEntry.getValue();
 
         assertThat(additionalSchemasToRegister).hasSize(1);
@@ -536,24 +617,32 @@ public class OpenAPIHolderTest {
 
   @Test
   public void schemaNormalizationOnlyReferenceToMyself(Vertx vertx, VertxTestContext testContext) {
-    OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(), new OpenAPILoaderOptions());
+    OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(),
+      new OpenAPILoaderOptions());
 
     testContext.assertComplete(
       startSchemaServer(vertx, "./src/test/resources/specs/schemas", Collections.emptyList(), 8081)
         .compose(v -> loader.loadOpenAPI("specs/schemas_test_spec.yaml"))
     ).onComplete(l -> {
       testContext.verify(() -> {
-        JsonPointer schemaPointer = JsonPointer.fromURI(resolveAbsoluteUriWithVertx(vertx, URI.create("specs" +
-          "/schemas_test_spec.yaml"))).append(Arrays.asList(
+        JsonPointer schemaPointer = JsonPointer.fromURI(resolveAbsoluteURIFromClasspath(
+          "specs/schemas_test_spec.yaml"
+        )).append(Arrays.asList(
           "paths", "/test8", "post", "requestBody", "content", "application/json", "schema"
         ));
-        JsonObject resolved = (JsonObject) schemaPointer.query(loader.getOpenAPI(), new JsonPointerIteratorWithLoader(loader));
+        JsonObject resolved = (JsonObject) schemaPointer.query(loader.getOpenAPI(),
+          new JsonPointerIteratorWithLoader(loader));
 
         Map<JsonPointer, JsonObject> additionalSchemasToRegister = new HashMap<>();
-        Map.Entry<JsonPointer, JsonObject> normalizedEntry = loader.normalizeSchema(resolved, schemaPointer, additionalSchemasToRegister);
+        Map.Entry<JsonPointer, JsonObject> normalizedEntry = loader.normalizeSchema(
+          resolved,
+          schemaPointer,
+          additionalSchemasToRegister
+        );
         JsonObject normalized = normalizedEntry.getValue();
 
-        assertThat(additionalSchemasToRegister).hasSize(0);
+        assertThat(additionalSchemasToRegister)
+          .hasSize(0);
 
         assertThatJson(normalized)
           .extracting(JsonPointer.create().append("properties").append("parent").append("$ref"))
@@ -570,52 +659,54 @@ public class OpenAPIHolderTest {
     });
   }
 
-  private void remoteCircularTest(Vertx vertx, VertxTestContext testContext, OpenAPILoaderOptions options, List<Handler<RoutingContext>> authHandlers) {
+  private void remoteCircularTest(Vertx vertx, VertxTestContext testContext, OpenAPILoaderOptions options,
+                                  List<Handler<RoutingContext>> authHandlers) {
     OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(), options);
-    testContext.assertComplete(
-        startSchemaServer(vertx, "src/test/resources/yaml/valid", authHandlers, 9000)
-            .compose(v -> loader.loadOpenAPI("http://localhost:9000/local_circular_refs.yaml"))
-    ).onComplete(ar -> {
-      testContext.verify(() -> {
-        assertThat(loader)
+    startSchemaServer(vertx, "src/test/resources/yaml/valid", authHandlers, 9000)
+      .compose(v -> loader.loadOpenAPI("http://localhost:9000/local_circular_refs.yaml"))
+      .onFailure(testContext::failNow)
+      .onSuccess(ar -> {
+        testContext.verify(() -> {
+          assertThat(loader)
             .hasCached(URI.create("http://localhost:9000/local_circular_refs.yaml"));
 
-        assertThat(loader)
+          assertThat(loader)
             .hasCached(URI.create("http://localhost:9000/refs/Circular.yaml"));
 
-        assertThat(loader)
+          assertThat(loader)
             .extractingWithRefSolve(JsonPointer.create()
-                .append("paths")
-                .append("/simple")
-                .append("post")
-                .append("requestBody")
-                .append("content")
-                .append("application/json")
-                .append("schema")
-                .append("properties")
-                .append("parent")
-                .append("properties")
-                .append("childs")
-                .append("items")
-                .append("properties")
-                .append("value")
-                .append("type")
+              .append("paths")
+              .append("/simple")
+              .append("post")
+              .append("requestBody")
+              .append("content")
+              .append("application/json")
+              .append("schema")
+              .append("properties")
+              .append("parent")
+              .append("properties")
+              .append("childs")
+              .append("items")
+              .append("properties")
+              .append("value")
+              .append("type")
             ).isEqualTo("string");
+          testContext.completeNow();
+        });
       });
-      testContext.completeNow();
-    });
   }
 
-  private Future<Void> startSchemaServer(Vertx vertx, String path, List<Handler<RoutingContext>> authHandlers, int port) {
+  private Future<Void> startSchemaServer(Vertx vertx, String path, List<Handler<RoutingContext>> authHandlers,
+                                         int port) {
     Router r = Router.router(vertx);
 
     Route route = r.route("/*")
-        .produces("application/yaml");
+      .produces("application/yaml");
     authHandlers.forEach(route::handler);
     route.handler(StaticHandler.create(path).setCachingEnabled(true));
 
     schemaServer = vertx.createHttpServer(new HttpServerOptions().setPort(port))
-        .requestHandler(r);
+      .requestHandler(r);
     return schemaServer.listen().mapEmpty();
   }
 
@@ -632,10 +723,20 @@ public class OpenAPIHolderTest {
       completion.handle(Future.succeededFuture());
   }
 
-  private URI resolveAbsoluteUriWithVertx(Vertx vertx, URI uri) {
-    String fragment = uri.getFragment();
+  private URI resolveAbsoluteURIFromFS(String relative) {
+    URI relativeURI = URI.create(relative);
+    String fragment = relativeURI.getFragment();
     return URIUtils.replaceFragment(
-      ((VertxInternal) vertx).resolveFile(URIUtils.removeFragment(uri).toString()).toPath().toUri(),
+      Paths.get(relativeURI.getPath()).toAbsolutePath().toUri(),
+      fragment
+    );
+  }
+
+  private URI resolveAbsoluteURIFromClasspath(String relative) {
+    URI relativeURI = URI.create(relative);
+    String fragment = relativeURI.getFragment();
+    return URIUtils.replaceFragment(
+      OpenAPIHolderImpl.getResourceAbsoluteURIFromClasspath(URIUtils.removeFragment(relativeURI)),
       fragment
     );
   }

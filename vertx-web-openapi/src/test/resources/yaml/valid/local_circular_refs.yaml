@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: Local relative refs
+  title: Local circular relative refs
 paths:
   /simple:
     post:
