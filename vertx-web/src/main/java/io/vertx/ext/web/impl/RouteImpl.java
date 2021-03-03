@@ -275,16 +275,16 @@ public class RouteImpl implements Route {
 
     // See if the path contains ":" - if so then it contains parameter capture groups and we have to generate
     // a regex for that
-    int colon = 0;
+    int params = 0;
     for (int i = 0; i <  path.length(); i++) {
       if (path.charAt(i) == ':') {
-        colon++;
+        params++;
       }
     }
-    if (colon > 0) {
+    if (params > 0) {
       int found = createPatternRegex(path);
-      if (colon != found) {
-        throw new IllegalArgumentException("path param does not follow the variable naming rules, expected (" + colon + ") found (" + found + ")");
+      if (params != found) {
+        throw new IllegalArgumentException("path param does not follow the variable naming rules, expected (" + params + ") found (" + found + ")");
       }
     }
 
