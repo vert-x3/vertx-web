@@ -25,6 +25,7 @@ import io.vertx.json.schema.draft7.Draft7SchemaParser;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -354,8 +355,25 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     return ("jar".equals(ref.getScheme())) ? ref.getSchemeSpecificPart().split("!")[1].substring(1) : ref.getPath();
   }
 
+  private Path uriToPath(URI uri) {
+    try {
+      switch (uri.getScheme()) {
+        case "http":
+          return Paths.get(uri.getPath());
+        case "file":
+          return Paths.get(uri);
+        case "jar":
+          return Paths.get(uri.getSchemeSpecificPart().split("!")[1].substring(1));
+        default:
+          throw new IllegalArgumentException("unsupported scheme type for '" + uri + "'");
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to resolve path from " + uri, e);
+    }
+  }
+
   private String resolveContainingDirPath(URI absoluteURI) {
-    return Paths.get(extractPath(absoluteURI)).resolveSibling("").toString();
+    return uriToPath(absoluteURI).resolveSibling("").toString();
   }
 
   protected static URI getResourceAbsoluteURI(URI relativeURI) {
