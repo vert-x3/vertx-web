@@ -96,6 +96,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
 
   @Override
   public JsonObject solveIfNeeded(JsonObject obj) {
+    Objects.requireNonNull(obj);
     if (isRef(obj)) {
       JsonObject o = getCached(JsonPointer.fromURI(URI.create(obj.getString("$ref"))));
       if (!o.equals(obj))
@@ -222,15 +223,20 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
       if (jsonObject.containsKey("$ref")) {
         JsonPointer pointer = JsonPointer.fromURI(URI.create(jsonObject.getString("$ref")));
         if (!pointer.isParent(scope)) { // Check circular refs hell!
+          JsonObject cached = getCached(pointer);
+          if (cached == null) {
+            throw new IllegalStateException("Cannot resolve '" + pointer.toString() + "', this may be an invalid " +
+              "reference");
+          }
           if (!originalToSubstitutedMap.containsKey(pointer)) {
-            JsonObject resolved = solveIfNeeded(getCached(pointer)).copy();
+            JsonObject resolved = solveIfNeeded(cached).copy();
             jsonObject.remove("$ref");
             jsonObject.mergeIn(resolved);
             jsonObject.put("x-$ref", pointer.toURI().toString());
             originalToSubstitutedMap.put(pointer, scope);
             deepSubstituteForValidation(jsonObject, pointer, originalToSubstitutedMap);
           } else {
-            JsonObject resolved = solveIfNeeded(getCached(pointer)).copy();
+            JsonObject resolved = solveIfNeeded(cached).copy();
             jsonObject.remove("$ref");
             jsonObject.mergeIn(resolved);
             jsonObject.put("x-$ref", originalToSubstitutedMap.get(pointer).toURI().toString());
