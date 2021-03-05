@@ -1371,11 +1371,12 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
     });
   }
 
+  @Timeout(10000)
   @Test
   public void testIssue1876(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
     loadBuilderAndStartServer(vertx, "specs/repro_1876.yaml", testContext, routerBuilder -> {
-      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+      routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false).setMountNotImplementedHandler(true));
       routerBuilder
         .operation("createAccount")
         .handler(routingContext ->
@@ -1394,19 +1395,21 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
         );
     }).onComplete(h -> {
       testRequest(client, HttpMethod.POST, "/accounts")
-        .expect(statusCode(200))
+        .expect(statusCode(200), emptyResponse())
         .sendJson(new JsonObject()
             .put("data", new JsonObject()
               .put("id", 123)
+              .put("type", "account-registration")
               .put("attributes", new JsonObject()
                 .put("ownerEmail", "test@gmail.com")
               )
             ),
-          testContext, checkpoint
+          testContext,
+          checkpoint
         );
 
-      testRequest(client, HttpMethod.POST, "/manager/12345/members")
-        .expect(statusCode(200))
+      testRequest(client, HttpMethod.POST, "/members")
+        .expect(statusCode(200), emptyResponse())
         .sendJson(new JsonObject()
             .put("data", new JsonObject()
               .put("type", "account-member-registration")
@@ -1414,7 +1417,8 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
                 .put("email", "test@gmail.com")
               )
             ),
-          testContext, checkpoint
+          testContext,
+          checkpoint
         );
     });
   }

@@ -24,11 +24,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResponseEnvelope"
-  /manager/{accountId}/members:
+  /members:
     post:
       operationId: createAccountMember
-      parameters:
-        - $ref: "#/components/parameters/accountId"
       requestBody:
         required: true
         content:
@@ -47,6 +45,7 @@ components:
   schemas:
     NewResourceEnvelope:
       type: object
+      title: NewResourceEnvelope
       properties:
         data:
           $ref: "#/components/schemas/NewData"
@@ -64,6 +63,7 @@ components:
     Attributes:
       type: object
     CreateAccount:
+      title: CreateAccount
       allOf:
         - $ref: "#/components/schemas/NewResourceEnvelope"
         - type: object
@@ -90,7 +90,9 @@ components:
           format: email
       required:
         - ownerEmail
+
     CreateAccountMember:
+      title: CreateAccountMember
       allOf:
         - $ref: "#/components/schemas/NewResourceEnvelope"
         - type: object

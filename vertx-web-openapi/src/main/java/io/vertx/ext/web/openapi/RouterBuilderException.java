@@ -38,7 +38,11 @@ public class RouterBuilderException extends RuntimeException {
     );
   }
 
-  public static RouterBuilderException createInvalidSpecException(Throwable cause) {
+  public static RouterBuilderException createInvalidSpec(String message, Throwable cause) {
+    return new RouterBuilderException(message, ErrorType.INVALID_SPEC, cause);
+  }
+
+  public static RouterBuilderException createInvalidSpec(Throwable cause) {
     return new RouterBuilderException("Spec is invalid", ErrorType.INVALID_SPEC, cause);
   }
 
