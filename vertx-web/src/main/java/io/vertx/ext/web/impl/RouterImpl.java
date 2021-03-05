@@ -28,7 +28,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * This class is thread-safe
@@ -40,16 +39,6 @@ public class RouterImpl implements Router {
   private static final Logger LOG = LoggerFactory.getLogger(RouterImpl.class);
 
   private final Vertx vertx;
-
-  // Allow end users to select either the regular valid characters or the extender pattern
-  private final String RE_VAR_NAME = Boolean.getBoolean("io.vertx.web.route.param.extended-pattern") ?
-    "[A-Za-z_$][A-Za-z0-9_$-]*" :
-    "[A-Za-z0-9_]+";
-
-  // Pattern for :<token name> in path
-  final Pattern RE_TOKEN_SEARCH = Pattern.compile(":(" + RE_VAR_NAME + ")");
-  // Pattern for (?<token name>) in path
-  final Pattern RE_TOKEN_NAME_SEARCH = Pattern.compile("\\(\\?<(" + RE_VAR_NAME + ")>");
 
   private volatile RouterState state;
 

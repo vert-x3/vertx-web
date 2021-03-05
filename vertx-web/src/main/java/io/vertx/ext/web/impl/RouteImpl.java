@@ -298,11 +298,21 @@ public class RouteImpl implements Route {
   }
 
   private synchronized void findNamedGroups(String path) {
-    Matcher m = router.RE_TOKEN_NAME_SEARCH.matcher(path);
+    Matcher m = RE_TOKEN_NAME_SEARCH.matcher(path);
     while (m.find()) {
       state = state.addNamedGroupInRegex(m.group(1));
     }
   }
+
+  // Allow end users to select either the regular valid characters or the extender pattern
+  private static final String RE_VAR_NAME = Boolean.getBoolean("io.vertx.web.route.param.extended-pattern") ?
+    "[A-Za-z_$][A-Za-z0-9_$-]*" :
+    "[A-Za-z0-9_]+";
+
+  // Pattern for :<token name> in path
+  private static final Pattern RE_TOKEN_SEARCH = Pattern.compile(":(" + RE_VAR_NAME + ")");
+  // Pattern for (?<token name>) in path
+  private static final Pattern RE_TOKEN_NAME_SEARCH = Pattern.compile("\\(\\?<(" + RE_VAR_NAME + ")>");
 
   // intersection of regex chars and https://tools.ietf.org/html/rfc3986#section-3.3
   private static final Pattern RE_OPERATORS_NO_STAR = Pattern.compile("([\\(\\)\\$\\+\\.])");
@@ -319,7 +329,7 @@ public class RouteImpl implements Route {
     }
 
     // We need to search for any :<token name> tokens in the String and replace them with named capture groups
-    Matcher m = router.RE_TOKEN_SEARCH.matcher(path);
+    Matcher m = RE_TOKEN_SEARCH.matcher(path);
     StringBuffer sb = new StringBuffer();
     List<String> groups = new ArrayList<>();
     int index = 0;
@@ -383,7 +393,7 @@ public class RouteImpl implements Route {
         .replaceAll("\\\\$1");
 
       // We need to search for any :<token name> tokens in the String
-      Matcher m = ((RouterImpl) router).RE_TOKEN_SEARCH.matcher(combinedPath);
+      Matcher m = RE_TOKEN_SEARCH.matcher(combinedPath);
       Set<String> groups = new HashSet<>();
       while (m.find()) {
         String group = m.group();
