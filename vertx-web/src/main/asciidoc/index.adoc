@@ -288,10 +288,22 @@ Here's an example
 ----
 
 The placeholders consist of `:` followed by the parameter name. Parameter names consist of any alphabetic character,
-numeric character or underscore.
+numeric character or underscore. In certain cases this is a bit limited, so users may switch to an extended name rule
+which includes 2 extra characters `-` and `$`. The extended param rule is enabled as a system property:
+
+----
+-Dio.vertx.web.route.param.extended-pattern=true
+----
 
 In the above example, if a POST request is made to path: `/catalogue/products/tools/drill123/` then the route will match
 and `productType` will receive the value `tools` and `productID` will receive the value `drill123`.
+
+A parameter is not required to be a path segment. For example path parameters like the following ones are valid too:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example4_2}
+----
 
 Note: You can also capture `*` as path param `*`.
 
