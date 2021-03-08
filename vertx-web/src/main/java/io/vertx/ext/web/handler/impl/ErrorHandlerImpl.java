@@ -222,7 +222,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
 
   private static String htmlFormat(String errorMessage) {
     if (errorMessage == null) {
-      return null;
+      return "";
     }
 
     // step #1 (escape html entities)
