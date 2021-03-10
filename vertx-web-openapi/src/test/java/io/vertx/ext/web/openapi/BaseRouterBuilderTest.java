@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
 @ExtendWith(VertxExtension.class)
@@ -41,10 +42,15 @@ public abstract class BaseRouterBuilderTest {
   }
 
   @AfterEach
-  public void tearDown(VertxTestContext testContext) {
-    if (client != null) client.close();
-    if (server != null) server.close(testContext.succeedingThenComplete());
-    else testContext.completeNow();
+  public void tearDown() throws InterruptedException {
+    if (client != null) {
+      client.close();
+    }
+    if (server != null) {
+      CountDownLatch latch = new CountDownLatch(1);
+      server.close(v -> latch.countDown());
+      latch.await();
+    }
   }
 
   protected Future<Void> startServer(Vertx vertx, RouterBuilder factory,

@@ -3,6 +3,8 @@ package io.vertx.ext.web.openapi.impl;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
@@ -59,13 +61,13 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
   private OpenAPI3SchemaParser schemaParser;
   private OpenAPI3ValidationHandlerGenerator validationHandlerGenerator;
 
-  public OpenAPI3RouterBuilderImpl(Vertx vertx, OpenAPIHolderImpl spec, OpenAPILoaderOptions options) {
+  public OpenAPI3RouterBuilderImpl(Vertx vertx, HttpClient client, OpenAPIHolderImpl spec, OpenAPILoaderOptions options) {
     this.vertx = vertx;
     this.openapi = spec;
     this.options = new RouterBuilderOptions();
     this.bodyHandler = BodyHandler.create();
     this.globalHandlers = new ArrayList<>();
-    this.schemaRouter = SchemaRouter.create(vertx, options.toSchemaRouterOptions());
+    this.schemaRouter = SchemaRouter.create(client, vertx.fileSystem(), options.toSchemaRouterOptions());
     this.schemaParser = OpenAPI3SchemaParser.create(schemaRouter);
     // Noop binary format validator to fix bad multipart form
     this.schemaParser.withStringFormatValidator("binary", v -> true);

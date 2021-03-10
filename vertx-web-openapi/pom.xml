@@ -145,6 +145,10 @@
         <version>2.22.2</version>
         <configuration>
           <trimStackTrace>false</trimStackTrace>
+          <additionalClasspathElements>
+            <additionalClasspathElement>${basedir}/src/test/resources/jars/refs.jar</additionalClasspathElement>
+            <additionalClasspathElement>${basedir}/src/test/resources/jars/specs.jar</additionalClasspathElement>
+          </additionalClasspathElements>
         </configuration>
         <executions>
           <execution>

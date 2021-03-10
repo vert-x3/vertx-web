@@ -136,6 +136,8 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
       RouterBuilder.create(vertx, "http://localhost:9001/specs/router_builder_test.yaml",
         routerBuilderAsyncResult -> {
           testContext.verify(() -> {
+            assertThat(routerBuilderAsyncResult.cause())
+              .isNull();
             assertThat(routerBuilderAsyncResult.succeeded())
               .isTrue();
             assertThat(routerBuilderAsyncResult.result())

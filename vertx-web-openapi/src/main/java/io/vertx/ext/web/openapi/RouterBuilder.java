@@ -5,6 +5,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.*;
+import io.vertx.core.http.HttpClient;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -209,7 +210,8 @@ public interface RouterBuilder {
     ContextInternal ctx = (ContextInternal) vertx.getOrCreateContext();
     Promise<RouterBuilder> promise = ctx.promise();
 
-    OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(), options);
+    HttpClient httpClient = vertx.createHttpClient();
+    OpenAPIHolderImpl loader = new OpenAPIHolderImpl(vertx, httpClient, vertx.fileSystem(), options);
     loader.loadOpenAPI(url).onComplete(ar -> {
       if (ar.failed()) {
         if (ar.cause() instanceof ValidationException) {
@@ -220,7 +222,7 @@ public interface RouterBuilder {
       } else {
         RouterBuilder factory;
         try {
-          factory = new OpenAPI3RouterBuilderImpl(vertx, loader, options);
+          factory = new OpenAPI3RouterBuilderImpl(vertx, httpClient, loader, options);
         } catch (Exception e) {
           promise.fail(RouterBuilderException.createRouterBuilderInstantiationError(e, url));
           return;

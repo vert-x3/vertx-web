@@ -30,7 +30,7 @@ jobs:
         with:
           java-version: ${{ matrix.jdk }}
       - name: Run tests
-        run: mvn -q clean verify -B
+        run: mvn clean verify -B
   Apollo-Link-Tests:
     runs-on: ubuntu-latest
     strategy:
