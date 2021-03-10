@@ -135,11 +135,11 @@ public class StaticHandlerImpl implements StaticHandler {
       FileSystem fs = context.vertx().fileSystem();
 
       // can be called recursive for index pages
-      sendStatic(context, fs, path);
+      sendStatic(context, fs, path, false);
     }
   }
 
-  private void sendStatic(RoutingContext context, FileSystem fileSystem, String path) {
+  private void sendStatic(RoutingContext context, FileSystem fileSystem, String path, boolean recursive) {
 
     String file = null;
 
@@ -215,7 +215,7 @@ public class StaticHandlerImpl implements StaticHandler {
               if (dirty) {
                 cache.remove(path);
               }
-              sendDirectory(context, fileSystem, path, sfile);
+              sendDirectory(context, fileSystem, path, sfile, recursive);
             } else {
               if (cache.enabled()) {
                 cache.put(path, fprops);
@@ -234,12 +234,15 @@ public class StaticHandlerImpl implements StaticHandler {
       });
   }
 
-  private void sendDirectory(RoutingContext context, FileSystem fileSystem, String path, String file) {
+  /**
+   * recursive means that we are being upgraded from a directory to a index
+   */
+  private void sendDirectory(RoutingContext context, FileSystem fileSystem, String path, String file, boolean recursive) {
     // in order to keep caches in a valid state we need to assert that
     // the user is requesting a directory (ends with /)
     if (!path.endsWith("/")) {
       context.response()
-        .putHeader(HttpHeaders.LOCATION, path + "/")
+        .putHeader(HttpHeaders.LOCATION, path + (recursive ? "" : "/"))
         .setStatusCode(301)
         .end();
       return;
@@ -256,7 +259,7 @@ public class StaticHandlerImpl implements StaticHandler {
         indexPath = path + indexPage;
       }
       // recursive call
-      sendStatic(context, fileSystem, indexPath);
+      sendStatic(context, fileSystem, indexPath, true);
     } else {
       // Directory listing denied
       context.fail(FORBIDDEN.code());

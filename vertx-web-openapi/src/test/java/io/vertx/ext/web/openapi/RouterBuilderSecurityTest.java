@@ -42,6 +42,7 @@ public class RouterBuilderSecurityTest extends BaseRouterBuilderTest {
 
   private static final String SECURITY_TESTS = "src/test/resources/specs/security_test.yaml";
   private static final String GLOBAL_SECURITY_TESTS = "src/test/resources/specs/global_security_test.yaml";
+  private static final String OIDC_TESTS = "src/test/resources/specs/oidc_test.yaml";
 
   private static final RouterBuilderOptions FACTORY_OPTIONS = new RouterBuilderOptions()
     .setRequireSecurityHandlers(true)
@@ -430,6 +431,45 @@ public class RouterBuilderSecurityTest extends BaseRouterBuilderTest {
 
         testContext.completeNow();
       });
+  }
+
+  @Test
+  public void mountOIDCOauth2WithScopes(Vertx vertx, VertxTestContext testContext) {
+    RouterBuilder.create(vertx, OIDC_TESTS, testContext.succeeding(routerBuilder -> {
+      routerBuilder.setOptions(FACTORY_OPTIONS);
+
+      routerBuilder.operation("candy").handler(routingContext -> routingContext
+        .response()
+        .setStatusCode(200)
+        .end()
+      );
+
+      // Some oauth2 configuration
+      OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+        .setClientID("client-id")
+        .setFlow(OAuth2FlowType.AUTH_CODE)
+        .setClientSecret("client-secret")
+        .setSite("http://localhost:10000"));
+
+      routerBuilder.securityHandler("oauth2", OAuth2AuthHandler.create(vertx, oauth2));
+
+      testContext.verify(() -> {
+        Router router = routerBuilder.createRouter();
+        Route route = router.getRoutes().get(router.getRoutes().size() - 1);
+
+        assertThat(route)
+          .extracting("state")
+          .extracting("contextHandlers")
+          .asList()
+          .filteredOn(new Condition<>(o -> o instanceof OAuth2AuthHandler, "Handler is an OAuth2Handler"))
+          .first()
+          .extracting("scopes")
+          .asList()
+          .containsExactlyInAnyOrder("write:pets", "read:pets");
+      });
+      testContext.completeNow();
+
+    }));
   }
 
   private AuthenticationHandler mockSuccessfulAuthHandler(Handler<RoutingContext> mockHandler) {
