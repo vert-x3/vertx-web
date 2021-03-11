@@ -78,4 +78,10 @@ public class VertxDirectoryCodeResolver implements CodeResolver {
   private long getLastModified(String name) {
     return vertx.fileSystem().propsBlocking(name).lastModifiedTime();
   }
+
+  public void clear() {
+    if (modificationTimes != null) {
+      modificationTimes.clear();
+    }
+  }
 }

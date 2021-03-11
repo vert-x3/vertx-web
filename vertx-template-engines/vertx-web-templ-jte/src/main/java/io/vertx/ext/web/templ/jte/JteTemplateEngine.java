@@ -16,15 +16,12 @@
 
 package io.vertx.ext.web.templ.jte;
 
-import gg.jte.ContentType;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.common.WebEnvironment;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.jte.impl.JteTemplateEngineImpl;
-import io.vertx.ext.web.templ.jte.impl.VertxDirectoryCodeResolver;
-
-import java.nio.file.Paths;
 
 /**
  * A template engine for <a href="https://jte.gg">jte</a> templates.
@@ -35,7 +32,7 @@ import java.nio.file.Paths;
 public interface JteTemplateEngine extends TemplateEngine {
 
   /**
-   * Creates a vert.x template engine for jte templates with sane defaults.
+   * Creates a vert.x template engine for jte HTML templates with sane defaults.
    * <p>
    * Hot reloading is active, when {@link WebEnvironment#development()} is true.
    *
@@ -44,6 +41,28 @@ public interface JteTemplateEngine extends TemplateEngine {
    * @return the created vert.x template engine
    */
   static JteTemplateEngine create(Vertx vertx, String templateRootDirectory) {
-    return new JteTemplateEngineImpl(gg.jte.TemplateEngine.create(new VertxDirectoryCodeResolver(vertx, templateRootDirectory), Paths.get("target", "jte-classes"), ContentType.Html));
+    return new JteTemplateEngineImpl(vertx, templateRootDirectory);
+  }
+
+  /**
+   * Creates a vert.x template engine for <b>precompiled</b> HTML jte templates with sane defaults.
+   * <p>
+   * Hot reloading is never active.
+   *
+   * @return the created vert.x template engine
+   */
+  static JteTemplateEngine create() {
+    return new JteTemplateEngineImpl();
+  }
+
+
+  /**
+   * Creates a vert.x template engine for jte templates with a user custom engine.
+   *
+   * @return the created vert.x template engine
+   */
+  @GenIgnore
+  static JteTemplateEngine create(gg.jte.TemplateEngine engine) {
+    return new JteTemplateEngineImpl(engine);
   }
 }
