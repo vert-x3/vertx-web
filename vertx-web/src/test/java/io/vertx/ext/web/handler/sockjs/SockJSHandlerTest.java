@@ -23,7 +23,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.http.WebSocketFrame;
-import io.vertx.core.http.impl.FrameType;
+import io.vertx.core.http.WebSocketFrameType;
 import io.vertx.core.http.impl.ws.WebSocketFrameImpl;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.impl.logging.Logger;
@@ -235,7 +235,7 @@ public class SockJSHandlerTest extends WebTestBase {
     WebSocket openedWebSocket = setupSockJsClient(serverPath, receivedMessages);
 
     Buffer largeMessage = Buffer.buffer("[\"" + TestUtils.randomAlphaString(30) + "\"]");
-    WebSocketFrame frame1 = new WebSocketFrameImpl(FrameType.TEXT, largeMessage.slice(0, 10).getByteBuf(), false);
+    WebSocketFrame frame1 = new WebSocketFrameImpl(WebSocketFrameType.TEXT, largeMessage.slice(0, 10).getByteBuf(), false);
     WebSocketFrame frame2 = WebSocketFrame.continuationFrame(largeMessage.slice(10, 20), false);
     WebSocketFrame frame3 = WebSocketFrame.continuationFrame(largeMessage.slice(20, largeMessage.length()), true);
 
