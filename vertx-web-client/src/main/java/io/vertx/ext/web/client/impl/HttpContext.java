@@ -212,7 +212,7 @@ public class HttpContext<T> {
    *   <li>Send the redirect request</li>
    * </ul>
    */
-  public void followRedirect() {
+  private void handleFollowRedirect() {
     fire(ClientPhase.CREATE_REQUEST);
   }
 
@@ -237,7 +237,9 @@ public class HttpContext<T> {
         redirectedLocations.add(clientResponse.getHeader(HttpHeaders.LOCATION));
         next.onComplete(ar -> {
           if (ar.succeeded()) {
-            requestOptions = ar.result();
+            RequestOptions options = ar.result();
+            request.mergeHeaders(options);
+            requestOptions = options;
             fire(ClientPhase.FOLLOW_REDIRECT);
           } else {
             fail(ar.cause());
@@ -347,7 +349,7 @@ public class HttpContext<T> {
         handleSendRequest();
         break;
       case FOLLOW_REDIRECT:
-        followRedirect();
+        handleFollowRedirect();
         break;
       case RECEIVE_RESPONSE:
         handleReceiveResponse();
@@ -416,27 +418,20 @@ public class HttpContext<T> {
       }
       options.setHost(request.virtualHost);
     }
-    createRequest(options);
-  }
-
-  private void handleCreateRequest() {
-    if (request.headers != null) {
-      MultiMap headers = requestOptions.getHeaders();
-      if (headers == null) {
-        headers = MultiMap.caseInsensitiveMultiMap();
-        requestOptions.setHeaders(headers);
-      }
-      headers.addAll(request.headers);
-    }
+    request.mergeHeaders(options);
     if (contentType != null) {
-      String prev = requestOptions.getHeaders().get(HttpHeaders.CONTENT_TYPE);
+      String prev = options.getHeaders().get(HttpHeaders.CONTENT_TYPE);
       if (prev == null) {
-        requestOptions.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
+        options.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
       } else {
         contentType = prev;
       }
     }
-    requestOptions.setTimeout(this.request.timeout);
+    options.setTimeout(request.timeout);
+    createRequest(options);
+  }
+
+  private void handleCreateRequest() {
     requestPromise = Promise.promise();
     if (body != null || "application/json".equals(contentType)) {
       if (body instanceof MultiMap) {
