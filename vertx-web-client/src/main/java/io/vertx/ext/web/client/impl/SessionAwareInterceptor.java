@@ -17,13 +17,11 @@ import io.vertx.ext.web.client.spi.CookieStore;
  */
 public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
 
-  private static final String HEADERS_CONTEXT_KEY = "_originalHeaders";
-
   @Override
   public void handle(HttpContext<?> context) {
     switch(context.phase()) {
-    case PREPARE_REQUEST:
-      prepareRequest(context);
+      case CREATE_REQUEST:
+      createRequest(context);
       break;
     case FOLLOW_REDIRECT:
       processRedirectCookies(context);
@@ -38,20 +36,18 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     context.next();
   }
 
-  private void prepareRequest(HttpContext<?> context) {
+  private void createRequest(HttpContext<?> context) {
 
     HttpRequestImpl<?> request = (HttpRequestImpl<?>) context.request();
     WebClientSessionAware webclient = (WebClientSessionAware) request.client;
 
-    MultiMap headers = context.get(HEADERS_CONTEXT_KEY);
+    RequestOptions requestOptions = context.requestOptions();
+    MultiMap headers = requestOptions.getHeaders();
     if (headers == null) {
-      headers = HttpHeaders.headers().addAll(request.headers());
-      context.set(SessionAwareInterceptor.HEADERS_CONTEXT_KEY, headers);
+      headers = HttpHeaders.headers();
+      requestOptions.setHeaders(headers);
     }
-
-    // we need to reset the headers at every "send" because cookies can be changed,
-    // either by the server (that sent new ones) or by the user.
-    request.headers().clear().addAll(headers).addAll(webclient.headers());
+    headers.addAll(webclient.headers());
 
     String domain = request.virtualHost();
     if (domain == null) {
@@ -61,7 +57,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     Iterable<Cookie> cookies = webclient.cookieStore().get(request.ssl, domain, request.uri);
     String encodedCookies = ClientCookieEncoder.STRICT.encode(cookies);
     if (encodedCookies != null) {
-      request.headers().add(HttpHeaders.COOKIE, encodedCookies);
+      headers.add(HttpHeaders.COOKIE, encodedCookies);
     }
   }
 
@@ -101,12 +97,6 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
   private void prepareRedirectRequest(HttpContext<?> context) {
     // Now the context contains the redirect request in clientRequest() and the original request in request()
     RequestOptions redirectRequest = context.requestOptions();
-
-    MultiMap headers = context.get(HEADERS_CONTEXT_KEY);
-    if (headers == null) {
-      headers = HttpHeaders.headers().addAll(redirectRequest.getHeaders());
-      context.set(SessionAwareInterceptor.HEADERS_CONTEXT_KEY, headers);
-    }
 
     HttpRequestImpl<?> originalRequest = (HttpRequestImpl<?>) context.request();
     String redirectHost = redirectRequest.getHost();
