@@ -12,7 +12,7 @@
   <artifactId>vertx-web-templ-jte</artifactId>
 
   <properties>
-    <jte.version>1.6.0</jte.version>
+    <jte.version>1.7.0</jte.version>
   </properties>
 
   <dependencies>
@@ -66,6 +66,7 @@
           <sourceDirectory>${project.basedir}/src/test/templates</sourceDirectory>
           <targetDirectory>${project.build.directory}/test-classes</targetDirectory>
           <contentType>Html</contentType>
+          <binaryStaticContent>true</binaryStaticContent>
         </configuration>
         <executions>
           <execution>

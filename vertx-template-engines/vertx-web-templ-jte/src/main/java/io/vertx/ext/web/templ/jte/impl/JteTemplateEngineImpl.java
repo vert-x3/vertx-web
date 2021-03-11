@@ -18,7 +18,7 @@ package io.vertx.ext.web.templ.jte.impl;
 
 import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
-import gg.jte.output.StringOutput;
+import gg.jte.output.Utf8ByteOutput;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -55,6 +55,7 @@ public class JteTemplateEngineImpl implements JteTemplateEngine {
   public JteTemplateEngineImpl(Vertx vertx, String templateRootDirectory) {
     codeResolver = new VertxDirectoryCodeResolver(vertx, templateRootDirectory);
     templateEngine = TemplateEngine.create(codeResolver, ContentType.Html);
+    templateEngine.setBinaryStaticContent(true);
   }
 
   public JteTemplateEngineImpl() {
@@ -65,9 +66,9 @@ public class JteTemplateEngineImpl implements JteTemplateEngine {
   @Override
   public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
-      StringOutput output = new StringOutput();
+      Utf8ByteOutput output = new Utf8ByteOutput();
       templateEngine.render(templateFile, context, output);
-      handler.handle(Future.succeededFuture(Buffer.buffer(output.toString())));
+      handler.handle(Future.succeededFuture(JteBufferUtil.toBuffer(output)));
     } catch (RuntimeException ex) {
       handler.handle(Future.failedFuture(ex));
     }
