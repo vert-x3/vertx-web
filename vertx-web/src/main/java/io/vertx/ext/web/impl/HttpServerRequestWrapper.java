@@ -5,6 +5,7 @@ import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.net.NetSocket;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.Pipe;
@@ -17,9 +18,9 @@ import javax.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
 
-class HttpServerRequestWrapper implements HttpServerRequest {
+class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
-  private final HttpServerRequest delegate;
+  private final HttpServerRequestInternal delegate;
   private final ForwardedParser forwardedParser;
 
   private boolean modified;
@@ -32,7 +33,7 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   private MultiMap params;
 
   HttpServerRequestWrapper(HttpServerRequest request, AllowForwardHeaders allowForward) {
-    delegate = request;
+    delegate = (HttpServerRequestInternal) request;
     forwardedParser = new ForwardedParser(delegate, allowForward);
   }
 
