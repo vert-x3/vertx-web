@@ -22,6 +22,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
@@ -310,5 +311,16 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
     HttpContext<T> ctx = client.createContext(handler);
     ctx.prepareRequest(this, contentType, body);
+  }
+
+  void mergeHeaders(RequestOptions options) {
+    if (headers != null) {
+      MultiMap tmp = options.getHeaders();
+      if (tmp == null) {
+        tmp = MultiMap.caseInsensitiveMultiMap();
+        options.setHeaders(tmp);
+      }
+      tmp.addAll(headers);
+    }
   }
 }
