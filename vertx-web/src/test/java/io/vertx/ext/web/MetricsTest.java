@@ -41,12 +41,24 @@ public class MetricsTest extends WebTestBase {
   }
 
   @Test
-  public void testSimpleRouteMultipleRouters() throws Exception {
+  public void testSimpleRouterMultipleRoutes() throws Exception {
     fakeHttpServerMetrics.reset("A", "B", "C", "D", "E");
     // ensure that the metrics are called in the right order
     router.route().setName("A").handler(RoutingContext::next);
     router.route().setName("B").handler(RoutingContext::next);
     router.route().setName("C").handler(RoutingContext::next);
+    router.route().setName("D").handler(RoutingContext::next);
+    router.route().setName("E").handler(rc -> rc.response().end());
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+  }
+
+  @Test
+  public void testSimpleRouterMultipleRoutesSomeSkiped() throws Exception {
+    fakeHttpServerMetrics.reset("A", "B", "D", "E");
+    // ensure that the metrics are called in the right order
+    router.route().setName("A").handler(RoutingContext::next);
+    router.route().setName("B").handler(RoutingContext::next);
+    router.route("/skip-me").setName("C").handler(RoutingContext::next);
     router.route().setName("D").handler(RoutingContext::next);
     router.route().setName("E").handler(rc -> rc.response().end());
     testRequest(HttpMethod.GET, "/", 200, "OK");
