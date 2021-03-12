@@ -32,6 +32,6 @@ public class WebClientSessionTest extends WebClientTestBase {
 
     requestAndverifyResponse.get().compose(v -> requestAndverifyResponse.get()).onSuccess(resp -> complete())
       .onFailure(t -> fail(t));
-    await(200, TimeUnit.SECONDS);
+    await(20, TimeUnit.SECONDS);
   }
 }
