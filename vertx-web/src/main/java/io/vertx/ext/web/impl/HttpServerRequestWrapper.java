@@ -396,6 +396,11 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
   }
 
   @Override
+  public Object metric() {
+    return delegate.metric();
+  }
+
+  @Override
   public Pipe<Buffer> pipe() {
     return delegate.pipe();
   }
