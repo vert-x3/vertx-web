@@ -65,6 +65,17 @@ public class LoggerHandlerTest extends WebTestBase {
     latch.await();
   }
 
+  @Test
+  public void testLogger5() throws Exception {
+    final CountDownLatch latch = new CountDownLatch(1);
+    LoggerHandler logger = LoggerHandler.create(true, LoggerFormat.CUSTOM).customFormatter((ctx, ms) -> {
+      latch.countDown();
+      return "custom log message";
+    });
+    testLogger(logger);
+    latch.await();
+  }
+
   private void testLogger(LoggerHandler logger) throws Exception {
     router.route().handler(logger);
     router.route().handler(rc -> rc.response().end());
