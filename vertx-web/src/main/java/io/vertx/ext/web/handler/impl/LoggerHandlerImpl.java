@@ -23,9 +23,10 @@ import io.vertx.core.http.HttpVersion;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.ext.web.handler.LoggerFormat;
-import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.LoggerFormat;
+import io.vertx.ext.web.handler.LoggerFormatter;
+import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.impl.Utils;
 
 import java.util.function.Function;
@@ -57,6 +58,7 @@ public class LoggerHandlerImpl implements LoggerHandler {
   private final LoggerFormat format;
 
   private Function<HttpServerRequest, String> customFormatter;
+  private LoggerFormatter logFormatter;
 
   public LoggerHandlerImpl(boolean immediate, LoggerFormat format) {
     this.immediate = immediate;
@@ -145,7 +147,11 @@ public class LoggerHandlerImpl implements LoggerHandler {
         break;
       case CUSTOM:
         try {
-          message = customFormatter.apply(request);
+          if (logFormatter != null) {
+            message = logFormatter.format(context, (System.currentTimeMillis() - timestamp));
+          } else {
+            message = customFormatter.apply(request);
+          }
         } catch (RuntimeException e) {
           // if an error happens at the user side
           // log it instead
@@ -191,6 +197,17 @@ public class LoggerHandlerImpl implements LoggerHandler {
     }
 
     this.customFormatter = formatter;
+
+    return this;
+  }
+
+  @Override
+  public LoggerHandler customFormatter(LoggerFormatter formatter) {
+    if (format != LoggerFormat.CUSTOM) {
+      throw new IllegalStateException("Setting a formatter requires the handler to be set to CUSTOM format");
+    }
+
+    this.logFormatter = formatter;
 
     return this;
   }

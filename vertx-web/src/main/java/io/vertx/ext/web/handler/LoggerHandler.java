@@ -69,10 +69,22 @@ public interface LoggerHandler extends Handler<RoutingContext> {
   /**
    * Set the custom formatter to be used by the handler.
    *
+   * @deprecated Superseded by {@link #customFormatter(LoggerFormatter)}
    * @param formatter the formatting function
    * @return the formatted log string
    * @throws IllegalStateException if current format is not {@link LoggerFormat#CUSTOM}
    */
+  @Deprecated
   @Fluent
   LoggerHandler customFormatter(Function<HttpServerRequest, String> formatter);
+
+  /**
+   * Set the custom formatter to be used by the handler.
+   *
+   * @param formatter the formatter
+   * @return the formatted log string
+   * @throws IllegalStateException if current format is not {@link LoggerFormat#CUSTOM}
+   */
+  @Fluent
+  LoggerHandler customFormatter(LoggerFormatter formatter);
 }
