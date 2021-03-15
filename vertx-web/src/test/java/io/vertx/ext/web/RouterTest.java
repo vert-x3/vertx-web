@@ -20,16 +20,14 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
-import io.vertx.core.json.Json;
+import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
-import io.vertx.test.core.Repeat;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -2616,7 +2614,7 @@ public class RouterTest extends WebTestBase {
     CountDownLatch latch = new CountDownLatch(2);
     for (int i = 0; i < 2; i++) {
       vertx.executeBlocking(future -> {
-        HttpServerRequest request = mock(HttpServerRequest.class);
+        HttpServerRequest request = mock(HttpServerRequestInternal.class);
         HttpServerResponse response = mock(HttpServerResponse.class);
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.scheme()).thenReturn("http");
