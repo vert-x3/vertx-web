@@ -179,16 +179,16 @@ class OpenAPI3Utils {
     );
   }
 
-  protected static JsonObject generateFakeSchema(JsonObject schema, OpenAPIHolder holder) {
-    JsonObject fakeSchema = holder.solveIfNeeded(schema).copy();
+  protected static JsonObject generateFakeSchema(JsonObject originalSchema, OpenAPIHolder holder) {
+    JsonObject fakeSchema = holder.solveIfNeeded(originalSchema).copy();
     String combinatorKeyword = fakeSchema.containsKey("allOf") ? "allOf" : fakeSchema.containsKey("anyOf") ? "anyOf"
       : fakeSchema.containsKey("oneOf") ? "oneOf" : null;
     if (combinatorKeyword != null) {
       JsonArray schemasArray = fakeSchema.getJsonArray(combinatorKeyword);
       JsonArray processedSchemas = new JsonArray();
       for (int i = 0; i < schemasArray.size(); i++) {
-        JsonObject innerSchema = holder.solveIfNeeded(schemasArray.getJsonObject(i));
-        processedSchemas.add(innerSchema.copy());
+        JsonObject innerSchema = holder.solveIfNeeded(schemasArray.getJsonObject(i)).copy();
+        processedSchemas.add(innerSchema);
         schemasArray.getJsonObject(i).mergeIn(innerSchema);
         if ("object".equals(innerSchema.getString("type")) || innerSchema.containsKey("properties"))
           fakeSchema = fakeSchema.mergeIn(innerSchema, true);
@@ -199,7 +199,7 @@ class OpenAPI3Utils {
     if (fakeSchema.containsKey("properties")) {
       JsonObject propsObj = fakeSchema.getJsonObject("properties");
       for (String key : propsObj.fieldNames()) {
-        propsObj.put(key, holder.solveIfNeeded(propsObj.getJsonObject(key)));
+        propsObj.put(key, holder.solveIfNeeded(propsObj.getJsonObject(key)).copy());
       }
     }
     if (fakeSchema.containsKey("items")) {

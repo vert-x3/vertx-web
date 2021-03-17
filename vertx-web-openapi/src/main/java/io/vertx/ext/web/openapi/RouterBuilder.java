@@ -215,9 +215,9 @@ public interface RouterBuilder {
     loader.loadOpenAPI(url).onComplete(ar -> {
       if (ar.failed()) {
         if (ar.cause() instanceof ValidationException) {
-          promise.fail(RouterBuilderException.createInvalidSpecException(ar.cause()));
+          promise.fail(RouterBuilderException.createInvalidSpec(ar.cause()));
         } else {
-          promise.fail(RouterBuilderException.createInvalidFileSpec(url, ar.cause()));
+          promise.fail(RouterBuilderException.createInvalidSpecFile(url, ar.cause()));
         }
       } else {
         RouterBuilder factory;

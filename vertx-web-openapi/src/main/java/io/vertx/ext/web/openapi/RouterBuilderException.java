@@ -38,11 +38,15 @@ public class RouterBuilderException extends RuntimeException {
     );
   }
 
-  public static RouterBuilderException createInvalidSpecException(Throwable cause) {
+  public static RouterBuilderException createInvalidSpec(String message, Throwable cause) {
+    return new RouterBuilderException(message, ErrorType.INVALID_SPEC, cause);
+  }
+
+  public static RouterBuilderException createInvalidSpec(Throwable cause) {
     return new RouterBuilderException("Spec is invalid", ErrorType.INVALID_SPEC, cause);
   }
 
-  public static RouterBuilderException createInvalidFileSpec(String path, Throwable cause) {
+  public static RouterBuilderException createInvalidSpecFile(String path, Throwable cause) {
     return new RouterBuilderException("Cannot load the spec in path " + path, ErrorType.INVALID_FILE, cause);
   }
 

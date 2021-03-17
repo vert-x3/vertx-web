@@ -69,9 +69,6 @@ public class OpenAPI3PathResolver {
           regex.append(Pattern.quote(toQuote));
         lastMatchEnd = parametersMatcher.end();
 
-        //TODO HO CAPITO IL PROBLEMA MA NON HO VOGLIA DI RISOLVERLO ORA
-        // PERMUTAZIONE DEGLI ARGOMENTI FOTTE TUTTO
-
         String paramName = parametersMatcher.group(1);
         Optional<JsonObject> parameterOptional = parameters.stream().filter(p -> p.getString("name").equals(paramName)).findFirst();
         if (parameterOptional.isPresent()) {
@@ -214,8 +211,10 @@ public class OpenAPI3PathResolver {
             }
           }
         } else {
-          throw RouterBuilderException.createUnsupportedSpecFeature("Missing parameter definition for parameter name:" +
-            " " + paramName);
+          throw RouterBuilderException.createInvalidSpec(
+            "Missing parameter definition for parameter name: " + paramName,
+            null
+          );
         }
         i++;
       }
