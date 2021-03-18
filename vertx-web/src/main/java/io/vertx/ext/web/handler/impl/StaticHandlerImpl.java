@@ -125,21 +125,24 @@ public class StaticHandlerImpl implements StaticHandler {
       }
       // will normalize and handle all paths as UNIX paths
       String path = HttpUtils.removeDots(uriDecodedPath.replace('\\', '/'));
+      boolean sibling = false;
 
       // only root is known for sure to be a directory. all other directories must be identified as such.
       if (!directoryListing && "/".equals(path)) {
         path = indexPage;
+        // we mark this as sibling as we are upgrading from slash to index page
+        sibling = true;
       }
 
       // Access fileSystem once here to be safe
       FileSystem fs = context.vertx().fileSystem();
 
       // can be called recursive for index pages
-      sendStatic(context, fs, path, false);
+      sendStatic(context, fs, path, sibling);
     }
   }
 
-  private void sendStatic(RoutingContext context, FileSystem fileSystem, String path, boolean recursive) {
+  private void sendStatic(RoutingContext context, FileSystem fileSystem, String path, boolean sibling) {
 
     String file = null;
 
@@ -215,7 +218,7 @@ public class StaticHandlerImpl implements StaticHandler {
               if (dirty) {
                 cache.remove(path);
               }
-              sendDirectory(context, fileSystem, path, sfile, recursive);
+              sendDirectory(context, fileSystem, path, sfile, sibling);
             } else {
               if (cache.enabled()) {
                 cache.put(path, fprops);
@@ -235,14 +238,14 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   /**
-   * recursive means that we are being upgraded from a directory to a index
+   * sibling means that we are being upgraded from a directory to a index
    */
-  private void sendDirectory(RoutingContext context, FileSystem fileSystem, String path, String file, boolean recursive) {
+  private void sendDirectory(RoutingContext context, FileSystem fileSystem, String path, String file, boolean sibling) {
     // in order to keep caches in a valid state we need to assert that
     // the user is requesting a directory (ends with /)
     if (!path.endsWith("/")) {
       context.response()
-        .putHeader(HttpHeaders.LOCATION, path + (recursive ? "" : "/"))
+        .putHeader(HttpHeaders.LOCATION, path + (sibling ? "" : "/"))
         .setStatusCode(301)
         .end();
       return;
