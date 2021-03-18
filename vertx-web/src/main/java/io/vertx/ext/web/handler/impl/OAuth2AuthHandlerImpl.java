@@ -50,11 +50,9 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   private static final Logger LOG = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
 
   private final VertxContextPRNG prng;
-  private final String host;
-  private final String callbackPath;
+  private final Origin callbackURL;
   private final MessageDigest sha256;
 
-  private Route callback;
   private JsonObject extraParams;
   private final List<String> scopes = new ArrayList<>();
   private String prompt;
@@ -75,12 +73,9 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     }
     // process callback
     if (callbackURL != null) {
-      final Origin origin = Origin.parse(callbackURL);
-      this.host = origin.toString();
-      this.callbackPath = origin.resource();
+      this.callbackURL = Origin.parse(callbackURL);
     } else {
-      this.host = null;
-      this.callbackPath = null;
+      this.callbackURL = null;
     }
   }
 
@@ -97,7 +92,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
       if (token == null) {
         // redirect request to the oauth2 server as we know nothing about this request
-        if (bearerOnly || callback == null) {
+        if (bearerOnly) {
           // it's a failure both cases but the cause is not the same
           handler.handle(Future.failedFuture("callback route is not configured."));
           return;
@@ -106,7 +101,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         // as it would shade the callback route. When a request matches the callback path and has the
         // method GET the exceptional case should not redirect to the oauth2 server as it would become
         // an infinite redirect loop. In this case an exception must be raised.
-        if (context.request().method() == HttpMethod.GET && context.normalizedPath().equals(callback.getPath())) {
+        if (context.request().method() == HttpMethod.GET && context.normalizedPath().equals(callbackURL.resource())) {
           LOG.warn("The callback route is shaded by the OAuth2AuthHandler, ensure the callback route is added BEFORE the OAuth2AuthHandler route!");
           handler.handle(Future.failedFuture(new HttpStatusException(500, "Infinite redirect loop [oauth2 callback]")));
         } else {
@@ -159,8 +154,8 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     final JsonObject config = new JsonObject()
       .put("state", state != null ? state : redirectURL);
 
-    if (host != null) {
-      config.put("redirect_uri", host + callback.getPath());
+    if (callbackURL != null) {
+      config.put("redirect_uri", callbackURL.href());
     }
 
     if (scopes.size() > 0) {
@@ -219,6 +214,14 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
   @Override
   public OAuth2AuthHandler setupCallback(final Route route) {
+
+    if (callbackURL == null) {
+      // warn that the setup is probably wrong
+      LOG.warn("OAuth2AuthHandler was created without a origin/callback URL, setup is NO-OP");
+      return this;
+    }
+
+    final String callbackPath = callbackURL.resource();
 
     if (callbackPath != null && !"".equals(callbackPath)) {
       if (!callbackPath.equals(route.getPath())) {
@@ -323,17 +326,9 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         resource = state;
       }
 
-      if (host == null) {
-        // warn that the setup is wrong, if this route is called
-        // we most likely needed a host to redirect to
-        if (LOG.isWarnEnabled()) {
-          LOG.warn("Cannot compute: 'redirect_uri' variable. OAuth2AuthHandler was created without a origin/callback URL.");
-        }
-      } else {
-        // The valid callback URL set in your IdP application settings.
-        // This must exactly match the redirect_uri passed to the authorization URL in the previous step.
-        credentials.setRedirectUri(host + route.getPath());
-      }
+      // The valid callback URL set in your IdP application settings.
+      // This must exactly match the redirect_uri passed to the authorization URL in the previous step.
+      credentials.setRedirectUri(callbackURL.href());
 
       authProvider.authenticate(credentials, res -> {
         if (res.failed()) {
@@ -373,8 +368,6 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     // the redirect handler has been setup so we can process this
     // handler has full oauth2
     bearerOnly = false;
-    callback = route;
-
     return this;
   }
 }

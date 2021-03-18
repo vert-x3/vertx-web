@@ -348,4 +348,11 @@ public final class Origin {
   public String toString() {
     return base;
   }
+
+  /**
+   * An hyperlink representation of this origin. Like on web browsers.
+   */
+  public String href() {
+    return base + (resource == null ? "/" : resource);
+  }
 }

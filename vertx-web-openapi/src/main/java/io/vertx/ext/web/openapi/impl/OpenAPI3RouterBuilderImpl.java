@@ -349,9 +349,9 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
         route.handler(ResponseContentTypeHandler.create());
 
       route.setRegexGroupsNames(new ArrayList<>(pathResolver.getMappedGroups().values()));
-      for (Handler handler : handlersToLoad)
+      for (Handler<RoutingContext> handler : handlersToLoad)
         route.handler(handler);
-      for (Handler failureHandler : failureHandlersToLoad)
+      for (Handler<RoutingContext> failureHandler : failureHandlersToLoad)
         route.failureHandler(failureHandler);
     }
 
