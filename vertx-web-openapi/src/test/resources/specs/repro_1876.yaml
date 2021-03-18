@@ -1,0 +1,128 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Reproducer for https://github.com/vert-x3/vertx-web/issues/1876
+  license:
+    name: MIT
+servers:
+  - url: http://petstore.swagger.io/v1
+paths:
+  /accounts:
+    post:
+      operationId: createAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccount"
+
+      responses:
+        "202":
+          description: Request accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseEnvelope"
+  /members:
+    post:
+      operationId: createAccountMember
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccountMember"
+
+      responses:
+        "202":
+          description: Request accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseEnvelope"
+components:
+  schemas:
+    NewResourceEnvelope:
+      type: object
+      title: NewResourceEnvelope
+      properties:
+        data:
+          $ref: "#/components/schemas/NewData"
+      required:
+        - data
+    NewData:
+      type: object
+      properties:
+        type:
+          type: string
+        attributes:
+          $ref: "#/components/schemas/Attributes"
+      required:
+        - type
+    Attributes:
+      type: object
+    CreateAccount:
+      title: CreateAccount
+      allOf:
+        - $ref: "#/components/schemas/NewResourceEnvelope"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/AccountRegistration"
+    AccountRegistration:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          nullable: true
+          default: null
+        attributes:
+          $ref: "#/components/schemas/AccountRegistrationAttributes"
+      required:
+        - attributes
+    AccountRegistrationAttributes:
+      type: object
+      properties:
+        ownerEmail:
+          type: string
+          format: email
+      required:
+        - ownerEmail
+
+    CreateAccountMember:
+      title: CreateAccountMember
+      allOf:
+        - $ref: "#/components/schemas/NewResourceEnvelope"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/AccountMemberRegistration"
+    AccountMemberRegistration:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          nullable: true
+          default: null
+        attributes:
+          $ref: "#/components/schemas/AccountMemberRegistrationAttributes"
+      required:
+        - attributes
+    AccountMemberRegistrationAttributes:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+        - email
+    ResponseEnvelope:
+      type: object
+      properties:
+        data:
+          type: object
+      required:
+        - data

@@ -83,7 +83,8 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
         JsonObject openapiCopy = openapi.copy();
         deepSubstituteForValidation(openapiCopy, JsonPointer.fromURI(initialScope), new HashMap<>());
         // We need this flattened spec just to validate it
-        return openapiSchema.validateAsync(openapiCopy).map(openapi);
+        return openapiSchema.validateAsync(openapiCopy)
+          .map(openapi);
       });
   }
 
@@ -96,6 +97,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
 
   @Override
   public JsonObject solveIfNeeded(JsonObject obj) {
+    Objects.requireNonNull(obj);
     if (isRef(obj)) {
       JsonObject o = getCached(JsonPointer.fromURI(URI.create(obj.getString("$ref"))));
       if (!o.equals(obj))
@@ -134,11 +136,13 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
         if (refPointer.isParent(schemaRootScope)) {
           // If it's a circular $ref, I need to remove $ref URI component and replace with newRef = scope - refPointer
           JsonPointer newRef = OpenAPI3Utils.pointerDifference(schemaRootScope, refPointer);
+          // schemaObject.put("x-$ref", schemaObject.getString("$ref"));
           schemaObject.put("$ref", newRef.toURI().toString());
         } else if (refPointer.equals(schemaRootScope)) {
           // If it's a circular $ref that points to schema root, I need to remove $ref URI component and replace with
           // newRef = scope - refPointer
           JsonPointer newRef = JsonPointer.create();
+          // schemaObject.put("x-$ref", schemaObject.getString("$ref"));
           schemaObject.put("$ref", newRef.toURI().toString());
         } else {
           // If it's not a circular $ref, I generate an id, I substitute the stuff and I register the schema to parse
@@ -156,6 +160,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
             // Resolved it's ready to be consumed by the parser
             additionalSchemasToRegister.put(id, resolvedCopy);
           }
+          // schemaObject.put("x-$ref", schemaObject.getString("$ref"));
           // Substitute schema $ref with new one!
           schemaObject.put("$ref", resolved.getString("x-$id"));
         }
@@ -222,15 +227,20 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
       if (jsonObject.containsKey("$ref")) {
         JsonPointer pointer = JsonPointer.fromURI(URI.create(jsonObject.getString("$ref")));
         if (!pointer.isParent(scope)) { // Check circular refs hell!
+          JsonObject cached = getCached(pointer);
+          if (cached == null) {
+            throw new IllegalStateException("Cannot resolve '" + pointer.toString() + "', this may be an invalid " +
+              "reference");
+          }
           if (!originalToSubstitutedMap.containsKey(pointer)) {
-            JsonObject resolved = solveIfNeeded(getCached(pointer)).copy();
+            JsonObject resolved = solveIfNeeded(cached).copy();
             jsonObject.remove("$ref");
             jsonObject.mergeIn(resolved);
             jsonObject.put("x-$ref", pointer.toURI().toString());
             originalToSubstitutedMap.put(pointer, scope);
             deepSubstituteForValidation(jsonObject, pointer, originalToSubstitutedMap);
           } else {
-            JsonObject resolved = solveIfNeeded(getCached(pointer)).copy();
+            JsonObject resolved = solveIfNeeded(cached).copy();
             jsonObject.remove("$ref");
             jsonObject.mergeIn(resolved);
             jsonObject.put("x-$ref", originalToSubstitutedMap.get(pointer).toURI().toString());
