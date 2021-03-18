@@ -52,6 +52,8 @@ public interface RedisSessionStore extends SessionStore {
    * @return the store
    */
   static RedisSessionStore create(Vertx vertx, long retryTimeoutMs, Redis redis) {
-    return new RedisSessionStoreImpl(vertx, retryTimeoutMs, redis);
+    RedisSessionStoreImpl store = new RedisSessionStoreImpl();
+    store.init(vertx, retryTimeoutMs, redis);
+    return store;
   }
 }
