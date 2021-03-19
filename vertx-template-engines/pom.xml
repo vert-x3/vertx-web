@@ -30,4 +30,36 @@
     <module>vertx-web-templ-jte</module>
   </modules>
 
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>2.4.1</version>
+          <executions>
+            <execution>
+              <phase>package</phase>
+              <goals>
+                <goal>shade</goal>
+              </goals>
+              <configuration>
+                <createDependencyReducedPom>false</createDependencyReducedPom>
+                <shadedArtifactAttached>true</shadedArtifactAttached>
+                <shadedClassifierName>shaded</shadedClassifierName>
+                <artifactSet>
+                  <excludes>
+                    <exclude>io.vertx:*</exclude>
+                    <exclude>io.netty:*</exclude>
+                    <exclude>com.fasterxml.jackson.core:jackson-core:*</exclude>
+                  </excludes>
+                </artifactSet>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
 </project>

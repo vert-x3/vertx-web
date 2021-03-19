@@ -46,32 +46,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.4.1</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <createDependencyReducedPom>false</createDependencyReducedPom>
-              <shadedArtifactAttached>true</shadedArtifactAttached>
-              <shadedClassifierName>shaded</shadedClassifierName>
-              <artifactSet>
-                <includes>
-                  <include>*:jade4j</include>
-                  <include>org.apache.commons:commons-jexl</include>
-                  <include>commons-logging:commons-logging</include>
-                  <include>commons-collections:commons-collections</include>
-                  <include>commons-io:commons-io</include>
-                  <include>org.apache.commons:commons-lang3</include>
-                  <include>com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru</include>
-                  <!-- strip out pedgown, markdown not supported. If you need markdown, install pegdown individually -->
-                </includes>
-              </artifactSet>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
