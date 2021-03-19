@@ -679,14 +679,20 @@ public interface RoutingContext {
     final HttpServerResponse res = response();
 
     if (json == null) {
-      // apply the content type header
-      res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
+      // http://www.iana.org/assignments/media-types/application/json
+      // No "charset" parameter is defined for this registration.
+      // Adding one really has no effect on compliant recipients.
+      res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
       return res.end("null");
     } else {
       try {
         Buffer buffer = Json.encodeToBuffer(json);
         // apply the content type header only if the encoding succeeds
-        res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
+
+        // http://www.iana.org/assignments/media-types/application/json
+        // No "charset" parameter is defined for this registration.
+        // Adding one really has no effect on compliant recipients.
+        res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         return res.end(buffer);
       } catch (EncodeException | UnsupportedOperationException e) {
         // handle the failure

@@ -71,7 +71,7 @@ public class RoutingContextDatabindTest extends WebTestBase {
     });
 
     testRequest(HttpMethod.GET, "/", null, res -> {
-      assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type"));
+      assertEquals("application/json", res.getHeader("Content-Type"));
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "{\"x\":10,\"y\":20}");
   }
 }

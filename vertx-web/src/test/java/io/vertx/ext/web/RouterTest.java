@@ -101,7 +101,7 @@ public class RouterTest extends WebTestBase {
       HttpMethod.GET,
       "/hello",
       null,
-      res -> assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type")),
+      res -> assertEquals("application/json", res.getHeader("Content-Type")),
       200,
       "OK",
       "{\"hello\":\"world\"}");

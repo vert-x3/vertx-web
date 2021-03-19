@@ -209,7 +209,7 @@ public class RoutingContextImplTest extends WebTestBase {
       ctx.json(new JsonObject());
     });
     testRequest(HttpMethod.GET, "/", null, res -> {
-      assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type"));
+      assertEquals("application/json", res.getHeader("Content-Type"));
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
   }
 
@@ -219,7 +219,7 @@ public class RoutingContextImplTest extends WebTestBase {
       ctx.json(new JsonArray());
     });
     testRequest(HttpMethod.GET, "/", null, res -> {
-      assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type"));
+      assertEquals("application/json", res.getHeader("Content-Type"));
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
   }
 
@@ -229,7 +229,7 @@ public class RoutingContextImplTest extends WebTestBase {
       ctx.json(true);
     });
     testRequest(HttpMethod.GET, "/", null, res -> {
-      assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type"));
+      assertEquals("application/json", res.getHeader("Content-Type"));
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "true");
   }
 
@@ -239,7 +239,7 @@ public class RoutingContextImplTest extends WebTestBase {
       ctx.json(null);
     });
     testRequest(HttpMethod.GET, "/", null, res -> {
-      assertEquals("application/json; charset=utf-8", res.getHeader("Content-Type"));
+      assertEquals("application/json", res.getHeader("Content-Type"));
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "null");
   }
 
