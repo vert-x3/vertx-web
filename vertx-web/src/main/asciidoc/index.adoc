@@ -1085,8 +1085,9 @@ just like it's name suggests, it uses a redis backend to keep the session data c
 These stores are available with the coordinates:
 
 * groupId: `io.vertx`
-* artifactId: `vertx-web-sstore-{cookie|redis}`
+* artifactId: `vertx-web-sstore-{cookie|redis|infinispan}`
 
+include::web-sstore-infinispan.adoc[leveloffset=+4]
 
 === Creating the session handler
 
