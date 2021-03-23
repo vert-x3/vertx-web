@@ -24,6 +24,8 @@ import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.handler.impl.OAuth2AuthHandlerImpl;
 
+import java.util.List;
+
 /**
  * An auth handler that provides OAuth2 Authentication support. This handler is suitable for AuthCode flows.
  *
@@ -58,6 +60,20 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
    */
   static OAuth2AuthHandler create(Vertx vertx, OAuth2Auth authProvider) {
     return new OAuth2AuthHandlerImpl(vertx, authProvider, null);
+  }
+
+  /**
+   * Create a new Handler using the provided base as configuration but overriding the configured scopes.
+   *
+   * The new handler will inherit the callback setup if already in place. This factory should be used when
+   * different set of scopes are to be checked on different routes.
+   *
+   * @param base the base handler to inherit the configuration
+   * @param scopes the override scopes
+   * @return the auth handler
+   */
+  static OAuth2AuthHandler create(OAuth2AuthHandler base, List<String> scopes) {
+    return new OAuth2AuthHandlerImpl((OAuth2AuthHandlerImpl) base, scopes);
   }
 
   /**
