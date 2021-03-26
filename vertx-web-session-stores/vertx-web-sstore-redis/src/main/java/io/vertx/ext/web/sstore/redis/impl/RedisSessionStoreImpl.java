@@ -28,8 +28,11 @@ import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
 import io.vertx.ext.web.sstore.redis.RedisSessionStore;
 import io.vertx.redis.client.Redis;
+import io.vertx.redis.client.RedisOptions;
 import io.vertx.redis.client.Request;
 import io.vertx.redis.client.Response;
+
+import java.util.Objects;
 
 import static io.vertx.redis.client.Command.*;
 import static io.vertx.redis.client.Request.cmd;
@@ -38,18 +41,26 @@ import static io.vertx.redis.client.Request.cmd;
  * @author <a href="https://github.com/llfbandit">Rémy Noël</a>
  */
 public class RedisSessionStoreImpl implements RedisSessionStore {
-  private final Redis redis;
-  private final VertxContextPRNG random;
-  private final long retryTimeout;
+  private Redis redis;
+  private VertxContextPRNG random;
+  private long retryTimeout;
 
-  public RedisSessionStoreImpl(Vertx vertx, long retryTimeout, Redis redis) {
-    random = VertxContextPRNG.current(vertx);
-    this.retryTimeout = retryTimeout;
-    this.redis = redis;
+  public RedisSessionStoreImpl() {
+    // required for the service loader
   }
 
   @Override
   public SessionStore init(Vertx vertx, JsonObject options) {
+    Objects.requireNonNull(options, "options are required");
+    long timeout = options.getLong("retryTimeout", RedisSessionStore.DEFAULT_RETRY_TIMEOUT_MS);
+    Redis redis = Redis.createClient(vertx, new RedisOptions(options));
+    return init(vertx, timeout, redis);
+  }
+
+  public SessionStore init(Vertx vertx, long retryTimeout, Redis redis) {
+    random = VertxContextPRNG.current(vertx);
+    this.retryTimeout = retryTimeout;
+    this.redis = Objects.requireNonNull(redis, "redis is required");
     return this;
   }
 
