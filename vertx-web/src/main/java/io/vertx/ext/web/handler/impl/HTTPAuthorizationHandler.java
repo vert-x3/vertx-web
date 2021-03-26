@@ -31,7 +31,7 @@ import io.vertx.ext.web.RoutingContext;
 public abstract class HTTPAuthorizationHandler<T extends AuthenticationProvider> extends AuthenticationHandlerImpl<T> {
 
   // this should match the IANA registry: https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
-  enum Type {
+  public enum Type {
     BASIC("Basic"),
     DIGEST("Digest"),
     BEARER("Bearer"),
@@ -61,14 +61,18 @@ public abstract class HTTPAuthorizationHandler<T extends AuthenticationProvider>
 
   protected final Type type;
 
-  HTTPAuthorizationHandler(T authProvider, Type type) {
+  public HTTPAuthorizationHandler(T authProvider, Type type) {
     super(authProvider);
     this.type = type;
   }
 
-  HTTPAuthorizationHandler(T authProvider, String realm, Type type) {
+  public HTTPAuthorizationHandler(T authProvider, String realm, Type type) {
     super(authProvider, realm);
     this.type = type;
+  }
+
+  protected final void parseAuthorization(RoutingContext ctx, Handler<AsyncResult<String>> handler) {
+    parseAuthorization(ctx, false, handler);
   }
 
   protected final void parseAuthorization(RoutingContext ctx, boolean optional, Handler<AsyncResult<String>> handler) {
@@ -105,11 +109,6 @@ public abstract class HTTPAuthorizationHandler<T extends AuthenticationProvider>
     }
   }
 
-  /**
-   * Returns
-   * @param context
-   * @return
-   */
   @Override
   public String authenticateHeader(RoutingContext context) {
     if (realm != null && realm.length() > 0) {

@@ -40,7 +40,7 @@ public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler<Authenticatio
   @Override
   public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
 
-    parseAuthorization(context, false, parseAuthorization -> {
+    parseAuthorization(context, parseAuthorization -> {
       if (parseAuthorization.failed()) {
         handler.handle(Future.failedFuture(parseAuthorization.cause()));
         return;

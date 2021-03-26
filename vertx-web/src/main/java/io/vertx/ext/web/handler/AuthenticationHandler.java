@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -28,9 +29,9 @@ import io.vertx.ext.web.RoutingContext;
 /**
  * Base interface for auth handlers.
  * <p>
- * An auth handler allows your application to provide authentication/authorization support.
+ * An auth handler allows your application to provide authentication support.
  * <p>
- * Auth handler requires a {@link SessionHandler} to be on the routing chain before it.
+ * An Auth handler may require a {@link SessionHandler} to be on the routing chain before it.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
@@ -62,10 +63,16 @@ public interface AuthenticationHandler extends Handler<RoutingContext> {
   }
 
   /**
-   * Returns
-   * @param context
-   * @return
+   * Returns a {@code WWW-Authenticate} Response Header.
+   *
+   * If a server receives a request for an access-protected object, and an
+   * acceptable Authorization header is not sent, the server responds with
+   * a "401 Unauthorized" status code, and a WWW-Authenticate header.
+
+   * @param context the routing context
+   * @return the header or null if not applicable.
    */
+  @Nullable
   default String authenticateHeader(RoutingContext context) {
     return null;
   }
@@ -79,5 +86,4 @@ public interface AuthenticationHandler extends Handler<RoutingContext> {
   default void postAuthentication(RoutingContext ctx) {
     ctx.next();
   }
-
 }

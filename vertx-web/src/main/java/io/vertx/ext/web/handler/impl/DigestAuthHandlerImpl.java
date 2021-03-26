@@ -113,7 +113,7 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
       lastExpireRun = now;
     }
 
-    parseAuthorization(context, false, parseAuthorization -> {
+    parseAuthorization(context, parseAuthorization -> {
       if (parseAuthorization.failed()) {
         handler.handle(Future.failedFuture(parseAuthorization.cause()));
         return;
