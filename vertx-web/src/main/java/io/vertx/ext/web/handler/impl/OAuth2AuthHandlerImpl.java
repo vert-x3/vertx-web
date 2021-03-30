@@ -54,7 +54,6 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   private final MessageDigest sha256;
 
   private final List<String> scopes = new ArrayList<>();
-  private final List<String> appScopes = new ArrayList<>();
   private JsonObject extraParams;
   private String prompt;
   private int pkce = -1;
@@ -180,38 +179,6 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     });
   }
 
-  /**
-   * This method is called to perform any post authentication tasks, such as redirects.
-   * Overrides must call context.next() on success.
-   *
-   * @param ctx the routing context
-   */
-  @Override
-  public void postAuthentication(RoutingContext ctx) {
-    // the user is authenticated, however the user may not have all the required scopes
-    if (appScopes.size() > 0) {
-      if (ctx.user().principal().containsKey("scope")) {
-        final String scopes = ctx.user().principal().getString("scope");
-        // user principal contains scope, a basic assertion is require to ensure that
-        // the scopes present match the required ones
-        for (String scope : appScopes) {
-          int idx = scopes.indexOf(scope);
-          if (idx != -1) {
-            // match, but is it valid?
-            if (
-              (idx != 0 && scopes.charAt(idx -1) != ' ') ||
-                (idx + scope.length() != scopes.length() && scopes.charAt(idx + scope.length()) != ' ')) {
-              // invalid scope assignment
-              ctx.fail(403, new IllegalStateException("principal scope != handler scopes"));
-              return;
-            }
-          }
-        }
-      }
-    }
-    ctx.next();
-  }
-
   private String authURI(String redirectURL, String state, String codeVerifier) {
     final JsonObject config = new JsonObject();
 
@@ -255,17 +222,6 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   @Override
   public OAuth2AuthHandler withScope(String scope) {
     this.scopes.add(scope);
-    switch (scope) {
-      case "openid":
-      case "profile":
-      case "email":
-      case "phone":
-      case "offline":
-        // openid connect scopes, not application scopes
-        break;
-      default:
-        appScopes.add(scope);
-    }
     return this;
   }
 
