@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
@@ -78,12 +79,13 @@ public interface AuthenticationHandler extends Handler<RoutingContext> {
   }
 
   /**
-   * This method is called to perform any post authentication tasks, such as redirects.
-   * Overrides must call context.next() on success.
+   * This handler is called to perform any post authentication tasks, such as redirects or assertions.
+   * Overrides must call {@link RoutingContext#next()} on success. Implementation must call this handler
+   * at the end of the authentication process, or call {@link RoutingContext#next()} when no handler is
+   * added.
    *
-   * @param ctx the routing context
+   * @param postAuthnHandler the routing context handler
    */
-  default void postAuthentication(RoutingContext ctx) {
-    ctx.next();
-  }
+  @Fluent
+  AuthenticationHandler postAuthenticationHandler(Handler<RoutingContext> postAuthnHandler);
 }

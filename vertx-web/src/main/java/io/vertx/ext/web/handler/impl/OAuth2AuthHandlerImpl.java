@@ -39,8 +39,7 @@ import io.vertx.ext.web.impl.Origin;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -53,7 +52,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   private final Origin callbackURL;
   private final MessageDigest sha256;
 
-  private final List<String> scopes = new ArrayList<>();
+  private final List<String> scopes;
   private JsonObject extraParams;
   private String prompt;
   private int pkce = -1;
@@ -76,10 +75,13 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     } else {
       this.callbackURL = null;
     }
+    // scopes are empty by default
+    this.scopes = new ArrayList<>();
+    postAuthenticationHandler(this::postAuthentication);
   }
 
-  public OAuth2AuthHandlerImpl(OAuth2AuthHandlerImpl base, List<String> scopes) {
-    super(base.authProvider, Type.BEARER);
+  private OAuth2AuthHandlerImpl(OAuth2AuthHandlerImpl base, List<String> scopes) {
+    super(base.authProvider, base.realm, Type.BEARER);
     this.prng = base.prng;
     this.callbackURL = base.callbackURL;
     this.prompt = base.prompt;
@@ -96,12 +98,10 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     if (base.extraParams != null) {
       extraParams = extraParams.copy();
     }
+    // copy the post authenticator
+    postAuthenticationHandler(postAuthentication);
     // apply the new scopes
-    if (scopes != null) {
-      for (String scope : scopes) {
-        withScope(scope);
-      }
-    }
+    this.scopes = scopes;
   }
 
   @Override
@@ -221,8 +221,14 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
   @Override
   public OAuth2AuthHandler withScope(String scope) {
-    this.scopes.add(scope);
-    return this;
+    List<String> updatedScopes = new ArrayList<>(this.scopes);
+    updatedScopes.add(scope);
+    return new OAuth2AuthHandlerImpl(this, updatedScopes);
+  }
+
+  @Override
+  public OAuth2AuthHandler withScopes(List<String> scopes) {
+    return new OAuth2AuthHandlerImpl(this, scopes);
   }
 
   @Override
@@ -385,5 +391,51 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     // handler has full oauth2
     bearerOnly = false;
     return this;
+  }
+
+  @Override
+  public OAuth2AuthHandler postAuthenticationHandler(Handler<RoutingContext> handler) {
+    super.postAuthenticationHandler(handler);
+    return this;
+  }
+
+  private static final Set<String> OPENID_SCOPES = new HashSet<>();
+
+  static {
+    OPENID_SCOPES.add("openid");
+    OPENID_SCOPES.add("profile");
+    OPENID_SCOPES.add("email");
+    OPENID_SCOPES.add("phone");
+    OPENID_SCOPES.add("offline");
+  }
+
+  /**
+   * If the default behavior is not overriden this is the default behavior for post-authentication
+   */
+  private void postAuthentication(RoutingContext ctx) {
+    // the user is authenticated, however the user may not have all the required scopes
+    if (scopes.size() > 0) {
+      if (ctx.user().principal().containsKey("scope")) {
+        final String scopes = ctx.user().principal().getString("scope");
+        // user principal contains scope, a basic assertion is require to ensure that
+        // the scopes present match the required ones
+        for (String scope : this.scopes) {
+          if (!OPENID_SCOPES.contains(scope)) {
+            int idx = scopes.indexOf(scope);
+            if (idx != -1) {
+              // match, but is it valid?
+              if (
+                (idx != 0 && scopes.charAt(idx -1) != ' ') ||
+                  (idx + scope.length() != scopes.length() && scopes.charAt(idx + scope.length()) != ' ')) {
+                // invalid scope assignment
+                ctx.fail(403, new IllegalStateException("principal scope != handler scopes"));
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+    ctx.next();
   }
 }

@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
@@ -39,6 +40,9 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
   protected final String realm;
   protected final T authProvider;
 
+  // state
+  protected Handler<RoutingContext> postAuthentication;
+
   public AuthenticationHandlerImpl(T authProvider) {
     this(authProvider, null);
   }
@@ -56,6 +60,12 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
   }
 
   @Override
+  public AuthenticationHandler postAuthenticationHandler(Handler<RoutingContext> postAuthenticationHandler) {
+    this.postAuthentication = postAuthenticationHandler;
+    return this;
+  }
+
+  @Override
   public void handle(RoutingContext ctx) {
 
     if (handlePreflight(ctx)) {
@@ -65,7 +75,11 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
     User user = ctx.user();
     if (user != null) {
       // proceed with the router
-      postAuthentication(ctx);
+      if (postAuthentication != null) {
+        postAuthentication.handle(ctx);
+      } else {
+        ctx.next();
+      }
       return;
     }
     // before starting any potential async operation here
@@ -97,7 +111,11 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
           }
           // proceed with the router
           resume(request, parseEnded);
-          postAuthentication(ctx);
+          if (postAuthentication != null) {
+            postAuthentication.handle(ctx);
+          } else {
+            ctx.next();
+          }
         } else {
           String header = authenticateHeader(ctx);
           if (header != null) {

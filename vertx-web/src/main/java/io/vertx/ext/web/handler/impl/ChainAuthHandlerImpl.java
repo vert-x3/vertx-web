@@ -95,8 +95,8 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
           }
           // the error is not a validation exception, so we abort regardless
         }
-          handler.handle(Future.failedFuture(res.cause()));
-          return;
+        handler.handle(Future.failedFuture(res.cause()));
+        return;
       }
 
       // setup the desired auth provider if we can
@@ -125,6 +125,10 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
     }
     return null;
   }
+
+  @Override
+  public ChainAuthHandler postAuthenticationHandler(Handler<RoutingContext> handler) {
+    super.postAuthenticationHandler(handler);
+    return this;
+  }
 }
-
-

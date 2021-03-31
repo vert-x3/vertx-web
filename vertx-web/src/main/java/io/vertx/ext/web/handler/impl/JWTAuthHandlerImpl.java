@@ -23,6 +23,7 @@ import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 
 /**
@@ -45,5 +46,11 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
 
       handler.handle(Future.succeededFuture(new TokenCredentials(parseAuthorization.result())));
     });
+  }
+
+  @Override
+  public JWTAuthHandler postAuthenticationHandler(Handler<RoutingContext> handler) {
+    super.postAuthenticationHandler(handler);
+    return this;
   }
 }

@@ -18,10 +18,12 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.Route;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.OAuth2AuthHandlerImpl;
 
 import java.util.List;
@@ -63,20 +65,6 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
   }
 
   /**
-   * Create a new Handler using the provided base as configuration but overriding the configured scopes.
-   *
-   * The new handler will inherit the callback setup if already in place. This factory should be used when
-   * different set of scopes are to be checked on different routes.
-   *
-   * @param base the base handler to inherit the configuration
-   * @param scopes the override scopes
-   * @return the auth handler
-   */
-  static OAuth2AuthHandler create(OAuth2AuthHandler base, List<String> scopes) {
-    return new OAuth2AuthHandlerImpl((OAuth2AuthHandlerImpl) base, scopes);
-  }
-
-  /**
    * Extra parameters needed to be passed while requesting a token.
    *
    * @param extraParams extra optional parameters.
@@ -86,13 +74,24 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
   OAuth2AuthHandler extraParams(JsonObject extraParams);
 
   /**
-   * scopes to be requested while requesting a token.
+   * Return a new instance with the internal state copied from the caller but the scopes to be requested during a token
+   * request are unique to the instance.
    *
    * @param scope scope.
-   * @return self
+   * @return new instance of this interface.
    */
   @Fluent
   OAuth2AuthHandler withScope(String scope);
+
+  /**
+   * Return a new instance with the internal state copied from the caller but the scopes to be requested during a token
+   * request are unique to the instance.
+   *
+   * @param scopes scopes.
+   * @return new instance of this interface.
+   */
+  @Fluent
+  OAuth2AuthHandler withScopes(List<String> scopes);
 
   /**
    * Indicates the type of user interaction that is required. Not all providers support this or the full list.
@@ -133,4 +132,11 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
    */
   @Fluent
   OAuth2AuthHandler setupCallback(Route route);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Fluent
+  @Override
+  OAuth2AuthHandler postAuthenticationHandler(Handler<RoutingContext> postAuthnHandler);
 }

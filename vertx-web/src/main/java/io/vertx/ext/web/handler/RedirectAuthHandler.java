@@ -16,8 +16,11 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Handler;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.RedirectAuthHandlerImpl;
 
 /**
@@ -70,4 +73,11 @@ public interface RedirectAuthHandler extends AuthenticationHandler {
   static RedirectAuthHandler create(AuthenticationProvider authProvider, String loginRedirectURL, String returnURLParam) {
     return new RedirectAuthHandlerImpl(authProvider, loginRedirectURL, returnURLParam);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Fluent
+  @Override
+  RedirectAuthHandler postAuthenticationHandler(Handler<RoutingContext> postAuthnHandler);
 }

@@ -23,6 +23,7 @@ import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.DigestAuthHandler;
 import io.vertx.ext.web.handler.RedirectAuthHandler;
 
 /**
@@ -50,5 +51,11 @@ public class RedirectAuthHandlerImpl extends AuthenticationHandlerImpl<Authentic
     } else {
       handler.handle(Future.failedFuture("No session - did you forget to include a SessionHandler?"));
     }
+  }
+
+  @Override
+  public RedirectAuthHandler postAuthenticationHandler(Handler<RoutingContext> handler) {
+    super.postAuthenticationHandler(handler);
+    return this;
   }
 }

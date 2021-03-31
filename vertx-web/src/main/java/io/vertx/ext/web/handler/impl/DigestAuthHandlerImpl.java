@@ -256,4 +256,10 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
     MD5.reset();
     return bytesToHex(MD5.digest(payload));
   }
+
+  @Override
+  public DigestAuthHandler postAuthenticationHandler(Handler<RoutingContext> handler) {
+    super.postAuthenticationHandler(handler);
+    return this;
+  }
 }

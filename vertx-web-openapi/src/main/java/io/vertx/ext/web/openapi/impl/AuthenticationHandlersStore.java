@@ -67,14 +67,16 @@ class AuthenticationHandlersStore {
     if (e.getValue() instanceof JsonArray && ((JsonArray) e.getValue()).size() != 0) {
       List<String> scopes = ((JsonArray) e.getValue())
         .stream()
-        .map(v -> (String)v)
+        .map(v -> (String) v)
         .collect(Collectors.toList());
 
-      authenticationHandlers
-        .stream()
-        .filter(h -> h instanceof OAuth2AuthHandler)
-        .map(h -> (OAuth2AuthHandler)h)
-        .forEach(h -> scopes.forEach(h::withScope));
+      for (int i = 0; i < authenticationHandlers.size(); i++) {
+        if (authenticationHandlers.get(i) instanceof OAuth2AuthHandler) {
+          OAuth2AuthHandler oauth2 = (OAuth2AuthHandler) authenticationHandlers.get(i);
+          // this mutates the state, so we replace the list with an updated handler
+          authenticationHandlers.set(i, oauth2.withScopes(scopes));
+        }
+      }
     }
 
     return authenticationHandlers;
@@ -124,7 +126,7 @@ class AuthenticationHandlersStore {
     ChainAuthHandler authHandler = ChainAuthHandler.any();
     securityRequirements
       .stream()
-      .map(jo -> (JsonObject)jo)
+      .map(jo -> (JsonObject) jo)
       .map(jo -> andAuths(jo, failOnNotFound))
       .filter(Objects::nonNull)
       .forEach(authHandler::add);

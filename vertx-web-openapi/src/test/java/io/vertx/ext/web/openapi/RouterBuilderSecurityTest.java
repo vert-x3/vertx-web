@@ -298,7 +298,7 @@ public class RouterBuilderSecurityTest extends BaseRouterBuilderTest {
 
       // Some oauth2 configuration
       OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-        .setClientID("client-id")
+        .setClientId("client-id")
         .setFlow(OAuth2FlowType.AUTH_CODE)
         .setClientSecret("client-secret")
         .setSite("http://localhost:10000"));
