@@ -17,14 +17,8 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.Promise;
-import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -39,44 +33,6 @@ import io.vertx.ext.web.RoutingContext;
  */
 @VertxGen(concrete = false)
 public interface AuthenticationHandler extends Handler<RoutingContext> {
-
-  /**
-   * Parses the credentials from the request into a JsonObject. The implementation should
-   * be able to extract the required info for the auth provider in the format the provider
-   * expects.
-   *
-   * @param context the routing context
-   * @param handler the handler to be called once the information is available.
-   */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler);
-
-  /**
-   * @see AuthenticationHandler#parseCredentials(RoutingContext, Handler)
-   * @param context the routing context
-   * @return Future json
-   */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  default Future<Credentials> parseCredentials(RoutingContext context) {
-    Promise<Credentials> promise = Promise.promise();
-    parseCredentials(context, promise);
-    return promise.future();
-  }
-
-  /**
-   * Returns a {@code WWW-Authenticate} Response Header.
-   *
-   * If a server receives a request for an access-protected object, and an
-   * acceptable Authorization header is not sent, the server responds with
-   * a "401 Unauthorized" status code, and a WWW-Authenticate header.
-
-   * @param context the routing context
-   * @return the header or null if not applicable.
-   */
-  @Nullable
-  default String authenticateHeader(RoutingContext context) {
-    return null;
-  }
 
   /**
    * This handler is called to perform any post authentication tasks, such as redirects or assertions.

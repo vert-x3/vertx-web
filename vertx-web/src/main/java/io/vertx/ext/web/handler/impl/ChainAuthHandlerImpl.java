@@ -6,17 +6,14 @@ import io.vertx.core.Handler;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.AuthenticationHandler;
-import io.vertx.ext.web.handler.ChainAuthHandler;
-import io.vertx.ext.web.handler.OAuth2AuthHandler;
-import io.vertx.ext.web.handler.RedirectAuthHandler;
+import io.vertx.ext.web.handler.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements ChainAuthHandler {
 
-  private final List<AuthenticationHandler> handlers = new ArrayList<>();
+  private final List<AuthenticationHandlerInternal> handlers = new ArrayList<>();
   private final boolean all;
 
   private boolean willRedirect = false;
@@ -31,7 +28,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
     if (willRedirect) {
       throw new IllegalStateException("Cannot add a handler after a handler known to perform a HTTP redirect [RedirectAuthHandler/Oauth2Handler]");
     }
-    handlers.add(other);
+    handlers.add((AuthenticationHandlerInternal) other);
     // validation for well known redirect handlers
     if (other instanceof RedirectAuthHandler || other instanceof OAuth2AuthHandler) {
       willRedirect = true;
@@ -53,7 +50,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
     }
   }
 
-  private void iterate(final int idx, final RoutingContext ctx, Credentials result, HttpStatusException exception, Handler<AsyncResult<Credentials>> handler) {
+  private void iterate(final int idx, final RoutingContext ctx, Credentials result, HttpException exception, Handler<AsyncResult<Credentials>> handler) {
     // stop condition
     if (idx >= handlers.size()) {
       if (all) {
@@ -71,7 +68,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
     }
 
     // parse the request in order to extract the credentials object
-    final AuthenticationHandler authHandler = handlers.get(idx);
+    final AuthenticationHandlerInternal authHandler = handlers.get(idx);
 
     authHandler.parseCredentials(ctx, res -> {
       if (res.failed()) {
@@ -81,8 +78,8 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
         } else {
           // any handler can be valid, if the response is within a validation error
           // the chain is allowed to proceed, otherwise we must abort.
-          if (res.cause() instanceof HttpStatusException) {
-            final HttpStatusException ex = (HttpStatusException) res.cause();
+          if (res.cause() instanceof HttpException) {
+            final HttpException ex = (HttpException) res.cause();
             switch (ex.getStatusCode()) {
               case 302:
               case 400:
@@ -117,7 +114,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
 
   @Override
   public String authenticateHeader(RoutingContext ctx) {
-    for (AuthenticationHandler authHandler : handlers) {
+    for (AuthenticationHandlerInternal authHandler : handlers) {
       String header = authHandler.authenticateHeader(ctx);
       if (header != null) {
         return header;

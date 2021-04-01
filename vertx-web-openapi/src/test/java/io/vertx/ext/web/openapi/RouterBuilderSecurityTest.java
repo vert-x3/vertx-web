@@ -18,7 +18,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.impl.AuthenticationHandlerImpl;
-import io.vertx.ext.web.handler.impl.HttpStatusException;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
@@ -447,7 +447,7 @@ public class RouterBuilderSecurityTest extends BaseRouterBuilderTest {
       @Override
       public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
         mockHandler.handle(context);
-        handler.handle(Future.failedFuture(new HttpStatusException(401)));
+        handler.handle(Future.failedFuture(new HttpException(401)));
       }
     };
   }

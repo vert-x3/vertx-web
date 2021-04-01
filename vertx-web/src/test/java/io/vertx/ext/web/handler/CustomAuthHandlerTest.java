@@ -25,7 +25,6 @@ import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.AuthenticationHandlerImpl;
-import io.vertx.ext.web.handler.impl.HttpStatusException;
 import org.junit.Test;
 
 import static org.mockito.Mockito.*;
@@ -73,7 +72,7 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
     }).when(authProvider).authenticate(any(Credentials.class), any(Handler.class));
 
     router.route("/protected/*").handler(newAuthHandler(authProvider, exception -> {
-      assertTrue(exception instanceof HttpStatusException);
+      assertTrue(exception instanceof HttpException);
       assertEquals(rootCause, exception.getCause());
     }));
 
@@ -91,7 +90,7 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
       rc.response().end("Welcome to the protected resource!");
     };
 
-    Throwable rootCause = new HttpStatusException(499, "bla");
+    Throwable rootCause = new HttpException(499, "bla");
     AuthenticationProvider authProvider = mock(AuthenticationProvider.class);
     doAnswer(invocation -> {
       final Handler<AsyncResult<User>> resultHandler = invocation.getArgument(1);
@@ -100,7 +99,7 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
     }).when(authProvider).authenticate(any(Credentials.class), any(Handler.class));
 
     router.route("/protected/*").handler(newAuthHandler(authProvider, exception -> {
-      assertTrue(exception instanceof HttpStatusException);
+      assertTrue(exception instanceof HttpException);
       assertEquals(rootCause, exception);
     }));
 
@@ -108,8 +107,8 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
 
     router.errorHandler(499, rc -> rc
       .response()
-      .setStatusCode(((HttpStatusException)rc.failure()).getStatusCode())
-      .setStatusMessage(((HttpStatusException)rc.failure()).getPayload())
+      .setStatusCode(((HttpException)rc.failure()).getStatusCode())
+      .setStatusMessage(((HttpException)rc.failure()).getPayload())
       .end()
     );
 

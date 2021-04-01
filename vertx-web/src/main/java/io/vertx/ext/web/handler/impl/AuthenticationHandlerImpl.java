@@ -16,26 +16,30 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.AuthenticationHandler;
+import io.vertx.ext.web.handler.HttpException;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider> implements AuthenticationHandler {
+public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider> implements AuthenticationHandlerInternal {
 
   static final String AUTH_PROVIDER_CONTEXT_KEY = "io.vertx.ext.web.handler.AuthenticationHandler.provider";
 
-  static final HttpStatusException UNAUTHORIZED = new HttpStatusException(401);
-  static final HttpStatusException BAD_REQUEST = new HttpStatusException(400);
-  static final HttpStatusException BAD_METHOD = new HttpStatusException(405);
+  static final HttpException UNAUTHORIZED = new HttpException(401);
+  static final HttpException BAD_REQUEST = new HttpException(400);
+  static final HttpException BAD_METHOD = new HttpException(405);
 
   protected final String realm;
   protected final T authProvider;
@@ -98,8 +102,8 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
         processException(ctx, res.cause());
         return;
       }
-      // proceed to authN
-      getAuthProvider(ctx).authenticate(res.result(), authN -> {
+      // proceed to authN if needed
+      performAuthNIfNeeded(ctx, res.result(), authN -> {
         if (authN.succeeded()) {
           User authenticated = authN.result();
           ctx.setUser(authenticated);
@@ -125,7 +129,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
           // to allow further processing if needed
           resume(request, parseEnded);
           Throwable cause = authN.cause();
-          processException(ctx, cause instanceof HttpStatusException?cause:new HttpStatusException(401, cause));
+          processException(ctx, cause instanceof HttpException ?cause:new HttpException(401, cause));
         }
       });
     });
@@ -138,6 +142,18 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
     }
   }
 
+  private void performAuthNIfNeeded(RoutingContext ctx, Credentials credentials, Handler<AsyncResult<User>> handler) {
+    if (ctx.user() != null) {
+      // the user has been set by some handler already
+      handler
+        .handle(Future.succeededFuture(ctx.user()));
+    } else {
+      // rely on the internal authentication provider to complete the operation
+      getAuthProvider(ctx)
+        .authenticate(credentials, handler);
+    }
+  }
+
   /**
    * This method is protected so custom auth handlers can override the default
    * error handling
@@ -145,9 +161,9 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
   protected void processException(RoutingContext ctx, Throwable exception) {
 
     if (exception != null) {
-      if (exception instanceof HttpStatusException) {
-        final int statusCode = ((HttpStatusException) exception).getStatusCode();
-        final String payload = ((HttpStatusException) exception).getPayload();
+      if (exception instanceof HttpException) {
+        final int statusCode = ((HttpException) exception).getStatusCode();
+        final String payload = ((HttpException) exception).getPayload();
 
         switch (statusCode) {
           case 302:

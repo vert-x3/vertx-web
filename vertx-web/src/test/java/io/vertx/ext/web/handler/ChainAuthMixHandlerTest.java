@@ -10,7 +10,6 @@ import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.impl.AuthenticationHandlerImpl;
-import io.vertx.ext.web.handler.impl.HttpStatusException;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import org.junit.Test;
 
@@ -26,7 +25,7 @@ public class ChainAuthMixHandlerTest extends WebTestBase {
   private final AuthenticationHandler failure = new AuthenticationHandlerImpl((authInfo, resultHandler) -> resultHandler.handle(Future.failedFuture("Oops!"))) {
     @Override
     public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
-      handler.handle(Future.failedFuture(new HttpStatusException(401)));
+      handler.handle(Future.failedFuture(new HttpException(401)));
     }
   };
 

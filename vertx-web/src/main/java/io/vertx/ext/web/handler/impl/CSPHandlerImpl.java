@@ -2,6 +2,7 @@ package io.vertx.ext.web.handler.impl;
 
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.CSPHandler;
+import io.vertx.ext.web.handler.HttpException;
 
 import java.util.*;
 
@@ -89,7 +90,7 @@ public class CSPHandlerImpl implements CSPHandler {
 
     if (reportOnly) {
       if (!policy.containsKey("report-uri")) {
-        ctx.fail(new HttpStatusException(500, "Please disable CSP reportOnly or add a report-uri policy."));
+        ctx.fail(new HttpException(500, "Please disable CSP reportOnly or add a report-uri policy."));
       } else {
         ctx.response()
           .putHeader("Content-Security-Policy-Report-Only", policyString.toString());

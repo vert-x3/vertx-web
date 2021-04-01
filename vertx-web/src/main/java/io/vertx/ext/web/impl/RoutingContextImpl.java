@@ -28,7 +28,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
-import io.vertx.ext.web.handler.impl.HttpStatusException;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.impl.UserHolder;
 
 import java.nio.charset.Charset;
@@ -167,8 +167,8 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void fail(Throwable t) {
-    if (t instanceof HttpStatusException) {
-      this.fail(((HttpStatusException) t).getStatusCode(), t);
+    if (t instanceof HttpException) {
+      this.fail(((HttpException) t).getStatusCode(), t);
     } else {
       this.fail(500, t);
     }
@@ -488,7 +488,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
           return queryParams;
         }
       } catch (IllegalArgumentException e) {
-        throw new HttpStatusException(400, "Error while decoding query params", e);
+        throw new HttpException(400, "Error while decoding query params", e);
       }
     }
     return queryParams;

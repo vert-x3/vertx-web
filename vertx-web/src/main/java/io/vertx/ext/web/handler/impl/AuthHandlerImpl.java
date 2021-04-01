@@ -27,6 +27,7 @@ import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.AuthHandler;
+import io.vertx.ext.web.handler.HttpException;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -37,21 +38,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @Deprecated
-public abstract class AuthHandlerImpl implements AuthHandler {
+public abstract class AuthHandlerImpl implements AuthHandler, AuthenticationHandlerInternal {
 
   static final String AUTH_PROVIDER_CONTEXT_KEY = "io.vertx.ext.web.handler.AuthHandler.provider";
 
-  static final HttpStatusException FORBIDDEN = new HttpStatusException(403);
-  static final HttpStatusException UNAUTHORIZED = new HttpStatusException(401);
-  static final HttpStatusException BAD_REQUEST = new HttpStatusException(400);
+  static final HttpException FORBIDDEN = new HttpException(403);
 
   protected final String realm;
   protected final AuthenticationProvider authProvider;
   protected final Set<String> authorities = new HashSet<>();
-
-  public AuthHandlerImpl(AuthenticationProvider authProvider) {
-    this(authProvider, "");
-  }
 
   public AuthHandlerImpl(AuthenticationProvider authProvider, String realm) {
     this.authProvider = authProvider;
@@ -163,10 +158,10 @@ public abstract class AuthHandlerImpl implements AuthHandler {
               .putHeader("WWW-Authenticate", header);
           }
           // to allow further processing if needed
-          if (authN.cause() instanceof HttpStatusException) {
+          if (authN.cause() instanceof HttpException) {
             processException(ctx, authN.cause());
           } else {
-            processException(ctx, new HttpStatusException(401, authN.cause()));
+            processException(ctx, new HttpException(401, authN.cause()));
           }
         }
       });
@@ -180,9 +175,9 @@ public abstract class AuthHandlerImpl implements AuthHandler {
   protected void processException(RoutingContext ctx, Throwable exception) {
 
     if (exception != null) {
-      if (exception instanceof HttpStatusException) {
-        final int statusCode = ((HttpStatusException) exception).getStatusCode();
-        final String payload = ((HttpStatusException) exception).getPayload();
+      if (exception instanceof HttpException) {
+        final int statusCode = ((HttpException) exception).getStatusCode();
+        final String payload = ((HttpException) exception).getPayload();
 
         switch (statusCode) {
           case 302:

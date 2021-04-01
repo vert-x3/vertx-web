@@ -24,7 +24,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.handler.impl.HttpStatusException;
+import io.vertx.ext.web.handler.HttpException;
 
 import java.util.List;
 import java.util.Set;
@@ -335,7 +335,7 @@ public interface Route {
                   ctx.end();
                 }
               } else {
-                ctx.fail(new HttpStatusException(500, "Response already written"));
+                ctx.fail(new HttpException(500, "Response already written"));
               }
             }
           });

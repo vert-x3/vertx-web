@@ -33,6 +33,7 @@ import io.vertx.ext.auth.oauth2.Oauth2Credentials;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.impl.Origin;
 
@@ -128,7 +129,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         // an infinite redirect loop. In this case an exception must be raised.
         if (context.request().method() == HttpMethod.GET && context.normalizedPath().equals(callbackURL.resource())) {
           LOG.warn("The callback route is shaded by the OAuth2AuthHandler, ensure the callback route is added BEFORE the OAuth2AuthHandler route!");
-          handler.handle(Future.failedFuture(new HttpStatusException(500, "Infinite redirect loop [oauth2 callback]")));
+          handler.handle(Future.failedFuture(new HttpException(500, "Infinite redirect loop [oauth2 callback]")));
         } else {
           if (context.request().method() != HttpMethod.GET) {
             // we can only redirect GET requests
@@ -166,7 +167,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
                 .put("pkce", codeVerifier);
             }
           }
-          handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(redirectUri, state, codeVerifier))));
+          handler.handle(Future.failedFuture(new HttpException(302, authURI(redirectUri, state, codeVerifier))));
         }
       } else {
         // continue
