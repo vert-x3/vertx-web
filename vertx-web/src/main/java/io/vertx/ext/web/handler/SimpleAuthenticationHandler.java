@@ -18,7 +18,6 @@ package io.vertx.ext.web.handler;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.SimpleAuthenticationHandlerImpl;
@@ -44,18 +43,8 @@ public interface SimpleAuthenticationHandler extends AuthenticationHandler {
    * Creates a new instance of the simple authentication handler.
    * @return a new instance.
    */
-  static AuthenticationHandler create() {
-    return create(null);
-  }
-
-  /**
-   * Creates a new instance of the simple authentication handler.
-   *
-   * @param realm a given realm name.
-   * @return a new instance.
-   */
-  static AuthenticationHandler create(String realm) {
-    return new SimpleAuthenticationHandlerImpl(realm);
+  static SimpleAuthenticationHandler create() {
+    return new SimpleAuthenticationHandlerImpl();
   }
 
   /**
@@ -75,10 +64,4 @@ public interface SimpleAuthenticationHandler extends AuthenticationHandler {
    */
   @Fluent
   SimpleAuthenticationHandler authenticate(Function<RoutingContext, Future<User>> authenticationFunction);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Fluent
-  SimpleAuthenticationHandler postAuthenticationHandler(Handler<RoutingContext> postAuthnHandler);
 }

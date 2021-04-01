@@ -61,7 +61,11 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   private boolean bearerOnly = true;
 
   public OAuth2AuthHandlerImpl(Vertx vertx, OAuth2Auth authProvider, String callbackURL) {
-    super(authProvider, Type.BEARER);
+    this(vertx, authProvider, callbackURL, null);
+  }
+
+  public OAuth2AuthHandlerImpl(Vertx vertx, OAuth2Auth authProvider, String callbackURL, String realm) {
+    super(authProvider, Type.BEARER, realm);
     // get a reference to the prng
     this.prng = VertxContextPRNG.current(vertx);
     // get a reference to the sha-256 digest
@@ -78,11 +82,10 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     }
     // scopes are empty by default
     this.scopes = new ArrayList<>();
-    postAuthenticationHandler(this::postAuthentication);
   }
 
   private OAuth2AuthHandlerImpl(OAuth2AuthHandlerImpl base, List<String> scopes) {
-    super(base.authProvider, base.realm, Type.BEARER);
+    super(base.authProvider, Type.BEARER, base.realm);
     this.prng = base.prng;
     this.callbackURL = base.callbackURL;
     this.prompt = base.prompt;
@@ -99,8 +102,6 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     if (base.extraParams != null) {
       extraParams = extraParams.copy();
     }
-    // copy the post authenticator
-    postAuthenticationHandler(postAuthentication);
     // apply the new scopes
     this.scopes = scopes;
   }
@@ -394,12 +395,6 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     return this;
   }
 
-  @Override
-  public OAuth2AuthHandler postAuthenticationHandler(Handler<RoutingContext> handler) {
-    super.postAuthenticationHandler(handler);
-    return this;
-  }
-
   private static final Set<String> OPENID_SCOPES = new HashSet<>();
 
   static {
@@ -411,17 +406,24 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   }
 
   /**
-   * If the default behavior is not overriden this is the default behavior for post-authentication
+   * The default behavior for post-authentication
    */
-  private void postAuthentication(RoutingContext ctx) {
+  @Override
+  public void postAuthentication(RoutingContext ctx) {
     // the user is authenticated, however the user may not have all the required scopes
     if (scopes.size() > 0) {
       if (ctx.user().principal().containsKey("scope")) {
         final String scopes = ctx.user().principal().getString("scope");
-        // user principal contains scope, a basic assertion is require to ensure that
-        // the scopes present match the required ones
-        for (String scope : this.scopes) {
-          if (!OPENID_SCOPES.contains(scope)) {
+        if (scopes != null) {
+          // user principal contains scope, a basic assertion is require to ensure that
+          // the scopes present match the required ones
+          final boolean isOpenId = this.scopes.contains("openid");
+          for (String scope : this.scopes) {
+            // do not assert openid scopes if openid is active
+            if (isOpenId && OPENID_SCOPES.contains(scope)) {
+              continue;
+            }
+
             int idx = scopes.indexOf(scope);
             if (idx != -1) {
               // match, but is it valid?

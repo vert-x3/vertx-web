@@ -59,11 +59,4 @@ public interface DigestAuthHandler extends AuthenticationHandler {
   static DigestAuthHandler create(Vertx vertx, HtdigestAuth authProvider, long nonceExpireTimeout) {
     return new DigestAuthHandlerImpl(vertx, authProvider, nonceExpireTimeout);
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Fluent
-  @Override
-  DigestAuthHandler postAuthenticationHandler(Handler<RoutingContext> postAuthnHandler);
 }

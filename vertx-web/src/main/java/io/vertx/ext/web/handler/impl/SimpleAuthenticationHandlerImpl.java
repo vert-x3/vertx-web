@@ -14,8 +14,8 @@ public class SimpleAuthenticationHandlerImpl extends AuthenticationHandlerImpl<N
 
   private Function<RoutingContext, Future<User>> authn;
 
-  public SimpleAuthenticationHandlerImpl(String realm) {
-    super(new NOOPAuthenticationProvider(), realm);
+  public SimpleAuthenticationHandlerImpl() {
+    super(new NOOPAuthenticationProvider());
   }
 
   @Override
@@ -37,11 +37,4 @@ public class SimpleAuthenticationHandlerImpl extends AuthenticationHandlerImpl<N
     this.authn = authnFunction;
     return this;
   }
-
-  @Override
-  public SimpleAuthenticationHandler postAuthenticationHandler(Handler<RoutingContext> postAuthnHandler) {
-    super.postAuthenticationHandler(postAuthnHandler);
-    return this;
-  }
-
 }

@@ -73,11 +73,4 @@ public interface RedirectAuthHandler extends AuthenticationHandler {
   static RedirectAuthHandler create(AuthenticationProvider authProvider, String loginRedirectURL, String returnURLParam) {
     return new RedirectAuthHandlerImpl(authProvider, loginRedirectURL, returnURLParam);
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Fluent
-  @Override
-  RedirectAuthHandler postAuthenticationHandler(Handler<RoutingContext> postAuthnHandler);
 }

@@ -72,8 +72,6 @@ public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<Authenticati
     this.passwordParam = passwordParam;
     this.returnURLParam = returnURLParam;
     this.directLoggedInOKURL = directLoggedInOKURL;
-    // set the default post authentication handler
-    postAuthenticationHandler(this::postAuthentication);
   }
 
   @Override
@@ -97,7 +95,8 @@ public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<Authenticati
     }
   }
 
-  private void postAuthentication(RoutingContext ctx) {
+  @Override
+  public void postAuthentication(RoutingContext ctx) {
     HttpServerRequest req = ctx.request();
     Session session = ctx.session();
     if (session != null) {

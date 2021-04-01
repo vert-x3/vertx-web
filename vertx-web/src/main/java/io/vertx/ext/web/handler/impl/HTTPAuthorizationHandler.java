@@ -60,15 +60,23 @@ public abstract class HTTPAuthorizationHandler<T extends AuthenticationProvider>
   }
 
   protected final Type type;
+  protected final String realm;
 
   public HTTPAuthorizationHandler(T authProvider, Type type) {
-    super(authProvider);
-    this.type = type;
+    this(authProvider, type, null);
   }
 
-  public HTTPAuthorizationHandler(T authProvider, String realm, Type type) {
-    super(authProvider, realm);
+  public HTTPAuthorizationHandler(T authProvider, Type type, String realm) {
+    super(authProvider);
     this.type = type;
+    this.realm = realm == null ? null : realm
+      // escape quotes
+      .replaceAll("\"", "\\\"");
+
+    if (this.realm != null &&
+      (this.realm.indexOf('\r') != -1 || this.realm.indexOf('\n') != -1)) {
+      throw new IllegalArgumentException("Not allowed [\\r|\\n] characters detected on realm name");
+    }
   }
 
   protected final void parseAuthorization(RoutingContext ctx, Handler<AsyncResult<String>> handler) {

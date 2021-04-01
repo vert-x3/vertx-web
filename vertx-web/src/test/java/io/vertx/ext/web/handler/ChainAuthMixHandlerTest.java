@@ -1,33 +1,23 @@
 package io.vertx.ext.web.handler;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.auth.authentication.Credentials;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.handler.impl.AuthenticationHandlerImpl;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import org.junit.Test;
 
 public class ChainAuthMixHandlerTest extends WebTestBase {
 
-  private final AuthenticationHandler success = new AuthenticationHandlerImpl((authInfo, resultHandler) -> resultHandler.handle(Future.succeededFuture(User.create(new JsonObject())))) {
-    @Override
-    public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
-      handler.handle(Future.succeededFuture(JsonObject::new));
-    }
-  };
+  private static final User USER = User.create(new JsonObject().put("id", "paulo"));
 
-  private final AuthenticationHandler failure = new AuthenticationHandlerImpl((authInfo, resultHandler) -> resultHandler.handle(Future.failedFuture("Oops!"))) {
-    @Override
-    public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
-      handler.handle(Future.failedFuture(new HttpException(401)));
-    }
-  };
+  private final AuthenticationHandler success = SimpleAuthenticationHandler.create()
+    .authenticate(ctx -> Future.succeededFuture(USER));
+
+
+  private final AuthenticationHandler failure = SimpleAuthenticationHandler.create()
+    .authenticate(ctx -> Future.failedFuture(new HttpException(401)));
 
   @Test
   public void testFailOrFailOrSuccess() throws Exception {

@@ -17,8 +17,6 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.ChainAuthHandlerImpl;
 
 /**
@@ -62,11 +60,4 @@ public interface ChainAuthHandler extends AuthenticationHandler {
    */
   @Fluent
   ChainAuthHandler add(AuthenticationHandler other);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Fluent
-  @Override
-  ChainAuthHandler postAuthenticationHandler(Handler<RoutingContext> postAuthnHandler);
 }

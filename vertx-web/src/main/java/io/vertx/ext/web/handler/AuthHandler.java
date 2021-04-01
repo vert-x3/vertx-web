@@ -87,8 +87,4 @@ public interface AuthHandler extends AuthenticationHandler {
     authorize(user, promise);
     return promise.future();
   }
-
-  @Override
-  @Deprecated
-  AuthHandler postAuthenticationHandler(Handler<RoutingContext> postAuthnHandler);
 }

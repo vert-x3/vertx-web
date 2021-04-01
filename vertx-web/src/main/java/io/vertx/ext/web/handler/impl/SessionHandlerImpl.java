@@ -27,7 +27,6 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -122,12 +121,6 @@ public class SessionHandlerImpl implements SessionHandler {
   @Override
   public SessionHandler setCookieMaxAge(long cookieMaxAge) {
     this.cookieMaxAge = cookieMaxAge;
-    return this;
-  }
-
-  @Override
-  @Deprecated
-  public SessionHandler setAuthProvider(AuthProvider authProvider) {
     return this;
   }
 

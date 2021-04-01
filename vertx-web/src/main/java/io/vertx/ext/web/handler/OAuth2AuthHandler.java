@@ -132,11 +132,4 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
    */
   @Fluent
   OAuth2AuthHandler setupCallback(Route route);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Fluent
-  @Override
-  OAuth2AuthHandler postAuthenticationHandler(Handler<RoutingContext> postAuthnHandler);
 }

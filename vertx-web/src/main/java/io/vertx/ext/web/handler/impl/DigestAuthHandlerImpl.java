@@ -89,7 +89,7 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
   private long lastExpireRun;
 
   public DigestAuthHandlerImpl(Vertx vertx, HtdigestAuth authProvider, long nonceExpireTimeout) {
-    super(authProvider, authProvider.realm(), Type.DIGEST);
+    super(authProvider, Type.DIGEST, authProvider.realm());
     random = VertxContextPRNG.current(vertx);
     nonces = vertx.sharedData().getLocalMap(DEFAULT_NONCE_MAP_NAME);
     this.nonceExpireTimeout = nonceExpireTimeout;
@@ -255,11 +255,5 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
   private static synchronized String md5(byte[] payload) {
     MD5.reset();
     return bytesToHex(MD5.digest(payload));
-  }
-
-  @Override
-  public DigestAuthHandler postAuthenticationHandler(Handler<RoutingContext> handler) {
-    super.postAuthenticationHandler(handler);
-    return this;
   }
 }

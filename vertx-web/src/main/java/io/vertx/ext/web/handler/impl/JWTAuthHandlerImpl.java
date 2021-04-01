@@ -47,10 +47,4 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
       handler.handle(Future.succeededFuture(new TokenCredentials(parseAuthorization.result())));
     });
   }
-
-  @Override
-  public JWTAuthHandler postAuthenticationHandler(Handler<RoutingContext> handler) {
-    super.postAuthenticationHandler(handler);
-    return this;
-  }
 }

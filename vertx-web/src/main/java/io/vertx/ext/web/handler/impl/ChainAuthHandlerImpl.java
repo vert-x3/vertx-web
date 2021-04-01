@@ -122,10 +122,4 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
     }
     return null;
   }
-
-  @Override
-  public ChainAuthHandler postAuthenticationHandler(Handler<RoutingContext> handler) {
-    super.postAuthenticationHandler(handler);
-    return this;
-  }
 }

@@ -40,11 +40,4 @@ public interface JWTAuthHandler extends AuthenticationHandler {
   static JWTAuthHandler create(JWTAuth authProvider) {
     return new JWTAuthHandlerImpl(authProvider);
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Fluent
-  @Override
-  JWTAuthHandler postAuthenticationHandler(Handler<RoutingContext> postAuthnHandler);
 }

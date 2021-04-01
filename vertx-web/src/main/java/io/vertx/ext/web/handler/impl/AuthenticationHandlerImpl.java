@@ -27,7 +27,6 @@ import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.HttpException;
 
 /**
@@ -41,32 +40,10 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
   static final HttpException BAD_REQUEST = new HttpException(400);
   static final HttpException BAD_METHOD = new HttpException(405);
 
-  protected final String realm;
   protected final T authProvider;
 
-  // state
-  protected Handler<RoutingContext> postAuthentication;
-
   public AuthenticationHandlerImpl(T authProvider) {
-    this(authProvider, null);
-  }
-
-  public AuthenticationHandlerImpl(T authProvider, String realm) {
     this.authProvider = authProvider;
-    this.realm = realm == null ? null : realm
-      // escape quotes
-      .replaceAll("\"", "\\\"");
-
-    if (this.realm != null &&
-      (this.realm.indexOf('\r') != -1 || this.realm.indexOf('\n') != -1)) {
-      throw new IllegalArgumentException("Not allowed [\\r|\\n] characters detected on realm name");
-    }
-  }
-
-  @Override
-  public AuthenticationHandler postAuthenticationHandler(Handler<RoutingContext> postAuthenticationHandler) {
-    this.postAuthentication = postAuthenticationHandler;
-    return this;
   }
 
   @Override
@@ -79,11 +56,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
     User user = ctx.user();
     if (user != null) {
       // proceed with the router
-      if (postAuthentication != null) {
-        postAuthentication.handle(ctx);
-      } else {
-        ctx.next();
-      }
+      postAuthentication(ctx);
       return;
     }
     // before starting any potential async operation here
@@ -115,11 +88,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
           }
           // proceed with the router
           resume(request, parseEnded);
-          if (postAuthentication != null) {
-            postAuthentication.handle(ctx);
-          } else {
-            ctx.next();
-          }
+          postAuthentication(ctx);
         } else {
           String header = authenticateHeader(ctx);
           if (header != null) {
@@ -129,7 +98,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
           // to allow further processing if needed
           resume(request, parseEnded);
           Throwable cause = authN.cause();
-          processException(ctx, cause instanceof HttpException ?cause:new HttpException(401, cause));
+          processException(ctx, cause instanceof HttpException ? cause : new HttpException(401, cause));
         }
       });
     });

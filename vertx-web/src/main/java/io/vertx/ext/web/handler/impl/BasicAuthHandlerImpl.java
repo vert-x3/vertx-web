@@ -35,7 +35,7 @@ import java.util.Base64;
 public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler<AuthenticationProvider> implements BasicAuthHandler {
 
   public BasicAuthHandlerImpl(AuthenticationProvider authProvider, String realm) {
-    super(authProvider, realm, Type.BASIC);
+    super(authProvider, Type.BASIC, realm);
   }
 
   @Override
@@ -69,11 +69,5 @@ public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler<Authenticatio
 
       handler.handle(Future.succeededFuture(new UsernamePasswordCredentials(suser, spass)));
     });
-  }
-
-  @Override
-  public BasicAuthHandler postAuthenticationHandler(Handler<RoutingContext> handler) {
-    super.postAuthenticationHandler(handler);
-    return this;
   }
 }

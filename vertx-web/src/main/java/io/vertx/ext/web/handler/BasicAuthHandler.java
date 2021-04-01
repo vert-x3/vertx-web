@@ -56,11 +56,4 @@ public interface BasicAuthHandler extends AuthenticationHandler {
   static BasicAuthHandler create(AuthenticationProvider authProvider, String realm) {
     return new BasicAuthHandlerImpl(authProvider, realm);
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Fluent
-  @Override
-  BasicAuthHandler postAuthenticationHandler(Handler<RoutingContext> postAuthnHandler);
 }

@@ -31,4 +31,15 @@ public interface AuthenticationHandlerInternal extends AuthenticationHandler {
   default String authenticateHeader(RoutingContext context) {
     return null;
   }
+
+  /**
+   * This method is called to perform any post authentication tasks, such as redirects or assertions.
+   * Overrides must call {@link RoutingContext#next()} on success. Implementations must call this handler
+   * at the end of the authentication process.
+   *
+   * @param ctx the routing context
+   */
+  default void postAuthentication(RoutingContext ctx) {
+    ctx.next();
+  }
 }
