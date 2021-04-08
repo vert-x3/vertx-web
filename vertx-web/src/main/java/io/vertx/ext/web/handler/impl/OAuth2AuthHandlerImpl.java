@@ -33,14 +33,14 @@ import io.vertx.ext.auth.oauth2.Oauth2Credentials;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.impl.Origin;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -53,16 +53,19 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   private final Origin callbackURL;
   private final MessageDigest sha256;
 
+  private final List<String> scopes;
   private JsonObject extraParams;
-  private final List<String> scopes = new ArrayList<>();
   private String prompt;
   private int pkce = -1;
-
   // explicit signal that tokens are handled as bearer only (meaning, no backend server known)
   private boolean bearerOnly = true;
 
   public OAuth2AuthHandlerImpl(Vertx vertx, OAuth2Auth authProvider, String callbackURL) {
-    super(authProvider, Type.BEARER);
+    this(vertx, authProvider, callbackURL, null);
+  }
+
+  public OAuth2AuthHandlerImpl(Vertx vertx, OAuth2Auth authProvider, String callbackURL, String realm) {
+    super(authProvider, Type.BEARER, realm);
     // get a reference to the prng
     this.prng = VertxContextPRNG.current(vertx);
     // get a reference to the sha-256 digest
@@ -77,6 +80,30 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     } else {
       this.callbackURL = null;
     }
+    // scopes are empty by default
+    this.scopes = new ArrayList<>();
+  }
+
+  private OAuth2AuthHandlerImpl(OAuth2AuthHandlerImpl base, List<String> scopes) {
+    super(base.authProvider, Type.BEARER, base.realm);
+    this.prng = base.prng;
+    this.callbackURL = base.callbackURL;
+    this.prompt = base.prompt;
+    this.pkce = base.pkce;
+    this.bearerOnly = base.bearerOnly;
+
+    // get a new reference to the sha-256 digest
+    try {
+      sha256 = MessageDigest.getInstance("SHA-256");
+    } catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException("Cannot get instance of SHA-256 MessageDigest", e);
+    }
+    // state copy
+    if (base.extraParams != null) {
+      extraParams = extraParams.copy();
+    }
+    // apply the new scopes
+    this.scopes = scopes;
   }
 
   @Override
@@ -103,7 +130,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         // an infinite redirect loop. In this case an exception must be raised.
         if (context.request().method() == HttpMethod.GET && context.normalizedPath().equals(callbackURL.resource())) {
           LOG.warn("The callback route is shaded by the OAuth2AuthHandler, ensure the callback route is added BEFORE the OAuth2AuthHandler route!");
-          handler.handle(Future.failedFuture(new HttpStatusException(500, "Infinite redirect loop [oauth2 callback]")));
+          handler.handle(Future.failedFuture(new HttpException(500, "Infinite redirect loop [oauth2 callback]")));
         } else {
           if (context.request().method() != HttpMethod.GET) {
             // we can only redirect GET requests
@@ -141,17 +168,27 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
                 .put("pkce", codeVerifier);
             }
           }
-          handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(redirectUri, state, codeVerifier))));
+          handler.handle(Future.failedFuture(new HttpException(302, authURI(redirectUri, state, codeVerifier))));
         }
       } else {
         // continue
-        handler.handle(Future.succeededFuture(new TokenCredentials(token).setScopes(scopes)));
+        if (scopes.size() > 0) {
+          handler.handle(Future.succeededFuture(new TokenCredentials(token).setScopes(scopes)));
+        } else {
+          handler.handle(Future.succeededFuture(new TokenCredentials(token)));
+        }
       }
     });
   }
 
   private String authURI(String redirectURL, String state, String codeVerifier) {
-    final JsonObject config = new JsonObject()
+    final JsonObject config = new JsonObject();
+
+    if (extraParams != null) {
+      config.mergeIn(extraParams);
+    }
+
+    config
       .put("state", state != null ? state : redirectURL);
 
     if (callbackURL != null) {
@@ -175,10 +212,6 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       }
     }
 
-    if (extraParams != null) {
-      config.mergeIn(extraParams);
-    }
-
     return authProvider.authorizeURL(config);
   }
 
@@ -190,8 +223,14 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
   @Override
   public OAuth2AuthHandler withScope(String scope) {
-    this.scopes.add(scope);
-    return this;
+    List<String> updatedScopes = new ArrayList<>(this.scopes);
+    updatedScopes.add(scope);
+    return new OAuth2AuthHandlerImpl(this, updatedScopes);
+  }
+
+  @Override
+  public OAuth2AuthHandler withScopes(List<String> scopes) {
+    return new OAuth2AuthHandlerImpl(this, scopes);
   }
 
   @Override
@@ -274,8 +313,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       }
 
       final Oauth2Credentials credentials = new Oauth2Credentials()
-        .setCode(code)
-        .setExtra(extraParams);
+        .setCode(code);
 
       // the state that was passed to the IdP server. The state can be
       // an opaque random string (to protect against replay attacks)
@@ -305,21 +343,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         // remove the code verifier, from the session as it will be trade for the
         // token during the final leg of the oauth2 handshake
         String codeVerifier = ctx.session().remove("pkce");
-        if (codeVerifier != null) {
-          // if there are already extras by the end user
-          // we make a copy to avoid leaking the verifier
-          JsonObject extras = credentials.getExtra();
-          if (extras != null) {
-            credentials
-              .setExtra(new JsonObject()
-                .mergeIn(extras)
-                .put("code_verifier", codeVerifier));
-          } else {
-            credentials
-              .setExtra(new JsonObject()
-                .put("code_verifier", codeVerifier));
-          }
-        }
+        credentials.setCodeVerifier(codeVerifier);
         // state is valid, extract the redirectUri from the session
         resource = ctx.session().get("redirect_uri");
       } else {
@@ -369,5 +393,52 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     // handler has full oauth2
     bearerOnly = false;
     return this;
+  }
+
+  private static final Set<String> OPENID_SCOPES = new HashSet<>();
+
+  static {
+    OPENID_SCOPES.add("openid");
+    OPENID_SCOPES.add("profile");
+    OPENID_SCOPES.add("email");
+    OPENID_SCOPES.add("phone");
+    OPENID_SCOPES.add("offline");
+  }
+
+  /**
+   * The default behavior for post-authentication
+   */
+  @Override
+  public void postAuthentication(RoutingContext ctx) {
+    // the user is authenticated, however the user may not have all the required scopes
+    if (scopes.size() > 0) {
+      if (ctx.user().principal().containsKey("scope")) {
+        final String scopes = ctx.user().principal().getString("scope");
+        if (scopes != null) {
+          // user principal contains scope, a basic assertion is require to ensure that
+          // the scopes present match the required ones
+          final boolean isOpenId = this.scopes.contains("openid");
+          for (String scope : this.scopes) {
+            // do not assert openid scopes if openid is active
+            if (isOpenId && OPENID_SCOPES.contains(scope)) {
+              continue;
+            }
+
+            int idx = scopes.indexOf(scope);
+            if (idx != -1) {
+              // match, but is it valid?
+              if (
+                (idx != 0 && scopes.charAt(idx -1) != ' ') ||
+                  (idx + scope.length() != scopes.length() && scopes.charAt(idx + scope.length()) != ' ')) {
+                // invalid scope assignment
+                ctx.fail(403, new IllegalStateException("principal scope != handler scopes"));
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+    ctx.next();
   }
 }

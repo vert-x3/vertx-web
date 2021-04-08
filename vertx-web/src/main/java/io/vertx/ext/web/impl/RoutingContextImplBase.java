@@ -22,7 +22,7 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.impl.HttpStatusException;
+import io.vertx.ext.web.handler.HttpException;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -201,8 +201,8 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   protected void unhandledFailure(int statusCode, Throwable failure, RouterImpl router) {
     int code = statusCode != -1 ?
       statusCode :
-      (failure instanceof HttpStatusException) ?
-        ((HttpStatusException) failure).getStatusCode() :
+      (failure instanceof HttpException) ?
+        ((HttpException) failure).getStatusCode() :
         500;
     Handler<RoutingContext> errorHandler = router.getErrorHandlerByStatusCode(code);
     if (errorHandler != null) {

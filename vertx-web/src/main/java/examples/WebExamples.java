@@ -1408,7 +1408,7 @@ public class WebExamples {
     // create an OAuth2 provider, clientID and clientSecret
     // should be requested to Google
     OAuth2Auth authProvider = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setClientID("CLIENT_ID")
+      .setClientId("CLIENT_ID")
       .setClientSecret("CLIENT_SECRET")
       .setFlow(OAuth2FlowType.AUTH_CODE)
       .setSite("https://accounts.google.com")
@@ -1707,7 +1707,7 @@ public class WebExamples {
     // create an OAuth2 provider, clientID and clientSecret
     // should be requested to Google
     OAuth2Auth googleAuthProvider = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setClientID("CLIENT_ID")
+      .setClientId("CLIENT_ID")
       .setClientSecret("CLIENT_SECRET")
       .setFlow(OAuth2FlowType.AUTH_CODE)
       .setSite("https://accounts.google.com")

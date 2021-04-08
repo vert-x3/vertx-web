@@ -13,28 +13,43 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.ext.web.handler.impl;
+package io.vertx.ext.web.handler;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 
-public class HttpStatusException extends RuntimeException {
+/**
+ * An utility exception class to signal HTTP failures.
+ *
+ * The class with convey an http status code, by default is is {@code 500}. The exception may contain a cause throwable
+ * and for special cases a simple payload string may be added for context. The payload can be used for example perform
+ * a redirect.
+ *
+ * The message for the exception is inferred from the standard http error code using {@link HttpResponseStatus}.
+ *
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
+ */
+public final class HttpException extends RuntimeException {
 
   private final int statusCode;
   private final String payload;
 
-  public HttpStatusException(int statusCode) {
+  public HttpException() {
+    this(500, null, null);
+  }
+
+  public HttpException(int statusCode) {
     this(statusCode, null, null);
   }
 
-  public HttpStatusException(int statusCode, Throwable cause) {
+  public HttpException(int statusCode, Throwable cause) {
       this(statusCode, null, cause);
     }
 
-  public HttpStatusException(int statusCode, String payload) {
+  public HttpException(int statusCode, String payload) {
     this(statusCode, payload, null);
   }
 
-  public HttpStatusException(int statusCode, String payload, Throwable cause) {
+  public HttpException(int statusCode, String payload, Throwable cause) {
     super(HttpResponseStatus.valueOf(statusCode).reasonPhrase(), cause, false, false);
     this.statusCode = statusCode;
     this.payload = payload;

@@ -24,7 +24,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.impl.VertxInternal;
-import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -199,17 +198,6 @@ public interface SessionHandler extends Handler<RoutingContext> {
    */
   @Fluent
   SessionHandler setCookieMaxAge(long cookieMaxAge);
-
-  /**
-   * Set an auth provider that will allow retrieving the User object from the session to the current routing context.
-   *
-   * @param authProvider any auth provider.
-   * @return a reference to this, so the API can be used fluently
-   * @deprecated this method has no effect
-   */
-	@Fluent
-  @Deprecated
-  SessionHandler setAuthProvider(AuthProvider authProvider);
 
   /**
    * Flush a context session earlier to the store, this will allow the end user to have full control on the event of

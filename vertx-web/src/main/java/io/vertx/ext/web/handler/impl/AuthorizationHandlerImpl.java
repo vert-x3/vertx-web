@@ -25,6 +25,7 @@ import io.vertx.ext.auth.authorization.AuthorizationContext;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthorizationHandler;
+import io.vertx.ext.web.handler.HttpException;
 
 /**
  * Implementation of the {@link io.vertx.ext.web.handler.AuthorizationHandler}
@@ -36,7 +37,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
   private final static Logger LOG = LoggerFactory.getLogger(AuthorizationHandler.class);
 
   private final static int FORBIDDEN_CODE = 403;
-  private final static HttpStatusException FORBIDDEN_EXCEPTION = new HttpStatusException(FORBIDDEN_CODE);
+  private final static HttpException FORBIDDEN_EXCEPTION = new HttpException(FORBIDDEN_CODE);
 
   private final Authorization authorization;
   private final Collection<AuthorizationProvider> authorizationProviders;

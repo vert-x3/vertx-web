@@ -12,7 +12,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.api.service.RouteToEBServiceHandler;
 import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.api.service.ServiceResponse;
-import io.vertx.ext.web.handler.impl.HttpStatusException;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.validation.ValidationHandler;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.json.schema.SchemaParser;
@@ -93,7 +93,7 @@ public class ApiCodegenExamples {
     // Return a failed result
     resultHandler.handle(
       Future.failedFuture(
-        new HttpStatusException(555, "Something bad happened")
+        new HttpException(555, "Something bad happened")
       )
     );
   }

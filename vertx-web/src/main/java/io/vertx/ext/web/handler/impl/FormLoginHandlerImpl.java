@@ -23,7 +23,6 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
@@ -104,7 +103,7 @@ public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<Authenticati
       String returnURL = session.remove(returnURLParam);
       if (returnURL != null) {
         // Now redirect back to the original url
-        doRedirect(req.response(), returnURL);
+        ctx.redirect(returnURL);
         return;
       }
     }
@@ -113,17 +112,14 @@ public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<Authenticati
       // Redirect to the default logged in OK page - this would occur
       // if the user logged in directly at this URL without being redirected here first from another
       // url
-      doRedirect(req.response(), directLoggedInOKURL);
+      ctx.redirect(directLoggedInOKURL);
     } else {
       // Just show a basic page
-      req.response().end(DEFAULT_DIRECT_LOGGED_IN_OK_PAGE);
+      req.response()
+        .putHeader(HttpHeaders.CONTENT_TYPE, "text/html; charset=utf-8")
+        .end(DEFAULT_DIRECT_LOGGED_IN_OK_PAGE);
     }
   }
 
-  private void doRedirect(HttpServerResponse response, String url) {
-    response.putHeader(HttpHeaders.LOCATION, url).setStatusCode(302).end();
-  }
-
-  private static final String DEFAULT_DIRECT_LOGGED_IN_OK_PAGE = "" +
-    "<html><body><h1>Login successful</h1></body></html>";
+  private static final String DEFAULT_DIRECT_LOGGED_IN_OK_PAGE = "<html><body><h1>Login successful</h1></body></html>";
 }

@@ -24,6 +24,7 @@ import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BasicAuthHandler;
+import io.vertx.ext.web.handler.DigestAuthHandler;
 
 import java.util.Base64;
 
@@ -34,7 +35,7 @@ import java.util.Base64;
 public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler<AuthenticationProvider> implements BasicAuthHandler {
 
   public BasicAuthHandlerImpl(AuthenticationProvider authProvider, String realm) {
-    super(authProvider, realm, Type.BASIC);
+    super(authProvider, Type.BASIC, realm);
   }
 
   @Override
