@@ -117,6 +117,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public <T> T getOrDefault(String key, T defaultValue) {
+    return inner.getOrDefault(key, defaultValue);
+  }
+
+  @Override
   public <T> T remove(String key) {
     return inner.remove(key);
   }

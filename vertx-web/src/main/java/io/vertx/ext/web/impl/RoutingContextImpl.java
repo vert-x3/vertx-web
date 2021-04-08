@@ -201,6 +201,13 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   @SuppressWarnings("unchecked")
+  public <T> T getOrDefault(String key, T defaultValue) {
+    Object obj = getData().getOrDefault(key, defaultValue);
+    return (T) obj;
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
   public <T> T remove(String key) {
     Object obj = getData().remove(key);
     return (T)obj;

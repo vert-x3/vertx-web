@@ -279,4 +279,32 @@ public class RoutingContextImplTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", null, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
   }
 
+  @Test
+  public void test_get_or_default() throws Exception {
+    router.route().handler(ctx -> {
+      int foo = 1000;
+      ctx.put("foo", foo);
+      // ok
+      Integer val = ctx.get("foo");
+      assertEquals(1000, val.intValue());
+      try {
+        val = ctx.get("foobar");
+        assertNull(val);
+      } catch (RuntimeException e) {
+        fail(e);
+      }
+
+      try {
+        int v = ctx.get("foobar");
+        fail("NPE is expected");
+      } catch (NullPointerException e) {
+        // OK
+      }
+
+      int foobar = ctx.getOrDefault("foobar", 1024);
+      assertEquals(1024, foobar);
+      ctx.response().end();
+    });
+    testRequest(HttpMethod.GET, "/", HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
+  }
 }

@@ -132,6 +132,11 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  public <T> T getOrDefault(String key, T defaultValue) {
+    return decoratedContext.getOrDefault(key, defaultValue);
+  }
+
+  @Override
   public <T> T remove(String key) {
     return decoratedContext.remove(key);
   }
