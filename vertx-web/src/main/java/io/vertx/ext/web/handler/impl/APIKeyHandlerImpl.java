@@ -42,8 +42,8 @@ public class APIKeyHandlerImpl extends AuthenticationHandlerImpl<AuthenticationP
   private Type source = Type.HEADER;
   private String value = "X-API-KEY";
 
-  public APIKeyHandlerImpl(AuthenticationProvider authProvider, String realm) {
-    super(authProvider, realm);
+  public APIKeyHandlerImpl(AuthenticationProvider authProvider) {
+    super(authProvider);
   }
 
 

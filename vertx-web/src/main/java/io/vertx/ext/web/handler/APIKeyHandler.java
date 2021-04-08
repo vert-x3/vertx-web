@@ -35,23 +35,11 @@ public interface APIKeyHandler extends AuthenticationHandler {
   /**
    * Create an API Key authentication handler
    *
-   * @param authProvider the auth provider to use, the API key will be provided as
-   *                     a {@link io.vertx.ext.auth.authentication.TokenCredentials} object.
-   * @return the new instance of this authentication handler
-   */
-  static APIKeyHandler create(AuthenticationProvider authProvider) {
-    return create(authProvider, null);
-  }
-
-  /**
-   * Create an API Key authentication handler
-   *
    * @param authProvider the auth provider to use
-   * @param realm the realm name
    * @return the auth handler
    */
-  static APIKeyHandler create(AuthenticationProvider authProvider, String realm) {
-    return new APIKeyHandlerImpl(authProvider, realm);
+  static APIKeyHandler create(AuthenticationProvider authProvider) {
+    return new APIKeyHandlerImpl(authProvider);
   }
 
   /**
