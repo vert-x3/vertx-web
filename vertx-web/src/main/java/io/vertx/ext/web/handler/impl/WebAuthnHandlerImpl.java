@@ -15,20 +15,24 @@
  */
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.webauthn.WebAuthn;
 import io.vertx.ext.auth.webauthn.WebAuthnCredentials;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.WebAuthnHandler;
 import io.vertx.ext.web.impl.Origin;
 
-public class WebAuthnHandlerImpl implements WebAuthnHandler {
+public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> implements WebAuthnHandler {
 
-  private final WebAuthn webAuthn;
   // the extra routes
   private Route register = null;
   private Route login = null;
@@ -38,7 +42,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
   private String domain;
 
   public WebAuthnHandlerImpl(WebAuthn webAuthN) {
-    this.webAuthn = webAuthN;
+    super(webAuthN);
   }
 
   private static boolean containsRequiredString(JsonObject json, String key) {
@@ -94,32 +98,31 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
   }
 
   @Override
-  public void handle(RoutingContext ctx) {
-
+  public void parseCredentials(RoutingContext ctx, Handler<AsyncResult<Credentials>> handler) {
     if (response == null) {
-      ctx.fail(500, new IllegalStateException("No callback mounted!"));
+      handler.handle(Future.failedFuture(new HttpException(500, new IllegalStateException("No callback mounted!"))));
       return;
     }
 
     if (matchesRoute(ctx, response)) {
-      ctx.fail(500, new IllegalStateException("The callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!"));
+      handler.handle(Future.failedFuture(new HttpException(500, new IllegalStateException("The callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!"))));
       return;
     }
 
     if (matchesRoute(ctx, register)) {
-      ctx.fail(500, new IllegalStateException("The register callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!"));
+      handler.handle(Future.failedFuture(new HttpException(500, new IllegalStateException("The register callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!"))));
       return;
     }
 
     if (matchesRoute(ctx, login)) {
-      ctx.fail(500, new IllegalStateException("The login callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!"));
+      handler.handle(Future.failedFuture(new HttpException(500, new IllegalStateException("The login callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!"))));
       return;
     }
 
     if (ctx.user() == null) {
-      ctx.fail(401);
+      handler.handle(Future.failedFuture(new HttpException(401)));
     } else {
-      ctx.next();
+      handler.handle(Future.succeededFuture());
     }
   }
 
@@ -148,7 +151,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
               return;
             }
 
-            webAuthn.createCredentialsOptions(webauthnRegister, createCredentialsOptions -> {
+            authProvider.createCredentialsOptions(webauthnRegister, createCredentialsOptions -> {
               if (createCredentialsOptions.failed()) {
                 ctx.fail(createCredentialsOptions.cause());
                 return;
@@ -200,7 +203,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
           final String username = webauthnLogin.getString("name");
 
           // STEP 18 Generate assertion
-          webAuthn.getCredentialsOptions(username, generateServerGetAssertion -> {
+          authProvider.getCredentialsOptions(username, generateServerGetAssertion -> {
             if (generateServerGetAssertion.failed()) {
               ctx.fail(generateServerGetAssertion.cause());
               return;
@@ -255,7 +258,7 @@ public class WebAuthnHandlerImpl implements WebAuthnHandler {
             return;
           }
 
-          webAuthn.authenticate(
+          authProvider.authenticate(
             // authInfo
             new WebAuthnCredentials()
               .setOrigin(origin)

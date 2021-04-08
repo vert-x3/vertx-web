@@ -17,10 +17,8 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
 import io.vertx.ext.auth.webauthn.WebAuthn;
 import io.vertx.ext.web.Route;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.WebAuthnHandlerImpl;
 
 /**
@@ -29,7 +27,7 @@ import io.vertx.ext.web.handler.impl.WebAuthnHandlerImpl;
  * @author Paulo Lopes
  */
 @VertxGen
-public interface WebAuthnHandler extends Handler<RoutingContext> {
+public interface WebAuthnHandler extends AuthenticationHandler {
 
   /**
    * Create a WebAuthN auth handler. This handler expects at least the response callback to be installed.
