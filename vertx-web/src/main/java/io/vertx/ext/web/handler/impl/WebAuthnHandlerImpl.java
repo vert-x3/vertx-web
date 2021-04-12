@@ -164,8 +164,8 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
                 .put("challenge", credentialsOptions.getString("challenge"))
                 .put("username", webauthnRegister.getString("name"));
 
-              ctx.json(credentialsOptions.put("status", "ok").put("errorMessage", ""));
-//              ctx.json(credentialsOptions);
+//              ctx.json(credentialsOptions.put("status", "ok").put("errorMessage", ""));
+              ctx.json(credentialsOptions);
             });
           }
         } catch (IllegalArgumentException e) {
@@ -215,8 +215,8 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
               .put("challenge", getAssertion.getString("challenge"))
               .put("username", username);
 
-            ctx.json(getAssertion.put("status", "ok").put("errorMessage", ""));
-//            ctx.json(getAssertion);
+//            ctx.json(getAssertion.put("status", "ok").put("errorMessage", ""));
+            ctx.json(getAssertion);
           });
         } catch (IllegalArgumentException e) {
           ctx.fail(400, e);
@@ -277,8 +277,8 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
                 // the user has upgraded from unauthenticated to authenticated
                 // session should be upgraded as recommended by owasp
                 session.regenerateId();
-                ctx.json(new JsonObject().put("status", "ok").put("errorMessage", ""));
-//                ctx.response().end();
+//                ctx.json(new JsonObject().put("status", "ok").put("errorMessage", ""));
+                ctx.response().end();
               } else {
                 ctx.fail(authenticate.cause());
               }
