@@ -35,6 +35,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -875,4 +876,42 @@ public class BodyHandlerTest extends WebTestBase {
       req.write(buffer);
     }, 200, "OK", null);
   }
+
+  @Test
+  public void testFormMultipartFormDataLarge() throws Exception {
+    router.clear();
+    router.route().handler(BodyHandler.create());
+    router.route().handler(rc -> {
+      MultiMap attrs = rc.request().formAttributes();
+      assertNotNull(attrs);
+      int size = 0;
+      assertNotNull(attrs.get("attr1"));
+      size += attrs.get("attr1").length();
+      assertNotNull(attrs.get("attr2"));
+      size += attrs.get("attr2").length();
+      assertTrue(size > 2048);
+      rc.response().end();
+    });
+    testRequest(HttpMethod.POST, "/?p1=foo", req -> {
+      Buffer buffer = Buffer.buffer();
+      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+      String header =
+        "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"attr1\"\r\n\r\n" + Base64.getUrlEncoder().encodeToString(TestUtils.randomBuffer(1024).getBytes()) + "\r\n" +
+          "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"attr2\"\r\n\r\n" + Base64.getUrlEncoder().encodeToString(TestUtils.randomBuffer(1024).getBytes()) + "\r\n" +
+          "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"file\"\r\n" +
+          "Content-Type: application/octet-stream\r\n" +
+          "Content-Transfer-Encoding: binary\r\n" +
+          "\r\n";
+      buffer.appendString(header);
+      buffer.appendBuffer(TestUtils.randomBuffer(50));
+      buffer.appendString("\r\n--" + boundary + "--\r\n");
+      req.headers().set("content-length", String.valueOf(buffer.length()));
+      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+      req.write(buffer);
+    }, 200, "OK", null);
+  }
+
 }
