@@ -27,12 +27,12 @@ import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.tls.Cert;
-
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
+import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
@@ -47,10 +47,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -1987,6 +1984,15 @@ public class WebClientTest extends WebClientTestBase {
     public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
       drainHandler = handler;
       return this;
+    }
+  }
+
+  @Test
+  public void testMalformedURLExceptionNotSwallowed() {
+    try {
+      webClient.requestAbs(HttpMethod.POST, "blah://foo@bar");
+    } catch (VertxException e) {
+      assertThat(e.getCause(), instanceOf(MalformedURLException.class));
     }
   }
 }
