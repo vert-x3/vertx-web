@@ -180,9 +180,6 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   }
 
   private void handleInHandlerRuntimeFailure(RouterImpl router, boolean failed, Throwable t) {
-    if (LOG.isTraceEnabled()) {
-      LOG.trace("Throwable thrown from handler", t);
-    }
     if (!failed) {
       if (LOG.isTraceEnabled()) {
         LOG.trace("Failing the routing");
@@ -199,6 +196,8 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
 
 
   protected void unhandledFailure(int statusCode, Throwable failure, RouterImpl router) {
+    LOG.error("Unhandled exception in router", failure);
+
     int code = statusCode != -1 ?
       statusCode :
       (failure instanceof HttpException) ?

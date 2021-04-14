@@ -115,7 +115,7 @@ public class BodyHandlerTest extends WebTestBase {
       req.setChunked(true);
       req.putHeader("content-type", "text/plain;charset=ISO-8859-1");
       byte b = str.getBytes(StandardCharsets.ISO_8859_1)[0];
-      req.write(Buffer.buffer(new byte[] { b }));
+      req.write(Buffer.buffer(new byte[]{b}));
     }, 200, "OK", null);
   }
 
@@ -315,20 +315,20 @@ public class BodyHandlerTest extends WebTestBase {
 
   @Test
   public void testFileDeleteOnLargeUpload() throws Exception {
-      String uploadsDirectory = tempUploads.newFolder().getPath();
-      router.clear();
-      router.route().handler(BodyHandler.create()
-        .setDeleteUploadedFilesOnEnd(true)
-        .setBodyLimit(10000)
-        .setUploadsDirectory(uploadsDirectory));
-      router.route().handler(ctx -> {
-        fail();
-        ctx.fail(500);
-      });
+    String uploadsDirectory = tempUploads.newFolder().getPath();
+    router.clear();
+    router.route().handler(BodyHandler.create()
+      .setDeleteUploadedFilesOnEnd(true)
+      .setBodyLimit(10000)
+      .setUploadsDirectory(uploadsDirectory));
+    router.route().handler(ctx -> {
+      fail();
+      ctx.fail(500);
+    });
 
-      sendFileUploadRequest(TestUtils.randomBuffer(20000), 413, "Request Entity Too Large");
+    sendFileUploadRequest(TestUtils.randomBuffer(20000), 413, "Request Entity Too Large");
 
-      assertWaitUntil(() -> vertx.fileSystem().readDirBlocking(uploadsDirectory).isEmpty());
+    assertWaitUntil(() -> vertx.fileSystem().readDirBlocking(uploadsDirectory).isEmpty());
   }
 
   @Test
@@ -392,8 +392,8 @@ public class BodyHandlerTest extends WebTestBase {
     String uploadsDirectory = tempUploads.newFolder().getPath();
     router.clear();
     router.route().handler(BodyHandler.create()
-            .setDeleteUploadedFilesOnEnd(deletedUploadedFilesOnEnd)
-            .setUploadsDirectory(uploadsDirectory));
+      .setDeleteUploadedFilesOnEnd(deletedUploadedFilesOnEnd)
+      .setUploadsDirectory(uploadsDirectory));
     router.route().handler(requestHandler);
 
     sendFileUploadRequest(TestUtils.randomBuffer(50), statusCode, statusMessage);
@@ -500,13 +500,13 @@ public class BodyHandlerTest extends WebTestBase {
 
       for (int i = 0; i < uploads; i++) {
         String header =
-            "--" + boundary + "\r\n" +
-                "Content-Disposition: form-data; name=\"file" + i + "\"; filename=\"file" + i + "\"\r\n" +
-                "Content-Type: application/octet-stream\r\n" +
-                "Content-Transfer-Encoding: binary\r\n" +
-                "\r\n";
+          "--" + boundary + "\r\n" +
+            "Content-Disposition: form-data; name=\"file" + i + "\"; filename=\"file" + i + "\"\r\n" +
+            "Content-Type: application/octet-stream\r\n" +
+            "Content-Transfer-Encoding: binary\r\n" +
+            "\r\n";
         buffer.appendString(header);
-        buffer.appendBuffer(TestUtils.randomBuffer(4096*16));
+        buffer.appendBuffer(TestUtils.randomBuffer(4096 * 16));
         buffer.appendString("\r\n");
       }
       buffer.appendString("--" + boundary + "\r\n");
@@ -543,10 +543,10 @@ public class BodyHandlerTest extends WebTestBase {
       Buffer buffer = Buffer.buffer();
       String str =
         "--" + boundary + "\r\n" +
-        "Content-Disposition: form-data; name=\"attr1\"\r\n\r\nTim\r\n" +
-        "--" + boundary + "\r\n" +
-        "Content-Disposition: form-data; name=\"attr2\"\r\n\r\nJulien\r\n" +
-        "--" + boundary + "--\r\n";
+          "Content-Disposition: form-data; name=\"attr1\"\r\n\r\nTim\r\n" +
+          "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"attr2\"\r\n\r\nJulien\r\n" +
+          "--" + boundary + "--\r\n";
       buffer.appendString(str);
       req.headers().set("content-length", String.valueOf(buffer.length()));
       req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
@@ -561,7 +561,7 @@ public class BodyHandlerTest extends WebTestBase {
 
     router.clear();
     router.route().handler(BodyHandler.create()
-        .setUploadsDirectory(uploadsDirectory));
+      .setUploadsDirectory(uploadsDirectory));
     router.route().handler(ctx -> {
       assertNull(ctx.getBody());
       assertEquals(1, ctx.fileUploads().size());
@@ -575,11 +575,11 @@ public class BodyHandlerTest extends WebTestBase {
       String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
       Buffer buffer = Buffer.buffer();
       String header =
-          "--" + boundary + "\r\n" +
-              "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
-              "Content-Type: " + contentType + "\r\n" +
-              "Content-Transfer-Encoding: binary\r\n" +
-              "\r\n";
+        "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
+          "Content-Type: " + contentType + "\r\n" +
+          "Content-Transfer-Encoding: binary\r\n" +
+          "\r\n";
       buffer.appendString(header);
       buffer.appendBuffer(TestUtils.randomBuffer(50));
       String footer = "\r\n--" + boundary + "--\r\n";
@@ -591,8 +591,7 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testNoUploadDirMultiPartFormData() throws Exception
-  {
+  public void testNoUploadDirMultiPartFormData() throws Exception {
     String dirName = getNotCreatedTemporaryFolderName();
     router.clear();
     router.route().handler(BodyHandler.create(false).setUploadsDirectory(dirName));
@@ -612,7 +611,7 @@ public class BodyHandlerTest extends WebTestBase {
 
   @Test
   public void testFormMultipartFormDataWithAllowedFilesUploadFalse2() throws Exception {
-      testFormMultipartFormDataWithAllowedFilesUploadFalse(false);
+    testFormMultipartFormDataWithAllowedFilesUploadFalse(false);
   }
 
   private void testFormMultipartFormDataWithAllowedFilesUploadFalse(boolean mergeAttributes) throws Exception {
@@ -645,7 +644,7 @@ public class BodyHandlerTest extends WebTestBase {
       Buffer buffer = Buffer.buffer();
       String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
       String header =
-          "--" + boundary + "\r\n" +
+        "--" + boundary + "\r\n" +
           "Content-Disposition: form-data; name=\"attr1\"\r\n\r\nTim\r\n" +
           "--" + boundary + "\r\n" +
           "Content-Disposition: form-data; name=\"attr2\"\r\n\r\nTommaso\r\n" +
@@ -654,8 +653,8 @@ public class BodyHandlerTest extends WebTestBase {
           "Content-Type: application/octet-stream\r\n" +
           "Content-Transfer-Encoding: binary\r\n" +
           "\r\n";
-        buffer.appendString(header);
-        buffer.appendBuffer(TestUtils.randomBuffer(50));
+      buffer.appendString(header);
+      buffer.appendBuffer(TestUtils.randomBuffer(50));
       buffer.appendString("\r\n--" + boundary + "--\r\n");
       req.headers().set("content-length", String.valueOf(buffer.length()));
       req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
@@ -664,8 +663,7 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testNoUploadDirFormURLEncoded() throws Exception
-  {
+  public void testNoUploadDirFormURLEncoded() throws Exception {
     String dirName = getNotCreatedTemporaryFolderName();
     router.clear();
     router.route().handler(BodyHandler.create(false).setUploadsDirectory(dirName));
@@ -676,16 +674,14 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testBodyHandlerCreateTrueWorks() throws Exception
-  {
+  public void testBodyHandlerCreateTrueWorks() throws Exception {
     router.clear();
     router.route().handler(BodyHandler.create(true));
     testFormURLEncoded();
   }
 
   @Test
-  public void testSetHandleFileUploads() throws Exception
-  {
+  public void testSetHandleFileUploads() throws Exception {
     String dirName = getNotCreatedTemporaryFolderName();
     router.clear();
 
@@ -709,8 +705,7 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testRerouteWithHandleFileUploadsFalse() throws Exception
-  {
+  public void testRerouteWithHandleFileUploadsFalse() throws Exception {
     String fileName = "test.bin";
     router.clear();
     router.route().handler(BodyHandler.create(false).setMergeFormAttributes(true));
@@ -735,7 +730,7 @@ public class BodyHandlerTest extends WebTestBase {
       Buffer buffer = Buffer.buffer();
       String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
       String header =
-          "--" + boundary + "\r\n" +
+        "--" + boundary + "\r\n" +
           "Content-Disposition: form-data; name=\"attr1\"\r\n\r\nTim\r\n" +
           "--" + boundary + "\r\n" +
           "Content-Disposition: form-data; name=\"attr2\"\r\n\r\nTommaso\r\n" +
@@ -744,8 +739,8 @@ public class BodyHandlerTest extends WebTestBase {
           "Content-Type: application/octet-stream\r\n" +
           "Content-Transfer-Encoding: binary\r\n" +
           "\r\n";
-        buffer.appendString(header);
-        buffer.appendBuffer(TestUtils.randomBuffer(50));
+      buffer.appendString(header);
+      buffer.appendBuffer(TestUtils.randomBuffer(50));
       buffer.appendString("\r\n--" + boundary + "--\r\n");
       req.headers().set("content-length", String.valueOf(buffer.length()));
       req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
@@ -754,8 +749,7 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testBodyLimitWithHandleFileUploadsFalse() throws Exception
-  {
+  public void testBodyLimitWithHandleFileUploadsFalse() throws Exception {
     router.clear();
 
     BodyHandler bodyHandler = BodyHandler.create(false).setBodyLimit(2048);
@@ -768,8 +762,7 @@ public class BodyHandlerTest extends WebTestBase {
     sendFileUploadRequest(fileData, 413, "Request Entity Too Large");
   }
 
-  private String getNotCreatedTemporaryFolderName() throws IOException
-  {
+  private String getNotCreatedTemporaryFolderName() throws IOException {
     File dir = tempUploads.newFolder();
     dir.delete();
     return dir.getPath();
@@ -882,24 +875,22 @@ public class BodyHandlerTest extends WebTestBase {
     router.clear();
     router.route().handler(BodyHandler.create());
     router.route().handler(rc -> {
-      MultiMap attrs = rc.request().formAttributes();
-      assertNotNull(attrs);
-      int size = 0;
-      assertNotNull(attrs.get("attr1"));
-      size += attrs.get("attr1").length();
-      assertNotNull(attrs.get("attr2"));
-      size += attrs.get("attr2").length();
-      assertTrue(size > 2048);
-      rc.response().end();
+      fail("Should not get here");
+    }).failureHandler(ctx -> {
+      assertNotNull(ctx.failure());
+      assertTrue(ctx.failure() instanceof IOException);
+      assertEquals("Size exceed allowed maximum capacity", ctx.failure().getMessage());
+      ctx.next();
     });
+
     testRequest(HttpMethod.POST, "/?p1=foo", req -> {
       Buffer buffer = Buffer.buffer();
       String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
       String header =
         "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"attr1\"\r\n\r\n" + Base64.getUrlEncoder().encodeToString(TestUtils.randomBuffer(1024).getBytes()) + "\r\n" +
+          "Content-Disposition: form-data; name=\"attr1\"\r\n\r\n" + Base64.getUrlEncoder().encodeToString(TestUtils.randomBuffer(2048).getBytes()) + "\r\n" +
           "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"attr2\"\r\n\r\n" + Base64.getUrlEncoder().encodeToString(TestUtils.randomBuffer(1024).getBytes()) + "\r\n" +
+          "Content-Disposition: form-data; name=\"attr2\"\r\n\r\n" + Base64.getUrlEncoder().encodeToString(TestUtils.randomBuffer(2048).getBytes()) + "\r\n" +
           "--" + boundary + "\r\n" +
           "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"file\"\r\n" +
           "Content-Type: application/octet-stream\r\n" +
@@ -911,7 +902,19 @@ public class BodyHandlerTest extends WebTestBase {
       req.headers().set("content-length", String.valueOf(buffer.length()));
       req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
       req.write(buffer);
-    }, 200, "OK", null);
+    }, 400, "Bad Request", null);
+  }
+
+  @Test
+  public void testLogExceptions() throws Exception {
+    router.clear();
+    router.route().handler(BodyHandler.create());
+
+    router.route().handler(ctx -> {
+      throw new NullPointerException();
+    });
+    testRequest(HttpMethod.GET, "/", req -> {
+    }, 500, "Internal Server Error", null);
   }
 
 }
