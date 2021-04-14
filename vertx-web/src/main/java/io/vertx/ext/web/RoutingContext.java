@@ -137,6 +137,17 @@ public interface RoutingContext {
   <T> T get(String key);
 
   /**
+   * Get some data from the context. The data is available in any handlers that receive the context.
+   *
+   * @param key  the key for the data
+   * @param <T>  the type of the data
+   * @param defaultValue when the underlying data doesn't contain the key this will be the return value.
+   * @return  the data
+   * @throws ClassCastException if the data is not of the expected type
+   */
+  <T> T get(String key, T defaultValue);
+
+  /**
    * Remove some data from the context. The data is available in any handlers that receive the context.
    *
    * @param key  the key for the data

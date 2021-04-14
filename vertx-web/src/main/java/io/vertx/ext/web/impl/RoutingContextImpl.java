@@ -195,15 +195,36 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   @SuppressWarnings("unchecked")
   public <T> T get(String key) {
-    Object obj = getData().get(key);
-    return (T)obj;
+    if (data == null) {
+      return null;
+    } else {
+      return (T) getData().get(key);
+    }
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T> T get(String key, T defaultValue) {
+    if (data == null) {
+      return defaultValue;
+    } else {
+      Map<String, ?> data = getData();
+      if (data.containsKey(key)) {
+        return (T) data.get(key);
+      } else {
+        return defaultValue;
+      }
+    }
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public <T> T remove(String key) {
-    Object obj = getData().remove(key);
-    return (T)obj;
+    if (data == null) {
+      return null;
+    } else {
+      return (T) getData().remove(key);
+    }
   }
 
   @Override
