@@ -18,10 +18,10 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
 import io.vertx.ext.auth.jwt.JWTAuth;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl;
+
+import java.util.List;
 
 /**
  * An auth handler that provides JWT Authentication support.
@@ -38,6 +38,46 @@ public interface JWTAuthHandler extends AuthenticationHandler {
    * @return the auth handler
    */
   static JWTAuthHandler create(JWTAuth authProvider) {
-    return new JWTAuthHandlerImpl(authProvider);
+    return create(authProvider, null);
   }
+
+  /**
+   * Create a JWT auth handler
+   *
+   * @param authProvider  the auth provider to use
+   * @return the auth handler
+   */
+  static JWTAuthHandler create(JWTAuth authProvider, String realm) {
+    return new JWTAuthHandlerImpl(authProvider, realm);
+  }
+
+  /**
+   * Return a new instance with the internal state copied from the caller but the scopes delimiter set
+   * to be unique to the instance.
+   *
+   * @param delimiter scope delimiter.
+   * @return new instance of this interface.
+   */
+  @Fluent
+  JWTAuthHandler scopeDelimiter(String delimiter);
+
+  /**
+   * Return a new instance with the internal state copied from the caller but the scopes to be requested during a token
+   * request are unique to the instance.
+   *
+   * @param scope scope.
+   * @return new instance of this interface.
+   */
+  @Fluent
+  JWTAuthHandler withScope(String scope);
+
+  /**
+   * Return a new instance with the internal state copied from the caller but the scopes to be requested during a token
+   * request are unique to the instance.
+   *
+   * @param scopes scopes.
+   * @return new instance of this interface.
+   */
+  @Fluent
+  JWTAuthHandler withScopes(List<String> scopes);
 }

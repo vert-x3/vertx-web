@@ -54,6 +54,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   private final MessageDigest sha256;
 
   private final List<String> scopes;
+  private final boolean openId;
   private JsonObject extraParams;
   private String prompt;
   private int pkce = -1;
@@ -82,6 +83,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     }
     // scopes are empty by default
     this.scopes = new ArrayList<>();
+    this.openId = false;
   }
 
   private OAuth2AuthHandlerImpl(OAuth2AuthHandlerImpl base, List<String> scopes) {
@@ -104,6 +106,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     }
     // apply the new scopes
     this.scopes = scopes;
+    this.openId = scopes != null && scopes.contains("openid");
   }
 
   @Override
@@ -417,10 +420,9 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         if (scopes != null) {
           // user principal contains scope, a basic assertion is require to ensure that
           // the scopes present match the required ones
-          final boolean isOpenId = this.scopes.contains("openid");
           for (String scope : this.scopes) {
             // do not assert openid scopes if openid is active
-            if (isOpenId && OPENID_SCOPES.contains(scope)) {
+            if (openId && OPENID_SCOPES.contains(scope)) {
               continue;
             }
 
