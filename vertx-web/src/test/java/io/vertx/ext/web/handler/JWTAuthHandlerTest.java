@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.KeyStoreOptions;
@@ -27,6 +28,8 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Arrays;
 
 /**
  * @author Paulo Lopes
@@ -86,5 +89,75 @@ public class JWTAuthHandlerTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic " + token), 401, "Unauthorized", null);
 
+  }
+
+  @Test
+  public void testLoginWithScopes() throws Exception {
+
+    router.route()
+      .handler(JWTAuthHandler.create(authProvider)
+        .withScopes(Arrays.asList("a", "b")))
+      .handler(RoutingContext::end);
+
+    // Payload as String list
+    final JsonObject payloadA = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", String.join(" ", Arrays.asList("a", "b")));
+
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 200, "OK", null);
+
+    // Payload as Array
+    final JsonObject payloadB = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", new JsonArray().add("a").add("b"));
+
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 200, "OK", null);
+  }
+
+  @Test
+  public void testLoginWithMissingScopes() throws Exception {
+
+    router.route()
+      .handler(JWTAuthHandler.create(authProvider)
+        .withScopes(Arrays.asList("a", "b", "c")))
+      .handler(RoutingContext::end);
+
+    // Payload as String list
+    final JsonObject payloadA = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", String.join(" ", Arrays.asList("a", "b")));
+
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 403, "Forbidden", null);
+
+    // Payload as Array
+    final JsonObject payloadB = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", new JsonArray().add("a").add("b"));
+
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 403, "Forbidden", null);
+  }
+
+  @Test
+  public void testLoginWithScopeDelimiter() throws Exception {
+
+    router.route()
+      .handler(JWTAuthHandler.create(authProvider)
+        .withScopes(Arrays.asList("a", "b"))
+        .scopeDelimiter(","))
+      .handler(RoutingContext::end);
+
+    // Payload as String list
+    final JsonObject payloadA = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", String.join(" ", Arrays.asList("a", "b")));
+
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 403, "Forbidden", null);
+
+    // Payload with right delimiter
+    final JsonObject payloadB = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", String.join(",", Arrays.asList("a", "b")));
+
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 200, "OK", null);
   }
 }
