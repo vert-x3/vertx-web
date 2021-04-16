@@ -3,10 +3,15 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import org.junit.Test;
+
+import java.util.Arrays;
 
 public class ChainAuthMixHandlerTest extends WebTestBase {
 
@@ -59,5 +64,40 @@ public class ChainAuthMixHandlerTest extends WebTestBase {
     router.route().handler(ctx -> ctx.response().end());
 
     testRequest(HttpMethod.GET, "/", 401, "Unauthorized");
+  }
+
+  @Test
+  public void test2JWTIssuers() throws Exception {
+
+    JsonObject key = new JsonObject()
+      .put("kty", "oct")
+      .put("use", "sig")
+      .put("k", "wuSPxS64NYh4ohDpZWOMNtawhBLHVn8dhKuIxnsLLd-dfKzIb5FL7r-vXTJ3MjtqnBlh_piKjn6qvb8os00MXNEyJWhgbPsnZEfqj6wMsJiH3uDcEgDuBMVbsuMlVbyX3x0Cd6qn0qvF8JZaLxSR6JNEEOGnbkUXqF9ghcI2y8rooN6ivQJ0-SiCqtQSkVrSO4H65lHagUus0XjTErL4GypbcO6PBIZMtHBW4UZHVcl86IhDxj5v0xf3WSuDGxkrbw5rpM_eVUR1eu71XPoTXD4WgDRtq4CoQcIFeSpqJuKZvzDJ47zV3wgnqKZ6G-RkiSKLBUj5_4Ur_YWHw2h-CQ")
+      .put("alg", "HS256");
+
+    JWTAuth me = JWTAuth.create(vertx, new JWTAuthOptions().addJwk(key).setJWTOptions(new JWTOptions().setIssuer("me")));
+    JWTAuth you = JWTAuth.create(vertx, new JWTAuthOptions().addJwk(key).setJWTOptions(new JWTOptions().setIssuer("you")));
+
+    ChainAuthHandler chain =
+      ChainAuthHandler.any()
+        .add(JWTAuthHandler.create(me))
+        .add(JWTAuthHandler.create(you));
+
+    router.route().handler(chain);
+    router.route().handler(ctx -> ctx.response().end());
+
+    // Payload with right issuer
+    final JsonObject payloadA = new JsonObject()
+      .put("sub", "Paulo")
+      .put("iss", "me");
+
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + me.generateToken(payloadA)), 200, "OK", null);
+
+    // Payload with right issuer
+    final JsonObject payloadB = new JsonObject()
+      .put("sub", "Paulo")
+      .put("iss", "you");
+
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + you.generateToken(payloadB)), 200, "OK", null);
   }
 }

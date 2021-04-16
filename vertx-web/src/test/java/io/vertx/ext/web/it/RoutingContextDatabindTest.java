@@ -68,7 +68,7 @@ public class RoutingContextDatabindTest extends WebTestBase {
       p.setX(10);
       p.setY(20);
       ctx.json(p);
-    });
+    }).failureHandler(ctx -> {ctx.failure().printStackTrace(); });
 
     testRequest(HttpMethod.GET, "/", null, res -> {
       assertEquals("application/json", res.getHeader("Content-Type"));

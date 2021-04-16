@@ -54,10 +54,10 @@ public interface SimpleAuthenticationHandler extends AuthenticationHandler {
    *
    * In order to signal errors, you should not call {@link RoutingContext#fail(int)} or {@link RoutingContext#fail(Throwable)}.
    *
-   * Errors should be signaled using the {@link HttpException} type. For example forbidden access should be signaled
-   * with: {@code new HttpException(403)}. This is required when working with {@link ChainAuthHandler}. By using
-   * exceptions to signal failures instead of immediately terminating the request, it allows the chain to proceed to the
-   * next handler if needed.
+   * Errors should be signaled using the {@link HttpException} type. Any other kind of errors will be wrapped as a 401
+   * error. For example forbidden access should be signaled with: {@code new HttpException(403)}. This is required when
+   * working with {@link ChainAuthHandler}. By using exceptions to signal failures instead of immediately terminating
+   * the request, it allows the chain to proceed to the next handler if needed.
    *
    * @param authenticationFunction the authentication function.
    * @return self

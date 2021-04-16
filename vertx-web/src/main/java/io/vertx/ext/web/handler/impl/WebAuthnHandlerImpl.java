@@ -21,7 +21,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.webauthn.WebAuthn;
 import io.vertx.ext.auth.webauthn.WebAuthnCredentials;
 import io.vertx.ext.web.Route;
@@ -98,7 +97,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
   }
 
   @Override
-  public void parseCredentials(RoutingContext ctx, Handler<AsyncResult<Credentials>> handler) {
+  public void authenticate(RoutingContext ctx, Handler<AsyncResult<User>> handler) {
     if (response == null) {
       handler.handle(Future.failedFuture(new HttpException(500, new IllegalStateException("No callback mounted!"))));
       return;
@@ -122,7 +121,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
     if (ctx.user() == null) {
       handler.handle(Future.failedFuture(new HttpException(401)));
     } else {
-      handler.handle(Future.succeededFuture());
+      handler.handle(Future.succeededFuture(ctx.user()));
     }
   }
 

@@ -2,7 +2,7 @@ package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.ext.auth.authentication.Credentials;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 
@@ -16,7 +16,7 @@ public interface AuthenticationHandlerInternal extends AuthenticationHandler {
    * @param context the routing context
    * @param handler the handler to be called once the information is available.
    */
-  void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler);
+  void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler);
 
   /**
    * Returns a {@code WWW-Authenticate} Response Header.

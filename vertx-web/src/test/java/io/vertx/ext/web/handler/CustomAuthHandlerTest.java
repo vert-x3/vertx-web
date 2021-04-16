@@ -18,13 +18,13 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.Credentials;
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.impl.AuthenticationHandlerImpl;
 import org.junit.Test;
 
 import static org.mockito.Mockito.*;
@@ -37,21 +37,24 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
   }
 
   private AuthenticationHandler newAuthHandler(AuthenticationProvider authProvider, Handler<Throwable> exceptionProcessor) {
-    return new AuthenticationHandlerImpl(authProvider) {
 
-      @Override
-      public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
-        handler.handle(Future.succeededFuture(JsonObject::new));
-      }
+    return SimpleAuthenticationHandler.create()
+      .authenticate(ctx -> {
+        final Promise<User> promise = Promise.promise();
 
-      @Override
-      public void processException(RoutingContext ctx, Throwable exception) {
-        if (exceptionProcessor != null) {
-            exceptionProcessor.handle(exception);
-        }
-        super.processException(ctx, exception);
-      }
-    };
+        authProvider.authenticate(new UsernamePasswordCredentials("user", "pass"), authn -> {
+          if (authn.failed()) {
+            if (exceptionProcessor != null) {
+              exceptionProcessor.handle(authn.cause());
+            }
+            promise.fail(authn.cause());
+          } else {
+            promise.complete(authn.result());
+          }
+        });
+
+        return promise.future();
+      });
   }
 
   @SuppressWarnings("unchecked")
@@ -72,8 +75,8 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
     }).when(authProvider).authenticate(any(Credentials.class), any(Handler.class));
 
     router.route("/protected/*").handler(newAuthHandler(authProvider, exception -> {
-      assertTrue(exception instanceof HttpException);
-      assertEquals(rootCause, exception.getCause());
+      assertTrue(exception instanceof IllegalArgumentException);
+      assertEquals(rootCause, exception);
     }));
 
     router.route("/protected/somepage").handler(handler);

@@ -20,11 +20,12 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.Cookie;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
-import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.APIKeyHandler;
+import io.vertx.ext.web.handler.HttpException;
 
 import java.util.Map;
 
@@ -78,26 +79,44 @@ public class APIKeyHandlerImpl extends AuthenticationHandlerImpl<AuthenticationP
   }
 
   @Override
-  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
+  public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
     switch (source) {
       case HEADER:
         MultiMap headers = context.request().headers();
         if (headers != null && headers.contains(value)) {
-          handler.handle(Future.succeededFuture(new TokenCredentials(headers.get(value))));
+          authProvider.authenticate(new TokenCredentials(headers.get(value)), authn -> {
+            if (authn.failed()) {
+              handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
+            } else {
+              handler.handle(authn);
+            }
+          });
           return;
         }
         break;
       case PARAMETER:
         MultiMap params = context.request().params();
         if (params != null && params.contains(value)) {
-          handler.handle(Future.succeededFuture(new TokenCredentials(params.get(value))));
+          authProvider.authenticate(new TokenCredentials(params.get(value)), authn -> {
+            if (authn.failed()) {
+              handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
+            } else {
+              handler.handle(authn);
+            }
+          });
           return;
         }
         break;
       case COOKIE:
         Map<String, Cookie> cookies = context.request().cookieMap();
         if (cookies != null && cookies.containsKey(value)) {
-          handler.handle(Future.succeededFuture(new TokenCredentials(cookies.get(value).getValue())));
+          authProvider.authenticate(new TokenCredentials(cookies.get(value).getValue()), authn -> {
+            if (authn.failed()) {
+              handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
+            } else {
+              handler.handle(authn);
+            }
+          });
           return;
         }
     }

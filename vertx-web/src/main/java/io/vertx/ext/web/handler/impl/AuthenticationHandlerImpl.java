@@ -16,15 +16,11 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
-import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.HttpException;
@@ -33,8 +29,6 @@ import io.vertx.ext.web.handler.HttpException;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider> implements AuthenticationHandlerInternal {
-
-  static final String AUTH_PROVIDER_CONTEXT_KEY = "io.vertx.ext.web.handler.AuthenticationHandler.provider";
 
   static final HttpException UNAUTHORIZED = new HttpException(401);
   static final HttpException BAD_REQUEST = new HttpException(400);
@@ -68,39 +62,26 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
     if (!parseEnded) {
       request.pause();
     }
-    // parse the request in order to extract the credentials object
-    parseCredentials(ctx, res -> {
-      if (res.failed()) {
-        resume(request, parseEnded);
-        processException(ctx, res.cause());
-        return;
-      }
-      // proceed to authN if needed
-      performAuthNIfNeeded(ctx, res.result(), authN -> {
-        if (authN.succeeded()) {
-          User authenticated = authN.result();
-          ctx.setUser(authenticated);
-          Session session = ctx.session();
-          if (session != null) {
-            // the user has upgraded from unauthenticated to authenticated
-            // session should be upgraded as recommended by owasp
-            session.regenerateId();
-          }
-          // proceed with the router
-          resume(request, parseEnded);
-          postAuthentication(ctx);
-        } else {
-          String header = authenticateHeader(ctx);
-          if (header != null) {
-            ctx.response()
-              .putHeader("WWW-Authenticate", header);
-          }
-          // to allow further processing if needed
-          resume(request, parseEnded);
-          Throwable cause = authN.cause();
-          processException(ctx, cause instanceof HttpException ? cause : new HttpException(401, cause));
+    // perform the authentication
+    authenticate(ctx, authN -> {
+      if (authN.succeeded()) {
+        User authenticated = authN.result();
+        ctx.setUser(authenticated);
+        Session session = ctx.session();
+        if (session != null) {
+          // the user has upgraded from unauthenticated to authenticated
+          // session should be upgraded as recommended by owasp
+          session.regenerateId();
         }
-      });
+        // proceed with the router
+        resume(request, parseEnded);
+        postAuthentication(ctx);
+      } else {
+        // to allow further processing if needed
+        resume(request, parseEnded);
+        Throwable cause = authN.cause();
+        processException(ctx, cause);
+      }
     });
   }
 
@@ -111,24 +92,11 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
     }
   }
 
-  private void performAuthNIfNeeded(RoutingContext ctx, Credentials credentials, Handler<AsyncResult<User>> handler) {
-    if (ctx.user() != null) {
-      // the user has been set by some handler already
-      handler
-        .handle(Future.succeededFuture(ctx.user()));
-    } else {
-      // rely on the internal authentication provider to complete the operation
-      getAuthProvider(ctx)
-        .authenticate(credentials, handler);
-    }
-  }
-
   /**
    * This method is protected so custom auth handlers can override the default
    * error handling
    */
-  protected void processException(RoutingContext ctx, Throwable exception) {
-
+  private void processException(RoutingContext ctx, Throwable exception) {
     if (exception != null) {
       if (exception instanceof HttpException) {
         final int statusCode = ((HttpException) exception).getStatusCode();
@@ -180,19 +148,5 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
     }
 
     return false;
-  }
-
-  protected AuthenticationProvider getAuthProvider(RoutingContext ctx) {
-    try {
-      AuthenticationProvider provider = ctx.get(AUTH_PROVIDER_CONTEXT_KEY);
-      if (provider != null) {
-        // we're overruling the configured one for this request
-        return provider;
-      }
-    } catch (RuntimeException e) {
-      // bad type, ignore and return default
-    }
-
-    return authProvider;
   }
 }

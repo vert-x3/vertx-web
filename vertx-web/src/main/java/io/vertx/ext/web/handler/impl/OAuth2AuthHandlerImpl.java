@@ -25,6 +25,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.TokenCredentials;
@@ -110,7 +111,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   }
 
   @Override
-  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
+  public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
     // when the handler is working as bearer only, then the `Authorization` header is required
     parseAuthorization(context, !bearerOnly, parseAuthorization -> {
       if (parseAuthorization.failed()) {
@@ -175,11 +176,16 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         }
       } else {
         // continue
-        if (scopes.size() > 0) {
-          handler.handle(Future.succeededFuture(new TokenCredentials(token).setScopes(scopes)));
-        } else {
-          handler.handle(Future.succeededFuture(new TokenCredentials(token)));
-        }
+        final Credentials credentials =
+          scopes.size() > 0 ? new TokenCredentials(token).setScopes(scopes) : new TokenCredentials(token);
+
+        authProvider.authenticate(credentials, authn -> {
+          if (authn.failed()) {
+            handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
+          } else {
+            handler.handle(authn);
+          }
+        });
       }
     });
   }

@@ -23,12 +23,13 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
-import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.FormLoginHandler;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
 /**
@@ -75,7 +76,7 @@ public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   }
 
   @Override
-  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
+  public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
     HttpServerRequest req = context.request();
     if (req.method() != HttpMethod.POST) {
       handler.handle(Future.failedFuture(BAD_METHOD)); // Must be a POST
@@ -89,7 +90,13 @@ public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<Authenticati
         if (username == null || password == null) {
           handler.handle(Future.failedFuture(BAD_REQUEST));
         } else {
-          handler.handle(Future.succeededFuture(new UsernamePasswordCredentials(username, password)));
+          authProvider.authenticate(new UsernamePasswordCredentials(username, password), authn -> {
+            if (authn.failed()) {
+              handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
+            } else {
+              handler.handle(authn);
+            }
+          });
         }
       }
     }

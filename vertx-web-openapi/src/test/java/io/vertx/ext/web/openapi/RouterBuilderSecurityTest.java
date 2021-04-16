@@ -17,6 +17,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
+import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
 import io.vertx.ext.web.handler.impl.AuthenticationHandlerImpl;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.junit5.Checkpoint;
@@ -433,23 +434,19 @@ public class RouterBuilderSecurityTest extends BaseRouterBuilderTest {
   }
 
   private AuthenticationHandler mockSuccessfulAuthHandler(Handler<RoutingContext> mockHandler) {
-    return new AuthenticationHandlerImpl<AuthenticationProvider>((authInfo, resultHandler) -> resultHandler.handle(Future.succeededFuture(User.create(new JsonObject())))) {
-      @Override
-      public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
-        mockHandler.handle(context);
-        handler.handle(Future.succeededFuture(JsonObject::new));
-      }
-    };
+    return SimpleAuthenticationHandler.create()
+      .authenticate(ctx -> {
+        mockHandler.handle(ctx);
+        return Future.succeededFuture(User.create(new JsonObject()));
+      });
   }
 
   private AuthenticationHandler mockFailingAuthHandler(Handler<RoutingContext> mockHandler) {
-    return new AuthenticationHandlerImpl<AuthenticationProvider>((authInfo, resultHandler) -> resultHandler.handle(Future.succeededFuture(User.create(new JsonObject())))) {
-      @Override
-      public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
-        mockHandler.handle(context);
-        handler.handle(Future.failedFuture(new HttpException(401)));
-      }
-    };
+    return SimpleAuthenticationHandler.create()
+      .authenticate(ctx -> {
+        mockHandler.handle(ctx);
+        return Future.failedFuture(new HttpException(401));
+      });
   }
 
   private String concatenateRoutingContextEntries(RoutingContext context, String... entries) {

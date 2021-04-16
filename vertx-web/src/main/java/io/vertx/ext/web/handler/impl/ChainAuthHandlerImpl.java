@@ -3,8 +3,8 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
-import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.*;
 
@@ -41,7 +41,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   }
 
   @Override
-  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
+  public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
     if (handlers.size() == 0) {
       handler.handle(Future.failedFuture("No providers in the auth chain."));
     } else {
@@ -50,7 +50,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
     }
   }
 
-  private void iterate(final int idx, final RoutingContext ctx, Credentials result, HttpException exception, Handler<AsyncResult<Credentials>> handler) {
+  private void iterate(final int idx, final RoutingContext ctx, User result, Throwable exception, Handler<AsyncResult<User>> handler) {
     // stop condition
     if (idx >= handlers.size()) {
       if (all) {
@@ -70,7 +70,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
     // parse the request in order to extract the credentials object
     final AuthenticationHandlerInternal authHandler = handlers.get(idx);
 
-    authHandler.parseCredentials(ctx, res -> {
+    authHandler.authenticate(ctx, res -> {
       if (res.failed()) {
         if (all) {
           // all handlers need to be valid, a single failure is enough to
@@ -94,11 +94,6 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
         }
         handler.handle(Future.failedFuture(res.cause()));
         return;
-      }
-
-      // setup the desired auth provider if we can
-      if (authHandler instanceof AuthenticationHandlerImpl) {
-        ctx.put(AuthenticationHandlerImpl.AUTH_PROVIDER_CONTEXT_KEY, ((AuthenticationHandlerImpl<?>) authHandler).getAuthProvider(ctx));
       }
 
       if (all) {

@@ -1067,18 +1067,16 @@ final class RouteState {
     if (virtualHostPattern == null) {
       return true;
     }
-    boolean match = false;
     String host = request.host();
     if (host == null) {
-      return match;
+      return false;
     }
     for (String h : host.split(":")) {
       if (virtualHostPattern.matcher(h).matches()) {
-        match = true;
-        break;
+        return true;
       }
     }
-    return match;
+    return false;
   }
 
   private static boolean pathMatchesExact(String base, String other, boolean significantSlash) {
