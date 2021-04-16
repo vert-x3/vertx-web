@@ -21,7 +21,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.webauthn.WebAuthn;
 import io.vertx.ext.auth.webauthn.WebAuthnCredentials;
 import io.vertx.ext.web.Route;

@@ -30,8 +30,6 @@ import io.vertx.ext.web.handler.HttpException;
  */
 public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider> implements AuthenticationHandlerInternal {
 
-  static final String AUTH_PROVIDER_CONTEXT_KEY = "io.vertx.ext.web.handler.AuthenticationHandler.provider";
-
   static final HttpException UNAUTHORIZED = new HttpException(401);
   static final HttpException BAD_REQUEST = new HttpException(400);
   static final HttpException BAD_METHOD = new HttpException(405);
@@ -151,18 +149,4 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
 
     return false;
   }
-
-//  protected AuthenticationProvider getAuthProvider(RoutingContext ctx) {
-//    try {
-//      AuthenticationProvider provider = ctx.get(AUTH_PROVIDER_CONTEXT_KEY);
-//      if (provider != null) {
-//        // we're overruling the configured one for this request
-//        return provider;
-//      }
-//    } catch (RuntimeException e) {
-//      // bad type, ignore and return default
-//    }
-//
-//    return authProvider;
-//  }
 }

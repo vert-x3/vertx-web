@@ -1,4 +1,4 @@
-/********************************************************************************
+/* ******************************************************************************
  * Copyright (c) 2019 Stephane Bastian
  *
  * This program and the accompanying materials are made available under the 2
@@ -9,7 +9,7 @@
  *
  * Contributors: 1
  *   Stephane Bastian - initial API and implementation
- ********************************************************************************/
+ * ******************************************************************************/
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;

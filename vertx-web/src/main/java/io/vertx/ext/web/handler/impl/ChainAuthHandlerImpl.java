@@ -96,11 +96,6 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
         return;
       }
 
-//      // setup the desired auth provider if we can
-//      if (authHandler instanceof AuthenticationHandlerImpl) {
-//        ctx.put(AuthenticationHandlerImpl.AUTH_PROVIDER_CONTEXT_KEY, ((AuthenticationHandlerImpl<?>) authHandler).getAuthProvider(ctx));
-//      }
-
       if (all) {
         // this handler is succeeded, but as we need all, we must continue with
         // the iteration of the remaining handlers.

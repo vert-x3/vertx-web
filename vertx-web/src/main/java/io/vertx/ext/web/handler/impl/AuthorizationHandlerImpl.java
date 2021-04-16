@@ -1,4 +1,4 @@
-/********************************************************************************
+/* ******************************************************************************
  * Copyright (c) 2019 Stephane Bastian
  *
  * This program and the accompanying materials are made available under the 2
@@ -9,7 +9,7 @@
  *
  * Contributors: 1
  *   Stephane Bastian - initial API and implementation
- ********************************************************************************/
+ * ******************************************************************************/
 package io.vertx.ext.web.handler.impl;
 
 import java.util.ArrayList;
@@ -70,9 +70,9 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
    * this method checks that the specified authorization match the current content.
    * It doesn't fetch all providers at once in order to do early-out, but rather tries to be smart and fetch authorizations one provider at a time
    *
-   * @param routingContext
-   * @param authorizationContext
-   * @param providers
+   * @param routingContext the current routing context
+   * @param authorizationContext the current authorization context
+   * @param providers the providers iterator
    */
   private void checkOrFetchAuthorizations(RoutingContext routingContext, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
     if (authorization.match(authorizationContext)) {

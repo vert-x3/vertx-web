@@ -135,9 +135,13 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
         target = jwt.getJsonArray("scope").getList();
       }
 
-      if(target == null || !target.containsAll(scopes)) {
-        ctx.fail(403, new IllegalStateException("JWT scopes != handler scopes"));
-        return;
+      if (target != null) {
+        for (String scope : scopes) {
+          if (!target.contains(scope)) {
+            ctx.fail(403, new IllegalStateException("JWT scopes != handler scopes"));
+            return;
+          }
+        }
       }
     }
     ctx.next();
