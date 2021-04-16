@@ -71,7 +71,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public RoutingContextInternal visitHandler(int id) {
+  public synchronized RoutingContextInternal visitHandler(int id) {
     return ((RoutingContextInternal) inner).visitHandler(id);
   }
 

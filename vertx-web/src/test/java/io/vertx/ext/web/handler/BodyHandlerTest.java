@@ -917,4 +917,54 @@ public class BodyHandlerTest extends WebTestBase {
     }, 500, "Internal Server Error", null);
   }
 
+  @Test
+  public void testFileUploadSize() throws Exception {
+    String uploadsDirectory = tempUploads.newFolder().getPath();
+    router.clear();
+    router.route().handler(BodyHandler.create()
+      .setDeleteUploadedFilesOnEnd(true)
+      .setUploadsDirectory(uploadsDirectory));
+
+    int realSize = 20000;
+
+    router.route().handler(ctx -> {
+      String specData = ctx.request().formAttributes().get("specData");
+      System.out.println(specData);
+      FileUpload file = ctx.fileUploads().iterator().next();
+      long uploadSize = file.size();
+      assertEquals(realSize, uploadSize);
+      ctx.end();
+    });
+
+    String name = "file";
+    String fileName = "/C:/Users/vishal.b05/Desktop/1p.png";
+    String contentType = "application/octet-stream";
+    testRequest(HttpMethod.POST, "/", req -> {
+      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+      Buffer buffer = Buffer.buffer();
+      String header =
+        "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
+          "Content-Type: " + contentType + "\r\n" +
+//          "Content-Transfer-Encoding: binary\r\n" +
+          "\r\n";
+      buffer.appendString(header);
+      buffer.appendBuffer(TestUtils.randomBuffer(realSize));
+      String footer = "\r\n--" + boundary + "\r\n";
+      buffer.appendString(footer);
+
+      String extra =
+          "Content-Disposition: form-data; name=\"specData\"\r\n\r\n{\"id\":\"abc@xyz.com\"}\r\n" +
+          "--" + boundary + "--\r\n\r\n";
+
+      buffer.appendString(extra);
+
+      req.headers().set("content-length", String.valueOf(buffer.length()));
+      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+      req.setChunked(true);
+      req.write(buffer);
+    }, 200, "OK", null);
+
+    assertWaitUntil(() -> vertx.fileSystem().readDirBlocking(uploadsDirectory).isEmpty());
+  }
 }

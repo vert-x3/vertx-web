@@ -193,12 +193,13 @@ public abstract class AbstractSession implements Session, SessionInternal {
       synchronized (this) {
         // double check since there could already been someone in the lock
         if (data == null) {
-          data = new ConcurrentHashMap<>();
           if (destroyed) {
             // pretty much should behave as a regeneration
             regenerateId();
             destroyed = false;
           }
+          // delay the assignment to avoid potential races
+          data = new ConcurrentHashMap<>();
         }
       }
     }

@@ -86,9 +86,7 @@ public class SockJSHandlerOptions {
     heartbeatInterval = other.heartbeatInterval;
     maxBytesStreaming = other.maxBytesStreaming;
     libraryURL = other.libraryURL;
-    if (other.disabledTransports != null) {
-      disabledTransports.addAll(other.disabledTransports);
-    }
+    disabledTransports.addAll(other.disabledTransports);
     registerWriteHandler = other.registerWriteHandler;
     localWriteHandler = other.localWriteHandler;
   }
