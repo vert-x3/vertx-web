@@ -45,8 +45,8 @@ public class ChainAuthHandlerTest extends WebTestBase {
 
   @Test
   public void testWithBadAuthorization() throws Exception {
-    // there is an authorization header, but the token is invalid it should be processed by the basic auth
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="),401, "Unauthorized", "Unauthorized");
+    // there is an authorization header, but the token is invalid it should be processed by the last handler (redirect)
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="),302, "Found", null);
   }
 
   @Test

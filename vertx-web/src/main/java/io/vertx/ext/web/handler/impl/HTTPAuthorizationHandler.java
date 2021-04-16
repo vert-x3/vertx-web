@@ -62,10 +62,6 @@ public abstract class HTTPAuthorizationHandler<T extends AuthenticationProvider>
   protected final Type type;
   protected final String realm;
 
-  public HTTPAuthorizationHandler(T authProvider, Type type) {
-    this(authProvider, type, null);
-  }
-
   public HTTPAuthorizationHandler(T authProvider, Type type, String realm) {
     super(authProvider);
     this.type = type;

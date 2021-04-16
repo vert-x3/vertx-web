@@ -19,12 +19,12 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
-import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BasicAuthHandler;
-import io.vertx.ext.web.handler.DigestAuthHandler;
+import io.vertx.ext.web.handler.HttpException;
 
 import java.util.Base64;
 
@@ -39,7 +39,7 @@ public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler<Authenticatio
   }
 
   @Override
-  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
+  public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
 
     parseAuthorization(context, parseAuthorization -> {
       if (parseAuthorization.failed()) {
@@ -63,11 +63,17 @@ public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler<Authenticatio
           spass = null;
         }
       } catch (RuntimeException e) {
-        context.fail(400,e);
+        handler.handle(Future.failedFuture(new HttpException(400, e)));
         return;
       }
 
-      handler.handle(Future.succeededFuture(new UsernamePasswordCredentials(suser, spass)));
+      authProvider.authenticate(new UsernamePasswordCredentials(suser, spass), authn -> {
+        if (authn.failed()) {
+          handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
+        } else {
+          handler.handle(authn);
+        }
+      });
     });
   }
 }

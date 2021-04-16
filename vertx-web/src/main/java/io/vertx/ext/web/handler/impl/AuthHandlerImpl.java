@@ -40,8 +40,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Deprecated
 public abstract class AuthHandlerImpl implements AuthHandler, AuthenticationHandlerInternal {
 
-  static final String AUTH_PROVIDER_CONTEXT_KEY = "io.vertx.ext.web.handler.AuthHandler.provider";
-
   static final HttpException FORBIDDEN = new HttpException(403);
 
   protected final String realm;
@@ -118,11 +116,22 @@ public abstract class AuthHandlerImpl implements AuthHandler, AuthenticationHand
       return;
     }
     // parse the request in order to extract the credentials object
-    parseCredentials(ctx, res -> {
+    authenticate(ctx, res -> {
       if (res.failed()) {
-        processException(ctx, res.cause());
+        String header = authenticateHeader(ctx);
+        if (header != null) {
+          ctx.response()
+            .putHeader("WWW-Authenticate", header);
+        }
+        // to allow further processing if needed
+        if (res.cause() instanceof HttpException) {
+          processException(ctx, res.cause());
+        } else {
+          processException(ctx, new HttpException(401, res.cause()));
+        }
         return;
       }
+
       // check if the user has been set
       User updatedUser = ctx.user();
 
@@ -139,32 +148,16 @@ public abstract class AuthHandlerImpl implements AuthHandler, AuthenticationHand
       }
 
       // proceed to authN
-      getAuthProvider(ctx).authenticate(res.result(), authN -> {
-        if (authN.succeeded()) {
-          User authenticated = authN.result();
-          ctx.setUser(authenticated);
-          Session session = ctx.session();
-          if (session != null) {
-            // the user has upgraded from unauthenticated to authenticated
-            // session should be upgraded as recommended by owasp
-            session.regenerateId();
-          }
-          // proceed to AuthZ
-          authorizeUser(ctx, authenticated);
-        } else {
-          String header = authenticateHeader(ctx);
-          if (header != null) {
-            ctx.response()
-              .putHeader("WWW-Authenticate", header);
-          }
-          // to allow further processing if needed
-          if (authN.cause() instanceof HttpException) {
-            processException(ctx, authN.cause());
-          } else {
-            processException(ctx, new HttpException(401, authN.cause()));
-          }
-        }
-      });
+      User authenticated = res.result();
+      ctx.setUser(authenticated);
+      Session session = ctx.session();
+      if (session != null) {
+        // the user has upgraded from unauthenticated to authenticated
+        // session should be upgraded as recommended by owasp
+        session.regenerateId();
+      }
+      // proceed to AuthZ
+      authorizeUser(ctx, authenticated);
     });
   }
 
@@ -236,19 +229,5 @@ public abstract class AuthHandlerImpl implements AuthHandler, AuthenticationHand
     }
 
     return false;
-  }
-
-  private AuthenticationProvider getAuthProvider(RoutingContext ctx) {
-    try {
-      AuthenticationProvider provider = ctx.get(AUTH_PROVIDER_CONTEXT_KEY);
-      if (provider != null) {
-        // we're overruling the configured one for this request
-        return provider;
-      }
-    } catch (RuntimeException e) {
-      // bad type, ignore and return default
-    }
-
-    return authProvider;
   }
 }

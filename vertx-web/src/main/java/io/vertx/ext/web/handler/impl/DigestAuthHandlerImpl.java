@@ -24,13 +24,14 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.Shareable;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.VertxContextPRNG;
-import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.auth.htdigest.HtdigestCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.DigestAuthHandler;
+import io.vertx.ext.web.handler.HttpException;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -96,7 +97,7 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
   }
 
   @Override
-  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
+  public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
     // clean up nonce
     long now = System.currentTimeMillis();
     if (now - lastExpireRun > nonceExpireTimeout / 2) {
@@ -196,6 +197,7 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
 
       } catch (RuntimeException e) {
         handler.handle(Future.failedFuture(e));
+        return;
       }
 
       // validate the opaque value
@@ -211,7 +213,13 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
       // we now need to pass some extra info
       authInfo.setMethod(context.request().method().name());
 
-      handler.handle(Future.succeededFuture(authInfo));
+      authProvider.authenticate(authInfo, authn -> {
+        if (authn.failed()) {
+          handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
+        } else {
+          handler.handle(authn);
+        }
+      });
     });
   }
 

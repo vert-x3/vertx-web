@@ -19,12 +19,12 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.authentication.Credentials;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 
 import java.util.ArrayList;
@@ -53,7 +53,7 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
   }
 
   @Override
-  public void parseCredentials(RoutingContext context, Handler<AsyncResult<Credentials>> handler) {
+  public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
 
     parseAuthorization(context, parseAuthorization -> {
       if (parseAuthorization.failed()) {
@@ -61,7 +61,32 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
         return;
       }
 
-      handler.handle(Future.succeededFuture(new TokenCredentials(parseAuthorization.result())));
+      String token = parseAuthorization.result();
+      int segments = 0;
+      for (int i = 0; i < token.length(); i++) {
+        char c = token.charAt(i);
+        if (c == '.') {
+          if (++segments == 3) {
+            handler.handle(Future.failedFuture(new HttpException(400, "Too many segments in token")));
+            return;
+          }
+          continue;
+        }
+        if (Character.isLetterOrDigit(c) || c == '-' || c == '_') {
+          continue;
+        }
+        // invalid character
+        handler.handle(Future.failedFuture(new HttpException(400, "Invalid character in token: " + (int) c)));
+        return;
+      }
+
+      authProvider.authenticate(new TokenCredentials(token), authn -> {
+        if (authn.failed()) {
+          handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
+        } else {
+          handler.handle(authn);
+        }
+      });
     });
   }
 
