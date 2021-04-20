@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implements JWTAuthHandler, AuthenticationScopes<JWTAuthHandler> {
+public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implements JWTAuthHandler, ScopedAuthentication<JWTAuthHandler> {
 
   private final List<String> scopes;
   private final String delimiter;

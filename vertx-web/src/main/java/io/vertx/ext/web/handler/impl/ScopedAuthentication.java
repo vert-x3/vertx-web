@@ -9,7 +9,7 @@ import java.util.List;
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  * @param <SELF>
  */
-public interface AuthenticationScopes<SELF extends AuthenticationHandler> {
+public interface ScopedAuthentication<SELF extends AuthenticationHandler> {
 
   /**
    * Return a new instance with the internal state copied from the caller but the scopes to be requested during a token

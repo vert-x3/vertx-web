@@ -7,7 +7,7 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.ChainAuthHandler;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
-import io.vertx.ext.web.handler.impl.AuthenticationScopes;
+import io.vertx.ext.web.handler.impl.ScopedAuthentication;
 import io.vertx.ext.web.openapi.RouterBuilderException;
 
 import java.util.*;
@@ -63,8 +63,8 @@ class AuthenticationHandlersStore {
         .collect(Collectors.toList());
 
       for (int i = 0; i < authenticationHandlers.size(); i++) {
-        if (authenticationHandlers.get(i) instanceof AuthenticationScopes<?>) {
-          AuthenticationScopes<?> scopedHandler = (AuthenticationScopes<?>) authenticationHandlers.get(i);
+        if (authenticationHandlers.get(i) instanceof ScopedAuthentication<?>) {
+          ScopedAuthentication<?> scopedHandler = (ScopedAuthentication<?>) authenticationHandlers.get(i);
           // this mutates the state, so we replace the list with an updated handler
           AuthenticationHandler updatedHandler = scopedHandler.withScopes(scopes);
           authenticationHandlers.set(i, updatedHandler);
