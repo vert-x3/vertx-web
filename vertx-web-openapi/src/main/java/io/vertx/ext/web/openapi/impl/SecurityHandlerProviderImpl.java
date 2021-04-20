@@ -5,20 +5,20 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.AuthenticationHandler;
-import io.vertx.ext.web.openapi.AuthenticationHandlerProvider;
+import io.vertx.ext.web.openapi.SecurityHandlerProvider;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-public class AuthenticationHandlerProviderImpl implements AuthenticationHandlerProvider {
+public class SecurityHandlerProviderImpl implements SecurityHandlerProvider {
 
-  private static final Logger LOG = LoggerFactory.getLogger(AuthenticationHandlerProviderImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SecurityHandlerProviderImpl.class);
 
   private final Map<String, Function<JsonObject, Future<AuthenticationHandler>>> factories = new ConcurrentHashMap<>();
 
   @Override
-  public AuthenticationHandlerProvider add(String id, Function<JsonObject, Future<AuthenticationHandler>> factory) {
+  public SecurityHandlerProvider add(String id, Function<JsonObject, Future<AuthenticationHandler>> factory) {
     Function<JsonObject, Future<AuthenticationHandler>> previous = factories.put(id, factory);
     if (previous != null) {
       LOG.warn("factory for id [" + id + "] got replaced");

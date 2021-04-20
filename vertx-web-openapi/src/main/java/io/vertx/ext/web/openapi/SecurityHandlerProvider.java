@@ -22,7 +22,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.AuthenticationHandler;
-import io.vertx.ext.web.openapi.impl.AuthenticationHandlerProviderImpl;
+import io.vertx.ext.web.openapi.impl.SecurityHandlerProviderImpl;
 
 import java.util.function.Function;
 
@@ -33,15 +33,15 @@ import java.util.function.Function;
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface AuthenticationHandlerProvider {
+public interface SecurityHandlerProvider {
 
   /**
    * Create a simple authentication handler provider.
    * The role of this object is to hold factory functions for internal querying during the route builder phase.
    * @return a new instance of this class.
    */
-  static AuthenticationHandlerProvider create() {
-    return new AuthenticationHandlerProviderImpl();
+  static SecurityHandlerProvider create() {
+    return new SecurityHandlerProviderImpl();
   }
 
   /**
@@ -52,7 +52,7 @@ public interface AuthenticationHandlerProvider {
    * @return fluent self.
    */
   @Fluent
-  AuthenticationHandlerProvider add(String securitySchemaId, Function<JsonObject, Future<AuthenticationHandler>> factory);
+  SecurityHandlerProvider add(String securitySchemaId, Function<JsonObject, Future<AuthenticationHandler>> factory);
 
   boolean containsSecuritySchemaId(String securitySchemaId);
 
@@ -69,7 +69,7 @@ public interface AuthenticationHandlerProvider {
    * Same as {@link #build(String, JsonObject)}
    */
   @Fluent
-  default AuthenticationHandlerProvider build(String securitySchemaId, JsonObject config, Handler<AsyncResult<AuthenticationHandler>> handler) {
+  default SecurityHandlerProvider build(String securitySchemaId, JsonObject config, Handler<AsyncResult<AuthenticationHandler>> handler) {
     build(securitySchemaId, config).onComplete(handler);
     return this;
   }

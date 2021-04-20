@@ -96,6 +96,72 @@ You can't access to contract operations without `operationId`. The operations wi
 Vert.x OpenAPI mounts the correct {@link io.vertx.ext.web.validation.ValidationHandler} for you, so you can access to request parameters and request body.
 Refer to https://vertx.io/docs/vertx-web-validation/java/[Vert.x Web Validation documentation] to learn how to get request parameters & request body and how to manage validation failures
 
+== Configuring `AuthenticationHandler`s defined in the OpenAPI document
+
+Security is a important aspect of any API. OpenAPI defines how security is expected to be enforced in the api document.
+
+All security scheme information resided under the `/components/securitySchemes` component. The information in this
+object is different and specific for each type of authentication. To avoid double configuration, this module allows you
+to provide factories for authentication handlers that will receive the source configuration from the source document.
+
+For example, given an document that defines `Basic Authentication` as follows:
+
+----
+openapi: 3.0.0
+...
+components:
+  securitySchemes:
+    basicAuth:     # <-- arbitrary name for the security scheme
+      type: http
+      scheme: basic
+----
+
+This can be configured with a factory as:
+
+[source,$lang]
+----
+{@link examples.OpenAPI3Examples#authnFactoryBasic}
+----
+
+While this example is quite simple to configure, creating an authentication handler that requires the configuration
+such as the API Key handler can extract the config:
+
+----
+  openapi: 3.0.0
+  ...
+  # 1) Define the key name and location
+  components:
+    securitySchemes:
+      ApiKeyAuth:        # arbitrary name for the security scheme
+        type: apiKey
+        in: header       # can be "header", "query" or "cookie"
+        name: X-API-KEY  # name of the header, query parameter or cookie
+----
+
+[source,$lang]
+----
+{@link examples.OpenAPI3Examples#authnFactoryApiKey}
+----
+
+Or you can configure more complex scenarios such as OpenId Connect which require server discovery.
+
+----
+openapi: 3.0.0
+...
+# 1) Define the security scheme type and attributes
+components:
+  securitySchemes:
+    openId:   # <--- Arbitrary name for the security scheme. Used to refer to it from elsewhere.
+      type: openIdConnect
+      openIdConnectUrl: https://example.com/.well-known/openid-configuration
+----
+
+[source,$lang]
+----
+{@link examples.OpenAPI3Examples#authnFactoryOidc}
+----
+
+
 == Map `AuthenticationHandler` to OpenAPI security schemes
 
 You can map an {@link io.vertx.ext.web.handler.AuthenticationHandler} to a security schema defined in the contract.

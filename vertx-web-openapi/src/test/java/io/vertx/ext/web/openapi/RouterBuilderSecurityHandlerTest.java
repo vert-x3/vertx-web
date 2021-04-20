@@ -21,8 +21,8 @@ public class RouterBuilderSecurityHandlerTest extends BaseRouterBuilderTest {
     RouterBuilder.create(vertx, SECURITY_TESTS)
       .onFailure(testContext::failNow)
       .onSuccess(routerBuilder -> {
-        routerBuilder.createAuthenticationHandlers(
-          AuthenticationHandlerProvider.create()
+        routerBuilder.createSecurityHandlers(
+          SecurityHandlerProvider.create()
             .add("oauth", config -> Future.succeededFuture(OAuth2AuthHandler.create(vertx, null)))
             .add("third_api_key", config -> Future.succeededFuture(APIKeyHandler.create(null)))
             .add("sibling_second_api_key", config -> Future.succeededFuture(APIKeyHandler.create(null)))
@@ -39,8 +39,8 @@ public class RouterBuilderSecurityHandlerTest extends BaseRouterBuilderTest {
     RouterBuilder.create(vertx, SECURITY_TESTS)
       .onFailure(testContext::failNow)
       .onSuccess(routerBuilder -> {
-        routerBuilder.createAuthenticationHandlers(
-          AuthenticationHandlerProvider.create()
+        routerBuilder.createSecurityHandlers(
+          SecurityHandlerProvider.create()
             .add("oauth", config -> Future.succeededFuture(OAuth2AuthHandler.create(vertx, null))))
           .onFailure(testContext::failNow)
           .onSuccess(v -> testContext.completeNow());

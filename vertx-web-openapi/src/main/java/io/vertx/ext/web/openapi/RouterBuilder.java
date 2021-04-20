@@ -175,14 +175,14 @@ public interface RouterBuilder {
    * @param provider the authentication handler factory provider.
    * @return future result of the operation.
    */
-  Future<Void> createAuthenticationHandlers(AuthenticationHandlerProvider provider);
+  Future<Void> createSecurityHandlers(SecurityHandlerProvider provider);
 
   /**
-   * Like {@link #createAuthenticationHandlers(AuthenticationHandlerProvider)}
+   * Like {@link #createSecurityHandlers(SecurityHandlerProvider)}
    */
   @Fluent
-  default RouterBuilder createAuthenticationHandlers(AuthenticationHandlerProvider provider, Handler<AsyncResult<Void>> handler) {
-    createAuthenticationHandlers(provider)
+  default RouterBuilder createSecurityHandlers(SecurityHandlerProvider provider, Handler<AsyncResult<Void>> handler) {
+    createSecurityHandlers(provider)
       .onComplete(handler);
 
     return this;

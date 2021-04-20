@@ -47,8 +47,8 @@ public class RouterBuilderSecurityWithFactoryTest extends BaseRouterBuilderTest 
     loadBuilderAndStartServer(vertx, SECURITY_TESTS, testContext, routerBuilder -> {
       routerBuilder
         .setOptions(FACTORY_OPTIONS)
-        .createAuthenticationHandlers(
-          AuthenticationHandlerProvider.create()
+        .createSecurityHandlers(
+          SecurityHandlerProvider.create()
             .add(
               "api_key",
               config -> Future.succeededFuture(mockSuccessfulAuthHandler(routingContext -> routingContext.put("api_key", "1")))))

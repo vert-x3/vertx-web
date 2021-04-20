@@ -157,7 +157,7 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
   }
 
   @Override
-  public Future<Void> createAuthenticationHandlers(AuthenticationHandlerProvider provider) {
+  public Future<Void> createSecurityHandlers(SecurityHandlerProvider provider) {
     JsonObject securitySchemes = openapi.getCached(JsonPointer.from("/components/securitySchemes"));
     if (securitySchemes != null) {
       final List<Future> builders = new ArrayList<>();
