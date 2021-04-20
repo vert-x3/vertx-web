@@ -132,7 +132,7 @@ public class OpenAPI3Examples {
 
     // non-blocking bind
     routerBuilder
-      .securityHandler("api_key")
+      .securityHandler("oauth")
       .bind(config -> OpenIDConnectAuth.discover(vertx, new OAuth2Options(config))
         .compose(oidc -> Future.succeededFuture(
           OAuth2AuthHandler.create(vertx, oidc))))
