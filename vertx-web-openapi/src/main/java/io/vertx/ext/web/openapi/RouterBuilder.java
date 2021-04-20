@@ -95,14 +95,18 @@ public interface RouterBuilder {
   RouterBuilder rootHandler(Handler<RoutingContext> rootHandler);
 
   /**
-   * Mount to paths that have to follow a security schema a security handler
+   * Mount to paths that have to follow a security schema a security handler. This method will not perform any
+   * validation weather or not the given {@code securitySchemeName} is present in the OpenAPI document.
    *
-   * @param securitySchemaName
-   * @param handler
+   * For must use cases the method {@link #securityHandler(String)} should be used.
+   *
+   * @param securitySchemeName the components security scheme id
+   * @param handler the authentication handler
    * @return self
    */
   @Fluent
-  RouterBuilder securityHandler(String securitySchemaName, AuthenticationHandler handler);
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  RouterBuilder securityHandler(String securitySchemeName, AuthenticationHandler handler);
 
   /**
    * Introspect the OpenAPI spec to mount handlers for all operations that specifies a x-vertx-event-bus annotation.
@@ -166,27 +170,10 @@ public interface RouterBuilder {
   RouterBuilder serviceExtraPayloadMapper(Function<RoutingContext, JsonObject> serviceExtraPayloadMapper);
 
   /**
-   * Constructs the required {@link AuthenticationHandler} objects using the provided factories. This method will
-   * lookup the global security schema object, create the correspondent handler and finally call
-   * {@link #securityHandler(String, AuthenticationHandler)} with the result.
-   *
-   * As OpenIdConnect requires extra network download of configuration, this method will perform the work in an
-   * asynchronous fashion and it's result is a {@link Future}.
-   * @param provider the authentication handler factory provider.
-   * @return future result of the operation.
+   * Creates a new security scheme for the required {@link AuthenticationHandler}.
+   * @return a security scheme.
    */
-  Future<Void> createSecurityHandlers(SecurityHandlerProvider provider);
-
-  /**
-   * Like {@link #createSecurityHandlers(SecurityHandlerProvider)}
-   */
-  @Fluent
-  default RouterBuilder createSecurityHandlers(SecurityHandlerProvider provider, Handler<AsyncResult<Void>> handler) {
-    createSecurityHandlers(provider)
-      .onComplete(handler);
-
-    return this;
-  }
+  SecurityScheme securityHandler(String securitySchemeName);
 
   /**
    * Construct a new router based on spec. It will fail if you are trying to mount a spec with security schemes

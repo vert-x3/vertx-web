@@ -12,7 +12,6 @@ import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.providers.OpenIDConnectAuth;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.openapi.SecurityHandlerProvider;
 import io.vertx.ext.web.openapi.OpenAPILoaderOptions;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import io.vertx.ext.web.openapi.RouterBuilderOptions;
@@ -82,65 +81,80 @@ public class OpenAPI3Examples {
   }
 
   public void authnFactoryBasic(RouterBuilder routerBuilder, AuthenticationProvider authProvider) {
-    routerBuilder.createSecurityHandlers(
-      SecurityHandlerProvider.create()
-        .add(
-        "basicAuth",
-        config -> Future.succeededFuture(BasicAuthHandler.create(authProvider))))
-      .onSuccess(v -> {
-        // Creation completed with success
-      })
-      .onFailure(err -> {
-        // Something went wrong
-      });
+    routerBuilder
+      .securityHandler("basicAuth")
+      .bindBlocking(config -> BasicAuthHandler.create(authProvider));
   }
 
   public void authnFactoryApiKey(RouterBuilder routerBuilder, AuthenticationProvider authProvider) {
-    routerBuilder.createSecurityHandlers(
-      SecurityHandlerProvider.create()
-        .add(
-        "ApiKeyAuth",
-        config ->
-          Future.succeededFuture(
-            APIKeyHandler.create(authProvider)
-              .header(config.getString("name")))))
-      .onSuccess(v -> {
-        // Creation completed with success
-      })
-      .onFailure(err -> {
-        // Something went wrong
-      });
+    routerBuilder
+      .securityHandler("ApiKeyAuth")
+      .bindBlocking(config ->
+        APIKeyHandler.create(authProvider)
+          .header(config.getString("name")));
   }
 
   public void authnFactoryOidc(Vertx vertx, RouterBuilder routerBuilder) {
-    routerBuilder.createSecurityHandlers(
-      SecurityHandlerProvider.create()
-      .add(
-        "openId",
-        config ->
-          OpenIDConnectAuth
-            .discover(vertx, new OAuth2Options()
-              .setClientId("client-id") // user provided
-              .setClientSecret("client-secret") // user provided
-              .setSite(config.getString("openIdConnectUrl")))
+    routerBuilder
+      .securityHandler("openId")
+      .bind(config ->
+        OpenIDConnectAuth
+          .discover(vertx, new OAuth2Options()
+            .setClientId("client-id") // user provided
+            .setClientSecret("client-secret") // user provided
+            .setSite(config.getString("openIdConnectUrl")))
           .compose(authProvider -> {
             AuthenticationHandler handler =
               OAuth2AuthHandler.create(vertx, authProvider);
             return Future.succeededFuture(handler);
-          })))
-      .onSuccess(v -> {
+          }))
+      .onSuccess(self -> {
         // Creation completed with success
       })
       .onFailure(err -> {
         // Something went wrong
+      });
+  }
+
+  public void authnShort(Vertx vertx, RouterBuilder routerBuilder, AuthenticationProvider authProvider) {
+    // blocking bind
+    routerBuilder
+      .securityHandler("api_key")
+      .bindBlocking(config -> APIKeyHandler.create(authProvider))
+      .operation("listPetsSingleSecurity")
+      .handler(routingContext -> {
+        routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage("Cats and Dogs")
+          .end();
+      });
+
+    // non-blocking bind
+    routerBuilder
+      .securityHandler("api_key")
+      .bind(config -> OpenIDConnectAuth.discover(vertx, new OAuth2Options(config))
+        .compose(oidc -> Future.succeededFuture(
+          OAuth2AuthHandler.create(vertx, oidc))))
+
+      .onSuccess(self -> {
+        self
+          .operation("listPetsSingleSecurity")
+          .handler(routingContext -> {
+            routingContext
+              .response()
+              .setStatusCode(200)
+              .setStatusMessage("Cats and Dogs")
+              .end();
+          });
       });
   }
 
   public void addSecurityHandler(RouterBuilder routerBuilder,
                                  AuthenticationHandler authenticationHandler) {
     routerBuilder.securityHandler(
-        "security_scheme_name",
-        authenticationHandler);
+      "security_scheme_name",
+      authenticationHandler);
   }
 
   public void addJWT(RouterBuilder routerBuilder, JWTAuth jwtAuthProvider) {

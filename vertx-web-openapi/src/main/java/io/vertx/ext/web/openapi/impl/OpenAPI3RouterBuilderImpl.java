@@ -1,7 +1,5 @@
 package io.vertx.ext.web.openapi.impl;
 
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
@@ -45,10 +43,10 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
   private static Handler<RoutingContext> generateNotAllowedHandler(List<HttpMethod> allowedMethods) {
     return rc -> {
       rc.addHeadersEndHandler(v ->
-          rc.response().headers().add("Allow", String.join(", ",
-            allowedMethods.stream().map(HttpMethod::toString).collect(Collectors.toList())
-          ))
-        );
+        rc.response().headers().add("Allow", String.join(", ",
+          allowedMethods.stream().map(HttpMethod::toString).collect(Collectors.toList())
+        ))
+      );
       rc.fail(405);
     };
   }
@@ -157,26 +155,8 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
   }
 
   @Override
-  public Future<Void> createSecurityHandlers(SecurityHandlerProvider provider) {
-    JsonObject securitySchemes = openapi.getCached(JsonPointer.from("/components/securitySchemes"));
-    if (securitySchemes != null) {
-      final List<Future> builders = new ArrayList<>();
-      for (String key : securitySchemes.fieldNames()) {
-        if (provider.containsSecuritySchemaId(key)) {
-          builders.add(
-            provider
-              .build(key, securitySchemes.getJsonObject(key))
-              .onSuccess(handler -> securityHandler(key, handler)));
-        } else {
-          LOG.warn("Missing securityScheme factory for: " + key);
-        }
-      }
-      return CompositeFuture.all(builders)
-        .mapEmpty();
-    } else {
-      // there are no securitySchemes in the api doc
-      return Future.succeededFuture();
-    }
+  public SecurityScheme securityHandler(String securitySchemeName) {
+    return new SecuritySchemeImpl(this, securitySchemeName);
   }
 
   @Override
@@ -358,19 +338,19 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
         .getJsonObject("responses", new JsonObject())
         .stream()
         .map(Map.Entry::getValue)
-        .map(j -> (JsonObject)j)
+        .map(j -> (JsonObject) j)
         .flatMap(j -> j.getJsonObject("content", new JsonObject()).fieldNames().stream())
         .collect(Collectors.toSet());
 
       // for (String ct : consumes)
-        // route.consumes(ct);
+      // route.consumes(ct);
       // TODO Do we really need this?
 
       for (String ct : produces)
         route.produces(ct);
 
       if (!consumes.isEmpty())
-        ((RouteImpl)route).setEmptyBodyPermittedWithConsumes(!validationHandler.isBodyRequired());
+        ((RouteImpl) route).setEmptyBodyPermittedWithConsumes(!validationHandler.isBodyRequired());
 
       if (options.isMountResponseContentTypeHandler() && produces.size() != 0)
         route.handler(ResponseContentTypeHandler.create());

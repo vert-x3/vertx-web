@@ -161,10 +161,21 @@ components:
 {@link examples.OpenAPI3Examples#authnFactoryOidc}
 ----
 
+The API is designed to be fluent so it can be used in a short notation, for example:
+
+[source,$lang]
+----
+{@link examples.OpenAPI3Examples#authnShort}
+----
+
 
 == Map `AuthenticationHandler` to OpenAPI security schemes
 
-You can map an {@link io.vertx.ext.web.handler.AuthenticationHandler} to a security schema defined in the contract.
+You have seen how you can map an {@link io.vertx.ext.web.handler.AuthenticationHandler} to a security schema defined in the contract. The previous examples are validating and will fail your route builder if the configuration is missing.
+
+There could be cases where the contract is incomplete and you explicitly want to define security handlers. In this case
+the API is slightly different and will not enforce any contract validation. Yet, the security handlers will be available
+to the builder regardless.
 
 For example, given your contract has a security schema named `security_scheme_name`:
 

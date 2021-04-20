@@ -47,18 +47,16 @@ public class RouterBuilderSecurityWithFactoryTest extends BaseRouterBuilderTest 
     loadBuilderAndStartServer(vertx, SECURITY_TESTS, testContext, routerBuilder -> {
       routerBuilder
         .setOptions(FACTORY_OPTIONS)
-        .createSecurityHandlers(
-          SecurityHandlerProvider.create()
-            .add(
-              "api_key",
-              config -> Future.succeededFuture(mockSuccessfulAuthHandler(routingContext -> routingContext.put("api_key", "1")))))
-
-        .onSuccess(v -> routerBuilder.operation("listPetsSingleSecurity").handler(routingContext -> routingContext
-          .response()
-          .setStatusCode(200)
-          .setStatusMessage(concatenateRoutingContextEntries(routingContext, "api_key"))
-          .end()
-        ));
+        .securityHandler("api_key")
+        .bindBlocking(config -> mockSuccessfulAuthHandler(routingContext -> routingContext.put("api_key", "1")))
+        .operation("listPetsSingleSecurity")
+        .handler(routingContext -> {
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage(concatenateRoutingContextEntries(routingContext, "api_key"))
+            .end();
+        });
 
     }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets_single_security")
