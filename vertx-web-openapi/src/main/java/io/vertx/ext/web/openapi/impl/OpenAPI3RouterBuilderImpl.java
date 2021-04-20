@@ -1,11 +1,14 @@
 package io.vertx.ext.web.openapi.impl;
 
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.web.Route;
@@ -37,6 +40,7 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
   private final static String OPENAPI_EXTENSION_METHOD_NAME = "method";
 
   private final static Handler<RoutingContext> NOT_IMPLEMENTED_HANDLER = rc -> rc.fail(501);
+  private static final Logger LOG = LoggerFactory.getLogger(OpenAPI3RouterBuilderImpl.class);
 
   private static Handler<RoutingContext> generateNotAllowedHandler(List<HttpMethod> allowedMethods) {
     return rc -> {
@@ -150,6 +154,29 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
   public RouterBuilder serviceExtraPayloadMapper(Function<RoutingContext, JsonObject> serviceExtraPayloadMapper) {
     this.serviceExtraPayloadMapper = serviceExtraPayloadMapper;
     return this;
+  }
+
+  @Override
+  public Future<Void> createAuthenticationHandlers(AuthenticationHandlerProvider provider) {
+    JsonObject securitySchemes = openapi.getCached(JsonPointer.from("/components/securitySchemes"));
+    if (securitySchemes != null) {
+      final List<Future> builders = new ArrayList<>();
+      for (String key : securitySchemes.fieldNames()) {
+        if (provider.containsSecuritySchemaId(key)) {
+          builders.add(
+            provider
+              .build(key, securitySchemes.getJsonObject(key))
+              .onSuccess(handler -> securityHandler(key, handler)));
+        } else {
+          LOG.warn("Missing securityScheme factory for: " + key);
+        }
+      }
+      return CompositeFuture.all(builders)
+        .mapEmpty();
+    } else {
+      // there are no securitySchemes in the api doc
+      return Future.succeededFuture();
+    }
   }
 
   @Override

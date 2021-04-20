@@ -166,6 +166,29 @@ public interface RouterBuilder {
   RouterBuilder serviceExtraPayloadMapper(Function<RoutingContext, JsonObject> serviceExtraPayloadMapper);
 
   /**
+   * Constructs the required {@link AuthenticationHandler} objects using the provided factories. This method will
+   * lookup the global security schema object, create the correspondent handler and finally call
+   * {@link #securityHandler(String, AuthenticationHandler)} with the result.
+   *
+   * As OpenIdConnect requires extra network download of configuration, this method will perform the work in an
+   * asynchronous fashion and it's result is a {@link Future}.
+   * @param provider the authentication handler factory provider.
+   * @return future result of the operation.
+   */
+  Future<Void> createAuthenticationHandlers(AuthenticationHandlerProvider provider);
+
+  /**
+   * Like {@link #createAuthenticationHandlers(AuthenticationHandlerProvider)}
+   */
+  @Fluent
+  default RouterBuilder createAuthenticationHandlers(AuthenticationHandlerProvider provider, Handler<AsyncResult<Void>> handler) {
+    createAuthenticationHandlers(provider)
+      .onComplete(handler);
+
+    return this;
+  }
+
+  /**
    * Construct a new router based on spec. It will fail if you are trying to mount a spec with security schemes
    * without assigned handlers<br/>
    *
@@ -174,7 +197,6 @@ public interface RouterBuilder {
    * @return
    */
   Router createRouter();
-
 
   /**
    * Create a new {@link RouterBuilder}

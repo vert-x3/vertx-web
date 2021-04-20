@@ -6,8 +6,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.ChainAuthHandler;
-import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
+import io.vertx.ext.web.handler.impl.AuthenticationScopes;
 import io.vertx.ext.web.openapi.RouterBuilderException;
 
 import java.util.*;
@@ -63,10 +63,11 @@ class AuthenticationHandlersStore {
         .collect(Collectors.toList());
 
       for (int i = 0; i < authenticationHandlers.size(); i++) {
-        if (authenticationHandlers.get(i) instanceof OAuth2AuthHandler) {
-          OAuth2AuthHandler oauth2 = (OAuth2AuthHandler) authenticationHandlers.get(i);
+        if (authenticationHandlers.get(i) instanceof AuthenticationScopes<?>) {
+          AuthenticationScopes<?> scopedHandler = (AuthenticationScopes<?>) authenticationHandlers.get(i);
           // this mutates the state, so we replace the list with an updated handler
-          authenticationHandlers.set(i, oauth2.withScopes(scopes));
+          AuthenticationHandler updatedHandler = scopedHandler.withScopes(scopes);
+          authenticationHandlers.set(i, updatedHandler);
         }
       }
     }
