@@ -6,8 +6,10 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.docgen.Source;
+import io.vertx.ext.auth.PubSecKeyOptions;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.providers.OpenIDConnectAuth;
 import io.vertx.ext.web.Router;
@@ -148,6 +150,36 @@ public class OpenAPI3Examples {
               .end();
           });
       });
+  }
+
+  public void authnAsyncJWT(Vertx vertx, RouterBuilder routerBuilder) {
+    routerBuilder
+      .securityHandler("oauth")
+      .bind(config ->
+        // as we don't want to block while reading the
+        // public key, we use the non blocking bind
+        vertx.fileSystem()
+          .readFile("public.key")
+          // we map the future to a authentication provider
+          .map(key ->
+            JWTAuth.create(vertx, new JWTAuthOptions()
+              .addPubSecKey(new PubSecKeyOptions()
+                .setAlgorithm("RS256")
+                .setBuffer(key))))
+          // and map again to create the final handler
+          .map(JWTAuthHandler::create))
+
+      .onSuccess(self ->
+        self
+          .operation("listPetsSingleSecurity")
+          .handler(routingContext -> {
+            routingContext
+              .response()
+              .setStatusCode(200)
+              .setStatusMessage("Cats and Dogs")
+              .end();
+          }));
+
   }
 
   public void addSecurityHandler(RouterBuilder routerBuilder,

@@ -20,11 +20,6 @@ public class SecuritySchemeImpl implements SecurityScheme {
   }
 
   @Override
-  public String securitySchemeId() {
-    return securitySchemeId;
-  }
-
-  @Override
   public RouterBuilder bindBlocking(Function<JsonObject, AuthenticationHandler> factory) {
     JsonObject securitySchemes = routerBuilder.getOpenAPI().getCached(JsonPointer.from("/components/securitySchemes"));
 

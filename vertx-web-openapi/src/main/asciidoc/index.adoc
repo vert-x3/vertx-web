@@ -168,6 +168,19 @@ The API is designed to be fluent so it can be used in a short notation, for exam
 {@link examples.OpenAPI3Examples#authnShort}
 ----
 
+=== Blocking vs NonBlocking
+
+From the examples above it is noticeable that handlers can be added in a blocking or not blocking way. The reason for
+non blocking way usage is not just to support handlers like `OAuth2`. The non-blocking way can be useful for handlers
+like JWT or basic authentication where the authentication provider requires loading of keys or configuration files.
+
+Here is an example with JWT:
+
+[source,$lang]
+----
+{@link examples.OpenAPI3Examples#authnAsyncJWT}
+----
+
 
 == Map `AuthenticationHandler` to OpenAPI security schemes
 

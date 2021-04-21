@@ -15,7 +15,6 @@
  */
 package io.vertx.ext.web.openapi;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -31,8 +30,6 @@ import java.util.function.Function;
  */
 @VertxGen
 public interface SecurityScheme {
-
-  String securitySchemeId();
 
   RouterBuilder bindBlocking(Function<JsonObject, AuthenticationHandler> factory);
 
