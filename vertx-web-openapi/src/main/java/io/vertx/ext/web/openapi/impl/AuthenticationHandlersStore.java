@@ -6,8 +6,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.ChainAuthHandler;
-import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
+import io.vertx.ext.web.handler.impl.ScopedAuthentication;
 import io.vertx.ext.web.openapi.RouterBuilderException;
 
 import java.util.*;
@@ -18,9 +18,11 @@ import java.util.stream.Collectors;
  */
 class AuthenticationHandlersStore {
 
+  private static final JsonObject EMPTY_JSON = new JsonObject(Collections.emptyMap());
+
   private static final AuthenticationHandler SUCCESS_HANDLER =
     SimpleAuthenticationHandler.create()
-    .authenticate(ctx -> Future.succeededFuture(User.create(new JsonObject())));
+    .authenticate(ctx -> Future.succeededFuture(User.create(EMPTY_JSON)));
 
   private final Map<String, List<AuthenticationHandler>> securityHandlers;
 
@@ -63,10 +65,11 @@ class AuthenticationHandlersStore {
         .collect(Collectors.toList());
 
       for (int i = 0; i < authenticationHandlers.size(); i++) {
-        if (authenticationHandlers.get(i) instanceof OAuth2AuthHandler) {
-          OAuth2AuthHandler oauth2 = (OAuth2AuthHandler) authenticationHandlers.get(i);
+        if (authenticationHandlers.get(i) instanceof ScopedAuthentication<?>) {
+          ScopedAuthentication<?> scopedHandler = (ScopedAuthentication<?>) authenticationHandlers.get(i);
           // this mutates the state, so we replace the list with an updated handler
-          authenticationHandlers.set(i, oauth2.withScopes(scopes));
+          AuthenticationHandler updatedHandler = scopedHandler.withScopes(scopes);
+          authenticationHandlers.set(i, updatedHandler);
         }
       }
     }
@@ -95,35 +98,40 @@ class AuthenticationHandlersStore {
   }
 
   private AuthenticationHandler orAuths(JsonArray securityRequirements, boolean failOnNotFound) {
-    if (securityRequirements == null) {
+    if (securityRequirements == null || securityRequirements.size() == 0) {
       return null;
     }
 
-    // Put empty auth at the end
-    int hasEmptyAuth = securityRequirements.getList().indexOf(new JsonObject());
-    if (hasEmptyAuth != -1) {
-      securityRequirements.remove(hasEmptyAuth);
+    boolean hasEmptyAuth = false;
+    for (int i = 0; i < securityRequirements.size(); i++) {
+      if (EMPTY_JSON.equals(securityRequirements.getValue(i))) {
+        hasEmptyAuth = true;
+        securityRequirements.remove(i);
+        break;
+      }
     }
 
-    // Either the list was originally null or was made only by that single empty auth requirement
-    if (securityRequirements.size() == 0) {
-      return null;
+    ChainAuthHandler authHandler;
+
+    switch (securityRequirements.size()) {
+      case 0:
+        return SUCCESS_HANDLER;
+      case 1:
+        if (!hasEmptyAuth) {
+          // If one security requirements, we don't need a ChainAuthHandler
+          return andAuths(securityRequirements.getJsonObject(0), failOnNotFound);
+        }
+      default:
+        authHandler = ChainAuthHandler.any();
+        securityRequirements
+          .stream()
+          .map(jo -> (JsonObject) jo)
+          .map(jo -> andAuths(jo, failOnNotFound))
+          .filter(Objects::nonNull)
+          .forEach(authHandler::add);
     }
 
-    // If one security requirements, we don't need a ChainAuthHandler
-    if (securityRequirements.size() == 1) {
-      return andAuths(securityRequirements.getJsonObject(0), failOnNotFound);
-    }
-
-    ChainAuthHandler authHandler = ChainAuthHandler.any();
-    securityRequirements
-      .stream()
-      .map(jo -> (JsonObject) jo)
-      .map(jo -> andAuths(jo, failOnNotFound))
-      .filter(Objects::nonNull)
-      .forEach(authHandler::add);
-
-    if (hasEmptyAuth != -1) {
+    if (hasEmptyAuth) {
       authHandler.add(SUCCESS_HANDLER);
     }
 

@@ -71,6 +71,12 @@
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-oauth2</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
 
     <!-- Testing dependencies -->
     <dependency>
@@ -89,11 +95,6 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-junit5</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-auth-oauth2</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

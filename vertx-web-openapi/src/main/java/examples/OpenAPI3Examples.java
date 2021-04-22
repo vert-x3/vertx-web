@@ -1,14 +1,19 @@
 package examples;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.docgen.Source;
+import io.vertx.ext.auth.PubSecKeyOptions;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
+import io.vertx.ext.auth.oauth2.OAuth2Options;
+import io.vertx.ext.auth.oauth2.providers.OpenIDConnectAuth;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.AuthenticationHandler;
-import io.vertx.ext.web.handler.JWTAuthHandler;
+import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.openapi.OpenAPILoaderOptions;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import io.vertx.ext.web.openapi.RouterBuilderOptions;
@@ -21,31 +26,26 @@ import io.vertx.ext.web.validation.ValidationHandler;
 public class OpenAPI3Examples {
 
   public void constructRouterBuilder(Vertx vertx) {
-    RouterBuilder.create(vertx, "src/main/resources/petstore.yaml").onComplete(ar -> {
-      if (ar.succeeded()) {
+    RouterBuilder.create(vertx, "src/main/resources/petstore.yaml")
+      .onSuccess(routerBuilder -> {
         // Spec loaded with success
-        RouterBuilder routerBuilder = ar.result();
-      } else {
+      })
+      .onFailure(err -> {
         // Something went wrong during router builder initialization
-        Throwable exception = ar.cause();
-      }
-    });
+      });
   }
 
   public void constructRouterBuilderFromUrl(Vertx vertx) {
     RouterBuilder.create(
       vertx,
       "https://raw.githubusercontent" +
-        ".com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml"
-    ).onComplete(ar -> {
-      if (ar.succeeded()) {
+        ".com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml")
+      .onSuccess(routerBuilder -> {
         // Spec loaded with success
-        RouterBuilder routerBuilder = ar.result();
-      } else {
+      })
+      .onFailure(err -> {
         // Something went wrong during router builder initialization
-        Throwable exception = ar.cause();
-      }
-    });
+      });
   }
 
   public void constructRouterBuilderFromUrlWithAuthenticationHeader(Vertx vertx) {
@@ -55,16 +55,13 @@ public class OpenAPI3Examples {
       vertx,
       "https://raw.githubusercontent" +
         ".com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml",
-      loaderOptions
-    ).onComplete(ar -> {
-      if (ar.succeeded()) {
+      loaderOptions)
+      .onSuccess(routerBuilder -> {
         // Spec loaded with success
-        RouterBuilder routerBuilder = ar.result();
-      } else {
+      })
+      .onFailure(err -> {
         // Something went wrong during router builder initialization
-        Throwable exception = ar.cause();
-      }
-    });
+      });
   }
 
   public void setOptions(RouterBuilder routerBuilder) {
@@ -85,9 +82,111 @@ public class OpenAPI3Examples {
     });
   }
 
+  public void authnFactoryBasic(RouterBuilder routerBuilder, AuthenticationProvider authProvider) {
+    routerBuilder
+      .securityHandler("basicAuth")
+      .bindBlocking(config -> BasicAuthHandler.create(authProvider));
+  }
+
+  public void authnFactoryApiKey(RouterBuilder routerBuilder, AuthenticationProvider authProvider) {
+    routerBuilder
+      .securityHandler("ApiKeyAuth")
+      .bindBlocking(config ->
+        APIKeyHandler.create(authProvider)
+          .header(config.getString("name")));
+  }
+
+  public void authnFactoryOidc(Vertx vertx, RouterBuilder routerBuilder) {
+    routerBuilder
+      .securityHandler("openId")
+      .bind(config ->
+        OpenIDConnectAuth
+          .discover(vertx, new OAuth2Options()
+            .setClientId("client-id") // user provided
+            .setClientSecret("client-secret") // user provided
+            .setSite(config.getString("openIdConnectUrl")))
+          .compose(authProvider -> {
+            AuthenticationHandler handler =
+              OAuth2AuthHandler.create(vertx, authProvider);
+            return Future.succeededFuture(handler);
+          }))
+      .onSuccess(self -> {
+        // Creation completed with success
+      })
+      .onFailure(err -> {
+        // Something went wrong
+      });
+  }
+
+  public void authnShort(Vertx vertx, RouterBuilder routerBuilder, AuthenticationProvider authProvider) {
+    // blocking bind
+    routerBuilder
+      .securityHandler("api_key")
+      .bindBlocking(config -> APIKeyHandler.create(authProvider))
+      .operation("listPetsSingleSecurity")
+      .handler(routingContext -> {
+        routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage("Cats and Dogs")
+          .end();
+      });
+
+    // non-blocking bind
+    routerBuilder
+      .securityHandler("oauth")
+      .bind(config -> OpenIDConnectAuth.discover(vertx, new OAuth2Options(config))
+        .compose(oidc -> Future.succeededFuture(
+          OAuth2AuthHandler.create(vertx, oidc))))
+
+      .onSuccess(self -> {
+        self
+          .operation("listPetsSingleSecurity")
+          .handler(routingContext -> {
+            routingContext
+              .response()
+              .setStatusCode(200)
+              .setStatusMessage("Cats and Dogs")
+              .end();
+          });
+      });
+  }
+
+  public void authnAsyncJWT(Vertx vertx, RouterBuilder routerBuilder) {
+    routerBuilder
+      .securityHandler("oauth")
+      .bind(config ->
+        // as we don't want to block while reading the
+        // public key, we use the non blocking bind
+        vertx.fileSystem()
+          .readFile("public.key")
+          // we map the future to a authentication provider
+          .map(key ->
+            JWTAuth.create(vertx, new JWTAuthOptions()
+              .addPubSecKey(new PubSecKeyOptions()
+                .setAlgorithm("RS256")
+                .setBuffer(key))))
+          // and map again to create the final handler
+          .map(JWTAuthHandler::create))
+
+      .onSuccess(self ->
+        self
+          .operation("listPetsSingleSecurity")
+          .handler(routingContext -> {
+            routingContext
+              .response()
+              .setStatusCode(200)
+              .setStatusMessage("Cats and Dogs")
+              .end();
+          }));
+
+  }
+
   public void addSecurityHandler(RouterBuilder routerBuilder,
                                  AuthenticationHandler authenticationHandler) {
-    routerBuilder.securityHandler("security_scheme_name", authenticationHandler);
+    routerBuilder.securityHandler(
+      "security_scheme_name",
+      authenticationHandler);
   }
 
   public void addJWT(RouterBuilder routerBuilder, JWTAuth jwtAuthProvider) {

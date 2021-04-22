@@ -46,7 +46,7 @@ import java.util.*;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> implements OAuth2AuthHandler {
+public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> implements OAuth2AuthHandler, ScopedAuthentication<OAuth2AuthHandler> {
 
   private static final Logger LOG = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
 
@@ -448,5 +448,21 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       }
     }
     ctx.next();
+  }
+
+  @Override
+  public boolean performsRedirect() {
+    // depending on the time this method is invoked
+    // we can deduct with more accuracy if a redirect is possible or not
+    if (!bearerOnly) {
+      // we know that a redirect is definitely possible
+      // as the callback handler has been created
+      return true;
+    } else {
+      // the callback hasn't been mounted so we need to assume
+      // that if no callbackURL is provided, then there isn't
+      // a redirect happening in this application
+      return callbackURL != null;
+    }
   }
 }

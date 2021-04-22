@@ -100,4 +100,18 @@ public class ChainAuthMixHandlerTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + you.generateToken(payloadB)), 200, "OK", null);
   }
+
+  @Test
+  public void testRedirectAndHandler() throws Exception {
+      ChainAuthHandler.all()
+        .add(OAuth2AuthHandler.create(vertx, null))
+        .add(BasicAuthHandler.create(null));
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testRedirectAndHandlerFail() {
+    ChainAuthHandler.all()
+      .add(OAuth2AuthHandler.create(vertx, null, "http://server.com/callback"))
+      .add(BasicAuthHandler.create(null));
+  }
 }

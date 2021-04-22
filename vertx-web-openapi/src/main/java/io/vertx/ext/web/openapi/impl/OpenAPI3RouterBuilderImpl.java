@@ -4,8 +4,9 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.web.Route;
@@ -37,14 +38,15 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
   private final static String OPENAPI_EXTENSION_METHOD_NAME = "method";
 
   private final static Handler<RoutingContext> NOT_IMPLEMENTED_HANDLER = rc -> rc.fail(501);
+  private static final Logger LOG = LoggerFactory.getLogger(OpenAPI3RouterBuilderImpl.class);
 
   private static Handler<RoutingContext> generateNotAllowedHandler(List<HttpMethod> allowedMethods) {
     return rc -> {
       rc.addHeadersEndHandler(v ->
-          rc.response().headers().add("Allow", String.join(", ",
-            allowedMethods.stream().map(HttpMethod::toString).collect(Collectors.toList())
-          ))
-        );
+        rc.response().headers().add("Allow", String.join(", ",
+          allowedMethods.stream().map(HttpMethod::toString).collect(Collectors.toList())
+        ))
+      );
       rc.fail(405);
     };
   }
@@ -150,6 +152,11 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
   public RouterBuilder serviceExtraPayloadMapper(Function<RoutingContext, JsonObject> serviceExtraPayloadMapper) {
     this.serviceExtraPayloadMapper = serviceExtraPayloadMapper;
     return this;
+  }
+
+  @Override
+  public SecurityScheme securityHandler(String securitySchemeName) {
+    return new SecuritySchemeImpl(this, securitySchemeName);
   }
 
   @Override
@@ -331,19 +338,19 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
         .getJsonObject("responses", new JsonObject())
         .stream()
         .map(Map.Entry::getValue)
-        .map(j -> (JsonObject)j)
+        .map(j -> (JsonObject) j)
         .flatMap(j -> j.getJsonObject("content", new JsonObject()).fieldNames().stream())
         .collect(Collectors.toSet());
 
       // for (String ct : consumes)
-        // route.consumes(ct);
+      // route.consumes(ct);
       // TODO Do we really need this?
 
       for (String ct : produces)
         route.produces(ct);
 
       if (!consumes.isEmpty())
-        ((RouteImpl)route).setEmptyBodyPermittedWithConsumes(!validationHandler.isBodyRequired());
+        ((RouteImpl) route).setEmptyBodyPermittedWithConsumes(!validationHandler.isBodyRequired());
 
       if (options.isMountResponseContentTypeHandler() && produces.size() != 0)
         route.handler(ResponseContentTypeHandler.create());

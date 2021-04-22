@@ -52,4 +52,9 @@ public class RedirectAuthHandlerImpl extends AuthenticationHandlerImpl<Authentic
       handler.handle(Future.failedFuture("No session - did you forget to include a SessionHandler?"));
     }
   }
+
+  @Override
+  public boolean performsRedirect() {
+    return true;
+  }
 }

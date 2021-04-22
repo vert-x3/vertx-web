@@ -95,14 +95,18 @@ public interface RouterBuilder {
   RouterBuilder rootHandler(Handler<RoutingContext> rootHandler);
 
   /**
-   * Mount to paths that have to follow a security schema a security handler
+   * Mount to paths that have to follow a security schema a security handler. This method will not perform any
+   * validation weather or not the given {@code securitySchemeName} is present in the OpenAPI document.
    *
-   * @param securitySchemaName
-   * @param handler
+   * For must use cases the method {@link #securityHandler(String)} should be used.
+   *
+   * @param securitySchemeName the components security scheme id
+   * @param handler the authentication handler
    * @return self
    */
   @Fluent
-  RouterBuilder securityHandler(String securitySchemaName, AuthenticationHandler handler);
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  RouterBuilder securityHandler(String securitySchemeName, AuthenticationHandler handler);
 
   /**
    * Introspect the OpenAPI spec to mount handlers for all operations that specifies a x-vertx-event-bus annotation.
@@ -166,6 +170,12 @@ public interface RouterBuilder {
   RouterBuilder serviceExtraPayloadMapper(Function<RoutingContext, JsonObject> serviceExtraPayloadMapper);
 
   /**
+   * Creates a new security scheme for the required {@link AuthenticationHandler}.
+   * @return a security scheme.
+   */
+  SecurityScheme securityHandler(String securitySchemeName);
+
+  /**
    * Construct a new router based on spec. It will fail if you are trying to mount a spec with security schemes
    * without assigned handlers<br/>
    *
@@ -174,7 +184,6 @@ public interface RouterBuilder {
    * @return
    */
   Router createRouter();
-
 
   /**
    * Create a new {@link RouterBuilder}
