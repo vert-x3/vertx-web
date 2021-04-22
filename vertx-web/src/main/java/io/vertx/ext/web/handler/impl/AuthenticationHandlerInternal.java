@@ -42,4 +42,13 @@ public interface AuthenticationHandlerInternal extends AuthenticationHandler {
   default void postAuthentication(RoutingContext ctx) {
     ctx.next();
   }
+
+  /**
+   * Signal that this handler can perform an HTTP redirect during the authentication mechanism. In this case
+   * this can be problematic in order to validate chains as it introduces a well known abort of the processing.
+   * @return true if it is known that the authentication may perform a redirect.
+   */
+  default boolean performsRedirect() {
+    return false;
+  }
 }

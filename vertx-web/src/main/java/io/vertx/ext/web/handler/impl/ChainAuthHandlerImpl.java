@@ -16,7 +16,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   private final List<AuthenticationHandlerInternal> handlers = new ArrayList<>();
   private final boolean all;
 
-  private boolean willRedirect = false;
+  private int willRedirect = -1;
 
   public ChainAuthHandlerImpl(boolean all) {
     super(null);
@@ -24,19 +24,21 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   }
 
   @Override
+  public boolean performsRedirect() {
+    return willRedirect != -1;
+  }
+
+  @Override
   public synchronized ChainAuthHandler add(AuthenticationHandler other) {
-    if (willRedirect) {
-      throw new IllegalStateException("Cannot add a handler after a handler known to perform a HTTP redirect [RedirectAuthHandler/Oauth2Handler]");
+    if (performsRedirect()) {
+      throw new IllegalStateException("Cannot add a handler after a handler known to perform a HTTP redirect: " + handlers.get(willRedirect));
     }
-    handlers.add((AuthenticationHandlerInternal) other);
-    // validation for well known redirect handlers
-    if (other instanceof RedirectAuthHandler || other instanceof OAuth2AuthHandler) {
-      willRedirect = true;
+    final AuthenticationHandlerInternal otherInternal = (AuthenticationHandlerInternal) other;
+    // control if we should not allow more handlers due to the possibility of a redirect to happen
+    if (otherInternal.performsRedirect()) {
+      willRedirect = handlers.size();
     }
-    // special case, when chaining a chain, we must take the redirect in consideration too
-    if (other instanceof ChainAuthHandler) {
-      willRedirect &= ((ChainAuthHandlerImpl) other).willRedirect;
-    }
+    handlers.add(otherInternal);
     return this;
   }
 
