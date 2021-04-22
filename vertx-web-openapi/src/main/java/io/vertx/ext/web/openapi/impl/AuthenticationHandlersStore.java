@@ -22,10 +22,7 @@ class AuthenticationHandlersStore {
 
   private static final AuthenticationHandler SUCCESS_HANDLER =
     SimpleAuthenticationHandler.create()
-    .authenticate(ctx -> {
-      System.out.println("HERE");
-      return Future.succeededFuture(User.create(new JsonObject()));
-    });
+    .authenticate(ctx -> Future.succeededFuture(User.create(EMPTY_JSON)));
 
   private final Map<String, List<AuthenticationHandler>> securityHandlers;
 
