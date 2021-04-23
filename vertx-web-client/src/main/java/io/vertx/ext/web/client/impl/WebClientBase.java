@@ -187,8 +187,13 @@ public class WebClientBase implements WebClientInternal {
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, String requestURI) {
-    return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), options.getDefaultPort(), options.getDefaultHost(),
-      requestURI, BodyCodecImpl.BUFFER, options);
+    if (options.isCachingEnabled()) {
+      return new CachedHttpRequestImpl(this, method, serverAddress, options.isSsl(),
+        options.getDefaultPort(), options.getDefaultHost(), requestURI, BodyCodecImpl.BUFFER, options);
+    } else {
+      return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), options.getDefaultPort(), options.getDefaultHost(),
+        requestURI, BodyCodecImpl.BUFFER, options);
+    }
   }
 
   @Override
@@ -198,9 +203,18 @@ public class WebClientBase implements WebClientInternal {
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, RequestOptions requestOptions) {
-      HttpRequestImpl<Buffer> request = new HttpRequestImpl<>(this, method, serverAddress, requestOptions.isSsl(), requestOptions.getPort(),
+    HttpRequest<Buffer> request;
+
+    if (options.isCachingEnabled()) {
+      request = new CachedHttpRequestImpl(this, method, serverAddress, requestOptions.isSsl(), requestOptions.getPort(),
+        requestOptions.getHost(), requestOptions.getURI(), BodyCodecImpl.BUFFER, options);
+
+    } else {
+      request = new HttpRequestImpl<>(this, method, serverAddress, requestOptions.isSsl(), requestOptions.getPort(),
       requestOptions.getHost(), requestOptions.getURI(), BodyCodecImpl.BUFFER, options);
-      return requestOptions.getHeaders() == null ? request : request.putHeaders(requestOptions.getHeaders());
+    }
+
+    return requestOptions.getHeaders() == null ? request : request.putHeaders(requestOptions.getHeaders());
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, String host, String requestURI) {
@@ -209,7 +223,13 @@ public class WebClientBase implements WebClientInternal {
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, String host, String requestURI) {
-    return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), options.getDefaultPort(), host, requestURI, BodyCodecImpl.BUFFER, options);
+    if (options.isCachingEnabled()) {
+      return new CachedHttpRequestImpl(this, method, serverAddress, options.isSsl(),
+        options.getDefaultPort(), host, requestURI, BodyCodecImpl.BUFFER, options);
+    } else {
+      return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(),
+        options.getDefaultPort(), host, requestURI, BodyCodecImpl.BUFFER, options);
+    }
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, int port, String host, String requestURI) {
@@ -218,7 +238,13 @@ public class WebClientBase implements WebClientInternal {
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, int port, String host, String requestURI) {
-    return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), port, host, requestURI, BodyCodecImpl.BUFFER, options);
+    if (options.isCachingEnabled()) {
+      return new CachedHttpRequestImpl(this, method, serverAddress, options.isSsl(),
+        port, host, requestURI, BodyCodecImpl.BUFFER, options);
+    } else {
+      return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(),
+        port, host, requestURI, BodyCodecImpl.BUFFER, options);
+    }
   }
 
   @Override
@@ -255,8 +281,14 @@ public class WebClientBase implements WebClientInternal {
         }
       }
     }
-    return new HttpRequestImpl<>(this, method, serverAddress, protocol, ssl, port, url.getHost(), url.getFile(),
-            BodyCodecImpl.BUFFER, options);
+
+    if (options.isCachingEnabled()) {
+      return new CachedHttpRequestImpl(this, method, serverAddress, protocol, ssl, port,
+        url.getHost(), url.getFile(), BodyCodecImpl.BUFFER, options);
+    } else {
+      return new HttpRequestImpl<>(this, method, serverAddress, protocol, ssl, port,
+        url.getHost(), url.getFile(), BodyCodecImpl.BUFFER, options);
+    }
   }
 
   @Override

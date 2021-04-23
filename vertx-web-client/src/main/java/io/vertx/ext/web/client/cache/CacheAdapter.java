@@ -30,7 +30,7 @@ public interface CacheAdapter {
 
   Future<CachedHttpResponse> get(CacheKey key);
 
-  Future<Void> set(CacheKey key, CachedHttpResponse response);
+  Future<CachedHttpResponse> set(CacheKey key, CachedHttpResponse response);
 
   Future<Void> delete(CacheKey key);
 
@@ -40,7 +40,7 @@ public interface CacheAdapter {
     get(key).onComplete(handler);
   }
 
-  default void set(CacheKey key, CachedHttpResponse response, Handler<AsyncResult<Void>> handler) {
+  default void set(CacheKey key, CachedHttpResponse response, Handler<AsyncResult<CachedHttpResponse>> handler) {
     set(key, response).onComplete(handler);
   }
 

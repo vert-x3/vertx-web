@@ -15,12 +15,15 @@
  */
 package io.vertx.ext.web.client.impl.cache;
 
+import io.netty.handler.codec.DateFormatter;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.cache.CacheAdapter;
 import io.vertx.ext.web.client.impl.HttpRequestImpl;
+import java.util.Date;
 
 /**
  * HTTP cache manager to process requests and responses and either cache, or reply from cache.
@@ -41,7 +44,7 @@ public class CacheManager {
       .compose(resp -> handleCacheResult((HttpRequestImpl<?>) request, resp));
   }
 
-  public Future<Void> processResponse(HttpRequest<?> request, HttpResponse<?> response) {
+  public Future<HttpResponse<Buffer>> processResponse(HttpRequest<?> request, HttpResponse<Buffer> response) {
     switch (response.statusCode()) {
       case 200:
       case 301:
@@ -64,7 +67,9 @@ public class CacheManager {
       if (cacheControl.isVarying()) {
         return handleVaryingCache(request, response);
       } else {
-        return Future.succeededFuture(response.rehydrate());
+        HttpResponse<Buffer> result = response.rehydrate();
+        result.headers().set(HttpHeaders.AGE, DateFormatter.format(new Date(response.age())));
+        return Future.succeededFuture(result);
       }
     } else {
       // TODO: This should be forwarded with If-None-Match and the cache updated accordingly
@@ -78,12 +83,12 @@ public class CacheManager {
     return Future.failedFuture("Vary is not yet supported");
   }
 
-  private Future<Void> cacheResponse(HttpRequest<?> request, HttpResponse<?> response) {
+  private Future<HttpResponse<Buffer>> cacheResponse(HttpRequest<?> request, HttpResponse<Buffer> response) {
     CacheControl cacheControl = CacheControl.parse(response.headers());
 
     if (cacheControl.isCacheable()) {
       CacheKey key = new CacheKey(request);
-      return cacheAdapter.set(key, CachedHttpResponse.create(response));
+      return cacheAdapter.set(key, CachedHttpResponse.create(response)).map(response);
     } else {
       return Future.succeededFuture();
     }

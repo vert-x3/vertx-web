@@ -31,8 +31,8 @@ public final class NoOpCacheAdapter implements CacheAdapter {
   }
 
   @Override
-  public Future<Void> set(CacheKey key, CachedHttpResponse response) {
-    return Future.succeededFuture();
+  public Future<CachedHttpResponse> set(CacheKey key, CachedHttpResponse response) {
+    return Future.succeededFuture(response);
   }
 
   @Override

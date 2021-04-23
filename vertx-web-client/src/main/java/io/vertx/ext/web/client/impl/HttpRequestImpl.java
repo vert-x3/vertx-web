@@ -85,7 +85,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     }
   }
 
-  private HttpRequestImpl(HttpRequestImpl<T> other) {
+  protected HttpRequestImpl(HttpRequestImpl<T> other) {
     this.client = other.client;
     this.serverAddress = other.serverAddress;
     this.options = other.options;
@@ -308,7 +308,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     send("multipart/form-data", body, handler);
   }
 
-  private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+  protected void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
     HttpContext<T> ctx = client.createContext(handler);
     ctx.prepareRequest(this, contentType, body);
   }

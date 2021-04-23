@@ -22,6 +22,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
@@ -34,6 +35,8 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.cache.CacheAdapter;
+import io.vertx.ext.web.client.impl.cache.NoOpCacheAdapter;
 import io.vertx.ext.web.client.predicate.ErrorConverter;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
@@ -119,6 +122,24 @@ public class WebClientExamples {
 
     // Overwrite param1 and add param2
     request.uri("/some-uri?param1=param1_value&param2=param2_value");
+  }
+
+  public void simpleGetWithCaching(Vertx vertx) {
+    CacheAdapter adapter = new NoOpCacheAdapter();
+
+    WebClientOptions options = new WebClientOptions()
+      .enableCaching()
+      .setCacheAdapter(adapter);
+
+    WebClient client = WebClient.create(vertx, options);
+
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .send()
+      .onSuccess(response -> System.out
+        .println("Received response with age" + response.headers().get(HttpHeaders.AGE)))
+      .onFailure(err ->
+        System.out.println("Something went wrong " + err.getMessage()));
   }
 
   public void multiGet(WebClient client) {
