@@ -30,10 +30,7 @@ import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
-import io.vertx.ext.web.client.HttpRequest;
-import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.*;
 import io.vertx.ext.web.client.predicate.ErrorConverter;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
@@ -119,6 +116,16 @@ public class WebClientExamples {
 
     // Overwrite param1 and add param2
     request.uri("/some-uri?param1=param1_value&param2=param2_value");
+  }
+
+  public void pathTemplate(WebClient client) {
+    PathTemplate template = PathTemplate.parse("/users/:username");
+
+    HttpRequest<Buffer> request = client.get(
+      template, UriParameters.create().param("username", "slinkydeveloper")
+    );
+
+    // This will render to "/users/slinkydeveloper"
   }
 
   public void multiGet(WebClient client) {

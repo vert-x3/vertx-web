@@ -104,6 +104,19 @@ public interface WebClient {
   HttpRequest<Buffer> request(HttpMethod method, int port, String host, String requestURI);
 
   /**
+   * Create an HTTP request to send to the server at the specified host and port.
+   *
+   * @param method        the HTTP method
+   * @param port          the port
+   * @param host          the host
+   * @param pathTemplate  path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> request(HttpMethod method, int port, String host, PathTemplate pathTemplate,
+                              UriParameters uriParameters);
+
+  /**
    * Like {@link #request(HttpMethod, int, String, String)} using the {@code serverAddress} parameter to connect to the
    * server instead of the {@code port} and {@code host} parameters.
    * <p>
@@ -114,6 +127,11 @@ public interface WebClient {
   HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, int port, String host, String requestURI);
 
   /**
+   * Like {@link #request(HttpMethod, SocketAddress, int, String, String)} using the {@code pathTemplate}
+   */
+  HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, int port, String host, PathTemplate pathTemplate, UriParameters uriParameters);
+
+  /**
    * Create an HTTP request to send to the server at the specified host and default port.
    * @param method  the HTTP method
    * @param host  the host
@@ -121,6 +139,17 @@ public interface WebClient {
    * @return  an HTTP client request object
    */
   HttpRequest<Buffer> request(HttpMethod method, String host, String requestURI);
+
+  /**
+   * Create an HTTP request to send to the server at the specified host and default port.
+   *
+   * @param method        the HTTP method
+   * @param host          the host
+   * @param pathTemplate  path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> request(HttpMethod method, String host, PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Like {@link #request(HttpMethod, String, String)} using the {@code serverAddress} parameter to connect to the
@@ -133,12 +162,27 @@ public interface WebClient {
   HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, String host, String requestURI);
 
   /**
+   * Like {@link #request(HttpMethod, SocketAddress, String, String)} using the {@code pathTemplate}
+   */
+  HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, String host, PathTemplate pathTemplate, UriParameters uriParameters);
+
+  /**
    * Create an HTTP request to send to the server at the default host and port.
    * @param method  the HTTP method
    * @param requestURI  the relative URI
    * @return  an HTTP client request object
    */
   HttpRequest<Buffer> request(HttpMethod method, String requestURI);
+
+  /**
+   * Create an HTTP request to send to the server at the default host and port.
+   *
+   * @param method        the HTTP method
+   * @param pathTemplate  path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> request(HttpMethod method, PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Like {@link #request(HttpMethod, String)} using the {@code serverAddress} parameter to connect to the
@@ -149,6 +193,11 @@ public interface WebClient {
    * Use {@link SocketAddress#domainSocketAddress(String)} to connect to a unix domain socket server.
    */
   HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, String requestURI);
+
+  /**
+   * Like {@link #request(HttpMethod, SocketAddress, String)} using the {@code pathTemplate}
+   */
+  HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP request to send to the server at the specified host and port.
@@ -194,6 +243,15 @@ public interface WebClient {
   HttpRequest<Buffer> get(String requestURI);
 
   /**
+   * Create an HTTP GET request to send to the server at the default host and port.
+   *
+   * @param pathTemplate  path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> get(PathTemplate pathTemplate, UriParameters uriParameters);
+
+  /**
    * Create an HTTP GET request to send to the server at the specified host and port.
    * @param port  the port
    * @param host  the host
@@ -203,12 +261,33 @@ public interface WebClient {
   HttpRequest<Buffer> get(int port, String host, String requestURI);
 
   /**
+   * Create an HTTP GET request to send to the server at the specified host and port.
+   *
+   * @param port          the port
+   * @param host          the host
+   * @param pathTemplate  path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> get(int port, String host, PathTemplate pathTemplate, UriParameters uriParameters);
+
+  /**
    * Create an HTTP GET request to send to the server at the specified host and default port.
    * @param host  the host
    * @param requestURI  the relative URI
    * @return  an HTTP client request object
    */
   HttpRequest<Buffer> get(String host, String requestURI);
+
+  /**
+   * Create an HTTP GET request to send to the server at the specified host and default port.
+   *
+   * @param host          the host
+   * @param pathTemplate  path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> get(String host, PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP GET request to send to the server using an absolute URI, specifying a response handler to receive
@@ -221,9 +300,17 @@ public interface WebClient {
   /**
    * Create an HTTP POST request to send to the server at the default host and port.
    * @param requestURI  the relative URI
-   * @return  an HTTP client request object
+   * @return an HTTP client request object
    */
   HttpRequest<Buffer> post(String requestURI);
+
+  /**
+   * Create an HTTP POST request to send to the server at the default host and port.
+   * @param pathTemplate path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> post(PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP POST request to send to the server at the specified host and port.
@@ -235,12 +322,32 @@ public interface WebClient {
   HttpRequest<Buffer> post(int port, String host, String requestURI);
 
   /**
+   * Create an HTTP POST request to send to the server at the specified host and port.
+   *
+   * @param port          the port
+   * @param host          the host
+   * @param pathTemplate  path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> post(int port, String host, PathTemplate pathTemplate, UriParameters uriParameters);
+
+  /**
    * Create an HTTP POST request to send to the server at the specified host and default port.
    * @param host  the host
    * @param requestURI  the relative URI
-   * @return  an HTTP client request object
+   * @return an HTTP client request object
    */
   HttpRequest<Buffer> post(String host, String requestURI);
+
+  /**
+   * Create an HTTP POST request to send to the server at the specified host and default port.
+   * @param host  the host
+   * @param pathTemplate path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> post(String host, PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP POST request to send to the server using an absolute URI, specifying a response handler to receive
@@ -253,26 +360,53 @@ public interface WebClient {
   /**
    * Create an HTTP PUT request to send to the server at the default host and port.
    * @param requestURI  the relative URI
-   * @return  an HTTP client request object
+   * @return an HTTP client request object
    */
   HttpRequest<Buffer> put(String requestURI);
+
+  /**
+   * Create an HTTP PUT request to send to the server at the default host and port.
+   * @param pathTemplate path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> put(PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP PUT request to send to the server at the specified host and port.
    * @param port  the port
    * @param host  the host
    * @param requestURI  the relative URI
-   * @return  an HTTP client request object
+   * @return an HTTP client request object
    */
   HttpRequest<Buffer> put(int port, String host, String requestURI);
+
+  /**
+   * Create an HTTP PUT request to send to the server at the specified host and port.
+   * @param port  the port
+   * @param host  the host
+   * @param pathTemplate path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> put(int port, String host, PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP PUT request to send to the server at the specified host and default port.
    * @param host  the host
    * @param requestURI  the relative URI
-   * @return  an HTTP client request object
+   * @return an HTTP client request object
    */
   HttpRequest<Buffer> put(String host, String requestURI);
+
+  /**
+   * Create an HTTP PUT request to send to the server at the specified host and default port.
+   * @param host  the host
+   * @param pathTemplate path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> put(String host, PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP PUT request to send to the server using an absolute URI, specifying a response handler to receive
@@ -285,26 +419,53 @@ public interface WebClient {
   /**
    * Create an HTTP DELETE request to send to the server at the default host and port.
    * @param requestURI  the relative URI
-   * @return  an HTTP client request object
+   * @return an HTTP client request object
    */
   HttpRequest<Buffer> delete(String requestURI);
+
+  /**
+   * Create an HTTP DELETE request to send to the server at the default host and port.
+   * @param pathTemplate path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> delete(PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP DELETE request to send to the server at the specified host and port.
    * @param port  the port
    * @param host  the host
    * @param requestURI  the relative URI
-   * @return  an HTTP client request object
+   * @return an HTTP client request object
    */
   HttpRequest<Buffer> delete(int port, String host, String requestURI);
+
+  /**
+   * Create an HTTP DELETE request to send to the server at the specified host and port.
+   * @param port  the port
+   * @param host  the host
+   * @param pathTemplate path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> delete(int port, String host, PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP DELETE request to send to the server at the specified host and default port.
    * @param host  the host
    * @param requestURI  the relative URI
-   * @return  an HTTP client request object
+   * @return an HTTP client request object
    */
   HttpRequest<Buffer> delete(String host, String requestURI);
+
+  /**
+   * Create an HTTP DELETE request to send to the server at the specified host and default port.
+   * @param host  the host
+   * @param pathTemplate path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> delete(String host, PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP DELETE request to send to the server using an absolute URI, specifying a response handler to receive
@@ -317,26 +478,53 @@ public interface WebClient {
   /**
    * Create an HTTP PATCH request to send to the server at the default host and port.
    * @param requestURI  the relative URI
-   * @return  an HTTP client request object
+   * @return an HTTP client request object
    */
   HttpRequest<Buffer> patch(String requestURI);
+
+  /**
+   * Create an HTTP PATCH request to send to the server at the default host and port.
+   * @param pathTemplate path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> patch(PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP PATCH request to send to the server at the specified host and port.
    * @param port  the port
    * @param host  the host
    * @param requestURI  the relative URI
-   * @return  an HTTP client request object
+   * @return an HTTP client request object
    */
   HttpRequest<Buffer> patch(int port, String host, String requestURI);
+
+  /**
+   * Create an HTTP PATCH request to send to the server at the specified host and port.
+   * @param port  the port
+   * @param host  the host
+   * @param pathTemplate path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> patch(int port, String host, PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP PATCH request to send to the server at the specified host and default port.
    * @param host  the host
    * @param requestURI  the relative URI
-   * @return  an HTTP client request object
+   * @return an HTTP client request object
    */
   HttpRequest<Buffer> patch(String host, String requestURI);
+
+  /**
+   * Create an HTTP PATCH request to send to the server at the specified host and default port.
+   * @param host  the host
+   * @param pathTemplate path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> patch(String host, PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP PATCH request to send to the server using an absolute URI, specifying a response handler to receive
@@ -349,26 +537,53 @@ public interface WebClient {
   /**
    * Create an HTTP HEAD request to send to the server at the default host and port.
    * @param requestURI  the relative URI
-   * @return  an HTTP client request object
+   * @return an HTTP client request object
    */
   HttpRequest<Buffer> head(String requestURI);
+
+  /**
+   * Create an HTTP HEAD request to send to the server at the default host and port.
+   * @param pathTemplate path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> head(PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP HEAD request to send to the server at the specified host and port.
    * @param port  the port
    * @param host  the host
    * @param requestURI  the relative URI
-   * @return  an HTTP client request object
+   * @return an HTTP client request object
    */
   HttpRequest<Buffer> head(int port, String host, String requestURI);
+
+  /**
+   * Create an HTTP HEAD request to send to the server at the specified host and port.
+   * @param port  the port
+   * @param host  the host
+   * @param pathTemplate path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> head(int port, String host, PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP HEAD request to send to the server at the specified host and default port.
    * @param host  the host
    * @param requestURI  the relative URI
-   * @return  an HTTP client request object
+   * @return an HTTP client request object
    */
   HttpRequest<Buffer> head(String host, String requestURI);
+
+  /**
+   * Create an HTTP HEAD request to send to the server at the specified host and default port.
+   * @param host  the host
+   * @param pathTemplate path template
+   * @param uriParameters path parameters to apply to the template
+   * @return an HTTP client request object
+   */
+  HttpRequest<Buffer> head(String host, PathTemplate pathTemplate, UriParameters uriParameters);
 
   /**
    * Create an HTTP HEAD request to send to the server using an absolute URI, specifying a response handler to receive
