@@ -124,24 +124,6 @@ public class WebClientExamples {
     request.uri("/some-uri?param1=param1_value&param2=param2_value");
   }
 
-  public void simpleGetWithCaching(Vertx vertx) {
-    CacheAdapter adapter = new NoOpCacheAdapter();
-
-    WebClientOptions options = new WebClientOptions()
-      .enableCaching()
-      .setCacheAdapter(adapter);
-
-    WebClient client = WebClient.create(vertx, options);
-
-    client
-      .get(8080, "myserver.mycompany.com", "/some-uri")
-      .send()
-      .onSuccess(response -> System.out
-        .println("Received response with age" + response.headers().get(HttpHeaders.AGE)))
-      .onFailure(err ->
-        System.out.println("Something went wrong " + err.getMessage()));
-  }
-
   public void multiGet(WebClient client) {
     HttpRequest<Buffer> get = client
       .get(8080, "myserver.mycompany.com", "/some-uri");

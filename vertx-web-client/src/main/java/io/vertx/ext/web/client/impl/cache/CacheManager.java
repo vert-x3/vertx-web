@@ -21,6 +21,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClientCacheOptions;
 import io.vertx.ext.web.client.cache.CacheAdapter;
 import io.vertx.ext.web.client.impl.HttpRequestImpl;
 import java.util.Date;
@@ -33,9 +34,11 @@ import java.util.Date;
 public class CacheManager {
 
   private final CacheAdapter cacheAdapter;
+  private final WebClientCacheOptions options;
 
-  public CacheManager(CacheAdapter cacheAdapter) {
+  public CacheManager(CacheAdapter cacheAdapter, WebClientCacheOptions options) {
     this.cacheAdapter = cacheAdapter;
+    this.options = options;
   }
 
   public Future<HttpResponse<Buffer>> processRequest(HttpRequest<?> request) {

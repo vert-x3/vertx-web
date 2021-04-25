@@ -25,8 +25,6 @@ import io.vertx.core.impl.launcher.commands.VersionCommand;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.*;
 
-import io.vertx.ext.web.client.cache.CacheAdapter;
-import io.vertx.ext.web.client.impl.cache.NoOpCacheAdapter;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -55,9 +53,6 @@ public class WebClientOptions extends HttpClientOptions {
   private boolean userAgentEnabled = DEFAULT_USER_AGENT_ENABLED;
   private String userAgent = DEFAULT_USER_AGENT;
   private boolean followRedirects = DEFAULT_FOLLOW_REDIRECTS;
-  private boolean enablePublicCaching = false;
-  private boolean enablePrivateCaching = false;
-  private CacheAdapter cacheAdapter = new NoOpCacheAdapter();
 
   public WebClientOptions() {
   }
@@ -95,9 +90,6 @@ public class WebClientOptions extends HttpClientOptions {
     this.userAgentEnabled = other.userAgentEnabled;
     this.userAgent = other.userAgent;
     this.followRedirects = other.followRedirects;
-    this.enablePublicCaching = other.enablePublicCaching;
-    this.enablePrivateCaching = other.enablePrivateCaching;
-    this.cacheAdapter = other.cacheAdapter;
   }
 
   /**
@@ -163,99 +155,6 @@ public class WebClientOptions extends HttpClientOptions {
   public WebClientOptions setFollowRedirects(boolean followRedirects) {
     this.followRedirects = followRedirects;
     return this;
-  }
-
-  /**
-   * Configure the client to cache {@code Cache-Control: public} responses.
-   *
-   * @return a reference to this, so the API can be used fluently
-   */
-  public WebClientOptions enableCaching() {
-    this.enablePublicCaching = true;
-    return this;
-  }
-
-  /**
-   * Configure the client to cache publicly, and optionally privately, cacheable responses.
-   *
-   * @param includePrivate true to enable caching private responses
-   * @return a reference to this, so the API can be used fluently
-   */
-  public WebClientOptions enableCaching(boolean includePrivate) {
-    this.enablePublicCaching = true;
-    this.enablePrivateCaching = includePrivate;
-    return this;
-  }
-
-  /**
-   * Configure the client to cache {@code Cache-Control: private} responses.
-   *
-   * @return a reference to this, so the API can be used fluently
-   */
-  public WebClientOptions enablePrivateCaching() {
-    this.enablePrivateCaching = true;
-    return this;
-  }
-
-  /**
-   * Configure the client cache behavior for {@code Cache-Control: public} responses.
-   *
-   * @param enabled true to enable caching responses
-   * @return a reference to this, so the API can be used fluently
-   */
-  public WebClientOptions setEnablePublicCaching(boolean enabled) {
-    this.enablePublicCaching = enabled;
-    return this;
-  }
-
-  /**
-   * Configure the client cache behavior for {@code Cache-Control: private} responses.
-   *
-   * @param enabled true to enable caching responses
-   * @return a reference to this, so the API can be used fluently
-   */
-  public WebClientOptions setEnablePrivateCaching(boolean enabled) {
-    this.enablePrivateCaching = enabled;
-    return this;
-  }
-
-  /**
-   * @return true if the client will cache {@code Cache-Control: public} responses, false otherwise
-   */
-  public boolean isPublicCachingEnabled() {
-    return enablePublicCaching;
-  }
-
-  /**
-   * @return true if the client will cache {@code Cache-Control: private} responses, false otherwise
-   */
-  public boolean isPrivateCachingEnabled() {
-    return enablePrivateCaching;
-  }
-
-  /**
-   * @return true if the client will cache {@code Cache-Control: public} or {@code Cache-Control: private} responses, false otherwise
-   */
-  public boolean isCachingEnabled() {
-    return isPublicCachingEnabled() || isPrivateCachingEnabled();
-  }
-
-  /**
-   * Configure the {@link CacheAdapter} used to store and retrieve cached responses.
-   *
-   * @param adapter the adapter to use
-   * @return a reference to this, so the API can be used fluently
-   */
-  public WebClientOptions setCacheAdapter(CacheAdapter adapter) {
-    this.cacheAdapter = adapter;
-    return this;
-  }
-
-  /**
-   * @return the configured adapter
-   */
-  public CacheAdapter getCacheAdapter() {
-    return cacheAdapter;
   }
 
   @Override
