@@ -57,7 +57,7 @@ public interface CachingWebClient extends WebClient {
   /**
    * Create a cache aware web client using the provided {@link CacheStore}.
    *
-   * @param vertx        the vertx instance
+   * @param vertx      the vertx instance
    * @param cacheStore the cache adapter
    * @return the created web client
    */
@@ -69,7 +69,7 @@ public interface CachingWebClient extends WebClient {
   /**
    * Create a cache aware web client using the provided {@link WebClient} and {@link CacheStore}.
    *
-   * @param webClient    the web client instance
+   * @param webClient  the web client instance
    * @param cacheStore the cache adapter
    * @return the created web client
    */
@@ -81,9 +81,9 @@ public interface CachingWebClient extends WebClient {
   /**
    * Create a cache aware web client using the provided {@link CacheStore} and options.
    *
-   * @param vertx        the vertx instance
+   * @param vertx      the vertx instance
    * @param cacheStore the cache adapter
-   * @param options      the Web Client Cache options
+   * @param options    the Web Client Cache options
    * @return the created web client
    */
   static CachingWebClient create(Vertx vertx, CacheStore cacheStore, CachingWebClientOptions options) {
@@ -94,9 +94,9 @@ public interface CachingWebClient extends WebClient {
   /**
    * Create a cache aware web client using the provided {@link WebClient} and {@link CacheStore}.
    *
-   * @param webClient    the web client instance
+   * @param webClient  the web client instance
    * @param cacheStore the cache adapter
-   * @param options      the Web Client Cache options
+   * @param options    the Web Client Cache options
    * @return the created web client
    */
   static CachingWebClient create(WebClient webClient, CacheStore cacheStore, CachingWebClientOptions options) {
@@ -107,7 +107,7 @@ public interface CachingWebClient extends WebClient {
   /**
    * Wrap a {@link HttpClient} with a web client and default options.
    *
-   * @param httpClient   the http client to wrap
+   * @param httpClient the http client to wrap
    * @param cacheStore the cache adapter
    * @return the created web client
    */
@@ -119,9 +119,9 @@ public interface CachingWebClient extends WebClient {
   /**
    * Wrap a {@link HttpClient} with a web client and custom options.
    *
-   * @param httpClient   the http client to wrap
+   * @param httpClient the http client to wrap
    * @param cacheStore the cache adapter
-   * @param options      the Web Client Cache options
+   * @param options    the Web Client Cache options
    * @return the created web client
    */
   static CachingWebClient wrap(HttpClient httpClient, CacheStore cacheStore, CachingWebClientOptions options) {
