@@ -18,19 +18,19 @@ package io.vertx.ext.web.client;
 /**
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */
-public class WebClientCacheOptions extends WebClientOptions {
+public class CachingWebClientOptions extends WebClientOptions {
 
   private boolean enablePublicCaching = false;
   private boolean enablePrivateCaching = false;
 
-  public WebClientCacheOptions() {
+  public CachingWebClientOptions() {
   }
 
-  public WebClientCacheOptions(WebClientOptions other) {
+  public CachingWebClientOptions(WebClientOptions other) {
     super(other);
   }
 
-  void init(WebClientCacheOptions other) {
+  void init(CachingWebClientOptions other) {
     super.init(other);
     this.enablePublicCaching = other.enablePublicCaching;
     this.enablePrivateCaching = other.enablePrivateCaching;
@@ -41,7 +41,7 @@ public class WebClientCacheOptions extends WebClientOptions {
    *
    * @return a reference to this, so the API can be used fluently
    */
-  public WebClientCacheOptions enableCaching() {
+  public CachingWebClientOptions enableCaching() {
     this.enablePublicCaching = true;
     return this;
   }
@@ -52,7 +52,7 @@ public class WebClientCacheOptions extends WebClientOptions {
    * @param includePrivate true to enable caching private responses
    * @return a reference to this, so the API can be used fluently
    */
-  public WebClientCacheOptions enableCaching(boolean includePrivate) {
+  public CachingWebClientOptions enableCaching(boolean includePrivate) {
     this.enablePublicCaching = true;
     this.enablePrivateCaching = includePrivate;
     return this;
@@ -63,7 +63,7 @@ public class WebClientCacheOptions extends WebClientOptions {
    *
    * @return a reference to this, so the API can be used fluently
    */
-  public WebClientCacheOptions enablePrivateCaching() {
+  public CachingWebClientOptions enablePrivateCaching() {
     this.enablePrivateCaching = true;
     return this;
   }
@@ -74,7 +74,7 @@ public class WebClientCacheOptions extends WebClientOptions {
    * @param enabled true to enable caching responses
    * @return a reference to this, so the API can be used fluently
    */
-  public WebClientCacheOptions setEnablePublicCaching(boolean enabled) {
+  public CachingWebClientOptions setEnablePublicCaching(boolean enabled) {
     this.enablePublicCaching = enabled;
     return this;
   }
@@ -85,7 +85,7 @@ public class WebClientCacheOptions extends WebClientOptions {
    * @param enabled true to enable caching responses
    * @return a reference to this, so the API can be used fluently
    */
-  public WebClientCacheOptions setEnablePrivateCaching(boolean enabled) {
+  public CachingWebClientOptions setEnablePrivateCaching(boolean enabled) {
     this.enablePrivateCaching = enabled;
     return this;
   }

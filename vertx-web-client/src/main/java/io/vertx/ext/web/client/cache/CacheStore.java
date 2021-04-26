@@ -26,7 +26,7 @@ import io.vertx.ext.web.client.impl.cache.CachedHttpResponse;
  *
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */
-public interface CacheAdapter {
+public interface CacheStore {
 
   Future<CachedHttpResponse> get(CacheKey key);
 

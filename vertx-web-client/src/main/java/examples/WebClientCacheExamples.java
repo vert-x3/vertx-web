@@ -2,18 +2,18 @@ package examples;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.ext.web.client.WebClientCache;
-import io.vertx.ext.web.client.WebClientCacheOptions;
-import io.vertx.ext.web.client.cache.CacheAdapter;
-import io.vertx.ext.web.client.impl.cache.NoOpCacheAdapter;
+import io.vertx.ext.web.client.CachingWebClient;
+import io.vertx.ext.web.client.CachingWebClientOptions;
+import io.vertx.ext.web.client.cache.CacheStore;
+import io.vertx.ext.web.client.impl.cache.NoOpCacheStore;
 
 public class WebClientCacheExamples {
 
   public void simpleGetWithCaching(Vertx vertx) {
-    CacheAdapter adapter = new NoOpCacheAdapter();
-    WebClientCacheOptions options = new WebClientCacheOptions()
+    CacheStore adapter = new NoOpCacheStore();
+    CachingWebClientOptions options = new CachingWebClientOptions()
       .enableCaching();
-    WebClientCache client = WebClientCache.create(vertx, adapter, options);
+    CachingWebClient client = CachingWebClient.create(vertx, adapter, options);
 
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")

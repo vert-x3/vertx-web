@@ -17,6 +17,7 @@ package io.vertx.ext.web.client.impl.cache;
 
 import io.vertx.core.MultiMap;
 import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.cache.CacheStore;
 import io.vertx.ext.web.client.impl.HttpRequestImpl;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -26,7 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * A key for a {@link io.vertx.ext.web.client.cache.CacheAdapter} based on a {@link HttpRequest}.
+ * A key for a {@link CacheStore} based on a {@link HttpRequest}.
  *
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */

@@ -19,6 +19,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.cache.CacheStore;
 import io.vertx.ext.web.client.impl.HttpResponseImpl;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -28,7 +29,7 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * A serializable object to be stored by a {@link io.vertx.ext.web.client.cache.CacheAdapter}.
+ * A serializable object to be stored by a {@link CacheStore}.
  *
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */

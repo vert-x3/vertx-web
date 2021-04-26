@@ -21,28 +21,27 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.HttpRequest;
-import io.vertx.ext.web.client.WebClientCache;
-import io.vertx.ext.web.client.WebClientCacheOptions;
-import io.vertx.ext.web.client.cache.CacheAdapter;
-import io.vertx.ext.web.codec.impl.BodyCodecImpl;
+import io.vertx.ext.web.client.CachingWebClient;
+import io.vertx.ext.web.client.CachingWebClientOptions;
+import io.vertx.ext.web.client.impl.cache.CacheManager;
 
 /**
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */
-public class WebClientCacheAware extends WebClientBase implements WebClientCache {
+public class CachingWebClientImpl extends WebClientBase implements CachingWebClient {
 
-  private final CacheAdapter cacheAdapter;
-  private final WebClientCacheOptions options;
+  private final CacheManager cacheManager;
+  private final CachingWebClientOptions options;
 
-  public WebClientCacheAware(HttpClient client, CacheAdapter cacheAdapter, WebClientCacheOptions options) {
+  public CachingWebClientImpl(HttpClient client, CacheManager cacheManager, CachingWebClientOptions options) {
     super(client, options);
-    this.cacheAdapter = cacheAdapter;
+    this.cacheManager = cacheManager;
     this.options = options;
   }
 
-  public WebClientCacheAware(WebClientBase webClient, CacheAdapter cacheAdapter, WebClientCacheOptions options) {
+  public CachingWebClientImpl(WebClientBase webClient, CacheManager cacheManager, CachingWebClientOptions options) {
     super(webClient);
-    this.cacheAdapter = cacheAdapter;
+    this.cacheManager = cacheManager;
     this.options = options;
   }
 
@@ -53,8 +52,8 @@ public class WebClientCacheAware extends WebClientBase implements WebClientCache
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, String requestURI) {
-    return new CachedHttpRequestImpl(this, method, serverAddress, options.isSsl(),
-      options.getDefaultPort(), options.getDefaultHost(), requestURI, BodyCodecImpl.BUFFER, options, cacheAdapter);
+    HttpRequest<Buffer> delegate = super.request(method, serverAddress, requestURI);
+    return CachedHttpRequestImpl.wrap(delegate, cacheManager, options);
   }
 
   @Override
@@ -64,10 +63,8 @@ public class WebClientCacheAware extends WebClientBase implements WebClientCache
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, RequestOptions requestOptions) {
-    HttpRequest<Buffer> request = new CachedHttpRequestImpl(this, method, serverAddress, requestOptions.isSsl(),
-      requestOptions.getPort(), requestOptions.getHost(), requestOptions.getURI(), BodyCodecImpl.BUFFER, options, cacheAdapter);
-
-    return requestOptions.getHeaders() == null ? request : request.putHeaders(requestOptions.getHeaders());
+    HttpRequest<Buffer> delegate = super.request(method, serverAddress, requestOptions);
+    return CachedHttpRequestImpl.wrap(delegate, cacheManager, options);
   }
 
   @Override
@@ -77,8 +74,8 @@ public class WebClientCacheAware extends WebClientBase implements WebClientCache
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, String host, String requestURI) {
-    return new CachedHttpRequestImpl(this, method, serverAddress, options.isSsl(),
-      options.getDefaultPort(), host, requestURI, BodyCodecImpl.BUFFER, options, cacheAdapter);
+    HttpRequest<Buffer> delegate = super.request(method, serverAddress, host, requestURI);
+    return CachedHttpRequestImpl.wrap(delegate, cacheManager, options);
   }
 
   @Override
@@ -88,8 +85,8 @@ public class WebClientCacheAware extends WebClientBase implements WebClientCache
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, int port, String host, String requestURI) {
-    return new CachedHttpRequestImpl(this, method, serverAddress, options.isSsl(),
-      port, host, requestURI, BodyCodecImpl.BUFFER, options, cacheAdapter);
+    HttpRequest<Buffer> delegate = super.request(method, serverAddress, port, host, requestURI);
+    return CachedHttpRequestImpl.wrap(delegate, cacheManager, options);
   }
 
   @Override
@@ -99,7 +96,7 @@ public class WebClientCacheAware extends WebClientBase implements WebClientCache
 
   @Override
   public HttpRequest<Buffer> requestAbs(HttpMethod method, SocketAddress serverAddress, String surl) {
-    HttpRequest<Buffer> base = super.requestAbs(method, serverAddress, surl);
-    return CachedHttpRequestImpl.wrap(base, cacheAdapter);
+    HttpRequest<Buffer> delegate = super.requestAbs(method, serverAddress, surl);
+    return CachedHttpRequestImpl.wrap(delegate, cacheManager, options);
   }
 }

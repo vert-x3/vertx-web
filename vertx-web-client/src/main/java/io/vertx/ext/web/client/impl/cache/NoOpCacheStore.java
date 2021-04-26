@@ -16,14 +16,14 @@
 package io.vertx.ext.web.client.impl.cache;
 
 import io.vertx.core.Future;
-import io.vertx.ext.web.client.cache.CacheAdapter;
+import io.vertx.ext.web.client.cache.CacheStore;
 
 /**
- * A {@link CacheAdapter} implementation that does nothing.
+ * A {@link CacheStore} implementation that does nothing.
  *
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */
-public final class NoOpCacheAdapter implements CacheAdapter {
+public final class NoOpCacheStore implements CacheStore {
 
   @Override
   public Future<CachedHttpResponse> get(CacheKey key) {

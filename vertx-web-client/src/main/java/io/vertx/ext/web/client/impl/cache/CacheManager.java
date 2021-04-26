@@ -21,8 +21,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.client.WebClientCacheOptions;
-import io.vertx.ext.web.client.cache.CacheAdapter;
+import io.vertx.ext.web.client.CachingWebClientOptions;
+import io.vertx.ext.web.client.cache.CacheStore;
 import io.vertx.ext.web.client.impl.HttpRequestImpl;
 import java.util.Date;
 
@@ -33,16 +33,16 @@ import java.util.Date;
  */
 public class CacheManager {
 
-  private final CacheAdapter cacheAdapter;
-  private final WebClientCacheOptions options;
+  private final CacheStore cacheStore;
+  private final CachingWebClientOptions options;
 
-  public CacheManager(CacheAdapter cacheAdapter, WebClientCacheOptions options) {
-    this.cacheAdapter = cacheAdapter;
+  public CacheManager(CacheStore cacheStore, CachingWebClientOptions options) {
+    this.cacheStore = cacheStore;
     this.options = options;
   }
 
   public Future<HttpResponse<Buffer>> processRequest(HttpRequest<?> request) {
-    return cacheAdapter
+    return cacheStore
       .get(new CacheKey(request))
       .compose(resp -> handleCacheResult((HttpRequestImpl<?>) request, resp));
   }
@@ -91,7 +91,7 @@ public class CacheManager {
 
     if (cacheControl.isCacheable()) {
       CacheKey key = new CacheKey(request);
-      return cacheAdapter.set(key, CachedHttpResponse.create(response)).map(response);
+      return cacheStore.set(key, CachedHttpResponse.create(response)).map(response);
     } else {
       return Future.succeededFuture();
     }
