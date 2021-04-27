@@ -48,8 +48,9 @@ public class CachedHttpResponse implements Serializable {
   transient private final List<String> cookies;
   transient private final List<String> redirects;
   transient private CacheControl cacheControl;
+  transient private Vary vary;
 
-  static CachedHttpResponse create(HttpResponse<?> response) {
+  static CachedHttpResponse wrap(HttpResponse<?> response) {
     return new CachedHttpResponse(
       response.version().name(),
       response.statusCode(),
@@ -70,11 +71,12 @@ public class CachedHttpResponse implements Serializable {
     this.statusMessage = statusMessage;
     this.body = body;
     this.headers = headers;
+    this.timestamp = Instant.now(); // TODO: should we look at the Date or Age header instead?
     this.trailers = trailers;
     this.cookies = cookies;
     this.redirects = redirects;
     this.cacheControl = CacheControl.parse(headers);
-    this.timestamp = Instant.now(); // TODO: should we look at the Date or Age header instead?
+    this.vary = new Vary(headers);
   }
 
   public boolean isFresh() {
@@ -85,11 +87,22 @@ public class CachedHttpResponse implements Serializable {
     return Duration.between(timestamp, Instant.now()).getSeconds();
   }
 
+  public MultiMap headers() {
+    return headers;
+  }
+
   public CacheControl getCacheControl() {
     if (cacheControl == null) {
       this.cacheControl = CacheControl.parse(headers);
     }
     return cacheControl;
+  }
+
+  public Vary getVary() {
+    if (vary == null) {
+      this.vary = new Vary(headers);
+    }
+    return vary;
   }
 
   public HttpResponse<Buffer> rehydrate() {
@@ -108,5 +121,6 @@ public class CachedHttpResponse implements Serializable {
   private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
     ois.defaultReadObject();
     this.cacheControl = CacheControl.parse(headers);
+    this.vary = new Vary(headers);
   }
 }

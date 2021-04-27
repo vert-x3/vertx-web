@@ -44,18 +44,18 @@ public class CacheManager {
   public Future<HttpResponse<Buffer>> processRequest(HttpRequest<?> request) {
     return cacheStore
       .get(new CacheKey(request))
-      .compose(resp -> handleCacheResult((HttpRequestImpl<?>) request, resp));
+      .compose(resp -> respondFromCache((HttpRequestImpl<?>) request, resp));
   }
 
   public Future<HttpResponse<Buffer>> processResponse(HttpRequest<?> request, HttpResponse<Buffer> response) {
     if (options.cachedStatusCodes().contains(response.statusCode())) {
-      return cacheResponse(request, response);
+      return cacheResponse(request, response).map(response);
     } else {
-      return Future.succeededFuture(); // Response is not cacheable, do nothing
+      return Future.succeededFuture(response); // Response is not cacheable, do nothing
     }
   }
 
-  private Future<HttpResponse<Buffer>> handleCacheResult(HttpRequestImpl<?> request, CachedHttpResponse response) {
+  private Future<HttpResponse<Buffer>> respondFromCache(HttpRequestImpl<?> request, CachedHttpResponse response) {
     if (response == null) {
       return Future.failedFuture("http cache miss");
     }
@@ -78,24 +78,28 @@ public class CacheManager {
   }
 
   private Future<HttpResponse<Buffer>> handleVaryingCache(HttpRequestImpl<?> request, CachedHttpResponse response) {
-    // TODO: Vary based cache, but for now we don't so fail as if a cache miss
-    return Future.failedFuture("Vary is not yet supported");
+    if (response.getVary().matchesRequest(request)) {
+      return Future.succeededFuture(response.rehydrate());
+    } else {
+      return Future.failedFuture("matching variation not found");
+    }
   }
 
-  private Future<HttpResponse<Buffer>> cacheResponse(HttpRequest<?> request, HttpResponse<Buffer> response) {
+  private Future<Void> cacheResponse(HttpRequest<?> request, HttpResponse<Buffer> response) {
     CacheControl cacheControl = CacheControl.parse(response.headers());
 
     if (!cacheControl.isCacheable()) {
-      return Future.succeededFuture(response);
+      return Future.succeededFuture();
     }
 
     if (cacheControl.isPrivate() && !options.isPrivateCachingEnabled()) {
       // Configuration says don't cache this response
-      return Future.succeededFuture(response);
+      return Future.succeededFuture();
     }
 
     CacheKey key = new CacheKey(request);
+    CachedHttpResponse cachedResponse = CachedHttpResponse.wrap(response);
 
-    return cacheStore.set(key, CachedHttpResponse.create(response)).map(response);
+    return cacheStore.set(key, cachedResponse).mapEmpty();
   }
 }
