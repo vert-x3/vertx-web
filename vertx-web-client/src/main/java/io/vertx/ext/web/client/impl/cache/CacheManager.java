@@ -48,14 +48,10 @@ public class CacheManager {
   }
 
   public Future<HttpResponse<Buffer>> processResponse(HttpRequest<?> request, HttpResponse<Buffer> response) {
-    switch (response.statusCode()) {
-      case 200:
-      case 301:
-      case 404:
-        return cacheResponse(request, response);
-      default:
-        // Response is not cacheable, do nothing
-        return Future.succeededFuture();
+    if (options.cachedStatusCodes().contains(response.statusCode())) {
+      return cacheResponse(request, response);
+    } else {
+      return Future.succeededFuture(); // Response is not cacheable, do nothing
     }
   }
 
@@ -82,18 +78,24 @@ public class CacheManager {
   }
 
   private Future<HttpResponse<Buffer>> handleVaryingCache(HttpRequestImpl<?> request, CachedHttpResponse response) {
-    // TODO: Vary based cache, but for now we don't so fail
+    // TODO: Vary based cache, but for now we don't so fail as if a cache miss
     return Future.failedFuture("Vary is not yet supported");
   }
 
   private Future<HttpResponse<Buffer>> cacheResponse(HttpRequest<?> request, HttpResponse<Buffer> response) {
     CacheControl cacheControl = CacheControl.parse(response.headers());
 
-    if (cacheControl.isCacheable()) {
-      CacheKey key = new CacheKey(request);
-      return cacheStore.set(key, CachedHttpResponse.create(response)).map(response);
-    } else {
-      return Future.succeededFuture();
+    if (!cacheControl.isCacheable()) {
+      return Future.succeededFuture(response);
     }
+
+    if (cacheControl.isPrivate() && !options.isPrivateCachingEnabled()) {
+      // Configuration says don't cache this response
+      return Future.succeededFuture(response);
+    }
+
+    CacheKey key = new CacheKey(request);
+
+    return cacheStore.set(key, CachedHttpResponse.create(response)).map(response);
   }
 }

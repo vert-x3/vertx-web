@@ -15,13 +15,21 @@
  */
 package io.vertx.ext.web.client;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */
 public class CachingWebClientOptions extends WebClientOptions {
 
+  public static final Set<Integer> DEFAULT_CACHED_STATUS_CODES = buildDefaultStatusCodes();
+
   private boolean enablePublicCaching = false;
   private boolean enablePrivateCaching = false;
+  private Set<Integer> cachedStatusCodes = DEFAULT_CACHED_STATUS_CODES;
 
   public CachingWebClientOptions() {
   }
@@ -34,6 +42,7 @@ public class CachingWebClientOptions extends WebClientOptions {
     super.init(other);
     this.enablePublicCaching = other.enablePublicCaching;
     this.enablePrivateCaching = other.enablePrivateCaching;
+    this.cachedStatusCodes = other.cachedStatusCodes;
   }
 
   /**
@@ -91,6 +100,46 @@ public class CachingWebClientOptions extends WebClientOptions {
   }
 
   /**
+   * Configure the status codes that can be cached.
+   *
+   * @param codes the cacheable status code numbers
+   * @return a reference to this, so the API can be used fluently
+   */
+  public CachingWebClientOptions setCachedStatusCodes(Collection<Integer> codes) {
+    this.cachedStatusCodes = new HashSet<>(codes);
+    return this;
+  }
+
+  /**
+   * Add an additional status code that is cacheable.
+   *
+   * @param code the additional code number
+   * @return a reference to this, so the API can be used fluently
+   */
+  public CachingWebClientOptions addCachedStatusCode(int code) {
+    this.cachedStatusCodes.add(code);
+    return this;
+  }
+
+  /**
+   * Remove a status code that is cacheable.
+   *
+   * @param code the code number to remove
+   * @return a reference to this, so the API can be used fluently
+   */
+  public CachingWebClientOptions removeCachedStatusCode(int code) {
+    this.cachedStatusCodes.remove(code);
+    return this;
+  }
+
+  /**
+   * @return the set of status codes to consider cacheable.
+   */
+  public Set<Integer> cachedStatusCodes() {
+    return cachedStatusCodes;
+  }
+
+  /**
    * @return true if the client will cache {@code Cache-Control: public} responses, false otherwise
    */
   public boolean isPublicCachingEnabled() {
@@ -109,5 +158,11 @@ public class CachingWebClientOptions extends WebClientOptions {
    */
   public boolean isCachingEnabled() {
     return isPublicCachingEnabled() || isPrivateCachingEnabled();
+  }
+
+  private static Set<Integer> buildDefaultStatusCodes() {
+    Set<Integer> codes = new HashSet<>(3);
+    Collections.addAll(codes, 200, 301, 404);
+    return codes;
   }
 }

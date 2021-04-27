@@ -42,6 +42,7 @@ public class CacheControl {
   private final Date date;
   private final String etag;
   private final String vary;
+  private final long maxAge;
 
   static CacheControl parse(MultiMap headers) {
     return new CacheControl(headers);
@@ -50,8 +51,10 @@ public class CacheControl {
   private CacheControl(MultiMap headers) {
     this.directives = new HashSet<>();
     this.timeDirectives = new HashMap<>();
+    parseAllCacheControl(headers);
     this.etag = headers.get(HttpHeaders.ETAG);
     this.vary = headers.get(HttpHeaders.VARY);
+    this.maxAge = computeMaxAge();
 
     if (headers.contains(HttpHeaders.DATE)) {
       this.date = DateFormatter.parseHttpDate(headers.get(HttpHeaders.DATE));
@@ -64,8 +67,6 @@ public class CacheControl {
     } else {
       this.expires = null;
     }
-
-    parseAllCacheControl(headers);
   }
 
   public Set<String> directives() {
@@ -81,15 +82,7 @@ public class CacheControl {
   }
 
   public long maxAge() {
-    if (!isPrivate() && timeDirectives.containsKey(SHARED_MAX_AGE)) {
-      return timeDirectives.get(SHARED_MAX_AGE);
-    } else if (timeDirectives.containsKey(MAX_AGE)) {
-      return timeDirectives.get(MAX_AGE);
-    } else if (expires != null) {
-      return Duration.between(date.toInstant(), expires.toInstant()).getSeconds();
-    } else {
-      return 0L;
-    }
+    return maxAge;
   }
 
   public Set<CharSequence> variations() {
@@ -105,26 +98,23 @@ public class CacheControl {
   }
 
   public boolean isCacheable() {
-    if (directives.contains("no-store")) {
-      return false;
-    }
-    if (directives.contains("no-cache")) {
+    if (directives.contains("no-store") || directives.contains("no-cache")) {
       return false;
     }
     if ("*".equals(vary)) {
-      return false;
-    }
-    if (timeDirectives.getOrDefault(SHARED_MAX_AGE, 0L) <= 0) {
-      return false;
-    }
-    if (timeDirectives.getOrDefault(MAX_AGE, 0L) <= 0) {
       return false;
     }
     if (expires != null && !expires.after(new Date())) {
       return false;
     }
 
-    return true;
+    return maxAge > 0;
+  }
+
+  public boolean isPublic() {
+    // Technically, you cannot say `Cache-Control: public, private` but on the chance that we do,
+    // default to private which is considered safer and more strict.
+    return directives.contains("public") && !isPrivate();
   }
 
   public boolean isPrivate() {
@@ -133,6 +123,18 @@ public class CacheControl {
 
   public boolean isVarying() {
     return !variations().isEmpty();
+  }
+
+  private long computeMaxAge() {
+    if (!isPrivate() && timeDirectives.containsKey(SHARED_MAX_AGE)) {
+      return timeDirectives.get(SHARED_MAX_AGE);
+    } else if (timeDirectives.containsKey(MAX_AGE)) {
+      return timeDirectives.get(MAX_AGE);
+    } else if (expires != null) {
+      return Duration.between(date.toInstant(), expires.toInstant()).getSeconds();
+    } else {
+      return 0L;
+    }
   }
 
   private void parseAllCacheControl(MultiMap headers) {
