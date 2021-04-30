@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
@@ -164,6 +165,46 @@ public class InterceptorTest extends HttpTestBase {
         "DISPATCH_RESPONSE_1", "DISPATCH_RESPONSE_2"), events);
       complete();
     }));
+    await();
+  }
+
+  @Test
+  public void testInterceptorsOrderFailOutsideInterceptor() throws Exception {
+    List<String> events = Collections.synchronizedList(new ArrayList<>());
+
+    client.addInterceptor(context -> {
+      events.add(context.phase().name() + "_1");
+      context.next();
+    });
+
+    HttpContext[] httpCtx = {null};
+    CountDownLatch failLatch = new CountDownLatch(1);
+    client.addInterceptor(context -> {
+      events.add(context.phase().name() + "_2");
+      if (context.phase() == ClientPhase.CREATE_REQUEST) {
+        httpCtx[0] = context;
+        failLatch.countDown();
+      } else {
+        context.next();
+      }
+    });
+
+    client.addInterceptor(context -> {
+      events.add(context.phase().name() + "_3");
+      context.next();
+    });
+
+    HttpRequest<Buffer> builder = client.get("/somepath");
+    builder.send(onFailure(err -> {
+      assertEquals(Arrays.asList(
+        "PREPARE_REQUEST_1", "PREPARE_REQUEST_2", "PREPARE_REQUEST_3",
+        "CREATE_REQUEST_1", "CREATE_REQUEST_2",
+        "FAILURE_1", "FAILURE_2", "FAILURE_3"), events);
+      complete();
+    }));
+
+    awaitLatch(failLatch);
+    httpCtx[0].fail(new Exception("Something happens"));
     await();
   }
 
