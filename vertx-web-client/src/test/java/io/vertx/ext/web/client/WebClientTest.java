@@ -952,6 +952,8 @@ public class WebClientTest extends WebClientTestBase {
       public long getReadLength() { throw new UnsupportedOperationException(); }
       public AsyncFile setWritePos(long l) { throw new UnsupportedOperationException(); }
       public AsyncFile setReadBufferSize(int i) { throw new UnsupportedOperationException(); }
+      public long sizeBlocking() { return 0; }
+      public Future<Long> size() { return Future.succeededFuture(0L); }
       public AsyncFile exceptionHandler(Handler<Throwable> handler) {
         return this;
       }
