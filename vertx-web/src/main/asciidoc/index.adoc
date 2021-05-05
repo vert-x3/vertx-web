@@ -1082,6 +1082,8 @@ As the session is stored in the Cookie, this means sessions survive server crash
 A second known implementation is the Redis session store. This store works just like the normal cluster store, however
 just like it's name suggests, it uses a redis backend to keep the session data centralized.
 
+Also, there is the Infinispan session store (details below).
+
 These stores are available with the coordinates:
 
 * groupId: `io.vertx`
