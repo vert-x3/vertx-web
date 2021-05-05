@@ -6,8 +6,6 @@ TIP: This is the reference documentation for Vert.x Web GraphQL.
 It is highly recommended to get familiar with the GraphQL-Java API first.
 You may start by reading the https://www.graphql-java.com/documentation/${graphql.java.doc.version}/[GraphQL-Java documentation].
 
-WARNING: This module has _Tech Preview_ status, this means the API can change between versions.
-
 == Getting started
 
 To use this module, add the following to the _dependencies_ section of your Maven POM file:
