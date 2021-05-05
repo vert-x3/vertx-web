@@ -21,7 +21,7 @@ paths:
 components:
   schemas:
     Simple:
-      # this is inside a loaded jar, from j
+      # this is inside a loaded jar
       $ref: "my_fancy_resources/refs/Simple.yaml"
   responses:
     DefaultError:

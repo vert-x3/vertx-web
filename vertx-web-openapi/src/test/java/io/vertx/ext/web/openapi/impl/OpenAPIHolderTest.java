@@ -475,7 +475,7 @@ public class OpenAPIHolderTest {
           testContext.verify(() ->
             assertThat(container)
               .extracting(JsonPointer.from("/info/title"))
-              .isEqualTo("Local inner ref spec")
+              .isEqualTo("Local relative refs")
           );
           testContext.completeNow();
         }));
