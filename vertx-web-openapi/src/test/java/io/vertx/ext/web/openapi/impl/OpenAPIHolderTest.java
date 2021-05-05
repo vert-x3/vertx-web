@@ -467,6 +467,21 @@ public class OpenAPIHolderTest {
       }
 
       @Test
+      public void localRefsWithRootOpenapiInClasspathAndSchemasInJar(Vertx vertx, VertxTestContext testContext) {
+        OpenAPIHolderImpl parser = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(),
+          new OpenAPILoaderOptions());
+
+        parser.loadOpenAPI("local_refs_in_jar.yaml").onComplete(testContext.succeeding(container -> {
+          testContext.verify(() ->
+            assertThat(container)
+              .extracting(JsonPointer.from("/info/title"))
+              .isEqualTo("Local inner ref spec")
+          );
+          testContext.completeNow();
+        }));
+      }
+
+      @Test
       public void localRefs(Vertx vertx, VertxTestContext testContext) {
         OpenAPIHolderImpl parser = new OpenAPIHolderImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(),
           new OpenAPILoaderOptions());
