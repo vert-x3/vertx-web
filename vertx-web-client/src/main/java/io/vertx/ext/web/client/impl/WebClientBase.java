@@ -15,15 +15,8 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
@@ -36,6 +29,11 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.impl.predicate.PredicateInterceptor;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -233,7 +231,7 @@ public class WebClientBase implements WebClientInternal {
     try {
       url = new URL(surl);
     } catch (MalformedURLException e) {
-      throw new VertxException("Invalid url: " + surl);
+      throw new VertxException("Invalid url: " + surl, e);
     }
     boolean ssl = false;
     int port = url.getPort();
