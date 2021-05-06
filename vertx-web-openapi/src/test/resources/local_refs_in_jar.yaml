@@ -1,0 +1,32 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Local relative refs
+paths:
+  /simple:
+    post:
+      summary: Simple
+      operationId: simple
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/Simple"
+      responses:
+        201:
+          description: Created
+        default:
+          $ref: "#/components/responses/DefaultError"
+
+components:
+  schemas:
+    Simple:
+      # this is inside a loaded jar
+      $ref: "my_fancy_resources/refs/Simple.yaml"
+  responses:
+    DefaultError:
+      description: unexpected error
+      content:
+        text/plain:
+          schema:
+            type: string

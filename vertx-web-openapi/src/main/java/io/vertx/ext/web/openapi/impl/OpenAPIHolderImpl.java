@@ -351,12 +351,18 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   }
 
   private URI resolveRefResolutionURIWithoutFragment(URI ref, URI scope) {
-    if (ref.isAbsolute()) return URIUtils.removeFragment(ref);
-    if (ref.getPath() != null && !ref.getPath().isEmpty() && !URIUtils.removeFragment(ref).equals(scope)) {
+    ref = URIUtils.removeFragment(ref);
+    if (ref.isAbsolute()) return ref;
+    if (ref.getPath() != null && !ref.getPath().isEmpty() && !ref.equals(scope)) {
       if (ref.toString().startsWith(initialScopeDirectory))
-        return URIUtils.removeFragment(ref);
-      else
-        return URIUtils.removeFragment(URIUtils.resolvePath(scope, ref.getPath()));
+        return ref;
+      else {
+        URI fromClasspath = getResourceAbsoluteURIFromClasspath(ref);
+        if (fromClasspath != null) {
+          return fromClasspath;
+        }
+        return URIUtils.resolvePath(scope, ref.getPath());
+      }
     }
     return scope;
   }
