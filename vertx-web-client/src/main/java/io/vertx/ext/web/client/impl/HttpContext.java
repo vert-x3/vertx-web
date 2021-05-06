@@ -296,8 +296,8 @@ public class HttpContext<T> {
   private void fire(ClientPhase phase) {
     Objects.requireNonNull(phase);
     this.phase = phase;
+    this.interceptorIdx = 0;
     if (invoking) {
-      this.interceptorIdx = 0;
       this.invokeNext = true;
     } else {
       next();
