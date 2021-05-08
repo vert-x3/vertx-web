@@ -5,6 +5,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.serviceproxy.ServiceException;
 
 public class FailureTestServiceImpl implements FailureTestService {
   Vertx vertx;
@@ -23,5 +24,11 @@ public class FailureTestServiceImpl implements FailureTestService {
   public void testException(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
     JsonObject body = context.getParams().getJsonObject("body");
     throw new IllegalArgumentException();
+  }
+
+  @Override
+  public void testServiceException(
+      ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+    throw new ServiceException(409, "Entity already exists");
   }
 }

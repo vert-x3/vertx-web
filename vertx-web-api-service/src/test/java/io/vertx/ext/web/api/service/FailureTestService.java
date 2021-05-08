@@ -5,12 +5,14 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 
 @WebApiServiceGen
-public
-interface FailureTestService {
+public interface FailureTestService {
 
   void testFailure(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 
   void testException(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+
+  void testServiceException(
+      ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 
   static FailureTestService create(Vertx vertx) {
     return new FailureTestServiceImpl(vertx);
