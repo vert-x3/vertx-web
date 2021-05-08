@@ -172,8 +172,8 @@ public class WebExamples {
         // when handling requests to /flights/AMS-SFO will set:
         String from = ctx.pathParam("from"); // AMS
         String to = ctx.pathParam("to"); // SFO
-        // remember that this will not work as expected is the parameter
-        // naming pattern in use is the "extended" one. That is because in
+        // remember that this will not work as expected when the parameter
+        // naming pattern in use is not the "extended" one. That is because in
         // that case "-" is considered to be part of the variable name and
         // not a separator.
       });
