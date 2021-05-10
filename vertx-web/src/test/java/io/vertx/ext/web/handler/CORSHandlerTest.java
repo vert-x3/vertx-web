@@ -495,4 +495,12 @@ public class CORSHandlerTest extends WebTestBase {
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "https://www.vertx.io"), resp -> checkHeaders(resp, "https://www.vertx.io", null, null, null, "true", null), 200, "OK", null);
   }
+
+  @Test
+  public void testAcceptNullOrigin() throws Exception {
+    router.route().handler(CorsHandler.create().addOrigin("*"));
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "null"), resp -> checkHeaders(resp, "*", null, null, null), 200, "OK", null);
+  }
+
 }

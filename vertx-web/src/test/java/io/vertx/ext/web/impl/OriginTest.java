@@ -44,4 +44,11 @@ public class OriginTest {
       assertFalse(Origin.isValid(origin));
     }
   }
+
+  @Test
+  public void testNullOrigin() {
+    Origin.parse("null");
+    assertTrue(Origin.isValid("null"));
+  }
+
 }
