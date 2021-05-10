@@ -34,6 +34,7 @@ public final class Origin {
   private final String host;
   private final int port;
   private final String resource;
+  private final boolean isNull;
 
   // internal
   private final String base;
@@ -41,6 +42,21 @@ public final class Origin {
   private final String optional;
 
   private Origin(String protocol, String host, String port, String resource) {
+
+    if (protocol == null && host == null && port == null && resource == null) {
+      this.protocol = null;
+      this.host = null;
+      this.port = -1;
+      this.resource = null;
+      isNull = true;
+      this.base = null;
+      this.BASE = null;
+      this.optional = null;
+      return;
+    } else {
+      isNull = false;
+    }
+
     String defaultPort;
     switch (protocol.toLowerCase()) {
       case "ftp":
@@ -120,6 +136,12 @@ public final class Origin {
 
   public static Origin parse(String text) {
 
+    if (text.length() == 4) {
+      if ("null".equals(text)) {
+        return new Origin(null, null, null, null);
+      }
+    }
+
     int sep0 = text.indexOf("://");
 
     if (sep0 > 0) {
@@ -168,6 +190,12 @@ public final class Origin {
    * https://tools.ietf.org/html/rfc6454#section-7
    */
   public static boolean isValid(String text) {
+    if (text.length() == 4) {
+      if ("null".equals(text)) {
+        return true;
+      }
+    }
+
     int sep0 = text.indexOf("://");
 
     if (sep0 > 0) {
@@ -285,6 +313,11 @@ public final class Origin {
   }
 
   public boolean sameOrigin(String other) {
+
+    if (isNull) {
+      return "null".equals(other);
+    }
+
     // for each char of other
     // if any base chars != other abort
     // if more chars
@@ -332,6 +365,10 @@ public final class Origin {
   }
 
   public String encode() {
+    if (isNull) {
+      return "<null>";
+    }
+
     switch (protocol) {
       case "http":
         return protocol + "://" + host + (port == 80 ? "" : ":" + port);
@@ -346,6 +383,10 @@ public final class Origin {
 
   @Override
   public String toString() {
+    if (isNull) {
+      return "null";
+    }
+
     return base;
   }
 
@@ -353,6 +394,10 @@ public final class Origin {
    * An hyperlink representation of this origin. Like on web browsers.
    */
   public String href() {
+    if (isNull) {
+      return "null";
+    }
+
     return base + (resource == null ? "/" : resource);
   }
 }
