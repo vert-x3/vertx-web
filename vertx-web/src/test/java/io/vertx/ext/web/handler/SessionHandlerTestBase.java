@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.WebTestBase;
@@ -381,6 +382,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		testRequest(HttpMethod.GET, "/0", req -> {
 		}, resp -> {
 			String setCookie = resp.headers().get("set-cookie");
+			System.out.println(setCookie);
 			sessionID.set(setCookie);
 		}, 200, "OK", null);
 		CountDownLatch responseReceived = new CountDownLatch(1);
@@ -392,6 +394,38 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		testRequest(HttpMethod.GET, "/2", req -> req.putHeader("cookie", sessionID.get()), 200, "OK", null);
 		return MILLISECONDS.convert(System.nanoTime() - now, NANOSECONDS);
 	}
+
+  @Test
+  public void testInvalidation() throws Exception {
+    router.route().handler(SessionHandler.create(store).setCookieSameSite(CookieSameSite.STRICT));
+    AtomicReference<Session> rid = new AtomicReference<>();
+
+    router.get("/0").handler(rc -> {
+      rid.set(rc.session());
+      rc.session().put("foo", "foo_value");
+      rc.response().end();
+    });
+    router.get("/1").handler(rc -> {
+      rid.set(rc.session());
+      assertEquals("foo_value", rc.session().get("foo"));
+      rc.session().destroy();
+      rc.response().end();
+    });
+
+    AtomicReference<String> sessionID = new AtomicReference<>();
+    testRequest(HttpMethod.GET, "/0", req -> {
+    }, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      sessionID.set(setCookie);
+    }, 200, "OK", null);
+    CountDownLatch responseReceived = new CountDownLatch(1);
+    testRequest(HttpMethod.GET, "/1", req -> req.putHeader("cookie", sessionID.get()), resp -> {
+      // ensure that expired cookies still contain the the configured properties
+      assertTrue(resp.headers().get("set-cookie").contains("SameSite=Strict"));
+      responseReceived.countDown();
+    }, 200, "OK", null);
+    awaitLatch(responseReceived);
+  }
 
 	@Test
 	public void testSessionFixation() throws Exception {
