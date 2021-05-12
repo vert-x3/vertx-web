@@ -146,14 +146,16 @@ public class SessionHandlerImpl implements SessionHandler {
    *
    * @param cookie the cookie to set
    */
-  private void setCookieProperties(Cookie cookie) {
+  private void setCookieProperties(Cookie cookie, boolean expired) {
     cookie.setPath(sessionCookiePath);
     cookie.setSecure(sessionCookieSecure);
     cookie.setHttpOnly(sessionCookieHttpOnly);
     cookie.setSameSite(cookieSameSite);
-    // set max age if user requested it - else it's a session cookie
-    if (cookieMaxAge >= 0) {
-      cookie.setMaxAge(cookieMaxAge);
+    if (!expired) {
+      // set max age if user requested it - else it's a session cookie
+      if (cookieMaxAge >= 0) {
+        cookie.setMaxAge(cookieMaxAge);
+      }
     }
   }
 
@@ -190,7 +192,7 @@ public class SessionHandlerImpl implements SessionHandler {
             // restore defaults
             session.setAccessed();
             cookie.setValue(session.value());
-            setCookieProperties(cookie);
+            setCookieProperties(cookie, false);
           }
 
           // we must invalidate the old id
@@ -234,7 +236,10 @@ public class SessionHandlerImpl implements SessionHandler {
     } else {
       if (!cookieless) {
         // invalidate the cookie as the session has been destroyed
-        context.removeCookie(sessionCookieName);
+        final Cookie expiredCookie = context.removeCookie(sessionCookieName);
+        if (expiredCookie != null) {
+          setCookieProperties(expiredCookie, true);
+        }
       }
       // if the session was regenerated in the request
       // the old id must also be removed
@@ -450,7 +455,7 @@ public class SessionHandlerImpl implements SessionHandler {
       return cookie;
     }
     cookie = Cookie.cookie(sessionCookieName, session.value());
-    setCookieProperties(cookie);
+    setCookieProperties(cookie, false);
     context.addCookie(cookie);
     return cookie;
   }
