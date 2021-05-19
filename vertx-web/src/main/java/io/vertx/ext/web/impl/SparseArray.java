@@ -10,6 +10,8 @@
  */
 package io.vertx.ext.web.impl;
 
+import java.util.Arrays;
+
 /**
  * Internal container which replaces the need for allocating
  * expensive instances of TreeMap(s) of Integer,Handler tuples,
@@ -39,7 +41,9 @@ final class SparseArray<H> {
   }
 
   void clear() {
-    elements = null;
+    if (elements!=null) {
+      Arrays.fill(elements, null);
+    }
   }
 
   void put(final int seq, final H handler) {
