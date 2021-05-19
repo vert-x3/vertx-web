@@ -55,12 +55,12 @@ final class SparseArray<H> {
 
   private void resizeToFit(final int seq) {
     final int existingLength = elements == null ? 0 : elements.length;
-    //2,5,12.. seems like a reasonable scaling sequence for this use case:
+    //2,4,8.. seems like a reasonable scaling sequence for this use case:
     //not many elements are expected, on the other hand we don't want to have
     //to re-size the array frequently when we lose this bet.
     //But also, always make sure to reach at least the value of seq.
     if (existingLength != 0) {
-      final int targetLength = Math.max((seq + 1), ((existingLength + 1) * 2));
+      final int targetLength = Math.max((seq + 1), (existingLength * 2));
       final Object[] newArray = new Object[targetLength];
       System.arraycopy(elements, 0, newArray, 0, existingLength);
       elements = newArray;
