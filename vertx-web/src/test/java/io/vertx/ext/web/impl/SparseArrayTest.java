@@ -81,6 +81,12 @@ public class SparseArrayTest {
     Assert.assertEquals(0, c3.acceptedInvocations);
   }
 
+  @Test
+  public void deleteOnEmpty() {
+    SparseArray m = new SparseArray();
+    m.remove(3);
+  }
+
   private static class CapturingConsumer implements Consumer {
 
     private ArrayList accepted = new ArrayList();

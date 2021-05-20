@@ -27,34 +27,32 @@ import java.util.Arrays;
  */
 final class SparseArray<H> {
 
-  private Object[] elements;
+  private static final Object[] EMPTY = new Object[0];
+
+  private Object[] elements = EMPTY;
 
   void forEachInReverseOrder(final java.util.function.Consumer<H> action) {
-    if (elements != null) {
-      for (int i = elements.length - 1; i >= 0; i--) {
-        final Object element = elements[i];
-        if (element != null) {
-          action.accept((H) element);
-        }
+    for (int i = elements.length - 1; i >= 0; i--) {
+      final Object element = elements[i];
+      if (element != null) {
+        action.accept((H) element);
       }
     }
   }
 
   void clear() {
-    if (elements!=null) {
-      Arrays.fill(elements, null);
-    }
+    Arrays.fill(elements, null);
   }
 
   void put(final int seq, final H handler) {
-    if (elements == null || seq >= elements.length) {
+    if (seq >= elements.length) {
       resizeToFit(seq);
     }
     elements[seq] = handler;
   }
 
   private void resizeToFit(final int seq) {
-    final int existingLength = elements == null ? 0 : elements.length;
+    final int existingLength = elements.length;
     //2,4,8.. seems like a reasonable scaling sequence for this use case:
     //not many elements are expected, on the other hand we don't want to have
     //to re-size the array frequently when we lose this bet.
