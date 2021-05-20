@@ -17,7 +17,7 @@ public class ProxyHandlerImpl implements ProxyHandler {
   }
 
   public ProxyHandlerImpl(HttpProxy httpProxy, int port, String host) {
-    this.httpProxy = httpProxy.target(port, host);
+    this.httpProxy = httpProxy.origin(port, host);
   }
 
   @Override

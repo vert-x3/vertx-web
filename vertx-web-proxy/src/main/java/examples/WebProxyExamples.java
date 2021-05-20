@@ -41,8 +41,8 @@ public class WebProxyExamples {
   public void route(Vertx vertx, Router proxyRouter) {
     HttpClient proxyClient = vertx.createHttpClient();
 
-    HttpProxy httpProxy = HttpProxy.reverseProxy2(proxyClient);
-    httpProxy.target(7070, "localhost");
+    HttpProxy httpProxy = HttpProxy.reverseProxy(proxyClient);
+    httpProxy.origin(7070, "localhost");
 
     proxyRouter
       .route(HttpMethod.GET, "/foo").handler(ProxyHandler.create(httpProxy));
@@ -51,7 +51,7 @@ public class WebProxyExamples {
   public void routeShort(Vertx vertx, Router proxyRouter) {
     HttpClient proxyClient = vertx.createHttpClient();
 
-    HttpProxy httpProxy = HttpProxy.reverseProxy2(proxyClient);
+    HttpProxy httpProxy = HttpProxy.reverseProxy(proxyClient);
 
     proxyRouter
       .route(HttpMethod.GET, "/foo")
@@ -61,11 +61,11 @@ public class WebProxyExamples {
   public void multi(Vertx vertx, Router proxyRouter) {
     HttpClient proxyClient = vertx.createHttpClient();
 
-    HttpProxy httpProxy1 = HttpProxy.reverseProxy2(proxyClient);
-    httpProxy1.target(7070, "localhost");
+    HttpProxy httpProxy1 = HttpProxy.reverseProxy(proxyClient);
+    httpProxy1.origin(7070, "localhost");
 
-    HttpProxy httpProxy2 = HttpProxy.reverseProxy2(proxyClient);
-    httpProxy2.target(6060, "localhost");
+    HttpProxy httpProxy2 = HttpProxy.reverseProxy(proxyClient);
+    httpProxy2.origin(6060, "localhost");
 
     proxyRouter
       .route(HttpMethod.GET, "/foo").handler(ProxyHandler.create(httpProxy1));

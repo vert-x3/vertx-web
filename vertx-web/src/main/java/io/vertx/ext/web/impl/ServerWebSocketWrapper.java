@@ -14,6 +14,8 @@ import io.vertx.core.net.SocketAddress;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.security.cert.X509Certificate;
+import java.security.cert.Certificate;
+import java.util.List;
 
 public class ServerWebSocketWrapper implements ServerWebSocket {
   private final ServerWebSocket delegate;
@@ -350,7 +352,13 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
+  @Deprecated
   public X509Certificate[] peerCertificateChain() throws SSLPeerUnverifiedException {
     return delegate.peerCertificateChain();
+  }
+
+  @Override
+  public List<Certificate> peerCertificates() throws SSLPeerUnverifiedException {
+    return delegate.peerCertificates();
   }
 }

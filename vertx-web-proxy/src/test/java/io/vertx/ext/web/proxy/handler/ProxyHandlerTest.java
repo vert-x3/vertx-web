@@ -14,9 +14,9 @@ public class ProxyHandlerTest extends WebProxyTestBase {
 
   @Test
   public void testProxyHandler() throws Exception {
-    HttpProxy backend = HttpProxy.reverseProxy2(proxyClient);
-    backend.target(1234, "localhost");
-    router.route(HttpMethod.GET, "/path").handler(ProxyHandler.create(backend));
+    HttpProxy proxy = HttpProxy.reverseProxy(proxyClient);
+    proxy.origin(1234, "localhost");
+    router.route(HttpMethod.GET, "/path").handler(ProxyHandler.create(proxy));
     backendRouter.route(HttpMethod.GET, "/path").handler(rc -> {
       rc.response().setStatusCode(200);
       rc.response().setStatusMessage("statusMessage");
@@ -27,8 +27,8 @@ public class ProxyHandlerTest extends WebProxyTestBase {
 
   @Test
   public void testProxyHandlerWithPortHost() throws Exception {
-    HttpProxy backend1 = HttpProxy.reverseProxy2(proxyClient);
-    router.route(HttpMethod.GET, "/path").handler(ProxyHandler.create(backend1, 1234, "localhost"));
+    HttpProxy proxy1 = HttpProxy.reverseProxy(proxyClient);
+    router.route(HttpMethod.GET, "/path").handler(ProxyHandler.create(proxy1, 1234, "localhost"));
     backendRouter.route(HttpMethod.GET, "/path").handler(rc -> {
       rc.response().setStatusCode(200);
       rc.response().setStatusMessage("statusMessage");
