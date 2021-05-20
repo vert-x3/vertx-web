@@ -49,10 +49,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Map<String, Object> data;
   private Map<String, String> pathParams;
   private MultiMap queryParams;
-  private Map<Integer, Handler<Void>> headersEndHandlers;
-  private Map<Integer, Handler<Void>> bodyEndHandlers;
+  private SparseArray<Handler<Void>> headersEndHandlers;
+  private SparseArray<Handler<Void>> bodyEndHandlers;
   // clean up handlers
-  private Map<Integer, Handler<AsyncResult<Void>>> endHandlers;
+  private SparseArray<Handler<AsyncResult<Void>>> endHandlers;
 
   private Throwable failure;
   private int statusCode = -1;
@@ -522,47 +522,47 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return pathParams;
   }
 
-  private Map<Integer, Handler<Void>> getHeadersEndHandlers() {
+  private SparseArray<Handler<Void>> getHeadersEndHandlers() {
     if (headersEndHandlers == null) {
+      headersEndHandlers = new SparseArray<Handler<Void>>();
       // order is important we we should traverse backwards
-      headersEndHandlers = new TreeMap<>(Collections.reverseOrder());
-      response().headersEndHandler(v -> headersEndHandlers.values().forEach(handler -> handler.handle(null)));
+      response().headersEndHandler(v -> headersEndHandlers.forEachInReverseOrder(handler -> handler.handle(null)));
     }
     return headersEndHandlers;
   }
 
-  private Map<Integer, Handler<Void>> getBodyEndHandlers() {
+  private SparseArray<Handler<Void>> getBodyEndHandlers() {
     if (bodyEndHandlers == null) {
+      bodyEndHandlers = new SparseArray<Handler<Void>>();
       // order is important we we should traverse backwards
-      bodyEndHandlers = new TreeMap<>(Collections.reverseOrder());
-      response().bodyEndHandler(v -> bodyEndHandlers.values().forEach(handler -> handler.handle(null)));
+      response().bodyEndHandler(v -> bodyEndHandlers.forEachInReverseOrder(handler -> handler.handle(null)));
     }
     return bodyEndHandlers;
   }
 
-  private Map<Integer, Handler<AsyncResult<Void>>> getEndHandlers() {
+  private SparseArray<Handler<AsyncResult<Void>>> getEndHandlers() {
     if (endHandlers == null) {
       // order is important we we should traverse backwards
-      endHandlers = new TreeMap<>(Collections.reverseOrder());
+      endHandlers = new SparseArray<Handler<AsyncResult<Void>>>();
 
       final Handler<Void> endHandler = v -> {
         if (!endHandlerCalled) {
           endHandlerCalled = true;
-          endHandlers.values().forEach(handler -> handler.handle(Future.succeededFuture()));
+          endHandlers.forEachInReverseOrder(handler -> handler.handle(Future.succeededFuture()));
         }
       };
 
       final Handler<Throwable> exceptionHandler = cause -> {
         if (!endHandlerCalled) {
           endHandlerCalled = true;
-          endHandlers.values().forEach(handler -> handler.handle(Future.failedFuture(cause)));
+          endHandlers.forEachInReverseOrder(handler -> handler.handle(Future.failedFuture(cause)));
         }
       };
 
       final Handler<Void> closeHandler = cause -> {
         if (!endHandlerCalled) {
           endHandlerCalled = true;
-          endHandlers.values().forEach(handler -> handler.handle(Future.failedFuture("Connection closed")));
+          endHandlers.forEachInReverseOrder(handler -> handler.handle(Future.failedFuture("Connection closed")));
         }
       };
 
