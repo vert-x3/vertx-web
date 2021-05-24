@@ -708,6 +708,79 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
   }
 
   @Test
+  public void multipleWildcardMultipartEncoding(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(6);
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/multipart.yaml", testContext, routerBuilder -> {
+      routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false));
+      routerBuilder.operation("testMultipartMultipleWildcard").handler(routingContext -> {
+        routingContext
+          .response()
+          .setStatusCode(200)
+          .end();
+      });
+    }).onComplete(h -> {
+      testRequest(client, HttpMethod.POST, "/testMultipartMultipleWildcard")
+        .expect(statusCode(200))
+        .sendMultipartForm(MultipartForm
+            .create()
+            .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "text/plain")
+            .binaryFileUpload("file2", "random.txt", "src/test/resources/random.txt", "text/json"),
+          testContext, checkpoint
+        );
+
+      testRequest(client, HttpMethod.POST, "/testMultipartMultipleWildcard")
+        .expect(statusCode(200))
+        .sendMultipartForm(MultipartForm
+            .create()
+            .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "application/json")
+            .binaryFileUpload("file2", "random.txt", "src/test/resources/random.txt", "text/json"),
+          testContext, checkpoint
+        );
+
+      testRequest(client, HttpMethod.POST, "/testMultipartMultipleWildcard")
+        .expect(statusCode(400))
+        .sendMultipartForm(
+          MultipartForm
+            .create()
+            .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "text/json")
+            .binaryFileUpload("file2", "random.txt", "src/test/resources/random.txt", "text/json"),
+          testContext, checkpoint
+        );
+
+      testRequest(client, HttpMethod.POST, "/testMultipartMultipleWildcard")
+        .expect(statusCode(200))
+        .sendMultipartForm(
+          MultipartForm
+            .create()
+            .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "text/plain")
+            .binaryFileUpload("file2", "random.txt", "src/test/resources/random.txt", "text/json"),
+          testContext, checkpoint
+        );
+
+      testRequest(client, HttpMethod.POST, "/testMultipartMultipleWildcard")
+        .expect(statusCode(200))
+        .sendMultipartForm(
+          MultipartForm
+            .create()
+            .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "text/plain")
+            .binaryFileUpload("file2", "random.txt", "src/test/resources/random.txt", "application/json"),
+          testContext, checkpoint
+        );
+
+      testRequest(client, HttpMethod.POST, "/testMultipartMultipleWildcard")
+        .expect(statusCode(400))
+        .sendMultipartForm(
+          MultipartForm
+            .create()
+            .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "text/plain")
+            .binaryFileUpload("file2", "random.txt", "src/test/resources/random.txt", "bla/json"),
+          testContext, checkpoint
+        );
+
+    });
+  }
+
+  @Test
   public void testQueryParamNotRequired(Vertx vertx, VertxTestContext testContext) {
     loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
       routerBuilder
