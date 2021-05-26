@@ -49,9 +49,11 @@
                 <shadedClassifierName>shaded</shadedClassifierName>
                 <artifactSet>
                   <excludes>
-                    <exclude>io.vertx:*</exclude>
+                    <exclude>io.vertx:vertx-core</exclude>
+                    <exclude>io.vertx:vertx-web-common</exclude>
                     <exclude>io.netty:*</exclude>
                     <exclude>com.fasterxml.jackson.core:jackson-core:*</exclude>
+                    <exclude>org.slf4j:*</exclude>
                   </excludes>
                 </artifactSet>
               </configuration>
