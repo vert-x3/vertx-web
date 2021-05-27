@@ -267,7 +267,7 @@ public class StaticHandlerTest extends WebTestBase {
       .skipCompressionForMediaTypes(Collections.singleton("image/jpeg"));
 
     List<String> uris = Arrays.asList("/testCompressionSuffix.html", "/somedir/range.jpg", "/somedir/range.jpeg", "/somedir3/coin.png");
-    List<String> expectedContentEncodings = Arrays.asList("gzip", HttpHeaders.IDENTITY.toString(), HttpHeaders.IDENTITY.toString(), "gzip");
+    List<String> expectedContentEncodings = Arrays.asList("gzip", null, null, "gzip");
     testSkipCompression(staticHandler, uris, expectedContentEncodings);
   }
 
@@ -277,7 +277,7 @@ public class StaticHandlerTest extends WebTestBase {
       .skipCompressionForSuffixes(Collections.singleton("jpg"));
 
     List<String> uris = Arrays.asList("/testCompressionSuffix.html", "/somedir/range.jpg", "/somedir/range.jpeg", "/somedir3/coin.png");
-    List<String> expectedContentEncodings = Arrays.asList("gzip", HttpHeaders.IDENTITY.toString(), "gzip", "gzip");
+    List<String> expectedContentEncodings = Arrays.asList("gzip", null, "gzip", "gzip");
     testSkipCompression(staticHandler, uris, expectedContentEncodings);
   }
 

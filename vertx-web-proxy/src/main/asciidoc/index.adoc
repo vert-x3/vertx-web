@@ -1,5 +1,4 @@
 = Vert.x Web Proxy
-:toc: left
 
 Vert.x Web Proxy provides a handler that handles the reverse proxy logic using
 https://github.com/eclipse-vertx/vertx-http-proxy[Vert.x Http Proxy].
