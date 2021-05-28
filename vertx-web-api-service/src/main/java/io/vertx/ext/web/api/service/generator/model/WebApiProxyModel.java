@@ -27,7 +27,7 @@ public class WebApiProxyModel extends ProxyModel {
 
   private static final String SIGNATURE_CONSTRAINT_ERROR = "Method must respect signature Future<io.vertx.ext.web.api.ServiceResponse> foo(extractedParams..., io.vertx.ext.web.api.ServiceRequest request) or foo(extractedParams..., io.vertx.ext.web.api.ServiceRequest request, Handler<AsyncResult<io.vertx.ext.web.api.ServiceResponse>> handler)";
 
-  public WebApiProxyModel(ProcessingEnvironment env, TypeMirrorFactory typeFactory,TypeElement modelElt) {
+  public WebApiProxyModel(ProcessingEnvironment env, TypeMirrorFactory typeFactory, TypeElement modelElt) {
     super(env, typeFactory, modelElt);
   }
 
@@ -51,7 +51,9 @@ public class WebApiProxyModel extends ProxyModel {
       // Check signature constraints
 
       TypeInfo ret;
-      if (baseInfo.getKind() == MethodKind.CALLBACK) {
+      if (baseInfo.getKind() == MethodKind.FUTURE && baseInfo.isUseFutures()) {
+        ret = ((ParameterizedTypeInfo)returnType).getArg(0);
+      } else if (baseInfo.getKind() == MethodKind.CALLBACK && !baseInfo.isUseFutures()) {
         ret = ((ParameterizedTypeInfo) ((ParameterizedTypeInfo) mParams.get(mParams.size() - 1).getType()).getArg(0)).getArg(0);
       } else {
         throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);

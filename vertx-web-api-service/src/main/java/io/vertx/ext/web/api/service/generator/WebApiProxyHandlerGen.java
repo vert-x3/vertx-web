@@ -6,6 +6,7 @@ import io.vertx.codegen.type.ClassKind;
 import io.vertx.codegen.type.ParameterizedTypeInfo;
 import io.vertx.codegen.type.TypeInfo;
 import io.vertx.codegen.writer.CodeWriter;
+import io.vertx.core.Future;
 import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.api.service.WebApiServiceGen;
 import io.vertx.ext.web.api.service.generator.model.WebApiProxyMethodInfo;
@@ -76,21 +77,35 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
       .stmt("JsonObject params = context.getParams()")
       .codeln("try {")
       .indent()
-      .code(String.format("service.%s(", m.getName()))
-      .indent();
+      .code(String.format("service.%s(\n", m.getName()))
+      .indent().indent();
 
-    Stream<String> methodParamsTail = Stream.of("context", serviceCallHandler);
-
-    writer.writeSeq(
-      Stream.concat(
-        ((WebApiProxyMethodInfo) m).getParamsToExtract().stream().map(this::generateJsonParamExtractFromContext),
-        methodParamsTail
-      ),
-      ",\n" + writer.indentation()
-    );
-    writer.unindent();
-    writer.write(");\n");
-    writer.unindent()
+    if (!m.isUseFutures()) {
+      Stream<String> methodParamsTail = Stream.of("context", serviceCallHandler);
+      writer.writeSeq(
+        Stream.concat(
+          ((WebApiProxyMethodInfo) m).getParamsToExtract().stream().map(this::generateJsonParamExtractFromContext),
+          methodParamsTail
+        ),
+        ",\n"
+      );
+      writer
+        .unindent()
+        .write(");\n");
+    } else {
+      Stream<String> methodParamsTail = Stream.of("context");
+      writer.writeSeq(
+        Stream.concat(
+          ((WebApiProxyMethodInfo) m).getParamsToExtract().stream().map(this::generateJsonParamExtractFromContext),
+          methodParamsTail
+        ),
+        ",\n"
+      );
+      writer.write(")\n");
+      writer
+        .write(".onComplete(" + serviceCallHandler + ");\n");
+    }
+    writer.unindent().unindent()
       .codeln("} catch (Exception e) {")
       .indent()
       .stmt("HelperUtils.manageFailure(msg, e, includeDebugInfo)")
