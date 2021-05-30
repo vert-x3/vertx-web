@@ -32,9 +32,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 abstract class SSEBaseTest extends VertxTestBase {
 
-  protected final String TOKEN = "test";
-  protected final String EB_ADDRESS = "eb-forward-sse";
-  protected String multilineMsg = "Some message split across multiple lines";
   protected final static String SSE_NO_CONTENT_ENDPOINT = "/sse-no-content";
   protected final static String SSE_REJECT_ODDS = "/sse-reject-odds";
   protected final static String SSE_RESET_CONTENT_ENDPOINT = "/sse-reset-content";
@@ -45,6 +42,9 @@ abstract class SSEBaseTest extends VertxTestBase {
   protected final static String SSE_ID_TEST_ENDPOINT = "/sse-id-tests";
   protected final static String SSE_MULTILINE_ENDPOINT = "/sse-multiline";
   protected final static String SSE_ENDPOINT = "/sse";
+  protected final String TOKEN = "test";
+  protected final String EB_ADDRESS = "eb-forward-sse";
+  protected String multilineMsg = "Some message split across multiple lines";
 
   private final static Integer PORT = 9009;
 
@@ -57,9 +57,8 @@ abstract class SSEBaseTest extends VertxTestBase {
   public void setUp() throws Exception {
     super.setUp();
     CountDownLatch latch = new CountDownLatch(1);
-    HttpServerOptions options = new HttpServerOptions();
-    options.setPort(PORT);
-    server = vertx.createHttpServer(options);
+
+    // Create route handlers.
     Router router = Router.router(vertx);
     // Non-SSE handlers
     router.get(SSE_NO_CONTENT_ENDPOINT).handler(rc -> rc.response().setStatusCode(204).end());
@@ -71,6 +70,11 @@ abstract class SSEBaseTest extends VertxTestBase {
     });
     // Proper SSE handlers
     attachSSEHandlers(router);
+
+    // Create & start HTTP server.
+    HttpServerOptions options = new HttpServerOptions()
+      .setPort(PORT);
+    server = vertx.createHttpServer(options);
     server.requestHandler(router);
     server.listen(ar -> {
       if (ar.failed()) {
@@ -183,7 +187,7 @@ abstract class SSEBaseTest extends VertxTestBase {
         for (int i = 1; i < splitted.length - 1; i++) {
           conn.data(" " + splitted[i], true);
         }
-        conn.data(" " + splitted[splitted.length -1 ]);
+        conn.data(" " + splitted[splitted.length - 1]);
       })
     );
   }

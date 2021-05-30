@@ -21,39 +21,59 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.sse.SSEConnection;
-import io.vertx.ext.web.handler.sse.SSEHandler;
+import io.vertx.ext.web.impl.ParsableMIMEValue;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class SSEHandlerImpl implements SSEHandler {
 
+  private final Collection<MIMEHeader> eventStreamHeader = Collections.singletonList(
+    new ParsableMIMEValue("text/event-stream"));
   private Handler<SSEConnection> connectHandler;
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public synchronized void handle(RoutingContext context) {
+  public synchronized void handle(final RoutingContext context) {
     HttpServerRequest request = context.request();
     HttpServerResponse response = context.response();
-    List<String> acceptHeader = request.headers().getAll(HttpHeaders.ACCEPT.toString());
-    if (acceptHeader != null && !acceptHeader.isEmpty() &&
-      !(acceptHeader.contains("*") || acceptHeader.stream().anyMatch(h -> h.equalsIgnoreCase("text/event-stream")))) {
-      response.setStatusCode(406).end();
-      return;
+
+    // Determine if the request contains the "Accept: text/event-stream" header.
+    List<MIMEHeader> acceptableTypes = context.parsedHeaders().accept();
+    if (!acceptableTypes.isEmpty()) {
+      MIMEHeader selectedAccept = context.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, eventStreamHeader);
+
+      if (selectedAccept == null) {
+        response.setStatusCode(406).end();
+        return;
+      }
     }
-    response.setChunked(true);
+
+    // Set response headers.
     MultiMap headers = response.headers();
+    headers.add(HttpHeaders.CONTENT_TYPE.toString(), "text/event-stream")
+      .add(HttpHeaders.CACHE_CONTROL.toString(), "no-cache")
+      .add(HttpHeaders.CONNECTION.toString(), "keep-alive");
+
+    response.setChunked(true);
     SSEConnection connection = SSEConnection.create(context);
     request.connection().closeHandler(v -> connection.close());
-    headers.add(HttpHeaders.CONTENT_TYPE.toString(), "text/event-stream");
-    headers.add(HttpHeaders.CACHE_CONTROL.toString(), "no-cache");
-    headers.add(HttpHeaders.CONNECTION.toString(), "keep-alive");
+
     if (connectHandler != null) {
       connectHandler.handle(connection);
     }
     response.write("");
   }
 
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public synchronized SSEHandler connectHandler(Handler<SSEConnection> handler) {
     connectHandler = handler;

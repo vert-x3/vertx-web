@@ -32,7 +32,7 @@ public class SSECloseTest extends SSEBaseTest {
   public void closeHandlerOnServer() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
     final EventSource eventSource = eventSource();
-    eventSource.connect(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
+    eventSource.connectHandler(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
       assertTrue(handler.succeeded());
       assertNotNull(connection);
       connection.closeHandler(sse -> latch.countDown());

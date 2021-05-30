@@ -27,51 +27,97 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 public class EventSourceImpl implements EventSource {
+  private static final Logger log = LoggerFactory.getLogger(EventSourceImpl.class);
 
+  private final Vertx vertx;
+  private final EventSourceOptions options;
+  private final Map<String, Handler<String>> eventHandlers;
   private HttpClient client;
   private boolean connected;
   private String lastId;
   private Handler<String> messageHandler;
-  private final Map<String, Handler<String>> eventHandlers;
   private SSEPacket currentPacket;
-  private final Vertx vertx;
-  private final EventSourceOptions options;
   private Long retryTimerId;
 
-  public EventSourceImpl(Vertx vertx, EventSourceOptions options) {
+  public EventSourceImpl(final Vertx vertx, final EventSourceOptions options) {
     options.setKeepAlive(true);
     this.vertx = vertx;
     this.options = options;
     eventHandlers = new HashMap<>();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public synchronized EventSource connect(String path, Handler<AsyncResult<Void>> handler) {
-    return connect(path, null, handler);
+  public synchronized EventSource connectHandler(final String path, final Handler<AsyncResult<Void>> handler) {
+    return connectHandler(path, null, handler);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public synchronized EventSource connect(String path, String lastEventId, Handler<AsyncResult<Void>> handler) {
+  public synchronized EventSource connectHandler(final String path, final String lastEventId, final Handler<AsyncResult<Void>> handler) {
     if (connected) {
       throw new VertxException("SSEConnection already connected");
     }
     if (client == null) {
       client = vertx.createHttpClient(options);
     }
+
+    client.request(createConnectOptions(path, lastEventId))
+      .compose(HttpClientRequest::send)
+      .onSuccess(response -> {
+        if (shouldReconnect(response)) {
+          client.close();
+          client = null;
+          getEventErrorHandler().ifPresent(errorHandler -> errorHandler.handle("")); // FIXME: error type/name
+          vertx.setTimer(options.getRetryPeriod(), timerId -> {
+            retryTimerId = timerId;
+            connectHandler(path, lastEventId, handler);
+          });
+          return;
+        }
+
+        int status = response.statusCode();
+        if (status != 200) {
+          // redirects have been handled in `client.redirectHandler(...)` other status codes are considered errors, 204 & 205 are handled in `shouldReconnect`
+          handler.handle(Future.failedFuture(new VertxException("Could not connect EventSource, the server answered with status " + status)));
+        } else {
+          // Connect succeeded.
+          connected = true;
+          response.handler(this::handleMessage)
+            // reconnect automatically
+            .endHandler(r -> {
+              connected = false;
+              connectHandler(path, this.lastId, handler);
+            });
+          handler.handle(Future.succeededFuture());
+        }
+      })
+      .onFailure(cause -> handler.handle(Future.failedFuture(cause)));
+
     client.redirectHandler(resp -> {
       String redirect = resp.headers().get(HttpHeaders.LOCATION);
-      return Future.succeededFuture(createRequest(redirect, lastEventId, handler));
+      return Future.succeededFuture(createConnectOptions(redirect, lastEventId));
     });
-    createRequest(path, lastEventId, handler).end();
+
     return this;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public synchronized void close() {
     if (retryTimerId != null) {
@@ -81,26 +127,35 @@ public class EventSourceImpl implements EventSource {
     if (client != null) {
       try {
         client.close();
-      } catch(Exception e ) {
-        e.printStackTrace();
+      } catch (Exception e) {
+        log.error("An error occurred closing the EventSource: ", e);
       }
     }
     client = null;
     connected = false;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public synchronized EventSource onMessage(Handler<String> messageHandler) {
-    this.messageHandler = messageHandler;
+  public synchronized EventSource messageHandler(Handler<String> handler) {
+    this.messageHandler = handler;
     return this;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public synchronized EventSource onEvent(String eventName, Handler<String> handler) {
+  public synchronized EventSource eventHandler(String eventName, Handler<String> handler) {
     eventHandlers.put(eventName, handler);
     return this;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public synchronized String lastId() {
     return lastId;
@@ -110,14 +165,14 @@ public class EventSourceImpl implements EventSource {
     return Optional.ofNullable(eventHandlers.get("error"));
   }
 
-  private synchronized boolean shouldReconnect(HttpClientResponse response) {
+  private synchronized boolean shouldReconnect(final HttpClientResponse response) {
     int status = response.statusCode();
     return status == 204
       || status == 205
       || (status == 200 && !"text/event-stream".equalsIgnoreCase(response.headers().get(HttpHeaders.CONTENT_TYPE)));
   }
 
-  private synchronized void handleMessage(Buffer buffer) {
+  private synchronized void handleMessage(final Buffer buffer) {
     if (!connected) {
       return;
     }
@@ -125,7 +180,7 @@ public class EventSourceImpl implements EventSource {
       currentPacket = new SSEPacket();
     }
     boolean terminated = currentPacket.append(buffer);
-    Optional<Handler<String>> eventHandler = Optional.empty();
+    Handler<String> eventHandler = null;
     if (terminated) {
       for (SSEHeaders header : currentPacket.headers().keySet()) {
         String value = currentPacket.headers().get(header);
@@ -135,12 +190,12 @@ public class EventSourceImpl implements EventSource {
             lastId = value;
             break;
           case EVENT:
-            eventHandler = Optional.ofNullable(eventHandlers.get(value));
+            eventHandler = eventHandlers.get(value);
             break;
         }
       }
-      if (eventHandler.isPresent()) {
-        eventHandler.get().handle(currentPacket.toString());
+      if (eventHandler != null) {
+        eventHandler.handle(currentPacket.toString());
       } else {
         messageHandler.handle(currentPacket.toString());
       }
@@ -148,39 +203,17 @@ public class EventSourceImpl implements EventSource {
     }
   }
 
-  private HttpClientRequest createRequest(String path, String lastEventId, Handler<AsyncResult<Void>> handler) {
-    HttpClientRequest request = client.request(HttpMethod.GET, path);
-    request.setFollowRedirects(true);
-    request.onFailure(cause -> handler.handle(Future.failedFuture(cause)));
-    request.onSuccess(response -> {
-      if (shouldReconnect(response)) {
-        client.close();
-        client = null;
-        getEventErrorHandler().ifPresent(errorHandler -> errorHandler.handle("")); // FIXME: error type/name
-        vertx.setTimer(options.getRetryPeriod(), timerId -> {
-          retryTimerId = timerId;
-          connect(path, lastEventId, handler);
-        });
-        return;
-      }
-      int status = response.statusCode();
-      if (status != 200) { // redirects have been handled in `client.redirectHandler(...)` other status codes are considered errors, 204 & 205 are handled in `shouldReconnect`
-        handler.handle(Future.failedFuture(new VertxException("Could not connect EventSource, the server answered with status " + status)));
-      } else {
-        connected = true;
-        response.handler(this::handleMessage);
-        response.endHandler(r -> {
-          connected = false;
-          connect(path, this.lastId, handler);
-        }); // reconnect automatically
-        handler.handle(Future.succeededFuture());
-      }
-    });
+  private RequestOptions createConnectOptions(final String path, final String lastEventId) {
+    RequestOptions options = new RequestOptions()
+      .setMethod(HttpMethod.GET)
+      .setURI(path)
+      .setFollowRedirects(true)
+      .addHeader(HttpHeaders.ACCEPT, "text/event-stream");
+
     if (lastEventId != null) {
-      request.headers().add(SSEHeaders.LAST_EVENT_ID.toString(), lastEventId);
+      options.putHeader(SSEHeaders.LAST_EVENT_ID.toString(), lastEventId);
     }
-    request.headers().add(HttpHeaders.ACCEPT, "text/event-stream");
-    return request;
+    return options;
   }
 
 }

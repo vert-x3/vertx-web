@@ -30,12 +30,12 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     CountDownLatch latch = new CountDownLatch(1);
     final String message = "Happiness is a warm puppy";
     final EventSource eventSource = eventSource();
-    eventSource.connect(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
+    eventSource.connectHandler(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
       assertTrue(handler.succeeded());
       assertFalse(handler.failed());
       assertNull(handler.cause());
       assertNotNull(connection);
-      eventSource.onMessage(msg -> {
+      eventSource.messageHandler(msg -> {
         assertEquals(message, msg);
         latch.countDown();
       });
@@ -49,13 +49,13 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     CountDownLatch latch = new CountDownLatch(1);
     final List<String> quotes = createData();
     final EventSource eventSource = eventSource();
-    eventSource.connect(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
+    eventSource.connectHandler(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
       assertTrue(handler.succeeded());
       assertFalse(handler.failed());
       assertNull(handler.cause());
       assertNotNull(connection);
       final List<String> received = new ArrayList<>();
-      eventSource.onMessage(msg -> {
+      eventSource.messageHandler(msg -> {
         received.add(msg);
         if (received.size() == quotes.size()) {
           for (int i = 0; i < received.size(); i++) {
@@ -75,16 +75,16 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     final String eventName = "quotes";
     final List<String> quotes = createData();
     final EventSource eventSource = eventSource();
-    eventSource.connect(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
+    eventSource.connectHandler(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
       assertTrue(handler.succeeded());
       assertFalse(handler.failed());
       assertNull(handler.cause());
       assertNotNull(connection);
       String quote = quotes.get(0);
-      eventSource.addEventListener("wrong", msg -> {
+      eventSource.eventHandler("wrong", msg -> {
         throw new RuntimeException("this handler should not be called, at all !");
       });
-      eventSource.addEventListener(eventName, msg -> {
+      eventSource.eventHandler(eventName, msg -> {
         assertEquals(quote, msg);
         latch.countDown();
       });
@@ -100,17 +100,17 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     final String id = "SomeIdentifier";
     final List<String> quotes = createData();
     final EventSource eventSource = eventSource();
-    eventSource.connect("/sse?token=" + TOKEN, handler -> {
+    eventSource.connectHandler("/sse?token=" + TOKEN, handler -> {
       assertTrue(handler.succeeded());
       assertFalse(handler.failed());
       assertNull(handler.cause());
       assertNotNull(connection);
       String quote = quotes.get(2);
-      eventSource.onMessage(msg -> {
+      eventSource.messageHandler(msg -> {
         assertEquals(quote, msg);
         assertEquals(id, eventSource.lastId());
         eventSource.close();
-        eventSource.connect(SSE_ENDPOINT + "?token=" + TOKEN, eventSource.lastId(), secondHandler -> {
+        eventSource.connectHandler(SSE_ENDPOINT + "?token=" + TOKEN, eventSource.lastId(), secondHandler -> {
           assertTrue(handler.succeeded());
           assertFalse(handler.failed());
           assertNull(handler.cause());
@@ -130,13 +130,13 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     CountDownLatch latch = new CountDownLatch(2);
     EventSource es = eventSource();
     List<String> messagesReceived = new ArrayList<>(2);
-    es.onMessage(msg -> {
+    es.messageHandler(msg -> {
       assertNotNull(es.lastId());
       assertNotNull(msg);
       messagesReceived.add(msg);
       latch.countDown(); // we should receive 2 messages, first has an id, the second one doesn't, lastId should never been discarded
     });
-    es.connect(SSE_MULTIPLE_MESSAGES_ENDPOINT, res -> {
+    es.connectHandler(SSE_MULTIPLE_MESSAGES_ENDPOINT, res -> {
       assertFalse(res.failed());
     });
     awaitLatch(latch);
@@ -148,12 +148,12 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     CountDownLatch latch = new CountDownLatch(7);
     EventSource es = eventSource();
     List<Integer> idsReceived = new ArrayList<>();
-    es.onMessage(msg -> {
+    es.messageHandler(msg -> {
       assertNotNull(es.lastId());
       idsReceived.add(Integer.parseInt(es.lastId()));
       latch.countDown();
     });
-    es.connect(SSE_ID_TEST_ENDPOINT, res -> { // this endpoint periodically increments a counter and send it as 'id', with "last-event-id" as initial value
+    es.connectHandler(SSE_ID_TEST_ENDPOINT, res -> { // this endpoint periodically increments a counter and send it as 'id', with "last-event-id" as initial value
       assertFalse(res.failed());
     });
     awaitLatch(latch);
@@ -166,11 +166,11 @@ public class SSEReceiveDataTest extends SSEBaseTest {
   public void testMultilineData() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     eventSource()
-      .onMessage(msg -> {
+      .messageHandler(msg -> {
         assertEquals(multilineMsg, msg);
         latch.countDown();
       })
-      .connect(SSE_MULTILINE_ENDPOINT, res -> {
+      .connectHandler(SSE_MULTILINE_ENDPOINT, res -> {
         assertFalse(res.failed());
       });
     awaitLatch(latch);

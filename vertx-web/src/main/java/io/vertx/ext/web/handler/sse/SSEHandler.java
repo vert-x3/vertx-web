@@ -29,6 +29,6 @@ public interface SSEHandler extends Handler<RoutingContext> {
   }
 
   @Fluent
-  SSEHandler connectHandler(Handler<SSEConnection> connection);
+  SSEHandler connectHandler(Handler<SSEConnection> handler);
 
 }
