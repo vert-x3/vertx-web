@@ -320,6 +320,7 @@ public interface HttpRequest<T> {
    * @param allow {@code true} allows use of multipart mixed encoding
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   HttpRequest<T> multipartMixed(boolean allow);
 
   /**
