@@ -57,4 +57,30 @@ paths:
       responses:
         200:
           description: successful operation
+  /testMultipartMultipleWildcard:
+    post:
+      operationId: testMultipartMultipleWildcard
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file1:
+                  type: string
+                  description: File1
+                  format: binary
+                file2:
+                  type: string
+                  description: File2
+                  format: binary
+            encoding:
+              file1:
+                contentType: application/*, text/plain
+              file2:
+                contentType: application/*, text/*
+        required: true
+      responses:
+        200:
+          description: successful operation
 components: {}

@@ -8,6 +8,7 @@ import io.vertx.ext.web.openapi.OpenAPIHolder;
 import io.vertx.ext.web.openapi.RouterBuilderException;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,17 +61,16 @@ class OpenAPI3Utils {
 
   protected static String resolveContentTypeRegex(String listContentTypes) {
     // Check if it's list
-    if (listContentTypes.contains(",")) {
-      StringBuilder stringBuilder = new StringBuilder();
-      String[] contentTypes = listContentTypes.split(",");
-      for (String contentType : contentTypes)
-        stringBuilder.append(Pattern.quote(contentType.trim())).append("|");
-      stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-      return stringBuilder.toString();
-    } else if (listContentTypes.trim().endsWith("/*")) {
-      return listContentTypes.trim().substring(0, listContentTypes.indexOf("/*")) + "\\/.*";
-    }
-    return Pattern.quote(listContentTypes);
+    return Arrays.stream(listContentTypes.split(","))
+      .map(String::trim)
+      .map(pattern -> {
+        int wildcardIndex = pattern.indexOf("/*");
+        if (wildcardIndex != -1) {
+          return Pattern.quote(pattern.substring(0, wildcardIndex + 1)) + ".*";
+        }
+        return Pattern.quote(pattern);
+      })
+      .collect(Collectors.joining("|"));
   }
 
   /* This function resolve all properties inside an allOf array of schemas */
