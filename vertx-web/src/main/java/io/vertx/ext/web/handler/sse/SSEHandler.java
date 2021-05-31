@@ -20,6 +20,7 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.sse.impl.SSEHandlerImpl;
 
 @VertxGen
 public interface SSEHandler extends Handler<RoutingContext> {

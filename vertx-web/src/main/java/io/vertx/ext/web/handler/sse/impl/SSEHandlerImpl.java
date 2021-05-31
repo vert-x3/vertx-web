@@ -14,7 +14,7 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.sse;
+package io.vertx.ext.web.handler.sse.impl;
 
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -23,6 +23,8 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.sse.SSEConnection;
+import io.vertx.ext.web.handler.sse.SSEHandler;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
 
 import java.util.Collection;

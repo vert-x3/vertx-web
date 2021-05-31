@@ -22,6 +22,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.sse.impl.SSEConnectionImpl;
 
 @VertxGen
 public interface SSEConnection {

@@ -14,7 +14,7 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.sse;
+package io.vertx.ext.web.handler.sse.impl;
 
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;

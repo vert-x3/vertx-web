@@ -14,7 +14,7 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.sse;
+package io.vertx.ext.web.handler.sse.impl;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -30,6 +30,9 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.ext.web.handler.sse.EventSource;
+import io.vertx.ext.web.handler.sse.EventSourceOptions;
+import io.vertx.ext.web.handler.sse.SSEHeaders;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -119,11 +122,19 @@ public class EventSourceImpl implements EventSource {
    * {@inheritDoc}
    */
   @Override
-  public synchronized void close() {
-    if (retryTimerId != null) {
-      vertx.cancelTimer(retryTimerId);
-      retryTimerId = null;
+  public void close() {
+    HttpClient client;
+    synchronized (this) {
+      if (retryTimerId != null) {
+        vertx.cancelTimer(retryTimerId);
+        retryTimerId = null;
+      }
+
+      client = this.client;
+      this.client = null;
+      connected = false;
     }
+
     if (client != null) {
       try {
         client.close();
@@ -131,8 +142,6 @@ public class EventSourceImpl implements EventSource {
         log.error("An error occurred closing the EventSource: ", e);
       }
     }
-    client = null;
-    connected = false;
   }
 
   /**
