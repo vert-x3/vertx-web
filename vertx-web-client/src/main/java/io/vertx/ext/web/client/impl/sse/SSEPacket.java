@@ -14,14 +14,13 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.sse.impl;
+package io.vertx.ext.web.client.impl.sse;
 
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.web.handler.sse.SSEHeaders;
+import io.vertx.ext.web.sse.SSEHeaders;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 class SSEPacket {
 

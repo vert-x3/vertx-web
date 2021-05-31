@@ -24,7 +24,7 @@ import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sse.SSEConnection;
-import io.vertx.ext.web.handler.sse.SSEHeaders;
+import io.vertx.ext.web.sse.SSEHeaders;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,8 +76,9 @@ public class SSEConnectionImpl implements SSEConnection {
 
   @Override
   public synchronized SSEConnection close() {
-    try {context.response().end(); // best effort
-    } catch(VertxException | IllegalStateException e) {
+    try {
+      context.response().end(); // best effort
+    } catch (VertxException | IllegalStateException e) {
       // connection has already been closed by the browser
       // do not log to avoid performance issues (ddos issue if client opening and closing alot of connections abruptly)
     }

@@ -26,7 +26,7 @@ public class SSEEstablishConnectionTest extends SSEBaseTest {
   @Test
   public void noToken() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
-    eventSource().connectHandler("/sse", ar -> {
+    eventSource().connect("/sse", ar -> {
       assertFalse(ar.succeeded());
       assertTrue(ar.failed());
       assertNotNull(ar.cause());
@@ -41,7 +41,7 @@ public class SSEEstablishConnectionTest extends SSEBaseTest {
   @Test
   public void invalidToken() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
-    eventSource().connectHandler(SSE_ENDPOINT + "?token=somethingdefinitelynotvalid", ar -> {
+    eventSource().connect(SSE_ENDPOINT + "?token=somethingdefinitelynotvalid", ar -> {
       assertFalse(ar.succeeded());
       assertTrue(ar.failed());
       assertTrue(ar.cause() instanceof VertxException);
@@ -55,7 +55,7 @@ public class SSEEstablishConnectionTest extends SSEBaseTest {
   @Test
   public void validConnection() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
-    eventSource().connectHandler(SSE_ENDPOINT + "?token=" + TOKEN, ar -> {
+    eventSource().connect(SSE_ENDPOINT + "?token=" + TOKEN, ar -> {
       assertTrue(ar.succeeded());
       assertFalse(ar.failed());
       assertNull(ar.cause());

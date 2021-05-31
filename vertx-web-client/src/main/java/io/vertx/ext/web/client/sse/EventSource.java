@@ -14,30 +14,26 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.sse;
+package io.vertx.ext.web.client.sse;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.ext.web.handler.sse.impl.EventSourceImpl;
+import io.vertx.ext.web.client.impl.sse.EventSourceImpl;
 
 /**
  * A Vert.x implementation of a Server-Sent Events EventSource.
  *
  * @see <a href="https://www.w3.org/TR/eventsource/">W3: Server-Sent Events</a>
+ * @see <a href="https://html.spec.whatwg.org/multipage/server-sent-events.html">Living Standard: Server-Sent Events</a>
  * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventSource">MDN: EventSource</a>
  */
 @VertxGen
 public interface EventSource {
-
-  /**
-   * Create an {@link EventSource} with the default options.
-   */
-  static EventSource create(final Vertx vertx) {
-    return new EventSourceImpl(vertx, new EventSourceOptions());
-  }
 
   /**
    * Create an {@link EventSource} with the specified options.
@@ -47,30 +43,39 @@ public interface EventSource {
   }
 
   /**
-   * The id of the last event received from the server.
+   * The URL that will provide the event stream.
    */
-  String lastId();
+  String url();
 
   /**
-   * Handle
-   * <p>
-   * This is equivalent to the
+   * Returns the state of this object's connection.
    */
-  @Fluent
-  EventSource connectHandler(final String path, final Handler<AsyncResult<Void>> handler);
+  ReadyState readyState();
+
+  /**
+   * The id of the last event received from the server.
+   */
+  @Nullable
+  String lastId();
 
   @Fluent
-  EventSource connectHandler(final String path, final String lastEventId, final Handler<AsyncResult<Void>> handler);
+  EventSource connect(final Handler<AsyncResult<Void>> handler);
 
-  default void close() {
-  }
+  Future<Void> connect();
+
+  @Fluent
+  EventSource connect(final String lastId, final Handler<AsyncResult<Void>> handler);
+
+  Future<Void> connect(final String lastId);
+
+  @Fluent
+  EventSource connectHandler(final Handler<Void> handler);
+
 
   /**
    * Set a handler for 'message' events.
    * <p>
    * This is equivalent to the specification's 'onmessage' event handler.
-   *
-   * @param handler the handler called when the 'error' event is received.
    */
   @Fluent
   EventSource messageHandler(final Handler<String> handler);
@@ -81,7 +86,6 @@ public interface EventSource {
    * This is equivalent to the specification's 'onmessage' event handler.
    *
    * @param eventName the ad-hoc event name.
-   * @param handler   the handler called when the {@param eventName} event is received.
    */
   @Fluent
   EventSource eventHandler(final String eventName, final Handler<String> handler);
@@ -90,12 +94,14 @@ public interface EventSource {
    * Set a handler for 'error' events.
    * <p>
    * This is equivalent to the specification's 'onerror' event handler.
-   *
-   * @param handler the handler called when the 'error' event is received.
    */
   @Fluent
-  default EventSource exceptionHandler(final Handler<String> handler) {
-    return eventHandler("error", handler);
-  }
+  EventSource exceptionHandler(final Handler<String> handler);
+
+
+  /**
+   * Aborts any connections and sets {@link #readyState()} to {@link ReadyState#CLOSED}.
+   */
+  void close();
 
 }

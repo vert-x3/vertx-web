@@ -14,7 +14,7 @@
  * under the License.
  */
 
-package io.vertx.ext.web.handler.sse;
+package io.vertx.ext.web.sse;
 
 import io.vertx.codegen.annotations.VertxGen;
 

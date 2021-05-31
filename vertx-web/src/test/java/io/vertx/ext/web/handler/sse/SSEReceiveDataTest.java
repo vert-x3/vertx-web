@@ -30,7 +30,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     CountDownLatch latch = new CountDownLatch(1);
     final String message = "Happiness is a warm puppy";
     final EventSource eventSource = eventSource();
-    eventSource.connectHandler(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
+    eventSource.connect(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
       assertTrue(handler.succeeded());
       assertFalse(handler.failed());
       assertNull(handler.cause());
@@ -49,7 +49,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     CountDownLatch latch = new CountDownLatch(1);
     final List<String> quotes = createData();
     final EventSource eventSource = eventSource();
-    eventSource.connectHandler(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
+    eventSource.connect(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
       assertTrue(handler.succeeded());
       assertFalse(handler.failed());
       assertNull(handler.cause());
@@ -75,7 +75,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     final String eventName = "quotes";
     final List<String> quotes = createData();
     final EventSource eventSource = eventSource();
-    eventSource.connectHandler(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
+    eventSource.connect(SSE_ENDPOINT + "?token=" + TOKEN, handler -> {
       assertTrue(handler.succeeded());
       assertFalse(handler.failed());
       assertNull(handler.cause());
@@ -100,7 +100,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
     final String id = "SomeIdentifier";
     final List<String> quotes = createData();
     final EventSource eventSource = eventSource();
-    eventSource.connectHandler("/sse?token=" + TOKEN, handler -> {
+    eventSource.connect("/sse?token=" + TOKEN, handler -> {
       assertTrue(handler.succeeded());
       assertFalse(handler.failed());
       assertNull(handler.cause());
@@ -136,7 +136,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
       messagesReceived.add(msg);
       latch.countDown(); // we should receive 2 messages, first has an id, the second one doesn't, lastId should never been discarded
     });
-    es.connectHandler(SSE_MULTIPLE_MESSAGES_ENDPOINT, res -> {
+    es.connect(SSE_MULTIPLE_MESSAGES_ENDPOINT, res -> {
       assertFalse(res.failed());
     });
     awaitLatch(latch);
@@ -153,7 +153,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
       idsReceived.add(Integer.parseInt(es.lastId()));
       latch.countDown();
     });
-    es.connectHandler(SSE_ID_TEST_ENDPOINT, res -> { // this endpoint periodically increments a counter and send it as 'id', with "last-event-id" as initial value
+    es.connect(SSE_ID_TEST_ENDPOINT, res -> { // this endpoint periodically increments a counter and send it as 'id', with "last-event-id" as initial value
       assertFalse(res.failed());
     });
     awaitLatch(latch);
@@ -170,7 +170,7 @@ public class SSEReceiveDataTest extends SSEBaseTest {
         assertEquals(multilineMsg, msg);
         latch.countDown();
       })
-      .connectHandler(SSE_MULTILINE_ENDPOINT, res -> {
+      .connect(SSE_MULTILINE_ENDPOINT, res -> {
         assertFalse(res.failed());
       });
     awaitLatch(latch);

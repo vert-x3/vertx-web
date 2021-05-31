@@ -92,7 +92,7 @@ abstract class SSEBaseTest extends VertxTestBase {
   }
 
   EventSource eventSource(long retryPeriod) {
-    return EventSource.create(vertx, clientOptions().setRetryPeriod(retryPeriod));
+    return EventSource.create(vertx, clientOptions().setReconnectInterval(retryPeriod));
   }
 
   EventSource eventSource() {

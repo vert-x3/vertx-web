@@ -15,7 +15,7 @@ public class SSEEventSourceTest extends SSEBaseTest {
       // TODO: event type / event name / content
       latch.countDown();
     });
-    eventSource.connectHandler(SSE_NO_CONTENT_ENDPOINT, handler -> {});
+    eventSource.connect(SSE_NO_CONTENT_ENDPOINT, handler -> {});
     awaitLatch(latch);
   }
 
@@ -27,7 +27,7 @@ public class SSEEventSourceTest extends SSEBaseTest {
       // TODO: event type / event name / content
       latch.countDown();
     });
-    eventSource.connectHandler(SSE_RESET_CONTENT_ENDPOINT, handler -> {});
+    eventSource.connect(SSE_RESET_CONTENT_ENDPOINT, handler -> {});
     awaitLatch(latch);
   }
 
@@ -41,7 +41,7 @@ public class SSEEventSourceTest extends SSEBaseTest {
       rejectedOnce.set(true);
       latch.countDown();
     });
-    eventSource.connectHandler(SSE_REJECT_ODDS, handler -> {
+    eventSource.connect(SSE_REJECT_ODDS, handler -> {
       connected.set(true);
       latch.countDown();
     });
@@ -53,7 +53,7 @@ public class SSEEventSourceTest extends SSEBaseTest {
   public void testFollowRedirects() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     final EventSource eventSource = eventSource();
-    eventSource.connectHandler(SSE_REDIRECT_ENDPOINT, res -> {
+    eventSource.connect(SSE_REDIRECT_ENDPOINT, res -> {
       assertFalse("Redirect should have been followed", res.failed());
       latch.countDown();
     });
@@ -64,7 +64,7 @@ public class SSEEventSourceTest extends SSEBaseTest {
   public void testReconnect() throws Exception {
     CountDownLatch latch = new CountDownLatch(2); // we should connect twice
     final EventSource eventSource = eventSource();
-    eventSource.connectHandler(SSE_RECONNECT_ENDPOINT, res -> {
+    eventSource.connect(SSE_RECONNECT_ENDPOINT, res -> {
       assertFalse("Redirect should have been followed", res.failed());
       latch.countDown();
     });

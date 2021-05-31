@@ -1,6 +1,7 @@
 package io.vertx.ext.web.handler.sse;
 
 import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.ext.web.sse.SSEHeaders;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -16,7 +17,7 @@ public class SSEEventBusTest extends SSEBaseTest {
         assertEquals(sentMsg, msg);
         latch.countDown();
       })
-      .connectHandler(SSE_EVENTBUS_ENDPOINT, res -> {
+      .connect(SSE_EVENTBUS_ENDPOINT, res -> {
         assertFalse(res.failed());
         vertx.eventBus().publish(EB_ADDRESS, sentMsg);
       });
@@ -36,7 +37,7 @@ public class SSEEventBusTest extends SSEBaseTest {
         assertEquals(sentMsg, msg);
         latch.countDown();
       })
-      .connectHandler(SSE_EVENTBUS_ENDPOINT, res -> {
+      .connect(SSE_EVENTBUS_ENDPOINT, res -> {
         assertFalse(res.failed());
         vertx.eventBus().publish(EB_ADDRESS, sentMsg, new DeliveryOptions().addHeader(SSEHeaders.EVENT.toString(), eventName));
       });
@@ -55,7 +56,7 @@ public class SSEEventBusTest extends SSEBaseTest {
         assertEquals(idName, es.lastId());
         latch.countDown();
       })
-      .connectHandler(SSE_EVENTBUS_ENDPOINT, res -> {
+      .connect(SSE_EVENTBUS_ENDPOINT, res -> {
         assertFalse(res.failed());
         vertx.eventBus().publish(EB_ADDRESS, sentMsg, new DeliveryOptions().addHeader(SSEHeaders.ID.toString(), idName));
       });
@@ -78,7 +79,7 @@ public class SSEEventBusTest extends SSEBaseTest {
         assertEquals(idName, es.lastId());
         latch.countDown();
       })
-      .connectHandler(SSE_EVENTBUS_ENDPOINT, res -> {
+      .connect(SSE_EVENTBUS_ENDPOINT, res -> {
         assertFalse(res.failed());
         vertx.eventBus().publish(EB_ADDRESS, sentMsg, new DeliveryOptions().addHeader(SSEHeaders.EVENT.toString(), eventName).addHeader(SSEHeaders.ID.toString(), idName));
       });
