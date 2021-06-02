@@ -73,6 +73,12 @@ public class RouteImpl implements Route {
   }
 
   @Override
+  public synchronized Route putMetadata(String key, Object value) {
+    state = state.putMetadata(key, value);
+    return this;
+  }
+
+  @Override
   public synchronized Route method(HttpMethod method) {
     state = state.addMethod(method);
     return this;
@@ -215,6 +221,12 @@ public class RouteImpl implements Route {
   }
 
   @Override
+  public Map<String, Object> getMetadata() {
+    Map<String, Object> metadata = state.getMetadata();
+    return metadata != null ? metadata : Collections.emptyMap();
+  }
+
+  @Override
   public String getPath() {
     return state.getPath();
   }
@@ -278,7 +290,7 @@ public class RouteImpl implements Route {
     // See if the path contains ":" - if so then it contains parameter capture groups and we have to generate
     // a regex for that
     int params = 0;
-    for (int i = 0; i <  path.length(); i++) {
+    for (int i = 0; i < path.length(); i++) {
       if (path.charAt(i) == ':') {
         params++;
       }

@@ -59,14 +59,16 @@ final class RouterState {
   private final Map<Integer, Handler<RoutingContext>> errorHandlers;
   private final Handler<Router> modifiedHandler;
   private final AllowForwardHeaders allowForward;
+  private final Map<String, Object> metadata;
 
-  public RouterState(RouterImpl router, Set<RouteImpl> routes, int orderSequence, Map<Integer, Handler<RoutingContext>> errorHandlers, Handler<Router> modifiedHandler, AllowForwardHeaders allowForward) {
+  public RouterState(RouterImpl router, Set<RouteImpl> routes, int orderSequence, Map<Integer, Handler<RoutingContext>> errorHandlers, Handler<Router> modifiedHandler, AllowForwardHeaders allowForward, Map<String, Object> metadata) {
     this.router = router;
     this.routes = routes;
     this.orderSequence = orderSequence;
     this.errorHandlers = errorHandlers;
     this.modifiedHandler = modifiedHandler;
     this.allowForward = allowForward;
+    this.metadata = metadata;
   }
 
   public RouterState(RouterImpl router) {
@@ -76,7 +78,8 @@ final class RouterState {
       0,
       null,
       null,
-      AllowForwardHeaders.NONE);
+      AllowForwardHeaders.NONE,
+      null);
   }
 
   public RouterImpl router() {
@@ -97,7 +100,8 @@ final class RouterState {
       this.orderSequence,
       this.errorHandlers,
       this.modifiedHandler,
-      this.allowForward);
+      this.allowForward,
+      this.metadata);
 
     newState.routes.addAll(routes);
     return newState;
@@ -116,7 +120,8 @@ final class RouterState {
       this.orderSequence,
       this.errorHandlers,
       this.modifiedHandler,
-      this.allowForward);
+      this.allowForward,
+      this.metadata);
   }
 
   RouterState clearRoutes() {
@@ -126,7 +131,8 @@ final class RouterState {
       this.orderSequence,
       this.errorHandlers,
       this.modifiedHandler,
-      this.allowForward);
+      this.allowForward,
+      this.metadata);
   }
 
   RouterState removeRoute(RouteImpl route) {
@@ -142,7 +148,8 @@ final class RouterState {
       this.orderSequence,
       this.errorHandlers,
       this.modifiedHandler,
-      this.allowForward);
+      this.allowForward,
+      this.metadata);
   }
 
   public int getOrderSequence() {
@@ -156,7 +163,8 @@ final class RouterState {
       this.orderSequence + 1,
       this.errorHandlers,
       this.modifiedHandler,
-      this.allowForward);
+      this.allowForward,
+      this.metadata);
   }
 
   RouterState setOrderSequence(int orderSequence) {
@@ -166,7 +174,8 @@ final class RouterState {
       orderSequence,
       this.errorHandlers,
       this.modifiedHandler,
-      this.allowForward);
+      this.allowForward,
+      this.metadata);
   }
 
   public Map<Integer, Handler<RoutingContext>> getErrorHandlers() {
@@ -180,7 +189,8 @@ final class RouterState {
       this.orderSequence,
       errorHandlers,
       this.modifiedHandler,
-      this.allowForward);
+      this.allowForward,
+      this.metadata);
   }
 
   Handler<RoutingContext> getErrorHandler(int errorCode) {
@@ -197,7 +207,8 @@ final class RouterState {
       this.orderSequence,
       this.errorHandlers == null ? new HashMap<>() : new HashMap<>(errorHandlers),
       this.modifiedHandler,
-      this.allowForward);
+      this.allowForward,
+      this.metadata);
 
     newState.errorHandlers.put(errorCode, errorHandler);
     return newState;
@@ -214,7 +225,8 @@ final class RouterState {
       this.orderSequence,
       this.errorHandlers,
       modifiedHandler,
-      this.allowForward);
+      this.allowForward,
+      this.metadata);
   }
 
   public RouterState setAllowForward(AllowForwardHeaders allow) {
@@ -224,12 +236,35 @@ final class RouterState {
       this.orderSequence,
       this.errorHandlers,
       this.modifiedHandler,
-      allow);
+      allow,
+      this.metadata);
   }
 
   public AllowForwardHeaders getAllowForward() {
     return allowForward;
   }
+
+  public RouterState putMetadata(String key, Object value) {
+    Map<String, Object> metadata = this.metadata == null ? new HashMap<>() : new HashMap<>(this.metadata);
+    if (value == null) {
+      metadata.remove(key);
+    } else {
+      metadata.put(key, value);
+    }
+    return new RouterState(
+      this.router,
+      this.routes,
+      this.orderSequence,
+      this.errorHandlers,
+      this.modifiedHandler,
+      this.allowForward,
+      Collections.unmodifiableMap(metadata));
+  }
+
+  public Map<String, Object> getMetadata() {
+    return metadata;
+  }
+
 
   @Override
   public String toString() {
@@ -239,6 +274,7 @@ final class RouterState {
       ", errorHandlers=" + errorHandlers +
       ", modifiedHandler=" + modifiedHandler +
       ", this.allowForward=" + allowForward +
+      ", metadata=" + metadata +
       '}';
   }
 }

@@ -24,6 +24,7 @@ import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -3014,4 +3015,36 @@ public class RouterTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/?a=a&A=b", 200, "OK");
   }
+
+  @Test
+  public void testRouteMetadata() throws Exception {
+    router.route("/metadata")
+      .putMetadata("abc", "123")
+      .handler(rc -> {
+        Route route = rc.currentRoute();
+        String value = route.getMetadataValue("abc");
+        rc.end(value);
+      });
+
+    testRequest(HttpMethod.GET, "/metadata", 200, "OK", "123");
+  }
+
+  @Test
+  public void testRouterMetadata() throws Exception {
+
+    router.putMetadata("parent", "abc");
+    Router sub = Router.router(vertx).putMetadata("sub", "123");
+    sub.route("/metadata")
+      .handler(rc -> {
+        String subVal = ((RoutingContextInternal)rc).currentRouter().getMetadataValue("sub");
+        String parentVal = ((RoutingContextInternal)rc).parent().currentRouter().getMetadataValue("parent");
+        rc.end(parentVal + "-" + subVal);
+      });
+    router.mountSubRouter("/sub", sub);
+
+    testRequest(HttpMethod.GET, "/sub/metadata", 200, "OK", "abc-123");
+  }
+
+
+
 }

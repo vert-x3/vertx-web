@@ -25,6 +25,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.impl.RouterImpl;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * A router receives request from an {@link io.vertx.core.http.HttpServer} and routes it to the first matching
@@ -36,6 +37,34 @@ import java.util.List;
  */
 @VertxGen
 public interface Router extends Handler<HttpServerRequest> {
+
+  /**
+   * Put metadata to this router. Used for saved extra data.
+   * Remove the existing value if value is null.
+   *
+   * @param key the metadata of key
+   * @param value the metadata of value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Router putMetadata(String key, Object value);
+
+  /**
+   * @return the metadata of this router, never returns null.
+   */
+  Map<String, Object> getMetadata();
+
+  /**
+   * Get some data from metadata.
+   *
+   * @param key the key for the metadata
+   * @param <T> the type of the data
+   * @return  the data
+   */
+  @SuppressWarnings("unchecked")
+  default <T> T getMetadataValue(String key) {
+    return (T) getMetadata().get(key);
+  }
 
   /**
    * Create a router
