@@ -517,7 +517,7 @@ to send different headers to different hosts, you have to add them manually to e
 {@link io.vertx.ext.web.client.WebClientSession}.
 
 ifeval::["$lang" == "java"]
-include::override/rxjava2.adoc[]
+include::override/rxjava3.adoc[]
 endif::[]
 
 == Domain sockets

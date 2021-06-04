@@ -222,5 +222,5 @@ When you are ready, generate the router and use it:
 This method can fail with a {@link io.vertx.ext.web.api.contract.RouterFactoryException} if you didn't provide the required security handlers.
 
 ifeval::["$lang" == "java"]
-include::override/rxjava2.adoc[]
+include::override/rxjava3.adoc[]
 endif::[]
