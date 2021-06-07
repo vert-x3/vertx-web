@@ -239,5 +239,5 @@ The `FileUpload` instance can be accessed using the `DataFetchingEnvironment::ge
 ----
 
 ifeval::["$lang" == "java"]
-include::override/rxjava2.adoc[]
+include::override/rxjava3.adoc[]
 endif::[]
