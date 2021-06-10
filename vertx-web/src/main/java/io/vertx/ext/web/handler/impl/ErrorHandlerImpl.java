@@ -67,8 +67,8 @@ public class ErrorHandlerImpl implements ErrorHandler {
     if (response.headWritten()) {
       // response is already being processed, so we can't really
       // format the error as a "pretty print" message
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Unexpected error on route", failure);
+      if (LOG.isWarnEnabled()) {
+        LOG.warn("Response headers are already written", failure);
       }
 
       try {

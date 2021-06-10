@@ -130,6 +130,14 @@ public class CSRFHandlerImpl implements CSRFHandler {
         // it's not an option to change the same site policy
         .setSameSite(CookieSameSite.STRICT));
 
+    Session session = ctx.session();
+
+    if (session != null) {
+      // storing will include the session id too. The reason is that if a session is upgraded
+      // we don't want to allow the token to be valid anymore
+      session.put(headerName, session.id() + "/" + token);
+    }
+
     return token;
   }
 
@@ -340,9 +348,6 @@ public class CSRFHandlerImpl implements CSRFHandler {
           // create a new token, but we also store it in the session for the next runs
           if (sessionToken == null) {
             token = generateAndStoreToken(ctx);
-            // storing will include the session id too. The reason is that if a session is upgraded
-            // we don't want to allow the token to be valid anymore
-            session.put(headerName, session.id() + "/" + token);
           } else {
             String[] parts = sessionToken.split("\\.");
             final long ts = parseLong(parts[1]);
