@@ -452,4 +452,44 @@ public class CSRFHandlerTest extends WebTestBase {
       req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
     }, null, 200, "OK", null);
   }
+
+  @Test
+  public void testMultipleGetWithSessionSameToken() throws Exception {
+
+    final AtomicReference<String> cookieJar = new AtomicReference<>();
+
+    router.route().handler(BodyHandler.create());
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+    router.route().handler(CSRFHandler.create(vertx, "Abracadabra"));
+    router.route().handler(rc -> rc.response().end());
+
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      List<String> cookies = resp.headers().getAll("set-cookie");
+      assertEquals(2, cookies.size());
+      String encodedCookie = "";
+      // save the cookies
+      for (String cookie : cookies) {
+        encodedCookie += cookie.substring(0, cookie.indexOf(';'));
+        encodedCookie += "; ";
+        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+          tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
+        }
+      }
+      cookieJar.set(encodedCookie);
+    }, 200, "OK", null);
+
+    for (int i = 0; i < 5; i++) {
+      testRequest(
+        HttpMethod.GET,
+        "/",
+        req -> {
+          req.putHeader("cookie", cookieJar.get());
+        },
+        resp -> {
+          List<String> cookies = resp.headers().getAll("set-cookie");
+          // within the same session tokens are preserved across requests if not used
+          assertEquals(0, cookies.size());
+        }, 200, "OK", null);
+    }
+  }
 }
