@@ -96,7 +96,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
    * This method is protected so custom auth handlers can override the default
    * error handling
    */
-  private void processException(RoutingContext ctx, Throwable exception) {
+  protected void processException(RoutingContext ctx, Throwable exception) {
     if (exception != null) {
       if (exception instanceof HttpException) {
         final int statusCode = ((HttpException) exception).getStatusCode();
