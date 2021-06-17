@@ -164,13 +164,25 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         okAction.run();
       }
     } else {
-      BridgeEventImpl event = eventSupplier.get();
+      final BridgeEventImpl event = eventSupplier.get();
+      final boolean before = sockInfos.containsKey(event.socket());
       bridgeEventHandler.handle(event);
-      event.future().onComplete(res -> {
-        if (res.succeeded()) {
-          if (res.result()) {
-            if (okAction != null) {
-              okAction.run();
+      event.future()
+        .onFailure(err -> LOG.error("Failure in bridge event handler", err))
+        .onSuccess(ok -> {
+          if (ok) {
+            final boolean after = sockInfos.containsKey(event.socket());
+            if (before != after) {
+              // even though the event check is valid, the socket info isn't valid anymore
+              if (rejectAction != null) {
+                rejectAction.run();
+              } else {
+                LOG.debug("SockJSSocket state change prevented send or pub");
+              }
+            } else {
+              if (okAction != null) {
+                okAction.run();
+              }
             }
           } else {
             if (rejectAction != null) {
@@ -179,10 +191,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
               LOG.debug("Bridge handler prevented send or pub");
             }
           }
-        } else {
-          LOG.error("Failure in bridge event handler", res.cause());
-        }
-      });
+        });
     }
   }
 
