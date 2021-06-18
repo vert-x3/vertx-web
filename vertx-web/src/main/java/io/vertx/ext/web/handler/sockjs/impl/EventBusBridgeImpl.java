@@ -97,8 +97,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     // On close unregister any handlers that haven't been unregistered
     registrations.forEach((key, value) -> {
       value.unregister();
-      checkCallHook(() -> new BridgeEventImpl(BridgeEventType.UNREGISTER,
-        new JsonObject().put("type", "unregister").put("address", value.address()), sock), null, null);
+      checkCallHook(() ->
+        new BridgeEventImpl(
+          BridgeEventType.UNREGISTER,
+          new JsonObject().put("type", "unregister").put("address", value.address()),
+          sock));
     });
 
     SockInfo info = sockInfos.remove(sock);
@@ -109,8 +112,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }
     }
 
-    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CLOSED, null, sock),
-      null, null);
+    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CLOSED, null, sock));
   }
 
   private void handleSocketData(SockJSSocket sock, Buffer data, Map<String, MessageConsumer<?>> registrations) {
@@ -156,6 +158,10 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }
     }
 
+  }
+
+  private void checkCallHook(Supplier<BridgeEventImpl> eventSupplier) {
+    checkCallHook(eventSupplier, null, null);
   }
 
   private void checkCallHook(Supplier<BridgeEventImpl> eventSupplier, Runnable okAction, Runnable rejectAction) {
@@ -270,7 +276,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           registrations.put(address, reg);
           info.handlerCount++;
           // Notify registration completed
-          checkCallHook(() -> new BridgeEventImpl(BridgeEventType.REGISTERED, rawMsg, sock), null, null);
+          checkCallHook(() -> new BridgeEventImpl(BridgeEventType.REGISTERED, rawMsg, sock));
         } else {
           // inbound match failed
           if (debug) {
@@ -315,7 +321,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (info != null) {
       info.pingInfo.lastPing = System.currentTimeMillis();
       // Trigger an event to allow custom behavior after updating lastPing
-      checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_PING, null, sock), null, null);
+      checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_PING, null, sock));
     }
   }
 
