@@ -265,8 +265,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
     if (callbackURL == null) {
       // warn that the setup is probably wrong
-      LOG.warn("OAuth2AuthHandler was created without a origin/callback URL, setup is NO-OP");
-      return this;
+      throw new IllegalStateException("OAuth2AuthHandler was created without a origin/callback URL");
     }
 
     final String callbackPath = callbackURL.resource();
