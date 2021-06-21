@@ -97,8 +97,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     // On close unregister any handlers that haven't been unregistered
     registrations.forEach((key, value) -> {
       value.unregister();
-      checkCallHook(() -> new BridgeEventImpl(BridgeEventType.UNREGISTER,
-        new JsonObject().put("type", "unregister").put("address", value.address()), sock), null, null);
+      checkCallHook(() ->
+        new BridgeEventImpl(
+          BridgeEventType.UNREGISTER,
+          new JsonObject().put("type", "unregister").put("address", value.address()),
+          sock));
     });
 
     SockInfo info = sockInfos.remove(sock);
@@ -109,8 +112,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }
     }
 
-    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CLOSED, null, sock),
-      null, null);
+    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CLOSED, null, sock));
   }
 
   private void handleSocketData(SockJSSocket sock, Buffer data, Map<String, MessageConsumer<?>> registrations) {
@@ -158,19 +160,35 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
 
   }
 
+  private void checkCallHook(Supplier<BridgeEventImpl> eventSupplier) {
+    checkCallHook(eventSupplier, null, null);
+  }
+
   private void checkCallHook(Supplier<BridgeEventImpl> eventSupplier, Runnable okAction, Runnable rejectAction) {
     if (bridgeEventHandler == null) {
       if (okAction != null) {
         okAction.run();
       }
     } else {
-      BridgeEventImpl event = eventSupplier.get();
+      final BridgeEventImpl event = eventSupplier.get();
+      final boolean before = sockInfos.containsKey(event.socket());
       bridgeEventHandler.handle(event);
-      event.future().onComplete(res -> {
-        if (res.succeeded()) {
-          if (res.result()) {
-            if (okAction != null) {
-              okAction.run();
+      event.future()
+        .onFailure(err -> LOG.error("Failure in bridge event handler", err))
+        .onSuccess(ok -> {
+          if (ok) {
+            final boolean after = sockInfos.containsKey(event.socket());
+            if (before != after) {
+              // even though the event check is valid, the socket info isn't valid anymore
+              if (rejectAction != null) {
+                rejectAction.run();
+              } else {
+                LOG.debug("SockJSSocket state change prevented send or pub");
+              }
+            } else {
+              if (okAction != null) {
+                okAction.run();
+              }
             }
           } else {
             if (rejectAction != null) {
@@ -179,10 +197,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
               LOG.debug("Bridge handler prevented send or pub");
             }
           }
-        } else {
-          LOG.error("Failure in bridge event handler", res.cause());
-        }
-      });
+        });
     }
   }
 
@@ -261,7 +276,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           registrations.put(address, reg);
           info.handlerCount++;
           // Notify registration completed
-          checkCallHook(() -> new BridgeEventImpl(BridgeEventType.REGISTERED, rawMsg, sock), null, null);
+          checkCallHook(() -> new BridgeEventImpl(BridgeEventType.REGISTERED, rawMsg, sock));
         } else {
           // inbound match failed
           if (debug) {
@@ -306,7 +321,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (info != null) {
       info.pingInfo.lastPing = System.currentTimeMillis();
       // Trigger an event to allow custom behavior after updating lastPing
-      checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_PING, null, sock), null, null);
+      checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_PING, null, sock));
     }
   }
 
