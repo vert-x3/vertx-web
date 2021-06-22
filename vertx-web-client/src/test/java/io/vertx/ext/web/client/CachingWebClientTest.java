@@ -506,12 +506,14 @@ public class CachingWebClientTest {
 
     String body1 = executeGetBlocking(context);
 
+    // Wait > max-age but < stale-while-revalidate
     vertx.setTimer(2000, l -> waiter1.complete());
     waiter1.await();
 
     String body2 = executeGetBlocking(context);
 
-    vertx.setTimer(1000, l -> waiter2.complete());
+    // Wait > max-age + stale-while-revalidate but account for already waited
+    vertx.setTimer(2000, l -> waiter2.complete());
     waiter2.await();
 
     String body3 = executeGetBlocking(context);

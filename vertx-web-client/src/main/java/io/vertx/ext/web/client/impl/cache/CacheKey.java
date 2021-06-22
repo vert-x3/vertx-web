@@ -37,14 +37,14 @@ public class CacheKey extends CacheVariationsKey {
 
   @Override
   public String toString() {
-    String rawKey = super.toString() + "|" + variations;
-
     try {
       MessageDigest digest = MessageDigest.getInstance("SHA-256");
-      byte[] hashed = digest.digest(rawKey.getBytes(StandardCharsets.UTF_8));
+      digest.update(super.toString().getBytes(StandardCharsets.UTF_8));
+      digest.update(variations.getBytes(StandardCharsets.UTF_8));
+      byte[] hashed = digest.digest();
       return bytesToHex(hashed);
     } catch (Exception e) {
-      return rawKey;
+      return super.toString() + "|" + variations;
     }
   }
 

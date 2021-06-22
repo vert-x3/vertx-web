@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -33,8 +34,8 @@ import java.util.Set;
  */
 public class CacheControl {
 
-  private final Set<String> directives;
-  private final Map<String, Long> timeDirectives;
+  private final Set<CacheControlDirective> directives;
+  private final Map<CacheControlDirective, Long> timeDirectives;
   private final Instant expires;
   private final Instant date;
   private final String etag;
@@ -69,11 +70,11 @@ public class CacheControl {
     this.maxAge = computeMaxAge();
   }
 
-  public Set<String> getDirectives() {
+  public Set<CacheControlDirective> getDirectives() {
     return directives;
   }
 
-  public Map<String, Long> getTimeDirectives() {
+  public Map<CacheControlDirective, Long> getTimeDirectives() {
     return timeDirectives;
   }
 
@@ -98,7 +99,7 @@ public class CacheControl {
   }
 
   public boolean isCacheable() {
-    if (directives.contains(CacheControlDirectives.NO_STORE)) {
+    if (directives.contains(CacheControlDirective.NO_STORE)) {
       return false;
     }
     if ("*".equals(vary)) {
@@ -111,11 +112,11 @@ public class CacheControl {
   public boolean isPublic() {
     // Technically, you cannot say `Cache-Control: public, private` but on the chance that we do,
     // default to private which is considered safer and more strict.
-    return directives.contains(CacheControlDirectives.PUBLIC) && !isPrivate();
+    return directives.contains(CacheControlDirective.PUBLIC) && !isPrivate();
   }
 
   public boolean isPrivate() {
-    return directives.contains(CacheControlDirectives.PRIVATE);
+    return directives.contains(CacheControlDirective.PRIVATE);
   }
 
   public boolean isVarying() {
@@ -123,18 +124,18 @@ public class CacheControl {
   }
 
   public boolean noStore() {
-    return directives.contains(CacheControlDirectives.NO_STORE);
+    return directives.contains(CacheControlDirective.NO_STORE);
   }
 
   public boolean noCache() {
-    return !noStore() && directives.contains(CacheControlDirectives.NO_CACHE);
+    return !noStore() && directives.contains(CacheControlDirective.NO_CACHE);
   }
 
   private long computeMaxAge() {
-    if (!isPrivate() && timeDirectives.containsKey(CacheControlDirectives.SHARED_MAX_AGE)) {
-      return timeDirectives.get(CacheControlDirectives.SHARED_MAX_AGE);
-    } else if (timeDirectives.containsKey(CacheControlDirectives.MAX_AGE)) {
-      return timeDirectives.get(CacheControlDirectives.MAX_AGE);
+    if (!isPrivate() && timeDirectives.containsKey(CacheControlDirective.SHARED_MAX_AGE)) {
+      return timeDirectives.get(CacheControlDirective.SHARED_MAX_AGE);
+    } else if (timeDirectives.containsKey(CacheControlDirective.MAX_AGE)) {
+      return timeDirectives.get(CacheControlDirective.MAX_AGE);
     } else if (expires != null) {
       return Duration.between(date, expires).getSeconds();
     } else {
@@ -145,15 +146,21 @@ public class CacheControl {
   private void parseAllCacheControl(MultiMap headers) {
     headers.getAll(HttpHeaders.CACHE_CONTROL).forEach(value -> {
       for (String headerDirectives : value.split(",")) {
-        String[] directive = headerDirectives.split("=", 2);
+        String[] directiveParts = headerDirectives.split("=", 2);
+        Optional<CacheControlDirective> directive =
+          CacheControlDirective.fromHeader(directiveParts[0].trim().toLowerCase());
 
-        if (directive.length == 1) {
-          directives.add(directive[0].trim().toLowerCase());
+        if (!directive.isPresent()) {
+          continue;
+        }
+
+        if (directiveParts.length == 1) {
+          directives.add(directive.get());
         } else {
           try {
             timeDirectives.put(
-              directive[0].trim().toLowerCase(),
-              Long.parseLong(directive[1].replaceAll("\"", "").trim().toLowerCase())
+              directive.get(),
+              Long.parseLong(directiveParts[1].replaceAll("\"", "").trim().toLowerCase())
             );
           } catch (NumberFormatException e) {
             // The header contains unexpected data, ignore it
