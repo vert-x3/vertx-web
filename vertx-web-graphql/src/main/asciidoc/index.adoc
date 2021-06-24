@@ -70,7 +70,7 @@ To do so, create a route for GraphiQL resources and a {@link io.vertx.ext.web.ha
 {@link examples.GraphQLExamples#handlerSetupGraphiQL}
 ----
 
-Then browse to http://localhost:8080/graphiql/.
+Then browse to http://localhost:8080/graphiql/index.html
 
 NOTE: The GraphiQL user interface is disabled by default for security reasons.
 This is why you must configure the {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions} to enable it.
