@@ -93,28 +93,6 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     this.bridgeEventHandler = bridgeEventHandler;
   }
 
-  private void handleSocketClosed(SockJSSocket sock, Map<String, MessageConsumer<?>> registrations) {
-    // On close unregister any handlers that haven't been unregistered
-    registrations.forEach((key, value) -> {
-      value.unregister();
-      checkCallHook(() ->
-        new BridgeEventImpl(
-          BridgeEventType.UNREGISTER,
-          new JsonObject().put("type", "unregister").put("address", value.address()),
-          sock));
-    });
-
-    SockInfo info = sockInfos.remove(sock);
-    if (info != null) {
-      PingInfo pingInfo = info.pingInfo;
-      if (pingInfo != null) {
-        vertx.cancelTimer(pingInfo.timerID);
-      }
-    }
-
-    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CLOSED, null, sock));
-  }
-
   private void handleSocketData(SockJSSocket sock, Buffer data, Map<String, MessageConsumer<?>> registrations) {
     JsonObject msg;
 
@@ -330,8 +308,10 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       () -> {
         Map<String, MessageConsumer<?>> registrations = new HashMap<>();
 
-        sock.endHandler(v -> handleSocketClosed(sock, registrations));
-        sock.handler(data -> handleSocketData(sock, data, registrations));
+        sock
+          .handler(data -> handleSocketData(sock, data, registrations))
+          .exceptionHandler(err -> handleSocketException(sock, err, registrations))
+          .endHandler(v -> handleSocketClosed(sock, registrations));
 
         // Start a checker to check for pings
         PingInfo pingInfo = new PingInfo();
@@ -348,6 +328,37 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         sockInfo.pingInfo = pingInfo;
         sockInfos.put(sock, sockInfo);
       }, sock::close);
+  }
+
+  private void handleSocketClosed(SockJSSocket sock, Map<String, MessageConsumer<?>> registrations) {
+    clearSocketState(sock, registrations);
+    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CLOSED, null, sock));
+  }
+
+  private void handleSocketException(SockJSSocket sock, Throwable err, Map<String, MessageConsumer<?>> registrations) {
+    LOG.error("SockJSSocket exception", err);
+    clearSocketState(sock, registrations);
+    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_EXCEPTION, null, sock));
+  }
+
+  private void clearSocketState(SockJSSocket sock, Map<String, MessageConsumer<?>> registrations) {
+    // On close or exception unregister any handlers that haven't been unregistered
+    registrations.forEach((key, value) -> {
+      value.unregister();
+      checkCallHook(() ->
+        new BridgeEventImpl(
+          BridgeEventType.UNREGISTER,
+          new JsonObject().put("type", "unregister").put("address", value.address()),
+          sock));
+    });
+    // ensure that no timers remain active
+    SockInfo info = sockInfos.remove(sock);
+    if (info != null) {
+      PingInfo pingInfo = info.pingInfo;
+      if (pingInfo != null) {
+        vertx.cancelTimer(pingInfo.timerID);
+      }
+    }
   }
 
   private void checkAddAccceptedReplyAddress(Message<?> message) {
