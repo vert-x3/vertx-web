@@ -338,7 +338,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   private void handleSocketException(SockJSSocket sock, Throwable err, Map<String, MessageConsumer<?>> registrations) {
     LOG.error("SockJSSocket exception", err);
     clearSocketState(sock, registrations);
-    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_EXCEPTION, null, sock));
+    final JsonObject msg = new JsonObject().put("error", true);
+    if (err != null) {
+      msg.put("message", err.getMessage());
+    }
+    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CLOSED, msg, sock));
   }
 
   private void clearSocketState(SockJSSocket sock, Map<String, MessageConsumer<?>> registrations) {
