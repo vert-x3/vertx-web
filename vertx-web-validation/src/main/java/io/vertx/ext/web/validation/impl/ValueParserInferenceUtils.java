@@ -18,9 +18,12 @@ public class ValueParserInferenceUtils {
   public static ValueParser<String> infeerPrimitiveParser(Object schema) {
     if (schema == null) return null;
     if (schema instanceof Boolean) {
-      return (boolean)schema ? NOOP_PARSER : null;
+      return (boolean) schema ? NOOP_PARSER : null;
     }
     String type = ((JsonObject) schema).getString("type");
+    if (type == null) {
+      return NOOP_PARSER;
+    }
     switch (type) {
       case "integer":
         return LONG_PARSER;
