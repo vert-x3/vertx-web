@@ -53,10 +53,22 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     if (routingContext.user() == null) {
       routingContext.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
     } else {
-      // create the authorization context
-      AuthorizationContext authorizationContext = getAuthorizationContext(routingContext);
-      // check or fetch authorizations
-      checkOrFetchAuthorizations(routingContext, authorizationContext, authorizationProviders.iterator());
+      // before starting any potential async operation here
+      // pause parsing the request body. The reason is that
+      // we don't want to loose the body or protocol upgrades
+      // for async operations
+      routingContext.request().pause();
+
+      try {
+        // create the authorization context
+        AuthorizationContext authorizationContext = getAuthorizationContext(routingContext);
+        // check or fetch authorizations
+        checkOrFetchAuthorizations(routingContext, authorizationContext, authorizationProviders.iterator());
+      } catch (RuntimeException e) {
+        // resume as the error handler may allow this request to become valid again
+        routingContext.request().resume();
+        routingContext.fail(e);
+      }
     }
   }
 
@@ -76,10 +88,14 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
    */
   private void checkOrFetchAuthorizations(RoutingContext routingContext, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
     if (authorization.match(authorizationContext)) {
+      // resume the processing of the request
+      routingContext.request().resume();
       routingContext.next();
       return;
     }
     if (!providers.hasNext()) {
+      // resume as the error handler may allow this request to become valid again
+      routingContext.request().resume();
       routingContext.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
       return;
     }
