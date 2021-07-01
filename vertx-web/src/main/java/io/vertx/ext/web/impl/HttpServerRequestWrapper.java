@@ -1,5 +1,6 @@
 package io.vertx.ext.web.impl;
 
+import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
@@ -74,6 +75,11 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
   public HttpServerRequest body(Handler<AsyncResult<Buffer>> handler) {
     delegate.body(handler);
     return this;
+  }
+
+  @Override
+  public DecoderResult decoderResult() {
+    return delegate.decoderResult();
   }
 
   @Override
