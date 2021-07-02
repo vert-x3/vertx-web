@@ -178,8 +178,8 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public void fail(int statusCode, Throwable throwable) {
     this.statusCode = statusCode;
     this.failure = throwable == null ? new NullPointerException() : throwable;
-    if (LOG.isInfoEnabled()) {
-      LOG.info("RoutingContext failure (" + statusCode + ")", failure);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("RoutingContext failure (" + statusCode + ")", failure);
     }
     doFail();
   }
