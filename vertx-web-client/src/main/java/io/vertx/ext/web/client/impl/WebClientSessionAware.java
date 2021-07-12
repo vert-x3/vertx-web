@@ -12,6 +12,9 @@ package io.vertx.ext.web.client.impl;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientSession;
 import io.vertx.ext.web.client.spi.CookieStore;
@@ -23,10 +26,16 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
 
   private final CookieStore cookieStore;
   private MultiMap headers;
+  final OAuth2Auth oAuth2Auth;
+  private String securityHeader;
+  private User user;
+  private JsonObject tokenConfig;
+  protected boolean withAuthentication;
 
-  public WebClientSessionAware(WebClient webClient, CookieStore cookieStore) {
+  public WebClientSessionAware(WebClient webClient, CookieStore cookieStore, OAuth2Auth oAuth2Auth) {
     super((WebClientBase) webClient);
     this.cookieStore = cookieStore;
+    this.oAuth2Auth = oAuth2Auth;
     addInterceptor(new SessionAwareInterceptor());
   }
 
@@ -34,11 +43,80 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
     return cookieStore;
   }
 
+  @Override
+  public WebClientSession withAuthentication(JsonObject tokenConfig) {
+
+    if (oAuth2Auth == null) {
+      throw new NullPointerException("Can not obtain required authentication for request as oAuth2Auth provider is null");
+    }
+
+    if (tokenConfig == null) {
+      throw new NullPointerException("Token Configuration passed to WebClientSessionAware can not be null");
+    }
+
+    if (this.tokenConfig != null && !this.tokenConfig.equals(tokenConfig)) {
+      //We need to invalidate the current data as new configuration is passed
+      user = null;
+      securityHeader = null;
+    }
+
+    this.tokenConfig = tokenConfig;
+
+    if (user != null) {
+      if (user.expired()) {
+        //Token has expired we need to invalidate the session
+        oAuth2Auth.refresh(user)
+          .onSuccess(userResult -> {
+            user = userResult;
+            securityHeader = userResult.principal().getString("access_token");
+            this.withAuthentication = true;
+          })
+          .onFailure(error -> {
+            // Refresh token failed, we can try standard authentication
+            oAuth2Auth.authenticate(tokenConfig)
+              .onSuccess(userResult -> {
+                user = userResult;
+                securityHeader = userResult.principal().getString("access_token");
+                this.withAuthentication = true;
+              })
+              .onFailure(errorAuth -> {
+                //Refresh token did not work and failed to obtain new authentication token, we need to fail
+                user = null;
+                securityHeader = null;
+                this.withAuthentication = false;
+                throw new RuntimeException(errorAuth);
+              });
+          });
+      }
+    } else {
+      oAuth2Auth.authenticate(tokenConfig)
+        .onSuccess(userResult -> {
+          this.user = userResult;
+          this.securityHeader = userResult.principal().getString("access_token");
+          this.withAuthentication = true;
+        })
+        .onFailure(errorAuth -> {
+          securityHeader = null;
+          this.withAuthentication = false;
+          throw new RuntimeException(errorAuth);
+        });
+    }
+    return this;
+  }
+
   protected MultiMap headers() {
     if (headers == null) {
       headers = HttpHeaders.headers();
     }
     return headers;
+  }
+
+  protected User getUser() {
+    return user;
+  }
+
+  protected String getSecurityHeader() {
+    return securityHeader;
   }
 
   @Override

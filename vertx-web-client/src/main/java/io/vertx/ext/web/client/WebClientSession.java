@@ -13,6 +13,8 @@ package io.vertx.ext.web.client;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.client.impl.WebClientSessionAware;
 import io.vertx.ext.web.client.spi.CookieStore;
 
@@ -54,11 +56,35 @@ public interface WebClientSession extends WebClient {
    * Create a session aware web client using the provided {@code webClient} instance.
    *
    * @param webClient the web client instance
+   * @param oAuth2Auth Configured oAuth2Auth provider to be used when {@link #withAuthentication(JsonObject)} used
+   * @return the created client
+   */
+  static WebClientSession create(WebClient webClient, OAuth2Auth oAuth2Auth) {
+    return create(webClient, CookieStore.build(), oAuth2Auth);
+  }
+
+  /**
+   * Create a session aware web client using the provided {@code webClient} instance.
+   *
+   * @param webClient the web client instance
    * @return the created client
    */
   @GenIgnore
   static WebClientSession create(WebClient webClient, CookieStore cookieStore) {
-    return new WebClientSessionAware(webClient, cookieStore);
+    return new WebClientSessionAware(webClient, cookieStore, null);
+  }
+
+  /**
+   * Create a session aware web client using the provided {@code webClient} instance.
+   *
+   * @param webClient the web client instance
+   * @param cookieStore CookieStore to be used for each request
+   * @param oAuth2Auth Configured oAuth2Auth provider to be used when {@link #withAuthentication(JsonObject)} used
+   * @return the created client
+   */
+  @GenIgnore
+  static WebClientSession create(WebClient webClient, CookieStore cookieStore, OAuth2Auth oAuth2Auth) {
+    return new WebClientSessionAware(webClient, cookieStore, oAuth2Auth);
   }
 
   /**
@@ -133,4 +159,13 @@ public interface WebClientSession extends WebClient {
    */
   @GenIgnore
   CookieStore cookieStore();
+
+  /**
+   * Mark that request should be dispatched with authentication obtained from passed {@code OAuth2Auth} provider
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+
+  @Fluent
+  WebClientSession withAuthentication(JsonObject tokenConfig);
 }
