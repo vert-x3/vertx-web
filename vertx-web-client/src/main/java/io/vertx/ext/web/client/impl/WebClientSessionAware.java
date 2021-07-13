@@ -26,11 +26,10 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
 
   private final CookieStore cookieStore;
   private MultiMap headers;
-  final OAuth2Auth oAuth2Auth;
-  private String securityHeader;
-  private User user;
+  private final OAuth2Auth oAuth2Auth;
   private JsonObject tokenConfig;
-  protected boolean withAuthentication;
+  private User user;
+  private boolean withAuthentication;
 
   public WebClientSessionAware(WebClient webClient, CookieStore cookieStore, OAuth2Auth oAuth2Auth) {
     super((WebClientBase) webClient);
@@ -45,7 +44,6 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
 
   @Override
   public WebClientSession withAuthentication(JsonObject tokenConfig) {
-
     if (oAuth2Auth == null) {
       throw new NullPointerException("Can not obtain required authentication for request as oAuth2Auth provider is null");
     }
@@ -57,50 +55,11 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
     if (this.tokenConfig != null && !this.tokenConfig.equals(tokenConfig)) {
       //We need to invalidate the current data as new configuration is passed
       user = null;
-      securityHeader = null;
     }
 
     this.tokenConfig = tokenConfig;
+    this.withAuthentication = true;
 
-    if (user != null) {
-      if (user.expired()) {
-        //Token has expired we need to invalidate the session
-        oAuth2Auth.refresh(user)
-          .onSuccess(userResult -> {
-            user = userResult;
-            securityHeader = userResult.principal().getString("access_token");
-            this.withAuthentication = true;
-          })
-          .onFailure(error -> {
-            // Refresh token failed, we can try standard authentication
-            oAuth2Auth.authenticate(tokenConfig)
-              .onSuccess(userResult -> {
-                user = userResult;
-                securityHeader = userResult.principal().getString("access_token");
-                this.withAuthentication = true;
-              })
-              .onFailure(errorAuth -> {
-                //Refresh token did not work and failed to obtain new authentication token, we need to fail
-                user = null;
-                securityHeader = null;
-                this.withAuthentication = false;
-                throw new RuntimeException(errorAuth);
-              });
-          });
-      }
-    } else {
-      oAuth2Auth.authenticate(tokenConfig)
-        .onSuccess(userResult -> {
-          this.user = userResult;
-          this.securityHeader = userResult.principal().getString("access_token");
-          this.withAuthentication = true;
-        })
-        .onFailure(errorAuth -> {
-          securityHeader = null;
-          this.withAuthentication = false;
-          throw new RuntimeException(errorAuth);
-        });
-    }
     return this;
   }
 
@@ -111,12 +70,28 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
     return headers;
   }
 
-  protected User getUser() {
+  OAuth2Auth getOAuth2Auth() {
+    return oAuth2Auth;
+  }
+
+  JsonObject getTokenConfig() {
+    return tokenConfig;
+  }
+
+  User getUser() {
     return user;
   }
 
-  protected String getSecurityHeader() {
-    return securityHeader;
+  void setUser(User user) {
+    this.user = user;
+  }
+
+  boolean isWithAuthentication() {
+    return withAuthentication;
+  }
+
+  void setWithAuthentication(boolean withAuthentication) {
+    this.withAuthentication = withAuthentication;
   }
 
   @Override
