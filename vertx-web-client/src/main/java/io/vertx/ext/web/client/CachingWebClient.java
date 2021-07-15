@@ -15,6 +15,7 @@
  */
 package io.vertx.ext.web.client;
 
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
@@ -89,6 +90,7 @@ public interface CachingWebClient {
    * @param cacheStore the cache adapter
    * @return the created web client
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static WebClient create(Vertx vertx, CacheStore cacheStore) {
     CachingWebClientOptions options = new CachingWebClientOptions();
     return create(vertx, cacheStore, options);
@@ -101,6 +103,7 @@ public interface CachingWebClient {
    * @param cacheStore the cache adapter
    * @return the created web client
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static WebClient create(WebClient webClient, CacheStore cacheStore) {
     CachingWebClientOptions options = new CachingWebClientOptions();
     return create(webClient, cacheStore, options);
@@ -114,6 +117,7 @@ public interface CachingWebClient {
    * @param options    the caching web client options
    * @return the created web client
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static WebClient create(Vertx vertx, CacheStore cacheStore, CachingWebClientOptions options) {
     WebClient webClient = WebClient.create(vertx, options);
     return create(webClient, cacheStore, options);
@@ -127,6 +131,7 @@ public interface CachingWebClient {
    * @param options    the caching web client options
    * @return the created web client
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static WebClient create(WebClient webClient, CacheStore cacheStore, CachingWebClientOptions options) {
     WebClientInternal cacheClient = (WebClientInternal) webClient;
     cacheClient.addInterceptor(new CacheInterceptor(cacheStore,  options));
@@ -140,6 +145,7 @@ public interface CachingWebClient {
    * @param cacheStore the cache adapter
    * @return the created web client
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static WebClient wrap(HttpClient httpClient, CacheStore cacheStore) {
     CachingWebClientOptions options = new CachingWebClientOptions();
     return wrap(httpClient, cacheStore, options);
@@ -153,6 +159,7 @@ public interface CachingWebClient {
    * @param options    the caching web client options
    * @return the created web client
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static WebClient wrap(HttpClient httpClient, CacheStore cacheStore, CachingWebClientOptions options) {
     WebClient webClient = new WebClientBase(httpClient, options);
     return create(webClient, cacheStore, options);

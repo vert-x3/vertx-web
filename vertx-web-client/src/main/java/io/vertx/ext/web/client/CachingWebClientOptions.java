@@ -19,6 +19,7 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.Http2Settings;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.JdkSSLEngineOptions;
 import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.KeyCertOptions;
@@ -38,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */
-@DataObject
+@DataObject(generateConverter = true)
 public class CachingWebClientOptions extends WebClientOptions {
 
   public static final Set<Integer> DEFAULT_CACHED_STATUS_CODES = buildDefaultStatusCodes();
@@ -61,12 +62,28 @@ public class CachingWebClientOptions extends WebClientOptions {
     super(other);
   }
 
+  public CachingWebClientOptions(JsonObject json) {
+    super(json);
+    CachingWebClientOptionsConverter.fromJson(json, this);
+  }
+
   void init(CachingWebClientOptions other) {
     super.init(other);
     this.enablePublicCaching = other.enablePublicCaching;
     this.enablePrivateCaching = other.enablePrivateCaching;
     this.enableVaryCaching = other.enableVaryCaching;
     this.cachedStatusCodes = other.cachedStatusCodes;
+  }
+
+  /**
+   * Convert to JSON
+   *
+   * @return the JSON
+   */
+  public JsonObject toJson() {
+    JsonObject json = super.toJson();
+    CachingWebClientOptionsConverter.toJson(this, json);
+    return json;
   }
 
   /**
