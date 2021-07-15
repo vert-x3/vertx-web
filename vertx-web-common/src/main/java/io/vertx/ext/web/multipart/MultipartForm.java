@@ -16,9 +16,12 @@
 package io.vertx.ext.web.multipart;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.multipart.impl.MultipartFormImpl;
+
+import java.nio.charset.Charset;
 
 /**
  * A multipart form.
@@ -34,6 +37,31 @@ public interface MultipartForm extends Iterable<FormDataPart> {
   static MultipartForm create() {
     return new MultipartFormImpl();
   }
+
+  /**
+   * Set the {@code charset} to use when encoding the form. The default charset is {@link java.nio.charset.StandardCharsets#UTF_8}.
+   *
+   * @param charset the charset to use
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  MultipartForm setCharset(String charset);
+
+  /**
+   * Set the {@code charset} to use when encoding the form. The default charset is {@link java.nio.charset.StandardCharsets#UTF_8}.
+   *
+   * @param charset the charset to use
+   * @return a reference to this, so the API can be used fluently
+   */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @Fluent
+  MultipartForm setCharset(Charset charset);
+
+  /**
+   * @return the charset to use when encoding the form
+   */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  Charset getCharset();
 
   /**
    * Add an attribute form data part.

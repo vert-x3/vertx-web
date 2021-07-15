@@ -434,14 +434,6 @@ public class HttpContext<T> {
   private void handleCreateRequest() {
     requestPromise = Promise.promise();
     if (body != null || "application/json".equals(contentType)) {
-      if (body instanceof MultiMap) {
-        MultipartForm parts = MultipartForm.create();
-        MultiMap attributes = (MultiMap) body;
-        for (Map.Entry<String, String> attribute : attributes) {
-          parts.attribute(attribute.getKey(), attribute.getValue());
-        }
-        body = parts;
-      }
       if (body instanceof MultipartForm) {
         MultipartFormUpload multipartForm;
         try {
