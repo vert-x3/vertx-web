@@ -20,9 +20,13 @@ import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.HttpConstants;
 import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
+import io.netty.handler.codec.http.multipart.FileUpload;
+import io.netty.handler.codec.http.multipart.HttpData;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryFileUpload;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
@@ -36,6 +40,8 @@ import io.vertx.ext.web.multipart.FormDataPart;
 import io.vertx.ext.web.multipart.MultipartForm;
 
 import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * A stream that sends a multipart form.
@@ -67,11 +73,21 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
       HttpVersion.HTTP_1_1,
       io.netty.handler.codec.http.HttpMethod.POST,
       "/");
+    parts.getCharset();
+    Charset charset = parts.getCharset() != null ? parts.getCharset() : HttpConstants.DEFAULT_CHARSET;
     this.encoder = new HttpPostRequestEncoder(
-      new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE),
+      new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE, charset) {
+        @Override
+        public FileUpload createFileUpload(HttpRequest request, String name, String filename, String contentType, String contentTransferEncoding, Charset _charset, long size) {
+          if (_charset == null) {
+            _charset = charset;
+          }
+          return super.createFileUpload(request, name, filename, contentType, contentTransferEncoding, _charset, size);
+        }
+      },
       request,
       multipart,
-      HttpConstants.DEFAULT_CHARSET,
+      charset,
       encoderMode);
     for (FormDataPart formDataPart : parts) {
       if (formDataPart.isAttribute()) {
