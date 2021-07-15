@@ -36,6 +36,7 @@ import io.vertx.ext.web.multipart.MultipartForm;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -300,7 +301,17 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   @Override
   public void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    send("application/x-www-form-urlencoded", body, handler);
+    sendForm(body, "UTF-8", handler);
+  }
+
+  @Override
+  public void sendForm(MultiMap body, String charset, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    MultipartForm parts = MultipartForm.create();
+    for (Map.Entry<String, String> attribute : body) {
+      parts.attribute(attribute.getKey(), attribute.getValue());
+    }
+    parts.setCharset(charset);
+    send("application/x-www-form-urlencoded", parts, handler);
   }
 
   @Override
