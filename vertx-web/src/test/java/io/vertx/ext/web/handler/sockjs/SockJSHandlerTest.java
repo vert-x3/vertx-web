@@ -371,6 +371,9 @@ public class SockJSHandlerTest extends WebTestBase {
   public void testWebContext() throws Exception {
     waitFor(2);
     SessionStore store = SessionStore.create(vertx);
+    // given that we want to test sessions created and modified during sockjs handshakes we
+    // can't rely on the response to be available to set cookies. In this test we use cookieless
+    // sessions to adress the timing issues
     SessionHandler handler = SessionHandler.create(store).setCookieless(true);
     CompletableFuture<String> sessionID = new CompletableFuture();
     CompletableFuture<User> sessionUser = new CompletableFuture();
