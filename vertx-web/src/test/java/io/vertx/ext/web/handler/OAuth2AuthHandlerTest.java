@@ -473,7 +473,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .create(
         vertx,
         new OAuth2Options()
-          // the audience must match the audience of the tokens
+          // the client id must match the audience of the tokens
           .setClientId("s6BhdRkqt3")
           .addPubSecKey(new PubSecKeyOptions()
             .setAlgorithm("RS256")
