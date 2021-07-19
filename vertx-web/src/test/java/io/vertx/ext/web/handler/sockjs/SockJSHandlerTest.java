@@ -371,7 +371,7 @@ public class SockJSHandlerTest extends WebTestBase {
   public void testWebContext() throws Exception {
     waitFor(2);
     SessionStore store = SessionStore.create(vertx);
-    SessionHandler handler = SessionHandler.create(store);
+    SessionHandler handler = SessionHandler.create(store).setCookieless(true);
     CompletableFuture<String> sessionID = new CompletableFuture();
     CompletableFuture<User> sessionUser = new CompletableFuture();
     router.mountSubRouter("/webcontext", SockJSHandler.create(vertx)
