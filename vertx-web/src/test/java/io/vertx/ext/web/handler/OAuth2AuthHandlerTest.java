@@ -466,7 +466,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Bearer 4adc339e0"), 401, "Unauthorized", "Unauthorized");
   }
 
-  @Ignore("does not pass anymore - fixme")
   @Test
   public void testBearerOnlyWithJWT() throws Exception {
 
@@ -474,7 +473,8 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .create(
         vertx,
         new OAuth2Options()
-          .setClientID("dummy-client")
+          // the audience must match the audience of the tokens
+          .setClientId("s6BhdRkqt3")
           .addPubSecKey(new PubSecKeyOptions()
             .setAlgorithm("RS256")
             .setBuffer(
