@@ -229,7 +229,7 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
           if (address == null)
             throw RouterBuilderException.createWrongExtension("Extension " + OPENAPI_EXTENSION + " must define " + OPENAPI_EXTENSION_ADDRESS); //TODO specify where
           if (methodName == null)
-            operation.mountRouteToService(address, opEntry.getKey());
+            operation.mountRouteToService(address, opEntry.getKey(), new DeliveryOptions(sanitizedMap));
           else
             operation.mountRouteToService(address, methodName, new DeliveryOptions(sanitizedMap));
         } else {
