@@ -152,6 +152,28 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
+  public void testHookSocketClosedAbruptly() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEventType.SOCKET_CLOSED) {
+        assertNotNull(be.socket());
+        assertNotNull(be.getRawMessage());
+        be.complete(true);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+
+    BridgeClient client = new BridgeClient();
+    client.connect(websocketURI).onComplete(onSuccess(v -> {
+      client.transportClient.result().abruptClose();
+    }));
+
+    await();
+  }
+
+  @Test
   public void testHookSend() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
