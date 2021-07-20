@@ -15,11 +15,18 @@
  */
 package io.vertx.ext.web.handler;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelPromise;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.WebSocketBase;
+import io.vertx.core.http.impl.HttpClientConnection;
+import io.vertx.core.http.impl.WebSocketInternal;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
@@ -30,20 +37,35 @@ import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.sockjs.*;
+import io.vertx.ext.web.handler.sockjs.impl.JsonCodec;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
+@RunWith(Parameterized.class)
 public class EventbusBridgeTest extends WebTestBase {
+
+  @Parameterized.Parameters(name = "{index}: transport = {0}")
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+      { Transport.RAW_WS }, { Transport.WS }
+    });
+  }
 
   protected SockJSHandler sockJSHandler;
   protected SockJSBridgeOptions defaultOptions = new SockJSBridgeOptions();
@@ -52,6 +74,12 @@ public class EventbusBridgeTest extends WebTestBase {
 
   protected String websocketURI = "/eventbus/websocket";
   protected String addr = "someaddress";
+
+  private Transport transport;
+
+  public EventbusBridgeTest(Transport transport) {
+    this.transport = transport;
+  }
 
   @Override
   public void setUp() throws Exception {
@@ -91,10 +119,11 @@ public class EventbusBridgeTest extends WebTestBase {
       }
     });
 
-    client.webSocket(websocketURI, onSuccess(ws -> {
-      JsonObject msg = new JsonObject().put("type", "send").put("address", addr).put("body", "foobar");
-      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
-      ws.closeHandler(v -> latch.countDown());
+    BridgeClient client = new BridgeClient();
+    client
+      .connect(websocketURI).compose(v -> client.send(addr, "foobar"))
+      .onComplete(onSuccess(v -> {
+      latch.countDown();
     }));
 
     awaitLatch(latch);
@@ -113,7 +142,12 @@ public class EventbusBridgeTest extends WebTestBase {
         be.complete(true);
       }
     });
-    client.webSocket(websocketURI, onSuccess(WebSocketBase::close));
+
+    BridgeClient client = new BridgeClient();
+    client.connect(websocketURI).onComplete(onSuccess(v -> {
+      client.close();
+    }));
+
     await();
   }
 
@@ -337,20 +371,15 @@ public class EventbusBridgeTest extends WebTestBase {
       be.complete(true);
     });
 
-    client.webSocket(websocketURI, onSuccess(ws -> {
-      // Register
-      JsonObject msg = new JsonObject().put("type", "register").put("address", addr);
-      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
+    BridgeClient client = new BridgeClient();
 
-      ws.handler(buff -> {
-        String str = buff.toString();
-        JsonObject received = new JsonObject(str);
-        assertEquals("rec", received.getString("type"));
-        assertEquals(payload, received.getString("body"));
-        ws.closeHandler(v -> requestLatch.countDown());
-        ws.close();
-      });
-    }));
+    client.handler((address, body) -> {
+      assertEquals(addr, address);
+      assertEquals(payload, body);
+      client.close().onComplete(v2 -> requestLatch.countDown());
+    });
+
+    client.connect(websocketURI).compose(v -> client.register(addr)).onComplete(onSuccess(v -> {}));
 
     awaitLatch(registerLatch);
     awaitLatch(registeredLatch);
@@ -767,7 +796,9 @@ public class EventbusBridgeTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(1);
 
-    client.webSocket(websocketURI, onSuccess(ws -> {
+    BridgeClient client = new BridgeClient();
+
+    client.connect(websocketURI).onComplete(onSuccess(v -> {
 
       MessageConsumer<Object> consumer = vertx.eventBus().consumer(addr);
 
@@ -780,24 +811,19 @@ public class EventbusBridgeTest extends WebTestBase {
 
       String replyAddress = UUID.randomUUID().toString();
 
-      JsonObject msg = new JsonObject().put("type", "send").put("address", addr).put("replyAddress", replyAddress).put("body", "foobar");
-
-      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
-
-      ws.handler(buff -> {
-        String str = buff.toString();
-        JsonObject received = new JsonObject(str);
-        Object rec = received.getValue("body");
-        assertEquals("barfoo", rec);
-        ws.closeHandler(v -> latch.countDown());
-        ws.close();
+      client.handler((addr, body) -> {
+        assertEquals(replyAddress, addr);
+        assertEquals("barfoo", body);
+        client.close().onComplete(onSuccess(v2 -> latch.countDown()));
       });
 
+      client.request(addr, replyAddress, "foobar");
     }));
 
     awaitLatch(latch);
   }
 
+  // TODO : convert to use BridgeClient
   @Test
   public void testReplyMessagesInboundWithHeaders() throws Exception {
 
@@ -842,6 +868,7 @@ public class EventbusBridgeTest extends WebTestBase {
     awaitLatch(latch);
   }
 
+  // TODO : convert to use BridgeClient
   @Test
   public void testReplyMessagesOutbound() throws Exception {
 
@@ -879,6 +906,7 @@ public class EventbusBridgeTest extends WebTestBase {
     awaitLatch(latch);
   }
 
+  // TODO : convert to use BridgeClient
   @Test
   public void testReplyToClientTimeout() throws Exception {
 
@@ -919,6 +947,7 @@ public class EventbusBridgeTest extends WebTestBase {
     awaitLatch(latch);
   }
 
+  // TODO : convert to use BridgeClient
   @Test
   public void testAwaitingReplyToClientTimeout() throws Exception {
 
@@ -989,6 +1018,7 @@ public class EventbusBridgeTest extends WebTestBase {
       "access_denied");
   }
 
+  // TODO : convert to use BridgeClient
   @Test
   public void testMaxHandlersPerSocket() throws Exception {
 
@@ -1035,6 +1065,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
   }
 
+  // TODO : convert to use BridgeClient
   @Test
   public void testMaxAddressLength() throws Exception {
 
@@ -1117,6 +1148,7 @@ public class EventbusBridgeTest extends WebTestBase {
       .put("replyAddress", "thishasmorethan36characters__________"), "invalid_reply_address");
   }
 
+  // TODO : convert to use BridgeClient
   @Test
   public void testConnectionClosedAfterPingTimeout() throws Exception {
     sockJSHandler.bridge(allAccessOptions.setPingTimeout(1000));
@@ -1188,18 +1220,14 @@ public class EventbusBridgeTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(1);
 
-    client.webSocket(websocketURI, onSuccess(ws -> {
-
-      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg, true));
-
-      ws.handler(buff -> {
-        String str = buff.toString();
-        JsonObject received = new JsonObject(str);
-        assertEquals("err", received.getString("type"));
-        assertEquals(expectedErr, received.getString("body"));
-        latch.countDown();
-      });
-    }));
+    BridgeClient client = new BridgeClient();
+    client.errorHandler(err -> {
+      assertEquals(expectedErr, err);
+      latch.countDown();
+    });
+    client.connect(websocketURI)
+      .compose(v -> client.transportClient.result().write(msg))
+      .onComplete(onSuccess(v -> {}));
 
     awaitLatch(latch);
   }
@@ -1216,22 +1244,18 @@ public class EventbusBridgeTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(1);
 
-    client.webSocket(websocketURI, onSuccess(ws -> {
-
+    BridgeClient client = new BridgeClient();
+    client.connect(websocketURI).onComplete(onSuccess(v1 -> {
       MessageConsumer<Object> consumer = vertx.eventBus().consumer(address);
-
       consumer.handler(msg -> {
         Object receivedBody = msg.body();
         assertEquals(body, receivedBody);
         if (headers) {
           checkHeaders(msg);
         }
-        consumer.unregister(v -> latch.countDown());
+        consumer.unregister(v2 -> latch.countDown());
       });
-
-      JsonObject msg = new JsonObject().put("type", "send").put("address", address).put("body", body);
-      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
-
+      client.send(address, body);
     }));
 
     awaitLatch(latch);
@@ -1254,8 +1278,9 @@ public class EventbusBridgeTest extends WebTestBase {
   private void testPublish(String address, Object body, boolean headers) throws Exception {
     CountDownLatch latch = new CountDownLatch(2);
 
-    client.webSocket(websocketURI, onSuccess(ws -> {
+    BridgeClient client = new BridgeClient();
 
+    client.connect(websocketURI).onComplete(onSuccess(v1 -> {
       vertx.eventBus().consumer(address, msg -> {
         Object receivedBody = msg.body();
         assertEquals(body, receivedBody);
@@ -1274,9 +1299,7 @@ public class EventbusBridgeTest extends WebTestBase {
         latch.countDown();
       });
 
-      JsonObject msg = new JsonObject().put("type", "publish").put("address", address).put("body", body);
-      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
-
+      client.publish(address, body);
     }));
 
     awaitLatch(latch);
@@ -1288,28 +1311,24 @@ public class EventbusBridgeTest extends WebTestBase {
 
   private void testReceive(String address, Object body) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    client.webSocket(websocketURI, onSuccess(ws -> {
-
-      // Register
-      JsonObject msg = new JsonObject().put("type", "register").put("address", address);
-      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
-
-      ws.handler(buff -> {
-        String str = buff.toString();
-        JsonObject received = new JsonObject(str);
-        assertEquals("rec", received.getString("type"));
-        Object rec = received.getValue("body");
-        assertEquals(body, rec);
-        ws.closeHandler(v -> latch.countDown());
-        ws.close();
-      });
-
+    BridgeClient client = new BridgeClient();
+    client.handler((addr, rec) -> {
+      assertEquals(address, addr);
+      assertEquals(body, rec);
+      client.close().onComplete(onSuccess(v2 -> {
+        latch.countDown();;
+      }));
+    });
+    client.connect(websocketURI)
+      .compose(v -> client.register(address))
+      .onComplete(onSuccess(v -> {
       // Wait a bit to allow the handler to be setup on the server, then send message from eventbus
       vertx.setTimer(200, tid -> vertx.eventBus().send(address, body));
     }));
     awaitLatch(latch);
   }
 
+  // TODO : convert to use BridgeClient
   private void testReceiveFail(String address, Object body) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     client.webSocket(websocketURI, onSuccess(ws -> {
@@ -1329,6 +1348,7 @@ public class EventbusBridgeTest extends WebTestBase {
     awaitLatch(latch);
   }
 
+  // TODO : convert to use BridgeClient
   private void testUnregister(String address) throws Exception {
 
     CountDownLatch latch = new CountDownLatch(1);
@@ -1367,5 +1387,182 @@ public class EventbusBridgeTest extends WebTestBase {
     awaitLatch(latch);
   }
 
+  enum Transport {
+    WS() {
+      @Override
+      Future<TransportClient> connect(HttpClient client, String address) {
+        return client.webSocket("/eventbus/400/8ne8e94a/websocket").map(ws -> new TransportClient() {
+          private Handler<JsonObject> handler;
+          {
+            ws.handler(buff -> {
+              String str = buff.toString();
+              if (str.equals("o")) {
+                // Opening frame
+              } else if (str.startsWith("a[\"") && str.endsWith("\"]")) {
+                str = str.substring(1);
+                List<String> msgList = JsonCodec.decodeValues(str);
+                msgList.forEach(s -> {
+                  Object msg = Json.decodeValue(s);
+                  if (msg instanceof JsonObject) {
+                    if (handler != null) {
+                      handler.handle((JsonObject) msg);
+                    }
+                  }
+                });
+              }
+            });
+          }
+          @Override
+          public void handler(Handler<JsonObject> handler) {
+            this.handler = handler;
+          }
+          @Override
+          public Future<Void> write(String msg) {
+            String[] str = new String[] { msg };
+            String json = JsonCodec.encode(str);
+            return ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(json, true));
+          }
+          @Override
+          public Future<Void> close() {
+            // NOT  A CLEAN CLOSE ???
+            return ws.close();
+          }
+          @Override
+          public void abruptClose() {
+            Channel ch = ((HttpClientConnection) ((WebSocketInternal) ws).connection()).channel();
+            ChannelPromise promise = ch.newPromise();
+            ch.unsafe().close(promise);
+          }
+        });
+      }
+    },
+    RAW_WS() {
+      @Override
+      Future<TransportClient> connect(HttpClient client, String address) {
+        return client.webSocket(address).map(ws -> new TransportClient() {
+          private Handler<JsonObject> handler;
+          {
+            ws.handler(buff -> {
+              String str = buff.toString();
+              JsonObject received = new JsonObject(str);
+              if (handler != null) {
+                handler.handle(received);
+              }
+            });
+          }
+          @Override
+          public void handler(Handler<JsonObject> handler) {
+            this.handler = handler;
+          }
+          @Override
+          public Future<Void> write(String msg) {
+            return ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg, true));
+          }
+          @Override
+          public Future<Void> close() {
+            return ws.close();
+          }
+          @Override
+          public void abruptClose() {
+            Channel ch = ((HttpClientConnection) ((WebSocketInternal) ws).connection()).channel();
+            ChannelPromise promise = ch.newPromise();
+            ch.unsafe().close(promise);
+          }
+        });
+      }
+    };
 
+    abstract Future<TransportClient> connect(HttpClient client, String address);
+
+  }
+
+  interface TransportClient {
+    void handler(Handler<JsonObject> handler);
+    Future<Void> write(String msg);
+    Future<Void> close();
+    void abruptClose();
+  }
+
+  class BridgeClient {
+
+    private Future<TransportClient> transportClient;
+    private BiConsumer<String, Object> handler;
+    private Handler<String> errorHandler;
+
+    public Future<Void> connect(String websocketURI) {
+      if (transportClient != null) {
+        return Future.failedFuture("Already connected");
+      }
+      transportClient = transport.connect(client, websocketURI);
+      transportClient.onSuccess(ws -> {
+        ws.handler(received -> {
+          String type = received.getString("type");
+          if ("rec".equals(type)) {
+            String address = received.getString("address");
+            if (handler != null) {
+              handler.accept(address, received.getValue("body"));
+            }
+          } else if ("err".equals(type)) {
+            if (errorHandler != null) {
+              errorHandler.handle((String) received.getValue("body"));
+            }
+          }
+        });
+      });
+      return transportClient.mapEmpty();
+    }
+
+    private Future<Void> sendOrPublish(String address, String type, String replyAddress, Object body) {
+      if (transportClient == null) {
+        return Future.failedFuture("Not connected");
+      }
+      return transportClient
+        .compose(ws -> {
+          JsonObject json = new JsonObject().put("type", type).put("address", address).put("body", body);
+          if (replyAddress != null) {
+            json.put("replyAddress", replyAddress);
+          }
+          return ws.write(json.encode());
+        });
+    }
+
+    public BridgeClient handler(BiConsumer<String, Object> handler) {
+      this.handler = handler;
+      return this;
+    }
+
+    public BridgeClient errorHandler(Handler<String> handler) {
+      this.errorHandler = handler;
+      return this;
+    }
+
+    public Future<Void> request(String address, String replyAddress, Object body) {
+      return sendOrPublish(address, "send", replyAddress, body);
+    }
+
+    public Future<Void> send(String address, Object body) {
+      return sendOrPublish(address, "send", null, body);
+    }
+
+    public Future<Void> publish(String address, Object body) {
+      return sendOrPublish(address, "publish", null, body);
+    }
+
+    public Future<Void> register(String address) {
+      if (transportClient == null) {
+        return Future.failedFuture("Not connected");
+      }
+      return transportClient.compose(ws -> {
+        JsonObject msg = new JsonObject().put("type", "register").put("address", address);
+        return ws.write(msg.encode());
+      });
+    }
+
+    public Future<Void> close() {
+      if (transportClient == null) {
+        return Future.failedFuture("Not connected");
+      }
+      return transportClient.compose(TransportClient::close);
+    }
+  }
 }
