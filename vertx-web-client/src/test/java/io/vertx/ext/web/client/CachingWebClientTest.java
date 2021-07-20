@@ -39,6 +39,7 @@ public class CachingWebClientTest {
 
   private static final int PORT = 8888;
 
+  private WebClient baseClient;
   private WebClient defaultClient;
   private WebClient privateClient;
   private WebClient varyClient;
@@ -58,10 +59,10 @@ public class CachingWebClientTest {
   @Before
   public void setUp() {
     vertx = Vertx.vertx();
-    WebClient base = buildBaseWebClient();
-    defaultClient = CachingWebClient.create(base, new TestCacheStore(), new CachingWebClientOptions(true, false, false));
-    privateClient = CachingWebClient.create(base, new TestCacheStore(), new CachingWebClientOptions(true, true, false));
-    varyClient = CachingWebClient.create(base, new TestCacheStore(), new CachingWebClientOptions(true, false, true));
+    baseClient = buildBaseWebClient();
+    defaultClient = CachingWebClient.create(baseClient, new TestCacheStore());
+    privateClient = CachingWebClient.create(baseClient, new TestCacheStore(), new CachingWebClientOptions(true, true, false));
+    varyClient = CachingWebClient.create(baseClient, new TestCacheStore(), new CachingWebClientOptions(true, false, true));
     server = buildHttpServer();
   }
 
@@ -184,7 +185,7 @@ public class CachingWebClientTest {
 
   @Test
   public void testCacheConfigDisable(TestContext context) {
-    WebClient client = CachingWebClient.create(defaultClient, new TestCacheStore(),
+    WebClient client = CachingWebClient.create(baseClient, new TestCacheStore(),
       new CachingWebClientOptions(false, false, false));
 
     startMockServer(context, "public, max-age=600");
