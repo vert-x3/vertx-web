@@ -19,9 +19,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
-import io.vertx.ext.web.client.impl.WebClientBase;
-import io.vertx.ext.web.client.impl.WebClientInternal;
-import io.vertx.ext.web.client.impl.cache.CacheInterceptor;
+import io.vertx.ext.web.client.impl.CachingWebClientImpl;
 import io.vertx.ext.web.client.impl.cache.SharedDataCacheStore;
 import io.vertx.ext.web.client.spi.CacheStore;
 
@@ -133,9 +131,7 @@ public interface CachingWebClient {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static WebClient create(WebClient webClient, CacheStore cacheStore, CachingWebClientOptions options) {
-    WebClientInternal cacheClient = (WebClientInternal) webClient;
-    cacheClient.addInterceptor(new CacheInterceptor(cacheStore,  options));
-    return cacheClient;
+    return CachingWebClientImpl.wrap(webClient, cacheStore, options);
   }
 
   /**
@@ -161,7 +157,6 @@ public interface CachingWebClient {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static WebClient wrap(HttpClient httpClient, CacheStore cacheStore, CachingWebClientOptions options) {
-    WebClient webClient = new WebClientBase(httpClient, options);
-    return create(webClient, cacheStore, options);
+    return CachingWebClientImpl.wrap(httpClient, cacheStore, options);
   }
 }
