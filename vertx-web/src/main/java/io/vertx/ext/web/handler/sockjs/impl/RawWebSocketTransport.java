@@ -136,6 +136,12 @@ class RawWebSocketTransport {
       return this;
     }
 
+    @Override
+    public SockJSSocket closeHandler(Handler<Void> closeHandler) {
+      ws.closeHandler(closeHandler);
+      return this;
+    }
+
     public void close() {
       synchronized (this) {
         if (closed) {

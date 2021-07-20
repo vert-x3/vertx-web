@@ -84,6 +84,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private int messagesSize;
   private Handler<Void> drainHandler;
   private Handler<Void> endHandler;
+  private Handler<Void> closeHandler;
   private Handler<Throwable> exceptionHandler;
   private boolean handleCalled;
   private SocketAddress localAddress;
@@ -196,6 +197,12 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   @Override
   public synchronized SockJSSession endHandler(Handler<Void> endHandler) {
     this.endHandler = endHandler;
+    return this;
+  }
+
+  @Override
+  public synchronized SockJSSocket closeHandler(Handler<Void> closeHandler) {
+    this.closeHandler = closeHandler;
     return this;
   }
 
@@ -370,6 +377,10 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
       writeAcks.clear();
     }
     Handler<Void> handler = endHandler;
+    if (handler != null) {
+      context.runOnContext(handler);
+    }
+    handler = closeHandler;
     if (handler != null) {
       context.runOnContext(handler);
     }

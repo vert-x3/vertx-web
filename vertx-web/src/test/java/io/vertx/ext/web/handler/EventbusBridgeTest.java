@@ -157,7 +157,7 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SOCKET_CLOSED) {
         assertNotNull(be.socket());
-        assertNotNull(be.getRawMessage());
+        assertNull(be.getRawMessage());
         be.complete(true);
         testComplete();
       } else {
