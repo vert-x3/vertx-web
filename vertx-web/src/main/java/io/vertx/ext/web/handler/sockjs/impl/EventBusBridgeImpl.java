@@ -433,7 +433,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           authorise(curMatch, webUser, res -> {
             if (res.succeeded()) {
               if (res.result()) {
-                checkAndSend(send, address, body, headers, sock, replyAddress, null);
+                checkAndSend(send, address, body, headers, sock, replyAddress, awaitingReply);
               } else {
                 replyError(sock, "access_denied");
                 if (debug) {
