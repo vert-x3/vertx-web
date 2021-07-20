@@ -311,7 +311,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         sock
           .handler(data -> handleSocketData(sock, data, registrations))
           .exceptionHandler(err -> handleSocketException(sock, err, registrations))
-          .endHandler(v -> handleSocketClosed(sock, registrations));
+          .closeHandler(v -> handleSocketClosed(sock, registrations));
 
         // Start a checker to check for pings
         PingInfo pingInfo = new PingInfo();
@@ -342,7 +342,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (err != null) {
       msg.put("message", err.getMessage());
     }
-    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CLOSED, msg, sock));
+    // Maybe a new SOCKET_ERROR ????
+    // checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CLOSED, msg, sock));
   }
 
   private void clearSocketState(SockJSSocket sock, Map<String, MessageConsumer<?>> registrations) {
