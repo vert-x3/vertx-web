@@ -1,6 +1,8 @@
 package io.vertx.ext.web.validation.builder;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.validation.RequestPredicate;
 import io.vertx.ext.web.validation.ValidationHandler;
 import io.vertx.ext.web.validation.builder.impl.ValidationHandlerBuilderImpl;
@@ -14,6 +16,7 @@ import io.vertx.json.schema.SchemaParser;
  *
  * For more info look the docs
  */
+@VertxGen
 public interface ValidationHandlerBuilder {
 
   /**
@@ -24,6 +27,7 @@ public interface ValidationHandlerBuilder {
    * @return
    */
   @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   ValidationHandlerBuilder parameter(ParameterLocation location, ParameterProcessor processor);
 
   @Fluent
@@ -48,6 +52,7 @@ public interface ValidationHandlerBuilder {
   ValidationHandlerBuilder body(BodyProcessorFactory bodyProcessor);
 
   @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   ValidationHandlerBuilder body(BodyProcessor bodyProcessor);
 
   @Fluent
