@@ -224,6 +224,20 @@ public class OpenAPIHolderTest {
                 "src/test/resources/yaml/valid/local_refs.yaml#/components/schemas/Simple"
               ).toString());
 
+            // Verify the OpenAPI object stored by the OpenAPIHolder retains local refs.
+            assertThat(loader.getOpenAPI())
+              .extracting(JsonPointer.create()
+                .append("paths")
+                .append("/simple")
+                .append("post")
+                .append("requestBody")
+                .append("content")
+                .append("multipart/form-data")
+                .append("schema")
+                .append("$ref")
+              )
+              .isEqualTo("#/components/schemas/Simple");
+
             assertThat(loader)
               .hasCached(resolveAbsoluteURIFromFS("src/test/resources/yaml/valid/refs/Simple.yaml"));
 
@@ -645,7 +659,7 @@ public class OpenAPIHolderTest {
         )).append(Arrays.asList(
           "paths", "/test8", "post", "requestBody", "content", "application/json", "schema"
         ));
-        JsonObject resolved = (JsonObject) schemaPointer.query(loader.getOpenAPI(),
+        JsonObject resolved = (JsonObject) schemaPointer.query(l.result(),
           new JsonPointerIteratorWithLoader(loader));
 
         Map<JsonPointer, JsonObject> additionalSchemasToRegister = new HashMap<>();
