@@ -76,7 +76,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
       })
       .compose(openapi -> {
         absolutePaths.put(initialScope, openapi); // Circular refs hell!
-        openapiRoot = openapi;
+        openapiRoot = openapi.copy();
         return walkAndSolve(openapi, initialScope).map(openapi);
       })
       .compose(openapi -> {
