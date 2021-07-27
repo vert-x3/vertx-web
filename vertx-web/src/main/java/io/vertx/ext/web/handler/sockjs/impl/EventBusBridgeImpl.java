@@ -342,8 +342,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (err != null) {
       msg.put("message", err.getMessage());
     }
-    // Maybe a new SOCKET_ERROR ????
-    // checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CLOSED, msg, sock));
+     checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_ERROR, msg, sock));
   }
 
   private void clearSocketState(SockJSSocket sock, Map<String, MessageConsumer<?>> registrations) {
