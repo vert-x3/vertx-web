@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
+import io.vertx.ext.auth.oauth2.Oauth2Credentials;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -27,8 +28,7 @@ public class WebClientSessionTest extends WebClientTestBase {
       "  \"expires_in\": 7200" +
       "}");
 
-  private static final JsonObject oauthConfig = new JsonObject()
-    .put("grant_type", "client_credentials");
+  private static final Oauth2Credentials oauthConfig = new Oauth2Credentials();
 
   @Test
   public void testRequestHeaders() throws Exception {
@@ -87,7 +87,7 @@ public class WebClientSessionTest extends WebClientTestBase {
     final CountDownLatch latchClient = new CountDownLatch(1);
 
     webClientSession
-      .withAuthentication(oauthConfig)
+      .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
       .send(result -> {
         if(result.failed()) {

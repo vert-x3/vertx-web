@@ -12,8 +12,8 @@ package io.vertx.ext.web.client.impl;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientSession;
@@ -27,7 +27,7 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
   private final CookieStore cookieStore;
   private MultiMap headers;
   private final OAuth2Auth oAuth2Auth;
-  private JsonObject tokenConfig;
+  private Credentials credentials;
   private User user;
   private boolean withAuthentication;
 
@@ -43,21 +43,21 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
   }
 
   @Override
-  public WebClientSession withAuthentication(JsonObject tokenConfig) {
+  public WebClientSession withCredentials(Credentials credentials) {
     if (oAuth2Auth == null) {
       throw new NullPointerException("Can not obtain required authentication for request as oAuth2Auth provider is null");
     }
 
-    if (tokenConfig == null) {
+    if (credentials == null) {
       throw new NullPointerException("Token Configuration passed to WebClientSessionAware can not be null");
     }
 
-    if (this.tokenConfig != null && !this.tokenConfig.equals(tokenConfig)) {
+    if (this.credentials != null && !this.credentials.equals(credentials)) {
       //We need to invalidate the current data as new configuration is passed
       user = null;
     }
 
-    this.tokenConfig = tokenConfig;
+    this.credentials = credentials;
     this.withAuthentication = true;
 
     return this;
@@ -74,8 +74,8 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
     return oAuth2Auth;
   }
 
-  JsonObject getTokenConfig() {
-    return tokenConfig;
+  Credentials getCredentials() {
+    return credentials;
   }
 
   User getUser() {

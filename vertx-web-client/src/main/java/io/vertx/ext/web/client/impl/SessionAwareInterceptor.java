@@ -9,8 +9,6 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.client.spi.CookieStore;
 
 import java.net.URI;
@@ -22,8 +20,6 @@ import static io.vertx.core.http.HttpHeaders.AUTHORIZATION;
  * A stateless interceptor for session management that operates on the {@code HttpContext}
  */
 public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
-
-  private static final Logger LOG = LoggerFactory.getLogger(SessionAwareInterceptor.class);
 
   @Override
   public void handle(HttpContext<?> context) {
@@ -90,7 +86,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
             })
             .onFailure(error -> {
               // Refresh token failed, we can try standard authentication
-              webclient.getOAuth2Auth().authenticate(webclient.getTokenConfig())
+              webclient.getOAuth2Auth().authenticate(webclient.getCredentials())
                 .onSuccess(userResult -> {
                   webclient.setUser(userResult);
                   webclient.setWithAuthentication(false);
@@ -111,7 +107,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
           promise.complete();
         }
       } else {
-        webclient.getOAuth2Auth().authenticate(webclient.getTokenConfig())
+        webclient.getOAuth2Auth().authenticate(webclient.getCredentials())
           .onSuccess(userResult -> {
             webclient.setUser(userResult);
             webclient.setWithAuthentication(false);

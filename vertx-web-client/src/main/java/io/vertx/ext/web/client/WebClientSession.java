@@ -14,6 +14,7 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.client.impl.WebClientSessionAware;
 import io.vertx.ext.web.client.spi.CookieStore;
@@ -167,5 +168,5 @@ public interface WebClientSession extends WebClient {
    */
 
   @Fluent
-  WebClientSession withAuthentication(JsonObject tokenConfig);
+  WebClientSession withCredentials(Credentials credentials);
 }
