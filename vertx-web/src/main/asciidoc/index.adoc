@@ -2276,6 +2276,7 @@ SOCKET_CREATED:: This event will occur when a new SockJS socket is created.
 SOCKET_IDLE:: This event will occur when SockJS socket is on idle for longer period of time than initially configured.
 SOCKET_PING:: This event will occur when the last ping timestamp is updated for the SockJS socket.
 SOCKET_CLOSED:: This event will occur when a SockJS socket is closed.
+SOCKET_ERROR:: This event will occur when an underlying transport errors.
 SEND:: This event will occur when a message is attempted to be sent from the client to the server.
 PUBLISH:: This event will occur when a message is attempted to be published from the client to the server.
 RECEIVE:: This event will occur when a message is attempted to be delivered from the server to the client.
@@ -2295,7 +2296,7 @@ The raw message is a JSON object with the following structure:
 }
 ----
 
-NOTE: `SOCKET_CLOSED` events may include a message. In this case inspecting the type property, may introduce a new kind
+NOTE: `SOCKET_ERROR` events may include a message. In this case inspecting the type property, may introduce a new kind
 of message. A `err` message. This is a synthetic message generated when there is a socket exception. The message will
 follow the bridge wire protocol and look like this:
 

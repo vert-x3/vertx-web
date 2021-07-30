@@ -415,6 +415,30 @@ public interface HttpRequest<T> {
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
+   * set to {@code application/x-www-form-urlencoded}.
+   * <p>
+   * When the content type header is previously set to {@code multipart/form-data} it will be used instead.
+   *
+   * NOTE: the use of this method is strongly discouraged to use when the form is a {@code application/x-www-form-urlencoded}
+   * encoded form since the charset to use must be UTF-8.
+   *
+   * @param body the body
+   */
+  void sendForm(MultiMap body, String charset, Handler<AsyncResult<HttpResponse<T>>> handler);
+
+  /**
+   * @param body the body
+   * @param charset the charset
+   * @see HttpRequest#sendForm(MultiMap, String, Handler)
+   */
+  default Future<HttpResponse<T>> sendForm(MultiMap body, String charset) {
+    Promise<HttpResponse<T>> promise = Promise.promise();
+    sendForm(body, charset, promise);
+    return promise.future();
+  }
+
+  /**
+   * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
    * set to {@code multipart/form-data}. You may use this method to send attributes and upload files.
    *
    * @param body the body

@@ -1,5 +1,6 @@
 package io.vertx.ext.web.validation.builder;
 
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.validation.impl.parser.SplitterCharArrayParser;
 import io.vertx.ext.web.validation.impl.parser.SplitterCharObjectParser;
 import io.vertx.ext.web.validation.impl.parser.SplitterCharTupleParser;
@@ -7,6 +8,7 @@ import io.vertx.ext.web.validation.impl.parser.SplitterCharTupleParser;
 /**
  * In this interface you can find all available {@link ArrayParserFactory}, {@link ObjectParserFactory} & {@link TupleParserFactory}
  */
+@VertxGen
 public interface Parsers {
 
   static ArrayParserFactory commaSeparatedArrayParser() {

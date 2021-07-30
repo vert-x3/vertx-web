@@ -28,6 +28,7 @@ import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.sstore.SessionStore;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -472,7 +473,8 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .create(
         vertx,
         new OAuth2Options()
-          .setClientID("dummy-client")
+          // the client id must match the audience of the tokens
+          .setClientId("s6BhdRkqt3")
           .addPubSecKey(new PubSecKeyOptions()
             .setAlgorithm("RS256")
             .setBuffer(

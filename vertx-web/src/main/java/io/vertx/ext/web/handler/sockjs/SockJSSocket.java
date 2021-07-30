@@ -75,6 +75,8 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   @Override
   SockJSSocket endHandler(Handler<Void> endHandler);
 
+  SockJSSocket closeHandler(Handler<Void> closeHandler);
+
   @Override
   default Future<Void> write(Buffer data) {
     Promise<Void> promise = Promise.promise();

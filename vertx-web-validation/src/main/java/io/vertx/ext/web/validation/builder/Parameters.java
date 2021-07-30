@@ -1,5 +1,7 @@
 package io.vertx.ext.web.validation.builder;
 
+import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.validation.builder.impl.ValidationDSLUtils;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessorImpl;
 import io.vertx.ext.web.validation.impl.parameter.SingleValueParameterParser;
@@ -12,6 +14,7 @@ import io.vertx.json.schema.common.dsl.*;
  *
  * To create new schemas using {@link SchemaBuilder}, look at the <a href="https://vertx.io/docs/vertx-json-schema/java/">docs of vertx-json-schema</a>
  */
+@VertxGen
 public interface Parameters {
 
   /**
@@ -21,6 +24,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, NumberSchemaBuilder schemaBuilder) {
     return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
       parameterName,
@@ -41,6 +45,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, NumberSchemaBuilder schemaBuilder) {
     return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
       parameterName,
@@ -61,6 +66,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, StringSchemaBuilder schemaBuilder) {
     return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
       parameterName,
@@ -78,6 +84,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, StringSchemaBuilder schemaBuilder) {
     return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
       parameterName,
@@ -95,6 +102,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, BooleanSchemaBuilder schemaBuilder) {
     return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
       parameterName,
@@ -112,6 +120,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, BooleanSchemaBuilder schemaBuilder) {
     return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
       parameterName,
@@ -129,6 +138,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, ArraySchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createArrayParamFactory(
       parameterName,
@@ -145,6 +155,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, ArraySchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createArrayParamFactory(
       parameterName,
@@ -161,6 +172,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, TupleSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createTupleParamFactory(
       parameterName,
@@ -177,6 +189,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, TupleSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createTupleParamFactory(
       parameterName,
@@ -193,6 +206,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createObjectParamFactory(
       parameterName,
@@ -209,6 +223,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createObjectParamFactory(
       parameterName,
@@ -226,6 +241,7 @@ public interface Parameters {
    * @param valueParser
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, SchemaBuilder schemaBuilder, ValueParser<String> valueParser) {
     return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
       parameterName,
@@ -244,6 +260,7 @@ public interface Parameters {
    * @param valueParser
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, SchemaBuilder schemaBuilder, ValueParser<String> valueParser) {
     return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
       parameterName,
@@ -261,6 +278,7 @@ public interface Parameters {
    * @param builder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory jsonParam(String parameterName, SchemaBuilder builder) {
     return (location, parser) -> new ParameterProcessorImpl(
       parameterName,
@@ -278,6 +296,7 @@ public interface Parameters {
    * @param builder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalJsonParam(String parameterName, SchemaBuilder builder) {
     return (location, parser) -> new ParameterProcessorImpl(
       parameterName,
@@ -295,6 +314,7 @@ public interface Parameters {
    * @param arrayParserFactory
    * @param schemaBuilder
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory serializedParam(String parameterName, ArrayParserFactory arrayParserFactory, ArraySchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createArrayParamFactory(parameterName, arrayParserFactory, schemaBuilder, false)::apply;
   }
@@ -306,6 +326,7 @@ public interface Parameters {
    * @param arrayParserFactory
    * @param schemaBuilder
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalSerializedParam(String parameterName, ArrayParserFactory arrayParserFactory, ArraySchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createArrayParamFactory(parameterName, arrayParserFactory, schemaBuilder, true)::apply;
   }
@@ -317,6 +338,7 @@ public interface Parameters {
    * @param tupleParserFactory
    * @param schemaBuilder
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory serializedParam(String parameterName, TupleParserFactory tupleParserFactory, TupleSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createTupleParamFactory(parameterName, tupleParserFactory, schemaBuilder, false)::apply;
   }
@@ -328,6 +350,7 @@ public interface Parameters {
    * @param tupleParserFactory
    * @param schemaBuilder
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalSerializedParam(String parameterName, TupleParserFactory tupleParserFactory, TupleSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createTupleParamFactory(parameterName, tupleParserFactory, schemaBuilder, true)::apply;
   }
@@ -339,6 +362,7 @@ public interface Parameters {
    * @param objectParserFactory
    * @param schemaBuilder
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory serializedParam(String parameterName, ObjectParserFactory objectParserFactory, ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createObjectParamFactory(parameterName, objectParserFactory, schemaBuilder, false)::apply;
   }
@@ -350,6 +374,7 @@ public interface Parameters {
    * @param objectParserFactory
    * @param schemaBuilder
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalSerializedParam(String parameterName, ObjectParserFactory objectParserFactory, ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createObjectParamFactory(parameterName, objectParserFactory, schemaBuilder, true)::apply;
   }
@@ -361,6 +386,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory explodedParam(String parameterName, ArraySchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createExplodedArrayParamFactory(parameterName, schemaBuilder, false);
   }
@@ -372,6 +398,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalExplodedParam(String parameterName, ArraySchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createExplodedArrayParamFactory(parameterName, schemaBuilder, true);
   }
@@ -383,6 +410,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory explodedParam(String parameterName, TupleSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createExplodedTupleParamFactory(parameterName, schemaBuilder, false);
   }
@@ -394,6 +422,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalExplodedParam(String parameterName, TupleSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createExplodedTupleParamFactory(parameterName, schemaBuilder, true);
   }
@@ -405,6 +434,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory explodedParam(String parameterName, ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createExplodedObjectParamFactory(parameterName, schemaBuilder, false);
   }
@@ -416,6 +446,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalExplodedParam(String parameterName, ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createExplodedObjectParamFactory(parameterName, schemaBuilder, true);
   }
@@ -427,6 +458,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory deepObjectParam(String parameterName, ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createDeepObjectParamFactory(parameterName, schemaBuilder, false);
   }
@@ -438,6 +470,7 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalDeepObjectParam(String parameterName, ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createDeepObjectParamFactory(parameterName, schemaBuilder, true);
   }
