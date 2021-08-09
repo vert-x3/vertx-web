@@ -888,9 +888,9 @@ public class BodyHandlerTest extends WebTestBase {
       String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
       String header =
         "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"attr1\"\r\n\r\n" + Base64.getUrlEncoder().encodeToString(TestUtils.randomBuffer(2048).getBytes()) + "\r\n" +
+          "Content-Disposition: form-data; name=\"attr1\"\r\n\r\n" + Base64.getUrlEncoder().encodeToString(TestUtils.randomBuffer(8192).getBytes()) + "\r\n" +
           "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"attr2\"\r\n\r\n" + Base64.getUrlEncoder().encodeToString(TestUtils.randomBuffer(2048).getBytes()) + "\r\n" +
+          "Content-Disposition: form-data; name=\"attr2\"\r\n\r\n" + Base64.getUrlEncoder().encodeToString(TestUtils.randomBuffer(8192).getBytes()) + "\r\n" +
           "--" + boundary + "\r\n" +
           "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"file\"\r\n" +
           "Content-Type: application/octet-stream\r\n" +
