@@ -40,6 +40,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
+import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -110,7 +111,7 @@ public class SockJSHandlerImpl implements SockJSHandler {
     router.options("/chunking_test").handler(BaseTransport.createCORSOptionsHandler(options, "OPTIONS, POST"));
 
     // Info
-    router.get("/info").handler(BaseTransport.createInfoHandler(options));
+    router.get("/info").handler(BaseTransport.createInfoHandler(options, VertxContextPRNG.current(vertx)));
     router.options("/info").handler(BaseTransport.createCORSOptionsHandler(options, "OPTIONS, GET"));
 
     // Transports

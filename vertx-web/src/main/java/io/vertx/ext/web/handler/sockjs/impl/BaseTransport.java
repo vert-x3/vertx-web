@@ -45,6 +45,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
+import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
@@ -53,7 +54,6 @@ import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Random;
 import java.util.Set;
 
 import static io.vertx.core.http.HttpHeaders.*;
@@ -71,8 +71,6 @@ class BaseTransport {
   protected SockJSHandlerOptions options;
 
   static final String COMMON_PATH_ELEMENT_RE = "\\/[^\\/\\.]+\\/([^\\/\\.]+)\\/";
-
-  private static final long RAND_OFFSET = 2L << 30;
 
   public BaseTransport(Vertx vertx, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options) {
     this.vertx = vertx;
@@ -175,7 +173,9 @@ class BaseTransport {
     }
   }
 
-  static Handler<RoutingContext> createInfoHandler(final SockJSHandlerOptions options) {
+  static Handler<RoutingContext> createInfoHandler(final SockJSHandlerOptions options, final VertxContextPRNG prng) {
+    final long offset = 2L << 30;
+
     return new Handler<RoutingContext>() {
       final boolean websocket = !options.getDisabledTransports().contains(Transport.WEBSOCKET.toString());
       public void handle(RoutingContext rc) {
@@ -190,7 +190,7 @@ class BaseTransport {
         json.put("origins", new JsonArray().add("*:*"));
         // Java ints are signed, so we need to use a long and add the offset so
         // the result is not negative
-        json.put("entropy", RAND_OFFSET + new Random().nextInt());
+        json.put("entropy", offset + prng.nextInt());
         setCORS(rc);
         rc.response().end(json.encode());
       }

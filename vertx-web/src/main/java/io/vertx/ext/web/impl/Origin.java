@@ -58,6 +58,9 @@ public final class Origin {
     }
 
     String defaultPort;
+    if (protocol == null) {
+      throw new IllegalStateException("Unsupported protocol: null");
+    }
     switch (protocol.toLowerCase()) {
       case "ftp":
         this.protocol = protocol;
