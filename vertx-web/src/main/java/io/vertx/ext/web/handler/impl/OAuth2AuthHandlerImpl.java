@@ -419,11 +419,11 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   @Override
   public void postAuthentication(RoutingContext ctx) {
     // the user is authenticated, however the user may not have all the required scopes
-    if (scopes.size() > 0) {
+    if (scopes != null && scopes.size() > 0) {
       if (ctx.user().principal().containsKey("scope")) {
         final String scopes = ctx.user().principal().getString("scope");
         if (scopes != null) {
-          // user principal contains scope, a basic assertion is require to ensure that
+          // user principal contains scope, a basic assertion is required to ensure that
           // the scopes present match the required ones
           for (String scope : this.scopes) {
             // do not assert openid scopes if openid is active
@@ -441,6 +441,10 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
                 ctx.fail(403, new IllegalStateException("principal scope != handler scopes"));
                 return;
               }
+            } else {
+              // invalid scope assignment
+              ctx.fail(403, new IllegalStateException("principal scope != handler scopes"));
+              return;
             }
           }
         }
