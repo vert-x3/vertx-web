@@ -32,8 +32,8 @@
     <!--
     Update these properties in the vertx-lang-* modules too
      -->
-    <graphql.java.major.version>16</graphql.java.major.version>
-    <graphql.java.version>${graphql.java.major.version}.2</graphql.java.version>
+    <graphql.java.major.version>17</graphql.java.major.version>
+    <graphql.java.version>${graphql.java.major.version}.1</graphql.java.version>
     <doc.skip>false</doc.skip>
   </properties>
 
