@@ -26,6 +26,7 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.ext.web.handler.graphql.dataloader.VertxMappedBatchLoader;
 import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderFactory;
 import org.dataloader.DataLoaderRegistry;
 import org.dataloader.MappedBatchLoaderWithContext;
 import org.junit.Test;
@@ -59,7 +60,7 @@ public class VertxMappedBatchLoaderTest extends GraphQLTestBase {
     );
 
     graphQLHandler.dataLoaderRegistry(rc -> {
-      DataLoader<String, User> userDataLoader = DataLoader.newMappedDataLoader(userBatchLoader);
+      DataLoader<String, User> userDataLoader = DataLoaderFactory.newMappedDataLoader(userBatchLoader);
       return new DataLoaderRegistry().register("user", userDataLoader);
     });
   }

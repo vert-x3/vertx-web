@@ -31,10 +31,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.graphql.*;
 import io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher;
 import io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher;
-import org.dataloader.BatchLoaderEnvironment;
-import org.dataloader.BatchLoaderWithContext;
-import org.dataloader.DataLoader;
-import org.dataloader.DataLoaderRegistry;
+import org.dataloader.*;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -43,6 +40,7 @@ import java.util.concurrent.CompletionStage;
 /**
  * @author Thomas SEGISMONT
  */
+@SuppressWarnings("unused")
 public class GraphQLExamples {
 
   public void handlerSetup(Router router) {
@@ -225,7 +223,7 @@ public class GraphQLExamples {
   public void dataLoaderRegistry(GraphQL graphQL, BatchLoaderWithContext<String, Link> linksBatchLoader) {
     GraphQLHandler handler = GraphQLHandler.create(graphQL).dataLoaderRegistry(rc -> {
 
-      DataLoader<String, Link> linkDataLoader = DataLoader.newDataLoader(linksBatchLoader);
+      DataLoader<String, Link> linkDataLoader = DataLoaderFactory.newDataLoader(linksBatchLoader);
 
       return new DataLoaderRegistry().register("link", linkDataLoader);
 
