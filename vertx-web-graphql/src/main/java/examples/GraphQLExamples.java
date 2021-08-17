@@ -29,6 +29,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.graphql.*;
+import io.vertx.ext.web.handler.graphql.dataloader.VertxBatchLoader;
 import io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher;
 import io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher;
 import org.dataloader.BatchLoaderEnvironment;
@@ -215,7 +216,10 @@ public class GraphQLExamples {
   }
 
   public void createBatchLoader() {
-    BatchLoaderWithContext<String, Link> linksBatchLoader = this::retrieveLinksFromBackend;
+    BatchLoaderWithContext<String, Link> linksBatchLoader = (ids, env) -> {
+      // retrieveLinksFromBackend takes a list of ids and returns a CompletionStage for a list of links
+      return retrieveLinksFromBackend(ids, env);
+    };
   }
 
   private CompletionStage<List<Link>> retrieveLinksFromBackend(List<String> ids, BatchLoaderEnvironment environment) {
@@ -230,6 +234,17 @@ public class GraphQLExamples {
       return new DataLoaderRegistry().register("link", linkDataLoader);
 
     });
+  }
+
+  public void createVertxBatchLoader() {
+    BatchLoaderWithContext<Long, String> commentsBatchLoader = VertxBatchLoader.create((ids, env) -> {
+      // findComments takes a list of ids and returns a Future for a list of links
+      return findComments(ids, env);
+    });
+  }
+
+  private Future<List<String>> findComments(List<Long> ids, BatchLoaderEnvironment env) {
+    return null;
   }
 
   public void addApolloWsHandlerToRouter(Router router) {
