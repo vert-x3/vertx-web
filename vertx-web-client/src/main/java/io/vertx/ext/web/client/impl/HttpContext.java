@@ -17,7 +17,12 @@ package io.vertx.ext.web.client.impl;
 
 import io.netty.handler.codec.http.QueryStringEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
-import io.vertx.core.*;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
@@ -31,12 +36,17 @@ import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.spi.CacheStore;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.ext.web.multipart.MultipartForm;
-
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -63,6 +73,7 @@ public class HttpContext<T> {
   private Throwable failure;
   private int redirects;
   private List<String> redirectedLocations = Collections.emptyList();
+  private CacheStore cacheStore;
 
   HttpContext(HttpClientImpl client, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.handler = handler;
@@ -165,6 +176,24 @@ public class HttpContext<T> {
    */
   public List<String> getRedirectedLocations() {
     return redirectedLocations;
+  }
+
+  /**
+   * @return the currently set cache store
+   */
+  public CacheStore cacheStore() {
+    return cacheStore;
+  }
+
+  /**
+   * Set the cache store.
+   *
+   * @param cacheStore the new cache store
+   * @return a reference to this, so the API can be used fluently
+   */
+  public HttpContext<T> cacheStore(CacheStore cacheStore) {
+    this.cacheStore = cacheStore;
+    return this;
   }
 
   /**

@@ -21,9 +21,6 @@ import io.vertx.core.http.HttpVersion;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.impl.HttpResponseImpl;
 import io.vertx.ext.web.client.spi.CacheStore;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -33,9 +30,7 @@ import java.util.Collections;
  *
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */
-public class CachedHttpResponse implements Serializable {
-
-  private static final long serialVersionUID = 1L;
+public class CachedHttpResponse {
 
   private final String version;
   private final int statusCode;
@@ -43,8 +38,7 @@ public class CachedHttpResponse implements Serializable {
   private final Buffer body;
   private final MultiMap responseHeaders;
   private final Instant timestamp;
-
-  transient private CacheControl cacheControl;
+  private final CacheControl cacheControl;
 
   static CachedHttpResponse wrap(HttpResponse<?> response) {
     return wrap(response, CacheControl.parse(response.headers()));
@@ -72,8 +66,36 @@ public class CachedHttpResponse implements Serializable {
     this.cacheControl = cacheControl;
   }
 
+  public String getVersion() {
+    return version;
+  }
+
+  public int getStatusCode() {
+    return statusCode;
+  }
+
+  public String getStatusMessage() {
+    return statusMessage;
+  }
+
+  public Buffer getBody() {
+    return body;
+  }
+
+  public MultiMap getResponseHeaders() {
+    return responseHeaders;
+  }
+
+  public Instant getTimestamp() {
+    return timestamp;
+  }
+
+  public CacheControl getCacheControl() {
+    return cacheControl;
+  }
+
   public boolean isFresh() {
-    return age() <= cacheControl().getMaxAge();
+    return age() <= cacheControl.getMaxAge();
   }
 
   public boolean useStaleWhileRevalidate() {
@@ -86,13 +108,6 @@ public class CachedHttpResponse implements Serializable {
 
   public long age() {
     return Duration.between(timestamp, Instant.now()).getSeconds();
-  }
-
-  public CacheControl cacheControl() {
-    if (cacheControl == null) {
-      this.cacheControl = CacheControl.parse(responseHeaders);
-    }
-    return cacheControl;
   }
 
   public HttpResponse<Buffer> rehydrate() {
@@ -109,17 +124,12 @@ public class CachedHttpResponse implements Serializable {
   }
 
   private boolean useStale(CacheControlDirective directive) {
-    long secondsStale = Math.max(0L, age() - cacheControl().getMaxAge());
+    long secondsStale = Math.max(0L, age() - getCacheControl().getMaxAge());
 
-    long maxSecondsStale = cacheControl()
+    long maxSecondsStale = getCacheControl()
       .getTimeDirectives()
       .getOrDefault(directive, 0L);
 
     return secondsStale <= maxSecondsStale;
-  }
-
-  private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-    ois.defaultReadObject();
-    this.cacheControl = CacheControl.parse(responseHeaders);
   }
 }

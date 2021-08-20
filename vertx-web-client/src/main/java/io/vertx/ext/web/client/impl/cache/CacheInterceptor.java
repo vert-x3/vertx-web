@@ -61,6 +61,8 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
     }
 
     switch (context.phase()) {
+      case PREPARE_REQUEST:
+        handlePrepareRequest((HttpContext<Buffer>) context);
       case SEND_REQUEST:
         handleSendRequest((HttpContext<Buffer>) context);
         break;
@@ -70,6 +72,12 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
       default:
         context.next();
         break;
+    }
+  }
+
+  private void handlePrepareRequest(HttpContext<Buffer> context) {
+    if (context.cacheStore() == null) {
+      context.cacheStore(cacheStore);
     }
   }
 
@@ -156,7 +164,7 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
     HttpResponse<Buffer> result = response.rehydrate();
     result.headers().set(HttpHeaders.AGE, Long.toString(response.age()));
 
-    if (response.cacheControl().noCache()) {
+    if (response.getCacheControl().noCache()) {
       // We must validate with the server before releasing the cached data
       markForRevalidation(context, response);
       return Optional.empty();
@@ -176,7 +184,7 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
   }
 
   private void markForRevalidation(HttpContext<?> context, CachedHttpResponse response) {
-    context.request().headers().set(HttpHeaders.IF_NONE_MATCH, response.cacheControl().getEtag());
+    context.request().headers().set(HttpHeaders.IF_NONE_MATCH, response.getCacheControl().getEtag());
     context.set(REVALIDATION_RESPONSE, response);
   }
 
