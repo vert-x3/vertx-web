@@ -21,6 +21,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.Arrays;
 import org.junit.Test;
 
 import java.util.List;
@@ -125,6 +126,57 @@ public class PostRequestsTest extends GraphQLTestBase {
         .filter(url -> url.startsWith("https://"))
         .collect(toList());
       if (testData.checkLinkUrls(expected, body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
+    }));
+    await();
+  }
+
+  @Test
+  public void testSimplePostWithInitialValueInParam() throws Exception {
+    GraphQLRequest request = new GraphQLRequest()
+      .setGraphQLQuery("query { allLinks { description } }")
+      .setInitialValue(12345)
+      .setInitialValueAsParam(true);
+    request.send(client, onSuccess(body -> {
+      String[] values = new String[testData.links.size()];
+      Arrays.fill(values, "12345");
+      List<String> expected = Arrays.asList(values);
+      if (testData.checkLinkDescriptions(expected, body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
+    }));
+    await();
+  }
+
+  @Test
+  public void testSimplePostWithInitialValue() throws Exception {
+    GraphQLRequest request = new GraphQLRequest()
+      .setGraphQLQuery("query { allLinks { description } }")
+      .setInitialValue(12345);
+    request.send(client, onSuccess(body -> {
+      String[] values = new String[testData.links.size()];
+      Arrays.fill(values, "12345");
+      List<String> expected = Arrays.asList(values);
+      if (testData.checkLinkDescriptions(expected, body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
+    }));
+    await();
+  }
+
+  @Test
+  public void testSimplePostWithNoInitialValue() throws Exception {
+    GraphQLRequest request = new GraphQLRequest()
+      .setGraphQLQuery("query { allLinks { description } }");
+    request.send(client, onSuccess(body -> {
+      if (testData.checkLinkDescriptions(testData.descriptions(), body)) {
         testComplete();
       } else {
         fail(body.toString());

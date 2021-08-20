@@ -50,6 +50,10 @@ public class TestData {
     return links.stream().map(Link::getUrl).collect(toList());
   }
 
+  List<String> descriptions() {
+    return links.stream().map(Link::getDescription).collect(toList());
+  }
+
   boolean checkLinkUrls(List<String> expected, JsonObject body) {
     if (body.containsKey("errors")) {
       return false;
@@ -60,6 +64,18 @@ public class TestData {
       .map(json -> json.getString("url"))
       .collect(toList());
     return expected.equals(urls);
+  }
+
+  boolean checkLinkDescriptions(List<String> expected, JsonObject body) {
+    if (body.containsKey("errors")) {
+      return false;
+    }
+    JsonObject data = body.getJsonObject("data");
+    List<String> descriptions = data.getJsonArray("allLinks").stream()
+      .map(JsonObject.class::cast)
+      .map(json -> json.getString("description"))
+      .collect(toList());
+    return expected.equals(descriptions);
   }
 
   List<String> posters() {

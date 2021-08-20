@@ -22,6 +22,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 
 import java.io.UnsupportedEncodingException;
@@ -52,6 +53,8 @@ public class GraphQLRequest {
   private String contentType = JSON;
   private Buffer requestBody;
   private String locale;
+  private boolean initialValueAsParam;
+  private Object initialValue;
 
   GraphQLRequest setMethod(HttpMethod method) {
     this.method = method;
@@ -113,6 +116,16 @@ public class GraphQLRequest {
 
   GraphQLRequest setLocale(String locale) {
     this.locale = locale;
+    return this;
+  }
+
+  GraphQLRequest setInitialValueAsParam(boolean initialValueAsParam) {
+    this.initialValueAsParam = initialValueAsParam;
+    return this;
+  }
+
+  GraphQLRequest setInitialValue(Object initialValue) {
+    this.initialValue = initialValue;
     return this;
   }
 
@@ -181,6 +194,9 @@ public class GraphQLRequest {
     if (variablesAsParam && !variables.isEmpty()) {
       params.put("variables", variables.toString());
     }
+    if (initialValueAsParam && initialValue != null) {
+      params.put("initialValue", Json.encode(initialValue));
+    }
     if (!params.isEmpty()) {
       uri.append("?");
       uri.append(params.entrySet().stream()
@@ -205,6 +221,9 @@ public class GraphQLRequest {
     }
     if (!variables.isEmpty()) {
       json.put("variables", variables);
+    }
+    if (initialValue != null) {
+      json.put("initialValue", Json.encode(initialValue));
     }
     return json.isEmpty() ? null : json.toBuffer();
   }
