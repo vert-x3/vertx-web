@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.graphql;
 
+import java.util.Arrays;
 import org.junit.Test;
 
 import java.util.List;
@@ -78,6 +79,41 @@ public class GetRequestsTest extends GraphQLTestBase {
         .filter(url -> url.startsWith("https://"))
         .collect(toList());
       if (testData.checkLinkUrls(expected, body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
+    }));
+    await();
+  }
+
+  @Test
+  public void testSimpleGetWithInitialValue() throws Exception {
+    GraphQLRequest request = new GraphQLRequest()
+      .setMethod(GET)
+      .setGraphQLQuery("query { allLinks { description } }")
+      .setInitialValueAsParam(true)
+      .setInitialValue("100");
+    request.send(client, onSuccess(body -> {
+      String[] descriptions = new String[testData.links.size()];
+      Arrays.fill(descriptions,"100");
+      List<String> expected = Arrays.asList(descriptions);
+      if (testData.checkLinkDescriptions(expected, body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
+    }));
+    await();
+  }
+
+  @Test
+  public void testSimpleGetNoInitialValue() throws Exception {
+    GraphQLRequest request = new GraphQLRequest()
+      .setMethod(GET)
+      .setGraphQLQuery("query { allLinks { description } }");
+    request.send(client, onSuccess(body -> {
+      if (testData.checkLinkDescriptions(testData.descriptions(), body)) {
         testComplete();
       } else {
         fail(body.toString());

@@ -70,6 +70,13 @@ public class GraphQLTestBase extends WebTestBase {
     boolean secureOnly = env.getArgument("secureOnly");
     return testData.links.stream()
       .filter(link -> !secureOnly || link.getUrl().startsWith("https://"))
+      .map(link -> {
+        if (env.getRoot() != null) {
+          return new Link(link.getUrl(), env.getRoot().toString(), link.getUserId());
+        } else {
+          return link;
+        }
+      })
       .collect(toList());
   }
 }

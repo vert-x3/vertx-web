@@ -28,18 +28,25 @@ public class GraphQLQuery implements GraphQLInput {
   private String query;
   private String operationName;
   private Map<String, Object> variables;
+  private Object initialValue;
 
   public GraphQLQuery(JsonObject value) {
     query = value.getString("query");
     operationName = value.getString("operationName");
     JsonObject vars = value.getJsonObject("variables");
     this.variables = vars != null ? vars.getMap() : null;
+    this.initialValue = value.getValue("initialValue");
   }
 
   public GraphQLQuery(String query, String operationName, Map<String, Object> variables) {
     this.query = query;
     this.operationName = operationName;
     this.variables = variables;
+  }
+
+  public GraphQLQuery(String query, String operationName, Map<String, Object> variables, Object initialValue) {
+    this(query, operationName, variables);
+    this.initialValue = initialValue;
   }
 
   public String getQuery() {
@@ -66,6 +73,15 @@ public class GraphQLQuery implements GraphQLInput {
 
   public GraphQLQuery setVariables(Map<String, Object> variables) {
     this.variables = variables;
+    return this;
+  }
+
+  public Object getInitialValue() {
+    return initialValue;
+  }
+
+  public GraphQLQuery setInitialValue(Object initialValue) {
+    this.initialValue = initialValue;
     return this;
   }
 
