@@ -2814,6 +2814,75 @@ must go over HTTPS.
 WARNING: WebAuthN requires HTTPS with a working TLS certificate, you can use self signed certiticates too during
 development.
 
+=== One Time Password (Multi-Factor Authentication)
+
+TODO...
+
+[source,html]
+----
+<html>
+<head>
+  <title>OTP Authenticator Registration Example Page</title>
+</head>
+<body>
+  <p>Scan this QR Code in Google Authenticator</p>
+  <img id="qrcode">
+  <p>- or enter this key manually -</p>
+  <span id="url"></span>
+
+  <script>
+  const key = document.getElementById('url');
+  const qrcode = document.getElementById('qrcode');
+
+  fetch(
+    '/otp/register',
+    {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    .then(res => {
+      if (res.status === 200) {
+        return res;
+      }
+      throw new Error(res.statusText);
+    })
+    .catch(err => console.error(err))
+    .then(res => res.json())
+    .then(json => {
+      key.innerText = json.url;
+      qrcode.src =
+        'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' +
+        encodeURIComponent(json.url);
+    });
+  </script>
+</body>
+</html>
+----
+
+[source,html]
+----
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>OTP Authenticator Verification Example Page</title>
+</head>
+<body>
+<form action="/otp/verify" method="post" enctype="multipart/form-data">
+  <div>
+    <label>Code:</label>
+    <input type="text" name="code"/><br/>
+  </div>
+  <div>
+    <input type="submit" value="Submit"/>
+  </div>
+</form>
+</body>
+</html>
+
+----
+
 === Handling HTTP Method overriding
 
 Many companies and other services impose limitations to the REST HTTP methods they allow to the outside world. Some are lax by allowing any method, most are restricted by allowing only a small-but-decent set and some only allow GET and POST. The reasons for such restritions varies: browser or client limitations or a really strict corporate firewalls. Web services with only GET and POST does not express well the REST ideology. PUT, DELETE, OPTIONS, among others are quite useful to specify what do to to a resource. To deal with it, it was created the X-HTTP-METHOD-OVERRIDE HTTP header as a workaround.
