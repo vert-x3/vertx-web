@@ -229,6 +229,10 @@ class ApolloWSConnectionHandler {
     if (variables != null) {
       builder.variables(variables);
     }
+    Object initialValue = payload.getInitialValue();
+    if (initialValue != null) {
+      builder.root(initialValue);
+    }
 
     apolloWSHandler.getGraphQL().executeAsync(builder).whenCompleteAsync((executionResult, throwable) -> {
       if (throwable == null) {
