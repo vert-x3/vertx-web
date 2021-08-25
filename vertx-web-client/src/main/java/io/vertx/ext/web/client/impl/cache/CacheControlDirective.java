@@ -29,7 +29,8 @@ public enum CacheControlDirective {
   SHARED_MAX_AGE("s-maxage"),
   MAX_AGE("max-age"),
   STALE_IF_ERROR("stale-if-error"),
-  STALE_WHILE_REVALIDATE("stale-while-revalidate");
+  STALE_WHILE_REVALIDATE("stale-while-revalidate"),
+  MUST_REVALIDATE("must-revalidate");
 
   private final String value;
 

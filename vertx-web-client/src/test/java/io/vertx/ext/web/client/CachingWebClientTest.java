@@ -37,12 +37,11 @@ import org.junit.runner.RunWith;
 @RunWith(VertxUnitRunner.class)
 public class CachingWebClientTest {
 
-  private static final int PORT = 8888;
+  private static final int PORT = 8778;
 
-  private WebClient baseClient;
   private WebClient defaultClient;
-  private WebClient privateClient;
   private WebClient varyClient;
+  private WebClient sessionClient;
   private Vertx vertx;
   private HttpServer server;
 
@@ -59,10 +58,10 @@ public class CachingWebClientTest {
   @Before
   public void setUp() {
     vertx = Vertx.vertx();
-    baseClient = buildBaseWebClient();
+    WebClient baseClient = buildBaseWebClient();
     defaultClient = CachingWebClient.create(baseClient, new TestCacheStore());
-    privateClient = CachingWebClient.create(baseClient, new TestCacheStore(), new CachingWebClientOptions(true, true, false));
-    varyClient = CachingWebClient.create(baseClient, new TestCacheStore(), new CachingWebClientOptions(true, false, true));
+    varyClient = CachingWebClient.create(baseClient, new TestCacheStore(), new CachingWebClientOptions(true));
+    sessionClient = WebClientSession.create(CachingWebClient.create(baseClient, new TestCacheStore()));
     server = buildHttpServer();
   }
 
@@ -181,17 +180,6 @@ public class CachingWebClientTest {
     assertNotCached(context, defaultClient);
   }
 
-  // Test cache disabled via config
-
-  @Test
-  public void testCacheConfigDisable(TestContext context) {
-    WebClient client = CachingWebClient.create(baseClient, new TestCacheStore(),
-      new CachingWebClientOptions(false, false, false));
-
-    startMockServer(context, "public, max-age=600");
-    assertNotCached(context, client);
-  }
-
   // Non-GET methods that we shouldn't cache
 
   @Test
@@ -201,21 +189,9 @@ public class CachingWebClientTest {
   }
 
   @Test
-  public void testPOSTNotPrivatelyCached(TestContext context) {
-    startMockServer(context, "private, max-age=600");
-    assertCacheUse(context, HttpMethod.POST, privateClient, false);
-  }
-
-  @Test
   public void testPUTNotCached(TestContext context) {
     startMockServer(context, "public, max-age=600");
     assertCacheUse(context, HttpMethod.PUT, defaultClient, false);
-  }
-
-  @Test
-  public void testPUTNotPrivatelyCached(TestContext context) {
-    startMockServer(context, "private, max-age=600");
-    assertCacheUse(context, HttpMethod.PUT, privateClient, false);
   }
 
   @Test
@@ -225,21 +201,9 @@ public class CachingWebClientTest {
   }
 
   @Test
-  public void testPATCHNotPrivatelyCached(TestContext context) {
-    startMockServer(context, "private, max-age=600");
-    assertCacheUse(context, HttpMethod.PATCH, privateClient, false);
-  }
-
-  @Test
   public void testDELETENotCached(TestContext context) {
     startMockServer(context, "public, max-age=600");
     assertCacheUse(context, HttpMethod.DELETE, defaultClient, false);
-  }
-
-  @Test
-  public void testDELETENotPrivatelyCached(TestContext context) {
-    startMockServer(context, "private, max-age=600");
-    assertCacheUse(context, HttpMethod.DELETE, privateClient, false);
   }
 
   // Cache-Control: no-store || no-cache
@@ -710,25 +674,25 @@ public class CachingWebClientTest {
   @Test
   public void testPrivateEnabled(TestContext context) {
     startMockServer(context, "private");
-    assertCached(context, privateClient);
+    assertCached(context, sessionClient);
   }
 
   @Test
   public void testPrivateEnabledMaxAge(TestContext context) {
     startMockServer(context, "private, max-age=300");
-    assertCached(context, privateClient);
+    assertCached(context, sessionClient);
   }
 
   @Test
   public void testPrivateEnabledMaxAgeZero(TestContext context) {
     startMockServer(context, "private, max-age=0");
-    assertNotCached(context, privateClient);
+    assertNotCached(context, sessionClient);
   }
 
   @Test
   public void testPrivateSharedMaxAgeAndMaxAgeZero(TestContext context) {
     startMockServer(context, "private, s-maxage=300, max-age=0");
-    assertNotCached(context, privateClient);
+    assertNotCached(context, sessionClient);
   }
 
   @Test
@@ -737,15 +701,15 @@ public class CachingWebClientTest {
 
     Async waiter = context.async();
 
-    String body1 = executeGetBlocking(context, privateClient);
-    String body2 = executeGetBlocking(context, privateClient);
+    String body1 = executeGetBlocking(context, sessionClient);
+    String body2 = executeGetBlocking(context, sessionClient);
 
     // Wait for the max-age time to pass, but not long enough for s-maxage
     // HTTP cache only has 1 second resolution, so this must be 1+ seconds past than the max-age
     vertx.setTimer(2000, l -> waiter.complete());
     waiter.await();
 
-    String body3 = executeGetBlocking(context, privateClient);
+    String body3 = executeGetBlocking(context, sessionClient);
 
     context.assertEquals(body1, body2);
     context.assertNotEquals(body2, body3);

@@ -131,6 +131,10 @@ public class CacheControl {
     return !noStore() && directives.contains(CacheControlDirective.NO_CACHE);
   }
 
+  public boolean mustRevalidate() {
+    return directives.contains(CacheControlDirective.MUST_REVALIDATE);
+  }
+
   private long computeMaxAge() {
     if (!isPrivate() && timeDirectives.containsKey(CacheControlDirective.SHARED_MAX_AGE)) {
       return timeDirectives.get(CacheControlDirective.SHARED_MAX_AGE);

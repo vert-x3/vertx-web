@@ -42,7 +42,7 @@ public class WebClientBase implements WebClientInternal {
 
   final HttpClient client;
   final WebClientOptions options;
-  private final List<Handler<HttpContext<?>>> interceptors;
+  final List<Handler<HttpContext<?>>> interceptors;
 
   public WebClientBase(HttpClient client, WebClientOptions options) {
     this.client = client;

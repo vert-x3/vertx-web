@@ -18,6 +18,7 @@ package io.vertx.ext.web.client;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.Http2Settings;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.JdkSSLEngineOptions;
@@ -43,18 +44,16 @@ import java.util.concurrent.TimeUnit;
 public class CachingWebClientOptions extends WebClientOptions {
 
   public static final Set<Integer> DEFAULT_CACHED_STATUS_CODES = buildDefaultStatusCodes();
+  public static final Set<HttpMethod> DEFAULT_CACHED_METHODS = buildDefaultMethods();
 
-  private boolean enablePublicCaching = true;
-  private boolean enablePrivateCaching = false;
   private boolean enableVaryCaching = false;
   private Set<Integer> cachedStatusCodes = DEFAULT_CACHED_STATUS_CODES;
+  private Set<HttpMethod> cachedMethods = DEFAULT_CACHED_METHODS;
 
   public CachingWebClientOptions() {
   }
 
-  public CachingWebClientOptions(boolean enablePublicCaching, boolean enablePrivateCaching, boolean enableVaryCaching) {
-    this.enablePublicCaching = enablePublicCaching;
-    this.enablePrivateCaching = enablePrivateCaching;
+  public CachingWebClientOptions(boolean enableVaryCaching) {
     this.enableVaryCaching = enableVaryCaching;
   }
 
@@ -69,10 +68,9 @@ public class CachingWebClientOptions extends WebClientOptions {
 
   void init(CachingWebClientOptions other) {
     super.init(other);
-    this.enablePublicCaching = other.enablePublicCaching;
-    this.enablePrivateCaching = other.enablePrivateCaching;
     this.enableVaryCaching = other.enableVaryCaching;
     this.cachedStatusCodes = other.cachedStatusCodes;
+    this.cachedMethods = other.cachedMethods;
   }
 
   /**
@@ -84,28 +82,6 @@ public class CachingWebClientOptions extends WebClientOptions {
     JsonObject json = super.toJson();
     CachingWebClientOptionsConverter.toJson(this, json);
     return json;
-  }
-
-  /**
-   * Configure the client cache behavior for {@code Cache-Control: public} responses.
-   *
-   * @param enabled true to enable caching responses
-   * @return a reference to this, so the API can be used fluently
-   */
-  public CachingWebClientOptions setEnablePublicCaching(boolean enabled) {
-    this.enablePublicCaching = enabled;
-    return this;
-  }
-
-  /**
-   * Configure the client cache behavior for {@code Cache-Control: private} responses.
-   *
-   * @param enabled true to enable caching responses
-   * @return a reference to this, so the API can be used fluently
-   */
-  public CachingWebClientOptions setEnablePrivateCaching(boolean enabled) {
-    this.enablePrivateCaching = enabled;
-    return this;
   }
 
   /**
@@ -138,7 +114,7 @@ public class CachingWebClientOptions extends WebClientOptions {
   }
 
   /**
-   * Add an additional status code that is cacheable.
+   * Add a status code that is cacheable.
    *
    * @param code the additional code number
    * @return a reference to this, so the API can be used fluently
@@ -160,17 +136,43 @@ public class CachingWebClientOptions extends WebClientOptions {
   }
 
   /**
-   * @return true if the client will cache {@code Cache-Control: public} responses, false otherwise
+   * @return the set of HTTP methods to consider cacheable.
    */
-  public boolean isPublicCachingEnabled() {
-    return enablePublicCaching;
+  public Set<HttpMethod> getCachedMethods() {
+    return cachedMethods;
   }
 
   /**
-   * @return true if the client will cache {@code Cache-Control: private} responses, false otherwise
+   * Configure the HTTP methods that can be cached.
+   *
+   * @param methods the HTTP methods to cache
+   * @return a reference to this, so the API can be used fluently
    */
-  public boolean isPrivateCachingEnabled() {
-    return enablePrivateCaching;
+  public CachingWebClientOptions setCachedMethods(Set<HttpMethod> methods) {
+    this.cachedMethods = methods;
+    return this;
+  }
+
+  /**
+   * Add an HTTP method that is cacheable.
+   *
+   * @param method the method to add
+   * @return a reference to this, so the API can be used fluently
+   */
+  public CachingWebClientOptions addCachedMethod(HttpMethod method) {
+    this.cachedMethods.add(method);
+    return this;
+  }
+
+  /**
+   * Remove an HTTP method that is cacheable.
+   *
+   * @param method the method to remove
+   * @return a reference to this, so the API can be used fluently
+   */
+  public CachingWebClientOptions removeCachedMethod(HttpMethod method) {
+    this.cachedMethods.remove(method);
+    return this;
   }
 
   /**
@@ -178,13 +180,6 @@ public class CachingWebClientOptions extends WebClientOptions {
    */
   public boolean isVaryCachingEnabled() {
     return enableVaryCaching;
-  }
-
-  /**
-   * @return true if the client will cache {@code Cache-Control: public} or {@code Cache-Control: private} responses, false otherwise
-   */
-  public boolean isCachingEnabled() {
-    return isPublicCachingEnabled() || isPrivateCachingEnabled();
   }
 
   @Override
@@ -571,5 +566,11 @@ public class CachingWebClientOptions extends WebClientOptions {
     Set<Integer> codes = new HashSet<>(3);
     Collections.addAll(codes, 200, 301, 404);
     return codes;
+  }
+
+  private static Set<HttpMethod> buildDefaultMethods() {
+    Set<HttpMethod> methods = new HashSet<>(1);
+    methods.add(HttpMethod.GET);
+    return methods;
   }
 }

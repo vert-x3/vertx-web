@@ -12,9 +12,7 @@ public class CachingWebClientExamples {
 
   public void simpleGetWithCaching(Vertx vertx) {
     CacheStore cacheStore = new NoOpCacheStore();
-    CachingWebClientOptions options = new CachingWebClientOptions()
-      .setEnablePublicCaching(true);
-    WebClient client = CachingWebClient.create(vertx, cacheStore, options);
+    WebClient client = CachingWebClient.create(vertx, cacheStore);
 
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")

@@ -56,6 +56,7 @@ public class HttpContext<T> {
   private final Handler<AsyncResult<HttpResponse<T>>> handler;
   private final HttpClientImpl client;
   private final List<Handler<HttpContext<?>>> interceptors;
+  private final CacheStore privateCacheStore;
   private Context context;
   private HttpRequestImpl<T> request;
   private Object body;
@@ -73,12 +74,19 @@ public class HttpContext<T> {
   private Throwable failure;
   private int redirects;
   private List<String> redirectedLocations = Collections.emptyList();
-  private CacheStore cacheStore;
 
   HttpContext(HttpClientImpl client, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.handler = handler;
     this.client = client;
     this.interceptors = interceptors;
+    this.privateCacheStore = null;
+  }
+
+  HttpContext(HttpClientImpl client, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler, CacheStore privateCacheStore) {
+    this.handler = handler;
+    this.client = client;
+    this.interceptors = interceptors;
+    this.privateCacheStore = privateCacheStore;
   }
 
   /**
@@ -179,21 +187,11 @@ public class HttpContext<T> {
   }
 
   /**
-   * @return the currently set cache store
+   * @return the private cache store set by {@link io.vertx.ext.web.client.WebClientSession}, or
+   * null if this is not a session client.
    */
-  public CacheStore cacheStore() {
-    return cacheStore;
-  }
-
-  /**
-   * Set the cache store.
-   *
-   * @param cacheStore the new cache store
-   * @return a reference to this, so the API can be used fluently
-   */
-  public HttpContext<T> cacheStore(CacheStore cacheStore) {
-    this.cacheStore = cacheStore;
-    return this;
+  public CacheStore privateCacheStore() {
+    return privateCacheStore;
   }
 
   /**

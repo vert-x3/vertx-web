@@ -21,6 +21,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.impl.cache.CacheKey;
 import io.vertx.ext.web.client.impl.cache.CachedHttpResponse;
+import io.vertx.ext.web.client.impl.cache.LocalCacheStore;
 import io.vertx.ext.web.client.impl.cache.NoOpCacheStore;
 import io.vertx.ext.web.client.impl.cache.SharedDataCacheStore;
 
@@ -49,6 +50,15 @@ public interface CacheStore {
    */
   static CacheStore sharedDataStore(Vertx vertx) {
     return new SharedDataCacheStore(vertx);
+  }
+
+  /**
+   * Builds a cache store that uses a {@link java.util.concurrent.ConcurrentHashMap}.
+   *
+   * @return the new cache store
+   */
+  static CacheStore localStore() {
+    return new LocalCacheStore();
   }
 
   /**

@@ -17,6 +17,7 @@ package io.vertx.ext.web.client.impl.cache;
 
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -43,26 +44,19 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
   private static final String IS_CACHE_DISPATCH = "cache.dispatch";
   private static final String REVALIDATION_RESPONSE = "cache.response_to_revalidate";
 
-  private final CacheStore cacheStore;
+  private final CacheStore publicCacheStore;
   private final CachingWebClientOptions options;
   private final Map<CacheVariationsKey, Set<Vary>> variationsRegistry;
 
   public CacheInterceptor(CacheStore store, CachingWebClientOptions options) {
-    this.cacheStore = store;
+    this.publicCacheStore = store;
     this.options = options;
     this.variationsRegistry = new ConcurrentHashMap<>();
   }
 
   @Override
   public void handle(HttpContext<?> context) {
-    if (!options.isCachingEnabled()) {
-      context.next();
-      return;
-    }
-
     switch (context.phase()) {
-      case PREPARE_REQUEST:
-        handlePrepareRequest((HttpContext<Buffer>) context);
       case SEND_REQUEST:
         handleSendRequest((HttpContext<Buffer>) context);
         break;
@@ -75,23 +69,34 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
     }
   }
 
-  private void handlePrepareRequest(HttpContext<Buffer> context) {
-    if (context.cacheStore() == null) {
-      context.cacheStore(cacheStore);
-    }
-  }
-
   private void handleSendRequest(HttpContext<Buffer> context) {
     HttpRequestImpl<Buffer> requestImpl = (HttpRequestImpl<Buffer>) context.request();
     Vary variation;
 
-    if (!HttpMethod.GET.equals(requestImpl.method()) || (variation = selectVariation(requestImpl)) == null) {
+    if (!options.getCachedMethods().contains(requestImpl.method()) || (variation = selectVariation(requestImpl)) == null) {
       context.next();
       return;
     }
 
-    cacheStore
-      .get(new CacheKey(context.request(), variation))
+    Promise<CachedHttpResponse> promise = Promise.promise();
+    CacheKey key = new CacheKey(context.request(), variation);
+
+    if (context.privateCacheStore() != null) {
+      // Check the local private store first
+      context.privateCacheStore().get(key).onSuccess(cached -> {
+        if (cached == null) {
+          // If the local private store doesn't have the result, try the public shared store
+          publicCacheStore.get(key).onComplete(promise);
+        } else {
+          promise.complete(cached);
+        }
+      });
+    } else {
+      publicCacheStore.get(key).onComplete(promise);
+    }
+
+    promise
+      .future()
       .map(cached -> respondFromCache(context, cached))
       .onComplete(ar -> {
         if (ar.succeeded() && ar.result().isPresent()) {
@@ -141,14 +146,13 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
   }
 
   private Future<HttpResponse<Buffer>> processResponse(HttpContext<Buffer> context, CachedHttpResponse cachedResponse) {
-    HttpRequest<Buffer> request = context.request();
     HttpResponse<Buffer> response = context.response();
 
     if (options.getCachedStatusCodes().contains(response.statusCode())) {
       // Request was successful, attempt to cache response
-      return cacheResponse(request, response).map(response);
+      return cacheResponse(context, response).map(response);
     } else if (cachedResponse != null && cachedResponse.useStaleIfError()) {
-      // TODO: we should check that this is an error too
+      // The response is a status code we don't know about, assume revalidate failed and use cached result
       return Future.succeededFuture(cachedResponse.rehydrate());
     } else {
       // Response is not cacheable, do nothing
@@ -191,20 +195,21 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
   private Future<HttpResponse<Buffer>> processRevalidationResponse(HttpContext<Buffer> context, CachedHttpResponse cachedResponse) {
     if (context.response().statusCode() == 304) {
       // The cache returned a stale result, but server has confirmed still good. Update cache
-      return cacheResponse(context.request(), cachedResponse.rehydrate());
+      return cacheResponse(context, cachedResponse.rehydrate());
     } else {
       return processResponse(context, cachedResponse);
     }
   }
 
-  private Future<HttpResponse<Buffer>> cacheResponse(HttpRequest<?> request, HttpResponse<Buffer> response) {
+  private Future<HttpResponse<Buffer>> cacheResponse(HttpContext<?> context, HttpResponse<Buffer> response) {
+    HttpRequest<?> request = context.request();
     CacheControl cacheControl = CacheControl.parse(response.headers());
 
     if (!cacheControl.isCacheable()) {
       return Future.succeededFuture(response);
     }
 
-    if (cacheControl.isPrivate() && !options.isPrivateCachingEnabled()) {
+    if (cacheControl.isPrivate() && context.privateCacheStore() == null) {
       return Future.succeededFuture(response);
     }
 
@@ -219,7 +224,11 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
     CacheKey key = new CacheKey(request, variation);
     CachedHttpResponse cachedResponse = CachedHttpResponse.wrap(response, cacheControl);
 
-    return cacheStore.set(key, cachedResponse).map(response);
+    if (cacheControl.isPrivate()) {
+      return context.privateCacheStore().set(key, cachedResponse).map(response);
+    } else {
+      return publicCacheStore.set(key, cachedResponse).map(response);
+    }
   }
 
   private void registerVariation(CacheVariationsKey variationsKey, Vary variation) {
