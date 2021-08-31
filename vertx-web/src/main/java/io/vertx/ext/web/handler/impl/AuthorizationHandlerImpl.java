@@ -18,6 +18,8 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.authorization.Authorization;
@@ -57,16 +59,18 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
       // pause parsing the request body. The reason is that
       // we don't want to loose the body or protocol upgrades
       // for async operations
-      routingContext.request().pause();
-
+      final boolean parseEnded = routingContext.request().isEnded();
+      if (!parseEnded) {
+        routingContext.request().pause();
+      }
       try {
         // create the authorization context
         AuthorizationContext authorizationContext = getAuthorizationContext(routingContext);
         // check or fetch authorizations
-        checkOrFetchAuthorizations(routingContext, authorizationContext, authorizationProviders.iterator());
+        checkOrFetchAuthorizations(routingContext, parseEnded, authorizationContext, authorizationProviders.iterator());
       } catch (RuntimeException e) {
         // resume as the error handler may allow this request to become valid again
-        routingContext.request().resume();
+        resume(routingContext.request(), parseEnded);
         routingContext.fail(e);
       }
     }
@@ -86,16 +90,16 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
    * @param authorizationContext the current authorization context
    * @param providers the providers iterator
    */
-  private void checkOrFetchAuthorizations(RoutingContext routingContext, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
+  private void checkOrFetchAuthorizations(RoutingContext routingContext, boolean parseEnded, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
     if (authorization.match(authorizationContext)) {
       // resume the processing of the request
-      routingContext.request().resume();
+      resume(routingContext.request(), parseEnded);
       routingContext.next();
       return;
     }
     if (!providers.hasNext()) {
       // resume as the error handler may allow this request to become valid again
-      routingContext.request().resume();
+      resume(routingContext.request(), parseEnded);
       routingContext.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
       return;
     }
@@ -112,7 +116,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
             LOG.warn("An error occured getting authorization - providerId: " + provider.getId(), authorizationResult.cause());
             // note that we don't 'record' the fact that we tried to fetch the authorization provider. therefore it will be re-fetched later-on
           }
-          checkOrFetchAuthorizations(routingContext, authorizationContext, providers);
+          checkOrFetchAuthorizations(routingContext, parseEnded, authorizationContext, providers);
         });
         // get out right now as the callback will decide what to do next
         return;
@@ -134,5 +138,11 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
 
     this.authorizationProviders.add(authorizationProvider);
     return this;
+  }
+
+  private void resume(HttpServerRequest request, final boolean parseEnded) {
+    if (!parseEnded && !request.headers().contains(HttpHeaders.UPGRADE, HttpHeaders.WEBSOCKET, true)) {
+      request.resume();
+    }
   }
 }
