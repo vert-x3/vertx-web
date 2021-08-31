@@ -6,7 +6,7 @@
   <parent>
     <artifactId>vertx-web-session-stores</artifactId>
     <groupId>io.vertx</groupId>
-    <version>4.1.3</version>
+    <version>4.1.4-SNAPSHOT</version>
   </parent>
 
   <artifactId>vertx-web-sstore-redis</artifactId>
