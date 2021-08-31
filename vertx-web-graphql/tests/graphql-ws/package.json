@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "babel-plugin-transform-es2015-modules-commonjs": "6.26.2",
+    "graphql-ws": "5.4.0",
+    "jest": "24.8.0"
+  }
+}
