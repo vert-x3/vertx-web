@@ -24,6 +24,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.auth.authentication.Credentials;
@@ -45,6 +46,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   final WebClientInternal client;
   final WebClientOptions options;
+  final ProxyOptions proxyOptions;
   SocketAddress serverAddress;
   MultiMap params;
   HttpMethod method;
@@ -62,12 +64,17 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   public List<ResponsePredicate> expectations;
 
   HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, Boolean ssl, Integer port, String host, String uri, BodyCodec<T>
+    codec, WebClientOptions options, ProxyOptions proxyOptions) {
+    this(client, method, serverAddress, null, ssl, port, host, uri, codec, options, proxyOptions);
+  }
+
+  HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, Boolean ssl, Integer port, String host, String uri, BodyCodec<T>
           codec, WebClientOptions options) {
-    this(client, method, serverAddress, null, ssl, port, host, uri, codec, options);
+    this(client, method, serverAddress, null, ssl, port, host, uri, codec, options, null);
   }
 
   HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, String protocol, Boolean ssl, Integer port, String host, String
-          uri, BodyCodec<T> codec, WebClientOptions options) {
+          uri, BodyCodec<T> codec, WebClientOptions options, ProxyOptions proxyOptions) {
     this.client = client;
     this.method = method;
     this.protocol = protocol;
@@ -79,6 +86,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.serverAddress = serverAddress;
     this.followRedirects = options.isFollowRedirects();
     this.options = options;
+    this.proxyOptions = proxyOptions;
     if (options.isUserAgentEnabled()) {
       headers = HttpHeaders.set(HttpHeaders.USER_AGENT, options.getUserAgent());
     } else {
@@ -90,6 +98,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.client = other.client;
     this.serverAddress = other.serverAddress;
     this.options = other.options;
+    this.proxyOptions = other.proxyOptions;
     this.method = other.method;
     this.protocol = other.protocol;
     this.port = other.port;
