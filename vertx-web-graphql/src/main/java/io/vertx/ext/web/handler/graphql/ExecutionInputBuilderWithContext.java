@@ -23,12 +23,21 @@ import io.vertx.codegen.annotations.VertxGen;
 import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
 /**
- * A callback invoked by GraphQL handlers before executing a GraphQL query.
+ * Holds a {@link ExecutionInput.Builder} with a contextual object.
+ *
+ * @param <C> the contextual object type
  */
 @VertxGen
-@FunctionalInterface
-public interface ExecutionInputConfig<T> {
+public interface ExecutionInputBuilderWithContext<C> {
 
+  /**
+   * @return the GraphQL execution input builder
+   */
   @GenIgnore(PERMITTED_TYPE)
-  void configure(T t, ExecutionInput.Builder builder);
+  ExecutionInput.Builder builder();
+
+  /**
+   * @return the contextual object
+   */
+  C context();
 }

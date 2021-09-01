@@ -22,7 +22,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.graphql.ExecutionInputConfig;
+import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.impl.ws.GraphQLWSHandlerImpl;
 
 import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
@@ -72,5 +72,5 @@ public interface GraphQLWSHandler extends Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  GraphQLWSHandler executionInputConfig(ExecutionInputConfig<Message> config);
+  GraphQLWSHandler beforeExecute(Handler<ExecutionInputBuilderWithContext<Message>> config);
 }

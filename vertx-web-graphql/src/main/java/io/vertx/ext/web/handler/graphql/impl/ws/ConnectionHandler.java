@@ -28,8 +28,10 @@ import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.impl.GraphQLQuery;
 import io.vertx.ext.web.handler.graphql.ws.ConnectionInitEvent;
+import io.vertx.ext.web.handler.graphql.ws.Message;
 import io.vertx.ext.web.handler.graphql.ws.MessageType;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
@@ -332,7 +334,20 @@ public class ConnectionHandler {
         builder.root(initialValue);
       }
 
-      graphQLWSHandler.getExecutionInputConfig().configure(msg, builder);
+      Handler<ExecutionInputBuilderWithContext<Message>> beforeExecute = graphQLWSHandler.getBeforeExecute();
+      if (beforeExecute != null) {
+        beforeExecute.handle(new ExecutionInputBuilderWithContext<Message>() {
+          @Override
+          public Message context() {
+            return msg;
+          }
+
+          @Override
+          public ExecutionInput.Builder builder() {
+            return builder;
+          }
+        });
+      }
 
       graphQLWSHandler.getGraphQL().executeAsync(builder).whenCompleteAsync((executionResult, throwable) -> {
         if (throwable == null) {

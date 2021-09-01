@@ -21,7 +21,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.graphql.ExecutionInputConfig;
+import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.ws.ConnectionInitEvent;
 import io.vertx.ext.web.handler.graphql.ws.GraphQLWSHandler;
 import io.vertx.ext.web.handler.graphql.ws.GraphQLWSOptions;
@@ -33,13 +33,10 @@ import static io.vertx.core.http.HttpHeaders.*;
 
 public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
 
-  private static final ExecutionInputConfig<Message> DEFAULT_EXECUTION_INPUT_CONFIG = (message, builder) -> {
-  };
-
   private final GraphQL graphQL;
   private final long connectionInitWaitTimeout;
 
-  private ExecutionInputConfig<Message> executionInputConfig = DEFAULT_EXECUTION_INPUT_CONFIG;
+  private Handler<ExecutionInputBuilderWithContext<Message>> beforeExecute;
   private Handler<ConnectionInitEvent> connectionInitHandler;
 
   public GraphQLWSHandlerImpl(GraphQL graphQL, GraphQLWSOptions options) {
@@ -68,13 +65,13 @@ public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
   }
 
   @Override
-  public GraphQLWSHandler executionInputConfig(ExecutionInputConfig<Message> config) {
-    executionInputConfig = config != null ? config : DEFAULT_EXECUTION_INPUT_CONFIG;
+  public GraphQLWSHandler beforeExecute(Handler<ExecutionInputBuilderWithContext<Message>> beforeExecute) {
+    this.beforeExecute = beforeExecute;
     return this;
   }
 
-  synchronized ExecutionInputConfig<Message> getExecutionInputConfig() {
-    return executionInputConfig;
+  synchronized Handler<ExecutionInputBuilderWithContext<Message>> getBeforeExecute() {
+    return beforeExecute;
   }
 
   @Override
