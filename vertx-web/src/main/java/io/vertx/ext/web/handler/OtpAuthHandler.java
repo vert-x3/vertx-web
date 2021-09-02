@@ -34,29 +34,77 @@ import io.vertx.ext.web.handler.impl.TotpAuthHandlerImpl;
 @VertxGen
 public interface OtpAuthHandler extends Handler<RoutingContext> {
 
+  /**
+   * Create a new instance of this handler using a time based one time password authentication provider.
+   * @param totpAuth the time based OTP provider.
+   * @return new instance of the handler.
+   */
   static OtpAuthHandler create(TotpAuth totpAuth) {
     return new TotpAuthHandlerImpl(totpAuth, OtpKeyGenerator.create());
   }
 
+  /**
+   * Create a new instance of this handler using a hash based one time password authentication provider.
+   * @param hotpAuth the hash based OTP provider.
+   * @return new instance of the handler.
+   */
   static OtpAuthHandler create(HotpAuth hotpAuth) {
     return new HotpAuthHandlerImpl(hotpAuth, OtpKeyGenerator.create());
   }
 
+  /**
+   * Specify the URL where requests are to be redirected when a user is already known in the request.
+   *
+   * A user is already known when the {@link RoutingContext#user()} is not {@code null}.
+   *
+   * If no redirect is provided, no redirect will be done and requests are terminated immediatly with status code {@code 401}.
+   *
+   * @param url the location where users are to be asked for the OTP code.
+   * @return fluent self.
+   */
   @Fluent
   OtpAuthHandler verifyUrl(String url);
 
+  /**
+   * Setup the optional route where authenticators are allowed to register. Registration is only allowed on requests with
+   * a valid user.
+   *
+   * A user is valid when the {@link RoutingContext#user()} is not {@code null}.
+   *
+   * @param route the location where users are to register new authenticator devices/apps.
+   * @return fluent self.
+   */
   @Fluent
   OtpAuthHandler setupRegisterCallback(Route route);
 
+  /**
+   * Setup the required route where authenticators to submit the challenge response. Challenges
+   * are only allowed on requests with a valid user.
+   *
+   * A user is valid when the {@link RoutingContext#user()} is not {@code null}.
+   *
+   * @param route the location where users are to submit challenge responses from authenticator devices/apps.
+   * @return fluent self.
+   */
   @Fluent
   OtpAuthHandler setupCallback(Route route);
 
-  @Fluent
-  OtpAuthHandler period(long period);
-
+  /**
+   * Configure the {@code issuer} value to be shown in the authenticator URL.
+   *
+   * @param issuer a {@code String} for example {@code Vert.x OTP}
+   * @return fluent self.
+   */
   @Fluent
   OtpAuthHandler issuer(String issuer);
 
+  /**
+   * Configure the {@code label} value to be shown in the authenticator URL. When this value is provided it will
+   * overwrite the default label which is composed of the {@code issuer} and the current {@code user} id.
+   *
+   * @param label a {@code String} for example {@code Vert.x OTP}
+   * @return fluent self.
+   */
   @Fluent
   OtpAuthHandler label(String label);
 }

@@ -21,10 +21,10 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.otp.OtpCredentials;
 import io.vertx.ext.auth.otp.OtpKey;
 import io.vertx.ext.auth.otp.OtpKeyGenerator;
 import io.vertx.ext.auth.otp.hotp.HotpAuth;
-import io.vertx.ext.auth.otp.hotp.HotpCredentials;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.HttpException;
@@ -38,7 +38,6 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
   private final OtpKeyGenerator otpKeyGen;
 
   private String verifyUrl;
-  private long period = 30;
   private String issuer;
   private String label;
 
@@ -105,12 +104,6 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
   }
 
   @Override
-  public OtpAuthHandler period(long period) {
-    this.period = period;
-    return this;
-  }
-
-  @Override
   public OtpAuthHandler issuer(String issuer) {
     this.issuer = issuer;
     return this;
@@ -128,7 +121,11 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
       // force a post if otherwise
       .method(HttpMethod.POST)
       .handler(ctx -> {
-        // TODO: validation
+        if (ctx.user().get("username") == null) {
+          ctx.fail(new IllegalStateException("User object misses 'username' attribute"));
+          return;
+        }
+
         final OtpKey key = otpKeyGen.generate();
         authProvider.createAuthenticator(ctx.user().get("username"), key)
           .onFailure(ctx::fail)
@@ -137,7 +134,7 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
               new JsonObject()
                 .put("issuer", issuer)
                 .put("label", label)
-                .put("url", authProvider.generateUri(key, period, issuer, ctx.user().get("username"), label))));
+                .put("url", authProvider.generateUri(key, issuer, ctx.user().get("username"), label))));
       });
 
     return this;
@@ -149,8 +146,17 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
       // force a post if otherwise
       .method(HttpMethod.POST)
       .handler(ctx -> {
-        // TODO: validation
-        authProvider.authenticate(new HotpCredentials(ctx.user().get("username"), ctx.request().getParam("code")))
+        if (ctx.user().get("username") == null) {
+          ctx.fail(new IllegalStateException("User object misses 'username' attribute"));
+          return;
+        }
+
+        if ( ctx.request().getParam("code") == null) {
+          ctx.fail(new HttpException(400, "Missing 'code' form attribute"));
+          return;
+        }
+
+        authProvider.authenticate(new OtpCredentials(ctx.user().get("username"), ctx.request().getParam("code")))
           .onSuccess(user -> {
             User currentUser = ctx.user();
             currentUser.principal().mergeIn(user.principal());

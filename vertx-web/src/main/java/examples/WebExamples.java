@@ -23,6 +23,7 @@ import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
+import io.vertx.ext.auth.otp.totp.TotpAuth;
 import io.vertx.ext.auth.webauthn.*;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
@@ -1925,5 +1926,55 @@ public class WebExamples {
     // all responses will then include the right
     // X-Frame-Options header with the value "DENY"
     router.route().handler(XFrameHandler.create(XFrameHandler.DENY));
+  }
+
+  public void example86(Vertx vertx, Router router, BasicAuthHandler basicAuthHandler) {
+
+    // parse the BODY
+    router.post()
+      .handler(BodyHandler.create());
+    // add a session handler (OTP requires state)
+    router.route()
+      .handler(SessionHandler
+        .create(LocalSessionStore.create(vertx))
+        .setCookieSameSite(CookieSameSite.STRICT));
+
+    // add the first authentication mode, for example HTTP Basic Authentication
+    router.route()
+      .handler(basicAuthHandler);
+
+    final OtpAuthHandler otp = OtpAuthHandler
+      .create(TotpAuth.create()
+        .authenticatorFetcher(authr -> {
+          // fetch authenticators from a database
+          // ...
+          return Future.succeededFuture(new io.vertx.ext.auth.otp.Authenticator());
+        })
+        .authenticatorUpdater(authr -> {
+          // update or insert authenticators from a database
+          // ...
+          return Future.succeededFuture();
+        }));
+
+    otp
+      // the issuer for the application
+      .issuer("Vert.x Demo")
+      // handle code verification responses
+      .verifyUrl("/verify-otp.html")
+      // handle registration of authenticators
+      .setupRegisterCallback(router.post("/otp/register"))
+      // handle verification of authenticators
+      .setupCallback(router.post("/otp/verify"));
+
+    // secure the rest of the routes
+    router.route()
+      .handler(otp);
+
+    // To view protected details, user must be authenticated and
+    // using 2nd factor authentication
+    router.get("/protected")
+      .handler(ctx -> {
+        ctx.end("Super secret content");
+      });
   }
 }
