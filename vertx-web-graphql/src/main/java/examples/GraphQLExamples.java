@@ -32,6 +32,7 @@ import io.vertx.ext.web.handler.graphql.*;
 import io.vertx.ext.web.handler.graphql.dataloader.VertxBatchLoader;
 import io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher;
 import io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher;
+import io.vertx.ext.web.handler.graphql.ws.GraphQLWSHandler;
 import org.dataloader.*;
 
 import java.util.List;
@@ -266,4 +267,18 @@ public class GraphQLExamples {
     router.route("/graphql").handler(GraphQLHandler.create(graphQL));
   }
 
+  public void addGraphQLWSHandlerToRouter(Router router, GraphQL graphQL) {
+    router.route("/graphql").handler(GraphQLWSHandler.create(graphQL));
+  }
+
+  public void configureServerForGraphQLWS() {
+    HttpServerOptions httpServerOptions = new HttpServerOptions()
+      .addWebSocketSubProtocol("graphql-transport-ws");
+  }
+
+  public void configureGraphQLWSAndHttpOnSamePath(Router router, GraphQL graphQL) {
+    router.route("/graphql")
+      .handler(GraphQLWSHandler.create(graphQL))
+      .handler(GraphQLHandler.create(graphQL));
+  }
 }
