@@ -375,6 +375,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     try {
       switch (uri.getScheme()) {
         case "http":
+        case "https":
           return Paths.get(uri.getPath());
         case "file":
           return Paths.get(uri);
