@@ -238,7 +238,6 @@ public class HttpContext<T> {
         next.onComplete(ar -> {
           if (ar.succeeded()) {
             RequestOptions options = ar.result();
-            request.mergeHeaders(options);
             requestOptions = options;
             fire(ClientPhase.FOLLOW_REDIRECT);
           } else {
