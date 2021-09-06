@@ -1434,6 +1434,7 @@ public class WebClientTest extends WebClientTestBase {
         fail("Missing expected header");
         return;
       }
+      assertEquals(Collections.singletonList("bar"), req.headers().getAll("foo"));
       if (req.path().equals("/redirect")) {
         req.response().setStatusCode(301).putHeader("Location", location).end();
         if (!expect) {
