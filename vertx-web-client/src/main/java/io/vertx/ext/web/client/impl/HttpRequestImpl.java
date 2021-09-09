@@ -102,6 +102,8 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.followRedirects = other.followRedirects;
     this.ssl = other.ssl;
     this.multipartMixed = other.multipartMixed;
+    this.virtualHost = other.virtualHost;
+    this.expectations = other.expectations != null ? new ArrayList<>(other.expectations) : null;
   }
 
   @Override

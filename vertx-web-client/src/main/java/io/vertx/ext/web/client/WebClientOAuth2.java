@@ -13,12 +13,9 @@ package io.vertx.ext.web.client;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.client.impl.WebClientOauth2Aware;
-import io.vertx.ext.web.client.impl.WebClientSessionAware;
-import io.vertx.ext.web.client.spi.CookieStore;
 
 @VertxGen
 public interface WebClientOAuth2 extends WebClient {
@@ -44,5 +41,6 @@ public interface WebClientOAuth2 extends WebClient {
    */
 
   @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   WebClientOAuth2 withCredentials(Credentials credentials);
 }

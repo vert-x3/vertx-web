@@ -24,6 +24,7 @@ public class WebClientOauth2Aware extends WebClientBase implements WebClientOAut
 
   @Override
   public WebClientOAuth2 leeway(int seconds) {
+    this.leeway = seconds;
     return this;
   }
 
