@@ -33,10 +33,8 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
 
   private Future<Void> createRequest(HttpContext<?> context) {
 
-    HttpRequestImpl<?> request = (HttpRequestImpl<?>) context.request();
-
     Promise<Void> promise = Promise.promise();
-    if (parentClient.isWithAuthentication()) {
+    if (parentClient.getCredentials() != null) {
       if (parentClient.getUser() != null) {
         if (parentClient.getUser().expired(parentClient.getLeeway())) {
           //Token has expired we need to invalidate the session
@@ -45,8 +43,7 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
             .refresh(parentClient.getUser())
             .onSuccess(userResult -> {
               parentClient.setUser(userResult);
-              parentClient.setWithAuthentication(false);
-              context.requestOptions().addHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
+              context.requestOptions().putHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
               promise.complete();
             })
             .onFailure(error -> {
@@ -56,21 +53,18 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
                 .authenticate(parentClient.getCredentials())
                 .onSuccess(userResult -> {
                   parentClient.setUser(userResult);
-                  parentClient.setWithAuthentication(false);
-                  context.requestOptions().addHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
+                  context.requestOptions().putHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
                   promise.complete();
                 })
                 .onFailure(errorAuth -> {
                   //Refresh token did not work and failed to obtain new authentication token, we need to fail
                   parentClient.setUser(null);
-                  parentClient.setWithAuthentication(false);
                   promise.fail(errorAuth);
                 });
             });
         } else {
           //User is not expired, access_token is valid
-          parentClient.setWithAuthentication(false);
-          context.requestOptions().addHeader(AUTHORIZATION, parentClient.getUser().principal().getString("access_token"));
+          context.requestOptions().putHeader(AUTHORIZATION, "Bearer " + parentClient.getUser().principal().getString("access_token"));
           promise.complete();
         }
       } else {
@@ -79,14 +73,13 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
           .authenticate(parentClient.getCredentials())
           .onSuccess(userResult -> {
             parentClient.setUser(userResult);
-            parentClient.setWithAuthentication(false);
-            context.requestOptions().addHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
+            context.requestOptions().putHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
             promise.complete();
           })
           .onFailure(promise::fail);
       }
     } else {
-      promise.complete();
+      promise.fail("Missing client credentials");
     }
 
     return promise.future();

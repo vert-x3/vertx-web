@@ -12,13 +12,16 @@ public class WebClientOauth2Aware extends WebClientBase implements WebClientOAut
   private Credentials credentials;
 
   private User user;
-  private boolean withAuthentication;
 
   private int leeway = 0;
 
-  public WebClientOauth2Aware(WebClient client, OAuth2Auth oAuth2Auth) {
+  public WebClientOauth2Aware(WebClient client, OAuth2Auth oauth2Auth) {
     super((WebClientBase) client);
-    this.oauth2Auth = oAuth2Auth;
+
+    if (oauth2Auth == null) {
+      throw new IllegalArgumentException("OAuth2Auth cannot be null");
+    }
+    this.oauth2Auth = oauth2Auth;
     addInterceptor(new OAuth2AwareInterceptor(this));
   }
 
@@ -30,11 +33,7 @@ public class WebClientOauth2Aware extends WebClientBase implements WebClientOAut
 
   @Override
   public WebClientOAuth2 withCredentials(Credentials credentials) {
-    if (oauth2Auth == null) {
-      throw new NullPointerException("Can not obtain required authentication for request as OAuth2Auth provider is null");
-    }
-
-    if (credentials == null) {
+     if (credentials == null) {
       throw new NullPointerException("Token Configuration passed to WebClientOauth2Aware can not be null");
     }
 
@@ -44,8 +43,6 @@ public class WebClientOauth2Aware extends WebClientBase implements WebClientOAut
     }
 
     this.credentials = credentials;
-    this.withAuthentication = true;
-
     return this;
   }
 
@@ -59,14 +56,6 @@ public class WebClientOauth2Aware extends WebClientBase implements WebClientOAut
 
   void setUser(User user) {
     this.user = user;
-  }
-
-  boolean isWithAuthentication() {
-    return withAuthentication;
-  }
-
-  void setWithAuthentication(boolean withAuthentication) {
-    this.withAuthentication = withAuthentication;
   }
 
   OAuth2Auth oauth2Auth() {
