@@ -12,9 +12,6 @@ package io.vertx.ext.web.client.impl;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.ext.auth.User;
-import io.vertx.ext.auth.authentication.Credentials;
-import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientSession;
 import io.vertx.ext.web.client.spi.CookieStore;
@@ -26,41 +23,15 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
 
   private final CookieStore cookieStore;
   private MultiMap headers;
-  private final OAuth2Auth oAuth2Auth;
-  private Credentials credentials;
-  private User user;
-  private boolean withAuthentication;
 
-  public WebClientSessionAware(WebClient webClient, CookieStore cookieStore, OAuth2Auth oAuth2Auth) {
+  public WebClientSessionAware(WebClient webClient, CookieStore cookieStore) {
     super((WebClientBase) webClient);
     this.cookieStore = cookieStore;
-    this.oAuth2Auth = oAuth2Auth;
-    addInterceptor(new SessionAwareInterceptor());
+    addInterceptor(new SessionAwareInterceptor(this));
   }
 
   public CookieStore cookieStore() {
     return cookieStore;
-  }
-
-  @Override
-  public WebClientSession withCredentials(Credentials credentials) {
-    if (oAuth2Auth == null) {
-      throw new NullPointerException("Can not obtain required authentication for request as oAuth2Auth provider is null");
-    }
-
-    if (credentials == null) {
-      throw new NullPointerException("Token Configuration passed to WebClientSessionAware can not be null");
-    }
-
-    if (this.credentials != null && !this.credentials.equals(credentials)) {
-      //We need to invalidate the current data as new configuration is passed
-      user = null;
-    }
-
-    this.credentials = credentials;
-    this.withAuthentication = true;
-
-    return this;
   }
 
   protected MultiMap headers() {
@@ -68,30 +39,6 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
       headers = HttpHeaders.headers();
     }
     return headers;
-  }
-
-  OAuth2Auth getOAuth2Auth() {
-    return oAuth2Auth;
-  }
-
-  Credentials getCredentials() {
-    return credentials;
-  }
-
-  User getUser() {
-    return user;
-  }
-
-  void setUser(User user) {
-    this.user = user;
-  }
-
-  boolean isWithAuthentication() {
-    return withAuthentication;
-  }
-
-  void setWithAuthentication(boolean withAuthentication) {
-    this.withAuthentication = withAuthentication;
   }
 
   @Override

@@ -35,6 +35,7 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-oauth2</artifactId>
       <version>${project.version}</version>
+      <optional>true</optional>
     </dependency>
 
     <!-- Testing -->

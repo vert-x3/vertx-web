@@ -1,57 +1,50 @@
 package io.vertx.ext.web.client.impl;
 
-import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
-import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
-import io.netty.handler.codec.http.cookie.Cookie;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Promise;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.RequestOptions;
-import io.vertx.ext.web.client.spi.CookieStore;
-
 import java.net.URI;
 import java.util.List;
 
-import static io.vertx.core.http.HttpHeaders.AUTHORIZATION;
+import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
+import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.RequestOptions;
+import io.vertx.ext.web.client.spi.CookieStore;
 
 /**
  * A stateless interceptor for session management that operates on the {@code HttpContext}
  */
 public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
 
+  private final WebClientSessionAware parentClient;
+
+  public SessionAwareInterceptor(WebClientSessionAware clientSessionAware) {
+    this.parentClient = clientSessionAware;
+  }
+
   @Override
   public void handle(HttpContext<?> context) {
-    switch (context.phase()) {
+    switch(context.phase()) {
       case CREATE_REQUEST:
-        createRequest(context)
-          .onComplete(result -> {
-            if (result.failed()) {
-              context.fail(result.cause());
-            } else {
-              context.next();
-            }
-          });
+        createRequest(context);
         break;
       case FOLLOW_REDIRECT:
         processRedirectCookies(context);
-        context.next();
         break;
       case DISPATCH_RESPONSE:
         processResponse(context);
-        context.next();
         break;
       default:
-        context.next();
         break;
     }
+
+    context.next();
   }
 
-  private Future<Void> createRequest(HttpContext<?> context) {
+  private void createRequest(HttpContext<?> context) {
 
     HttpRequestImpl<?> request = (HttpRequestImpl<?>) context.request();
-    WebClientSessionAware webclient = (WebClientSessionAware) request.client;
 
     RequestOptions requestOptions = context.requestOptions();
     MultiMap headers = requestOptions.getHeaders();
@@ -59,68 +52,18 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       headers = HttpHeaders.headers();
       requestOptions.setHeaders(headers);
     }
-    headers.addAll(webclient.headers());
+    headers.addAll(parentClient.headers());
 
     String domain = request.virtualHost();
     if (domain == null) {
       domain = request.host();
     }
 
-    Iterable<Cookie> cookies = webclient.cookieStore().get(request.ssl, domain, request.uri);
+    Iterable<Cookie> cookies = parentClient.cookieStore().get(request.ssl, domain, request.uri);
     String encodedCookies = ClientCookieEncoder.STRICT.encode(cookies);
     if (encodedCookies != null) {
       headers.add(HttpHeaders.COOKIE, encodedCookies);
     }
-
-    Promise<Void> promise = Promise.promise();
-    if (webclient.isWithAuthentication()) {
-      if (webclient.getUser() != null) {
-        if (webclient.getUser().expired()) {
-          //Token has expired we need to invalidate the session
-          webclient.getOAuth2Auth().refresh(webclient.getUser())
-            .onSuccess(userResult -> {
-              webclient.setUser(userResult);
-              webclient.setWithAuthentication(false);
-              context.requestOptions().addHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
-              promise.complete();
-            })
-            .onFailure(error -> {
-              // Refresh token failed, we can try standard authentication
-              webclient.getOAuth2Auth().authenticate(webclient.getCredentials())
-                .onSuccess(userResult -> {
-                  webclient.setUser(userResult);
-                  webclient.setWithAuthentication(false);
-                  context.requestOptions().addHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
-                  promise.complete();
-                })
-                .onFailure(errorAuth -> {
-                  //Refresh token did not work and failed to obtain new authentication token, we need to fail
-                  webclient.setUser(null);
-                  webclient.setWithAuthentication(false);
-                  promise.fail(errorAuth);
-                });
-            });
-        } else {
-          //User is not expired, access_token is valid
-          webclient.setWithAuthentication(false);
-          context.requestOptions().addHeader(AUTHORIZATION, webclient.getUser().principal().getString("access_token"));
-          promise.complete();
-        }
-      } else {
-        webclient.getOAuth2Auth().authenticate(webclient.getCredentials())
-          .onSuccess(userResult -> {
-            webclient.setUser(userResult);
-            webclient.setWithAuthentication(false);
-            context.requestOptions().addHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
-            promise.complete();
-          })
-          .onFailure(promise::fail);
-      }
-    } else {
-      promise.complete();
-    }
-
-    return promise.future();
   }
 
   private void processRedirectCookies(HttpContext<?> context) {
@@ -135,9 +78,8 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       return;
     }
 
-    WebClientSessionAware webclient = (WebClientSessionAware) ((HttpRequestImpl<?>) context.request()).client;
     HttpRequestImpl<?> originalRequest = (HttpRequestImpl<?>) context.request();
-    CookieStore cookieStore = webclient.cookieStore();
+    CookieStore cookieStore = parentClient.cookieStore();
     String domain = URI.create(context.clientResponse().request().absoluteURI()).getHost();
     if (domain.equals(originalRequest.host()) && originalRequest.virtualHost != null) {
       domain = originalRequest.virtualHost;
@@ -169,9 +111,8 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       domain = redirectHost;
     }
 
-    WebClientSessionAware webclient = (WebClientSessionAware) originalRequest.client;
     String path = parsePath(redirectRequest.getURI());
-    Iterable<Cookie> cookies = webclient.cookieStore().get(originalRequest.ssl, domain, path);
+    Iterable<Cookie> cookies = parentClient.cookieStore().get(originalRequest.ssl, domain, path);
     String encodedCookies = ClientCookieEncoder.STRICT.encode(cookies);
     if (encodedCookies != null) {
       redirectRequest.putHeader(HttpHeaders.COOKIE, encodedCookies);
@@ -211,9 +152,8 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       return;
     }
 
-    WebClientSessionAware webclient = (WebClientSessionAware) ((HttpRequestImpl<?>) context.request()).client;
     HttpRequestImpl<?> request = (HttpRequestImpl<?>) context.request();
-    CookieStore cookieStore = webclient.cookieStore();
+    CookieStore cookieStore = parentClient.cookieStore();
     cookieHeaders.forEach(header -> {
       Cookie cookie = ClientCookieDecoder.STRICT.decode(header);
       if (cookie != null) {
