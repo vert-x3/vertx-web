@@ -35,9 +35,31 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
           .onFailure(context::fail)
           .onSuccess(done -> context.next());
         break;
+      case DISPATCH_RESPONSE:
+        processFailure(context);
+        break;
       default:
         context.next();
         break;
+    }
+  }
+
+  private void processFailure(HttpContext<?> context) {
+    switch (context.response().statusCode()) {
+      case 401:
+        // ? we need some stop condition so we don't go into a infinite loop
+        parentClient
+          .oauth2Auth()
+          .authenticate(parentClient.getCredentials())
+          .onSuccess(userResult -> {
+            parentClient.setUser(userResult);
+            context.requestOptions().putHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
+            context.createRequest(context.requestOptions());
+          })
+          .onFailure(context::fail);
+        break;
+      default:
+        context.next();
     }
   }
 

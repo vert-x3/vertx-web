@@ -518,7 +518,8 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
         assertEquals("Bearer " + fixture.getString("access_token"), req.getHeader("Authorization"));
         req.response().end();
       } else {
-        req.response().setStatusCode(400).end();
+        retry.set(true);
+        req.response().setStatusCode(401).end();
       }
     }).listen(8080, ready -> {
       if (ready.failed()) {
