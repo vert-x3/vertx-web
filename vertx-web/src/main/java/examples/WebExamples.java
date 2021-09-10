@@ -1466,7 +1466,10 @@ public class WebExamples {
       .handler(SessionHandler.create(LocalSessionStore.create(vertx)));
     // we now protect the resource under the path "/protected"
     router.route("/protected").handler(
-      OAuth2AuthHandler.create(vertx, authProvider)
+      OAuth2AuthHandler.create(
+        vertx,
+          authProvider,
+          "http://localhost:8080/callback")
         // we now configure the oauth2 handler, it will
         // setup the callback handler
         // as expected by your oauth2 provider.
