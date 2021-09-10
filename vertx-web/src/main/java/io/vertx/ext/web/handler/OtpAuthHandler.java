@@ -57,7 +57,7 @@ public interface OtpAuthHandler extends Handler<RoutingContext> {
    *
    * A user is already known when the {@link RoutingContext#user()} is not {@code null}.
    *
-   * If no redirect is provided, no redirect will be done and requests are terminated immediatly with status code {@code 401}.
+   * If no redirect is provided, requests are terminated immediately with status code {@code 401}.
    *
    * @param url the location where users are to be asked for the OTP code.
    * @return fluent self.
