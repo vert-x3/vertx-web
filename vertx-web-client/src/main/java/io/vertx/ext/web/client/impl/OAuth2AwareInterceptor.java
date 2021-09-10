@@ -14,6 +14,9 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static io.vertx.core.http.HttpHeaders.AUTHORIZATION;
 
 /**
@@ -21,6 +24,7 @@ import static io.vertx.core.http.HttpHeaders.AUTHORIZATION;
  */
 public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
 
+  private final Set<HttpContext<?>> dejaVu = new HashSet<>();
   private final WebClientOauth2Aware parentClient;
 
   public OAuth2AwareInterceptor(WebClientOauth2Aware webClientOauth2Aware) {
@@ -36,7 +40,7 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
           .onSuccess(done -> context.next());
         break;
       case DISPATCH_RESPONSE:
-        processFailure(context);
+        processResponse(context);
         break;
       default:
         context.next();
@@ -44,21 +48,34 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
     }
   }
 
-  private void processFailure(HttpContext<?> context) {
+  private void processResponse(HttpContext<?> context) {
     switch (context.response().statusCode()) {
       case 401:
-        // ? we need some stop condition so we don't go into a infinite loop
-        parentClient
-          .oauth2Auth()
-          .authenticate(parentClient.getCredentials())
-          .onSuccess(userResult -> {
-            parentClient.setUser(userResult);
-            context.requestOptions().putHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
-            context.createRequest(context.requestOptions());
-          })
-          .onFailure(context::fail);
+        if (dejaVu.contains(context)) {
+          // already seen, clear and continue without recovery
+          dejaVu.remove(context);
+          context.next();
+        } else {
+          // we need some stop condition so we don't go into an infinite loop
+          dejaVu.add(context);
+          parentClient
+            .oauth2Auth()
+            .authenticate(parentClient.getCredentials())
+            .onSuccess(userResult -> {
+              // update the user
+              parentClient.setUser(userResult);
+              context.createRequest(context.requestOptions());
+            })
+            .onFailure(err -> {
+              dejaVu.remove(context);
+              parentClient.setUser(null);
+              context.fail(err);
+            });
+        }
         break;
       default:
+        // already seen, clear and continue without recovery
+        dejaVu.remove(context);
         context.next();
     }
   }
