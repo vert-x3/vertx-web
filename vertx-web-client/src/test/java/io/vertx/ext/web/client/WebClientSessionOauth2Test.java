@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -35,6 +36,14 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       "  \"refresh_token\": \"ec1a59d298\"," +
       "  \"token_type\": \"bearer\"," +
       "  \"expires_in\": 1" +
+      "}");
+
+  private static final JsonObject loggedOutFixture = new JsonObject(
+    "{" +
+      "  \"access_token\": \"1ghs4sq2e\"," +
+      "  \"refresh_token\": \"kjt62s3asw5\"," +
+      "  \"token_type\": \"bearer\"," +
+      "  \"expires_in\": 7200" +
       "}");
 
   private static final Oauth2Credentials oauthConfig = new Oauth2Credentials();
@@ -491,5 +500,59 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       });
 
     awaitLatch(latchClient2);
+  }
+
+  @Test
+  public void tokenInvalidatedByProvider() throws Exception {
+    final CountDownLatch latch = new CountDownLatch(1);
+    final AtomicBoolean retry = new AtomicBoolean();
+
+    server = vertx.createHttpServer().requestHandler(req -> {
+      if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path()) && !retry.get()) {
+        assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
+        req.response().putHeader("Content-Type", "application/json").end(loggedOutFixture.encode());
+      } else if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path()) && retry.get()) {
+        assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
+        req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
+      } else if (req.method() == HttpMethod.GET && "/protected/path".equals(req.path()) && retry.get()) {
+        assertEquals("Bearer " + fixture.getString("access_token"), req.getHeader("Authorization"));
+        req.response().end();
+      } else {
+        req.response().setStatusCode(400).end();
+      }
+    }).listen(8080, ready -> {
+      if (ready.failed()) {
+        throw new RuntimeException(ready.cause());
+      }
+      // ready
+      latch.countDown();
+    });
+
+    awaitLatch(latch);
+
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+      .setFlow(OAuth2FlowType.CLIENT)
+      .setClientId("client-id")
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:8080"));
+
+    WebClientOAuth2 webClientOAuth2 =
+      WebClientOAuth2.create(WebClientSession.create(webClient), oauth2);
+
+    final CountDownLatch latchClient = new CountDownLatch(1);
+
+    webClientOAuth2
+      .withCredentials(oauthConfig)
+      .get(8080, "localhost", "/protected/path")
+      .send(result -> {
+        if (result.failed()) {
+          fail(result.cause());
+        } else {
+          assertEquals(200, result.result().statusCode());
+          latchClient.countDown();
+        }
+      });
+
+    awaitLatch(latchClient);
   }
 }
