@@ -27,7 +27,7 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
   public WebClientSessionAware(WebClient webClient, CookieStore cookieStore) {
     super((WebClientBase) webClient);
     this.cookieStore = cookieStore;
-    addInterceptor(new SessionAwareInterceptor());
+    addInterceptor(new SessionAwareInterceptor(this));
   }
 
   public CookieStore cookieStore() {
