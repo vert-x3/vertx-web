@@ -51,7 +51,7 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
   private void processResponse(HttpContext<?> context) {
     switch (context.response().statusCode()) {
       case 401:
-        if (dejaVu.contains(context)) {
+        if (!parentClient.isRenewTokenOnForbidden() || dejaVu.contains(context)) {
           // already seen, clear and continue without recovery
           dejaVu.remove(context);
           context.next();

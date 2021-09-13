@@ -38,17 +38,20 @@ public interface WebClientOAuth2 extends WebClient {
    * @return the created client
    */
   static WebClientOAuth2 create(WebClient webClient, OAuth2Auth oAuth2Auth) {
-    return new WebClientOauth2Aware(webClient, oAuth2Auth);
+    return create(webClient, oAuth2Auth, new WebClientOAuth2Options());
   }
 
   /**
-   * Include a leeway, when computing if a user is expired or not. By default this value us {@code 0}.
+   * Create a session aware web client using the provided {@code webClient} instance.
    *
-   * @param seconds leeway seconds.
-   * @return fluent self.
+   * @param webClient the web client instance
+   * @param oAuth2Auth Configured oAuth2Auth provider to be used when {@link #withCredentials(Credentials)} used
+   * @param options extra configuration for this object
+   * @return the created client
    */
-  @Fluent
-  WebClientOAuth2 leeway(int seconds);
+  static WebClientOAuth2 create(WebClient webClient, OAuth2Auth oAuth2Auth, WebClientOAuth2Options options) {
+    return new WebClientOauth2Aware(webClient, oAuth2Auth, options);
+  }
 
   /**
    * Mark that request should be dispatched with authentication obtained from passed {@code OAuth2Auth} provider

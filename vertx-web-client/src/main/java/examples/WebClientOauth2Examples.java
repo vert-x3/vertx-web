@@ -8,6 +8,7 @@ import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.providers.KeycloakAuth;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOAuth2;
+import io.vertx.ext.web.client.WebClientOAuth2Options;
 import io.vertx.ext.web.client.WebClientSession;
 
 public class WebClientOauth2Examples {
@@ -40,8 +41,20 @@ public class WebClientOauth2Examples {
   public void leeway(WebClient baseClient, OAuth2Auth oAuth2Auth) {
     WebClientOAuth2 client = WebClientOAuth2.create(
         baseClient,
-        oAuth2Auth)
-      .leeway(5);
+        oAuth2Auth,
+        new WebClientOAuth2Options()
+          .setLeeway(5));
   }
 
+  public void renewTokenOnForbidden(WebClient baseClient, OAuth2Auth oAuth2Auth) {
+    WebClientOAuth2 client = WebClientOAuth2.create(
+      baseClient,
+      oAuth2Auth,
+      new WebClientOAuth2Options()
+        // the client will attempt a single token request, if the request
+        // if the status code of the response is 401
+        // there will be only 1 attempt, so the second consecutive 401
+        // will be passed down to your handler/promise
+        .setRenewTokenOnForbidden(true));
+  }
 }

@@ -462,8 +462,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .setSite("http://localhost:8080"));
 
     WebClientOAuth2 webClientOAuth2 =
-      WebClientOAuth2.create(webClient, oauth2)
-        .leeway(5);
+      WebClientOAuth2.create(webClient, oauth2, new WebClientOAuth2Options().setLeeway(5));
 
     final CountDownLatch latchClient1 = new CountDownLatch(1);
 
@@ -538,7 +537,10 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .setSite("http://localhost:8080"));
 
     WebClientOAuth2 webClientOAuth2 =
-      WebClientOAuth2.create(WebClientSession.create(webClient), oauth2);
+      WebClientOAuth2.create(
+        WebClientSession.create(webClient),
+        oauth2,
+        new WebClientOAuth2Options().setRenewTokenOnForbidden(true));
 
     final CountDownLatch latchClient = new CountDownLatch(1);
 
@@ -590,7 +592,10 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .setSite("http://localhost:8080"));
 
     WebClientOAuth2 webClientOAuth2 =
-      WebClientOAuth2.create(WebClientSession.create(webClient), oauth2);
+      WebClientOAuth2.create(
+        WebClientSession.create(webClient),
+        oauth2,
+        new WebClientOAuth2Options().setRenewTokenOnForbidden(true));
 
     final CountDownLatch latchClient = new CountDownLatch(1);
 

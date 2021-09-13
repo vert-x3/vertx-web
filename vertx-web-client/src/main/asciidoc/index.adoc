@@ -558,6 +558,18 @@ You can set token expiration leeway to every request as follows:
 If a request is to be performed the current active user object is checked for expiration with the extra given leeway.
 This will allow the client to perform a token refresh if needed, instead of aborting the operation with an error.
 
+Request may still fail due to expired tokens since the expiration calculation will still be performed at the server
+side. To reduce the work on the user side, the client can be configured to perform a **single** retry on requests that
+return status code **401** (Forbidden). When the option flag: `refreshTokenOnForbidden` is set to `true`, then the
+client will perform a new token request retry the original request before passing the response to the user
+handler/promise.
+
+[source,$lang]
+----
+{@link examples.WebClientOauth2Examples#renewTokenOnForbidden}
+----
+
+
 ifeval::["$lang" == "java"]
 include::override/rxjava3.adoc[]
 endif::[]

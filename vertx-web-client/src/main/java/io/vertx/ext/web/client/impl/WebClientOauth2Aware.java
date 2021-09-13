@@ -15,30 +15,30 @@ import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOAuth2;
+import io.vertx.ext.web.client.WebClientOAuth2Options;
 
 public class WebClientOauth2Aware extends WebClientBase implements WebClientOAuth2 {
 
   private final OAuth2Auth oauth2Auth;
+  private final WebClientOAuth2Options option;
+
   private Credentials credentials;
 
   private User user;
 
-  private int leeway = 0;
-
-  public WebClientOauth2Aware(WebClient client, OAuth2Auth oauth2Auth) {
+  public WebClientOauth2Aware(WebClient client, OAuth2Auth oauth2Auth, WebClientOAuth2Options options) {
     super((WebClientBase) client);
 
     if (oauth2Auth == null) {
       throw new IllegalArgumentException("OAuth2Auth cannot be null");
     }
     this.oauth2Auth = oauth2Auth;
-    addInterceptor(new OAuth2AwareInterceptor(this));
-  }
+    if (options == null) {
+      throw new IllegalArgumentException("Options cannot be null");
+    }
+    this.option = options;
 
-  @Override
-  public WebClientOAuth2 leeway(int seconds) {
-    this.leeway = seconds;
-    return this;
+    addInterceptor(new OAuth2AwareInterceptor(this));
   }
 
   @Override
@@ -73,6 +73,10 @@ public class WebClientOauth2Aware extends WebClientBase implements WebClientOAut
   }
 
   public int getLeeway() {
-    return leeway;
+    return option.getLeeway();
+  }
+
+  public boolean isRenewTokenOnForbidden() {
+    return option.isRenewTokenOnForbidden();
   }
 }
