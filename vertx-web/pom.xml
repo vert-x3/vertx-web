@@ -66,6 +66,12 @@
       <artifactId>vertx-auth-webauthn</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-otp</artifactId>
+      <optional>true</optional>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- Testing -->
     <dependency>

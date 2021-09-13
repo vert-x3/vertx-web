@@ -2814,6 +2814,109 @@ must go over HTTPS.
 WARNING: WebAuthN requires HTTPS with a working TLS certificate, you can use self signed certiticates too during
 development.
 
+=== One Time Password (Multi-Factor Authentication)
+
+Vert.x also supports multi factor authentication. There are two options to work with MFA:
+
+* `HOTP` - Hash Based One Time Password
+* `TOTP` - Time Based One Time Password
+
+The usage is the same across providers, for this reason a single handler is present that allows you to select the
+desired mode at the constructor level.
+
+The behavior of this handler can be seen as:
+
+If there is no {@link io.vertx.ext.auth.User} in the current request, then it is assumed that no previous authentication has been
+performed. This implies that the request will be immediately terminated with status code 401.
+
+If a user is present and the object lacks the property `mfa` with a matching type (`hotp`/`totp`), the request will
+be redirected to the verification url (if provided), otherwise it will be terminated. Such url should provide a way
+to enter the code, for example:
+
+[source,html]
+----
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>OTP Authenticator Verification Example Page</title>
+</head>
+<body>
+<form action="/otp/verify" method="post" enctype="multipart/form-data">
+  <div>
+    <label>Code:</label>
+    <input type="text" name="code"/><br/>
+  </div>
+  <div>
+    <input type="submit" value="Submit"/>
+  </div>
+</form>
+</body>
+</html>
+
+----
+
+After the user enters the valid code, the request redirects to the initial url or to `/` if no original url is known.
+
+Of course this flow assumes that authenticator applications or devices have been already configured. In order to
+configure a new application/device, an example HTML page could be:
+
+[source,html]
+----
+<html>
+<head>
+  <title>OTP Authenticator Registration Example Page</title>
+</head>
+<body>
+  <p>Scan this QR Code in Google Authenticator</p>
+  <img id="qrcode">
+  <p>- or enter this key manually -</p>
+  <span id="url"></span>
+
+  <script>
+  const key = document.getElementById('url');
+  const qrcode = document.getElementById('qrcode');
+
+  fetch(
+    '/otp/register',
+    {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    .then(res => {
+      if (res.status === 200) {
+        return res;
+      }
+      throw new Error(res.statusText);
+    })
+    .catch(err => console.error(err))
+    .then(res => res.json())
+    .then(json => {
+      key.innerText = json.url;
+      qrcode.src =
+        'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' +
+        encodeURIComponent(json.url);
+    });
+  </script>
+</body>
+</html>
+----
+
+The important bit in this example is that the script makes a `POST` request to the configured registration callback.
+Again this callback will return status code 401 if there is no user already authenticated in the request. On success a
+JSON document is returned with a url, and a few extra metadata. This url should be used to configure the authenticator,
+either by manually entering it on the application or by rendering a QR code. Rendering of QR codes can be done both on
+the backend or on the frontend. For the sake of simplicity, this example makes use of the google charts API to render
+it on the browser.
+
+Finally, this is how you would use the handler in your vert.x application:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example86}
+----
+
 === Handling HTTP Method overriding
 
 Many companies and other services impose limitations to the REST HTTP methods they allow to the outside world. Some are lax by allowing any method, most are restricted by allowing only a small-but-decent set and some only allow GET and POST. The reasons for such restritions varies: browser or client limitations or a really strict corporate firewalls. Web services with only GET and POST does not express well the REST ideology. PUT, DELETE, OPTIONS, among others are quite useful to specify what do to to a resource. To deal with it, it was created the X-HTTP-METHOD-OVERRIDE HTTP header as a workaround.

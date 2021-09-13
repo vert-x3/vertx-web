@@ -46,7 +46,7 @@ public enum AllowForwardHeaders {
 
   /**
    * Will process both {@link #FORWARD} and {@link #X_FORWARD}. Be aware that mixing the 2 headers can open
-   * security holes has specially crafted requests that are not validated as proxy level can allow bypassing
+   * security holes as specially crafted requests that are not validated as proxy level can allow bypassing
    * the proxy desired forward value.
    *
    * For example, a proxy will add the {@code X-Forward-*} headers to a request but not filter out if the original
