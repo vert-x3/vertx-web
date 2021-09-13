@@ -63,6 +63,7 @@ public interface ValidationHandlerBuilder {
    *
    * @return
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   ValidationHandler build();
 
   static ValidationHandlerBuilder create(SchemaParser parser) {
