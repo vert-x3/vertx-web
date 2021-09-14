@@ -1,17 +1,14 @@
 package io.vertx.ext.web.api.service;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.auth.authorization.Authorization;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.validation.BaseValidationHandlerTest;
 import io.vertx.ext.web.validation.ValidationHandler;
@@ -33,7 +30,6 @@ import static io.vertx.json.schema.draft7.dsl.Schemas.*;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-@SuppressWarnings("unchecked")
 @ExtendWith(VertxExtension.class)
 public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
 
@@ -150,27 +146,6 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .send(testContext, checkpoint);
   }
 
-  private User fakeUser(String username) {
-    return new User() {
-      @Override public JsonObject attributes() {
-        return null;
-      }
-      @Override public User isAuthorized(Authorization authority, Handler<AsyncResult<java.lang.Boolean>> resultHandler) {
-        return null;
-      }
-      @Override public User isAuthorized(String s, Handler<AsyncResult<Boolean>> handler) {
-        return null;
-      }
-      @Override public User clearCache() {
-        return null;
-      }
-      @Override public JsonObject principal() {
-        return new JsonObject().put("username", username);
-      }
-      @Override public void setAuthProvider(AuthProvider authProvider) { }
-    };
-  }
-
   @Test
   public void authorizedUserTest(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
@@ -184,7 +159,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .handler(
         ValidationHandler.builder(parser).build()
       ).handler(rc -> {
-        rc.setUser(fakeUser("slinkydeveloper")); // Put user mock into context
+        rc.setUser(User.fromName("slinkydeveloper")); // Put user mock into context
         rc.next();
       })
       .handler(
@@ -295,6 +270,33 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     testRequest(client, HttpMethod.GET, "/test")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(bodyResponse(Buffer.buffer(new byte[] {(byte) 0xb0}), "application/octet-stream"))
+      .send(testContext, checkpoint);
+  }
+
+  @Test
+  public void authorizationPropagationTest(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint();
+
+    TestService service = new TestServiceImpl(vertx);
+    final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
+    consumer = serviceBinder.register(TestService.class, service);
+
+    router
+      .get("/test")
+      .handler(
+        ValidationHandler.builder(parser).build()
+      ).handler(rc -> {
+        // patch the request to include authorization header
+        rc.request().headers().add(HttpHeaders.AUTHORIZATION, "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+        rc.next();
+      })
+      .handler(
+        RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "testAuthorization")
+      );
+
+    testRequest(client, HttpMethod.GET, "/test")
+      .expect(statusCode(200), statusMessage("OK"))
+      .expect(jsonBodyResponse(new JsonObject().put("result", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==")))
       .send(testContext, checkpoint);
   }
 }

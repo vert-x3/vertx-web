@@ -48,4 +48,11 @@ public class TestServiceImpl implements TestService {
       ServiceResponse.completedWithJson(new JsonObject().put("result", "Hello " + context.getExtra().getString("username") + "!")))
     );
   }
+
+  @Override
+  public void testAuthorization(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+    resultHandler.handle(Future.succeededFuture(
+      ServiceResponse.completedWithJson(new JsonObject().put("result", context.getHeaders().get("Authorization"))))
+    );
+  }
 }
