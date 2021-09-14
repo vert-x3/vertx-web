@@ -88,6 +88,37 @@ If your application is protected by authentication, you can customize the header
 
 Please refer to the {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions} documentation for further details.
 
+=== GraphQL over WebSocket
+
+Vert.x Web GraphQL is compatible with the https://github.com/enisdenjo/graphql-ws[GraphQL over Websocket protocol].
+
+The websocket transport is specially useful when you need to add subscriptions to your GraphQL schema, but you can also use it for queries and mutations.
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#addGraphQLWSHandlerToRouter}
+----
+
+[IMPORTANT]
+====
+The client will ask for the `graphql-transport-ws` websocket subprotocol.
+Consequently, it has to be added to the list of supported subprotocols in the server configuration:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#configureServerForGraphQLWS}
+----
+====
+
+To support both HTTP and Websockets on the same URI, the {@link io.vertx.ext.web.handler.graphql.ws.GraphQLWSHandler} must be installed to the {@link io.vertx.ext.web.Router} before the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler}:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#configureGraphQLWSAndHttpOnSamePath}
+----
+
+IMPORTANT: A _subscription_ `DataFetcher` has to return a `org.reactivestreams.Publisher` instance.
+
 === Apollo WebSocketLink
 
 You can use an https://www.apollographql.com/docs/link/links/ws/[Apollo WebSocketLink] which connects over a websocket.
