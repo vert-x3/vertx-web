@@ -14,7 +14,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientSession;
@@ -86,7 +85,6 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
 
   @Override
   public <T> HttpContext<T> createContext(Handler<AsyncResult<HttpResponse<T>>> handler) {
-    HttpClientImpl client = (HttpClientImpl) this.client;
-    return new HttpContext<>(client, interceptors, handler, cacheStore);
+    return super.createContext(handler).privateCacheStore(cacheStore);
   }
 }

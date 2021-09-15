@@ -2,12 +2,12 @@ package io.vertx.ext.web.client.impl.cache;
 
 import io.vertx.core.Future;
 import io.vertx.ext.web.client.spi.CacheStore;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class LocalCacheStore implements CacheStore {
 
-  private final Map<CacheKey, CachedHttpResponse> localMap = new ConcurrentHashMap<>();
+  private final Map<CacheKey, CachedHttpResponse> localMap = new HashMap<>();
 
   @Override
   public Future<CachedHttpResponse> get(CacheKey key) {

@@ -56,7 +56,6 @@ public class HttpContext<T> {
   private final Handler<AsyncResult<HttpResponse<T>>> handler;
   private final HttpClientImpl client;
   private final List<Handler<HttpContext<?>>> interceptors;
-  private final CacheStore privateCacheStore;
   private Context context;
   private HttpRequestImpl<T> request;
   private Object body;
@@ -74,19 +73,12 @@ public class HttpContext<T> {
   private Throwable failure;
   private int redirects;
   private List<String> redirectedLocations = Collections.emptyList();
+  private CacheStore privateCacheStore;
 
   HttpContext(HttpClientImpl client, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.handler = handler;
     this.client = client;
     this.interceptors = interceptors;
-    this.privateCacheStore = null;
-  }
-
-  HttpContext(HttpClientImpl client, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler, CacheStore privateCacheStore) {
-    this.handler = handler;
-    this.client = client;
-    this.interceptors = interceptors;
-    this.privateCacheStore = privateCacheStore;
   }
 
   /**
@@ -192,6 +184,17 @@ public class HttpContext<T> {
    */
   public CacheStore privateCacheStore() {
     return privateCacheStore;
+  }
+
+  /**
+   * Set the private cache store.
+   *
+   * @param cacheStore the cache store
+   * @return a reference to this, so the API can be used fluently
+   */
+  public HttpContext<T> privateCacheStore(CacheStore cacheStore) {
+    this.privateCacheStore = cacheStore;
+    return this;
   }
 
   /**

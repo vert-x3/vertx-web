@@ -464,6 +464,59 @@ The client will follow at most `16` requests redirections, it can be changed in 
 
 NOTE: For security reason, client won't follow redirects for request with methods different from GET or HEAD
 
+== HTTP response caching
+
+Vert.x web offers an HTTP response caching facility; to use it, you create a {@link io.vertx.ext.web.client.CachingWebClient}.
+
+=== Creating a caching web client
+
+[source,$lang]
+----
+{@link examples.CachingWebClientExamples#create(io.vertx.core.Vertx)}
+----
+
+=== Configuring what is cached
+
+By default, a caching web client will only cache a response from a `GET` method that has a status code of `200`, `301`, or `404`.
+Additionally, responses that contain a `Vary` header will not be cached by default.
+
+This can be configured by passing {@link io.vertx.ext.web.client.CachingWebClientOptions} during client creation.
+
+[source,$lang]
+----
+{@link examples.CachingWebClientExamples#createWithOptions(io.vertx.core.Vertx)}
+----
+
+Responses that contain the `private` directive in the `Cache-Control` header will not be cached unless the client is also
+a {@link io.vertx.ext.web.client.WebClientSession}. See <<_handling_private_responses>>.
+
+=== Providing an external store
+
+When storing responses, the default caching client will use Vert.x {@link io.vertx.core.shareddata.SharedData}.
+You may provide your own store implementation to store responses. To do so, implement {@link io.vertx.ext.web.client.spi.CacheStore},
+and then you can provide it when creating your client.
+
+[source,$lang]
+----
+{@link examples.CachingWebClientExamples#createWithCustomStore(io.vertx.core.Vertx)}
+----
+
+=== Handling private responses
+
+To enable private response caching, the {@link io.vertx.ext.web.client.CachingWebClient} can be combined with the
+{@link io.vertx.ext.web.client.WebClientSession}. When this is done, public responses, those with the `public` directive
+in the `Cache-Control` header, will be cached in the {@link io.vertx.ext.web.client.spi.CacheStore} the client was
+created with. Private responses, those with the `private` directive in the `Cache-Control` header, will be cached in
+with the session to ensure the cached response is not leaked to other users (sessions).
+
+To create a client that can cache private responses, pass a {@link io.vertx.ext.web.client.CachingWebClient} to
+a {@link io.vertx.ext.web.client.WebClientSession}.
+
+[source,$lang]
+----
+{@link examples.CachingWebClientExamples#createWithSession(io.vertx.core.Vertx)}
+----
+
 == Using HTTPS
 
 Vert.x Web Client can be configured to use HTTPS in exactly the same way as the Vert.x {@link io.vertx.core.http.HttpClient}.
@@ -488,7 +541,7 @@ Vert.x web offers a web session management facility; to use it, you create a
 {@link io.vertx.ext.web.client.WebClientSession} for every user (session) and use it instead of the
 {@link io.vertx.ext.web.client.WebClient}.
 
-=== Creating a WebSession
+=== Creating a WebClientSession
 
 You create a {@link io.vertx.ext.web.client.WebClientSession} instance as follows
 
