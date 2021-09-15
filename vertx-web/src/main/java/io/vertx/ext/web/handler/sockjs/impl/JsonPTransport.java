@@ -146,7 +146,6 @@ class JsonPTransport extends BaseTransport {
 
     final String callback;
     boolean headersWritten;
-    boolean closed;
 
     JsonPListener(RoutingContext rc, SockJSSession session, String callback) {
       super(rc, session);

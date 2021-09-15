@@ -122,7 +122,6 @@ class HtmlFileTransport extends BaseTransport {
     final String callback;
     boolean headersWritten;
     int bytesSent;
-    boolean closed;
 
     HtmlFileListener(int maxBytesStreaming, RoutingContext rc, String callback, SockJSSession session) {
       super(rc, session);

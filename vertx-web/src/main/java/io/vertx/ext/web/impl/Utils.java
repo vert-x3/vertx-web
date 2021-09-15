@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class Utils extends io.vertx.core.impl.Utils {
+public class Utils {
 
   public static ClassLoader getClassLoader() {
     ClassLoader tccl = Thread.currentThread().getContextClassLoader();

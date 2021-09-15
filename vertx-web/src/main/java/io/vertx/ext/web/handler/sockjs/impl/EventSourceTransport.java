@@ -76,7 +76,6 @@ class EventSourceTransport extends BaseTransport {
     final int maxBytesStreaming;
     boolean headersWritten;
     int bytesSent;
-    boolean closed;
 
     EventSourceListener(int maxBytesStreaming, RoutingContext rc, SockJSSession session) {
       super(rc, session);
