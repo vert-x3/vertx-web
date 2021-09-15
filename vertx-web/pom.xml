@@ -146,6 +146,21 @@
               </includes>
             </configuration>
           </execution>
+          <execution>
+            <id>router-extended-param-itest</id>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+            <configuration>
+              <systemProperties>
+                <io.vertx.web.route.param.extended-pattern>true</io.vertx.web.route.param.extended-pattern>
+              </systemProperties>
+              <includes>
+                <include>io/vertx/ext/web/it/RouterExtendedParamTest.java</include>
+              </includes>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
     </plugins>
