@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2021 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler.graphql;
 
 import graphql.GraphQL;
+import graphql.GraphQLContext;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
@@ -28,6 +29,8 @@ import org.dataloader.DataLoaderRegistry;
 
 import java.util.Locale;
 import java.util.function.Function;
+
+import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
 /**
  * A handler for GraphQL requests sent over Apollo's {@code subscriptions-transport-ws} transport.
@@ -42,7 +45,7 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
    * <p>
    * The handler will be configured with the default {@link ApolloWSOptions}.
    */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @GenIgnore(PERMITTED_TYPE)
   static ApolloWSHandler create(GraphQL graphQL) {
     return new ApolloWSHandlerImpl(graphQL, new ApolloWSOptions());
   }
@@ -54,9 +57,20 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
    *
    * @param options options for configuring the {@link ApolloWSOptions}
    */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @GenIgnore(PERMITTED_TYPE)
   static ApolloWSHandler create(GraphQL graphQL, ApolloWSOptions options) {
     return new ApolloWSHandlerImpl(graphQL, options);
+  }
+
+  /**
+   * Retrieves the {@link ApolloWSMessage} from the {@link GraphQLContext}.
+   *
+   * @param graphQlContext the GraphQL context object
+   * @return the {@link ApolloWSMessage}
+   */
+  @GenIgnore(PERMITTED_TYPE)
+  static ApolloWSMessage getMessage(GraphQLContext graphQlContext) {
+    return graphQlContext.get(ApolloWSMessage.class);
   }
 
   /**
@@ -100,8 +114,10 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
    * The provided {@code factory} method will be invoked for each incoming GraphQL request.
    *
    * @return a reference to this, so the API can be used fluently
+   * @deprecated as of 4.2, use {@link #beforeExecute(Handler)} instead
    */
   @Fluent
+  @Deprecated
   ApolloWSHandler queryContext(Function<ApolloWSMessage, Object> factory);
 
   /**
@@ -109,9 +125,11 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
    * The provided {@code factory} method will be invoked for each incoming GraphQL request.
    *
    * @return a reference to this, so the API can be used fluently
+   * @deprecated as of 4.2, use {@link #beforeExecute(Handler)} instead
    */
   @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @GenIgnore(PERMITTED_TYPE)
+  @Deprecated
   ApolloWSHandler dataLoaderRegistry(Function<ApolloWSMessage, DataLoaderRegistry> factory);
 
   /**
@@ -119,8 +137,19 @@ public interface ApolloWSHandler extends Handler<RoutingContext> {
    * The provided {@code factory} method will be invoked for each incoming GraphQL request.
    *
    * @return a reference to this, so the API can be used fluently
+   * @deprecated as of 4.2, use {@link #beforeExecute(Handler)} instead
    */
   @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @GenIgnore(PERMITTED_TYPE)
+  @Deprecated
   ApolloWSHandler locale(Function<ApolloWSMessage, Locale> factory);
+
+  /**
+   * Set a callback to invoke before executing a GraphQL query.
+   *
+   * @param config the callback to invoke
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  ApolloWSHandler beforeExecute(Handler<ExecutionInputBuilderWithContext<ApolloWSMessage>> config);
 }

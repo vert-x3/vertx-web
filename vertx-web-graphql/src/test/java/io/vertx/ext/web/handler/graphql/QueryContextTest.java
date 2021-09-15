@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2021 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -28,6 +28,7 @@ import static org.hamcrest.CoreMatchers.is;
 /**
  * @author Thomas Segismont
  */
+@SuppressWarnings("deprecation")
 public class QueryContextTest extends GraphQLTestBase {
 
   private AtomicReference<Object> queryContext = new AtomicReference<>();

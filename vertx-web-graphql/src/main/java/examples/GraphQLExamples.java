@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2021 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -162,7 +162,7 @@ public class GraphQLExamples {
   private void routingContextInDataFetchingEnvironment() {
     VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((environment, promise) -> {
 
-      RoutingContext routingContext = environment.getContext();
+      RoutingContext routingContext = GraphQLHandler.getRoutingContext(environment.getGraphQlContext());
 
       User user = routingContext.get("user");
 
@@ -172,28 +172,6 @@ public class GraphQLExamples {
   }
 
   private void retrieveLinksPostedBy(User user, Handler<AsyncResult<List<Link>>> handler) {
-  }
-
-  private void customContextInDataFetchingEnvironment(Router router) {
-    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((environment, promise) -> {
-
-      // User as custom context object
-      User user = environment.getContext();
-
-      retrieveLinksPostedBy(user, promise);
-
-    });
-
-    GraphQL graphQL = setupGraphQLJava(dataFetcher);
-
-    // Customize the query context object when setting up the handler
-    GraphQLHandler handler = GraphQLHandler.create(graphQL).queryContext(routingContext -> {
-
-      return routingContext.get("user");
-
-    });
-
-    router.route("/graphql").handler(handler);
   }
 
   private GraphQL setupGraphQLJava(VertxDataFetcher<List<Link>> dataFetcher) {
@@ -226,11 +204,13 @@ public class GraphQLExamples {
   }
 
   public void dataLoaderRegistry(GraphQL graphQL, BatchLoaderWithContext<String, Link> linksBatchLoader) {
-    GraphQLHandler handler = GraphQLHandler.create(graphQL).dataLoaderRegistry(rc -> {
+    GraphQLHandler handler = GraphQLHandler.create(graphQL).beforeExecute(builderWithContext -> {
 
       DataLoader<String, Link> linkDataLoader = DataLoaderFactory.newDataLoader(linksBatchLoader);
 
-      return new DataLoaderRegistry().register("link", linkDataLoader);
+      DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry().register("link", linkDataLoader);
+
+      builderWithContext.builder().dataLoaderRegistry(dataLoaderRegistry);
 
     });
   }
