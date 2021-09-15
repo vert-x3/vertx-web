@@ -24,11 +24,23 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.regex.Pattern;
 
+import static org.junit.Assume.assumeTrue;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author Paulo Lopes
  */
 public class RouterExtendedParamTest extends WebTestBase {
+
+  private static int getVersion() {
+    String version = System.getProperty("java.version");
+    if(version.startsWith("1.")) {
+      version = version.substring(2, 3);
+    } else {
+      int dot = version.indexOf(".");
+      if(dot != -1) { version = version.substring(0, dot); }
+    } return Integer.parseInt(version);
+  }
 
   private static Field getAccessibleField(Class<?> clazz, String name) throws NoSuchFieldException, IllegalAccessException {
     Field field = clazz.getDeclaredField(name);
@@ -43,20 +55,16 @@ public class RouterExtendedParamTest extends WebTestBase {
     return field;
   }
 
-  @Override
-  public void setUp() throws Exception {
+  public void patch() throws Exception {
     // nasty setup patch the patterns
     Field reTokenSearch = getAccessibleField(RouteImpl.class, "RE_TOKEN_SEARCH");
     Field reTokenNameSearch = getAccessibleField(RouteImpl.class, "RE_TOKEN_NAME_SEARCH");
     // patch to use the extended version
     reTokenSearch.set(null, Pattern.compile(":([A-Za-z_$][A-Za-z0-9_$-]*)"));
     reTokenNameSearch.set(null, Pattern.compile("\\(\\?<([A-Za-z_$][A-Za-z0-9_$-]*)>"));
-    super.setUp();
   }
 
-  @Override
-  public void tearDown() throws Exception {
-    super.tearDown();
+  public void unpatch() throws Exception {
     // nasty setup patch the patterns
     Field reTokenSearch = getAccessibleField(RouteImpl.class, "RE_TOKEN_SEARCH");
     Field reTokenNameSearch = getAccessibleField(RouteImpl.class, "RE_TOKEN_NAME_SEARCH");
@@ -67,22 +75,34 @@ public class RouterExtendedParamTest extends WebTestBase {
 
   @Test
   public void testRouteDashVariable() throws Exception {
-    router.route("/foo/:my-id").handler(rc -> {
-      assertEquals("123", rc.pathParam("my-id"));
-      rc.response().end();
-    });
-    testRequest(HttpMethod.GET, "/foo/123", 200, "OK");
+    assumeTrue("Java >= 17 doesn't allow changing final static fields", getVersion() < 17);
+    try {
+      patch();
+      router.route("/foo/:my-id").handler(rc -> {
+        assertEquals("123", rc.pathParam("my-id"));
+        rc.response().end();
+      });
+      testRequest(HttpMethod.GET, "/foo/123", 200, "OK");
+    } finally {
+      unpatch();
+    }
   }
 
   @Test
   public void testRouteDashVariableNOK() throws Exception {
-    router.route("/flights/:from-:to").handler(rc -> {
-      // from isn't set as the alphabet now includes -
-      assertNull(rc.pathParam("from"));
-      assertNotNull(rc.pathParam("from-"));
-      rc.response().end();
-    });
-    testRequest(HttpMethod.GET, "/flights/LAX-SFO", 200, "OK");
+    assumeTrue("Java >= 17 doesn't allow changing final static fields", getVersion() < 17);
+    try {
+      patch();
+      router.route("/flights/:from-:to").handler(rc -> {
+        // from isn't set as the alphabet now includes -
+        assertNull(rc.pathParam("from"));
+        assertNotNull(rc.pathParam("from-"));
+        rc.response().end();
+      });
+      testRequest(HttpMethod.GET, "/flights/LAX-SFO", 200, "OK");
+    } finally {
+      unpatch();
+    }
   }
 
 }
