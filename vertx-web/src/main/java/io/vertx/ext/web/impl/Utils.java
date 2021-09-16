@@ -36,8 +36,17 @@ import java.util.regex.Pattern;
 public class Utils {
 
   public static ClassLoader getClassLoader() {
-    ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-    return tccl == null ? Utils.class.getClassLoader() : tccl;
+    // try current thread
+    ClassLoader cl = Thread.currentThread().getContextClassLoader();
+    if (cl == null) {
+      // try the current class
+      cl = Utils.class.getClassLoader();
+      if (cl == null) {
+        // fall back to a well known object that should alwways exist
+        cl = Object.class.getClassLoader();
+      }
+    }
+    return cl;
   }
 
   private static final ZoneId ZONE_GMT = ZoneId.of("GMT");
