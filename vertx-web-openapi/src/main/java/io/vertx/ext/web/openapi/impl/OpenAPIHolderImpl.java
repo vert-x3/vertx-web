@@ -341,6 +341,11 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   private Future<JsonObject> solveLocalRef(final URI ref) {
     String filePath = extractPath(ref);
 
+    System.out.println("DEBUG: ");
+    System.out.println(filePath);
+    System.out.println(cacheDir);
+    System.out.println("---");
+
     return fs
       // given that we are resolving using vert.x we may need to normalize paths from vert.x cache back
       // to the CWD, this is done just by stripping the well known cache dir prefix from any path if
