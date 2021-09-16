@@ -48,6 +48,22 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   private JsonObject openapiRoot;
 
   private final String cacheDir;
+  private final String userDir;
+
+  private static String resolveCanonical(Vertx vertx, String path) {
+    try {
+      File canonicalFile = ((VertxInternal) vertx).resolveFile(path).getCanonicalFile();
+      String canonicalPath = canonicalFile.getPath();
+      if (canonicalFile.isDirectory()) {
+        if (!canonicalPath.endsWith(File.separator)) {
+          canonicalPath += File.separator;
+        }
+      }
+      return canonicalPath;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   public OpenAPIHolderImpl(Vertx vertx, HttpClient client, FileSystem fs, OpenAPILoaderOptions options) {
     this.vertx = vertx;
@@ -61,15 +77,8 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     this.yamlMapper = new YAMLMapper();
     this.openapiSchema = parser.parseFromString(OpenAPI3Utils.openapiSchemaJson);
 
-    try {
-      String cacheDir = ((VertxInternal) vertx).resolveFile("").getCanonicalPath();
-      if (!cacheDir.endsWith(File.separator)) {
-        cacheDir += File.separator;
-      }
-      this.cacheDir = cacheDir;
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    this.cacheDir = resolveCanonical(vertx, "");
+    this.userDir = resolveCanonical(vertx, ".");
   }
 
   public Future<JsonObject> loadOpenAPI(String u) {
@@ -338,19 +347,24 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     return resultProm.future();
   }
 
+  private String relativizePathToBase(String path) {
+    System.out.println("DEBUG: ");
+    System.out.println(cacheDir);
+    System.out.println(userDir);
+    System.out.println(path);
+    System.out.println("---");
+
+    return path.startsWith(cacheDir) ? path.substring(cacheDir.length()) : path;
+  }
+
   private Future<JsonObject> solveLocalRef(final URI ref) {
     String filePath = extractPath(ref);
-
-    System.out.println("DEBUG: ");
-    System.out.println(filePath);
-    System.out.println(cacheDir);
-    System.out.println("---");
 
     return fs
       // given that we are resolving using vert.x we may need to normalize paths from vert.x cache back
       // to the CWD, this is done just by stripping the well known cache dir prefix from any path if
       // present
-      .readFile(filePath.startsWith(cacheDir) ? filePath.substring(cacheDir.length()) : filePath)
+      .readFile(relativizePathToBase(filePath))
       .compose(buf -> {
         try {
           return Future.succeededFuture(buf.toJsonObject());
