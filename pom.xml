@@ -1,97 +1,172 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
-  <parent>
-    <groupId>io.vertx</groupId>
-    <artifactId>vertx-ext-parent</artifactId>
-    <version>38</version>
-  </parent>
-
-  <modelVersion>4.0.0</modelVersion>
-  <packaging>pom</packaging>
-
-  <artifactId>vertx-web-parent</artifactId>
-  <version>4.1.4-SNAPSHOT</version>
-
-  <properties>
-    <stack.version>4.1.4-SNAPSHOT</stack.version>
-    <pac4j.version>1.6.0</pac4j.version>
-    <doc.skip>true</doc.skip>
-    <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
-  </properties>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
+      
+    <parent>
+            
         <groupId>io.vertx</groupId>
-        <artifactId>vertx-dependencies</artifactId>
-        <version>${stack.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
-  <dependencies>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-codegen</artifactId>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-docgen</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <!-- Testing -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.13.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-core</artifactId>
-      <type>test-jar</type>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-
-  <modules>
-    <module>vertx-web-common</module>
-    <module>vertx-web</module>
-    <module>vertx-web-client</module>
-    <module>vertx-template-engines</module>
-    <module>vertx-web-api-contract</module>
-    <module>vertx-web-graphql</module>
-    <module>vertx-web-session-stores</module>
-    <module>vertx-web-api-service</module>
-    <module>vertx-web-validation</module>
-    <module>vertx-web-openapi</module>
-    <module>vertx-web-proxy</module>
-  </modules>
-
-  <profiles>
-    <profile>
-      <id>java-8</id>
-      <activation>
-        <jdk>1.8</jdk>
-      </activation>
-      <dependencies>
+            
+        <artifactId>vertx-ext-parent</artifactId>
+            
+        <version>38</version>
+          
+    </parent>
+      
+    <modelVersion>4.0.0</modelVersion>
+      
+    <packaging>pom</packaging>
+      
+    <artifactId>vertx-web-parent</artifactId>
+      
+    <version>4.1.4</version>
+      
+    <properties>
+            
+        <stack.version>4.1.4</stack.version>
+            
+        <pac4j.version>1.6.0</pac4j.version>
+            
+        <doc.skip>true</doc.skip>
+            
+        <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
+          
+    </properties>
+      
+    <dependencyManagement>
+            
+        <dependencies>
+                  
+            <dependency>
+                        
+                <groupId>io.vertx</groupId>
+                        
+                <artifactId>vertx-dependencies</artifactId>
+                        
+                <version>${stack.version}</version>
+                        
+                <type>pom</type>
+                        
+                <scope>import</scope>
+                      
+            </dependency>
+                
+        </dependencies>
+          
+    </dependencyManagement>
+      
+    <dependencies>
+            
         <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-tcnative-boringssl-static</artifactId>
-          <scope>test</scope>
+                  
+            <groupId>io.vertx</groupId>
+                  
+            <artifactId>vertx-core</artifactId>
+                
         </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
-
+            
+        <dependency>
+                  
+            <groupId>io.vertx</groupId>
+                  
+            <artifactId>vertx-codegen</artifactId>
+                  
+            <scope>provided</scope>
+                  
+            <optional>true</optional>
+                
+        </dependency>
+            
+        <dependency>
+                  
+            <groupId>io.vertx</groupId>
+                  
+            <artifactId>vertx-docgen</artifactId>
+                  
+            <scope>provided</scope>
+                
+        </dependency>
+            
+        <!-- Testing -->
+            
+        <dependency>
+                  
+            <groupId>junit</groupId>
+                  
+            <artifactId>junit</artifactId>
+                  
+            <version>4.13.1</version>
+                  
+            <scope>test</scope>
+                
+        </dependency>
+            
+        <dependency>
+                  
+            <groupId>io.vertx</groupId>
+                  
+            <artifactId>vertx-core</artifactId>
+                  
+            <type>test-jar</type>
+                  
+            <scope>test</scope>
+                
+        </dependency>
+          
+    </dependencies>
+      
+    <modules>
+            
+        <module>vertx-web-common</module>
+            
+        <module>vertx-web</module>
+            
+        <module>vertx-web-client</module>
+            
+        <module>vertx-template-engines</module>
+            
+        <module>vertx-web-api-contract</module>
+            
+        <module>vertx-web-graphql</module>
+            
+        <module>vertx-web-session-stores</module>
+            
+        <module>vertx-web-api-service</module>
+            
+        <module>vertx-web-validation</module>
+            
+        <module>vertx-web-openapi</module>
+            
+        <module>vertx-web-proxy</module>
+          
+    </modules>
+      
+    <profiles>
+            
+        <profile>
+                  
+            <id>java-8</id>
+                  
+            <activation>
+                        
+                <jdk>1.8</jdk>
+                      
+            </activation>
+                  
+            <dependencies>
+                        
+                <dependency>
+                              
+                    <groupId>io.netty</groupId>
+                              
+                    <artifactId>netty-tcnative-boringssl-static</artifactId>
+                              
+                    <scope>test</scope>
+                            
+                </dependency>
+                      
+            </dependencies>
+                
+        </profile>
+          
+    </profiles>
+    
 </project>
