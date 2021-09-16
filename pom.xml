@@ -17,11 +17,11 @@
       
     <artifactId>vertx-web-parent</artifactId>
       
-    <version>4.1.4</version>
+    <version>4.1.5-SNAPSHOT</version>
       
     <properties>
             
-        <stack.version>4.1.4</stack.version>
+        <stack.version>4.1.5-SNAPSHOT</stack.version>
             
         <pac4j.version>1.6.0</pac4j.version>
             
