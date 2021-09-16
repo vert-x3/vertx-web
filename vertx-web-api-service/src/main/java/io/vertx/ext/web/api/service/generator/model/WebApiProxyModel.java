@@ -25,7 +25,7 @@ import java.util.Set;
  */
 public class WebApiProxyModel extends ProxyModel {
 
-  private static final String SIGNATURE_CONSTRAINT_ERROR = "Method must respect signature Future<io.vertx.ext.web.api.ServiceResponse> foo(extractedParams..., io.vertx.ext.web.api.ServiceRequest request) or foo(extractedParams..., io.vertx.ext.web.api.ServiceRequest request, Handler<AsyncResult<io.vertx.ext.web.api.ServiceResponse>> handler)";
+  private static final String SIGNATURE_CONSTRAINT_ERROR = "Method must respect signature Future<io.vertx.ext.web.api.service.ServiceResponse> foo(extractedParams..., io.vertx.ext.web.api.service.ServiceRequest request) or foo(extractedParams..., io.vertx.ext.web.api.service.ServiceRequest request, Handler<AsyncResult<io.vertx.ext.web.api.service.ServiceResponse>> handler)";
 
   public WebApiProxyModel(ProcessingEnvironment env, TypeMirrorFactory typeFactory, TypeElement modelElt) {
     super(env, typeFactory, modelElt);
