@@ -95,9 +95,18 @@ Now we can build the interface *TransactionService* that handles those endpoints
 For each endpoint you need to write a method with name corresponding to `action` specified when you build the {@link io.vertx.ext.web.api.service.RouteToEBServiceHandler}.
 There are a couple of rules to follow for method parameters:
 
+=== Async interface with callbacks
+
 * Last parameter must have type `Handler<AsyncResult<ServiceResponse>>`
 * Second to last parameter must have type {@link io.vertx.ext.web.api.service.ServiceRequest}
 * All parameters from first to second to last (excluded) are extracted from {@link io.vertx.ext.web.validation.RequestParameters} with specified type automatically, but they need to respect https://vertx.io/docs/vertx-service-proxy/java/#_restrictions_for_service_interface[service proxy restrictions]
+
+=== Async interface
+
+* Return type must have type `Future<ServiceResponse>`
+* Last parameter must have type {@link io.vertx.ext.web.api.service.ServiceRequest}
+* All parameters from first to last are extracted from {@link io.vertx.ext.web.validation.RequestParameters} with specified type automatically, but they need to respect https://vertx.io/docs/vertx-service-proxy/java/#_restrictions_for_service_interface[service proxy restrictions]
+
 
 A request parameter is identified only by the name of the method parameter and the special `body` method parameter name is used to extract the body of the request.
 
@@ -111,6 +120,14 @@ interface TransactionService {
   void putTransaction(JsonObject body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 }
 ----
+[source,java]
+----
+@WebApiServiceGen
+interface TransactionService {
+  Future<ServiceResponse> getTransactionsList(String from, String to, ServiceRequest context);
+  Future<ServiceResponse> putTransaction(JsonObject body, ServiceRequest context);
+}
+----
 
 When you receive a request at `TransactionService#getTransactionsList` the generated service handler will automatically extract `from` and `to` parameter (if present) from {@link io.vertx.ext.web.api.service.ServiceRequest}.
 In `TransactionService#putTransaction` we use the `body` parameter name to extract the json body.
@@ -121,12 +138,20 @@ The service handler is also capable to translate `JsonObject` to Vert.x data obj
 ----
 void putTransaction(Transaction body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 ----
+[source,java]
+----
+Future<ServiceResponse> putTransaction(Transaction body, ServiceRequest context);
+----
 
 You can also use {@link io.vertx.ext.web.validation.RequestParameter} to extract parameters, like:
 
 [source,java]
 ----
 void putTransaction(RequestParameter body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+----
+[source,java]
+----
+Future<ServiceResponse> putTransaction(RequestParameter body, ServiceRequest context);
 ----
 
 
