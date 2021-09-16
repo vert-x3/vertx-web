@@ -347,14 +347,19 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     return resultProm.future();
   }
 
-  private String relativizePathToBase(String path) {
+  private String relativizePathToBase(String path, URI ref) {
     System.out.println("DEBUG: ");
     System.out.println(cacheDir);
     System.out.println(userDir);
     System.out.println(path);
+    System.out.println(ref);
     System.out.println("---");
 
-    return path.startsWith(cacheDir) ? path.substring(cacheDir.length()) : path;
+    return path.startsWith(cacheDir) ?
+      path.substring(cacheDir.length()) :
+      path.startsWith(userDir) ?
+        path.substring(userDir.length()) :
+        path;
   }
 
   private Future<JsonObject> solveLocalRef(final URI ref) {
@@ -364,7 +369,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
       // given that we are resolving using vert.x we may need to normalize paths from vert.x cache back
       // to the CWD, this is done just by stripping the well known cache dir prefix from any path if
       // present
-      .readFile(relativizePathToBase(filePath))
+      .readFile(relativizePathToBase(filePath, ref))
       .compose(buf -> {
         try {
           return Future.succeededFuture(buf.toJsonObject());
