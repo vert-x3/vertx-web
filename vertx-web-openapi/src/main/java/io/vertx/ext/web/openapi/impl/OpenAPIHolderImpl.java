@@ -61,12 +61,15 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     this.yamlMapper = new YAMLMapper();
     this.openapiSchema = parser.parseFromString(OpenAPI3Utils.openapiSchemaJson);
 
-    String cacheDir = ((VertxInternal) vertx).resolveFile("").getAbsolutePath();
-    if (!cacheDir.endsWith(File.separator)) {
-      cacheDir += File.separator;
+    try {
+      String cacheDir = ((VertxInternal) vertx).resolveFile("").getCanonicalPath();
+      if (!cacheDir.endsWith(File.separator)) {
+        cacheDir += File.separator;
+      }
+      this.cacheDir = cacheDir;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
-
-    this.cacheDir = cacheDir;
   }
 
   public Future<JsonObject> loadOpenAPI(String u) {
@@ -415,9 +418,9 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     if (resolved != null) {
       if (resolved.exists()) {
         try {
-          resolved = resolved.getAbsoluteFile();
+          resolved = resolved.getCanonicalFile();
           uri = new URI("file://" + slashify(resolved.getPath(), resolved.isDirectory()));
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException | IOException e) {
           throw new RuntimeException(e);
         }
       }
