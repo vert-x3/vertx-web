@@ -4,6 +4,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.openapi.future.service.TestFutureService;
+import io.vertx.ext.web.openapi.future.service.TestFutureServiceImpl;
 import io.vertx.ext.web.openapi.service.*;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
@@ -61,6 +63,29 @@ public class RouterBuilderApiServiceIntegrationTest extends BaseRouterBuilderTes
     TestService service = new TestServiceImpl(vertx);
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
     consumers.add(serviceBinder.register(TestService.class, service));
+
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/service_proxy_test.yaml", testContext, routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+      routerBuilder.mountServiceInterface(service.getClass(), "someAddress");
+    }).onComplete(h -> {
+      testRequest(client, HttpMethod.POST, "/testA")
+        .expect(statusCode(200))
+        .expect(jsonBodyResponse(new JsonObject().put("result", "Ciao Francesco!")))
+        .sendJson(new JsonObject().put("hello", "Ciao").put("name", "Francesco"), testContext, checkpoint);
+      testRequest(client, HttpMethod.POST, "/testB")
+        .expect(statusCode(200))
+        .expect(jsonBodyResponse(new JsonObject().put("result", "Ciao Francesco?")))
+        .sendJson(new JsonObject().put("hello", "Ciao").put("name", "Francesco"), testContext, checkpoint);
+    });
+  }
+
+  @Test
+  public void serviceProxyFutureWithReflectionsTest(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(2);
+
+    TestFutureService service = new TestFutureServiceImpl(vertx);
+    final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
+    consumers.add(serviceBinder.register(TestFutureService.class, service));
 
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/service_proxy_test.yaml", testContext, routerBuilder -> {
       routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);

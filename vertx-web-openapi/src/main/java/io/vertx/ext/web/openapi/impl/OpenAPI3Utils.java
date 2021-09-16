@@ -1,5 +1,6 @@
 package io.vertx.ext.web.openapi.impl;
 
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -8,6 +9,8 @@ import io.vertx.ext.web.openapi.OpenAPIHolder;
 import io.vertx.ext.web.openapi.RouterBuilderException;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -102,6 +105,17 @@ class OpenAPI3Utils {
     if (parameters.length < 2) return false;
     if (!parameters[parameters.length - 1].getType().equals(Handler.class)) return false;
     return parameters[parameters.length - 2].getType().getName().equals("io.vertx.ext.web.api.service.ServiceRequest");
+  }
+
+  protected static boolean serviceProxyMethodIsCompatibleFuture(Method method) {
+    java.lang.reflect.Parameter[] parameters = method.getParameters();
+    if (parameters.length < 1) return false;
+    if (!parameters[parameters.length - 1].getType().getName().equals("io.vertx.ext.web.api.service.ServiceRequest")) return false;
+
+    Type returnType = method.getGenericReturnType();
+    if (!(returnType instanceof ParameterizedType)) return false;
+    if (!(((ParameterizedType) returnType).getRawType().equals(Future.class))) return false;
+    return (((ParameterizedType) returnType).getActualTypeArguments()[0]).getTypeName().equals("io.vertx.ext.web.api.service.ServiceResponse");
   }
 
   protected static JsonObject sanitizeDeliveryOptionsExtension(JsonObject jsonObject) {

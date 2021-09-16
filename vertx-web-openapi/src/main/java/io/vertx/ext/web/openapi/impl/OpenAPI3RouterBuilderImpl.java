@@ -196,7 +196,8 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
   @Override
   public RouterBuilder mountServiceInterface(Class interfaceClass, String address) {
     for (Method m : interfaceClass.getMethods()) {
-      if (OpenAPI3Utils.serviceProxyMethodIsCompatibleHandler(m)) {
+      if (OpenAPI3Utils.serviceProxyMethodIsCompatibleHandler(m)
+        || OpenAPI3Utils.serviceProxyMethodIsCompatibleFuture(m)) {
         String methodName = m.getName();
         OperationImpl op = Optional
           .ofNullable(this.operations.get(methodName))
