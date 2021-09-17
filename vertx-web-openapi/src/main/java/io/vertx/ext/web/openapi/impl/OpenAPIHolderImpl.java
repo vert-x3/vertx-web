@@ -65,7 +65,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     this.client = client;
     this.fs = fs;
     this.options = options;
-    SchemaRouter router = SchemaRouter.create(client, fs, options.toSchemaRouterOptions());
+    SchemaRouter router = SchemaRouter.create(vertx, client, fs, options.toSchemaRouterOptions());
     SchemaParser parser = Draft7SchemaParser.create(router);
     this.yamlMapper = new YAMLMapper();
     this.openapiSchema = parser.parseFromString(OpenAPI3Utils.openapiSchemaJson);
@@ -347,7 +347,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   }
 
   private Future<JsonObject> solveLocalRef(final URI ref) {
-    String filePath = extractPath(ref);
+    String filePath = ref.getPath();
 
     return fs
       // given that we are resolving using vert.x we may need to normalize paths from vert.x cache back
@@ -393,10 +393,6 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     return scope;
   }
 
-  private String extractPath(URI ref) {
-    return ("jar".equals(ref.getScheme())) ? ref.getSchemeSpecificPart().split("!")[1].substring(1) : ref.getPath();
-  }
-
   private Path uriToPath(URI uri) {
     try {
       switch (uri.getScheme()) {
@@ -405,8 +401,6 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
           return Paths.get(uri.getPath());
         case "file":
           return Paths.get(uri);
-        case "jar":
-          return Paths.get(uri.getSchemeSpecificPart().split("!")[1].substring(1));
         default:
           throw new IllegalArgumentException("unsupported scheme type for '" + uri + "'");
       }
