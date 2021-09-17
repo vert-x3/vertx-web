@@ -48,18 +48,11 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   private JsonObject openapiRoot;
 
   private final String cacheDir;
-  private final String userDir;
 
   private static String resolveCanonical(Vertx vertx, String path) {
     try {
       File canonicalFile = ((VertxInternal) vertx).resolveFile(path).getCanonicalFile();
-      String canonicalPath = canonicalFile.getPath();
-      if (canonicalFile.isDirectory()) {
-        if (!canonicalPath.endsWith(File.separator)) {
-          canonicalPath += File.separator;
-        }
-      }
-      return canonicalPath;
+      return slashify(canonicalFile.getPath(), canonicalFile.isDirectory());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -78,7 +71,6 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     this.openapiSchema = parser.parseFromString(OpenAPI3Utils.openapiSchemaJson);
 
     this.cacheDir = resolveCanonical(vertx, "");
-    this.userDir = resolveCanonical(vertx, ".");
   }
 
   public Future<JsonObject> loadOpenAPI(String u) {
@@ -347,19 +339,11 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     return resultProm.future();
   }
 
-  private String relativizePathToBase(String path, URI ref) {
-    System.out.println("DEBUG: ");
-    System.out.println(cacheDir);
-    System.out.println(userDir);
-    System.out.println(path);
-    System.out.println(ref);
-    System.out.println("---");
-
-    return path.startsWith(cacheDir) ?
-      path.substring(cacheDir.length()) :
-      path.startsWith(userDir) ?
-        path.substring(userDir.length()) :
-        path;
+  private String relativizePathToBase(String filePath) {
+    return
+      filePath.startsWith(cacheDir) ?
+        filePath.substring(cacheDir.length()) :
+        filePath;
   }
 
   private Future<JsonObject> solveLocalRef(final URI ref) {
@@ -369,7 +353,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
       // given that we are resolving using vert.x we may need to normalize paths from vert.x cache back
       // to the CWD, this is done just by stripping the well known cache dir prefix from any path if
       // present
-      .readFile(relativizePathToBase(filePath, ref))
+      .readFile(relativizePathToBase(filePath))
       .compose(buf -> {
         try {
           return Future.succeededFuture(buf.toJsonObject());
