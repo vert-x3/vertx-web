@@ -23,6 +23,8 @@ import io.vertx.ext.web.client.spi.CacheStore;
 
 /**
  * A basic implementation of a {@link CacheStore} using an {@link AsyncMap} from {@link SharedData}.
+ *
+ * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */
 public class SharedDataCacheStore implements CacheStore {
 

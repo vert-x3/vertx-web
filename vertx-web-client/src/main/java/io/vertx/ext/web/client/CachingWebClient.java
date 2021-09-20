@@ -17,10 +17,8 @@ package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClient;
 import io.vertx.ext.web.client.impl.CachingWebClientImpl;
-import io.vertx.ext.web.client.impl.cache.SharedDataCacheStore;
+import io.vertx.ext.web.client.impl.cache.LocalCacheStore;
 import io.vertx.ext.web.client.spi.CacheStore;
 
 /**
@@ -29,11 +27,10 @@ import io.vertx.ext.web.client.spi.CacheStore;
  * This client wraps a {@link WebClient} and makes it cache aware by adding features to it:
  * <ul>
  *   <li>Cache-Control header parsing</li>
- *   <li>Response serialization and deserialization for the {@link CacheStore}</li>
  *   <li>Freshness checking</li>
  * </ul>
  * <p>
- * The client honors the cache headers:
+ * The client honors the following cache headers:
  * <ul>
  *  <li>Cache-Control with the following properties understood:
  *    <ul>
@@ -43,6 +40,9 @@ import io.vertx.ext.web.client.spi.CacheStore;
  *      <li>no-store</li>
  *      <li>max-age</li>
  *      <li>s-maxage</li>
+ *      <li>stale-if-error</li>
+ *      <li>staile-while-revalidate</li>
+ *      <li>must-revalidate</li>
  *    </ul>
  *  </li>
  *  <li>Expires</li>
@@ -57,45 +57,18 @@ import io.vertx.ext.web.client.spi.CacheStore;
 public interface CachingWebClient {
 
   /**
-   * Create a cache aware web client using an
-   * {@link io.vertx.core.shareddata.AsyncMap} as the {@link CacheStore}.
+   * Create a cache aware web client using the provided {@link WebClient}.
    *
-   * @param vertx the vertx instance
-   * @return the creatd web client
-   */
-  static WebClient create(Vertx vertx) {
-    CachingWebClientOptions options = new CachingWebClientOptions();
-    return create(vertx, options);
-  }
-
-  /**
-   * Create a cache aware web client using the options and an
-   * {@link io.vertx.core.shareddata.AsyncMap} as the {@link CacheStore}.
-   *
-   * @param vertx   the vertx instance
-   * @param options the caching web client options
-   * @return the created web client
-   */
-  static WebClient create(Vertx vertx, CachingWebClientOptions options) {
-    CacheStore store = new SharedDataCacheStore(vertx);
-    return create(vertx, store, options);
-  }
-
-  /**
-   * Create a cache aware web client using the provided {@link CacheStore}.
-   *
-   * @param vertx      the vertx instance
-   * @param cacheStore the cache adapter
+   * @param webClient the web client instance
    * @return the created web client
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static WebClient create(Vertx vertx, CacheStore cacheStore) {
-    CachingWebClientOptions options = new CachingWebClientOptions();
-    return create(vertx, cacheStore, options);
+  static WebClient create(WebClient webClient) {
+    return create(webClient, new LocalCacheStore());
   }
 
   /**
-   * Create a cache aware web client using the provided {@link WebClient} and {@link CacheStore}.
+   * Create a cache aware web client using the provided {@link WebClient}.
    *
    * @param webClient  the web client instance
    * @param cacheStore the cache adapter
@@ -103,26 +76,23 @@ public interface CachingWebClient {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static WebClient create(WebClient webClient, CacheStore cacheStore) {
-    CachingWebClientOptions options = new CachingWebClientOptions();
-    return create(webClient, cacheStore, options);
+    return create(webClient, cacheStore, new CachingWebClientOptions());
   }
 
   /**
-   * Create a cache aware web client using the provided {@link CacheStore} and options.
+   * Create a cache aware web client using the provided {@link WebClient}.
    *
-   * @param vertx      the vertx instance
-   * @param cacheStore the cache adapter
+   * @param webClient  the web client instance
    * @param options    the caching web client options
    * @return the created web client
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static WebClient create(Vertx vertx, CacheStore cacheStore, CachingWebClientOptions options) {
-    WebClient webClient = WebClient.create(vertx, options);
-    return create(webClient, cacheStore, options);
+  static WebClient create(WebClient webClient, CachingWebClientOptions options) {
+    return create(webClient, new LocalCacheStore(), options);
   }
 
   /**
-   * Create a cache aware web client using the provided {@link WebClient} and {@link CacheStore}.
+   * Create a cache aware web client using the provided {@link WebClient}.
    *
    * @param webClient  the web client instance
    * @param cacheStore the cache adapter
@@ -132,31 +102,5 @@ public interface CachingWebClient {
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static WebClient create(WebClient webClient, CacheStore cacheStore, CachingWebClientOptions options) {
     return CachingWebClientImpl.wrap(webClient, cacheStore, options);
-  }
-
-  /**
-   * Wrap a {@link HttpClient} with a web client and default options.
-   *
-   * @param httpClient the http client to wrap
-   * @param cacheStore the cache adapter
-   * @return the created web client
-   */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static WebClient wrap(HttpClient httpClient, CacheStore cacheStore) {
-    CachingWebClientOptions options = new CachingWebClientOptions();
-    return wrap(httpClient, cacheStore, options);
-  }
-
-  /**
-   * Wrap a {@link HttpClient} with a web client and custom options.
-   *
-   * @param httpClient the http client to wrap
-   * @param cacheStore the cache adapter
-   * @param options    the caching web client options
-   * @return the created web client
-   */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static WebClient wrap(HttpClient httpClient, CacheStore cacheStore, CachingWebClientOptions options) {
-    return CachingWebClientImpl.wrap(httpClient, cacheStore, options);
   }
 }

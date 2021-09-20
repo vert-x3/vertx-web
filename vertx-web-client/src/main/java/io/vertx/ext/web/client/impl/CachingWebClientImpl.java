@@ -15,7 +15,6 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import io.vertx.core.http.HttpClient;
 import io.vertx.ext.web.client.CachingWebClientOptions;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.impl.cache.CacheInterceptor;
@@ -25,12 +24,6 @@ import io.vertx.ext.web.client.spi.CacheStore;
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */
 public interface CachingWebClientImpl {
-
-  static WebClient wrap(HttpClient client, CacheStore cacheStore, CachingWebClientOptions options) {
-    WebClientInternal internal = new WebClientBase(client, options);
-    internal.addInterceptor(new CacheInterceptor(cacheStore, options));
-    return internal;
-  }
 
   static WebClient wrap(WebClient webClient, CacheStore cacheStore, CachingWebClientOptions options) {
     WebClientInternal internal = new WebClientBase((WebClientBase) webClient);

@@ -492,9 +492,8 @@ a {@link io.vertx.ext.web.client.WebClientSession}. See <<_handling_private_resp
 
 === Providing an external store
 
-When storing responses, the default caching client will use Vert.x {@link io.vertx.core.shareddata.SharedData}.
-You may provide your own store implementation to store responses. To do so, implement {@link io.vertx.ext.web.client.spi.CacheStore},
-and then you can provide it when creating your client.
+When storing responses, the default caching client will use a local `Map`.You may provide your own store implementation to store responses.
+To do so, implement {@link io.vertx.ext.web.client.spi.CacheStore}, and then you can provide it when creating your client.
 
 [source,$lang]
 ----

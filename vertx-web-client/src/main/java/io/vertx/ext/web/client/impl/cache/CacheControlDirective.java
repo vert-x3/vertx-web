@@ -21,6 +21,11 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Cache-Control directives defining cache behavior.
+ *
+ * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
+ */
 public enum CacheControlDirective {
   PUBLIC("public"),
   PRIVATE("private"),

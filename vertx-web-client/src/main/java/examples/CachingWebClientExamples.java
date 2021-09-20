@@ -15,7 +15,8 @@ import java.util.Set;
 public class CachingWebClientExamples {
 
   public void create(Vertx vertx) {
-    WebClient cachingWebClient = CachingWebClient.create(vertx);
+    WebClient client = WebClient.create(vertx);
+    WebClient cachingWebClient = CachingWebClient.create(client);
   }
 
   public void createWithOptions(Vertx vertx) {
@@ -31,21 +32,25 @@ public class CachingWebClientExamples {
       .setCachedStatusCodes(cachedStatusCodes)
       .setEnableVaryCaching(true);
 
-    WebClient cachingWebClient = CachingWebClient.create(vertx, options);
+    WebClient client = WebClient.create(vertx);
+    WebClient cachingWebClient = CachingWebClient.create(client, options);
   }
 
   public void createWithCustomStore(Vertx vertx) {
+    WebClient client = WebClient.create(vertx);
     CacheStore store = new NoOpCacheStore();
-    WebClient cachingWebClient = CachingWebClient.create(vertx, store);
+    WebClient cachingWebClient = CachingWebClient.create(client, store);
   }
 
   public void createWithSession(Vertx vertx) {
-    WebClient cachingWebClient = CachingWebClient.create(vertx);
+    WebClient client = WebClient.create(vertx);
+    WebClient cachingWebClient = CachingWebClient.create(client);
     WebClient sessionClient = WebClientSession.create(cachingWebClient);
   }
 
   public void simpleGetWithCaching(Vertx vertx) {
-    WebClient cachingWebClient = CachingWebClient.create(vertx);
+    WebClient client = WebClient.create(vertx);
+    WebClient cachingWebClient = CachingWebClient.create(client);
 
     cachingWebClient
       .get(8080, "myserver.mycompany.com", "/some-uri")
