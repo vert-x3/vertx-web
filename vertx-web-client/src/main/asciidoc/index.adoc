@@ -571,12 +571,12 @@ to send different headers to different hosts, you have to add them manually to e
 == OAuth2 security
 
 Vert.x web offers a web session management facility; to use it, you create a
-{@link io.vertx.ext.web.client.WebClientOAuth2} for every user (session) and use it instead of the
+{@link io.vertx.ext.web.client.OAuth2WebClient} for every user (session) and use it instead of the
 {@link io.vertx.ext.web.client.WebClient}.
 
 === Creating an Oauth2 Client
 
-You create a {@link io.vertx.ext.web.client.WebClientOAuth2} instance as follows
+You create a {@link io.vertx.ext.web.client.OAuth2WebClient} instance as follows
 
 [source,$lang]
 ----
@@ -594,7 +594,7 @@ a real keycloak server one can just do:
 
 === Making requests
 
-Once created, a {@link io.vertx.ext.web.client.WebClientOAuth2} can be used instead of a
+Once created, a {@link io.vertx.ext.web.client.OAuth2WebClient} can be used instead of a
 {@link io.vertx.ext.web.client.WebClient} to do HTTP(s) requests and automatically manage any cookies received from the server(s)
 you are calling.
 

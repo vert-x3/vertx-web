@@ -23,7 +23,7 @@ import io.vertx.core.json.JsonObject;
  * @author Paulo Lopes
  */
 @DataObject(generateConverter = true)
-public class WebClientOAuth2Options {
+public class OAuth2WebClientOptions {
 
   /**
    * The default value of whether to perform a single token refresh if the response status code is 401 (Forbidden).
@@ -38,7 +38,7 @@ public class WebClientOAuth2Options {
   private boolean renewTokenOnForbidden = DEFAULT_RENEW_TOKEN_ON_FORBIDDEN;
   private int leeway = DEFAULT_LEEWAY;
 
-  public WebClientOAuth2Options() {
+  public OAuth2WebClientOptions() {
   }
 
   /**
@@ -46,7 +46,7 @@ public class WebClientOAuth2Options {
    *
    * @param other the options to copy
    */
-  public WebClientOAuth2Options(WebClientOAuth2Options other) {
+  public OAuth2WebClientOptions(OAuth2WebClientOptions other) {
     this.renewTokenOnForbidden = other.renewTokenOnForbidden;
     this.leeway = other.leeway;
   }
@@ -56,8 +56,8 @@ public class WebClientOAuth2Options {
    *
    * @param json the JSON object
    */
-  public WebClientOAuth2Options(JsonObject json) {
-    WebClientOAuth2OptionsConverter.fromJson(json, this);
+  public OAuth2WebClientOptions(JsonObject json) {
+    OAuth2WebClientOptionsConverter.fromJson(json, this);
   }
 
   /**
@@ -67,7 +67,7 @@ public class WebClientOAuth2Options {
    */
   public JsonObject toJson() {
     final JsonObject json = new JsonObject();
-    WebClientOAuth2OptionsConverter.toJson(this, json);
+    OAuth2WebClientOptionsConverter.toJson(this, json);
     return json;
   }
 
@@ -87,7 +87,7 @@ public class WebClientOAuth2Options {
    * @param renewTokenOnForbidden the desired intention.
    * @return fluent self
    */
-  public WebClientOAuth2Options setRenewTokenOnForbidden(boolean renewTokenOnForbidden) {
+  public OAuth2WebClientOptions setRenewTokenOnForbidden(boolean renewTokenOnForbidden) {
     this.renewTokenOnForbidden = renewTokenOnForbidden;
     return this;
   }
@@ -107,7 +107,7 @@ public class WebClientOAuth2Options {
    * @param leeway the desired leeway in seconds
    * @return fluent self
    */
-  public WebClientOAuth2Options setLeeway(int leeway) {
+  public OAuth2WebClientOptions setLeeway(int leeway) {
     this.leeway = leeway;
     return this;
   }

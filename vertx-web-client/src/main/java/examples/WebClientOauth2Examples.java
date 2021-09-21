@@ -6,16 +6,15 @@ import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.providers.KeycloakAuth;
+import io.vertx.ext.web.client.OAuth2WebClient;
 import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.client.WebClientOAuth2;
-import io.vertx.ext.web.client.WebClientOAuth2Options;
-import io.vertx.ext.web.client.WebClientSession;
+import io.vertx.ext.web.client.OAuth2WebClientOptions;
 
 public class WebClientOauth2Examples {
 
   public void create(Vertx vertx) {
     WebClient client = WebClient.create(vertx);
-    WebClientOAuth2 oauth2 = WebClientOAuth2.create(
+    OAuth2WebClient oauth2 = OAuth2WebClient.create(
         client,
         OAuth2Auth.create(vertx, new OAuth2Options(/* enter IdP config */)))
 
@@ -29,7 +28,7 @@ public class WebClientOauth2Examples {
         vertx,
         new OAuth2Options().setSite("https://keycloakserver.com"))
       .onSuccess(oauth -> {
-        WebClientOAuth2 client = WebClientOAuth2.create(
+        OAuth2WebClient client = OAuth2WebClient.create(
             WebClient.create(vertx),
             oauth)
           // if your keycloak is configured for password_credentials_flow
@@ -39,18 +38,18 @@ public class WebClientOauth2Examples {
   }
 
   public void leeway(WebClient baseClient, OAuth2Auth oAuth2Auth) {
-    WebClientOAuth2 client = WebClientOAuth2.create(
+    OAuth2WebClient client = OAuth2WebClient.create(
         baseClient,
         oAuth2Auth,
-        new WebClientOAuth2Options()
+        new OAuth2WebClientOptions()
           .setLeeway(5));
   }
 
   public void renewTokenOnForbidden(WebClient baseClient, OAuth2Auth oAuth2Auth) {
-    WebClientOAuth2 client = WebClientOAuth2.create(
+    OAuth2WebClient client = OAuth2WebClient.create(
       baseClient,
       oAuth2Auth,
-      new WebClientOAuth2Options()
+      new OAuth2WebClientOptions()
         // the client will attempt a single token request, if the request
         // if the status code of the response is 401
         // there will be only 1 attempt, so the second consecutive 401

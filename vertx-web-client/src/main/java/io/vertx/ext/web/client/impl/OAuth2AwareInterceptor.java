@@ -25,9 +25,9 @@ import static io.vertx.core.http.HttpHeaders.AUTHORIZATION;
 public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
 
   private final Set<HttpContext<?>> dejaVu = new HashSet<>();
-  private final WebClientOauth2Aware parentClient;
+  private final Oauth2WebClientAware parentClient;
 
-  public OAuth2AwareInterceptor(WebClientOauth2Aware webClientOauth2Aware) {
+  public OAuth2AwareInterceptor(Oauth2WebClientAware webClientOauth2Aware) {
     this.parentClient = webClientOauth2Aware;
   }
 

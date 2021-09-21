@@ -14,19 +14,19 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.client.WebClientOAuth2;
-import io.vertx.ext.web.client.WebClientOAuth2Options;
+import io.vertx.ext.web.client.OAuth2WebClient;
+import io.vertx.ext.web.client.OAuth2WebClientOptions;
 
-public class WebClientOauth2Aware extends WebClientBase implements WebClientOAuth2 {
+public class Oauth2WebClientAware extends WebClientBase implements OAuth2WebClient {
 
   private final OAuth2Auth oauth2Auth;
-  private final WebClientOAuth2Options option;
+  private final OAuth2WebClientOptions option;
 
   private Credentials credentials;
 
   private User user;
 
-  public WebClientOauth2Aware(WebClient client, OAuth2Auth oauth2Auth, WebClientOAuth2Options options) {
+  public Oauth2WebClientAware(WebClient client, OAuth2Auth oauth2Auth, OAuth2WebClientOptions options) {
     super((WebClientBase) client);
 
     if (oauth2Auth == null) {
@@ -42,7 +42,7 @@ public class WebClientOauth2Aware extends WebClientBase implements WebClientOAut
   }
 
   @Override
-  public WebClientOAuth2 withCredentials(Credentials credentials) {
+  public OAuth2WebClient withCredentials(Credentials credentials) {
      if (credentials == null) {
       throw new NullPointerException("Token Configuration passed to WebClientOauth2Aware can not be null");
     }

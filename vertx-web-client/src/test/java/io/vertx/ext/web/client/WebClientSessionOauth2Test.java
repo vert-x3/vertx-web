@@ -99,12 +99,12 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
 
-    WebClientOAuth2 webClientOAuth2 =
-      WebClientOAuth2.create(WebClientSession.create(webClient), oauth2);
+    OAuth2WebClient oauth2WebClient =
+      OAuth2WebClient.create(WebClientSession.create(webClient), oauth2);
 
     final CountDownLatch latchClient = new CountDownLatch(1);
 
-    webClientOAuth2
+    oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
       .send(result -> {
@@ -149,12 +149,12 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
 
-    WebClientOAuth2 webClientOAuth2 =
-      WebClientOAuth2.create(webClient, oauth2);
+    OAuth2WebClient oauth2WebClient =
+      OAuth2WebClient.create(webClient, oauth2);
 
     final CountDownLatch latchClient = new CountDownLatch(1);
 
-    webClientOAuth2
+    oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
       .send(result -> {
@@ -177,12 +177,12 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
 
-    WebClientOAuth2 webClientOAuth2 =
-      WebClientOAuth2.create(webClient, oauth2);
+    OAuth2WebClient oauth2WebClient =
+      OAuth2WebClient.create(webClient, oauth2);
 
     final CountDownLatch latchClient = new CountDownLatch(1);
 
-    webClientOAuth2
+    oauth2WebClient
       .get(8080, "localhost", "/protected/path")
       .send(result -> {
         if (result.failed()) {
@@ -231,15 +231,15 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
 
-    WebClientOAuth2 webClientOAuth2 =
-      WebClientOAuth2.create(webClient, oauth2);
+    OAuth2WebClient oauth2WebClient =
+      OAuth2WebClient.create(webClient, oauth2);
 
     final CountDownLatch latchClient1 = new CountDownLatch(1);
 
-    webClientOAuth2
+    oauth2WebClient
       .withCredentials(oauthConfig);
 
-    webClientOAuth2
+    oauth2WebClient
       .get(8080, "localhost", "/protected/path")
       .send(result -> {
         if (result.failed()) {
@@ -254,7 +254,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     final CountDownLatch latchClient2 = new CountDownLatch(1);
 
     // again, but this time we should not get a token
-    webClientOAuth2
+    oauth2WebClient
       .get(8080, "localhost", "/protected/path")
       .send(result -> {
         if (result.failed()) {
@@ -304,15 +304,15 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
 
-    WebClientOAuth2 webClientOAuth2 =
-      WebClientOAuth2.create(webClient, oauth2);
+    OAuth2WebClient oauth2WebClient =
+      OAuth2WebClient.create(webClient, oauth2);
 
     final CountDownLatch latchClient1 = new CountDownLatch(1);
 
-    webClientOAuth2
+    oauth2WebClient
       .withCredentials(oauthConfig);
 
-    webClientOAuth2
+    oauth2WebClient
       .get(8080, "localhost", "/protected/path")
       .send(result -> {
         if (result.failed()) {
@@ -330,7 +330,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     final CountDownLatch latchClient2 = new CountDownLatch(1);
 
     // again, but this time we should not get a token
-    webClientOAuth2
+    oauth2WebClient
       .get(8080, "localhost", "/protected/path")
       .send(result -> {
         if (result.failed()) {
@@ -385,15 +385,15 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
 
-    WebClientOAuth2 webClientOAuth2 =
-      WebClientOAuth2.create(webClient, oauth2);
+    OAuth2WebClient oauth2WebClient =
+      OAuth2WebClient.create(webClient, oauth2);
 
     final CountDownLatch latchClient1 = new CountDownLatch(1);
 
-    webClientOAuth2
+    oauth2WebClient
       .withCredentials(oauthConfig);
 
-    webClientOAuth2
+    oauth2WebClient
       .get(8080, "localhost", "/protected/path")
       .send(result -> {
         if (result.failed()) {
@@ -411,7 +411,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     final CountDownLatch latchClient2 = new CountDownLatch(1);
 
     // again, but this time we should not get a token
-    webClientOAuth2
+    oauth2WebClient
       .get(8080, "localhost", "/protected/path")
       .send(result -> {
         if (result.failed()) {
@@ -461,15 +461,15 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
 
-    WebClientOAuth2 webClientOAuth2 =
-      WebClientOAuth2.create(webClient, oauth2, new WebClientOAuth2Options().setLeeway(5));
+    OAuth2WebClient oauth2WebClient =
+      OAuth2WebClient.create(webClient, oauth2, new OAuth2WebClientOptions().setLeeway(5));
 
     final CountDownLatch latchClient1 = new CountDownLatch(1);
 
-    webClientOAuth2
+    oauth2WebClient
       .withCredentials(oauthConfig);
 
-    webClientOAuth2
+    oauth2WebClient
       .get(8080, "localhost", "/protected/path")
       .send(result -> {
         if (result.failed()) {
@@ -487,7 +487,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     final CountDownLatch latchClient2 = new CountDownLatch(1);
 
     // again, but this time we should not get a token
-    webClientOAuth2
+    oauth2WebClient
       .get(8080, "localhost", "/protected/path")
       .send(result -> {
         if (result.failed()) {
@@ -536,15 +536,15 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
 
-    WebClientOAuth2 webClientOAuth2 =
-      WebClientOAuth2.create(
+    OAuth2WebClient oauth2WebClient =
+      OAuth2WebClient.create(
         WebClientSession.create(webClient),
         oauth2,
-        new WebClientOAuth2Options().setRenewTokenOnForbidden(true));
+        new OAuth2WebClientOptions().setRenewTokenOnForbidden(true));
 
     final CountDownLatch latchClient = new CountDownLatch(1);
 
-    webClientOAuth2
+    oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
       .send(result -> {
@@ -591,15 +591,15 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
 
-    WebClientOAuth2 webClientOAuth2 =
-      WebClientOAuth2.create(
+    OAuth2WebClient oauth2WebClient =
+      OAuth2WebClient.create(
         WebClientSession.create(webClient),
         oauth2,
-        new WebClientOAuth2Options().setRenewTokenOnForbidden(true));
+        new OAuth2WebClientOptions().setRenewTokenOnForbidden(true));
 
     final CountDownLatch latchClient = new CountDownLatch(1);
 
-    webClientOAuth2
+    oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
       .send(result -> {

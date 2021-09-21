@@ -15,7 +15,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
-import io.vertx.ext.web.client.impl.WebClientOauth2Aware;
+import io.vertx.ext.web.client.impl.Oauth2WebClientAware;
 
 /**
  * An asynchronous OAuth2/OIDC aware HTTP / HTTP/2 client called {@code WebClientOAuth2}.
@@ -28,7 +28,7 @@ import io.vertx.ext.web.client.impl.WebClientOauth2Aware;
  * <p>
  */
 @VertxGen
-public interface WebClientOAuth2 extends WebClient {
+public interface OAuth2WebClient extends WebClient {
 
   /**
    * Create a session aware web client using the provided {@code webClient} instance.
@@ -37,8 +37,8 @@ public interface WebClientOAuth2 extends WebClient {
    * @param oAuth2Auth Configured oAuth2Auth provider to be used when {@link #withCredentials(Credentials)} used
    * @return the created client
    */
-  static WebClientOAuth2 create(WebClient webClient, OAuth2Auth oAuth2Auth) {
-    return create(webClient, oAuth2Auth, new WebClientOAuth2Options());
+  static OAuth2WebClient create(WebClient webClient, OAuth2Auth oAuth2Auth) {
+    return create(webClient, oAuth2Auth, new OAuth2WebClientOptions());
   }
 
   /**
@@ -49,8 +49,8 @@ public interface WebClientOAuth2 extends WebClient {
    * @param options extra configuration for this object
    * @return the created client
    */
-  static WebClientOAuth2 create(WebClient webClient, OAuth2Auth oAuth2Auth, WebClientOAuth2Options options) {
-    return new WebClientOauth2Aware(webClient, oAuth2Auth, options);
+  static OAuth2WebClient create(WebClient webClient, OAuth2Auth oAuth2Auth, OAuth2WebClientOptions options) {
+    return new Oauth2WebClientAware(webClient, oAuth2Auth, options);
   }
 
   /**
@@ -61,5 +61,5 @@ public interface WebClientOAuth2 extends WebClient {
 
   @Fluent
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  WebClientOAuth2 withCredentials(Credentials credentials);
+  OAuth2WebClient withCredentials(Credentials credentials);
 }

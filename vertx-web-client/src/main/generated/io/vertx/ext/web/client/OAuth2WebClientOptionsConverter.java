@@ -7,13 +7,13 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Converter and mapper for {@link io.vertx.ext.web.client.WebClientOAuth2Options}.
- * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.client.WebClientOAuth2Options} original class using Vert.x codegen.
+ * Converter and mapper for {@link io.vertx.ext.web.client.OAuth2WebClientOptions}.
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.client.OAuth2WebClientOptions} original class using Vert.x codegen.
  */
-public class WebClientOAuth2OptionsConverter {
+public class OAuth2WebClientOptionsConverter {
 
 
-  public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, WebClientOAuth2Options obj) {
+  public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, OAuth2WebClientOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
         case "leeway":
@@ -30,11 +30,11 @@ public class WebClientOAuth2OptionsConverter {
     }
   }
 
-  public static void toJson(WebClientOAuth2Options obj, JsonObject json) {
+  public static void toJson(OAuth2WebClientOptions obj, JsonObject json) {
     toJson(obj, json.getMap());
   }
 
-  public static void toJson(WebClientOAuth2Options obj, java.util.Map<String, Object> json) {
+  public static void toJson(OAuth2WebClientOptions obj, java.util.Map<String, Object> json) {
     json.put("leeway", obj.getLeeway());
     json.put("renewTokenOnForbidden", obj.isRenewTokenOnForbidden());
   }
