@@ -46,7 +46,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   final WebClientInternal client;
   final WebClientOptions options;
-  final ProxyOptions proxyOptions;
+  ProxyOptions proxyOptions;
   SocketAddress serverAddress;
   MultiMap params;
   HttpMethod method;
@@ -86,7 +86,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.serverAddress = serverAddress;
     this.followRedirects = options.isFollowRedirects();
     this.options = options;
-    this.proxyOptions = proxyOptions;
+    this.proxyOptions = proxyOptions != null ? new ProxyOptions(proxyOptions) : null;
     if (options.isUserAgentEnabled()) {
       headers = HttpHeaders.set(HttpHeaders.USER_AGENT, options.getUserAgent());
     } else {
@@ -98,7 +98,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.client = other.client;
     this.serverAddress = other.serverAddress;
     this.options = other.options;
-    this.proxyOptions = other.proxyOptions;
+    this.proxyOptions = other.proxyOptions != null ? new ProxyOptions(other.proxyOptions) : null;
     this.method = other.method;
     this.protocol = other.protocol;
     this.port = other.port;
@@ -245,6 +245,12 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     return this;
   }
 
+  @Override
+  public HttpRequest<T> setProxy(ProxyOptions proxyOptions) {
+    this.proxyOptions = proxyOptions;
+    return this;
+  }
+
   public boolean followRedirects() {
     return followRedirects;
   }
@@ -272,6 +278,11 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
       }
     }
     return params;
+  }
+
+  @Override
+  public ProxyOptions proxy(){
+    return this.proxyOptions;
   }
 
   @Override
