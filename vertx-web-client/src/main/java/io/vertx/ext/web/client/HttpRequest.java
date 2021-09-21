@@ -20,6 +20,7 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.TokenCredentials;
@@ -271,6 +272,18 @@ public interface HttpRequest<T> {
   @Fluent
   HttpRequest<T> followRedirects(boolean value);
 
+
+  /**
+   * Configure the request to set a proxy for this request.
+   *
+   * Setting proxy here supersedes the proxy set on the client itself
+   *
+   * @param proxyOptions The proxy options
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> setProxy(ProxyOptions proxyOptions);
+
   /**
    * Add an expectation that the response is valid according to the provided {@code predicate}.
    * <p>
@@ -301,6 +314,14 @@ public interface HttpRequest<T> {
    * @return the current query parameters
    */
   MultiMap queryParams();
+
+
+  /**
+   * Return the current proxy options
+   *
+   * @return the current proxy options
+   */
+  ProxyOptions proxy();
 
   /**
    * Copy this request
