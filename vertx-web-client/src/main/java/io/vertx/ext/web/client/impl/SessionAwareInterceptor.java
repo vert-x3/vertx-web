@@ -147,7 +147,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
   }
 
   private void processResponse(HttpContext<?> context) {
-    List<String> cookieHeaders = context.clientResponse().cookies();
+    List<String> cookieHeaders = context.response().cookies();
     if (cookieHeaders == null) {
       return;
     }

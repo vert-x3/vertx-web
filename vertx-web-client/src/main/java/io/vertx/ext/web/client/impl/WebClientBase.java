@@ -42,7 +42,7 @@ public class WebClientBase implements WebClientInternal {
 
   final HttpClient client;
   final WebClientOptions options;
-  private final List<Handler<HttpContext<?>>> interceptors;
+  final List<Handler<HttpContext<?>>> interceptors;
 
   public WebClientBase(HttpClient client, WebClientOptions options) {
     this.client = client;
@@ -259,6 +259,10 @@ public class WebClientBase implements WebClientInternal {
 
   @Override
   public WebClientInternal addInterceptor(Handler<HttpContext<?>> interceptor) {
+    // If a web client is constructed using another client, interceptors could get added twice.
+    if (interceptors.stream().anyMatch(i -> i.getClass() == interceptor.getClass())) {
+      throw new IllegalStateException(String.format("Client already contains a %s interceptor", interceptor.getClass()));
+    }
     interceptors.add(interceptor);
     return this;
   }
