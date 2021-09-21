@@ -20,16 +20,9 @@ public class CachingWebClientExamples {
   }
 
   public void createWithOptions(Vertx vertx) {
-    Set<HttpMethod> cachedMethods = new HashSet<>(2);
-    cachedMethods.add(HttpMethod.GET);
-    cachedMethods.add(HttpMethod.HEAD);
-
-    Set<Integer> cachedStatusCodes = new HashSet<>(1);
-    cachedStatusCodes.add(200);
-
     CachingWebClientOptions options = new CachingWebClientOptions()
-      .setCachedMethods(cachedMethods)
-      .setCachedStatusCodes(cachedStatusCodes)
+      .addCachedMethod(HttpMethod.HEAD)
+      .removeCachedStatusCode(301)
       .setEnableVaryCaching(true);
 
     WebClient client = WebClient.create(vertx);
@@ -38,7 +31,7 @@ public class CachingWebClientExamples {
 
   public void createWithCustomStore(Vertx vertx) {
     WebClient client = WebClient.create(vertx);
-    CacheStore store = new NoOpCacheStore();
+    CacheStore store = new NoOpCacheStore(); // or any store you like
     WebClient cachingWebClient = CachingWebClient.create(client, store);
   }
 

@@ -91,9 +91,19 @@ public class CacheControl {
       return Collections.emptySet();
     } else {
       Set<CharSequence> variations = new HashSet<>();
-      for (String variation : vary.split(",")) {
-        variations.add(HttpHeaders.createOptimized(variation.trim().toLowerCase()));
+      String remaining = vary;
+      int nextDelim = remaining.indexOf(',');
+
+      while (nextDelim > 0) {
+        variations.add(HttpHeaders.createOptimized(remaining.substring(0, nextDelim).trim().toLowerCase()));
+        remaining = remaining.substring(nextDelim + 1);
+        nextDelim = remaining.indexOf(',');
       }
+
+      if (!remaining.isEmpty()) {
+        variations.add(HttpHeaders.createOptimized(remaining.trim().toLowerCase()));
+      }
+
       return variations;
     }
   }
