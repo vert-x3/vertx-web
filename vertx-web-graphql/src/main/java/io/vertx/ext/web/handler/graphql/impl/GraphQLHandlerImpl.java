@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2021 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -18,10 +18,7 @@ package io.vertx.ext.web.handler.graphql.impl;
 
 import graphql.ExecutionInput;
 import graphql.GraphQL;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
-import io.vertx.core.MultiMap;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -31,6 +28,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 import io.vertx.ext.web.impl.RoutingContextInternal;
@@ -62,6 +60,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   private Function<RoutingContext, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
   private Function<RoutingContext, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
   private Function<RoutingContext, Locale> localeFactory = DEFAULT_LOCALE_FACTORY;
+  private Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecute;
 
   public GraphQLHandlerImpl(GraphQL graphQL, GraphQLHandlerOptions options) {
     Objects.requireNonNull(graphQL, "graphQL");
@@ -85,6 +84,12 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   @Override
   public synchronized GraphQLHandler locale(Function<RoutingContext, Locale> factory) {
     localeFactory = factory != null ? factory : DEFAULT_LOCALE_FACTORY;
+    return this;
+  }
+
+  @Override
+  public synchronized GraphQLHandler beforeExecute(Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecute) {
+    this.beforeExecute = beforeExecute;
     return this;
   }
 
@@ -393,6 +398,26 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     if (locale != null) {
       builder.locale(locale);
     }
+
+    Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecute;
+    synchronized (this) {
+      beforeExecute = this.beforeExecute;
+    }
+    if (beforeExecute != null) {
+      beforeExecute.handle(new ExecutionInputBuilderWithContext<RoutingContext>() {
+        @Override
+        public RoutingContext context() {
+          return rc;
+        }
+
+        @Override
+        public ExecutionInput.Builder builder() {
+          return builder;
+        }
+      });
+    }
+
+    builder.graphQLContext(Collections.singletonMap(RoutingContext.class, rc));
 
     return Future.fromCompletionStage(graphQL.executeAsync(builder.build()), rc.vertx().getOrCreateContext())
       .map(executionResult -> new JsonObject(executionResult.toSpecification()));

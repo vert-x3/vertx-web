@@ -30,11 +30,13 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.graphql.ApolloWSConnectionInitEvent;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessageType;
+import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import org.dataloader.DataLoaderRegistry;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -231,6 +233,23 @@ class ApolloWSConnectionHandler {
     if (initialValue != null) {
       builder.root(initialValue);
     }
+
+    Handler<ExecutionInputBuilderWithContext<ApolloWSMessage>> beforeExecute = apolloWSHandler.getBeforeExecute();
+    if (beforeExecute != null) {
+      beforeExecute.handle(new ExecutionInputBuilderWithContext<ApolloWSMessage>() {
+        @Override
+        public ApolloWSMessage context() {
+          return message;
+        }
+
+        @Override
+        public ExecutionInput.Builder builder() {
+          return builder;
+        }
+      });
+    }
+
+    builder.graphQLContext(Collections.singletonMap(ApolloWSMessage.class, message));
 
     apolloWSHandler.getGraphQL().executeAsync(builder).whenCompleteAsync((executionResult, throwable) -> {
       if (throwable == null) {

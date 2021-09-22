@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2021 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -22,10 +22,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.graphql.ApolloWSConnectionInitEvent;
-import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
-import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
-import io.vertx.ext.web.handler.graphql.ApolloWSOptions;
+import io.vertx.ext.web.handler.graphql.*;
 import org.dataloader.DataLoaderRegistry;
 
 import java.util.Locale;
@@ -53,6 +50,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   private Handler<ApolloWSConnectionInitEvent> connectionInitHandler;
   private Handler<ServerWebSocket> endHandler;
   private Handler<ApolloWSMessage> messageHandler;
+  private Handler<ExecutionInputBuilderWithContext<ApolloWSMessage>> beforeExecute;
 
   public ApolloWSHandlerImpl(GraphQL graphQL, ApolloWSOptions options) {
     Objects.requireNonNull(graphQL, "graphQL");
@@ -137,6 +135,16 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   synchronized Function<ApolloWSMessage, Locale> getLocale() {
     return localeFactory;
+  }
+
+  @Override
+  public ApolloWSHandler beforeExecute(Handler<ExecutionInputBuilderWithContext<ApolloWSMessage>> beforeExecute) {
+    this.beforeExecute = beforeExecute;
+    return this;
+  }
+
+  synchronized Handler<ExecutionInputBuilderWithContext<ApolloWSMessage>> getBeforeExecute() {
+    return beforeExecute;
   }
 
   @Override

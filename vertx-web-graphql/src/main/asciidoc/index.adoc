@@ -196,13 +196,6 @@ You may retrieve this object by inspecting the `DataFetchingEnvironment`:
 
 NOTE: The routing context is available with any kind of data fetchers, not just {@link io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher}.
 
-If you prefer not to expose the routing context to your data fetchers, configure the GraphQL handler to customize the context object:
-
-[source,$lang]
-----
-{@link examples.GraphQLExamples#customContextInDataFetchingEnvironment}
-----
-
 === JSON data results
 
 The default GraphQL data fetcher is `PropertyDataFetcher`.

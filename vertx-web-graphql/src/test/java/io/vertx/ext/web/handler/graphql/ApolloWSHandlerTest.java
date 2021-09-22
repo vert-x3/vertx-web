@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2021 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -105,7 +105,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
 
   private Publisher<Map<String, Object>> getCounter(DataFetchingEnvironment env) {
     boolean finite = env.getArgument("finite");
-    ApolloWSMessage message = env.getContext();
+    ApolloWSMessage message = ApolloWSHandler.getMessage(env.getGraphQlContext());
     JsonObject connectionParams = message.connectionParams() == null
       ? new JsonObject()
       : (JsonObject) message.connectionParams();

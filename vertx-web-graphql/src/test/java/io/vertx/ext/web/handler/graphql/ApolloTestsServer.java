@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2021 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -34,7 +34,8 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import org.reactivestreams.Publisher;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static io.vertx.core.http.HttpMethod.GET;
@@ -144,7 +145,7 @@ public class ApolloTestsServer extends AbstractVerticle {
 
   private Publisher<Object> counter(DataFetchingEnvironment env) {
     return subscriber -> {
-      ApolloWSMessage message = env.getContext();
+      ApolloWSMessage message = ApolloWSHandler.getMessage(env.getGraphQlContext());
       JsonObject connectionParams = message.connectionParams() == null
         ? new JsonObject()
         : (JsonObject) message.connectionParams();
