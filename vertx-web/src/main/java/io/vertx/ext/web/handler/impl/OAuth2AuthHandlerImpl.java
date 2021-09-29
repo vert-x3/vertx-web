@@ -268,15 +268,20 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       throw new IllegalStateException("OAuth2AuthHandler was created without a origin/callback URL");
     }
 
+    final String routePath = route.getPath();
+
+    if (routePath == null) {
+      // warn that the setup is probably wrong
+      throw new IllegalStateException("OAuth2AuthHandler callback route created without a path");
+    }
+
     final String callbackPath = callbackURL.resource();
 
     if (callbackPath != null && !"".equals(callbackPath)) {
-      if (!callbackPath.equals(route.getPath())) {
+      if (!callbackPath.endsWith(routePath)) {
         if (LOG.isWarnEnabled()) {
-          LOG.warn("route path changed to match callback URL");
+          LOG.warn("callback route doesn't match OAuth2AuthHandler origin configuration");
         }
-        // no matter what path was provided we will make sure it is the correct one
-        route.path(callbackPath);
       }
     }
 

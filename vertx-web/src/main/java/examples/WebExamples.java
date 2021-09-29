@@ -1387,7 +1387,7 @@ public class WebExamples {
       .create(vertx, authProvider, "https://myserver.com/callback");
 
     // setup the callback handler for receiving the GitHub callback
-    oauth2.setupCallback(router.route());
+    oauth2.setupCallback(router.route("/callback"));
 
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2);
@@ -1448,7 +1448,7 @@ public class WebExamples {
       .create(vertx, provider, "https://myserver.com:8447/callback");
 
     // now allow the handler to setup the callback url for you
-    oauth2.setupCallback(router.route());
+    oauth2.setupCallback(router.route("/callback"));
   }
 
   public void example62(Vertx vertx, Router router) {
@@ -1706,7 +1706,7 @@ public class WebExamples {
       "https://myserver.com/github-callback");
 
     // setup the callback handler for receiving the GitHub callback
-    githubOAuth2.setupCallback(router.route());
+    githubOAuth2.setupCallback(router.route("/github-callback"));
 
     // create an OAuth2 provider, clientID and clientSecret
     // should be requested to Google
@@ -1725,7 +1725,7 @@ public class WebExamples {
       "https://myserver.com/google-callback");
 
     // setup the callback handler for receiving the Google callback
-    googleOAuth2.setupCallback(router.route());
+    googleOAuth2.setupCallback(router.route("/google-callback"));
 
     // At this point the 2 callbacks endpoints are registered:
 
