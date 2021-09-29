@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Red Hat, Inc.
+ * Copyright 2021 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -39,12 +39,15 @@ import static java.util.stream.Collectors.toMap;
 
 public class VertxMappedBatchLoaderTest extends GraphQLTestBase {
 
-  private AtomicBoolean batchloaderInvoked = new AtomicBoolean();
+  protected AtomicBoolean batchloaderInvoked = new AtomicBoolean();
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    setUpGraphQLHandler();
+  }
 
+  protected void setUpGraphQLHandler() {
     MappedBatchLoaderWithContext<String, User> userBatchLoader = VertxMappedBatchLoader.create(
       (keys, environment, mapPromise) -> {
         if (batchloaderInvoked.compareAndSet(false, true)) {
@@ -59,9 +62,10 @@ public class VertxMappedBatchLoaderTest extends GraphQLTestBase {
       }
     );
 
-    graphQLHandler.dataLoaderRegistry(rc -> {
+    graphQLHandler.beforeExecute(bwc -> {
       DataLoader<String, User> userDataLoader = DataLoaderFactory.newMappedDataLoader(userBatchLoader);
-      return new DataLoaderRegistry().register("user", userDataLoader);
+      DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry().register("user", userDataLoader);
+      bwc.builder().dataLoaderRegistry(dataLoaderRegistry);
     });
   }
 
