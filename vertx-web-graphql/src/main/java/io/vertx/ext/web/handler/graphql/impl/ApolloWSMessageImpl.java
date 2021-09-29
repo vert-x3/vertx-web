@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.handler.graphql.impl;
 
-import io.vertx.core.Future;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessage;

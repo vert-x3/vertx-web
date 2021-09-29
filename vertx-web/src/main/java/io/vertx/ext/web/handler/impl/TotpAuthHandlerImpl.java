@@ -27,6 +27,7 @@ import io.vertx.ext.auth.otp.OtpKeyGenerator;
 import io.vertx.ext.auth.otp.totp.TotpAuth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OtpAuthHandler;
 
@@ -74,18 +75,21 @@ public class TotpAuthHandlerImpl extends AuthenticationHandlerImpl<TotpAuth> imp
       return;
     }
 
-    if (ctx.user() == null) {
+    final User user = ctx.user();
+
+    if (user == null) {
       handler.handle(Future.failedFuture(new HttpException(401)));
     } else {
-      Boolean userOtp = ctx.user().get("mfa");
+      Boolean userOtp = user.get("mfa");
       // user hasn't 2fa yet?
       if (userOtp == null || !userOtp) {
         if (verifyUrl == null) {
           handler.handle(Future.failedFuture(new HttpException(401, "User TOTP verification missing")));
         } else {
-          if (ctx.session() != null) {
+          final Session session = ctx.session();
+          if (session != null) {
             String uri = ctx.request().uri();
-            ctx.session()
+            session
               .put("redirect_uri", uri);
           }
 
@@ -121,19 +125,20 @@ public class TotpAuthHandlerImpl extends AuthenticationHandlerImpl<TotpAuth> imp
       // force a post if otherwise
       .method(HttpMethod.POST)
       .handler(ctx -> {
-        if (ctx.user().get("username") == null) {
+        final User user = ctx.user();
+        if (user == null || user.get("username") == null) {
           ctx.fail(new IllegalStateException("User object misses 'username' attribute"));
           return;
         }
         final OtpKey key = otpKeyGen.generate();
-        authProvider.createAuthenticator(ctx.user().get("username"), key)
+        authProvider.createAuthenticator(user.get("username"), key)
           .onFailure(ctx::fail)
           .onSuccess(authenticator ->
             ctx.json(
               new JsonObject()
                 .put("issuer", issuer)
                 .put("label", label)
-                .put("url", authProvider.generateUri(key, issuer, ctx.user().get("username"), label))));
+                .put("url", authProvider.generateUri(key, issuer, user.get("username"), label))));
       });
 
     return this;
@@ -145,7 +150,8 @@ public class TotpAuthHandlerImpl extends AuthenticationHandlerImpl<TotpAuth> imp
       // force a post if otherwise
       .method(HttpMethod.POST)
       .handler(ctx -> {
-        if (ctx.user().get("username") == null) {
+        final User user = ctx.user();
+        if (user == null || user.get("username") == null) {
           ctx.fail(new IllegalStateException("User object misses 'username' attribute"));
           return;
         }
@@ -154,25 +160,24 @@ public class TotpAuthHandlerImpl extends AuthenticationHandlerImpl<TotpAuth> imp
           ctx.fail(new HttpException(400, "Missing 'code' form attribute"));
           return;
         }
-        authProvider.authenticate(new OtpCredentials(ctx.user().get("username"), ctx.request().getParam("code")))
-          .onSuccess(user -> {
-            User currentUser = ctx.user();
-            currentUser.principal().mergeIn(user.principal());
-            currentUser.attributes().mergeIn(user.attributes());
+        authProvider.authenticate(new OtpCredentials(user.get("username"), ctx.request().getParam("code")))
+          .onSuccess(newUser -> {
+            user.principal().mergeIn(user.principal());
+            user.attributes().mergeIn(user.attributes());
             // marker
-            currentUser.attributes().put("mfa", "totp");
+            user.attributes().put("mfa", "totp");
             String redirect = "/";
-            if (ctx.session() != null) {
+            final Session session = ctx.session();
+            if (session != null) {
               // the user has upgraded from unauthenticated to authenticated
               // session should be upgraded as recommended by owasp
-              ctx.session().regenerateId();
+              session.regenerateId();
 
-              String back = ctx.session().get("redirect_uri");
+              String back = session.get("redirect_uri");
               if (back != null) {
                 redirect = back;
               }
             }
-
             ctx.redirect(redirect);
           })
           .onFailure(err -> ctx.fail(401, err));

@@ -44,7 +44,7 @@ public interface RequestPredicate extends Function<RoutingContext, RequestPredic
         for (FileUpload f : files) {
           if (f.name().equals(propertyName) && contentType.matcher(f.contentType()).matches()) return success();
         }
-        return failed(String.format("File with content type %s and name %s is missing", contentType.toString(), propertyName));
+        return failed(String.format("File with content type %s and name %s is missing", contentType, propertyName));
       } else return success();
     };
   }

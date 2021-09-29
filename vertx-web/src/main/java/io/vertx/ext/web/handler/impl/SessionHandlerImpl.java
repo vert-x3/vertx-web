@@ -160,8 +160,14 @@ public class SessionHandlerImpl implements SessionHandler {
   }
 
   private SessionHandler flush(RoutingContext context, boolean skipCrc, boolean ignoreStatus, Handler<AsyncResult<Void>> handler) {
-    boolean sessionUsed = context.isSessionAccessed();
-    Session session = context.session();
+    final boolean sessionUsed = context.isSessionAccessed();
+    final Session session = context.session();
+
+    if (session == null) {
+      handler.handle(Future.failedFuture("No session in context"));
+      return this;
+    }
+
     if (!session.isDestroyed()) {
       final int currentStatusCode = context.response().getStatusCode();
       // Store the session (only and only if there was no error)

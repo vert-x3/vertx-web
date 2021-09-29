@@ -874,12 +874,13 @@ final class RouteState {
         if (mountPoint.charAt(strip - 1)== '/') {
           strip--;
         }
-        path = path.substring(strip);
+        if (path != null) {
+          path = path.substring(strip);
+        }
       }
 
-      Matcher m = pattern.matcher(path);
-      if (m.matches()) {
-
+      Matcher m;
+      if (path != null && (m = pattern.matcher(path)).matches()) {
         if (!isEmpty(methods) && !containsMethod(request)) {
           // If I'm here path or path pattern matches, but the method is wrong
           return 405;

@@ -9,6 +9,7 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.service.RouteToEBServiceHandler;
 import io.vertx.ext.web.api.service.ServiceRequest;
@@ -74,10 +75,11 @@ public class RouteToEBServiceHandlerImpl implements RouteToEBServiceHandler {
 
   private JsonObject buildPayload(RoutingContext context) {
     JsonObject params = context.get("parsedParameters") != null ? ((RequestParameters)context.get("parsedParameters")).toJson() : null;
+    User user = context.user();
     return new JsonObject().put("context", new ServiceRequest(
       params,
       context.request().headers(),
-      (context.user() != null) ? context.user().principal() : null,
+      (user != null) ? user.principal() : null,
       (this.extraPayloadMapper != null) ? this.extraPayloadMapper.apply(context) : null
     ).toJson());
   }

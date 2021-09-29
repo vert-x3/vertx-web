@@ -70,7 +70,6 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-otp</artifactId>
       <optional>true</optional>
-      <version>${project.version}</version>
     </dependency>
 
     <!-- Testing -->

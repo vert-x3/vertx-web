@@ -59,7 +59,7 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
       } else {
         result = Future.succeededFuture(new BodyStream<Void>() {
 
-          Promise<Void> promise = Promise.promise();
+          final Promise<Void> promise = Promise.promise();
 
           @Override
           public Future<Void> result() {

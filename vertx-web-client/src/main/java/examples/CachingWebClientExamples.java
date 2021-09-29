@@ -9,8 +9,6 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientSession;
 import io.vertx.ext.web.client.spi.CacheStore;
 import io.vertx.ext.web.client.impl.cache.NoOpCacheStore;
-import java.util.HashSet;
-import java.util.Set;
 
 public class CachingWebClientExamples {
 

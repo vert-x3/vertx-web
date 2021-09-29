@@ -247,9 +247,9 @@ public class CSRFHandlerImpl implements CSRFHandler {
       return false;
     }
 
-    if (ctx.session() != null) {
-      Session session = ctx.session();
+    final Session session = ctx.session();
 
+    if (session != null) {
       // get the token from the session
       String sessionToken = session.get(headerName);
       if (sessionToken != null) {
@@ -292,8 +292,8 @@ public class CSRFHandlerImpl implements CSRFHandler {
     }
 
     // this token has been used and we discard it to avoid replay attacks
-    if (ctx.session() != null) {
-      ctx.session().remove(headerName);
+    if (session != null) {
+      session.remove(headerName);
     }
 
     final long ts = parseLong(tokens[1]);

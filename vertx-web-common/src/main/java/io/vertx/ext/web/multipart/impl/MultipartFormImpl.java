@@ -15,7 +15,6 @@
  */
 package io.vertx.ext.web.multipart.impl;
 
-import io.netty.handler.codec.http.HttpConstants;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.multipart.FormDataPart;
 import io.vertx.ext.web.multipart.MultipartForm;
