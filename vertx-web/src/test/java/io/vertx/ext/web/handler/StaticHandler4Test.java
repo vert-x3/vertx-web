@@ -23,42 +23,34 @@ import org.junit.Test;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class StaticHandler3Test extends WebTestBase {
+public class StaticHandler4Test extends WebTestBase {
 
   protected StaticHandler stat;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    stat = StaticHandler.create();
+    stat = StaticHandler.create().setWebRoot("nasty");
     router.route("/*").handler(stat);
   }
 
   @Test
   public void testGetDefaultIndex() throws Exception {
     // without slash... at root defaults to /
-    testRequest(HttpMethod.GET, "", 200, "OK", "<html><body>Index page</body></html>");
+    testRequest(HttpMethod.GET, "", 404, "Not Found");
 
     // with slash
-    testRequest(HttpMethod.GET, "/", 200, "OK", "<html><body>Index page</body></html>");
+    testRequest(HttpMethod.GET, "/", 404, "Not Found");
 
-    // and directly
-    testRequest(HttpMethod.GET, "/index.html", 200, "OK", "<html><body>Index page</body></html>");
-  }
 
-  @Test
-  public void testGetDefaultIndexWithSlash() throws Exception {
-    // with / returns index page
-    testRequest(HttpMethod.GET, "/somedir/", 200, "OK", "<html><body>Subdirectory index page</body></html>");
-  }
-
-  @Test
-  public void testGetDefaultIndexWithoutSlash() throws Exception {
     // without / should redirect first
-    testRequest(HttpMethod.GET, "/somedir", null, res-> {
-      assertEquals("/somedir/", res.getHeader("Location"));
+    testRequest(HttpMethod.GET, "/index.html", null, res-> {
+      assertEquals("/index.html/", res.getHeader("Location"));
     }, 301, "Moved Permanently", null);
 
-    testRequest(HttpMethod.GET, "/somedir/", 200, "OK", "<html><body>Subdirectory index page</body></html>");
+    testRequest(HttpMethod.GET, "/index.html/", 200, "OK", "<html><body>Nasty index page</body></html>");
+
+    // and directly
+    testRequest(HttpMethod.GET, "/index.html/index.html", 200, "OK", "<html><body>Nasty index page</body></html>");
   }
 }

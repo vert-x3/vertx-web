@@ -60,12 +60,9 @@ public class StaticHandler2Test extends WebTestBase {
       assertEquals("/static/swaggerui/", res.getHeader("Location"));
     }, 301, "Moved Permanently", null);
 
-    // with slash... forward to index.html
-    testRequest(HttpMethod.GET, "/static/swaggerui/", null, res-> {
-      assertEquals("/static/swaggerui/index.html", res.getHeader("Location"));
-    }, 301, "Moved Permanently", null);
+    testRequest(HttpMethod.GET, "/static/swaggerui/", 200, "OK", "<html><body>Fake swagger UI</body></html>\n");
 
-    // index.html retreives the final file
+    // also index.html retreives the final file
     testRequest(HttpMethod.GET, "/static/swaggerui/index.html", 200, "OK", "<html><body>Fake swagger UI</body></html>\n");
   }
 }

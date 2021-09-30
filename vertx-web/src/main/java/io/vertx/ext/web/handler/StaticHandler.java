@@ -78,7 +78,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * The default index page
    */
-  String DEFAULT_INDEX_PAGE = "/index.html";
+  String DEFAULT_INDEX_PAGE = "index.html";
 
   /**
    * The default max cache size
