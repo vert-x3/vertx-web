@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.sstore;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.Session;
@@ -143,7 +144,7 @@ public abstract class AbstractSession implements Session, SessionInternal {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T> T get(String key) {
+  public <T> @Nullable T get(String key) {
     if (isEmpty()) {
       return null;
     }
@@ -179,7 +180,7 @@ public abstract class AbstractSession implements Session, SessionInternal {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T> T remove(String key) {
+  public <T> @Nullable T remove(String key) {
     if (isEmpty()) {
       return null;
     }

@@ -15,6 +15,8 @@
  */
 package io.vertx.ext.web.impl;
 
+import io.vertx.codegen.annotations.Nullable;
+
 /**
  * An origin follows rfc6454#section-7
  * and is expected to have the format: {@code <scheme> "://" <hostname> [ ":" <port> ]}
@@ -367,7 +369,7 @@ public final class Origin {
     return true;
   }
 
-  public String encode() {
+  public @Nullable String encode() {
     if (isNull) {
       return "<null>";
     }

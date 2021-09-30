@@ -134,7 +134,7 @@ public interface RoutingContext {
    * @return  the data
    * @throws ClassCastException if the data is not of the expected type
    */
-  <T> T get(String key);
+  <T> @Nullable T get(String key);
 
   /**
    * Get some data from the context. The data is available in any handlers that receive the context.
@@ -155,7 +155,7 @@ public interface RoutingContext {
    * @return  the previous data associated with the key
    * @throws ClassCastException if the data is not of the expected type
    */
-  <T> T remove(String key);
+  <T> @Nullable T remove(String key);
 
   /**
    * @return all the context data as a map
@@ -178,7 +178,7 @@ public interface RoutingContext {
   /**
    * @return the current route this context is being routed through.
    */
-  Route currentRoute();
+  @Nullable Route currentRoute();
 
   /**
    * Return the normalized path for the request.
@@ -198,49 +198,61 @@ public interface RoutingContext {
   String normalizedPath();
 
   /**
+   * @deprecated Use {@link HttpServerRequest#getCookie(String)}
    * Get the cookie with the specified name.
    *
    * @param name  the cookie name
    * @return the cookie
    */
+  @Deprecated
   @Nullable Cookie getCookie(String name);
 
   /**
+   * @deprecated Use {@link HttpServerResponse#addCookie(Cookie)}
    * Add a cookie. This will be sent back to the client in the response.
    *
    * @param cookie  the cookie
    * @return a reference to this, so the API can be used fluently
    */
+  @Deprecated
   @Fluent
   RoutingContext addCookie(io.vertx.core.http.Cookie cookie);
 
   /**
+   * @deprecated Use {@link HttpServerResponse#removeCookie(String)}
    * Expire a cookie, notifying a User Agent to remove it from its cookie jar.
    *
    * @param name  the name of the cookie
    * @return the cookie, if it existed, or null
    */
+  @Deprecated
   default @Nullable Cookie removeCookie(String name) {
     return removeCookie(name, true);
   }
 
   /**
+   * @deprecated Use {@link HttpServerResponse#removeCookie(String, boolean)}
    * Remove a cookie from the cookie set. If invalidate is true then it will expire a cookie, notifying a User Agent to
    * remove it from its cookie jar.
    *
    * @param name  the name of the cookie
    * @return the cookie, if it existed, or null
    */
+  @Deprecated
   @Nullable Cookie removeCookie(String name, boolean invalidate);
 
   /**
+   * @deprecated Use {@link HttpServerRequest#cookieCount()}
    * @return the number of cookies.
    */
+  @Deprecated
   int cookieCount();
 
   /**
+   * @deprecated Use {@link HttpServerRequest#cookieMap()}
    * @return a map of all the cookies.
    */
+  @Deprecated
   Map<String, io.vertx.core.http.Cookie> cookieMap();
 
   /**
