@@ -1057,7 +1057,7 @@ final class RouteState {
       if (requestPath.startsWith(thePath)) {
         // handle the "rest" as path param *
         ctx.pathParams()
-          .put("*", requestPath.substring(thePath.length()));
+          .put("*", URIDecoder.decodeURIComponent(requestPath.substring(thePath.length()), false));
         return true;
       }
       return false;
