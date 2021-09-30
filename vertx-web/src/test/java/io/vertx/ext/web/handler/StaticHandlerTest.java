@@ -443,12 +443,6 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testServeFilesFromFilesystemWithSpaces() throws Exception {
-    stat.setWebRoot("src/test/filesystemwebroot");
-    testRequest(HttpMethod.GET, "/file%20with%20spaces2.html", 200, "OK", "<html><body>File with spaces</body></html>");
-  }
-
-  @Test
   public void testServeFilesFromFilesystemWithSpacesMountOnWildcard() throws Exception {
     stat = StaticHandler.create("src/test/filesystemwebroot");
     router.clear();
@@ -462,6 +456,12 @@ public class StaticHandlerTest extends WebTestBase {
     router.clear();
     router.route("/*").handler(stat);
     testRequest(HttpMethod.GET, "/file+with+spaces2.html", 404, "Not Found");
+  }
+
+  @Test
+  public void testServeFilesFromFilesystemWithSpaces() throws Exception {
+    stat.setWebRoot("src/test/filesystemwebroot");
+    testRequest(HttpMethod.GET, "/file%20with%20spaces2.html", 200, "OK", "<html><body>File with spaces</body></html>");
   }
 
   @Test
