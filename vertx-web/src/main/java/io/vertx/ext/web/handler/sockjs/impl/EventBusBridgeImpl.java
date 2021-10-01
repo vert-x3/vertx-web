@@ -220,6 +220,15 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         }
         Match match = checkMatches(false, address, null);
         if (match.doesMatch) {
+          // the socket is already listening to this address
+          // we don't allow more registrations as doing this operation in a
+          // loop could DDoS the bridge.
+          if (registrations.containsKey(address)) {
+            LOG.warn("Refusing to register as address is already registered");
+            replyError(sock, "address_already_registered");
+            return;
+          }
+
           Handler<Message<Object>> handler = msg -> {
             Match curMatch = checkMatches(false, address, msg.body());
             if (curMatch.doesMatch) {
@@ -275,10 +284,10 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         }
         Match match = checkMatches(false, address, null);
         if (match.doesMatch) {
-          MessageConsumer<?> reg = registrations.remove(address);
-          if (reg != null) {
-            reg.unregister();
+          MessageConsumer<?> registration = registrations.remove(address);
+          if (registration != null) {
             SockInfo info = sockInfos.get(sock);
+            registration.unregister();
             info.handlerCount--;
           }
         } else {
@@ -342,19 +351,19 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (err != null) {
       msg.put("message", err.getMessage());
     }
-     checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_ERROR, msg, sock));
+    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_ERROR, msg, sock));
   }
 
   private void clearSocketState(SockJSSocket sock, Map<String, MessageConsumer<?>> registrations) {
     // On close or exception unregister any handlers that haven't been unregistered
-    registrations.forEach((key, value) -> {
-      value.unregister();
+    for (MessageConsumer<?> registration : registrations.values()) {
+      registration.unregister();
       checkCallHook(() ->
         new BridgeEventImpl(
           BridgeEventType.UNREGISTER,
-          new JsonObject().put("type", "unregister").put("address", value.address()),
+          new JsonObject().put("type", "unregister").put("address", registration.address()),
           sock));
-    });
+    }
     // ensure that no timers remain active
     SockInfo info = sockInfos.remove(sock);
     if (info != null) {
