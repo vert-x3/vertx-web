@@ -52,6 +52,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static io.vertx.core.buffer.Buffer.buffer;
+import static io.vertx.ext.auth.impl.Codec.base16Encode;
 
 /**
  *
@@ -241,13 +242,8 @@ public class SockJSHandlerImpl implements SockJSHandler {
     try {
         MessageDigest md = MessageDigest.getInstance("MD5");
         byte[] bytes = md.digest(str.getBytes(StandardCharsets.UTF_8));
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-          sb.append(Integer.toHexString(b + 127));
-        }
-        return sb.toString();
-    }
-    catch (Exception e) {
+        return base16Encode(bytes);
+    } catch (Exception e) {
         LOG.error("Failed to generate MD5 for iframe, If-None-Match headers will be ignored");
         return null;
     }

@@ -36,7 +36,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
+
+import static io.vertx.ext.auth.impl.Codec.base64UrlEncode;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
@@ -44,8 +45,6 @@ import java.util.Base64;
 public class CSRFHandlerImpl implements CSRFHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(CSRFHandlerImpl.class);
-
-  private static final Base64.Encoder BASE64 = Base64.getMimeEncoder();
 
   private final VertxContextPRNG random;
   private final Mac mac;
@@ -118,17 +117,18 @@ public class CSRFHandlerImpl implements CSRFHandler {
     byte[] salt = new byte[32];
     random.nextBytes(salt);
 
-    String saltPlusToken = BASE64.encodeToString(salt) + "." + System.currentTimeMillis();
-    String signature = BASE64.encodeToString(mac.doFinal(saltPlusToken.getBytes(StandardCharsets.US_ASCII)));
+    String saltPlusToken = base64UrlEncode(salt) + "." + System.currentTimeMillis();
+    String signature = base64UrlEncode(mac.doFinal(saltPlusToken.getBytes(StandardCharsets.US_ASCII)));
 
     final String token = saltPlusToken + "." + signature;
     // a new token was generated add it to the cookie
-    ctx.addCookie(
-      Cookie.cookie(cookieName, token)
-        .setPath(cookiePath)
-        .setHttpOnly(httpOnly)
-        // it's not an option to change the same site policy
-        .setSameSite(CookieSameSite.STRICT));
+    ctx.response()
+      .addCookie(
+        Cookie.cookie(cookieName, token)
+          .setPath(cookiePath)
+          .setHttpOnly(httpOnly)
+          // it's not an option to change the same site policy
+          .setSameSite(CookieSameSite.STRICT));
 
     Session session = ctx.session();
 
@@ -183,7 +183,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     }
   }
 
-  private boolean isValidOrigin(RoutingContext  ctx) {
+  private boolean isValidOrigin(RoutingContext ctx) {
     /* Verifying Same Origin with Standard Headers */
     if (origin != null) {
       //Try to get the source from the "Origin" header
@@ -200,7 +200,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
       //Compare the source against the expected target origin
       if (!origin.sameOrigin(source)) {
-        //One the part do not match so we trace the event and we block the request
+        //One the part do not match, so we trace the event and we block the request
         LOG.trace("Protocol/Host/Port do not fully match");
         return false;
       }
@@ -212,7 +212,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
   private boolean isValidRequest(RoutingContext ctx) {
 
     /* Verifying CSRF token using "Double Submit Cookie" approach */
-    final Cookie cookie = ctx.getCookie(cookieName);
+    final Cookie cookie = ctx.request().getCookie(cookieName);
 
     String header = ctx.request().getHeader(headerName);
     if (header == null) {
@@ -284,9 +284,9 @@ public class CSRFHandlerImpl implements CSRFHandler {
       saltPlusToken = mac.doFinal(saltPlusToken);
     }
 
-    final byte[] signature = BASE64.encode(saltPlusToken);
+    final byte[] signature = base64UrlEncode(saltPlusToken).getBytes(StandardCharsets.US_ASCII);
 
-    if(!MessageDigest.isEqual(signature, tokens[2].getBytes(StandardCharsets.US_ASCII))) {
+    if (!MessageDigest.isEqual(signature, tokens[2].getBytes(StandardCharsets.US_ASCII))) {
       ctx.fail(403, new IllegalArgumentException("Token signature does not match"));
       return false;
     }

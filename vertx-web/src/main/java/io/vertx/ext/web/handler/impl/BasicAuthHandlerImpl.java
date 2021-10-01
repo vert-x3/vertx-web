@@ -27,7 +27,8 @@ import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.HttpException;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+
+import static io.vertx.ext.auth.impl.Codec.base64Decode;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -53,7 +54,7 @@ public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler<Authenticatio
 
       try {
         // decode the payload
-        String decoded = new String(Base64.getDecoder().decode(parseAuthorization.result()), StandardCharsets.UTF_8);
+        String decoded = new String(base64Decode(parseAuthorization.result()), StandardCharsets.UTF_8);
 
         int colonIdx = decoded.indexOf(":");
         if (colonIdx != -1) {

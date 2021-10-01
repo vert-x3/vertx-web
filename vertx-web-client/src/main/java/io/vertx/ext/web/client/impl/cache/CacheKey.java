@@ -21,6 +21,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Objects;
 
+
+import static io.vertx.ext.auth.impl.Codec.base16Encode;
+
 /**
  * A key for a {@link CacheStore} based on a {@link HttpRequest}.
  *
@@ -42,7 +45,7 @@ public class CacheKey extends CacheVariationsKey {
       digest.update(super.toString().getBytes(StandardCharsets.UTF_8));
       digest.update(variations.getBytes(StandardCharsets.UTF_8));
       byte[] hashed = digest.digest();
-      return bytesToHex(hashed);
+      return base16Encode(hashed);
     } catch (Exception e) {
       return super.toString() + "|" + variations;
     }
@@ -67,19 +70,5 @@ public class CacheKey extends CacheVariationsKey {
   @Override
   public int hashCode() {
     return Objects.hash(host, port, path, queryString, variations);
-  }
-
-  private static String bytesToHex(byte[] hash) {
-    StringBuilder hexString = new StringBuilder(2 * hash.length);
-
-    for (byte b : hash) {
-      String hex = Integer.toHexString(0xff & b);
-      if(hex.length() == 1) {
-        hexString.append('0');
-      }
-      hexString.append(hex);
-    }
-
-    return hexString.toString();
   }
 }

@@ -242,7 +242,7 @@ public class SessionHandlerImpl implements SessionHandler {
     } else {
       if (!cookieless) {
         // invalidate the cookie as the session has been destroyed
-        final Cookie expiredCookie = context.removeCookie(sessionCookieName);
+        final Cookie expiredCookie = context.response().removeCookie(sessionCookieName);
         if (expiredCookie != null) {
           setCookieProperties(expiredCookie, true);
         }
