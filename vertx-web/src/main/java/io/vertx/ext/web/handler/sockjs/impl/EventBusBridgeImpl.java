@@ -93,7 +93,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     this.bridgeEventHandler = bridgeEventHandler;
   }
 
-  private void handleSocketData(SockJSSocket sock, Buffer data, Map<String, List<MessageConsumer<?>>> registrations) {
+  private void handleSocketData(SockJSSocket sock, Buffer data, Map<String, MessageConsumer<?>> registrations) {
     JsonObject msg;
 
     try {
@@ -201,7 +201,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
   }
 
-  private void internalHandleRegister(SockJSSocket sock, JsonObject rawMsg, Map<String, List<MessageConsumer<?>>> registrations) {
+  private void internalHandleRegister(SockJSSocket sock, JsonObject rawMsg, Map<String, MessageConsumer<?>> registrations) {
     final SockInfo info = sockInfos.get(sock);
     if (!checkMaxHandlers(sock, info)) {
       return;
@@ -220,6 +220,15 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         }
         Match match = checkMatches(false, address, null);
         if (match.doesMatch) {
+          // the socket is already listening to this address
+          // we don't allow more registrations as doing this operation in a
+          // loop could DDoS the bridge.
+          if (registrations.containsKey(address)) {
+            LOG.warn("Refusing to register as address is already registered");
+            replyError(sock, "address_already_registered");
+            return;
+          }
+
           Handler<Message<Object>> handler = msg -> {
             Match curMatch = checkMatches(false, address, msg.body());
             if (curMatch.doesMatch) {
@@ -251,9 +260,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
             }
           };
           MessageConsumer<?> reg = eb.consumer(address).handler(handler);
-          // this socket already contains a registration for the address
-          List<MessageConsumer<?>> consumers = registrations.computeIfAbsent(address, k -> new ArrayList<>());
-          consumers.add(reg);
+          registrations.put(address, reg);
           info.handlerCount++;
           // Notify registration completed
           checkCallHook(() -> new BridgeEventImpl(BridgeEventType.REGISTERED, rawMsg, sock));
@@ -267,7 +274,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }, () -> replyError(sock, "rejected"));
   }
 
-  private void internalHandleUnregister(SockJSSocket sock, JsonObject rawMsg, Map<String, List<MessageConsumer<?>>> registrations) {
+  private void internalHandleUnregister(SockJSSocket sock, JsonObject rawMsg, Map<String, MessageConsumer<?>> registrations) {
     checkCallHook(() -> new BridgeEventImpl(BridgeEventType.UNREGISTER, rawMsg, sock),
       () -> {
         String address = rawMsg.getString("address");
@@ -277,13 +284,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         }
         Match match = checkMatches(false, address, null);
         if (match.doesMatch) {
-          List<MessageConsumer<?>> consumers = registrations.remove(address);
-          if (consumers != null) {
+          MessageConsumer<?> registration = registrations.remove(address);
+          if (registration != null) {
             SockInfo info = sockInfos.get(sock);
-            for (MessageConsumer<?> consumer : consumers) {
-              consumer.unregister();
-              info.handlerCount--;
-            }
+            registration.unregister();
+            info.handlerCount--;
           }
         } else {
           if (LOG.isDebugEnabled()) {
@@ -310,7 +315,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   public void handle(final SockJSSocket sock) {
     checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CREATED, null, sock),
       () -> {
-        Map<String, List<MessageConsumer<?>>> registrations = new HashMap<>();
+        Map<String, MessageConsumer<?>> registrations = new HashMap<>();
 
         sock
           .handler(data -> handleSocketData(sock, data, registrations))
@@ -334,32 +339,30 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }, sock::close);
   }
 
-  private void handleSocketClosed(SockJSSocket sock, Map<String, List<MessageConsumer<?>>> registrations) {
+  private void handleSocketClosed(SockJSSocket sock, Map<String, MessageConsumer<?>> registrations) {
     clearSocketState(sock, registrations);
     checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CLOSED, null, sock));
   }
 
-  private void handleSocketException(SockJSSocket sock, Throwable err, Map<String, List<MessageConsumer<?>>> registrations) {
+  private void handleSocketException(SockJSSocket sock, Throwable err, Map<String, MessageConsumer<?>> registrations) {
     LOG.error("SockJSSocket exception", err);
     clearSocketState(sock, registrations);
     final JsonObject msg = new JsonObject().put("type", "err").put("failureType", "socketException");
     if (err != null) {
       msg.put("message", err.getMessage());
     }
-     checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_ERROR, msg, sock));
+    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_ERROR, msg, sock));
   }
 
-  private void clearSocketState(SockJSSocket sock, Map<String, List<MessageConsumer<?>>> registrations) {
+  private void clearSocketState(SockJSSocket sock, Map<String, MessageConsumer<?>> registrations) {
     // On close or exception unregister any handlers that haven't been unregistered
-    for (List<MessageConsumer<?>> consumers : registrations.values()) {
-      for (MessageConsumer<?> consumer : consumers) {
-        consumer.unregister();
-        checkCallHook(() ->
-          new BridgeEventImpl(
-            BridgeEventType.UNREGISTER,
-            new JsonObject().put("type", "unregister").put("address", consumer.address()),
-            sock));
-      }
+    for (MessageConsumer<?> registration : registrations.values()) {
+      registration.unregister();
+      checkCallHook(() ->
+        new BridgeEventImpl(
+          BridgeEventType.UNREGISTER,
+          new JsonObject().put("type", "unregister").put("address", registration.address()),
+          sock));
     }
     // ensure that no timers remain active
     SockInfo info = sockInfos.remove(sock);

@@ -1024,7 +1024,7 @@ public class EventbusBridgeTest extends WebTestBase {
     client.connect(websocketURI).onComplete(onSuccess(v -> {
 
       for (int i = 0; i < maxHandlers + 1; i++) {
-        client.register(addr);
+        client.register(addr + i);
       }
 
       AtomicInteger cnt = new AtomicInteger();
@@ -1056,7 +1056,9 @@ public class EventbusBridgeTest extends WebTestBase {
         }
       });
 
-      client.publish(addr, "foobar");
+      for (int i = 0; i < maxHandlers + 1; i++) {
+        client.publish(addr + i, "foobar");
+      }
     }));
 
     awaitLatch(latch);
