@@ -23,6 +23,7 @@ import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.*;
+import io.vertx.ext.web.impl.Origin;
 import org.dataloader.DataLoaderRegistry;
 
 import java.util.Locale;
@@ -42,6 +43,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   private final GraphQL graphQL;
   private final long keepAlive;
+  private final Origin origin;
 
   private Function<ApolloWSMessage, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
   private Function<ApolloWSMessage, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
@@ -57,6 +59,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
     Objects.requireNonNull(options, "options");
     this.graphQL = graphQL;
     this.keepAlive = options.getKeepAlive();
+    this.origin = options.getOrigin() != null ? Origin.parse(options.getOrigin()) : null;
   }
 
   GraphQL getGraphQL() {
@@ -148,16 +151,25 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   }
 
   @Override
-  public void handle(RoutingContext routingContext) {
-    MultiMap headers = routingContext.request().headers();
+  public void handle(RoutingContext ctx) {
+    MultiMap headers = ctx.request().headers();
     if (headers.contains(CONNECTION) && headers.contains(UPGRADE, WEBSOCKET, true)) {
-      ContextInternal context = (ContextInternal) routingContext.vertx().getOrCreateContext();
-      routingContext.request().toWebSocket().onSuccess(ws -> {
+      if (origin != null) {
+        // validate the origin header to prevent Cross-Site WebSocket Hijacking (CSWSH)
+        String header = ctx.request().headers().get(ORIGIN);
+        if (header != null && !origin.sameOrigin(header)) {
+          // the client origin doesn't match the bridge origin
+          ctx.fail(403);
+          return;
+        }
+      }
+      ContextInternal context = (ContextInternal) ctx.vertx().getOrCreateContext();
+      ctx.request().toWebSocket().onSuccess(ws -> {
         ApolloWSConnectionHandler connectionHandler = new ApolloWSConnectionHandler(this, context, ws);
         connectionHandler.handleConnection();
       });
     } else {
-      routingContext.next();
+      ctx.next();
     }
   }
 }

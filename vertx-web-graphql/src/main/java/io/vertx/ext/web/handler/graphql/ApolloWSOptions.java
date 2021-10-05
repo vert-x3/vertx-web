@@ -34,6 +34,8 @@ public class ApolloWSOptions {
 
   private long keepAlive = DEFAULT_KEEP_ALIVE;
 
+  private String origin;
+
   /**
    * Default constructor.
    */
@@ -47,6 +49,7 @@ public class ApolloWSOptions {
    */
   public ApolloWSOptions(ApolloWSOptions other) {
     keepAlive = other.keepAlive;
+    origin = other.origin;
   }
 
   /**
@@ -84,6 +87,26 @@ public class ApolloWSOptions {
    */
   public ApolloWSOptions setKeepAlive(long keepAlive) {
     this.keepAlive = keepAlive;
+    return this;
+  }
+
+  /**
+   * @return the {@code Origin} for this handler. The Origin will be used to prevent Cross-Site WebSocket Hijacking
+   * attacks.
+   */
+  public String getOrigin() {
+    return origin;
+  }
+
+  /**
+   * Set the {@code Origin} for this handler, by default it will be {@code null}.
+   *
+   * @param origin web origin for this handler or {@code null}
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  public ApolloWSOptions setOrigin(String origin) {
+    this.origin = origin;
     return this;
   }
 }

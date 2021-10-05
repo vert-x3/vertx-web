@@ -42,6 +42,9 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
+import io.vertx.ext.web.impl.Origin;
+
+import static io.vertx.core.http.HttpHeaders.ORIGIN;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -194,29 +197,39 @@ class RawWebSocketTransport {
 
   RawWebSocketTransport(Vertx vertx, Router router, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
 
+    final Origin origin = options.getOrigin() != null ? Origin.parse(options.getOrigin()) : null;
     String wsRE = "/websocket";
 
-    router.get(wsRE).handler(rc -> {
+    router.get(wsRE).handler(ctx -> {
+      if (origin != null) {
+        // validate the origin header to prevent Cross-Site WebSocket Hijacking (CSWSH)
+        String header = ctx.request().headers().get(ORIGIN);
+        if (header != null && !origin.sameOrigin(header)) {
+          // the client origin doesn't match the bridge origin
+          ctx.fail(403);
+          return;
+        }
+      }
       // we're about to upgrade the connection, which means an asynchronous
       // operation. We have to pause the request otherwise we will loose the
       // body of the request once the upgrade completes
-      final boolean parseEnded = rc.request().isEnded();
+      final boolean parseEnded = ctx.request().isEnded();
       if (!parseEnded) {
-        rc.request().pause();
+        ctx.request().pause();
       }
       // upgrade
-      rc.request().toWebSocket(toWebSocket -> {
+      ctx.request().toWebSocket(toWebSocket -> {
         if (toWebSocket.succeeded()) {
           // resume the parsing
           if (!parseEnded) {
-            rc.request().resume();
+            ctx.request().resume();
           }
           // handle the sockjs session as usual
-          SockJSSocket sock = new RawWSSockJSSocket(vertx, rc, options, toWebSocket.result());
+          SockJSSocket sock = new RawWSSockJSSocket(vertx, ctx, options, toWebSocket.result());
           sockHandler.handle(sock);
         } else {
           // the upgrade failed
-          rc.fail(toWebSocket.cause());
+          ctx.fail(toWebSocket.cause());
         }
       });
     });
