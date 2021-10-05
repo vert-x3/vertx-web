@@ -2062,6 +2062,12 @@ sock.close();
 
 The handler can be configured with various options using {@link io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions}.
 
+NOTE: By default, the configuration does not include a default `Origin` property. To prevent Cross-Site WebSocket
+Hijacking attacks from web browsers, it is recommended to set this property to the internet facing origin of the
+application. This will enforce a check that web sockets origin is from this application. This check is important because
+WebSockets are not restrained by the same-origin policy, an attacker can easily initiate a WebSocket request from a
+malicious webpage targeting the `ws://` or `wss://` endpoint URL of the sockJS bridge.
+
 === Writing to a SockJS socket over the event bus
 
 When a {@link io.vertx.ext.web.handler.sockjs.SockJSSocket} is created, it can register an event handler with the event bus.
