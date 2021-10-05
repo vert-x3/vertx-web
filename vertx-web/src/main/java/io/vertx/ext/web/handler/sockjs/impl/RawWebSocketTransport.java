@@ -43,8 +43,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.impl.Origin;
-
-import static io.vertx.core.http.HttpHeaders.ORIGIN;
+import io.vertx.ext.web.impl.Utils;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -201,14 +200,9 @@ class RawWebSocketTransport {
     String wsRE = "/websocket";
 
     router.get(wsRE).handler(ctx -> {
-      if (origin != null) {
-        // validate the origin header to prevent Cross-Site WebSocket Hijacking (CSWSH)
-        String header = ctx.request().headers().get(ORIGIN);
-        if (header != null && !origin.sameOrigin(header)) {
-          // the client origin doesn't match the bridge origin
-          ctx.fail(403);
-          return;
-        }
+      if (!Origin.check(origin, ctx)) {
+        ctx.fail(403, new IllegalStateException("Invalid Origin"));
+        return;
       }
       // we're about to upgrade the connection, which means an asynchronous
       // operation. We have to pause the request otherwise we will loose the

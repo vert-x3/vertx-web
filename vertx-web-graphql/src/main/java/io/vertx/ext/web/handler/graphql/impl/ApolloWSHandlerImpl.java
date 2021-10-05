@@ -154,14 +154,9 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   public void handle(RoutingContext ctx) {
     MultiMap headers = ctx.request().headers();
     if (headers.contains(CONNECTION) && headers.contains(UPGRADE, WEBSOCKET, true)) {
-      if (origin != null) {
-        // validate the origin header to prevent Cross-Site WebSocket Hijacking (CSWSH)
-        String header = ctx.request().headers().get(ORIGIN);
-        if (header != null && !origin.sameOrigin(header)) {
-          // the client origin doesn't match the bridge origin
-          ctx.fail(403);
-          return;
-        }
+      if (!Origin.check(origin, ctx)) {
+        ctx.fail(403, new IllegalStateException("Invalid Origin"));
+        return;
       }
       ContextInternal context = (ContextInternal) ctx.vertx().getOrCreateContext();
       ctx.request().toWebSocket().onSuccess(ws -> {
