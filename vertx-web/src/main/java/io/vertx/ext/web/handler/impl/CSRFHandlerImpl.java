@@ -18,7 +18,6 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -183,32 +182,6 @@ public class CSRFHandlerImpl implements CSRFHandler {
     }
   }
 
-  private boolean isValidOrigin(RoutingContext ctx) {
-    /* Verifying Same Origin with Standard Headers */
-    if (origin != null) {
-      //Try to get the source from the "Origin" header
-      String source = ctx.request().getHeader(HttpHeaders.ORIGIN);
-      if (isBlank(source)) {
-        //If empty then fallback on "Referer" header
-        source = ctx.request().getHeader(HttpHeaders.REFERER);
-        //If this one is empty too then we trace the event and we block the request (recommendation of the article)...
-        if (isBlank(source)) {
-          LOG.trace("ORIGIN and REFERER request headers are both absent/empty");
-          return false;
-        }
-      }
-
-      //Compare the source against the expected target origin
-      if (!origin.sameOrigin(source)) {
-        //One the part do not match, so we trace the event and we block the request
-        LOG.trace("Protocol/Host/Port do not fully match");
-        return false;
-      }
-    }
-    // no configured origin or origin is valid
-    return true;
-  }
-
   private boolean isValidRequest(RoutingContext ctx) {
 
     /* Verifying CSRF token using "Double Submit Cookie" approach */
@@ -327,7 +300,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
     // if we're being strict with the origin
     // ensure that they are always valid
-    if (!isValidOrigin(ctx)) {
+    if (!Origin.check(origin, ctx)) {
       ctx.fail(403, new IllegalStateException("Invalid Origin"));
       return;
     }

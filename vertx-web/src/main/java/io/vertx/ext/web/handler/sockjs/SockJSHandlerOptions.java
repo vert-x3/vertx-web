@@ -74,6 +74,7 @@ public class SockJSHandlerOptions {
   private final Set<String> disabledTransports = new HashSet<>();
   private boolean registerWriteHandler;
   private boolean localWriteHandler;
+  private String origin;
 
   /**
    * Copy constructor.
@@ -89,6 +90,7 @@ public class SockJSHandlerOptions {
     disabledTransports.addAll(other.disabledTransports);
     registerWriteHandler = other.registerWriteHandler;
     localWriteHandler = other.localWriteHandler;
+    origin = other.origin;
   }
 
   /**
@@ -128,6 +130,7 @@ public class SockJSHandlerOptions {
     }
     registerWriteHandler = json.getBoolean("registerWriteHandler", DEFAULT_REGISTER_WRITE_HANDLER);
     localWriteHandler = json.getBoolean("localWriteHandler", DEFAULT_LOCAL_WRITE_HANDLER);
+    origin = json.getString("origin");
   }
 
   /**
@@ -307,6 +310,26 @@ public class SockJSHandlerOptions {
    */
   public SockJSHandlerOptions setLocalWriteHandler(boolean localWriteHandler) {
     this.localWriteHandler = localWriteHandler;
+    return this;
+  }
+
+  /**
+   * @return the origin associated with this bridge
+   */
+  public String getOrigin() {
+    return origin;
+  }
+
+  /**
+   * Set the origin to be verified before a websocket upgrade happens.
+   * <p>
+   * Defaults to {@code null}.
+   *
+   * @param origin web origin
+   * @return a reference to this, so the API can be used fluently
+   */
+  public SockJSHandlerOptions setOrigin(String origin) {
+    this.origin = origin;
     return this;
   }
 }

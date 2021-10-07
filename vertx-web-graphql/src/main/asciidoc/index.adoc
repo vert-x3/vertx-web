@@ -94,6 +94,12 @@ Vert.x Web GraphQL is compatible with the https://github.com/enisdenjo/graphql-w
 
 The websocket transport is specially useful when you need to add subscriptions to your GraphQL schema, but you can also use it for queries and mutations.
 
+NOTE: By default, the configuration does not include a default `Origin` property. To prevent Cross-Site WebSocket
+Hijacking attacks from web browsers, it is recommended to set this property to the internet facing origin of the
+application. This will enforce a check that web sockets origin is from this application. This check is important because
+WebSockets are not restrained by the same-origin policy, an attacker can easily initiate a WebSocket request from a
+malicious webpage targeting the `ws://` or `wss://` endpoint URL of the GraphQL WS handler.
+
 [source,$lang]
 ----
 {@link examples.GraphQLExamples#addGraphQLWSHandlerToRouter}

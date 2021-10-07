@@ -46,6 +46,7 @@ import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
+import io.vertx.ext.web.impl.Origin;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -60,15 +61,20 @@ class WebSocketTransport extends BaseTransport {
                      SockJSHandlerOptions options,
                      Handler<SockJSSocket> sockHandler) {
     super(vertx, sessions, options);
+    final Origin origin = options.getOrigin() != null ? Origin.parse(options.getOrigin()) : null;
     String wsRE = COMMON_PATH_ELEMENT_RE + "websocket";
 
-    router.getWithRegex(wsRE).handler(rc -> {
-      HttpServerRequest req = rc.request();
+    router.getWithRegex(wsRE).handler(ctx -> {
+      HttpServerRequest req = ctx.request();
       String connectionHeader = req.headers().get(HttpHeaders.CONNECTION);
       if (connectionHeader == null || !connectionHeader.toLowerCase().contains("upgrade")) {
-        rc.response().setStatusCode(400);
-        rc.response().end("Can \"Upgrade\" only to \"WebSocket\".");
+        ctx.response().setStatusCode(400);
+        ctx.response().end("Can \"Upgrade\" only to \"WebSocket\".");
       } else {
+        if (!Origin.check(origin, ctx)) {
+          ctx.fail(403, new IllegalStateException("Invalid Origin"));
+          return;
+        }
         // we're about to upgrade the connection, which means an asynchronous
         // operation. We have to pause the request otherwise we will loose the
         // body of the request once the upgrade completes
@@ -87,11 +93,11 @@ class WebSocketTransport extends BaseTransport {
               req.resume();
             }
             // handle the sockjs session as usual
-            SockJSSession session = new SockJSSession(vertx, sessions, rc, options, sockHandler);
+            SockJSSession session = new SockJSSession(vertx, sessions, ctx, options, sockHandler);
             session.register(req, new WebSocketListener(toWebSocket.result(), session));
           } else {
             // the upgrade failed
-            rc.fail(toWebSocket.cause());
+            ctx.fail(toWebSocket.cause());
           }
         });
       }
