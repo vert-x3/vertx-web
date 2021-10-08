@@ -44,11 +44,13 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
 
   private final Authorization authorization;
   private final Collection<AuthorizationProvider> authorizationProviders;
+  private final Collection<String> authorizationProviderIds;
   private BiConsumer<RoutingContext, AuthorizationContext> variableHandler;
 
   public AuthorizationHandlerImpl(Authorization authorization) {
     this.authorization = Objects.requireNonNull(authorization);
     this.authorizationProviders = new ArrayList<>();
+    this.authorizationProviderIds = new ArrayList<>();
   }
 
   @Override
@@ -105,7 +107,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
 
     final User user = ctx.user();
 
-    if (user == null || !providers.hasNext()) {
+    if (user == null || !providers.hasNext() || allAuthorizationsFetched(user)) {
       // resume as the error handler may allow this request to become valid again
       resume(ctx.request(), parseEnded);
       ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
@@ -135,8 +137,8 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
   @Override
   public AuthorizationHandler addAuthorizationProvider(AuthorizationProvider authorizationProvider) {
     Objects.requireNonNull(authorizationProvider);
-
     this.authorizationProviders.add(authorizationProvider);
+    this.authorizationProviderIds.add(authorizationProvider.getId());
     return this;
   }
 
@@ -144,5 +146,18 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     if (!parseEnded && !request.headers().contains(HttpHeaders.UPGRADE, HttpHeaders.WEBSOCKET, true)) {
       request.resume();
     }
+  }
+
+  /**
+   * Returns <code>true</code> when the authorizations of all available
+   * providers have been loaded for the given user which may have happened in a
+   * previous request of the current user session.
+   *
+   * @param user
+   * @return <code>true</code> when the authorizations of all available
+   *         providers have been loaded for the user
+   */
+  private boolean allAuthorizationsFetched(final User user) {
+      return user.authorizations().getProviderIds().containsAll(authorizationProviderIds);
   }
 }
