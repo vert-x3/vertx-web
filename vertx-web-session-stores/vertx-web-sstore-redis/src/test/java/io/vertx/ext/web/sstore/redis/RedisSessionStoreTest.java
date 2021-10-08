@@ -21,7 +21,7 @@ import org.testcontainers.containers.GenericContainer;
 public class RedisSessionStoreTest {
 
   @ClassRule
-  public static GenericContainer<?> container = new GenericContainer<>("redis:5.0")
+  public static GenericContainer<?> container = new GenericContainer<>("redis:6.2")
     .withExposedPorts(6379);
 
   @Rule
