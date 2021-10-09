@@ -44,13 +44,11 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
 
   private final Authorization authorization;
   private final Collection<AuthorizationProvider> authorizationProviders;
-  private final Collection<String> authorizationProviderIds;
   private BiConsumer<RoutingContext, AuthorizationContext> variableHandler;
 
   public AuthorizationHandlerImpl(Authorization authorization) {
     this.authorization = Objects.requireNonNull(authorization);
     this.authorizationProviders = new ArrayList<>();
-    this.authorizationProviderIds = new ArrayList<>();
   }
 
   @Override
@@ -107,7 +105,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
 
     final User user = ctx.user();
 
-    if (user == null || !providers.hasNext() || allAuthorizationsFetched(user)) {
+    if (user == null || !providers.hasNext()) {
       // resume as the error handler may allow this request to become valid again
       resume(ctx.request(), parseEnded);
       ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
@@ -117,13 +115,13 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     // there was no match, in this case we do the following:
     // 1) contact the next provider we haven't contacted yet
     // 2) if there is a match, get out right away otherwise repeat 1)
-    while (providers.hasNext()) {
+    do {
       AuthorizationProvider provider = providers.next();
       // we haven't fetched authorization from this provider yet
       if (!user.authorizations().getProviderIds().contains(provider.getId())) {
         provider.getAuthorizations(ctx.user(), authorizationResult -> {
           if (authorizationResult.failed()) {
-            LOG.warn("An error occured getting authorization - providerId: " + provider.getId(), authorizationResult.cause());
+            LOG.warn("An error occurred getting authorization - providerId: " + provider.getId(), authorizationResult.cause());
             // note that we don't 'record' the fact that we tried to fetch the authorization provider. therefore, it will be re-fetched later-on
           }
           checkOrFetchAuthorizations(ctx, parseEnded, authorizationContext, providers);
@@ -131,14 +129,17 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
         // get out right now as the callback will decide what to do next
         return;
       }
-    }
+    } while (providers.hasNext());
+    // reached the end of the iterator
+    // resume as the error handler may allow this request to become valid again, yet mark the request as forbidden
+    resume(ctx.request(), parseEnded);
+    ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
   }
 
   @Override
   public AuthorizationHandler addAuthorizationProvider(AuthorizationProvider authorizationProvider) {
     Objects.requireNonNull(authorizationProvider);
     this.authorizationProviders.add(authorizationProvider);
-    this.authorizationProviderIds.add(authorizationProvider.getId());
     return this;
   }
 
@@ -146,18 +147,5 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     if (!parseEnded && !request.headers().contains(HttpHeaders.UPGRADE, HttpHeaders.WEBSOCKET, true)) {
       request.resume();
     }
-  }
-
-  /**
-   * Returns <code>true</code> when the authorizations of all available
-   * providers have been loaded for the given user which may have happened in a
-   * previous request of the current user session.
-   *
-   * @param user
-   * @return <code>true</code> when the authorizations of all available
-   *         providers have been loaded for the user
-   */
-  private boolean allAuthorizationsFetched(final User user) {
-      return user.authorizations().getProviderIds().containsAll(authorizationProviderIds);
   }
 }
