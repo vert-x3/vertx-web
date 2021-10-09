@@ -115,13 +115,13 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     // there was no match, in this case we do the following:
     // 1) contact the next provider we haven't contacted yet
     // 2) if there is a match, get out right away otherwise repeat 1)
-    while (providers.hasNext()) {
+    do {
       AuthorizationProvider provider = providers.next();
       // we haven't fetched authorization from this provider yet
       if (!user.authorizations().getProviderIds().contains(provider.getId())) {
         provider.getAuthorizations(ctx.user(), authorizationResult -> {
           if (authorizationResult.failed()) {
-            LOG.warn("An error occured getting authorization - providerId: " + provider.getId(), authorizationResult.cause());
+            LOG.warn("An error occurred getting authorization - providerId: " + provider.getId(), authorizationResult.cause());
             // note that we don't 'record' the fact that we tried to fetch the authorization provider. therefore, it will be re-fetched later-on
           }
           checkOrFetchAuthorizations(ctx, parseEnded, authorizationContext, providers);
@@ -129,13 +129,16 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
         // get out right now as the callback will decide what to do next
         return;
       }
-    }
+    } while (providers.hasNext());
+    // reached the end of the iterator
+    // resume as the error handler may allow this request to become valid again, yet mark the request as forbidden
+    resume(ctx.request(), parseEnded);
+    ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
   }
 
   @Override
   public AuthorizationHandler addAuthorizationProvider(AuthorizationProvider authorizationProvider) {
     Objects.requireNonNull(authorizationProvider);
-
     this.authorizationProviders.add(authorizationProvider);
     return this;
   }
