@@ -2,6 +2,7 @@ package io.vertx.ext.web.openapi;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.handler.APIKeyHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
@@ -78,7 +79,7 @@ public class RouterBuilderSecurityHandlerTest extends BaseRouterBuilderTest {
       .compose(routerBuilder ->
         routerBuilder
           .securityHandler("oauth")
-          .bind(config -> OAuth2AuthHandler.create(vertx, null))
+          .bind(config -> Future.succeededFuture(OAuth2AuthHandler.create(vertx, null)))
       )
       .onSuccess(routerBuilder -> {
         testContext.verify(() -> assertThat(routerBuilder).isNotNull());
