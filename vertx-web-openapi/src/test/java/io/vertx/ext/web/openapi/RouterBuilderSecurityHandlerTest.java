@@ -1,11 +1,15 @@
 package io.vertx.ext.web.openapi;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.handler.APIKeyHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -67,5 +71,20 @@ public class RouterBuilderSecurityHandlerTest extends BaseRouterBuilderTest {
           testContext.completeNow();
         }
       });
+  }
+
+  @Test
+  public void asyncBindHandler(Vertx vertx, VertxTestContext testContext) {
+    RouterBuilder.create(vertx, SECURITY_TESTS)
+      .compose(routerBuilder ->
+        routerBuilder
+          .securityHandler("oauth")
+          .bind(config -> Future.succeededFuture(OAuth2AuthHandler.create(vertx, null)))
+      )
+      .onSuccess(routerBuilder -> {
+        testContext.verify(() -> assertThat(routerBuilder).isNotNull());
+        testContext.completeNow();
+      })
+      .onFailure(testContext::failNow);
   }
 }
