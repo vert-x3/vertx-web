@@ -2055,4 +2055,28 @@ public class WebClientTest extends WebClientTestBase {
       assertThat(e.getCause(), instanceOf(MalformedURLException.class));
     }
   }
+
+  @Test
+  public void testQueryParamSpecialChars() throws Exception {
+    server.requestHandler(req -> {
+      assertEquals("c%3Ad=e", req.query());
+      req.response().end();
+    });
+    startServer();
+    HttpRequest<Buffer> req = webClient.get("/test").addQueryParam("c:d", "e");
+    req.send(onSuccess(resp -> testComplete()));
+    await();
+  }
+
+  @Test
+  public void testQueryParamSpecialCharsDirect() throws Exception {
+    server.requestHandler(req -> {
+      assertEquals("c:d=e", req.query());
+      req.response().end();
+    });
+    startServer();
+    HttpRequest<Buffer> req = webClient.get("/test/?c:d=e");
+    req.send(onSuccess(resp -> testComplete()));
+    await();
+  }
 }

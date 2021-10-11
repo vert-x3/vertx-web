@@ -2976,4 +2976,26 @@ public class RouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/q/swagger/", 200, "OK");
     testRequest(HttpMethod.GET, "/q/swagger/index.html", 200, "OK");
   }
+
+  @Test
+  public void testSpecialParams() throws Exception {
+    router.route()
+      .handler(ctx -> {
+        System.out.println(ctx.queryParams());
+        ctx.end();
+      });
+
+    testRequest(HttpMethod.GET, "/?a=b&c:d=e", 200, "OK");
+  }
+
+  @Test
+  public void testSpecialParams2() throws Exception {
+    router.route()
+      .handler(ctx -> {
+        System.out.println(ctx.queryParams());
+        ctx.end();
+      });
+
+    testRequest(HttpMethod.GET, "/?a=a&A=b", 200, "OK");
+  }
 }

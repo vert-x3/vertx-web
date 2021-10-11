@@ -97,7 +97,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.timeout = other.timeout;
     this.uri = other.uri;
     this.headers = other.headers != null ? HttpHeaders.headers().addAll(other.headers) : HttpHeaders.headers();
-    this.params = other.params != null ? HttpHeaders.headers().addAll(other.params) : null;
+    this.params = other.params != null ? MultiMap.caseInsensitiveMultiMap().addAll(other.params) : null;
     this.codec = other.codec;
     this.followRedirects = other.followRedirects;
     this.ssl = other.ssl;
@@ -252,7 +252,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public MultiMap queryParams() {
     if (params == null) {
-      params = HttpHeaders.headers();
+      params = MultiMap.caseInsensitiveMultiMap();
     }
     if (params.isEmpty()) {
       int idx = uri.indexOf('?');
