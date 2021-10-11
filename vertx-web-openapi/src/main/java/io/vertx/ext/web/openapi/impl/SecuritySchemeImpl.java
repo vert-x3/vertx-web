@@ -40,7 +40,7 @@ public class SecuritySchemeImpl implements SecurityScheme {
       if (securitySchemes.containsKey(securitySchemeId)) {
         return factory.apply(securitySchemes.getJsonObject(securitySchemeId))
           .onSuccess(handler -> routerBuilder.securityHandler(securitySchemeId, handler))
-          .mapEmpty();
+          .map(routerBuilder);
       }
     }
     return
