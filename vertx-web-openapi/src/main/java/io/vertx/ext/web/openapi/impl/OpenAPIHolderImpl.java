@@ -360,9 +360,9 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
       if (ref.toString().startsWith(initialScopeDirectory))
         return ref;
       else {
-        URI fromClasspath = getResourceAbsoluteURI(vertx, ref);
-        if (fromClasspath != null) {
-          return fromClasspath;
+        URI uri = getResourceAbsoluteURI(vertx, ref);
+        if (uri != null) {
+          return uri;
         }
         return URIUtils.resolvePath(scope, ref.getPath());
       }

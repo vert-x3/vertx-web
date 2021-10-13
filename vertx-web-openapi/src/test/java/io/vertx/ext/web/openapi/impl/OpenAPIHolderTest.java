@@ -374,7 +374,7 @@ public class OpenAPIHolderTest {
 
             MyAssertions.assertThat(container)
               .extracting("paths", "/simple", "post", "requestBody", "content", "multipart/form-data", "schema", "$ref")
-              .isEqualTo(resolveAbsoluteURIFromClasspath(
+              .isEqualTo(resolveAbsoluteURI(
                 vertx,
                 "yaml/valid/inner_refs.yaml#/components/schemas/Simple").toString())
               .satisfies(ref ->
@@ -627,7 +627,7 @@ public class OpenAPIHolderTest {
         .compose(v -> loader.loadOpenAPI("specs/schemas_test_spec.yaml"))
     ).onComplete(l -> {
       testContext.verify(() -> {
-        JsonPointer schemaPointer = JsonPointer.fromURI(resolveAbsoluteURIFromClasspath(
+        JsonPointer schemaPointer = JsonPointer.fromURI(resolveAbsoluteURI(
             vertx,
             "specs/schemas_test_spec.yaml"))
           .append(Arrays.asList("paths", "/test8", "post", "requestBody", "content", "application/json", "schema"));
@@ -733,7 +733,7 @@ public class OpenAPIHolderTest {
     );
   }
 
-  private URI resolveAbsoluteURIFromClasspath(Vertx vertx, String relative) {
+  private URI resolveAbsoluteURI(Vertx vertx, String relative) {
     URI relativeURI = URI.create(relative);
     String fragment = relativeURI.getFragment();
     return URIUtils.replaceFragment(
