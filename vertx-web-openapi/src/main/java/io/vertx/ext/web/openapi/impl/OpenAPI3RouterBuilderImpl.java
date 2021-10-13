@@ -67,7 +67,7 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
     this.options = new RouterBuilderOptions();
     this.bodyHandler = BodyHandler.create();
     this.globalHandlers = new ArrayList<>();
-    this.schemaRouter = SchemaRouter.create(client, vertx.fileSystem(), options.toSchemaRouterOptions());
+    this.schemaRouter = SchemaRouter.create(vertx, client, vertx.fileSystem(), options.toSchemaRouterOptions());
     this.schemaParser = OpenAPI3SchemaParser.create(schemaRouter);
     // Noop binary format validator to fix bad multipart form
     this.schemaParser.withStringFormatValidator("binary", v -> true);

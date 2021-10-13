@@ -374,9 +374,9 @@ public class OpenAPIHolderTest {
 
             MyAssertions.assertThat(container)
               .extracting("paths", "/simple", "post", "requestBody", "content", "multipart/form-data", "schema", "$ref")
-              .isEqualTo(resolveAbsoluteURIFromClasspath(
-                "yaml/valid/inner_refs.yaml#/components/schemas/Simple"
-              ).toString())
+              .isEqualTo(resolveAbsoluteURI(
+                vertx,
+                "yaml/valid/inner_refs.yaml#/components/schemas/Simple").toString())
               .satisfies(ref ->
                 assertThat(parser)
                   .hasCached(URI.create((String) ref))
@@ -627,11 +627,10 @@ public class OpenAPIHolderTest {
         .compose(v -> loader.loadOpenAPI("specs/schemas_test_spec.yaml"))
     ).onComplete(l -> {
       testContext.verify(() -> {
-        JsonPointer schemaPointer = JsonPointer.fromURI(resolveAbsoluteURIFromClasspath(
-          "specs/schemas_test_spec.yaml"
-        )).append(Arrays.asList(
-          "paths", "/test8", "post", "requestBody", "content", "application/json", "schema"
-        ));
+        JsonPointer schemaPointer = JsonPointer.fromURI(resolveAbsoluteURI(
+            vertx,
+            "specs/schemas_test_spec.yaml"))
+          .append(Arrays.asList("paths", "/test8", "post", "requestBody", "content", "application/json", "schema"));
         JsonObject resolved = (JsonObject) schemaPointer.query(l.result(),
           new JsonPointerIteratorWithLoader(loader));
 
@@ -734,11 +733,11 @@ public class OpenAPIHolderTest {
     );
   }
 
-  private URI resolveAbsoluteURIFromClasspath(String relative) {
+  private URI resolveAbsoluteURI(Vertx vertx, String relative) {
     URI relativeURI = URI.create(relative);
     String fragment = relativeURI.getFragment();
     return URIUtils.replaceFragment(
-      OpenAPIHolderImpl.getResourceAbsoluteURIFromClasspath(URIUtils.removeFragment(relativeURI)),
+      OpenAPIHolderImpl.getResourceAbsoluteURI(vertx, URIUtils.removeFragment(relativeURI)),
       fragment
     );
   }
