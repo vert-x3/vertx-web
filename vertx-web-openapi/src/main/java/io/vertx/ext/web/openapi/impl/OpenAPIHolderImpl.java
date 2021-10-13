@@ -47,17 +47,6 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   private final YAMLMapper yamlMapper;
   private JsonObject openapiRoot;
 
-  private final String cacheDir;
-
-  private static String resolveCanonical(Vertx vertx, String path) {
-    try {
-      File canonicalFile = ((VertxInternal) vertx).resolveFile(path).getCanonicalFile();
-      return slashify(canonicalFile.getPath(), canonicalFile.isDirectory());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   public OpenAPIHolderImpl(Vertx vertx, HttpClient client, FileSystem fs, OpenAPILoaderOptions options) {
     this.vertx = vertx;
     absolutePaths = new ConcurrentHashMap<>();
@@ -69,8 +58,6 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     SchemaParser parser = Draft7SchemaParser.create(router);
     this.yamlMapper = new YAMLMapper();
     this.openapiSchema = parser.parseFromString(OpenAPI3Utils.openapiSchemaJson);
-
-    this.cacheDir = resolveCanonical(vertx, "");
   }
 
   public Future<JsonObject> loadOpenAPI(String u) {
@@ -339,21 +326,11 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     return resultProm.future();
   }
 
-  private String relativizePathToBase(String filePath) {
-    return
-      filePath.startsWith(cacheDir) ?
-        filePath.substring(cacheDir.length()) :
-        filePath;
-  }
-
   private Future<JsonObject> solveLocalRef(final URI ref) {
     String filePath = ref.getPath();
 
     return fs
-      // given that we are resolving using vert.x we may need to normalize paths from vert.x cache back
-      // to the CWD, this is done just by stripping the well known cache dir prefix from any path if
-      // present
-      .readFile(relativizePathToBase(filePath))
+      .readFile(filePath)
       .compose(buf -> {
         try {
           return Future.succeededFuture(buf.toJsonObject());
