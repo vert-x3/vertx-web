@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2021 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -22,10 +22,8 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.graphql.ApolloWSConnectionInitEvent;
-import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
-import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
-import io.vertx.ext.web.handler.graphql.ApolloWSOptions;
+import io.vertx.ext.web.handler.graphql.*;
+import io.vertx.ext.web.impl.Origin;
 import org.dataloader.DataLoaderRegistry;
 
 import java.util.Locale;
@@ -45,6 +43,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   private final GraphQL graphQL;
   private final long keepAlive;
+  private final Origin origin;
 
   private Function<ApolloWSMessage, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
   private Function<ApolloWSMessage, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
@@ -53,12 +52,14 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   private Handler<ApolloWSConnectionInitEvent> connectionInitHandler;
   private Handler<ServerWebSocket> endHandler;
   private Handler<ApolloWSMessage> messageHandler;
+  private Handler<ExecutionInputBuilderWithContext<ApolloWSMessage>> beforeExecute;
 
   public ApolloWSHandlerImpl(GraphQL graphQL, ApolloWSOptions options) {
     Objects.requireNonNull(graphQL, "graphQL");
     Objects.requireNonNull(options, "options");
     this.graphQL = graphQL;
     this.keepAlive = options.getKeepAlive();
+    this.origin = options.getOrigin() != null ? Origin.parse(options.getOrigin()) : null;
   }
 
   GraphQL getGraphQL() {
@@ -140,16 +141,30 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
   }
 
   @Override
-  public void handle(RoutingContext routingContext) {
-    MultiMap headers = routingContext.request().headers();
+  public ApolloWSHandler beforeExecute(Handler<ExecutionInputBuilderWithContext<ApolloWSMessage>> beforeExecute) {
+    this.beforeExecute = beforeExecute;
+    return this;
+  }
+
+  synchronized Handler<ExecutionInputBuilderWithContext<ApolloWSMessage>> getBeforeExecute() {
+    return beforeExecute;
+  }
+
+  @Override
+  public void handle(RoutingContext ctx) {
+    MultiMap headers = ctx.request().headers();
     if (headers.contains(CONNECTION) && headers.contains(UPGRADE, WEBSOCKET, true)) {
-      ContextInternal context = (ContextInternal) routingContext.vertx().getOrCreateContext();
-      routingContext.request().toWebSocket().onSuccess(ws -> {
+      if (!Origin.check(origin, ctx)) {
+        ctx.fail(403, new IllegalStateException("Invalid Origin"));
+        return;
+      }
+      ContextInternal context = (ContextInternal) ctx.vertx().getOrCreateContext();
+      ctx.request().toWebSocket().onSuccess(ws -> {
         ApolloWSConnectionHandler connectionHandler = new ApolloWSConnectionHandler(this, context, ws);
         connectionHandler.handleConnection();
       });
     } else {
-      routingContext.next();
+      ctx.next();
     }
   }
 }

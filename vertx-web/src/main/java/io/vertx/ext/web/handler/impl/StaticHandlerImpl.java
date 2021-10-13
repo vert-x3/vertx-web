@@ -125,24 +125,23 @@ public class StaticHandlerImpl implements StaticHandler {
       }
       // will normalize and handle all paths as UNIX paths
       String path = HttpUtils.removeDots(uriDecodedPath.replace('\\', '/'));
-      boolean sibling = false;
-
-      // only root is known for sure to be a directory. all other directories must be identified as such.
-      if (!directoryListing && "/".equals(path)) {
-        path = indexPage;
-        // we mark this as sibling as we are upgrading from slash to index page
-        sibling = true;
-      }
 
       // Access fileSystem once here to be safe
       FileSystem fs = context.vertx().fileSystem();
 
-      // can be called recursive for index pages
-      sendStatic(context, fs, path, sibling);
+      sendStatic(
+        context,
+        fs,
+        path,
+        // only root is known for sure to be a directory. all other directories must be identified as such.
+        !directoryListing && "/".equals(path));
     }
   }
 
-  private void sendStatic(RoutingContext context, FileSystem fileSystem, String path, boolean sibling) {
+  /**
+   * Can be called recursive for index pages
+   */
+  private void sendStatic(RoutingContext context, FileSystem fileSystem, String path, boolean index) {
 
     String file = null;
 
@@ -185,11 +184,26 @@ public class StaticHandlerImpl implements StaticHandler {
     }
 
     final boolean dirty = cache.enabled() && entry != null;
-    final String sfile = file == null ? getFile(path, context) : file;
+    final String localFile;
+
+    if (file == null) {
+      String ctxFile = getFile(path, context);
+      if (index) {
+        localFile = ctxFile + indexPage;
+      } else {
+        localFile = ctxFile;
+      }
+    } else {
+      if (index) {
+        localFile = file + indexPage;
+      } else {
+        localFile = file;
+      }
+    }
 
     // verify if the file exists
     fileSystem
-      .exists(sfile, exists -> {
+      .exists(localFile, exists -> {
         if (exists.failed()) {
           context.fail(exists.cause());
           return;
@@ -205,7 +219,7 @@ public class StaticHandlerImpl implements StaticHandler {
         }
 
         // Need to read the props from the filesystem
-        getFileProps(fileSystem, sfile, res -> {
+        getFileProps(fileSystem, localFile, res -> {
           if (res.succeeded()) {
             FileProps fprops = res.result();
             if (fprops == null) {
@@ -215,10 +229,18 @@ public class StaticHandlerImpl implements StaticHandler {
               }
               context.next();
             } else if (fprops.isDirectory()) {
-              if (dirty) {
-                cache.remove(path);
+              if (index) {
+                // file does not exist (well it exists but it's a directory), continue...
+                if (cache.enabled()) {
+                  cache.put(path, null);
+                }
+                context.next();
+              } else {
+                if (dirty) {
+                  cache.remove(path);
+                }
+                sendDirectory(context, fileSystem, path, localFile);
               }
-              sendDirectory(context, fileSystem, path, sfile, sibling);
             } else {
               if (cache.enabled()) {
                 cache.put(path, fprops);
@@ -228,7 +250,7 @@ public class StaticHandlerImpl implements StaticHandler {
                   return;
                 }
               }
-              sendFile(context, fileSystem, sfile, fprops);
+              sendFile(context, fileSystem, localFile, fprops);
             }
           } else {
             context.fail(res.cause());
@@ -240,12 +262,12 @@ public class StaticHandlerImpl implements StaticHandler {
   /**
    * sibling means that we are being upgraded from a directory to a index
    */
-  private void sendDirectory(RoutingContext context, FileSystem fileSystem, String path, String file, boolean sibling) {
+  private void sendDirectory(RoutingContext context, FileSystem fileSystem, String path, String file) {
     // in order to keep caches in a valid state we need to assert that
     // the user is requesting a directory (ends with /)
     if (!path.endsWith("/")) {
       context.response()
-        .putHeader(HttpHeaders.LOCATION, path + (sibling ? "" : "/"))
+        .putHeader(HttpHeaders.LOCATION, path + "/")
         .setStatusCode(301)
         .end();
       return;
@@ -254,15 +276,8 @@ public class StaticHandlerImpl implements StaticHandler {
     if (directoryListing) {
       sendDirectoryListing(fileSystem, file, context);
     } else if (indexPage != null) {
-      // send index page
-      String indexPath;
-      if (indexPage.startsWith("/")) {
-        indexPath = path + indexPage.substring(1);
-      } else {
-        indexPath = path + indexPage;
-      }
-      // recursive call
-      sendStatic(context, fileSystem, indexPath, true);
+      // send index page recursive call
+      sendStatic(context, fileSystem, path, true);
     } else {
       // Directory listing denied
       context.fail(FORBIDDEN.code());
@@ -515,10 +530,11 @@ public class StaticHandlerImpl implements StaticHandler {
   @Override
   public StaticHandler setIndexPage(String indexPage) {
     Objects.requireNonNull(indexPage);
-    if (!indexPage.startsWith("/")) {
-      indexPage = "/" + indexPage;
+    if (indexPage.charAt(0) == '/') {
+      this.indexPage = indexPage.substring(1);
+    } else {
+      this.indexPage = indexPage;
     }
-    this.indexPage = indexPage;
     return this;
   }
 

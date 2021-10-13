@@ -112,9 +112,15 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
    */
   @Override
   public void postAuthentication(RoutingContext ctx) {
+    final User user = ctx.user();
+    if (user == null) {
+      // bad state
+      ctx.fail(403, new IllegalStateException("no user in the context"));
+      return;
+    }
     // the user is authenticated, however the user may not have all the required scopes
     if (scopes.size() > 0) {
-      final JsonObject jwt = ctx.user().get("accessToken");
+      final JsonObject jwt = user.get("accessToken");
       if (jwt == null) {
         ctx.fail(403, new IllegalStateException("Invalid JWT: null"));
         return;

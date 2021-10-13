@@ -43,9 +43,7 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
   private static Handler<RoutingContext> generateNotAllowedHandler(List<HttpMethod> allowedMethods) {
     return rc -> {
       rc.addHeadersEndHandler(v ->
-        rc.response().headers().add("Allow", String.join(", ",
-          allowedMethods.stream().map(HttpMethod::toString).collect(Collectors.toList())
-        ))
+        rc.response().headers().add("Allow", allowedMethods.stream().map(HttpMethod::toString).collect(Collectors.joining(", ")))
       );
       rc.fail(405);
     };
@@ -169,7 +167,7 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
 
   @Override
   public List<Operation> operations() {
-    return this.operations.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList());
+    return new ArrayList<>(this.operations.values());
   }
 
   @Override

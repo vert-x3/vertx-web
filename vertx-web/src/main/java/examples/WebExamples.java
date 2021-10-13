@@ -23,6 +23,7 @@ import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
+import io.vertx.ext.auth.otp.totp.TotpAuth;
 import io.vertx.ext.auth.webauthn.*;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
@@ -1386,7 +1387,7 @@ public class WebExamples {
       .create(vertx, authProvider, "https://myserver.com/callback");
 
     // setup the callback handler for receiving the GitHub callback
-    oauth2.setupCallback(router.route());
+    oauth2.setupCallback(router.route("/callback"));
 
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2);
@@ -1447,7 +1448,7 @@ public class WebExamples {
       .create(vertx, provider, "https://myserver.com:8447/callback");
 
     // now allow the handler to setup the callback url for you
-    oauth2.setupCallback(router.route());
+    oauth2.setupCallback(router.route("/callback"));
   }
 
   public void example62(Vertx vertx, Router router) {
@@ -1466,7 +1467,10 @@ public class WebExamples {
       .handler(SessionHandler.create(LocalSessionStore.create(vertx)));
     // we now protect the resource under the path "/protected"
     router.route("/protected").handler(
-      OAuth2AuthHandler.create(vertx, authProvider)
+      OAuth2AuthHandler.create(
+        vertx,
+          authProvider,
+          "http://localhost:8080/callback")
         // we now configure the oauth2 handler, it will
         // setup the callback handler
         // as expected by your oauth2 provider.
@@ -1702,7 +1706,7 @@ public class WebExamples {
       "https://myserver.com/github-callback");
 
     // setup the callback handler for receiving the GitHub callback
-    githubOAuth2.setupCallback(router.route());
+    githubOAuth2.setupCallback(router.route("/github-callback"));
 
     // create an OAuth2 provider, clientID and clientSecret
     // should be requested to Google
@@ -1721,7 +1725,7 @@ public class WebExamples {
       "https://myserver.com/google-callback");
 
     // setup the callback handler for receiving the Google callback
-    googleOAuth2.setupCallback(router.route());
+    googleOAuth2.setupCallback(router.route("/google-callback"));
 
     // At this point the 2 callbacks endpoints are registered:
 
@@ -1925,5 +1929,55 @@ public class WebExamples {
     // all responses will then include the right
     // X-Frame-Options header with the value "DENY"
     router.route().handler(XFrameHandler.create(XFrameHandler.DENY));
+  }
+
+  public void example86(Vertx vertx, Router router, BasicAuthHandler basicAuthHandler) {
+
+    // parse the BODY
+    router.post()
+      .handler(BodyHandler.create());
+    // add a session handler (OTP requires state)
+    router.route()
+      .handler(SessionHandler
+        .create(LocalSessionStore.create(vertx))
+        .setCookieSameSite(CookieSameSite.STRICT));
+
+    // add the first authentication mode, for example HTTP Basic Authentication
+    router.route()
+      .handler(basicAuthHandler);
+
+    final OtpAuthHandler otp = OtpAuthHandler
+      .create(TotpAuth.create()
+        .authenticatorFetcher(authr -> {
+          // fetch authenticators from a database
+          // ...
+          return Future.succeededFuture(new io.vertx.ext.auth.otp.Authenticator());
+        })
+        .authenticatorUpdater(authr -> {
+          // update or insert authenticators from a database
+          // ...
+          return Future.succeededFuture();
+        }));
+
+    otp
+      // the issuer for the application
+      .issuer("Vert.x Demo")
+      // handle code verification responses
+      .verifyUrl("/verify-otp.html")
+      // handle registration of authenticators
+      .setupRegisterCallback(router.post("/otp/register"))
+      // handle verification of authenticators
+      .setupCallback(router.post("/otp/verify"));
+
+    // secure the rest of the routes
+    router.route()
+      .handler(otp);
+
+    // To view protected details, user must be authenticated and
+    // using 2nd factor authentication
+    router.get("/protected")
+      .handler(ctx -> {
+        ctx.end("Super secret content");
+      });
   }
 }

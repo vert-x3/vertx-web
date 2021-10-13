@@ -201,15 +201,6 @@ public interface Route {
   Route enable();
 
   /**
-   * Use {@link #useNormalizedPath(boolean)} instead
-   */
-  @Fluent
-  @Deprecated
-  default Route useNormalisedPath(boolean useNormalizedPath) {
-    return this.useNormalizedPath(useNormalizedPath);
-  }
-
-  /**
    * If true then the normalized request path will be used when routing (e.g. removing duplicate /)
    * Default is true
    *

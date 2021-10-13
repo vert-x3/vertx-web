@@ -464,6 +464,58 @@ The client will follow at most `16` requests redirections, it can be changed in 
 
 NOTE: For security reason, client won't follow redirects for request with methods different from GET or HEAD
 
+== HTTP response caching
+
+Vert.x web offers an HTTP response caching facility; to use it, you create a {@link io.vertx.ext.web.client.CachingWebClient}.
+
+=== Creating a caching web client
+
+[source,$lang]
+----
+{@link examples.CachingWebClientExamples#create(io.vertx.core.Vertx)}
+----
+
+=== Configuring what is cached
+
+By default, a caching web client will only cache a response from a `GET` method that has a status code of `200`, `301`, or `404`.
+Additionally, responses that contain a `Vary` header will not be cached by default.
+
+This can be configured by passing {@link io.vertx.ext.web.client.CachingWebClientOptions} during client creation.
+
+[source,$lang]
+----
+{@link examples.CachingWebClientExamples#createWithOptions(io.vertx.core.Vertx)}
+----
+
+Responses that contain the `private` directive in the `Cache-Control` header will not be cached unless the client is also
+a {@link io.vertx.ext.web.client.WebClientSession}. See <<_handling_private_responses>>.
+
+=== Providing an external store
+
+When storing responses, the default caching client will use a local `Map`.You may provide your own store implementation to store responses.
+To do so, implement {@link io.vertx.ext.web.client.spi.CacheStore}, and then you can provide it when creating your client.
+
+[source,$lang]
+----
+{@link examples.CachingWebClientExamples#createWithCustomStore(io.vertx.core.Vertx)}
+----
+
+=== Handling private responses
+
+To enable private response caching, the {@link io.vertx.ext.web.client.CachingWebClient} can be combined with the
+{@link io.vertx.ext.web.client.WebClientSession}. When this is done, public responses, those with the `public` directive
+in the `Cache-Control` header, will be cached in the {@link io.vertx.ext.web.client.spi.CacheStore} the client was
+created with. Private responses, those with the `private` directive in the `Cache-Control` header, will be cached in
+with the session to ensure the cached response is not leaked to other users (sessions).
+
+To create a client that can cache private responses, pass a {@link io.vertx.ext.web.client.CachingWebClient} to
+a {@link io.vertx.ext.web.client.WebClientSession}.
+
+[source,$lang]
+----
+{@link examples.CachingWebClientExamples#createWithSession(io.vertx.core.Vertx)}
+----
+
 == Using HTTPS
 
 Vert.x Web Client can be configured to use HTTPS in exactly the same way as the Vert.x {@link io.vertx.core.http.HttpClient}.
@@ -488,7 +540,7 @@ Vert.x web offers a web session management facility; to use it, you create a
 {@link io.vertx.ext.web.client.WebClientSession} for every user (session) and use it instead of the
 {@link io.vertx.ext.web.client.WebClient}.
 
-=== Creating a WebSession
+=== Creating a WebClientSession
 
 You create a {@link io.vertx.ext.web.client.WebClientSession} instance as follows
 
@@ -515,6 +567,60 @@ You can set any session level headers to be added to every request as follows:
 The headers will then be added to every request; notice that these headers will be sent to all hosts; if you need
 to send different headers to different hosts, you have to add them manually to every single request and not to the
 {@link io.vertx.ext.web.client.WebClientSession}.
+
+== OAuth2 security
+
+Vert.x web offers a web session management facility; to use it, you create a
+{@link io.vertx.ext.web.client.OAuth2WebClient} for every user (session) and use it instead of the
+{@link io.vertx.ext.web.client.WebClient}.
+
+=== Creating an Oauth2 Client
+
+You create a {@link io.vertx.ext.web.client.OAuth2WebClient} instance as follows
+
+[source,$lang]
+----
+{@link examples.WebClientOauth2Examples#create}
+----
+
+Client's can also take advantage of OpenId Service discovery to fully configure the client, for example to connect to
+a real keycloak server one can just do:
+
+[source,$lang]
+----
+{@link examples.WebClientOauth2Examples#discovery}
+----
+
+
+=== Making requests
+
+Once created, a {@link io.vertx.ext.web.client.OAuth2WebClient} can be used instead of a
+{@link io.vertx.ext.web.client.WebClient} to do HTTP(s) requests and automatically manage any cookies received from the server(s)
+you are calling.
+
+=== Avoid expired tokens
+
+You can set token expiration leeway to every request as follows:
+
+[source,$lang]
+----
+{@link examples.WebClientOauth2Examples#leeway}
+----
+
+If a request is to be performed the current active user object is checked for expiration with the extra given leeway.
+This will allow the client to perform a token refresh if needed, instead of aborting the operation with an error.
+
+Request may still fail due to expired tokens since the expiration calculation will still be performed at the server
+side. To reduce the work on the user side, the client can be configured to perform a **single** retry on requests that
+return status code **401** (Forbidden). When the option flag: `refreshTokenOnForbidden` is set to `true`, then the
+client will perform a new token request retry the original request before passing the response to the user
+handler/promise.
+
+[source,$lang]
+----
+{@link examples.WebClientOauth2Examples#renewTokenOnForbidden}
+----
+
 
 ifeval::["$lang" == "java"]
 include::override/rxjava3.adoc[]

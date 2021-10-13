@@ -10,10 +10,14 @@
  */
 package io.vertx.ext.web.client.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientSession;
+import io.vertx.ext.web.client.spi.CacheStore;
 import io.vertx.ext.web.client.spi.CookieStore;
 
 /**
@@ -22,12 +26,14 @@ import io.vertx.ext.web.client.spi.CookieStore;
 public class WebClientSessionAware extends WebClientBase implements WebClientSession {
 
   private final CookieStore cookieStore;
+  private final CacheStore cacheStore;
   private MultiMap headers;
 
   public WebClientSessionAware(WebClient webClient, CookieStore cookieStore) {
     super((WebClientBase) webClient);
     this.cookieStore = cookieStore;
-    addInterceptor(new SessionAwareInterceptor());
+    this.cacheStore = CacheStore.localStore();
+    addInterceptor(new SessionAwareInterceptor(this));
   }
 
   public CookieStore cookieStore() {
@@ -77,4 +83,8 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
     return this;
   }
 
+  @Override
+  public <T> HttpContext<T> createContext(Handler<AsyncResult<HttpResponse<T>>> handler) {
+    return super.createContext(handler).privateCacheStore(cacheStore);
+  }
 }

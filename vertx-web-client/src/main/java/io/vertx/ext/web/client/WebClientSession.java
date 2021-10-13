@@ -126,7 +126,7 @@ public interface WebClientSession extends WebClient {
   /**
    * Returns this client's {@code CookieStore}
    * <p>
-   * All cookies added to this store will be send with every request.
+   * All cookies added to this store will be sent with every request.
    * The CookieStore honors the domain, path, secure and max-age properties of received cookies
    * and is automatically updated with cookies present in responses received by this client.
    * @return this client's cookie store

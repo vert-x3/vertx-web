@@ -227,6 +227,7 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
   }
 
   @Override
+  @Deprecated
   public X509Certificate[] peerCertificateChain() throws SSLPeerUnverifiedException {
     return delegate.peerCertificateChain();
   }

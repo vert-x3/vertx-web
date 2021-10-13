@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2021 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler.graphql;
 
 import graphql.GraphQL;
+import graphql.GraphQLContext;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
@@ -27,6 +28,8 @@ import org.dataloader.DataLoaderRegistry;
 
 import java.util.Locale;
 import java.util.function.Function;
+
+import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
 /**
  * A {@link io.vertx.ext.web.Route} handler for GraphQL requests.
@@ -59,12 +62,25 @@ public interface GraphQLHandler extends Handler<RoutingContext> {
   }
 
   /**
+   * Retrieves the {@link RoutingContext} from the {@link GraphQLContext}.
+   *
+   * @param graphQlContext the GraphQL context object
+   * @return the {@link RoutingContext}
+   */
+  @GenIgnore(PERMITTED_TYPE)
+  static RoutingContext getRoutingContext(GraphQLContext graphQlContext) {
+    return graphQlContext.get(RoutingContext.class);
+  }
+
+  /**
    * Customize the query context object.
    * The provided {@code factory} method will be invoked for each incoming GraphQL request.
    *
    * @return a reference to this, so the API can be used fluently
+   * @deprecated as of 4.2, use {@link #beforeExecute(Handler)} instead
    */
   @Fluent
+  @Deprecated
   GraphQLHandler queryContext(Function<RoutingContext, Object> factory);
 
   /**
@@ -72,9 +88,11 @@ public interface GraphQLHandler extends Handler<RoutingContext> {
    * The provided {@code factory} method will be invoked for each incoming GraphQL request.
    *
    * @return a reference to this, so the API can be used fluently
+   * @deprecated as of 4.2, use {@link #beforeExecute(Handler)} instead
    */
   @Fluent
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @Deprecated
   GraphQLHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory);
 
   /**
@@ -82,8 +100,19 @@ public interface GraphQLHandler extends Handler<RoutingContext> {
    * The provided {@code factory} method will be invoked for each incoming GraphQL request.
    *
    * @return a reference to this, so the API can be used fluently
+   * @deprecated as of 4.2, use {@link #beforeExecute(Handler)} instead
    */
   @Fluent
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @Deprecated
   GraphQLHandler locale(Function<RoutingContext, Locale> factory);
+
+  /**
+   * Set a callback to invoke before executing a GraphQL query.
+   *
+   * @param config the callback to invoke
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  GraphQLHandler beforeExecute(Handler<ExecutionInputBuilderWithContext<RoutingContext>> config);
 }

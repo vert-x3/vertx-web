@@ -140,7 +140,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
           // the register object should match a Webauthn user.
           // A user has only a required field: name
           // And optional fields: displayName and icon
-          if (!containsRequiredString(webauthnRegister, "name")) {
+          if (webauthnRegister == null || !containsRequiredString(webauthnRegister, "name")) {
             ctx.fail(400, new IllegalArgumentException("missing 'name' field from request json"));
           } else {
             // input basic validation is OK
@@ -159,7 +159,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
               final JsonObject credentialsOptions = createCredentialsOptions.result();
 
               // save challenge to the session
-              ctx.session()
+              session
                 .put("challenge", credentialsOptions.getString("challenge"))
                 .put("username", webauthnRegister.getString("name"));
 
@@ -187,7 +187,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
           final JsonObject webauthnLogin = ctx.getBodyAsJson();
           final Session session = ctx.session();
 
-          if (!containsRequiredString(webauthnLogin, "name")) {
+          if (webauthnLogin == null || !containsRequiredString(webauthnLogin, "name")) {
             ctx.fail(400, new IllegalArgumentException("Request missing 'name' field"));
             return;
           }
@@ -237,6 +237,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
           final JsonObject webauthnResp = ctx.getBodyAsJson();
           // input validation
           if (
+            webauthnResp == null ||
             !containsRequiredString(webauthnResp, "id") ||
               !containsRequiredString(webauthnResp, "rawId") ||
               !containsRequiredObject(webauthnResp, "response") ||
@@ -252,7 +253,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
 
           final Session session = ctx.session();
 
-          if (ctx.session() == null) {
+          if (session == null) {
             ctx.fail(500, new IllegalStateException("No session or session handler is missing."));
             return;
           }

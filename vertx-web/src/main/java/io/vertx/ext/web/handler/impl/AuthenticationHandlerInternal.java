@@ -1,5 +1,6 @@
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.ext.auth.User;
@@ -28,7 +29,7 @@ public interface AuthenticationHandlerInternal extends AuthenticationHandler {
    * @param context the routing context
    * @return the header or null if not applicable.
    */
-  default String authenticateHeader(RoutingContext context) {
+  default @Nullable String authenticateHeader(RoutingContext context) {
     return null;
   }
 

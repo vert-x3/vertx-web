@@ -35,9 +35,16 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
   static final HttpException BAD_METHOD = new HttpException(405);
 
   protected final T authProvider;
+  // signal the kind of Multi-Factor Authentication used by the handler
+  protected final String mfa;
 
   public AuthenticationHandlerImpl(T authProvider) {
+    this(authProvider, null);
+  }
+
+  public AuthenticationHandlerImpl(T authProvider, String mfa) {
     this.authProvider = authProvider;
+    this.mfa = mfa;
   }
 
   @Override
@@ -49,9 +56,18 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
 
     User user = ctx.user();
     if (user != null) {
-      // proceed with the router
-      postAuthentication(ctx);
-      return;
+      if (mfa != null) {
+        // if we're dealing with MFA, the user principal must include a matching mfa
+        if (mfa.equals(user.get("mfa"))) {
+          // proceed with the router
+          postAuthentication(ctx);
+          return;
+        }
+      } else {
+        // proceed with the router
+        postAuthentication(ctx);
+        return;
+      }
     }
     // before starting any potential async operation here
     // pause parsing the request body. The reason is that

@@ -337,7 +337,11 @@ public class RouterImpl implements Router {
       if (ctx.matchNormalized) {
         return ctx.normalizedPath().substring(0, ctx.matchRest);
       } else {
-        return ctx.request().path().substring(0, ctx.matchRest);
+        String path = ctx.request().path();
+        if (path != null) {
+          return path.substring(0, ctx.matchRest);
+        }
+        return null;
       }
     } else {
       // failure did not match

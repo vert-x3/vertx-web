@@ -26,9 +26,9 @@ import io.vertx.ext.auth.impl.jose.JWT;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.sstore.SessionStore;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -64,7 +64,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setClientID("client-id")
+      .setClientId("client-id")
       .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
@@ -93,7 +93,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/callback");
 
     // setup the callback handler for receiving the callback
-    oauth2Handler.setupCallback(router.route());
+    oauth2Handler.setupCallback(router.route("/callback"));
 
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2Handler);
@@ -154,7 +154,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .withScope("read");
 
     // setup the callback handler for receiving the callback
-    oauth2Handler.setupCallback(router.route());
+    oauth2Handler.setupCallback(router.route("/callback"));
 
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2Handler);
@@ -215,7 +215,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .withScope("rea");
 
     // setup the callback handler for receiving the callback
-    oauth2Handler.setupCallback(router.route());
+    oauth2Handler.setupCallback(router.route("/callback"));
 
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2Handler);
@@ -243,7 +243,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setClientID("client-id")
+      .setClientId("client-id")
       .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
@@ -278,7 +278,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/callback");
 
     // setup the callback handler for receiving the callback
-    oauth2Handler.setupCallback(router.route());
+    oauth2Handler.setupCallback(router.route("/callback"));
 
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2Handler);
@@ -301,7 +301,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setClientID("client-id")
+      .setClientId("client-id")
       .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
@@ -338,9 +338,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
             req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
           });
       } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
-        req.setExpectMultipart(true).bodyHandler(buffer -> {
-          req.response().end();
-        });
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().end());
       } else {
         req.response().setStatusCode(400).end();
       }
@@ -431,7 +429,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setFlow(OAuth2FlowType.AUTH_CODE)
-      .setClientID("client-id")
+      .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
@@ -461,7 +459,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .handler(
         OAuth2AuthHandler
           .create(vertx, oauth2, "http://localhost:8080/callback")
-          .setupCallback(router.route()));
+          .setupCallback(router.route("/callback")));
 
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
@@ -486,7 +484,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // protect everything.
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
       .create(vertx, oauth2, "http://localhost:8080/callback")
-      .setupCallback(router.route());
+      .setupCallback(router.route("/callback"));
 
     // now the callback is registered before as it should
     router.route().handler(oauth2Handler);
@@ -515,7 +513,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setClientID("client-id")
+      .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000")
       .setFlow(OAuth2FlowType.PASSWORD));
@@ -571,7 +569,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
   public void testBearerOnly() throws Exception {
 
     // lets mock a oauth2 server using code auth code flow
-    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options().setFlow(OAuth2FlowType.AUTH_CODE).setClientID("client-id"));
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options().setFlow(OAuth2FlowType.AUTH_CODE).setClientId("client-id"));
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2);
 
     // protect everything under /protected
@@ -697,4 +695,65 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Bearer " + accessTokenExp), 401, "Unauthorized", "Unauthorized");
   }
-}
+
+  @Test
+  public void testAuthCodeFlowSubRouter() throws Exception {
+
+    // lets mock a oauth2 server using code auth code flow
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+      .setClientId("client-id")
+      .setFlow(OAuth2FlowType.AUTH_CODE)
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:10000"));
+
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    HttpServer server = vertx.createHttpServer().requestHandler(req -> {
+      if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
+      } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().end());
+      } else {
+        req.response().setStatusCode(400).end();
+      }
+    }).listen(10000, ready -> {
+      if (ready.failed()) {
+        throw new RuntimeException(ready.cause());
+      }
+      // ready
+      latch.countDown();
+    });
+
+    latch.await();
+
+    Router subRouter = Router.router(vertx);
+
+    router.mountSubRouter("/secret", subRouter);
+
+    // create a oauth2 handler on our domain to the callback: "http://localhost:8080/secret/callback"
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/secret/callback");
+
+    // setup the callback handler for receiving the callback
+    oauth2Handler.setupCallback(subRouter.route("/callback"));
+
+    // protect everything under /protected
+    subRouter.route("/protected/*").handler(oauth2Handler);
+    // mount some handler under the protected zone
+    subRouter.route("/protected/somepage").handler(rc -> {
+      assertNotNull(rc.user());
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+
+    testRequest(HttpMethod.GET, "/secret/protected/somepage", null, resp -> {
+      // in this case we should get a redirect
+      redirectURL = resp.getHeader("Location");
+      assertNotNull(redirectURL);
+    }, 302, "Found", null);
+
+    // fake the redirect
+    testRequest(HttpMethod.GET, "/secret/callback?state=/secret/protected/somepage&code=1", null, resp -> {
+    }, 200, "OK", "Welcome to the protected resource!");
+
+    server.close();
+  }}

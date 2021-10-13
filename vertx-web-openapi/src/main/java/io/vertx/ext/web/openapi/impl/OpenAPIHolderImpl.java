@@ -229,7 +229,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
         if (!pointer.isParent(scope)) { // Check circular refs hell!
           JsonObject cached = getCached(pointer);
           if (cached == null) {
-            throw new IllegalStateException("Cannot resolve '" + pointer.toString() + "', this may be an invalid " +
+            throw new IllegalStateException("Cannot resolve '" + pointer + "', this may be an invalid " +
               "reference");
           }
           if (!originalToSubstitutedMap.containsKey(pointer)) {
@@ -375,6 +375,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     try {
       switch (uri.getScheme()) {
         case "http":
+        case "https":
           return Paths.get(uri.getPath());
         case "file":
           return Paths.get(uri);

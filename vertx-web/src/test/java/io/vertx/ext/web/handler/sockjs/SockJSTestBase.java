@@ -49,6 +49,10 @@ abstract class SockJSTestBase extends VertxTestBase {
   }
 
   void startServers() throws Exception {
+    startServers(new SockJSHandlerOptions());
+  }
+
+  void startServers(SockJSHandlerOptions options) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     vertx.deployVerticle(() -> new AbstractVerticle() {
       @Override
@@ -64,7 +68,6 @@ abstract class SockJSTestBase extends VertxTestBase {
           preSockJSHandlerSetup.accept(router);
         }
 
-        SockJSHandlerOptions options = new SockJSHandlerOptions();
         options.setHeartbeatInterval(2000);
         options.setRegisterWriteHandler(true);
         SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);

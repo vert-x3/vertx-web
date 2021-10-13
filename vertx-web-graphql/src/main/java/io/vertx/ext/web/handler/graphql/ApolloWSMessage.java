@@ -17,7 +17,6 @@
 package io.vertx.ext.web.handler.graphql;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
 

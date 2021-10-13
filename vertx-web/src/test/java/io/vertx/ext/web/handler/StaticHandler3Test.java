@@ -36,12 +36,29 @@ public class StaticHandler3Test extends WebTestBase {
 
   @Test
   public void testGetDefaultIndex() throws Exception {
-    // without slash... forwards to slash
-    testRequest(HttpMethod.GET, "", null, res-> {
-      assertEquals("/index.html", res.getHeader("Location"));
+    // without slash... at root defaults to /
+    testRequest(HttpMethod.GET, "", 200, "OK", "<html><body>Index page</body></html>");
+
+    // with slash
+    testRequest(HttpMethod.GET, "/", 200, "OK", "<html><body>Index page</body></html>");
+
+    // and directly
+    testRequest(HttpMethod.GET, "/index.html", 200, "OK", "<html><body>Index page</body></html>");
+  }
+
+  @Test
+  public void testGetDefaultIndexWithSlash() throws Exception {
+    // with / returns index page
+    testRequest(HttpMethod.GET, "/somedir/", 200, "OK", "<html><body>Subdirectory index page</body></html>");
+  }
+
+  @Test
+  public void testGetDefaultIndexWithoutSlash() throws Exception {
+    // without / should redirect first
+    testRequest(HttpMethod.GET, "/somedir", null, res-> {
+      assertEquals("/somedir/", res.getHeader("Location"));
     }, 301, "Moved Permanently", null);
 
-    // index.html retrieves the final file
-    testRequest(HttpMethod.GET, "/index.html", 200, "OK", "<html><body>Index page</body></html>");
+    testRequest(HttpMethod.GET, "/somedir/", 200, "OK", "<html><body>Subdirectory index page</body></html>");
   }
 }

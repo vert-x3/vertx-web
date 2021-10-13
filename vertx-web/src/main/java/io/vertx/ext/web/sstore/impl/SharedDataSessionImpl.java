@@ -226,7 +226,7 @@ public class SharedDataSessionImpl extends AbstractSession implements ClusterSer
               String className = new String(classNameBytes, UTF8);
               Class<?> clazz = Utils.getClassLoader().loadClass(className);
               if (!ClusterSerializable.class.isAssignableFrom(clazz)) {
-                throw new ClassCastException(new String(classNameBytes) + " is not assignable from ClusterSerializable");
+                throw new ClassCastException(new String(classNameBytes, StandardCharsets.UTF_8) + " is not assignable from ClusterSerializable");
               }
               ClusterSerializable obj = (ClusterSerializable) clazz.getDeclaredConstructor().newInstance();
               pos = obj.readFromBuffer(pos, buffer);

@@ -1434,6 +1434,7 @@ public class WebClientTest extends WebClientTestBase {
         fail("Missing expected header");
         return;
       }
+      assertEquals(Collections.singletonList("bar"), req.headers().getAll("foo"));
       if (req.path().equals("/redirect")) {
         req.response().setStatusCode(301).putHeader("Location", location).end();
         if (!expect) {
@@ -2053,5 +2054,29 @@ public class WebClientTest extends WebClientTestBase {
     } catch (VertxException e) {
       assertThat(e.getCause(), instanceOf(MalformedURLException.class));
     }
+  }
+
+  @Test
+  public void testQueryParamSpecialChars() throws Exception {
+    server.requestHandler(req -> {
+      assertEquals("c%3Ad=e", req.query());
+      req.response().end();
+    });
+    startServer();
+    HttpRequest<Buffer> req = webClient.get("/test").addQueryParam("c:d", "e");
+    req.send(onSuccess(resp -> testComplete()));
+    await();
+  }
+
+  @Test
+  public void testQueryParamSpecialCharsDirect() throws Exception {
+    server.requestHandler(req -> {
+      assertEquals("c:d=e", req.query());
+      req.response().end();
+    });
+    startServer();
+    HttpRequest<Buffer> req = webClient.get("/test/?c:d=e");
+    req.send(onSuccess(resp -> testComplete()));
+    await();
   }
 }

@@ -12,6 +12,7 @@ public interface TestService {
   void testEmptyServiceResponse(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
   void testUser(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
   void extraPayload(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  void testAuthorization(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 
   static TestService create(Vertx vertx) {
     return new TestServiceImpl(vertx);

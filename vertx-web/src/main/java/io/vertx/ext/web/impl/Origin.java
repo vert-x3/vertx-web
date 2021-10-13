@@ -15,6 +15,12 @@
  */
 package io.vertx.ext.web.impl;
 
+import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.ext.web.RoutingContext;
+
 /**
  * An origin follows rfc6454#section-7
  * and is expected to have the format: {@code <scheme> "://" <hostname> [ ":" <port> ]}
@@ -25,6 +31,8 @@ package io.vertx.ext.web.impl;
  * @author Paulo Lopes
  */
 public final class Origin {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Origin.class);
 
   private static final String DEFAULT_FTP_PORT = "21";
   private static final String DEFAULT_HTTP_PORT = "80";
@@ -367,7 +375,7 @@ public final class Origin {
     return true;
   }
 
-  public String encode() {
+  public @Nullable String encode() {
     if (isNull) {
       return "<null>";
     }
@@ -402,5 +410,41 @@ public final class Origin {
     }
 
     return base + (resource == null ? "/" : resource);
+  }
+
+  /**
+   * Check if a string is null or empty (including containing only spaces)
+   *
+   * @param s Source string
+   * @return TRUE if source string is null or empty (including containing only spaces)
+   */
+  private static boolean isBlank(String s) {
+    return s == null || s.trim().isEmpty();
+  }
+
+  public static boolean check(Origin origin, RoutingContext ctx) {
+    /* Verifying Same Origin with Standard Headers */
+    if (origin != null) {
+      //Try to get the source from the "Origin" header
+      String source = ctx.request().getHeader(HttpHeaders.ORIGIN);
+      if (isBlank(source)) {
+        //If empty then fallback on "Referer" header
+        source = ctx.request().getHeader(HttpHeaders.REFERER);
+        //If this one is empty too then we trace the event and we block the request (recommendation of the article)...
+        if (isBlank(source)) {
+          LOG.trace("ORIGIN and REFERER request headers are both absent/empty");
+          return false;
+        }
+      }
+
+      //Compare the source against the expected target origin
+      if (!origin.sameOrigin(source)) {
+        //One the part do not match, so we trace the event and we block the request
+        LOG.trace("Protocol/Host/Port do not fully match");
+        return false;
+      }
+    }
+    // no configured origin or origin is valid
+    return true;
   }
 }

@@ -22,15 +22,14 @@ import io.vertx.ext.web.sstore.AbstractSession;
 
 import javax.crypto.Mac;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+
+import static io.vertx.ext.auth.impl.Codec.base64UrlDecode;
+import static io.vertx.ext.auth.impl.Codec.base64UrlEncode;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 public class CookieSession extends AbstractSession {
-
-  private static final Base64.Encoder ENCODER = Base64.getUrlEncoder().withoutPadding();
-  private static final Base64.Decoder DECODER = Base64.getUrlDecoder();
 
   private final Mac mac;
   // track the original version
@@ -59,8 +58,8 @@ public class CookieSession extends AbstractSession {
       .put("data", data())
       .toBuffer();
 
-    String b64 = ENCODER.encodeToString(payload.getBytes());
-    String signature = ENCODER.encodeToString(mac.doFinal(b64.getBytes(StandardCharsets.US_ASCII)));
+    String b64 = base64UrlEncode(payload.getBytes());
+    String signature = base64UrlEncode(mac.doFinal(b64.getBytes(StandardCharsets.US_ASCII)));
 
     return b64 + "." + signature;
   }
@@ -89,14 +88,14 @@ public class CookieSession extends AbstractSession {
       return null;
     }
 
-    String signature = ENCODER.encodeToString(mac.doFinal(tokens[0].getBytes(StandardCharsets.US_ASCII)));
+    String signature = base64UrlEncode(mac.doFinal(tokens[0].getBytes(StandardCharsets.US_ASCII)));
 
     if(!signature.equals(tokens[1])) {
       throw new RuntimeException("Session data was Tampered!");
     }
 
     // reconstruct the session
-    JsonObject decoded = new JsonObject(Buffer.buffer(DECODER.decode(tokens[0])));
+    JsonObject decoded = new JsonObject(Buffer.buffer(base64UrlDecode(tokens[0])));
 
     setId(decoded.getString("id"));
     setTimeout(decoded.getLong("timeout"));

@@ -40,6 +40,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Set;
 
+import static io.vertx.ext.auth.impl.Codec.base16Encode;
+
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
@@ -248,20 +250,8 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
     return "Digest realm=\"" + realm + "\", qop=\"auth\", nonce=\"" + nonce + "\", opaque=\"" + opaque + "\"";
   }
 
-  private final static char[] hexArray = "0123456789abcdef".toCharArray();
-
-  private static String bytesToHex(byte[] bytes) {
-    char[] hexChars = new char[bytes.length * 2];
-    for (int j = 0; j < bytes.length; j++) {
-      int v = bytes[j] & 0xFF;
-      hexChars[j * 2] = hexArray[v >>> 4];
-      hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-    }
-    return new String(hexChars);
-  }
-
   private static synchronized String md5(byte[] payload) {
     MD5.reset();
-    return bytesToHex(MD5.digest(payload));
+    return base16Encode(MD5.digest(payload));
   }
 }

@@ -10,6 +10,8 @@
  */
 package io.vertx.ext.web.impl;
 
+import io.vertx.codegen.annotations.Nullable;
+
 import java.util.Arrays;
 
 /**
@@ -68,7 +70,7 @@ final class SparseArray<H> {
     }
   }
 
-  H remove(final int handlerID) {
+  @Nullable H remove(final int handlerID) {
     if (handlerID < elements.length) {
       final H removed = (H) elements[handlerID];
       elements[handlerID] = null;

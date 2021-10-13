@@ -21,6 +21,11 @@ public class ApolloWSOptionsConverter {
             obj.setKeepAlive(((Number)member.getValue()).longValue());
           }
           break;
+        case "origin":
+          if (member.getValue() instanceof String) {
+            obj.setOrigin((String)member.getValue());
+          }
+          break;
       }
     }
   }
@@ -31,5 +36,8 @@ public class ApolloWSOptionsConverter {
 
   public static void toJson(ApolloWSOptions obj, java.util.Map<String, Object> json) {
     json.put("keepAlive", obj.getKeepAlive());
+    if (obj.getOrigin() != null) {
+      json.put("origin", obj.getOrigin());
+    }
   }
 }

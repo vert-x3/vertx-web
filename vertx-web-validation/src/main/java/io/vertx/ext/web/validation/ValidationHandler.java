@@ -21,7 +21,7 @@ public interface ValidationHandler extends Handler<RoutingContext> {
 
   String REQUEST_CONTEXT_KEY = "requestParameters";
 
-  @GenIgnore
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ValidationHandlerBuilder builder(SchemaParser parser) {
     return ValidationHandlerBuilder.create(parser);
   }

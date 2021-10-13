@@ -66,6 +66,11 @@
       <artifactId>vertx-auth-webauthn</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-otp</artifactId>
+      <optional>true</optional>
+    </dependency>
 
     <!-- Testing -->
     <dependency>
@@ -137,6 +142,21 @@
             <configuration>
               <includes>
                 <include>io/vertx/ext/web/it/RoutingContextDatabindTest.java</include>
+              </includes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>router-extended-param-itest</id>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+            <configuration>
+              <systemProperties>
+                <io.vertx.web.route.param.extended-pattern>true</io.vertx.web.route.param.extended-pattern>
+              </systemProperties>
+              <includes>
+                <include>io/vertx/ext/web/it/RouterExtendedParamTest.java</include>
               </includes>
             </configuration>
           </execution>

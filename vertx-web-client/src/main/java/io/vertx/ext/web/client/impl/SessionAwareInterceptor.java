@@ -17,20 +17,26 @@ import io.vertx.ext.web.client.spi.CookieStore;
  */
 public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
 
+  private final WebClientSessionAware parentClient;
+
+  public SessionAwareInterceptor(WebClientSessionAware clientSessionAware) {
+    this.parentClient = clientSessionAware;
+  }
+
   @Override
   public void handle(HttpContext<?> context) {
     switch(context.phase()) {
       case CREATE_REQUEST:
-      createRequest(context);
-      break;
-    case FOLLOW_REDIRECT:
-      processRedirectCookies(context);
-      break;
-    case DISPATCH_RESPONSE:
-      processResponse(context);
-	    break;
-    default:
-      break;
+        createRequest(context);
+        break;
+      case FOLLOW_REDIRECT:
+        processRedirectCookies(context);
+        break;
+      case DISPATCH_RESPONSE:
+        processResponse(context);
+        break;
+      default:
+        break;
     }
 
     context.next();
@@ -39,7 +45,6 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
   private void createRequest(HttpContext<?> context) {
 
     HttpRequestImpl<?> request = (HttpRequestImpl<?>) context.request();
-    WebClientSessionAware webclient = (WebClientSessionAware) request.client;
 
     RequestOptions requestOptions = context.requestOptions();
     MultiMap headers = requestOptions.getHeaders();
@@ -47,14 +52,14 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       headers = HttpHeaders.headers();
       requestOptions.setHeaders(headers);
     }
-    headers.addAll(webclient.headers());
+    headers.addAll(parentClient.headers());
 
     String domain = request.virtualHost();
     if (domain == null) {
       domain = request.host();
     }
 
-    Iterable<Cookie> cookies = webclient.cookieStore().get(request.ssl, domain, request.uri);
+    Iterable<Cookie> cookies = parentClient.cookieStore().get(request.ssl, domain, request.uri);
     String encodedCookies = ClientCookieEncoder.STRICT.encode(cookies);
     if (encodedCookies != null) {
       headers.add(HttpHeaders.COOKIE, encodedCookies);
@@ -73,9 +78,8 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       return;
     }
 
-    WebClientSessionAware webclient = (WebClientSessionAware) ((HttpRequestImpl<?>)context.request()).client;
     HttpRequestImpl<?> originalRequest = (HttpRequestImpl<?>) context.request();
-    CookieStore cookieStore = webclient.cookieStore();
+    CookieStore cookieStore = parentClient.cookieStore();
     String domain = URI.create(context.clientResponse().request().absoluteURI()).getHost();
     if (domain.equals(originalRequest.host()) && originalRequest.virtualHost != null) {
       domain = originalRequest.virtualHost;
@@ -107,9 +111,8 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       domain = redirectHost;
     }
 
-    WebClientSessionAware webclient = (WebClientSessionAware) originalRequest.client;
     String path = parsePath(redirectRequest.getURI());
-    Iterable<Cookie> cookies = webclient.cookieStore().get(originalRequest.ssl, domain, path);
+    Iterable<Cookie> cookies = parentClient.cookieStore().get(originalRequest.ssl, domain, path);
     String encodedCookies = ClientCookieEncoder.STRICT.encode(cookies);
     if (encodedCookies != null) {
       redirectRequest.putHeader(HttpHeaders.COOKIE, encodedCookies);
@@ -144,14 +147,13 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
   }
 
   private void processResponse(HttpContext<?> context) {
-    List<String> cookieHeaders = context.clientResponse().cookies();
+    List<String> cookieHeaders = context.response().cookies();
     if (cookieHeaders == null) {
       return;
     }
 
-    WebClientSessionAware webclient = (WebClientSessionAware) ((HttpRequestImpl<?>)context.request()).client;
     HttpRequestImpl<?> request = (HttpRequestImpl<?>) context.request();
-    CookieStore cookieStore = webclient.cookieStore();
+    CookieStore cookieStore = parentClient.cookieStore();
     cookieHeaders.forEach(header -> {
       Cookie cookie = ClientCookieDecoder.STRICT.decode(header);
       if (cookie != null) {

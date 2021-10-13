@@ -176,9 +176,14 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
   public void size(Handler<AsyncResult<Integer>> resultHandler) {
     redis.send(cmd(DBSIZE), res -> {
         if (res.succeeded()) {
-          long lngCount = res.result().toLong();
-          int count = (lngCount > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) lngCount;
-          resultHandler.handle(Future.succeededFuture(count));
+          Response response = res.result();
+          if (response == null) {
+            resultHandler.handle(Future.succeededFuture(-1));
+          } else {
+            Long lngCount = response.toLong();
+            int count = (lngCount > Integer.MAX_VALUE) ? Integer.MAX_VALUE : lngCount.intValue();
+            resultHandler.handle(Future.succeededFuture(count));
+          }
         } else {
           resultHandler.handle(Future.failedFuture(res.cause()));
         }

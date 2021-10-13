@@ -148,7 +148,9 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
           String state = null;
           String codeVerifier = null;
 
-          if (context.session() == null) {
+          final Session session = context.session();
+
+          if (session == null) {
             if (pkce > 0) {
               // we can only handle PKCE with a session
               context.fail(500, new IllegalStateException("OAuth2 PKCE requires a session to be present"));
@@ -156,19 +158,19 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
             }
           } else {
             // there's a session we can make this request comply to the Oauth2 spec and add an opaque state
-            context.session()
+            session
               .put("redirect_uri", context.request().uri());
 
             // create a state value to mitigate replay attacks
             state = prng.nextString(6);
             // store the state in the session
-            context.session()
+            session
               .put("state", state);
 
             if (pkce > 0) {
               codeVerifier = prng.nextString(pkce);
               // store the code verifier in the session
-              context.session()
+              session
                 .put("pkce", codeVerifier);
             }
           }
@@ -268,15 +270,20 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       throw new IllegalStateException("OAuth2AuthHandler was created without a origin/callback URL");
     }
 
+    final String routePath = route.getPath();
+
+    if (routePath == null) {
+      // warn that the setup is probably wrong
+      throw new IllegalStateException("OAuth2AuthHandler callback route created without a path");
+    }
+
     final String callbackPath = callbackURL.resource();
 
     if (callbackPath != null && !"".equals(callbackPath)) {
-      if (!callbackPath.equals(route.getPath())) {
+      if (!callbackPath.endsWith(routePath)) {
         if (LOG.isWarnEnabled()) {
-          LOG.warn("route path changed to match callback URL");
+          LOG.warn("callback route doesn't match OAuth2AuthHandler origin configuration");
         }
-        // no matter what path was provided we will make sure it is the correct one
-        route.path(callbackPath);
       }
     }
 
@@ -336,11 +343,12 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       }
 
       final String resource;
+      final Session session = ctx.session();
 
-      if (ctx.session() != null) {
+      if (session != null) {
         // validate the state. Here we are a bit lenient, if there is no session
         // we always assume valid, however if there is session it must match
-        String ctxState = ctx.session().remove("state");
+        String ctxState = session.remove("state");
         // if there's a state in the context they must match
         if (!state.equals(ctxState)) {
           // forbidden, the state is not valid (this is a replay attack)
@@ -350,10 +358,10 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
         // remove the code verifier, from the session as it will be trade for the
         // token during the final leg of the oauth2 handshake
-        String codeVerifier = ctx.session().remove("pkce");
+        String codeVerifier = session.remove("pkce");
         credentials.setCodeVerifier(codeVerifier);
         // state is valid, extract the redirectUri from the session
-        resource = ctx.session().get("redirect_uri");
+        resource = session.get("redirect_uri");
       } else {
         resource = state;
       }
@@ -367,7 +375,6 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
           ctx.fail(res.cause());
         } else {
           ctx.setUser(res.result());
-          Session session = ctx.session();
           String location = resource != null ? resource : "/";
           if (session != null) {
             // the user has upgraded from unauthenticated to authenticated
@@ -420,8 +427,15 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   public void postAuthentication(RoutingContext ctx) {
     // the user is authenticated, however the user may not have all the required scopes
     if (scopes != null && scopes.size() > 0) {
-      if (ctx.user().principal().containsKey("scope")) {
-        final String scopes = ctx.user().principal().getString("scope");
+      final User user = ctx.user();
+      if (user == null) {
+        // bad state
+        ctx.fail(403, new IllegalStateException("no user in the context"));
+        return;
+      }
+
+      if (user.principal().containsKey("scope")) {
+        final String scopes = user.principal().getString("scope");
         if (scopes != null) {
           // user principal contains scope, a basic assertion is required to ensure that
           // the scopes present match the required ones

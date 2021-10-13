@@ -27,7 +27,6 @@ import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.impl.Utils;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -441,6 +440,28 @@ public class StaticHandlerTest extends WebTestBase {
   public void testServeFilesFromFilesystem() throws Exception {
     stat.setWebRoot("src/test/filesystemwebroot");
     testRequest(HttpMethod.GET, "/fspage.html", 200, "OK", "<html><body>File system page</body></html>");
+  }
+
+  @Test
+  public void testServeFilesFromFilesystemWithSpaces() throws Exception {
+    stat.setWebRoot("src/test/filesystemwebroot");
+    testRequest(HttpMethod.GET, "/file%20with%20spaces2.html", 200, "OK", "<html><body>File with spaces</body></html>");
+  }
+
+  @Test
+  public void testServeFilesFromFilesystemWithSpacesMountOnWildcard() throws Exception {
+    stat = StaticHandler.create("src/test/filesystemwebroot");
+    router.clear();
+    router.route("/*").handler(stat);
+    testRequest(HttpMethod.GET, "/file%20with%20spaces2.html", 200, "OK", "<html><body>File with spaces</body></html>");
+  }
+
+  @Test
+  public void testServeFilesFromFilesystemWithSpacesMountOnWildcardPlus() throws Exception {
+    stat = StaticHandler.create("src/test/filesystemwebroot");
+    router.clear();
+    router.route("/*").handler(stat);
+    testRequest(HttpMethod.GET, "/file+with+spaces2.html", 404, "Not Found");
   }
 
   @Test

@@ -73,10 +73,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     this.router = router;
     this.request = new HttpServerRequestWrapper(request, router.getAllowForward());
 
-    if (request.path().length() == 0) {
+    final String path = request.path();
+
+    if (path == null || path.length() == 0) {
       // HTTP paths must start with a '/'
       fail(400);
-    } else if (request.path().charAt(0) != '/') {
+    } else if (path.charAt(0) != '/') {
       // For compatiblity we return `Not Found` when a path does not start with `/`
       fail(404);
     }
@@ -527,7 +529,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private SparseArray<Handler<Void>> getHeadersEndHandlers() {
     if (headersEndHandlers == null) {
-      headersEndHandlers = new SparseArray<Handler<Void>>();
+      headersEndHandlers = new SparseArray<>();
       // order is important we we should traverse backwards
       response().headersEndHandler(v -> headersEndHandlers.forEachInReverseOrder(handler -> handler.handle(null)));
     }
@@ -536,7 +538,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private SparseArray<Handler<Void>> getBodyEndHandlers() {
     if (bodyEndHandlers == null) {
-      bodyEndHandlers = new SparseArray<Handler<Void>>();
+      bodyEndHandlers = new SparseArray<>();
       // order is important we we should traverse backwards
       response().bodyEndHandler(v -> bodyEndHandlers.forEachInReverseOrder(handler -> handler.handle(null)));
     }
@@ -546,7 +548,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private SparseArray<Handler<AsyncResult<Void>>> getEndHandlers() {
     if (endHandlers == null) {
       // order is important we we should traverse backwards
-      endHandlers = new SparseArray<Handler<AsyncResult<Void>>>();
+      endHandlers = new SparseArray<>();
 
       final Handler<Void> endHandler = v -> {
         if (!endHandlerCalled) {

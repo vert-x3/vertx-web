@@ -1,5 +1,6 @@
 package io.vertx.ext.web.impl;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.ParsedHeaderValue;
@@ -48,7 +49,7 @@ public class ParsableHeaderValuesContainer implements ParsedHeaderValues {
   }
 
   @Override
-  public MIMEHeader findBestUserAcceptedIn(List<MIMEHeader> userAccepted, Collection<MIMEHeader> in) {
+  public @Nullable MIMEHeader findBestUserAcceptedIn(List<MIMEHeader> userAccepted, Collection<MIMEHeader> in) {
     for (MIMEHeader acceptableType: userAccepted) {
       MIMEHeader acceptedType = acceptableType.findMatchedBy(in);
       if (acceptedType != null) {

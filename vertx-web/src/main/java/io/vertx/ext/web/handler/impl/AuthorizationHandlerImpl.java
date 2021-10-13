@@ -18,8 +18,11 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authorization.Authorization;
 import io.vertx.ext.auth.authorization.AuthorizationContext;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;
@@ -49,25 +52,31 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
   }
 
   @Override
-  public void handle(RoutingContext routingContext) {
-    if (routingContext.user() == null) {
-      routingContext.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
+  public void handle(RoutingContext ctx) {
+    final User user = ctx.user();
+    if (user == null) {
+      ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
     } else {
       // before starting any potential async operation here
       // pause parsing the request body. The reason is that
       // we don't want to loose the body or protocol upgrades
       // for async operations
-      routingContext.request().pause();
-
+      final boolean parseEnded = ctx.request().isEnded();
+      if (!parseEnded) {
+        ctx.request().pause();
+      }
       try {
         // create the authorization context
-        AuthorizationContext authorizationContext = getAuthorizationContext(routingContext);
+        final AuthorizationContext authorizationContext = AuthorizationContext.create(user);
+        if (variableHandler != null) {
+          variableHandler.accept(ctx, authorizationContext);
+        }
         // check or fetch authorizations
-        checkOrFetchAuthorizations(routingContext, authorizationContext, authorizationProviders.iterator());
+        checkOrFetchAuthorizations(ctx, parseEnded, authorizationContext, authorizationProviders.iterator());
       } catch (RuntimeException e) {
         // resume as the error handler may allow this request to become valid again
-        routingContext.request().resume();
-        routingContext.fail(e);
+        resume(ctx.request(), parseEnded);
+        ctx.fail(e);
       }
     }
   }
@@ -82,57 +91,61 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
    * this method checks that the specified authorization match the current content.
    * It doesn't fetch all providers at once in order to do early-out, but rather tries to be smart and fetch authorizations one provider at a time
    *
-   * @param routingContext the current routing context
+   * @param ctx the current routing context
    * @param authorizationContext the current authorization context
    * @param providers the providers iterator
    */
-  private void checkOrFetchAuthorizations(RoutingContext routingContext, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
+  private void checkOrFetchAuthorizations(RoutingContext ctx, boolean parseEnded, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
     if (authorization.match(authorizationContext)) {
       // resume the processing of the request
-      routingContext.request().resume();
-      routingContext.next();
+      resume(ctx.request(), parseEnded);
+      ctx.next();
       return;
     }
-    if (!providers.hasNext()) {
+
+    final User user = ctx.user();
+
+    if (user == null || !providers.hasNext()) {
       // resume as the error handler may allow this request to become valid again
-      routingContext.request().resume();
-      routingContext.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
+      resume(ctx.request(), parseEnded);
+      ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
       return;
     }
 
     // there was no match, in this case we do the following:
     // 1) contact the next provider we haven't contacted yet
     // 2) if there is a match, get out right away otherwise repeat 1)
-    while (providers.hasNext()) {
+    do {
       AuthorizationProvider provider = providers.next();
-      // we haven't fetch authorization from this provider yet
-      if (! routingContext.user().authorizations().getProviderIds().contains(provider.getId())) {
-        provider.getAuthorizations(routingContext.user(), authorizationResult -> {
+      // we haven't fetched authorization from this provider yet
+      if (!user.authorizations().getProviderIds().contains(provider.getId())) {
+        provider.getAuthorizations(ctx.user(), authorizationResult -> {
           if (authorizationResult.failed()) {
-            LOG.warn("An error occured getting authorization - providerId: " + provider.getId(), authorizationResult.cause());
-            // note that we don't 'record' the fact that we tried to fetch the authorization provider. therefore it will be re-fetched later-on
+            LOG.warn("An error occurred getting authorization - providerId: " + provider.getId(), authorizationResult.cause());
+            // note that we don't 'record' the fact that we tried to fetch the authorization provider. therefore, it will be re-fetched later-on
           }
-          checkOrFetchAuthorizations(routingContext, authorizationContext, providers);
+          checkOrFetchAuthorizations(ctx, parseEnded, authorizationContext, providers);
         });
         // get out right now as the callback will decide what to do next
         return;
       }
-    }
-  }
-
-  private AuthorizationContext getAuthorizationContext(RoutingContext event) {
-    final AuthorizationContext result = AuthorizationContext.create(event.user());
-    if (variableHandler != null) {
-      variableHandler.accept(event, result);
-    }
-    return result;
+    } while (providers.hasNext());
+    // reached the end of the iterator
+    // resume as the error handler may allow this request to become valid again, yet mark the request as forbidden
+    resume(ctx.request(), parseEnded);
+    ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
   }
 
   @Override
   public AuthorizationHandler addAuthorizationProvider(AuthorizationProvider authorizationProvider) {
     Objects.requireNonNull(authorizationProvider);
-
     this.authorizationProviders.add(authorizationProvider);
     return this;
+  }
+
+  private void resume(HttpServerRequest request, final boolean parseEnded) {
+    if (!parseEnded && !request.headers().contains(HttpHeaders.UPGRADE, HttpHeaders.WEBSOCKET, true)) {
+      request.resume();
+    }
   }
 }

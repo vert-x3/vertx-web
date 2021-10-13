@@ -19,8 +19,8 @@ public class WebApiProxyMethodInfo extends ProxyMethodInfo {
   final List<ParamInfo> paramsToExtract;
   final String requestContextName;
 
-  public WebApiProxyMethodInfo(Set<ClassTypeInfo> ownerTypes, String name, TypeInfo returnType, Text returnDescription, boolean fluent, boolean cacheReturn, List<ParamInfo> params, String comment, Doc doc, boolean staticMethod, boolean defaultMethod, List<TypeParamInfo.Method> typeParams, boolean proxyIgnore, boolean proxyClose, boolean deprecated, Text deprecatedDesc, boolean useFutures) {
-    super(ownerTypes, name, returnType, returnDescription, fluent, cacheReturn, params, comment, doc, staticMethod, defaultMethod, typeParams, proxyIgnore, proxyClose, deprecated, deprecatedDesc, useFutures);
+  public WebApiProxyMethodInfo(Set<ClassTypeInfo> ownerTypes, String name, TypeInfo returnType, Text returnDescription, boolean fluent, boolean cacheReturn, List<ParamInfo> params, String comment, Doc doc, boolean staticMethod, boolean defaultMethod, List<TypeParamInfo.Method> typeParams, boolean proxyIgnore, boolean proxyClose, boolean deprecated, Text deprecatedDesc, boolean useFutures, boolean methodOverride) {
+    super(ownerTypes, name, returnType, returnDescription, fluent, cacheReturn, params, comment, doc, staticMethod, defaultMethod, typeParams, proxyIgnore, proxyClose, deprecated, deprecatedDesc, useFutures, methodOverride);
     final int truncateParamsToIndex = useFutures ? 1 : 2;
     paramsToExtract = params.subList(0, params.size() - truncateParamsToIndex);
     requestContextName = params.get(params.size() - truncateParamsToIndex).getName();
@@ -44,7 +44,8 @@ public class WebApiProxyMethodInfo extends ProxyMethodInfo {
       info.isProxyClose(),
       info.isDeprecated(),
       info.getDeprecatedDesc(),
-      info.isUseFutures()
+      info.isUseFutures(),
+      info.isMethodOverride()
     );
   }
 

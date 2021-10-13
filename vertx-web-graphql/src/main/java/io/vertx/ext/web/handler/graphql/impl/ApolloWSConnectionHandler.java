@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Red Hat, Inc.
+ * Copyright 2021 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -27,17 +27,16 @@ import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.common.WebEnvironment;
 import io.vertx.ext.web.handler.graphql.ApolloWSConnectionInitEvent;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessageType;
+import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import org.dataloader.DataLoaderRegistry;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -48,6 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.vertx.ext.web.handler.graphql.ApolloWSMessageType.*;
+import static io.vertx.ext.web.handler.graphql.impl.ErrorUtil.toJsonObject;
 
 /**
  * @author Rogelio Orts
@@ -234,6 +234,23 @@ class ApolloWSConnectionHandler {
       builder.root(initialValue);
     }
 
+    Handler<ExecutionInputBuilderWithContext<ApolloWSMessage>> beforeExecute = apolloWSHandler.getBeforeExecute();
+    if (beforeExecute != null) {
+      beforeExecute.handle(new ExecutionInputBuilderWithContext<ApolloWSMessage>() {
+        @Override
+        public ApolloWSMessage context() {
+          return message;
+        }
+
+        @Override
+        public ExecutionInput.Builder builder() {
+          return builder;
+        }
+      });
+    }
+
+    builder.graphQLContext(Collections.singletonMap(ApolloWSMessage.class, message));
+
     apolloWSHandler.getGraphQL().executeAsync(builder).whenCompleteAsync((executionResult, throwable) -> {
       if (throwable == null) {
         if (executionResult.getData() instanceof Publisher) {
@@ -292,21 +309,6 @@ class ApolloWSConnectionHandler {
       subscription.cancel();
       subscriptions.remove(opId);
     }
-  }
-
-  private JsonObject toJsonObject(Throwable t) {
-    JsonObject res = new JsonObject().put("message", t.toString());
-    if (WebEnvironment.development()) {
-      StringWriter sw = new StringWriter();
-      try (PrintWriter writer = new PrintWriter(sw)) {
-        t.printStackTrace(writer);
-        writer.flush();
-      }
-      res.put("extensions", new JsonObject()
-        .put("exception", new JsonObject()
-          .put("stacktrace", sw.toString())));
-    }
-    return res;
   }
 
   private Future<Void> sendMessage(String opId, ApolloWSMessageType type, Object payload) {
