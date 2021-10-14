@@ -18,70 +18,34 @@ package io.vertx.ext.web.templ.jte.impl;
 
 import gg.jte.CodeResolver;
 import io.vertx.core.Vertx;
-import io.vertx.ext.web.common.WebEnvironment;
+import io.vertx.core.file.FileSystem;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author <a href="mailto:andy@mazebert.com">Andreas Hager</a>
  */
 public class VertxDirectoryCodeResolver implements CodeResolver {
-  private final Vertx vertx;
+  private final FileSystem fs;
   private final Path templateRootDirectory;
-  private final ConcurrentMap<String, Long> modificationTimes;
 
   public VertxDirectoryCodeResolver(Vertx vertx, String templateRootDirectory) {
-    this.vertx = vertx;
+    this.fs = vertx.fileSystem();
     this.templateRootDirectory = Paths.get(templateRootDirectory);
-
-    if (WebEnvironment.development()) {
-      modificationTimes = new ConcurrentHashMap<>();
-    } else {
-      modificationTimes = null;
-    }
   }
 
+  @Override
   public String resolve(String name) {
-    name = templateRootDirectory.resolve(name).toString();
-
-    String templateCode = vertx.fileSystem().readFileBlocking(name).toString();
-    if (templateCode == null) {
-      return null;
-    }
-
-    if (modificationTimes != null) {
-      modificationTimes.put(name, this.getLastModified(name));
-    }
-
-    return templateCode;
+    return fs
+      .readFileBlocking(templateRootDirectory.resolve(name).toString())
+      .toString();
   }
 
-  public boolean hasChanged(String name) {
-    if (modificationTimes == null) {
-      return false;
-    }
-
-    name = templateRootDirectory.resolve(name).toString();
-
-    Long lastResolveTime = this.modificationTimes.get(name);
-    if (lastResolveTime == null) {
-      return true;
-    } else {
-      long lastModified = this.getLastModified(name);
-      return lastModified != lastResolveTime;
-    }
-  }
-
-  private long getLastModified(String name) {
-    return vertx.fileSystem().propsBlocking(name).lastModifiedTime();
-  }
-
-  public void clear() {
-    if (modificationTimes != null) {
-      modificationTimes.clear();
-    }
+  @Override
+  public long getLastModified(String name) {
+    return fs
+      .propsBlocking(templateRootDirectory.resolve(name).toString())
+      .lastModifiedTime();
   }
 }

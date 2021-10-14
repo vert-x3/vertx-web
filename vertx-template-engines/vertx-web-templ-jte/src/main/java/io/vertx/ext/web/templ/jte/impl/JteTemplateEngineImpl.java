@@ -76,9 +76,6 @@ public class JteTemplateEngineImpl implements JteTemplateEngine {
 
   @Override
   public void clearCache() {
-    if (codeResolver != null) {
-      codeResolver.clear();
-    }
   }
 
   @Override
