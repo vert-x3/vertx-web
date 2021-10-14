@@ -26,20 +26,25 @@ import io.vertx.ext.web.handler.HttpException;
 
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public abstract class RoutingContextImplBase implements RoutingContextInternal {
 
+  private static final AtomicIntegerFieldUpdater<RoutingContextImplBase> CURRENT_ROUTE_NEXT_HANDLER_INDEX =
+    AtomicIntegerFieldUpdater.newUpdater(RoutingContextImplBase.class, "currentRouteNextHandlerIndex");
+  private static final AtomicIntegerFieldUpdater<RoutingContextImplBase> CURRENT_ROUTE_NEXT_FAILURE_HANDLER_INDEX =
+    AtomicIntegerFieldUpdater.newUpdater(RoutingContextImplBase.class, "currentRouteNextFailureHandlerIndex");
+
   protected static final Logger LOG = LoggerFactory.getLogger(RoutingContext.class);
 
   private final Set<RouteImpl> routes;
 
   protected final String mountPoint;
-  private final AtomicInteger currentRouteNextHandlerIndex;
-  private final AtomicInteger currentRouteNextFailureHandlerIndex;
+  private volatile int currentRouteNextHandlerIndex;
+  private volatile int currentRouteNextFailureHandlerIndex;
   protected Iterator<RouteImpl> iter;
   protected RouteState currentRoute;
   // When Route#matches executes, if it returns != 0 this flag is configured
@@ -55,8 +60,6 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
     this.mountPoint = mountPoint;
     this.routes = routes;
     this.iter = routes.iterator();
-    this.currentRouteNextHandlerIndex = new AtomicInteger(0);
-    this.currentRouteNextFailureHandlerIndex = new AtomicInteger(0);
     resetMatchFailure();
   }
 
@@ -91,11 +94,11 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   }
 
   int currentRouteNextHandlerIndex() {
-    return currentRouteNextHandlerIndex.intValue();
+    return currentRouteNextHandlerIndex;
   }
 
   int currentRouteNextFailureHandlerIndex() {
-    return currentRouteNextFailureHandlerIndex.intValue();
+    return currentRouteNextFailureHandlerIndex;
   }
 
   void restart() {
@@ -109,12 +112,12 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
     if (currentRoute != null) { // Handle multiple handlers inside route object
       try {
         if (!failed && currentRoute.hasNextContextHandler(this)) {
-          currentRouteNextHandlerIndex.incrementAndGet();
+          CURRENT_ROUTE_NEXT_HANDLER_INDEX.incrementAndGet(this);
           resetMatchFailure();
           currentRoute.handleContext(this);
           return true;
         } else if (failed && currentRoute.hasNextFailureHandler(this)) {
-          currentRouteNextFailureHandlerIndex.incrementAndGet();
+          CURRENT_ROUTE_NEXT_FAILURE_HANDLER_INDEX.incrementAndGet(this);
           currentRoute.handleFailure(this);
           return true;
         }
@@ -128,8 +131,8 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
       // state is locked at this moment
       RouteState routeState = iter.next().state();
 
-      currentRouteNextHandlerIndex.set(0);
-      currentRouteNextFailureHandlerIndex.set(0);
+      CURRENT_ROUTE_NEXT_HANDLER_INDEX.set(this, 0);
+      CURRENT_ROUTE_NEXT_FAILURE_HANDLER_INDEX.set(this, 0);
       try {
         int matchResult = routeState.matches(this, mountPoint(), failed);
         if (matchResult == 0) {
@@ -144,10 +147,10 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
               LOG.trace("Calling the " + (failed ? "failure" : "") + " handler");
             }
             if (failed && currentRoute.hasNextFailureHandler(this)) {
-              currentRouteNextFailureHandlerIndex.incrementAndGet();
+              CURRENT_ROUTE_NEXT_FAILURE_HANDLER_INDEX.incrementAndGet(this);
               routeState.handleFailure(this);
             } else if (currentRoute.hasNextContextHandler(this)) {
-              currentRouteNextHandlerIndex.incrementAndGet();
+              CURRENT_ROUTE_NEXT_HANDLER_INDEX.incrementAndGet(this);
               routeState.handleContext(this);
             } else {
               continue;
