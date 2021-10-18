@@ -18,6 +18,7 @@ import javax.net.ssl.SSLSession;
 import javax.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
@@ -372,13 +373,23 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
   }
 
   @Override
-  public int cookieCount() {
-    return delegate.cookieCount();
+  public @Nullable Cookie getCookie(String name, String domain, String path) {
+    return delegate.getCookie(name, domain, path);
   }
 
   @Override
-  public Map<String, Cookie> cookieMap() {
-    return delegate.cookieMap();
+  public String getParam(String paramName, String defaultValue) {
+    return delegate.getParam(paramName, defaultValue);
+  }
+
+  @Override
+  public Set<Cookie> cookies(String name) {
+    return delegate.cookies(name);
+  }
+
+  @Override
+  public Set<Cookie> cookies() {
+    return delegate.cookies();
   }
 
   @Override
