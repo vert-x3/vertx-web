@@ -16,7 +16,7 @@
     <dependency>
       <groupId>com.github.jknack</groupId>
       <artifactId>handlebars</artifactId>
-      <version>4.2.0</version>
+      <version>4.3.0</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
