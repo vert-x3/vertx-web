@@ -42,7 +42,7 @@ import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template> implements HandlebarsTemplateEngine {
 
   private static final List<ValueResolver> VALUE_RESOLVERS_LIST = ValueResolver.defaultValueResolvers();
-  private static final ValueResolver[] VALUE_RESOLVERS = VALUE_RESOLVERS_LIST.toArray(VALUE_RESOLVERS_LIST.size());
+  private static final ValueResolver[] VALUE_RESOLVERS = VALUE_RESOLVERS_LIST.toArray(new ValueResolver[VALUE_RESOLVERS_LIST.size()]);
 
   private final Handlebars handlebars;
   private final Loader loader;
