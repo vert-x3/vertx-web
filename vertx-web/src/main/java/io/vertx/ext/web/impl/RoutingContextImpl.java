@@ -26,14 +26,16 @@ import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.*;
+import io.vertx.ext.web.FileUpload;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.impl.UserHolder;
 
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import static io.vertx.ext.web.handler.impl.SessionHandlerImpl.SESSION_USER_HOLDER_KEY;
 
@@ -42,9 +44,13 @@ import static io.vertx.ext.web.handler.impl.SessionHandlerImpl.SESSION_USER_HOLD
  */
 public class RoutingContextImpl extends RoutingContextImplBase {
 
+  private static final AtomicIntegerFieldUpdater<RoutingContextImpl> HANDLER_SEQ =
+    AtomicIntegerFieldUpdater.newUpdater(RoutingContextImpl.class, "handlerSeq");
+
   private final RouterImpl router;
   private final HttpServerRequest request;
-  private final AtomicInteger handlerSeq = new AtomicInteger();
+
+  private volatile int handlerSeq;
 
   private Map<String, Object> data;
   private Map<String, String> pathParams;
@@ -601,7 +607,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   private int nextHandlerSeq() {
-    int seq = handlerSeq.incrementAndGet();
+    int seq = HANDLER_SEQ.incrementAndGet(this);
     if (seq == Integer.MAX_VALUE) {
       throw new IllegalStateException("Too many header/body end handlers!");
     }
