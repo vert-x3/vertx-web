@@ -19,6 +19,7 @@ package io.vertx.ext.web.templ.handlebars.impl;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Map;
 
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
@@ -40,6 +41,9 @@ import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
  */
 public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template> implements HandlebarsTemplateEngine {
 
+  private static final List<ValueResolver> VALUE_RESOLVERS_LIST = ValueResolver.defaultValueResolvers();
+  private static final ValueResolver[] VALUE_RESOLVERS = VALUE_RESOLVERS_LIST.toArray(VALUE_RESOLVERS_LIST.size());
+
   private final Handlebars handlebars;
   private final Loader loader;
 
@@ -49,12 +53,12 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
     super(vertx, extension);
     loader = new Loader(vertx);
     // custom resolvers
-    resolvers = new ValueResolver[ValueResolver.VALUE_RESOLVERS.length + 2];
+    resolvers = new ValueResolver[VALUE_RESOLVERS.length + 2];
     // custom resolvers for vertx json types
     resolvers[0] = JsonArrayValueResolver.INSTANCE;
     resolvers[1] = JsonObjectValueResolver.INSTANCE;
     // default resolvers
-    System.arraycopy(ValueResolver.VALUE_RESOLVERS, 0, resolvers, 2, ValueResolver.VALUE_RESOLVERS.length);
+    System.arraycopy(VALUE_RESOLVERS, 0, resolvers, 2, VALUE_RESOLVERS.length);
     // create the engine
     handlebars = new Handlebars(loader);
   }
