@@ -296,7 +296,7 @@ public class SessionHandlerImpl implements SessionHandler {
     if (sessionID != null && sessionID.length() > minLength) {
       // before starting any potential async operation here
       // pause parsing the request body. The reason is that
-      // we don't want to loose the body or protocol upgrades
+      // we don't want to lose the body or protocol upgrades
       // for async operations
       final boolean parseEnded = request.isEnded();
       if (!parseEnded) {
@@ -347,7 +347,7 @@ public class SessionHandlerImpl implements SessionHandler {
     Session session = sessionStore.createSession(sessionTimeout, minLength);
     context.setSession(session);
     if (!cookieless) {
-      context.removeCookie(sessionCookieName, false);
+      context.response().removeCookie(sessionCookieName, false);
     }
     // it's a new session we must store the user too otherwise it won't be linked
     context.put(SESSION_STOREUSER_KEY, true);
@@ -361,7 +361,7 @@ public class SessionHandlerImpl implements SessionHandler {
 
   public Future<Void> setUser(RoutingContext context, User user) {
     if (!cookieless) {
-      context.removeCookie(sessionCookieName, false);
+      context.response().removeCookie(sessionCookieName, false);
     }
     context.setUser(user);
     // signal we must store the user to link it to the session
@@ -396,7 +396,11 @@ public class SessionHandlerImpl implements SessionHandler {
         return path.substring(s, e);
       }
     } else {
-      Cookie cookie = context.getCookie(sessionCookieName);
+      // only pick the first cookie, when multiple sessions are used:
+      // https://www.rfc-editor.org/rfc/rfc6265#section-5.4
+      // The user agent SHOULD sort the cookie-list in the following order:
+      // Cookies with longer paths are listed before cookies with shorter paths.
+      Cookie cookie = context.request().getCookie(sessionCookieName);
       if (cookie != null) {
         // Look up sessionId
         return cookie.getValue();
@@ -448,7 +452,7 @@ public class SessionHandlerImpl implements SessionHandler {
     Session session = sessionStore.createSession(sessionTimeout, minLength);
     context.setSession(session);
     if (!cookieless) {
-      context.removeCookie(sessionCookieName, false);
+      context.response().removeCookie(sessionCookieName, false);
     }
     // it's a new session we must store the user too otherwise it won't be linked
     context.put(SESSION_STOREUSER_KEY, true);
@@ -456,13 +460,17 @@ public class SessionHandlerImpl implements SessionHandler {
   }
 
   private Cookie sessionCookie(final RoutingContext context, final Session session) {
-    Cookie cookie = context.getCookie(sessionCookieName);
+    // only pick the first cookie, when multiple sessions are used:
+    // https://www.rfc-editor.org/rfc/rfc6265#section-5.4
+    // The user agent SHOULD sort the cookie-list in the following order:
+    // Cookies with longer paths are listed before cookies with shorter paths.
+    Cookie cookie = context.request().getCookie(sessionCookieName);
     if (cookie != null) {
       return cookie;
     }
     cookie = Cookie.cookie(sessionCookieName, session.value());
     setCookieProperties(cookie, false);
-    context.addCookie(cookie);
+    context.response().addCookie(cookie);
     return cookie;
   }
 }

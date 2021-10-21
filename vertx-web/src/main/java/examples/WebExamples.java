@@ -729,13 +729,13 @@ public class WebExamples {
 
   public void example30(RoutingContext ctx) {
 
-    Cookie someCookie = ctx.getCookie("mycookie");
+    Cookie someCookie = ctx.request().getCookie("mycookie");
     String cookieValue = someCookie.getValue();
 
     // Do something with cookie...
 
     // Add a cookie - this will get written back in the response automatically
-    ctx.addCookie(Cookie.cookie("othercookie", "somevalue"));
+    ctx.response().addCookie(Cookie.cookie("othercookie", "somevalue"));
   }
 
   public void example31(Vertx vertx) {

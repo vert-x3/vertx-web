@@ -27,8 +27,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.APIKeyHandler;
 import io.vertx.ext.web.handler.HttpException;
 
-import java.util.Map;
-
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
@@ -108,9 +106,9 @@ public class APIKeyHandlerImpl extends AuthenticationHandlerImpl<AuthenticationP
         }
         break;
       case COOKIE:
-        Map<String, Cookie> cookies = context.request().cookieMap();
-        if (cookies != null && cookies.containsKey(value)) {
-          authProvider.authenticate(new TokenCredentials(cookies.get(value).getValue()), authn -> {
+        Cookie cookie = context.request().getCookie(value);
+        if (cookie != null) {
+          authProvider.authenticate(new TokenCredentials(cookie.getValue()), authn -> {
             if (authn.failed()) {
               handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
             } else {

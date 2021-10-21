@@ -37,8 +37,8 @@ public class CookieHandlerTest extends WebTestBase {
   @Test
   public void testSimpleCookie() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(1, rc.cookieCount());
-      Cookie cookie = rc.getCookie("foo");
+      assertEquals(1, rc.request().cookieCount());
+      Cookie cookie = rc.request().getCookie("foo");
       assertNotNull(cookie);
       assertEquals("bar", cookie.getValue());
       rc.response().end();
@@ -49,13 +49,13 @@ public class CookieHandlerTest extends WebTestBase {
   @Test
   public void testGetCookies() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(3, rc.cookieCount());
-      Map<String, Cookie> cookies = rc.cookieMap();
+      assertEquals(3, rc.request().cookieCount());
+      Map<String, Cookie> cookies = rc.request().cookieMap();
       assertTrue(cookies.containsKey("foo"));
       assertTrue(cookies.containsKey("wibble"));
       assertTrue(cookies.containsKey("plop"));
-      Cookie removed = rc.removeCookie("foo");
-      cookies = rc.cookieMap();
+      Cookie removed = rc.response().removeCookie("foo");
+      cookies = rc.request().cookieMap();
       // removed cookies, need to be sent back with an expiration date
       assertTrue(cookies.containsKey("foo"));
       assertTrue(cookies.containsKey("wibble"));
@@ -74,24 +74,24 @@ public class CookieHandlerTest extends WebTestBase {
   @Test
   public void testCookiesChangedInHandler() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(3, rc.cookieCount());
-      assertEquals("bar", rc.getCookie("foo").getValue());
-      assertEquals("blibble", rc.getCookie("wibble").getValue());
-      assertEquals("flop", rc.getCookie("plop").getValue());
-      rc.removeCookie("plop");
+      assertEquals(3, rc.request().cookieCount());
+      assertEquals("bar", rc.request().getCookie("foo").getValue());
+      assertEquals("blibble", rc.request().getCookie("wibble").getValue());
+      assertEquals("flop", rc.request().getCookie("plop").getValue());
+      rc.response().removeCookie("plop");
       // the expected number of elements should remain the same as we're sending an invalidate cookie back
-      assertEquals(3, rc.cookieCount());
+      assertEquals(3, rc.request().cookieCount());
       rc.next();
     });
     router.route().handler(rc -> {
-      assertEquals("bar", rc.getCookie("foo").getValue());
-      assertEquals("blibble", rc.getCookie("wibble").getValue());
-      assertNotNull(rc.getCookie("plop"));
-      rc.addCookie(Cookie.cookie("fleeb", "floob"));
-      assertEquals(4, rc.cookieCount());
-      assertNull(rc.removeCookie("blarb"));
-      assertEquals(4, rc.cookieCount());
-      Cookie foo = rc.getCookie("foo");
+      assertEquals("bar", rc.request().getCookie("foo").getValue());
+      assertEquals("blibble", rc.request().getCookie("wibble").getValue());
+      assertNotNull(rc.request().getCookie("plop"));
+      rc.response().addCookie(Cookie.cookie("fleeb", "floob"));
+      assertEquals(4, rc.request().cookieCount());
+      assertNull(rc.response().removeCookie("blarb"));
+      assertEquals(4, rc.request().cookieCount());
+      Cookie foo = rc.request().getCookie("foo");
       foo.setValue("blah");
       rc.response().end();
     });
