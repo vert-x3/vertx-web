@@ -195,6 +195,17 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testSlashPathsWithParams() throws Exception {
+    router.route("/foo/:id").handler(rc -> {
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/foo/123", 200, "OK");
+    testRequest(HttpMethod.GET, "/foo/123/", 200, "OK");
+    testRequest(HttpMethod.GET, "/foo//123/", 200, "OK");
+    testRequest(HttpMethod.GET, "/foo//123//", 200, "OK");
+  }
+
+  @Test
   public void testRoutePathAndMethod() throws Exception {
     for (HttpMethod meth : METHODS) {
       testRoutePathAndMethod(meth, true);
@@ -907,6 +918,13 @@ public class RouterTest extends WebTestBase {
 
   private void testPattern(String pathRoot, String expected) throws Exception {
     testRequest(HttpMethod.GET, pathRoot, 200, expected);
+    testRequest(HttpMethod.GET, pathRoot + "/", 200, expected);
+    testRequest(HttpMethod.GET, pathRoot + "/wibble", 404, "Not Found");
+    testRequest(HttpMethod.GET, pathRoot + "/wibble/blibble", 404, "Not Found");
+  }
+
+  private void testPatternStrict(String pathRoot, String expected) throws Exception {
+    testRequest(HttpMethod.GET, pathRoot, 200, expected);
     testRequest(HttpMethod.GET, pathRoot + "/", 404, "Not Found");
     testRequest(HttpMethod.GET, pathRoot + "/wibble", 404, "Not Found");
     testRequest(HttpMethod.GET, pathRoot + "/wibble/blibble", 404, "Not Found");
@@ -938,7 +956,7 @@ public class RouterTest extends WebTestBase {
       MultiMap params = rc.request().params();
       rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
     });
-    testPattern("/dog/cat", "dogcat");
+    testPatternStrict("/dog/cat", "dogcat");
   }
 
   @Test
@@ -947,7 +965,7 @@ public class RouterTest extends WebTestBase {
       MultiMap params = rc.request().params();
       rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
     });
-    testPattern("/dog/cat", "dogcat");
+    testPatternStrict("/dog/cat", "dogcat");
   }
 
   @Test
@@ -956,7 +974,7 @@ public class RouterTest extends WebTestBase {
       MultiMap params = rc.request().params();
       rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
     });
-    testPattern("/dog/cat", "dogcat");
+    testPatternStrict("/dog/cat", "dogcat");
     testRequest(HttpMethod.POST, "/dog/cat", HttpResponseStatus.METHOD_NOT_ALLOWED);
   }
 
@@ -966,13 +984,13 @@ public class RouterTest extends WebTestBase {
       MultiMap params = rc.request().params();
       rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
     });
-    testPattern("/dog/cat/blah", "dogcat");
+    testPatternStrict("/dog/cat/blah", "dogcat");
   }
 
   @Test
   public void testRegex3() throws Exception {
     router.routeWithRegex(".*foo.txt").handler(rc -> rc.response().setStatusMessage("ok").end());
-    testPattern("/dog/cat/foo.txt", "ok");
+    testPatternStrict("/dog/cat/foo.txt", "ok");
     testRequest(HttpMethod.POST, "/dog/cat/foo.bar", 404, "Not Found");
   }
 
@@ -982,7 +1000,7 @@ public class RouterTest extends WebTestBase {
       MultiMap params = rc.request().params();
       rc.response().setStatusMessage(params.get("name") + params.get("surname")).end();
     });
-    testPattern("/joe/doe", "joedoe");
+    testPatternStrict("/joe/doe", "joedoe");
   }
 
   @Test
@@ -991,7 +1009,7 @@ public class RouterTest extends WebTestBase {
       MultiMap params = rc.request().params();
       rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
     });
-    testPattern("/joe/doe", "joedoe");
+    testPatternStrict("/joe/doe", "joedoe");
   }
 
   @Test
@@ -2951,7 +2969,7 @@ public class RouterTest extends WebTestBase {
       .setRegexGroupsNames(Arrays.asList("id", "format"))
       .handler(rc -> {
         MultiMap params = rc.request().params();
-        System.out.println(params);
+        assertNotNull(params.get("id"));
         rc.end();
       });
     testRequest(HttpMethod.GET, "/help/abcd/", 200, "OK");
@@ -2981,7 +2999,6 @@ public class RouterTest extends WebTestBase {
   public void testSpecialParams() throws Exception {
     router.route()
       .handler(ctx -> {
-        System.out.println(ctx.queryParams());
         ctx.end();
       });
 
@@ -2992,7 +3009,6 @@ public class RouterTest extends WebTestBase {
   public void testSpecialParams2() throws Exception {
     router.route()
       .handler(ctx -> {
-        System.out.println(ctx.queryParams());
         ctx.end();
       });
 
