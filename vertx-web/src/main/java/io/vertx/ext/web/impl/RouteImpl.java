@@ -344,6 +344,8 @@ public class RouteImpl implements Route {
       index++;
     }
     m.appendTail(sb);
+    if (state.isExactPath() && !state.isPathEndsWithSlash())
+    	sb.append("/?");
     path = sb.toString();
 
     state = state.setGroups(groups);
