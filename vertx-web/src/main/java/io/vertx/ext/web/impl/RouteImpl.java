@@ -273,6 +273,8 @@ public class RouteImpl implements Route {
       state = state.setPath(path.substring(0, path.length() - 1));
     }
 
+    state = state.setPathEndsWithSlash(state.getPath().endsWith("/"));
+
     // See if the path contains ":" - if so then it contains parameter capture groups and we have to generate
     // a regex for that
     int params = 0;
@@ -287,8 +289,6 @@ public class RouteImpl implements Route {
         throw new IllegalArgumentException("path param does not follow the variable naming rules, expected (" + params + ") found (" + found + ")");
       }
     }
-
-    state = state.setPathEndsWithSlash(state.getPath().endsWith("/"));
   }
 
   private synchronized void setRegex(String regex) {
@@ -344,8 +344,9 @@ public class RouteImpl implements Route {
       index++;
     }
     m.appendTail(sb);
-    if (state.isExactPath() && !state.isPathEndsWithSlash())
-    	sb.append("/?");
+    if (state.isExactPath() && !state.isPathEndsWithSlash()) {
+      sb.append("/?");
+    }
     path = sb.toString();
 
     state = state.setGroups(groups);
