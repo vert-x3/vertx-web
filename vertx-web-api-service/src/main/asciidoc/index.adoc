@@ -129,8 +129,9 @@ You can also use {@link io.vertx.ext.web.validation.RequestParameter} to extract
 void putTransaction(RequestParameter body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 ----
 
-
 We encourage to extract with {@link io.vertx.ext.web.validation.RequestParameter} type the parameters that uses json schema allOf/anyOf/oneOf/not keywords because the extraction can produce undefined behaviours.
+
+NOTE: When working with `DataObjects` by default `base64` strings are handled with the `base64url` alphabet, while OpenAPI does not mandate this alphabet so it assumes `basic`. To force a `DataObject` to use a specific alphabet this can be configured in the `@DataObject` annotation.
 
 == Implement your Web API Service
 
