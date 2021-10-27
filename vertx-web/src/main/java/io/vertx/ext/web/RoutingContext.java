@@ -181,6 +181,14 @@ public interface RoutingContext {
   @Nullable Route currentRoute();
 
   /**
+   * Use {@link #normalizedPath} instead
+   */
+  @Deprecated()
+  default String normalisedPath() {
+    return this.normalizedPath();
+  }
+
+  /**
    * Return the normalized path for the request.
    * <p>
    * The normalized path is where the URI path has been decoded, i.e. any unicode or other illegal URL characters that
