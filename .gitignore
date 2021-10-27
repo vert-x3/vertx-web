@@ -27,3 +27,4 @@ file-uploads
 .metadata/*
 .recommenders/*
 .vscode
+vertx-template-engines/vertx-web-templ-jte/jte-classes
