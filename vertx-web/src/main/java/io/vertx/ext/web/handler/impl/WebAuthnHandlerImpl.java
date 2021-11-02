@@ -23,6 +23,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.webauthn.WebAuthn;
 import io.vertx.ext.auth.webauthn.WebAuthnCredentials;
+import io.vertx.ext.auth.webauthn.impl.attestation.AttestationException;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -31,6 +32,8 @@ import io.vertx.ext.web.handler.WebAuthnHandler;
 import io.vertx.ext.web.impl.Origin;
 
 public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> implements WebAuthnHandler {
+
+  private static final boolean CONFORMANCE = Boolean.getBoolean("io.vertx.ext.web.fido2.conformance.tests");
 
   // the extra routes
   private Route register = null;
@@ -163,8 +166,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
                 .put("challenge", credentialsOptions.getString("challenge"))
                 .put("username", webauthnRegister.getString("name"));
 
-//              ctx.json(credentialsOptions.put("status", "ok").put("errorMessage", ""));
-              ctx.json(credentialsOptions);
+              ok(ctx, credentialsOptions);
             });
           }
         } catch (IllegalArgumentException e) {
@@ -214,8 +216,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
               .put("challenge", getAssertion.getString("challenge"))
               .put("username", username);
 
-//            ctx.json(getAssertion.put("status", "ok").put("errorMessage", ""));
-            ctx.json(getAssertion);
+            ok(ctx, getAssertion);
           });
         } catch (IllegalArgumentException e) {
           ctx.fail(400, e);
@@ -238,7 +239,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
           // input validation
           if (
             webauthnResp == null ||
-            !containsRequiredString(webauthnResp, "id") ||
+              !containsRequiredString(webauthnResp, "id") ||
               !containsRequiredString(webauthnResp, "rawId") ||
               !containsRequiredObject(webauthnResp, "response") ||
               !containsOptionalString(webauthnResp.getJsonObject("response"), "userHandle") ||
@@ -277,10 +278,14 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
                 // the user has upgraded from unauthenticated to authenticated
                 // session should be upgraded as recommended by owasp
                 session.regenerateId();
-//                ctx.json(new JsonObject().put("status", "ok").put("errorMessage", ""));
-                ctx.response().end();
+                ok(ctx);
               } else {
-                ctx.fail(authenticate.cause());
+                Throwable cause = authenticate.cause();
+                if (cause instanceof AttestationException) {
+                  ctx.fail(400, cause);
+                } else {
+                  ctx.fail(cause);
+                }
               }
             });
         } catch (IllegalArgumentException e) {
@@ -304,5 +309,23 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
       domain = null;
     }
     return this;
+  }
+
+  private static void ok(RoutingContext ctx) {
+    if (CONFORMANCE) {
+      ctx.json(new JsonObject().put("status", "ok").put("errorMessage", ""));
+    } else {
+      ctx.response()
+        .setStatusCode(204)
+        .end();
+    }
+  }
+
+  private static void ok(RoutingContext ctx, JsonObject result) {
+    if (CONFORMANCE) {
+      ctx.json(result.put("status", "ok").put("errorMessage", ""));
+    } else {
+      ctx.json(result);
+    }
   }
 }
