@@ -35,7 +35,6 @@ import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
@@ -261,37 +260,6 @@ public class WebClientTest extends WebClientTestBase {
   }
 
   @Test
-  public void testProxySetPerRequest() throws Exception {
-    final ProxyOptions proxy = new ProxyOptions().setHost("1.2.3.4").setPort(8080);
-    HttpRequest<Buffer> request = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    request.setProxy(proxy);
-    assertEquals(proxy, request.proxy());
-  }
-
-  @Test
-  public void testProxySetPerRequestOnCopy() throws Exception {
-    final ProxyOptions proxy = new ProxyOptions().setHost("1.2.3.4").setPort(8080);
-
-    HttpRequest<Buffer> request = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    request.setProxy(proxy);
-
-    HttpRequest<Buffer> copiedRequest = request.copy();
-    assertEquals(proxy.getHost(), copiedRequest.proxy().getHost());
-  }
-
-  @Test
-  public void testProxySetPerRequestOnCopyOverride() throws Exception {
-    final ProxyOptions proxy1 = new ProxyOptions().setHost("1.2.3.4").setPort(8080);
-    final ProxyOptions proxy2 = new ProxyOptions().setHost("4.3.2.1").setPort(8888);
-
-    HttpRequest<Buffer> request = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    request.setProxy(proxy1);
-
-    HttpRequest<Buffer> copiedRequest = request.copy().setProxy(proxy2);
-    assertEquals(proxy2.getHost(), copiedRequest.proxy().getHost());
-  }
-
-  @Test
   public void testProxyPerRequest() throws Exception {
     startProxy(null, ProxyType.HTTP);
     proxy.setForceUri("http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT);
@@ -300,7 +268,7 @@ public class WebClientTest extends WebClientTestBase {
 
     webClient
       .get("http://checkip.amazonaws.com/")
-      .setProxy(new ProxyOptions().setPort(proxy.getPort()))
+      .proxy(new ProxyOptions().setPort(proxy.getPort()))
       .send(ar -> {
         if (ar.succeeded()) {
           // Obtain response

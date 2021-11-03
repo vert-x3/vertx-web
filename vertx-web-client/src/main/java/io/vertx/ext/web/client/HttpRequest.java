@@ -282,7 +282,7 @@ public interface HttpRequest<T> {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest<T> setProxy(ProxyOptions proxyOptions);
+  HttpRequest<T> proxy(ProxyOptions proxyOptions);
 
   /**
    * Add an expectation that the response is valid according to the provided {@code predicate}.
@@ -314,14 +314,6 @@ public interface HttpRequest<T> {
    * @return the current query parameters
    */
   MultiMap queryParams();
-
-
-  /**
-   * Return the current proxy options
-   *
-   * @return the current proxy options
-   */
-  ProxyOptions proxy();
 
   /**
    * Copy this request

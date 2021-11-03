@@ -246,7 +246,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
-  public HttpRequest<T> setProxy(ProxyOptions proxyOptions) {
+  public HttpRequest<T> proxy(ProxyOptions proxyOptions) {
     this.proxyOptions = proxyOptions;
     return this;
   }
@@ -278,11 +278,6 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
       }
     }
     return params;
-  }
-
-  @Override
-  public ProxyOptions proxy(){
-    return this.proxyOptions;
   }
 
   @Override
