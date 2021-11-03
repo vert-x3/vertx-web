@@ -55,28 +55,16 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <configuration>
-            <skipTests>true</skipTests>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
-
   <profiles>
     <profile>
-      <id>run-tests</id>
+      <id>windows</id>
       <activation>
         <os>
-          <family>!windows</family>
+          <family>windows</family>
         </os>
       </activation>
+      <properties>
+      </properties>
       <build>
         <pluginManagement>
           <plugins>
@@ -84,7 +72,7 @@
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-surefire-plugin</artifactId>
               <configuration>
-                <skipTests>false</skipTests>
+                <skipTests>true</skipTests>
               </configuration>
             </plugin>
           </plugins>
