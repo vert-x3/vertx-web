@@ -127,7 +127,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
             return;
           case 401:
             String header = authenticateHeader(ctx);
-            if (header != null) {
+            if (header != null && !"XMLHttpRequest".equals(ctx.request().getHeader("X-Requested-With"))) {
               ctx.response()
                 .putHeader("WWW-Authenticate", header);
             }
