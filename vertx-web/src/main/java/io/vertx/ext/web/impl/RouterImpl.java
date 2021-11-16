@@ -22,10 +22,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.ext.web.AllowForwardHeaders;
-import io.vertx.ext.web.Route;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.*;
 
 import java.util.*;
 
@@ -283,6 +280,14 @@ public class RouterImpl implements Router {
 
     return route(mountPoint + "*")
       .subRouter(subRouter);
+  }
+
+  @Override
+  public Crud crud(String path) {
+    // TODO: validate path
+    Route collectionRoute = route(path);
+    Route entityRoute = route(path + "/:entityId");
+    return new CrudImpl(collectionRoute, entityRoute);
   }
 
   @Override

@@ -339,6 +339,8 @@ public interface Router extends Handler<HttpServerRequest> {
    */
   Route mountSubRouter(String mountPoint, Router subRouter);
 
+  Crud crud(String path);
+
   /**
    * Specify an handler to handle an error for a particular status code. You can use to manage general errors too using status code 500.
    * The handler will be called when the context fails and other failure handlers didn't write the reply or when an exception is thrown inside an handler.

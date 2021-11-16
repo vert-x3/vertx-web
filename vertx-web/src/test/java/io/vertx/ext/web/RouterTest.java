@@ -21,8 +21,10 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpServerRequestInternal;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import org.junit.Test;
 
@@ -3013,5 +3015,70 @@ public class RouterTest extends WebTestBase {
       });
 
     testRequest(HttpMethod.GET, "/?a=a&A=b", 200, "OK");
+  }
+
+  @Test
+  public void testCrud() throws Exception {
+
+    final Map<String, JsonObject> store = new HashMap<>();
+
+    router
+      .route().handler(BodyHandler.create());
+
+    router
+      .crud("/persons")
+      .create(json -> {
+        String id = UUID.randomUUID().toString();
+        json.put("_id", id);
+        store.put(id, json);
+        return Future.succeededFuture(id);
+      })
+      .query(query -> {
+        System.out.println(query.toJson());
+        JsonArray values = new JsonArray();
+        Collection<JsonObject> collection = store.values();
+        int start = query.getStart() == null ? 0 : query.getStart();
+        int end = query.getEnd() == null ? collection.size() : query.getEnd();
+
+        int i = 0;
+        for (JsonObject o : collection) {
+          if (i >= start && i < end) {
+            values.add(o);
+          }
+          i++;
+        }
+
+        return Future.succeededFuture(values);
+      })
+      .update((id, json) -> {
+        JsonObject o = store.put(id, json);
+        return Future.succeededFuture(o == null ? 0L : 1L);
+      })
+      .count(query -> Future.succeededFuture((long) store.size()));
+
+    testRequest(HttpMethod.POST, "/persons", req -> req.end(new JsonObject().put("name", "Paulo").encode()), res -> {
+      assertNotNull(res.getHeader("Location"));
+      System.out.println(res.getHeader("Location"));
+    }, 201, "Created", "");
+
+    testRequest(HttpMethod.POST, "/persons", req -> req.end(new JsonObject().put("name", "Thomas").encode()), res -> {
+      assertNotNull(res.getHeader("Location"));
+      System.out.println(res.getHeader("Location"));
+    }, 201, "Created", "");
+
+    testRequest(HttpMethod.POST, "/persons", req -> req.end(new JsonObject().put("name", "Julien").encode()), res -> {
+      assertNotNull(res.getHeader("Location"));
+      System.out.println(res.getHeader("Location"));
+    }, 201, "Created", "");
+
+    testRequest(HttpMethod.GET, "/persons", req -> {
+      req.putHeader("Range", "items=0-2");
+    }, res -> {
+      assertNotNull(res.getHeader("Content-Range"));
+      System.out.println(res.getHeader("Content-Range"));
+      res.body()
+        .onFailure(this::fail)
+        .onSuccess(System.out::println);
+    }, 200, "OK", null);
   }
 }
