@@ -24,6 +24,7 @@ import io.vertx.core.http.HttpVersion;
 import io.vertx.core.impl.launcher.commands.VersionCommand;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.*;
+import io.vertx.core.tracing.TracingPolicy;
 
 import java.util.List;
 import java.util.Set;
@@ -520,6 +521,46 @@ public class WebClientOptions extends HttpClientOptions {
   @Override
   public WebClientOptions setWebSocketCompressionRequestServerNoContext(boolean offer) {
     return (WebClientOptions) super.setWebSocketCompressionRequestServerNoContext(offer);
+  }
+
+  @Override
+  public WebClientOptions setReadIdleTimeout(int idleTimeout) {
+    return (WebClientOptions) super.setReadIdleTimeout(idleTimeout);
+  }
+
+  @Override
+  public WebClientOptions setWriteIdleTimeout(int idleTimeout) {
+    return (WebClientOptions) super.setWriteIdleTimeout(idleTimeout);
+  }
+
+  @Override
+  public WebClientOptions setMaxWebSockets(int maxWebSockets) {
+    return (WebClientOptions) super.setMaxWebSockets(maxWebSockets);
+  }
+
+  @Override
+  public WebClientOptions setNonProxyHosts(List<String> nonProxyHosts) {
+    return (WebClientOptions) super.setNonProxyHosts(nonProxyHosts);
+  }
+
+  @Override
+  public WebClientOptions addNonProxyHost(String nonProxyHost) {
+    return (WebClientOptions) super.addNonProxyHost(nonProxyHost);
+  }
+
+  @Override
+  public WebClientOptions setWebSocketClosingTimeout(int webSocketClosingTimeout) {
+    return (WebClientOptions) super.setWebSocketClosingTimeout(webSocketClosingTimeout);
+  }
+
+  @Override
+  public WebClientOptions setTracingPolicy(TracingPolicy tracingPolicy) {
+    return (WebClientOptions) super.setTracingPolicy(tracingPolicy);
+  }
+
+  @Override
+  public WebClientOptions setPoolEventLoopSize(int poolEventLoopSize) {
+    return (WebClientOptions) super.setPoolEventLoopSize(poolEventLoopSize);
   }
 
   public static String loadUserAgent() {
