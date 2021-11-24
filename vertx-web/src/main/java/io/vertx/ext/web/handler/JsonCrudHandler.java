@@ -43,6 +43,24 @@ import io.vertx.ext.web.handler.crud.*;
  *   <li>{@link #update(PatchFunction)} - Will handle {@code PATCH} requests to the specific entity endpoint</li>
  * </ul>
  *
+ * The handler will perform the following validations:
+ *
+ * <ul>
+ *   <li>404: Client requested an entity that doesn't exist on the user database</li>
+ *   <li>405: Client requested a verb that the handler has no function from the user</li>
+ *   <li>406: Client sent a list of acceptable content types, that do not allow {@code application/json}</li>
+ *   <li>412: Client sent a update request for a non existing entity requesting it to be an overwrite</li>
+ *   <li>415: Client sent a body with a content type other than {@code application/json}</li>
+ * </ul>
+ *
+ * Each function has it's own default success response status codes too:
+ *
+ * <ul>
+ *   <li>{@code GET}: Defaults to: {@code 200} for success</li>
+ *   <li>{@code POST}: Defaults to: {@code 201} for success, {@code Location} header with the newly created id and no body</li>
+ *   <li>{@code PUT/PATCH/DELETE}: Defaults to: {@code 204} for success and no body.</li>
+ * </ul>
+ *
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
 @VertxGen
