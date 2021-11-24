@@ -46,6 +46,7 @@ import io.vertx.ext.web.handler.crud.*;
  * The handler will perform the following validations:
  *
  * <ul>
+ *   <li>400: Client sent an invalid Json Object</li>
  *   <li>404: Client requested an entity that doesn't exist on the user database</li>
  *   <li>405: Client requested a verb that the handler has no function from the user</li>
  *   <li>406: Client sent a list of acceptable content types, that do not allow {@code application/json}</li>
@@ -53,7 +54,7 @@ import io.vertx.ext.web.handler.crud.*;
  *   <li>415: Client sent a body with a content type other than {@code application/json}</li>
  * </ul>
  *
- * Each function has it's own default success response status codes too:
+ * Each function has its own default success response status codes too:
  *
  * <ul>
  *   <li>{@code GET}: Defaults to: {@code 200} for success</li>
@@ -65,6 +66,12 @@ import io.vertx.ext.web.handler.crud.*;
  */
 @VertxGen
 public interface JsonCrudHandler {
+
+  /**
+   * Enforces a max allowed json input limit, like {@link io.vertx.ext.web.RoutingContext#getBodyAsJson(int)}
+   */
+  @Fluent
+  JsonCrudHandler maxAllowedLength(int length);
 
   /**
    * Creates a new Object in the database and asynchronously returns the id for this new object.

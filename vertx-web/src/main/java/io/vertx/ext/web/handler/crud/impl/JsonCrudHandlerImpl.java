@@ -1,6 +1,8 @@
 package io.vertx.ext.web.handler.crud.impl;
 
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.crud.*;
@@ -15,9 +17,13 @@ import static java.lang.Integer.parseInt;
 
 public class JsonCrudHandlerImpl implements JsonCrudHandler {
 
+  protected static final Logger LOG = LoggerFactory.getLogger(JsonCrudHandler.class);
+
   // range pattern
   private static final Pattern rangePattern = Pattern.compile("items=(\\d+)-(\\d+)");
   private static final Pattern sortPattern = Pattern.compile("sort\\((.+)\\)");
+
+  private int maxAllowedLength = -1;
 
   private CreateFunction create;
   private ReadFunction read;
@@ -69,6 +75,12 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
   }
 
   @Override
+  public JsonCrudHandler maxAllowedLength(int length) {
+    this.maxAllowedLength = length;
+    return this;
+  }
+
+  @Override
   public JsonCrudHandler create(CreateFunction fn) {
     this.create = fn;
     return this;
@@ -87,8 +99,17 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
       return;
     }
 
+    final JsonObject obj;
+
+    try {
+      obj = ctx.getBodyAsJson(maxAllowedLength);
+    } catch (RuntimeException e) {
+      ctx.fail(400, e);
+      return;
+    }
+
     create
-      .apply(ctx.getBodyAsJson())
+      .apply(obj)
       .onFailure(ctx::fail)
       .onSuccess(id ->
         ctx
@@ -147,9 +168,18 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
       return;
     }
 
+    final JsonObject obj;
+
+    try {
+      obj = ctx.getBodyAsJson(maxAllowedLength);
+    } catch (RuntimeException e) {
+      ctx.fail(400, e);
+      return;
+    }
+
     (update == null ?
-      patch.apply(ctx.pathParam("entityId"), ctx.getBodyAsJson(), null) :
-      update.apply(ctx.pathParam("entityId"), ctx.getBodyAsJson()))
+      patch.apply(ctx.pathParam("entityId"), obj, null) :
+      update.apply(ctx.pathParam("entityId"), obj))
       .onFailure(ctx::fail)
       .onSuccess(affectedRows -> {
         // missing or no rows affected
@@ -303,6 +333,15 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
       return;
     }
 
+    final JsonObject obj;
+
+    try {
+      obj = ctx.getBodyAsJson(maxAllowedLength);
+    } catch (RuntimeException e) {
+      ctx.fail(400, e);
+      return;
+    }
+
     // get the real id from the params multimap
     final String id = ctx.pathParam("entityId");
 
@@ -336,8 +375,8 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
           } else {
             // update back to the db
             (patch == null ?
-              update.apply(ctx.pathParam("entityId"), item.mergeIn(ctx.getBodyAsJson())) :
-              patch.apply(ctx.pathParam("entityId"), ctx.getBodyAsJson(), item))
+              update.apply(ctx.pathParam("entityId"), item.mergeIn(obj)) :
+              patch.apply(ctx.pathParam("entityId"), obj, item))
               .onFailure(ctx::fail)
               .onSuccess(affectedItems -> {
                 if (affectedItems == null || affectedItems == 0) {
