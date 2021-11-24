@@ -340,6 +340,12 @@ public interface Router extends Handler<HttpServerRequest> {
    */
   Route mountSubRouter(String mountPoint, Router subRouter);
 
+  /**
+   * Adds a crud handler to the router for the given path.
+   *
+   * @param path a non wildcard path. If the path ends with slash, the same semantics of strict path will apply to the crud routes.
+   * @return a crud handlers where users will provide the crud functions.
+   */
   JsonCrudHandler crud(String path);
 
   /**

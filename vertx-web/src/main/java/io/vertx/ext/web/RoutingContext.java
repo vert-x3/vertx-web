@@ -778,6 +778,11 @@ public interface RoutingContext {
     return contentType.isMatchedBy(value);
   }
 
+  /**
+   * Checks if the request contains the header "Accept" and if there is one verify if the passes type is allowed.
+   * @param type a content type to be matched against the request Accept header.
+   * @return true if type matches or Accept header isn't present.
+   */
   @CacheReturn
   default boolean accepts(String type) {
     List<MIMEHeader> acceptableTypes = parsedHeaders().accept();
