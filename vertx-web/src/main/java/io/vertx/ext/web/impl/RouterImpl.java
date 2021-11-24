@@ -23,6 +23,8 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.*;
+import io.vertx.ext.web.handler.JsonCrudHandler;
+import io.vertx.ext.web.handler.crud.impl.JsonCrudHandlerImpl;
 
 import java.util.*;
 
@@ -283,11 +285,22 @@ public class RouterImpl implements Router {
   }
 
   @Override
-  public Crud crud(String path) {
-    // TODO: validate path
-    Route collectionRoute = route(path);
-    Route entityRoute = route(path + "/:entityId");
-    return new CrudImpl(collectionRoute, entityRoute);
+  public JsonCrudHandler crud(String path) {
+    if (path.endsWith("*")) {
+      throw new IllegalArgumentException("Don't include * when mounting a JsonCrudHandler");
+    }
+    Route collectionRoute;
+    Route entityRoute;
+
+    if (path.endsWith("/")) {
+      collectionRoute = route(path);
+      entityRoute = route(path + ":entityId/");
+    } else {
+      collectionRoute = route(path);
+      entityRoute = route(path + "/:entityId");
+    }
+
+    return new JsonCrudHandlerImpl(collectionRoute, entityRoute);
   }
 
   @Override

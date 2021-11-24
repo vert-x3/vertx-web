@@ -22,6 +22,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.ext.web.handler.JsonCrudHandler;
 import io.vertx.ext.web.impl.RouterImpl;
 
 import java.util.List;
@@ -339,7 +340,7 @@ public interface Router extends Handler<HttpServerRequest> {
    */
   Route mountSubRouter(String mountPoint, Router subRouter);
 
-  Crud crud(String path);
+  JsonCrudHandler crud(String path);
 
   /**
    * Specify an handler to handle an error for a particular status code. You can use to manage general errors too using status code 500.

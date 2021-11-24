@@ -37,6 +37,7 @@ import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -1979,5 +1980,75 @@ public class WebExamples {
       .handler(ctx -> {
         ctx.end("Super secret content");
       });
+  }
+
+  public void example87(Router router) {
+
+    router.crud("/persons")
+      // will be called for POST /persons {name: Paulo}
+      .create(json -> {
+        // Perform any validation
+        // Store to the database
+        // ...
+        return Future.succeededFuture("person-id");
+      })
+      // will be called for GET /persons/:entityId
+      .read(id -> {
+        // Perform any validation
+        // Load a single person by id
+        // ...
+        return Future.succeededFuture(new JsonObject(/* "..." */));
+      })
+      // will be called for PUT /persons/:entityId
+      .update((id, json) -> {
+        // Perform any validation
+        // Update a single person by id
+        // ...
+        return Future.succeededFuture(1);
+      })
+      // will be called for DELETE /persons/:entityId
+      .delete(id -> {
+        // Perform any validation
+        // Delete a single person by id
+        // ...
+        return Future.succeededFuture(1);
+      });
+
+  }
+
+  public void example88(Router router) {
+
+    router.crud("/persons")
+      // will be called for GET /persons
+      .query(query -> {
+        // Perform any validation
+        // Load from the database
+        // ...
+        return Future.succeededFuture(Arrays.asList(new JsonObject(), new JsonObject()));
+      })
+      // will be called for GET /persons
+      .count(query -> {
+        // Counts the affected rows for the given query
+        // ...
+        return Future.succeededFuture(2);
+      });
+
+  }
+
+  public void example89(Router router) {
+
+    router.crud("/persons")
+      // will be called for PATCH /persons/:entityId
+      .update((id, newObject, oldObject) -> {
+        // Perform any validation
+        // Update the database
+        // ...
+
+        // newObject is the request body
+        // oldObject is the complete existing object from the Database
+
+        return Future.succeededFuture(1);
+      });
+
   }
 }

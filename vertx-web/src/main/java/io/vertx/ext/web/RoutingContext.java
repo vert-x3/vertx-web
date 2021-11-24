@@ -766,7 +766,6 @@ public interface RoutingContext {
 
     ParsedHeaderValue value;
 
-
     // if we received an incomplete CT
     if (type.indexOf('/') == -1) {
       // when the content is incomplete we assume */type, e.g.:
@@ -777,6 +776,33 @@ public interface RoutingContext {
     }
 
     return contentType.isMatchedBy(value);
+  }
+
+  @CacheReturn
+  default boolean accepts(String type) {
+    List<MIMEHeader> acceptableTypes = parsedHeaders().accept();
+    if (!acceptableTypes.isEmpty()) {
+      ParsedHeaderValue value;
+
+      // if we received an incomplete CT
+      if (type.indexOf('/') == -1) {
+        // when the content is incomplete we assume */type, e.g.:
+        // json -> */json
+        value = new ParsableMIMEValue("*/" + type).forceParse();
+      } else {
+        value = new ParsableMIMEValue(type).forceParse();
+      }
+
+      for (MIMEHeader acceptableType: acceptableTypes) {
+        if (acceptableType.isMatchedBy(value)) {
+          return true;
+        }
+      }
+      // we looped all acceptable types and no match
+      return false;
+    }
+    // client didn't specify which content type is acceptable
+    return true;
   }
 
   /**

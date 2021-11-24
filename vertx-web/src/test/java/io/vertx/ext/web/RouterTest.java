@@ -21,7 +21,6 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpServerRequestInternal;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -934,12 +933,14 @@ public class RouterTest extends WebTestBase {
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidPattern() throws Exception {
-    router.route("/blah/:!!!/").handler(rc -> {});
+    router.route("/blah/:!!!/").handler(rc -> {
+    });
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidPatternWithBuilder() throws Exception {
-    router.route().path("/blah/:!!!/").handler(rc -> {});
+    router.route().path("/blah/:!!!/").handler(rc -> {
+    });
   }
 
   @Test
@@ -3034,8 +3035,7 @@ public class RouterTest extends WebTestBase {
         return Future.succeededFuture(id);
       })
       .query(query -> {
-        System.out.println(query.toJson());
-        JsonArray values = new JsonArray();
+        List<JsonObject> values = new ArrayList<>();
         Collection<JsonObject> collection = store.values();
         int start = query.getStart() == null ? 0 : query.getStart();
         int end = query.getEnd() == null ? collection.size() : query.getEnd();
@@ -3050,35 +3050,51 @@ public class RouterTest extends WebTestBase {
 
         return Future.succeededFuture(values);
       })
-      .update((id, json) -> {
-        JsonObject o = store.put(id, json);
-        return Future.succeededFuture(o == null ? 0L : 1L);
+      .update((id, newJson) -> {
+        JsonObject o = store.put(id, newJson);
+        return Future.succeededFuture(o == null ? 0 : 1);
       })
-      .count(query -> Future.succeededFuture((long) store.size()));
+      .count(query -> Future.succeededFuture(store.size()));
 
-    testRequest(HttpMethod.POST, "/persons", req -> req.end(new JsonObject().put("name", "Paulo").encode()), res -> {
-      assertNotNull(res.getHeader("Location"));
-      System.out.println(res.getHeader("Location"));
-    }, 201, "Created", "");
+    testRequest(
+      HttpMethod.POST,
+      "/persons",
+      req ->
+        req
+          .putHeader("Content-Type", "application/json")
+          .end(new JsonObject().put("name", "Paulo").encode()),
+      res -> {
+        assertNotNull(res.getHeader("Location"));
+      }, 201, "Created", "");
 
-    testRequest(HttpMethod.POST, "/persons", req -> req.end(new JsonObject().put("name", "Thomas").encode()), res -> {
-      assertNotNull(res.getHeader("Location"));
-      System.out.println(res.getHeader("Location"));
-    }, 201, "Created", "");
+    testRequest(
+      HttpMethod.POST,
+      "/persons",
+      req ->
+        req
+          .putHeader("Content-Type", "application/json")
+          .end(new JsonObject().put("name", "Thomas").encode()),
+      res -> {
+        assertNotNull(res.getHeader("Location"));
+      }, 201, "Created", "");
 
-    testRequest(HttpMethod.POST, "/persons", req -> req.end(new JsonObject().put("name", "Julien").encode()), res -> {
-      assertNotNull(res.getHeader("Location"));
-      System.out.println(res.getHeader("Location"));
-    }, 201, "Created", "");
+    testRequest(
+      HttpMethod.POST,
+      "/persons",
+      req ->
+        req
+          .putHeader("Content-Type", "application/json")
+          .end(new JsonObject().put("name", "Julien").encode()),
+      res -> {
+        assertNotNull(res.getHeader("Location"));
+      }, 201, "Created", "");
 
     testRequest(HttpMethod.GET, "/persons", req -> {
       req.putHeader("Range", "items=0-2");
     }, res -> {
       assertNotNull(res.getHeader("Content-Range"));
-      System.out.println(res.getHeader("Content-Range"));
       res.body()
-        .onFailure(this::fail)
-        .onSuccess(System.out::println);
+        .onFailure(this::fail);
     }, 200, "OK", null);
   }
 }
