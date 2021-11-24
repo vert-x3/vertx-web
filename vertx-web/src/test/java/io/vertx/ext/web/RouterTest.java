@@ -24,7 +24,9 @@ import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.JsonCrudHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
+import io.vertx.ext.web.handler.crud.impl.JsonCrudHandlerImpl;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -3027,34 +3029,36 @@ public class RouterTest extends WebTestBase {
       .route().handler(BodyHandler.create());
 
     router
-      .crud("/persons")
-      .create(json -> {
-        String id = UUID.randomUUID().toString();
-        json.put("_id", id);
-        store.put(id, json);
-        return Future.succeededFuture(id);
-      })
-      .query(query -> {
-        List<JsonObject> values = new ArrayList<>();
-        Collection<JsonObject> collection = store.values();
-        int start = query.getStart() == null ? 0 : query.getStart();
-        int end = query.getEnd() == null ? collection.size() : query.getEnd();
+      .route("/persons/*")
+      .handler(
+        new JsonCrudHandlerImpl()
+          .create(json -> {
+            String id = UUID.randomUUID().toString();
+            json.put("_id", id);
+            store.put(id, json);
+            return Future.succeededFuture(id);
+          })
+          .query(query -> {
+            List<JsonObject> values = new ArrayList<>();
+            Collection<JsonObject> collection = store.values();
+            int start = query.getStart() == null ? 0 : query.getStart();
+            int end = query.getEnd() == null ? collection.size() : query.getEnd();
 
-        int i = 0;
-        for (JsonObject o : collection) {
-          if (i >= start && i < end) {
-            values.add(o);
-          }
-          i++;
-        }
+            int i = 0;
+            for (JsonObject o : collection) {
+              if (i >= start && i < end) {
+                values.add(o);
+              }
+              i++;
+            }
 
-        return Future.succeededFuture(values);
-      })
-      .update((id, newJson) -> {
-        JsonObject o = store.put(id, newJson);
-        return Future.succeededFuture(o == null ? 0 : 1);
-      })
-      .count(query -> Future.succeededFuture(store.size()));
+            return Future.succeededFuture(values);
+          })
+          .update((id, newJson) -> {
+            JsonObject o = store.put(id, newJson);
+            return Future.succeededFuture(o == null ? 0 : 1);
+          })
+          .count(query -> Future.succeededFuture(store.size())));
 
     testRequest(
       HttpMethod.POST,

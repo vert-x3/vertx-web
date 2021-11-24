@@ -1048,7 +1048,7 @@ final class RouteState {
           if (thePath.regionMatches(0, requestPath, 0, pathLen - 1)) {
             // handle the "rest" as path param *, always known to be empty
             ctx.pathParams()
-              .put("*", "/");
+              .put("*", "");
             return true;
           }
         }

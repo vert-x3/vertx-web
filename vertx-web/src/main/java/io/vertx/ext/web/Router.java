@@ -341,14 +341,6 @@ public interface Router extends Handler<HttpServerRequest> {
   Route mountSubRouter(String mountPoint, Router subRouter);
 
   /**
-   * Adds a crud handler to the router for the given path.
-   *
-   * @param path a non wildcard path. If the path ends with slash, the same semantics of strict path will apply to the crud routes.
-   * @return a crud handlers where users will provide the crud functions.
-   */
-  JsonCrudHandler crud(String path);
-
-  /**
    * Specify an handler to handle an error for a particular status code. You can use to manage general errors too using status code 500.
    * The handler will be called when the context fails and other failure handlers didn't write the reply or when an exception is thrown inside an handler.
    * You <b>must not</b> use {@link RoutingContext#next()} inside the error handler

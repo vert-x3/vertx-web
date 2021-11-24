@@ -7,12 +7,14 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.crud.*;
 import io.vertx.ext.web.handler.JsonCrudHandler;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.vertx.core.http.HttpMethod.*;
+import static io.vertx.ext.web.impl.RoutingContextInternal.CORS_HANDLER;
 import static java.lang.Integer.parseInt;
 
 public class JsonCrudHandlerImpl implements JsonCrudHandler {
@@ -33,45 +35,79 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
   private CountFunction count;
   private PatchFunction patch;
 
-  public JsonCrudHandlerImpl(Route collectionRoute, Route entityRoute) {
-
-    collectionRoute
-      .handler(ctx -> {
-        if (GET == ctx.request().method()) {
-          queryHandler(ctx);
-          return;
+  @Override
+  public void handle(RoutingContext ctx) {
+    String rest = ctx.pathParam("*");
+    String id = null;
+    if (rest != null) {
+      int len = rest.length();
+      if (len > 0) {
+        boolean slash = false;
+        int i = 0;
+        for (; i < len; i++) {
+          if (rest.charAt(i) == '/') {
+            slash = true;
+            break;
+          }
         }
 
-        if (POST == ctx.request().method()) {
-          createHandler(ctx);
-          return;
+        if (slash) {
+          if (i == len - 1) {
+            // OK
+            id = rest;
+          } else {
+            ctx.next();
+            return;
+          }
+        } else {
+          // no slash found, the rest is the id
+          id = rest;
         }
+      }
+    }
 
-        // invalid method
-        ctx.fail(405);
-      });
+    if (id != null) {
+      // there is rest
+      if (GET == ctx.request().method()) {
+        readHandler(ctx, id);
+        return;
+      }
+      if (PUT == ctx.request().method()) {
+        updateHandler(ctx, id);
+        return;
+      }
+      if (DELETE == ctx.request().method()) {
+        deleteHandler(ctx, id);
+        return;
+      }
+      if (PATCH == ctx.request().method()) {
+        patchHandler(ctx, id);
+        return;
+      }
+      if (OPTIONS == ctx.request().method()) {
+        optionsHandler(ctx, id);
+        return;
+      }
 
-    entityRoute
-      .handler(ctx -> {
-        if (GET == ctx.request().method()) {
-          readHandler(ctx);
-          return;
-        }
-        if (PUT == ctx.request().method()) {
-          updateHandler(ctx);
-          return;
-        }
-        if (DELETE == ctx.request().method()) {
-          deleteHandler(ctx);
-          return;
-        }
-        if (PATCH == ctx.request().method()) {
-          patchHandler(ctx);
-          return;
-        }
-        // invalid method
-        ctx.fail(405);
-      });
+      // invalid method, continue with the router
+      ctx.next();
+    } else {
+      if (GET == ctx.request().method()) {
+        queryHandler(ctx);
+        return;
+      }
+      if (POST == ctx.request().method()) {
+        createHandler(ctx);
+        return;
+      }
+      if (OPTIONS == ctx.request().method()) {
+        optionsHandler(ctx);
+        return;
+      }
+
+      // invalid method, continue with the router
+      ctx.next();
+    }
   }
 
   @Override
@@ -125,7 +161,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
     return this;
   }
 
-  private void readHandler(RoutingContext ctx) {
+  private void readHandler(RoutingContext ctx, String entityId) {
     // do we have a function?
     if (read == null) {
       ctx.fail(405);
@@ -138,7 +174,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
       return;
     }
 
-    read.apply(ctx.pathParam("entityId"))
+    read.apply(entityId)
       .onFailure(ctx::fail)
       .onSuccess(item -> {
         if (item == null) {
@@ -155,7 +191,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
     return this;
   }
 
-  private void updateHandler(RoutingContext ctx) {
+  private void updateHandler(RoutingContext ctx, String entityId) {
     // do we have a function?
     if (update == null && patch == null) {
       ctx.fail(405);
@@ -178,8 +214,8 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
     }
 
     (update == null ?
-      patch.apply(ctx.pathParam("entityId"), obj, null) :
-      update.apply(ctx.pathParam("entityId"), obj))
+      patch.apply(entityId, obj, null) :
+      update.apply(entityId, obj))
       .onFailure(ctx::fail)
       .onSuccess(affectedRows -> {
         // missing or no rows affected
@@ -199,14 +235,14 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
     return this;
   }
 
-  private void deleteHandler(RoutingContext ctx) {
+  private void deleteHandler(RoutingContext ctx, String entityId) {
     // do we have a function?
     if (delete == null) {
       ctx.fail(405);
       return;
     }
 
-    delete.apply(ctx.pathParam("entityId"))
+    delete.apply(entityId)
       .onFailure(ctx::fail)
       .onSuccess(affectedRows -> {
         // missing or no rows affected
@@ -323,7 +359,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
     return this;
   }
 
-  private void patchHandler(RoutingContext ctx) {
+  private void patchHandler(RoutingContext ctx, String entityId) {
     if (read == null || (patch == null && update == null)) {
       ctx.fail(405);
     }
@@ -342,10 +378,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
       return;
     }
 
-    // get the real id from the params multimap
-    final String id = ctx.pathParam("entityId");
-
-    read.apply(id)
+    read.apply(entityId)
       .onFailure(ctx::fail)
       .onSuccess(item -> {
         final String ifMatch = ctx.request().getHeader("If-Match");
@@ -375,8 +408,8 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
           } else {
             // update back to the db
             (patch == null ?
-              update.apply(ctx.pathParam("entityId"), item.mergeIn(obj)) :
-              patch.apply(ctx.pathParam("entityId"), obj, item))
+              update.apply(entityId, item.mergeIn(obj)) :
+              patch.apply(entityId, obj, item))
               .onFailure(ctx::fail)
               .onSuccess(affectedItems -> {
                 if (affectedItems == null || affectedItems == 0) {
@@ -391,5 +424,59 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
           }
         }
       });
+  }
+
+  private void optionsHandler(RoutingContext ctx, String id) {
+
+    if (((RoutingContextInternal) ctx).seenHandler(CORS_HANDLER)) {
+      ctx.next();
+      return;
+    }
+
+    List<String> verbs = new ArrayList<>();
+
+    verbs.add("OPTIONS");
+
+    if (read != null) {
+      verbs.add("GET");
+    }
+    if (update != null || patch != null) {
+      verbs.add("PUT");
+      verbs.add("PATCH");
+    }
+    if (delete != null) {
+      verbs.add("DELETE");
+    }
+
+    ctx
+      .response()
+      .putHeader(HttpHeaders.ALLOW, String.join(", ", verbs))
+      .setStatusCode(204)
+      .end();
+  }
+
+  private void optionsHandler(RoutingContext ctx) {
+
+    if (((RoutingContextInternal) ctx).seenHandler(CORS_HANDLER)) {
+      ctx.next();
+      return;
+    }
+
+    List<String> verbs = new ArrayList<>();
+
+    verbs.add("OPTIONS");
+
+    if (query != null) {
+      verbs.add("GET");
+    }
+    if (create != null) {
+      verbs.add("POST");
+    }
+
+    ctx
+      .response()
+      .putHeader(HttpHeaders.ALLOW, String.join(", ", verbs))
+      .setStatusCode(204)
+      .end();
   }
 }

@@ -17,7 +17,10 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Handler;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.crud.*;
+import io.vertx.ext.web.handler.crud.impl.JsonCrudHandlerImpl;
 
 /**
  * Represents a REST CRUD handler. The handler will take care of the basic protocol validation and ensure that REST best
@@ -65,7 +68,15 @@ import io.vertx.ext.web.handler.crud.*;
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface JsonCrudHandler {
+public interface JsonCrudHandler extends Handler<RoutingContext> {
+
+
+  /**
+   * Create a Json CRUD handler.
+   */
+  static JsonCrudHandler create() {
+    return new JsonCrudHandlerImpl();
+  }
 
   /**
    * Enforces a max allowed json input limit, like {@link io.vertx.ext.web.RoutingContext#getBodyAsJson(int)}
