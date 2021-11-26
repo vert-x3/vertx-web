@@ -5,8 +5,8 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.*;
+import io.vertx.ext.web.handler.CrudHandler;
 import io.vertx.ext.web.handler.crud.*;
-import io.vertx.ext.web.handler.JsonCrudHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.util.*;
@@ -17,9 +17,9 @@ import static io.vertx.core.http.HttpMethod.*;
 import static io.vertx.ext.web.impl.RoutingContextInternal.CORS_HANDLER;
 import static java.lang.Integer.parseInt;
 
-public class JsonCrudHandlerImpl implements JsonCrudHandler {
+public class JsonCrudHandlerImpl implements CrudHandler {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(JsonCrudHandler.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(CrudHandler.class);
 
   // range pattern
   private static final Pattern rangePattern = Pattern.compile("items=(\\d+)-(\\d+)");
@@ -27,13 +27,13 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
 
   private int maxAllowedLength = -1;
 
-  private CreateFunction create;
-  private ReadFunction read;
-  private UpdateFunction update;
-  private DeleteFunction delete;
-  private QueryFunction query;
-  private CountFunction count;
-  private PatchFunction patch;
+  private CreateHandler create;
+  private ReadHandler read;
+  private UpdateHandler update;
+  private DeleteHandler delete;
+  private QueryHandler query;
+  private CountHandler count;
+  private PatchHandler patch;
 
   @Override
   public void handle(RoutingContext ctx) {
@@ -88,9 +88,6 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
         optionsHandler(ctx, id);
         return;
       }
-
-      // invalid method, continue with the router
-      ctx.next();
     } else {
       if (GET == ctx.request().method()) {
         queryHandler(ctx);
@@ -104,20 +101,20 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
         optionsHandler(ctx);
         return;
       }
-
-      // invalid method, continue with the router
-      ctx.next();
     }
+
+    // invalid method, continue with the router
+    ctx.next();
   }
 
   @Override
-  public JsonCrudHandler maxAllowedLength(int length) {
+  public CrudHandler maxAllowedLength(int length) {
     this.maxAllowedLength = length;
     return this;
   }
 
   @Override
-  public JsonCrudHandler create(CreateFunction fn) {
+  public CrudHandler createHandler(CreateHandler fn) {
     this.create = fn;
     return this;
   }
@@ -145,7 +142,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
     }
 
     create
-      .apply(obj)
+      .handle(obj)
       .onFailure(ctx::fail)
       .onSuccess(id ->
         ctx
@@ -156,7 +153,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
   }
 
   @Override
-  public JsonCrudHandler read(ReadFunction fn) {
+  public CrudHandler readHandler(ReadHandler fn) {
     this.read = fn;
     return this;
   }
@@ -174,7 +171,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
       return;
     }
 
-    read.apply(entityId)
+    read.handle(entityId)
       .onFailure(ctx::fail)
       .onSuccess(item -> {
         if (item == null) {
@@ -186,7 +183,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
   }
 
   @Override
-  public JsonCrudHandler update(UpdateFunction fn) {
+  public CrudHandler updateHandler(UpdateHandler fn) {
     this.update = fn;
     return this;
   }
@@ -214,8 +211,8 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
     }
 
     (update == null ?
-      patch.apply(entityId, obj, null) :
-      update.apply(entityId, obj))
+      patch.handle(entityId, obj, null) :
+      update.handle(entityId, obj))
       .onFailure(ctx::fail)
       .onSuccess(affectedRows -> {
         // missing or no rows affected
@@ -230,7 +227,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
   }
 
   @Override
-  public JsonCrudHandler delete(DeleteFunction fn) {
+  public CrudHandler deleteHandler(DeleteHandler fn) {
     this.delete = fn;
     return this;
   }
@@ -242,7 +239,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
       return;
     }
 
-    delete.apply(entityId)
+    delete.handle(entityId)
       .onFailure(ctx::fail)
       .onSuccess(affectedRows -> {
         // missing or no rows affected
@@ -257,7 +254,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
   }
 
   @Override
-  public JsonCrudHandler query(QueryFunction fn) {
+  public CrudHandler queryHandler(QueryHandler fn) {
     this.query = fn;
     return this;
   }
@@ -322,7 +319,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
     // perform the query
     final CrudQuery queryArgs = new CrudQuery().setQuery(query).setStart(start).setEnd(end).setSort(sort);
 
-    this.query.apply(queryArgs)
+    this.query.handle(queryArgs)
       .onFailure(ctx::fail)
       .onSuccess(items -> {
         if (items == null) {
@@ -330,7 +327,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
         } else {
           if (count != null && validRange) {
             // need to send the content-range with totals
-            count.apply(queryArgs)
+            count.handle(queryArgs)
               .onFailure(ctx::fail)
               .onSuccess(count -> {
                 ctx.response()
@@ -348,13 +345,13 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
   }
 
   @Override
-  public JsonCrudHandler count(CountFunction fn) {
+  public CrudHandler countHandler(CountHandler fn) {
     this.count = fn;
     return this;
   }
 
   @Override
-  public JsonCrudHandler update(PatchFunction fn) {
+  public CrudHandler updateHandler(PatchHandler fn) {
     this.patch = fn;
     return this;
   }
@@ -378,7 +375,7 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
       return;
     }
 
-    read.apply(entityId)
+    read.handle(entityId)
       .onFailure(ctx::fail)
       .onSuccess(item -> {
         final String ifMatch = ctx.request().getHeader("If-Match");
@@ -408,8 +405,8 @@ public class JsonCrudHandlerImpl implements JsonCrudHandler {
           } else {
             // update back to the db
             (patch == null ?
-              update.apply(entityId, item.mergeIn(obj)) :
-              patch.apply(entityId, obj, item))
+              update.handle(entityId, item.mergeIn(obj)) :
+              patch.handle(entityId, obj, item))
               .onFailure(ctx::fail)
               .onSuccess(affectedItems -> {
                 if (affectedItems == null || affectedItems == 0) {

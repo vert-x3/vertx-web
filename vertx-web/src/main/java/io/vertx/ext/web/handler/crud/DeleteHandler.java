@@ -26,7 +26,7 @@ import io.vertx.core.Future;
  */
 @VertxGen
 @FunctionalInterface
-public interface DeleteFunction {
+public interface DeleteHandler {
 
   /**
    * Delete an entity given the unique identifier {@code entity}. Returns a future result with the number of affected
@@ -35,5 +35,5 @@ public interface DeleteFunction {
    * @param entity the unique identifier to delete.
    * @return future result with affected rows, e.g.: {@code 1}, {@code 0}
    */
-  Future<Integer> apply(String entity);
+  Future<Integer> handle(String entity);
 }

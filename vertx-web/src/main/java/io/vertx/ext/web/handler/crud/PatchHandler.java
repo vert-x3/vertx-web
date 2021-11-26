@@ -20,20 +20,23 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Represents a user defined update function. Given the {@code entity unique identifier} and request body, the function
- * returns a future result with nuber of affected rows.
+ * Represents a user defined patch function. Given the {@code entity unique identifier}, the new incomplete object from
+ * the request and the current object from the database, the function returns a future result with a total number of
+ * records affected by the query.
  *
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
 @VertxGen
 @FunctionalInterface
-public interface UpdateFunction {
+public interface PatchHandler {
 
   /**
-   * Update a single entity from the user defined storage.
-   * @param entity the unique identifier to update.
-   * @param newObject the request body.
-   * @return future result with number of affected rows.
+   * Patches an existing object and returns the number of affected rows.
+   *
+   * @param id the expected unique identifier
+   * @param newObject the new (partial) object as read from the context body.
+   * @param oldObject the existing object as returned from the {@link ReadHandler}.
+   * @return future result with the number of affected rows.
    */
-  Future<Integer> apply(String entity, JsonObject newObject);
+  Future<Integer> handle(String id, JsonObject newObject, JsonObject oldObject);
 }

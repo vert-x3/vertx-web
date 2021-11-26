@@ -22,7 +22,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.ext.web.handler.JsonCrudHandler;
 import io.vertx.ext.web.impl.RouterImpl;
 
 import java.util.List;

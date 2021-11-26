@@ -24,7 +24,6 @@ import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.JsonCrudHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.handler.crud.impl.JsonCrudHandlerImpl;
 import org.junit.Test;
@@ -3032,13 +3031,13 @@ public class RouterTest extends WebTestBase {
       .route("/persons/*")
       .handler(
         new JsonCrudHandlerImpl()
-          .create(json -> {
+          .createHandler(json -> {
             String id = UUID.randomUUID().toString();
             json.put("_id", id);
             store.put(id, json);
             return Future.succeededFuture(id);
           })
-          .query(query -> {
+          .queryHandler(query -> {
             List<JsonObject> values = new ArrayList<>();
             Collection<JsonObject> collection = store.values();
             int start = query.getStart() == null ? 0 : query.getStart();
@@ -3054,11 +3053,11 @@ public class RouterTest extends WebTestBase {
 
             return Future.succeededFuture(values);
           })
-          .update((id, newJson) -> {
+          .updateHandler((id, newJson) -> {
             JsonObject o = store.put(id, newJson);
             return Future.succeededFuture(o == null ? 0 : 1);
           })
-          .count(query -> Future.succeededFuture(store.size())));
+          .countHandler(query -> Future.succeededFuture(store.size())));
 
     testRequest(
       HttpMethod.POST,

@@ -17,23 +17,22 @@ package io.vertx.ext.web.handler.crud;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
 
 /**
- * Represents a user defined create object function. Given the {@code newObject} request body, the function returns a
- * future result with the newly created {@code unique identifier} for the inserted object.
+ * Represents a user defined count function. Given the query the function returns a future result with a total number of
+ * records affected by the query.
  *
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
 @VertxGen
 @FunctionalInterface
-public interface CreateFunction {
+public interface CountHandler {
 
   /**
-   * Create/Insert new object function. The function must return the newly created unique identifier for the object.
+   * Calculate the total number of affected rows by the Query.
    *
-   * @param newObject the object to store.
-   * @return Future result with the newly created unique identifier.
+   * @param query query parameters, implementations should only refer to {@link CrudQuery#getQuery()}
+   * @return Future result with affected rows
    */
-  Future<String> apply(JsonObject newObject);
+  Future<Integer> handle(CrudQuery query);
 }

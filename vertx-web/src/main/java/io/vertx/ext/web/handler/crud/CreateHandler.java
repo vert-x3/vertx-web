@@ -20,23 +20,20 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Represents a user defined patch function. Given the {@code entity unique identifier}, the new incomplete object from
- * the request and the current object from the database, the function returns a future result with a total number of
- * records affected by the query.
+ * Represents a user defined create object function. Given the {@code newObject} request body, the function returns a
+ * future result with the newly created {@code unique identifier} for the inserted object.
  *
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
 @VertxGen
 @FunctionalInterface
-public interface PatchFunction {
+public interface CreateHandler {
 
   /**
-   * Patches an existing object and returns the number of affected rows.
+   * Create/Insert new object function. The function must return the newly created unique identifier for the object.
    *
-   * @param id the expected unique identifier
-   * @param newObject the new (partial) object as read from the context body.
-   * @param oldObject the existing object as returned from the {@link ReadFunction}.
-   * @return future result with the number of affected rows.
+   * @param newObject the object to store.
+   * @return Future result with the newly created unique identifier.
    */
-  Future<Integer> apply(String id, JsonObject newObject, JsonObject oldObject);
+  Future<String> handle(JsonObject newObject);
 }

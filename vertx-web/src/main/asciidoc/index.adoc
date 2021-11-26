@@ -915,7 +915,7 @@ Implementing APIs is one of the most common tasks that you will have to handle. 
 toolkit to quickly bootstrap such APIs, you will end up writing lots of boilerplate/repetitive code.
 
 To avoid repetition and allow you to focus on your API, vert.x web provides a
-{@link io.vertx.ext.web.handler.JsonCrudHandler} handler to simplify such work. The handler requires you to provide
+{@link io.vertx.ext.web.handler.CrudHandler} handler to simplify such work. The handler requires you to provide
 functions that map to the CRUD format:
 
 * `create` inserts a json object to the database and returns the newly generated id

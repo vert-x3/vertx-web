@@ -17,22 +17,26 @@ package io.vertx.ext.web.handler.crud;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonObject;
+
+import java.util.List;
 
 /**
- * Represents a user defined count function. Given the query the function returns a future result with a total number of
- * records affected by the query.
+ * Represents a user defined query function. Given the {@code query}, the function returns a future result with a list
+ * of objects. The query format is user specific, sorting should be done on the positive and negative properties and
+ * pagination should respect the start and end attributes of {@link CrudQuery}.
  *
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
 @VertxGen
 @FunctionalInterface
-public interface CountFunction {
+public interface QueryHandler {
 
   /**
-   * Calculate the total number of affected rows by the Query.
+   * Query for {@link CrudQuery} objects and return a future result with a list of json objects.
    *
-   * @param query query parameters, implementations should only refer to {@link CrudQuery#getQuery()}
-   * @return Future result with affected rows
+   * @param query the query to be used while locating objects from a user provided storage.
+   * @return future result with the list of matched objects.
    */
-  Future<Integer> apply(CrudQuery query);
+  Future<List<JsonObject>> handle(CrudQuery query);
 }

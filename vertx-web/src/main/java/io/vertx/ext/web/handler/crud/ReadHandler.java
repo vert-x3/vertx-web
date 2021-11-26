@@ -19,24 +19,21 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 
-import java.util.List;
-
 /**
- * Represents a user defined query function. Given the {@code query}, the function returns a future result with a list
- * of objects. The query format is user specific, sorting should be done on the positive and negative properties and
- * pagination should respect the start and end attributes of {@link CrudQuery}.
+ * Represents a user defined read function. Given the {@code entity unique identifier} the function returns a future
+ * result with a single object from the user defined storage.
  *
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
 @VertxGen
 @FunctionalInterface
-public interface QueryFunction {
+public interface ReadHandler {
 
   /**
-   * Query for {@link CrudQuery} objects and return a future result with a list of json objects.
+   * Read a single entity from a user defined storage.
    *
-   * @param query the query to be used while locating objects from a user provided storage.
-   * @return future result with the list of matched objects.
+   * @param entity the unique identifier to look up.
+   * @return Future result with a single json object.
    */
-  Future<List<JsonObject>> apply(CrudQuery query);
+  Future<JsonObject> handle(String entity);
 }
