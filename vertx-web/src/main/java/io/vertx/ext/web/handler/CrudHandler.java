@@ -87,6 +87,8 @@ public interface CrudHandler<T> extends Handler<RoutingContext> {
   /**
    * Create a Json CRUD handler with a well-defined POJO as entity type. In this mode all underlying handlers will
    * receive the body of the request already casted to the declared type. This is useful for typesafe APIs.
+   *
+   * <b>NOTE:</b> using this mode, requires that `jackson-databind` is present in your application class-path.
    */
   static <P> CrudHandler<P> create(Class<P> clazz) {
     return new JsonCrudHandlerImpl<>(clazz);
