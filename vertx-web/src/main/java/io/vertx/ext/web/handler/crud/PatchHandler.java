@@ -28,7 +28,7 @@ import io.vertx.core.json.JsonObject;
  */
 @VertxGen
 @FunctionalInterface
-public interface PatchHandler {
+public interface PatchHandler<T> {
 
   /**
    * Patches an existing object and returns the number of affected rows.
@@ -38,5 +38,5 @@ public interface PatchHandler {
    * @param oldObject the existing object as returned from the {@link ReadHandler}.
    * @return future result with the number of affected rows.
    */
-  Future<Integer> handle(String id, JsonObject newObject, JsonObject oldObject);
+  Future<Integer> handle(String id, T newObject, T oldObject);
 }

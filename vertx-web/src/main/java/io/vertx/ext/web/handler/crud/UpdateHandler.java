@@ -27,7 +27,7 @@ import io.vertx.core.json.JsonObject;
  */
 @VertxGen
 @FunctionalInterface
-public interface UpdateHandler {
+public interface UpdateHandler<T> {
 
   /**
    * Update a single entity from the user defined storage.
@@ -35,5 +35,5 @@ public interface UpdateHandler {
    * @param newObject the request body.
    * @return future result with number of affected rows.
    */
-  Future<Integer> handle(String entity, JsonObject newObject);
+  Future<Integer> handle(String entity, T newObject);
 }

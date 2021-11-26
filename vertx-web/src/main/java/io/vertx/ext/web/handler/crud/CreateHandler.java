@@ -27,7 +27,7 @@ import io.vertx.core.json.JsonObject;
  */
 @VertxGen
 @FunctionalInterface
-public interface CreateHandler {
+public interface CreateHandler<T> {
 
   /**
    * Create/Insert new object function. The function must return the newly created unique identifier for the object.
@@ -35,5 +35,5 @@ public interface CreateHandler {
    * @param newObject the object to store.
    * @return Future result with the newly created unique identifier.
    */
-  Future<String> handle(JsonObject newObject);
+  Future<String> handle(T newObject);
 }

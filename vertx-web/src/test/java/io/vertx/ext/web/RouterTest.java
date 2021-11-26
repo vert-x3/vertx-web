@@ -24,8 +24,8 @@ import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.CrudHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
-import io.vertx.ext.web.handler.crud.impl.JsonCrudHandlerImpl;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -3030,7 +3030,7 @@ public class RouterTest extends WebTestBase {
     router
       .route("/persons/*")
       .handler(
-        new JsonCrudHandlerImpl()
+        CrudHandler.create()
           .createHandler(json -> {
             String id = UUID.randomUUID().toString();
             json.put("_id", id);

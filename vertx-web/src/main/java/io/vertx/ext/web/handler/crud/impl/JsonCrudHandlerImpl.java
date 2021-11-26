@@ -1,8 +1,10 @@
 package io.vertx.ext.web.handler.crud.impl;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.CrudHandler;
@@ -14,10 +16,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.vertx.core.http.HttpMethod.*;
+import static io.vertx.ext.web.impl.RoutingContextInternal.BODY_HANDLER;
 import static io.vertx.ext.web.impl.RoutingContextInternal.CORS_HANDLER;
 import static java.lang.Integer.parseInt;
 
-public class JsonCrudHandlerImpl implements CrudHandler {
+public class JsonCrudHandlerImpl<T> implements CrudHandler<T> {
 
   protected static final Logger LOG = LoggerFactory.getLogger(CrudHandler.class);
 
@@ -25,15 +28,48 @@ public class JsonCrudHandlerImpl implements CrudHandler {
   private static final Pattern rangePattern = Pattern.compile("items=(\\d+)-(\\d+)");
   private static final Pattern sortPattern = Pattern.compile("sort\\((.+)\\)");
 
+  private final Class<T> pojoClass;
+
   private int maxAllowedLength = -1;
 
-  private CreateHandler create;
-  private ReadHandler read;
-  private UpdateHandler update;
+  private CreateHandler<T> create;
+  private ReadHandler<T> read;
+  private UpdateHandler<T> update;
   private DeleteHandler delete;
-  private QueryHandler query;
+  private QueryHandler<T> query;
   private CountHandler count;
-  private PatchHandler patch;
+  private PatchHandler<T> patch;
+
+  public JsonCrudHandlerImpl() {
+    pojoClass = null;
+  }
+
+  public JsonCrudHandlerImpl(Class<T> clazz) {
+    Objects.requireNonNull(clazz, "POJO type cannot be null");
+    pojoClass = clazz;
+  }
+
+  @SuppressWarnings("unchecked")
+  private T getBody(RoutingContext ctx) {
+    if (pojoClass == null) {
+      return (T) ctx.getBodyAsJson(maxAllowedLength);
+    } else {
+      Buffer body = ctx.getBody();
+      if (body != null) {
+        if (maxAllowedLength >= 0 && body.length() > maxAllowedLength) {
+          throw new IllegalStateException("RoutingContext body size exceeds the allowed limit");
+        }
+        return Json.decodeValue(ctx.getBody(), pojoClass);
+      } else {
+        if (!((RoutingContextInternal) ctx).seenHandler(BODY_HANDLER)) {
+          if (LOG.isWarnEnabled()) {
+            LOG.warn("BodyHandler in not enabled on this route: RoutingContext.getBodyAsJson() in always be NULL");
+          }
+        }
+      }
+      return null;
+    }
+  }
 
   @Override
   public void handle(RoutingContext ctx) {
@@ -108,13 +144,13 @@ public class JsonCrudHandlerImpl implements CrudHandler {
   }
 
   @Override
-  public CrudHandler maxAllowedLength(int length) {
+  public CrudHandler<T> maxAllowedLength(int length) {
     this.maxAllowedLength = length;
     return this;
   }
 
   @Override
-  public CrudHandler createHandler(CreateHandler fn) {
+  public CrudHandler<T> createHandler(CreateHandler<T> fn) {
     this.create = fn;
     return this;
   }
@@ -132,10 +168,10 @@ public class JsonCrudHandlerImpl implements CrudHandler {
       return;
     }
 
-    final JsonObject obj;
+    final T obj;
 
     try {
-      obj = ctx.getBodyAsJson(maxAllowedLength);
+      obj = getBody(ctx);
     } catch (RuntimeException e) {
       ctx.fail(400, e);
       return;
@@ -153,7 +189,7 @@ public class JsonCrudHandlerImpl implements CrudHandler {
   }
 
   @Override
-  public CrudHandler readHandler(ReadHandler fn) {
+  public CrudHandler<T> readHandler(ReadHandler<T> fn) {
     this.read = fn;
     return this;
   }
@@ -183,7 +219,7 @@ public class JsonCrudHandlerImpl implements CrudHandler {
   }
 
   @Override
-  public CrudHandler updateHandler(UpdateHandler fn) {
+  public CrudHandler<T> updateHandler(UpdateHandler<T> fn) {
     this.update = fn;
     return this;
   }
@@ -201,10 +237,10 @@ public class JsonCrudHandlerImpl implements CrudHandler {
       return;
     }
 
-    final JsonObject obj;
+    final T obj;
 
     try {
-      obj = ctx.getBodyAsJson(maxAllowedLength);
+      obj = getBody(ctx);
     } catch (RuntimeException e) {
       ctx.fail(400, e);
       return;
@@ -227,7 +263,7 @@ public class JsonCrudHandlerImpl implements CrudHandler {
   }
 
   @Override
-  public CrudHandler deleteHandler(DeleteHandler fn) {
+  public CrudHandler<T> deleteHandler(DeleteHandler fn) {
     this.delete = fn;
     return this;
   }
@@ -254,7 +290,7 @@ public class JsonCrudHandlerImpl implements CrudHandler {
   }
 
   @Override
-  public CrudHandler queryHandler(QueryHandler fn) {
+  public CrudHandler<T> queryHandler(QueryHandler<T> fn) {
     this.query = fn;
     return this;
   }
@@ -345,13 +381,13 @@ public class JsonCrudHandlerImpl implements CrudHandler {
   }
 
   @Override
-  public CrudHandler countHandler(CountHandler fn) {
+  public CrudHandler<T> countHandler(CountHandler fn) {
     this.count = fn;
     return this;
   }
 
   @Override
-  public CrudHandler updateHandler(PatchHandler fn) {
+  public CrudHandler<T> updateHandler(PatchHandler<T> fn) {
     this.patch = fn;
     return this;
   }
@@ -366,10 +402,10 @@ public class JsonCrudHandlerImpl implements CrudHandler {
       return;
     }
 
-    final JsonObject obj;
+    final T obj;
 
     try {
-      obj = ctx.getBodyAsJson(maxAllowedLength);
+      obj = getBody(ctx);
     } catch (RuntimeException e) {
       ctx.fail(400, e);
       return;
@@ -403,9 +439,23 @@ public class JsonCrudHandlerImpl implements CrudHandler {
             // does exist, returns 412
             ctx.fail(412);
           } else {
+            // there is no patch handler **but** we're dealing with plain JsonObject
+            // we can merge the 2 objects as use the update function
+            if (patch == null && pojoClass == null) {
+              try {
+                item = (T) ((JsonObject) item).mergeIn(((JsonObject) obj));
+              } catch (RuntimeException e) {
+                ctx.fail(e);
+                return;
+              }
+            } else {
+              ctx.fail(405);
+              return;
+            }
+
             // update back to the db
             (patch == null ?
-              update.handle(entityId, item.mergeIn(obj)) :
+              update.handle(entityId, item) :
               patch.handle(entityId, obj, item))
               .onFailure(ctx::fail)
               .onSuccess(affectedItems -> {

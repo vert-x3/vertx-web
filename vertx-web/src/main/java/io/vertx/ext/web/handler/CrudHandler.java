@@ -16,8 +16,10 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.crud.*;
 import io.vertx.ext.web.handler.crud.impl.JsonCrudHandlerImpl;
@@ -68,61 +70,69 @@ import io.vertx.ext.web.handler.crud.impl.JsonCrudHandlerImpl;
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface CrudHandler extends Handler<RoutingContext> {
+public interface CrudHandler<T> extends Handler<RoutingContext> {
 
 
   /**
    * Create a Json CRUD handler.
    */
-  static CrudHandler create() {
-    return new JsonCrudHandlerImpl();
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  static CrudHandler<JsonObject> create() {
+    return new JsonCrudHandlerImpl<>();
+  }
+
+  /**
+   * Create a Json CRUD handler.
+   */
+  static <P> CrudHandler<P> create(Class<P> clazz) {
+    return new JsonCrudHandlerImpl<>(clazz);
   }
 
   /**
    * Enforces a max allowed json input limit, like {@link io.vertx.ext.web.RoutingContext#getBodyAsJson(int)}
    */
   @Fluent
-  CrudHandler maxAllowedLength(int length);
+  CrudHandler<T> maxAllowedLength(int length);
 
   /**
    * Creates a new Object in the database and asynchronously returns the id for this new object.
    */
   @Fluent
-  CrudHandler createHandler(CreateHandler fn);
+  CrudHandler<T> createHandler(CreateHandler<T> fn);
 
   /**
    * Reads a single object from the database given the id.
    */
   @Fluent
-  CrudHandler readHandler(ReadHandler fn);
+  CrudHandler<T> readHandler(ReadHandler<T> fn);
 
   /**
    * Updates a single object. Returns the total updated elements
    */
   @Fluent
-  CrudHandler updateHandler(UpdateHandler fn);
+  CrudHandler<T> updateHandler(UpdateHandler<T> fn);
 
   /**
    * Updates a single object. Returns the total updated elements
    */
   @Fluent
-  CrudHandler updateHandler(PatchHandler fn);
+  CrudHandler<T> updateHandler(PatchHandler<T> fn);
 
   /**
    * Deletes a single object given an id. Returns the total number of removed elements.
    */
   @Fluent
-  CrudHandler deleteHandler(DeleteHandler fn);
+  CrudHandler<T> deleteHandler(DeleteHandler fn);
 
   /**
    * Queries for a collection of objects given a query, limit and sorting.
    */
   @Fluent
-  CrudHandler queryHandler(QueryHandler fn);
+  CrudHandler<T> queryHandler(QueryHandler<T> fn);
 
   /**
    * Counts the elements of a collection given a query.
    */
   @Fluent
-  CrudHandler countHandler(CountHandler fn);
+  CrudHandler<T> countHandler(CountHandler fn);
 }

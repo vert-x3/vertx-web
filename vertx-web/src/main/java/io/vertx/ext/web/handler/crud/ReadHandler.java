@@ -27,7 +27,7 @@ import io.vertx.core.json.JsonObject;
  */
 @VertxGen
 @FunctionalInterface
-public interface ReadHandler {
+public interface ReadHandler<T> {
 
   /**
    * Read a single entity from a user defined storage.
@@ -35,5 +35,5 @@ public interface ReadHandler {
    * @param entity the unique identifier to look up.
    * @return Future result with a single json object.
    */
-  Future<JsonObject> handle(String entity);
+  Future<T> handle(String entity);
 }

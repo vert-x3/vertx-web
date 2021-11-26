@@ -30,7 +30,7 @@ import java.util.List;
  */
 @VertxGen
 @FunctionalInterface
-public interface QueryHandler {
+public interface QueryHandler<T> {
 
   /**
    * Query for {@link CrudQuery} objects and return a future result with a list of json objects.
@@ -38,5 +38,5 @@ public interface QueryHandler {
    * @param query the query to be used while locating objects from a user provided storage.
    * @return future result with the list of matched objects.
    */
-  Future<List<JsonObject>> handle(CrudQuery query);
+  Future<List<T>> handle(CrudQuery query);
 }
