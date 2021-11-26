@@ -916,7 +916,7 @@ toolkit to quickly bootstrap such APIs, you will end up writing lots of boilerpl
 
 To avoid repetition and allow you to focus on your API, vert.x web provides a
 {@link io.vertx.ext.web.handler.CrudHandler} handler to simplify such work. The handler requires you to provide
-functions that map to the CRUD format:
+handlers that map to the CRUD format:
 
 * `create` inserts a json object to the database and returns the newly generated id
 * `read` reads a single object from the database
@@ -959,6 +959,17 @@ section. In this case you can handle this with a variation of the `update` funct
 ----
 
 NOTE: Both kind of update functions can be provided and the best one will be used for each http verb `PUT` and `PATCH`.
+
+While `JsonObject` is simple to use, there may be situations when using a `POJO` makes sense. For example, when the API
+defines a strict contract of the payload. In this case you can use the {@link io.vertx.ext.web.handler.CrudHandler} just
+like before but all your handlers are typed.
+
+To do this when creating the `CrudHandler` specify the desired `class`, for example:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example90}
+----
 
 == Handling cookies
 

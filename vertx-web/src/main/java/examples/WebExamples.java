@@ -2051,4 +2051,28 @@ public class WebExamples {
           return Future.succeededFuture(1);
         }));
   }
+
+  public void example90(Router router) {
+
+    class Person {
+      String id;
+      String name;
+    }
+
+    router.route("/persons/*")
+      .handler(CrudHandler.create(Person.class)
+        // will be called for PATCH /persons/:entityId
+        .createHandler(person -> {
+          // person is of the type Person
+          // so you can perform type safe/compile time operations such as:
+          System.out.println(person.name);
+
+          // Perform any validation
+          // Save to the database
+          // return the newly generated id
+          // ...
+
+          return Future.succeededFuture("new-person-id");
+        }));
+  }
 }
