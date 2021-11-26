@@ -971,6 +971,8 @@ To do this when creating the `CrudHandler` specify the desired `class`, for exam
 {@link examples.WebExamples#example90}
 ----
 
+NOTE: In order to encode and decode POJOs `jackson-databind` must be present in your class-path.
+
 == Handling cookies
 
 Vert.x-Web has out of the box cookies support.
