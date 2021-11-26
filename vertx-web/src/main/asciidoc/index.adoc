@@ -57,6 +57,7 @@ Some of the key features of Vert.x-Web include:
 * Event-bus bridge
 * CSRF Cross Site Request Forgery
 * VirtualHost
+* REST Crud
 
 Most features in Vert.x-Web are implemented as handlers so you can always write your own. We envisage many more being
 written over time.
@@ -907,6 +908,70 @@ Here's an example:
 
 Each file upload is described by a {@link io.vertx.ext.web.FileUpload} instance, which allows various properties
 such as the name, file-name and size to be accessed.
+
+== REST APIs
+
+Implementing APIs is one of the most common tasks that you will have to handle. While vert.x web provides you a simple
+toolkit to quickly bootstrap such APIs, you will end up writing lots of boilerplate/repetitive code.
+
+To avoid repetition and allow you to focus on your API, vert.x web provides a
+{@link io.vertx.ext.web.handler.CrudHandler} handler to simplify such work. The handler requires you to provide
+handlers that map to the CRUD format:
+
+* `create` inserts a json object to the database and returns the newly generated id
+* `read` reads a single object from the database
+* `update` updates a single object from the database
+* `delete` deletes a single object from the database
+
+If your API doesn't require all the verbs, for example, you don't allow deleting of information, just don't provide a
+delete function. The same applies for the rest of the verbs.
+
+=== Persons Directory API
+
+As an example imagine you needed to create a simple directory application. You want to create, read, update and delete
+persons from a database and allow external applications to communicate with your API.
+
+This is how your application would look like:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example87}
+----
+
+However, the handler has a few extra functions that extend the functionality of the API, there are a `query` and `count`
+functions that allow your API to support adhoc queries:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example88}
+----
+
+By providing the `count` function the HTTP response will include a range header so your clients can perform pagination
+of results.
+
+Finally, in mobile world it is expected to avoid using too much data, for this case, the handler also supports the HTTP
+verb `PATCH`. Patch will work like an update, but clients are not sending a full document as update, just a small
+section. In this case you can handle this with a variation of the `update` function:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example89}
+----
+
+NOTE: Both kind of update functions can be provided and the best one will be used for each http verb `PUT` and `PATCH`.
+
+While `JsonObject` is simple to use, there may be situations when using a `POJO` makes sense. For example, when the API
+defines a strict contract of the payload. In this case you can use the {@link io.vertx.ext.web.handler.CrudHandler} just
+like before but all your handlers are typed.
+
+To do this when creating the `CrudHandler` specify the desired `class`, for example:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example90}
+----
+
+NOTE: In order to encode and decode POJOs `jackson-databind` must be present in your class-path.
 
 == Handling cookies
 

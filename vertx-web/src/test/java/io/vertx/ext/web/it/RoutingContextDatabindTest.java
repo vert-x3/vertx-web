@@ -17,12 +17,17 @@
 package io.vertx.ext.web.it;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.CrudHandler;
 import org.junit.AfterClass;
 import org.junit.Test;
+
+import java.util.*;
 
 
 public class RoutingContextDatabindTest extends WebTestBase {
@@ -73,5 +78,112 @@ public class RoutingContextDatabindTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", null, res -> {
       assertEquals("application/json", res.getHeader("Content-Type"));
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "{\"x\":10,\"y\":20}");
+  }
+
+  static class Person {
+
+    private String name;
+    private String id;
+
+    public Person() {}
+
+    public String getName() {
+      return name;
+    }
+
+    public Person setName(String name) {
+      this.name = name;
+      return this;
+    }
+
+    public String getId() {
+      return id;
+    }
+
+    public Person setId(String id) {
+      this.id = id;
+      return this;
+    }
+  }
+
+  @Test
+  public void testCrudPOJO() throws Exception {
+
+    final Map<String, Person> store = new HashMap<>();
+
+    router
+      .route().handler(BodyHandler.create());
+
+    router
+      .route("/persons/*")
+      .handler(
+        CrudHandler.create(Person.class)
+          .createHandler(person -> {
+            String id = UUID.randomUUID().toString();
+            store.put(id, person.setId(id));
+            return Future.succeededFuture(id);
+          })
+          .queryHandler(query -> {
+            List<Person> persons = new ArrayList<>();
+            Collection<Person> collection = store.values();
+            int start = query.getStart() == null ? 0 : query.getStart();
+            int end = query.getEnd() == null ? collection.size() : query.getEnd();
+
+            int i = 0;
+            for (Person o : collection) {
+              if (i >= start && i < end) {
+                persons.add(o);
+              }
+              i++;
+            }
+
+            return Future.succeededFuture(persons);
+          })
+          .updateHandler((id, newPerson) -> {
+            Person o = store.put(id, newPerson);
+            return Future.succeededFuture(o == null ? 0 : 1);
+          })
+          .countHandler(query -> Future.succeededFuture(store.size())));
+
+    testRequest(
+      HttpMethod.POST,
+      "/persons",
+      req ->
+        req
+          .putHeader("Content-Type", "application/json")
+          .end(new JsonObject().put("name", "Paulo").encode()),
+      res -> {
+        assertNotNull(res.getHeader("Location"));
+      }, 201, "Created", "");
+
+    testRequest(
+      HttpMethod.POST,
+      "/persons",
+      req ->
+        req
+          .putHeader("Content-Type", "application/json")
+          .end(new JsonObject().put("name", "Thomas").encode()),
+      res -> {
+        assertNotNull(res.getHeader("Location"));
+      }, 201, "Created", "");
+
+    testRequest(
+      HttpMethod.POST,
+      "/persons",
+      req ->
+        req
+          .putHeader("Content-Type", "application/json")
+          .end(new JsonObject().put("name", "Julien").encode()),
+      res -> {
+        assertNotNull(res.getHeader("Location"));
+      }, 201, "Created", "");
+
+    testRequest(HttpMethod.GET, "/persons", req -> {
+      req.putHeader("Range", "items=0-2");
+    }, res -> {
+      assertNotNull(res.getHeader("Content-Range"));
+      res.body()
+        .onFailure(this::fail);
+    }, 200, "OK", null);
   }
 }

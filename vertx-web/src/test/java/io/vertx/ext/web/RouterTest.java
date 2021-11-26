@@ -23,6 +23,8 @@ import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.CrudHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import org.junit.Test;
 
@@ -932,12 +934,14 @@ public class RouterTest extends WebTestBase {
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidPattern() throws Exception {
-    router.route("/blah/:!!!/").handler(rc -> {});
+    router.route("/blah/:!!!/").handler(rc -> {
+    });
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidPatternWithBuilder() throws Exception {
-    router.route().path("/blah/:!!!/").handler(rc -> {});
+    router.route().path("/blah/:!!!/").handler(rc -> {
+    });
   }
 
   @Test
@@ -3013,5 +3017,87 @@ public class RouterTest extends WebTestBase {
       });
 
     testRequest(HttpMethod.GET, "/?a=a&A=b", 200, "OK");
+  }
+
+  @Test
+  public void testCrud() throws Exception {
+
+    final Map<String, JsonObject> store = new HashMap<>();
+
+    router
+      .route().handler(BodyHandler.create());
+
+    router
+      .route("/persons/*")
+      .handler(
+        CrudHandler.create()
+          .createHandler(json -> {
+            String id = UUID.randomUUID().toString();
+            json.put("_id", id);
+            store.put(id, json);
+            return Future.succeededFuture(id);
+          })
+          .queryHandler(query -> {
+            List<JsonObject> values = new ArrayList<>();
+            Collection<JsonObject> collection = store.values();
+            int start = query.getStart() == null ? 0 : query.getStart();
+            int end = query.getEnd() == null ? collection.size() : query.getEnd();
+
+            int i = 0;
+            for (JsonObject o : collection) {
+              if (i >= start && i < end) {
+                values.add(o);
+              }
+              i++;
+            }
+
+            return Future.succeededFuture(values);
+          })
+          .updateHandler((id, newJson) -> {
+            JsonObject o = store.put(id, newJson);
+            return Future.succeededFuture(o == null ? 0 : 1);
+          })
+          .countHandler(query -> Future.succeededFuture(store.size())));
+
+    testRequest(
+      HttpMethod.POST,
+      "/persons",
+      req ->
+        req
+          .putHeader("Content-Type", "application/json")
+          .end(new JsonObject().put("name", "Paulo").encode()),
+      res -> {
+        assertNotNull(res.getHeader("Location"));
+      }, 201, "Created", "");
+
+    testRequest(
+      HttpMethod.POST,
+      "/persons",
+      req ->
+        req
+          .putHeader("Content-Type", "application/json")
+          .end(new JsonObject().put("name", "Thomas").encode()),
+      res -> {
+        assertNotNull(res.getHeader("Location"));
+      }, 201, "Created", "");
+
+    testRequest(
+      HttpMethod.POST,
+      "/persons",
+      req ->
+        req
+          .putHeader("Content-Type", "application/json")
+          .end(new JsonObject().put("name", "Julien").encode()),
+      res -> {
+        assertNotNull(res.getHeader("Location"));
+      }, 201, "Created", "");
+
+    testRequest(HttpMethod.GET, "/persons", req -> {
+      req.putHeader("Range", "items=0-2");
+    }, res -> {
+      assertNotNull(res.getHeader("Content-Range"));
+      res.body()
+        .onFailure(this::fail);
+    }, 200, "OK", null);
   }
 }

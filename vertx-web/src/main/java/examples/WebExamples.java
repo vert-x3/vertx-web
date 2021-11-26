@@ -37,6 +37,7 @@ import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -1979,5 +1980,99 @@ public class WebExamples {
       .handler(ctx -> {
         ctx.end("Super secret content");
       });
+  }
+
+  public void example87(Router router) {
+
+    router.route("/persons/*")
+      .handler(CrudHandler.create()
+        // will be called for POST /persons {name: Paulo}
+        .createHandler(json -> {
+          // Perform any validation
+          // Store to the database
+          // ...
+          return Future.succeededFuture("person-id");
+        })
+        // will be called for GET /persons/:entityId
+        .readHandler(id -> {
+          // Perform any validation
+          // Load a single person by id
+          // ...
+          return Future.succeededFuture(new JsonObject(/* "..." */));
+        })
+        // will be called for PUT /persons/:entityId
+        .updateHandler((id, json) -> {
+          // Perform any validation
+          // Update a single person by id
+          // ...
+          return Future.succeededFuture(1);
+        })
+        // will be called for DELETE /persons/:entityId
+        .deleteHandler(id -> {
+          // Perform any validation
+          // Delete a single person by id
+          // ...
+          return Future.succeededFuture(1);
+        }));
+  }
+
+  public void example88(Router router) {
+
+    router.route("/persons/*")
+      .handler(CrudHandler.create()
+        // will be called for GET /persons
+        .queryHandler(query -> {
+          // Perform any validation
+          // Load from the database
+          // ...
+          return Future.succeededFuture(Arrays.asList(new JsonObject(), new JsonObject()));
+        })
+        // will be called for GET /persons
+        .countHandler(query -> {
+          // Counts the affected rows for the given query
+          // ...
+          return Future.succeededFuture(2);
+        }));
+  }
+
+  public void example89(Router router) {
+
+    router.route("/persons/*")
+      .handler(CrudHandler.create()
+        // will be called for PATCH /persons/:entityId
+        .updateHandler((id, newObject, oldObject) -> {
+          // Perform any validation
+          // Update the database
+          // ...
+
+          // newObject is the request body
+          // oldObject is the complete existing object from the Database
+
+          return Future.succeededFuture(1);
+        }));
+  }
+
+  public void example90(Router router) {
+
+    class Person {
+      String id;
+      String name;
+    }
+
+    router.route("/persons/*")
+      .handler(CrudHandler.create(Person.class)
+        // will be called for PATCH /persons/:entityId
+        .createHandler(person -> {
+          // person is of the type Person
+          // so you can perform type safe/compile time operations such as:
+          System.out.println(person.name);
+
+          // Perform any validation
+          // Save to the database
+          // return the newly generated id
+          // ...
+
+          return Future.succeededFuture("new-person-id");
+        }));
   }
 }

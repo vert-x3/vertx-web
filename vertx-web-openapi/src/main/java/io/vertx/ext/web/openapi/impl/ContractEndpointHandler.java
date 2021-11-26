@@ -16,15 +16,14 @@ import io.vertx.ext.web.openapi.ErrorType;
 import io.vertx.ext.web.openapi.OpenAPIHolder;
 import io.vertx.ext.web.openapi.RouterBuilderException;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ContractEndpointHandler implements Handler<RoutingContext> {
 
-  private static final List<MIMEHeader> JSON_DATA_TYPES = Stream.of(
-    new ParsableMIMEValue("application/json").forceParse()
-  ).collect(Collectors.toList());
+  private static final List<MIMEHeader> JSON_DATA_TYPES = Collections
+    .singletonList(
+      new ParsableMIMEValue("application/json").forceParse());
 
   private final Buffer openapiJson;
   private final Buffer openapiYaml;
@@ -50,8 +49,8 @@ public class ContractEndpointHandler implements Handler<RoutingContext> {
   }
 
   public boolean responseAsJson(RoutingContext context) {
-    MIMEHeader acceptJsonHeader = context.parsedHeaders().findBestUserAcceptedIn(context.parsedHeaders().accept(),
-      JSON_DATA_TYPES);
+    MIMEHeader acceptJsonHeader = context.parsedHeaders()
+      .findBestUserAcceptedIn(context.parsedHeaders().accept(), JSON_DATA_TYPES);
     if (acceptJsonHeader != null) {
       return true;
     }
