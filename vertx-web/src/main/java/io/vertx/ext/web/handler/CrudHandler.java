@@ -74,7 +74,10 @@ public interface CrudHandler<T> extends Handler<RoutingContext> {
 
 
   /**
-   * Create a Json CRUD handler.
+   * Create a Json CRUD handler. This will be default use {@link JsonObject} as the type of data to be passed to the
+   * underlying handlers.
+   *
+   * For type safe APIs {@link #create(Class)}.
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static CrudHandler<JsonObject> create() {
@@ -82,7 +85,8 @@ public interface CrudHandler<T> extends Handler<RoutingContext> {
   }
 
   /**
-   * Create a Json CRUD handler.
+   * Create a Json CRUD handler with a well-defined POJO as entity type. In this mode all underlying handlers will
+   * receive the body of the request already casted to the declared type. This is useful for typesafe APIs.
    */
   static <P> CrudHandler<P> create(Class<P> clazz) {
     return new JsonCrudHandlerImpl<>(clazz);
