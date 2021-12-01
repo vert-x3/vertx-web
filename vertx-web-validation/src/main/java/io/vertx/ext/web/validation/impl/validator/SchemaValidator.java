@@ -14,6 +14,7 @@ public class SchemaValidator implements ValueValidator {
   private final Schema s;
   private final Validator validator;
 
+  @Deprecated
   public SchemaValidator(Schema s) {
     this.s = s;
     this.validator = null;
