@@ -14,6 +14,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.impl.RouteImpl;
 import io.vertx.ext.web.openapi.*;
@@ -352,7 +353,7 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
 
       String exposeConfigurationKey = this.getOptions().getOperationModelKey();
       if (exposeConfigurationKey != null)
-        route.handler(context -> context.put(exposeConfigurationKey, operation.getOperationModel()).next());
+        route.handler((PlatformHandler) context -> context.put(exposeConfigurationKey, operation.getOperationModel()).next());
 
       // Set produces/consumes
       Set<String> consumes = ((JsonObject) JsonPointer.from("/requestBody/content")

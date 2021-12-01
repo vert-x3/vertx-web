@@ -18,7 +18,6 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.BodyHandlerImpl;
 
@@ -30,7 +29,7 @@ import io.vertx.ext.web.handler.impl.BodyHandlerImpl;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface BodyHandler extends Handler<RoutingContext> {
+public interface BodyHandler extends PlatformHandler {
 
   /**
    * Default max size for a request body = {@code -1} means unlimited

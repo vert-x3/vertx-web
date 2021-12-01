@@ -29,10 +29,10 @@ import io.vertx.ext.web.handler.impl.TotpAuthHandlerImpl;
 /**
  * An auth handler that provides One Time Password (Multi-Factor) Authentication support.
  *
- * @author Paulo Lopes
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface OtpAuthHandler extends Handler<RoutingContext> {
+public interface OtpAuthHandler extends AuthenticationHandler {
 
   /**
    * Create a new instance of this handler using a time based one time password authentication provider.

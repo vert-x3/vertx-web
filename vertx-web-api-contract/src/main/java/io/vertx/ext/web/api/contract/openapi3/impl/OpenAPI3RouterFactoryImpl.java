@@ -29,6 +29,7 @@ import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.impl.BaseRouterFactory;
 import io.vertx.ext.web.api.contract.impl.RouteToEBServiceHandler;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
+import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.impl.RouteImpl;
 
@@ -379,7 +380,8 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
 
       String exposeConfigurationKey = this.getOptions().getOperationModelKey();
       if (exposeConfigurationKey != null)
-        route.handler(context -> context.put(exposeConfigurationKey, operation.getOperationModel()).next());
+        route.handler(
+          (PlatformHandler) context -> context.put(exposeConfigurationKey, operation.getOperationModel()).next());
 
       // Set produces/consumes
       Set<String> consumes = new HashSet<>();

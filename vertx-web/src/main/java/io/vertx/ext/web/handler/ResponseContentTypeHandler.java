@@ -36,7 +36,7 @@ import io.vertx.ext.web.handler.impl.ResponseContentTypeHandlerImpl;
  * @see RoutingContext#getAcceptableContentType()
  */
 @VertxGen
-public interface ResponseContentTypeHandler extends Handler<RoutingContext> {
+public interface ResponseContentTypeHandler extends PlatformHandler {
 
   String DEFAULT_DISABLE_FLAG = "__vertx.autoContenType.disable";
 

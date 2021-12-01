@@ -21,6 +21,10 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.AuthenticationHandler;
+import io.vertx.ext.web.handler.AuthorizationHandler;
+import io.vertx.ext.web.handler.PlatformHandler;
+import io.vertx.ext.web.handler.SecurityPolicyHandler;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -34,6 +38,31 @@ import java.util.regex.Pattern;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 final class RouteState {
+
+  enum Priority {
+    PLATFORM,
+    SECURITY_POLICY,
+    AUTHENTICATION,
+    AUTHORIZATION,
+    USER
+  }
+
+  private static Priority weight(Handler<RoutingContext> handler) {
+    if (handler instanceof PlatformHandler) {
+      return Priority.PLATFORM;
+    }
+    if (handler instanceof SecurityPolicyHandler) {
+      return Priority.SECURITY_POLICY;
+    }
+    if (handler instanceof AuthenticationHandler) {
+      return Priority.AUTHENTICATION;
+    }
+    if (handler instanceof AuthorizationHandler) {
+      return Priority.AUTHORIZATION;
+    }
+
+    return Priority.USER;
+  }
 
   private final RouteImpl route;
 
@@ -495,6 +524,15 @@ final class RouteState {
       this.exclusive,
       this.exactPath);
 
+    final Priority weight = weight(contextHandler);
+
+    for (int i = 0; i < newState.contextHandlers.size(); i++) {
+      Priority iterWeith = weight(newState.contextHandlers.get(i));
+      if (iterWeith.ordinal() > weight.ordinal()) {
+        throw new IllegalStateException("Cannot add [" + weight.name() + "] handler to route with [" + iterWeith.name() + "] handler at index " + i);
+      }
+    }
+
     newState.contextHandlers.add(contextHandler);
     return newState;
   }
@@ -900,6 +938,7 @@ final class RouteState {
       this.exclusive,
       this.exactPath);
   }
+
   private boolean containsMethod(HttpServerRequest request) {
     if (!isEmpty(methods)) {
       return methods.contains(request.method());

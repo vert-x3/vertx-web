@@ -25,6 +25,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.RoutingContext;

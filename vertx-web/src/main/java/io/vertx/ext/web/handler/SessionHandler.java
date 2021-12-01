@@ -42,7 +42,7 @@ import io.vertx.ext.web.sstore.SessionStore;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface SessionHandler extends Handler<RoutingContext> {
+public interface SessionHandler extends PlatformHandler {
 
 	/**
 	 * Default name of session cookie

@@ -30,9 +30,10 @@ import java.util.Set;
  * A handler which implements server side http://www.w3.org/TR/cors/[CORS] support for Vert.x-Web.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface CorsHandler extends Handler<RoutingContext> {
+public interface CorsHandler extends SecurityPolicyHandler {
 
   /**
    * Create a CORS handler using a regular expression to match origins. An origin follows rfc6454#section-7

@@ -35,18 +35,18 @@ final class RouterState {
     // we keep a set of handlers ordered by its "order" property
     final int compare = Integer.compare(o1.order(), o2.order());
     // since we are defining the comparator to order the set we must be careful because the set
-    // will use the comparator to compare the identify of the handlers and if they are the same order
+    // will use the comparator to compare the identity of the handlers and if they are the same order
     // are assumed to be the same comparator and therefore removed from the set.
 
     // if the 2 routes being compared by its order have the same order property value,
-    // then do a more expensive equality check and if and only if the are the same we
+    // then do a more expensive equality check and if and only if they are the same we
     // do return 0, meaning same order and same identity.
     if (compare == 0) {
       if (o1.equals(o2)) {
         return 0;
       }
-      // otherwise we return higher so if 2 routes have the same order the second one will be considered
-      // higher so it is added after the first.
+      // otherwise, we return higher so if 2 routes have the same order the second one will be considered
+      // higher, so it is added after the first.
       return 1;
     }
     return compare;
