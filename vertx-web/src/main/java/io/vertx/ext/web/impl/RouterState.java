@@ -54,7 +54,7 @@ final class RouterState {
 
   private final RouterImpl router;
 
-  private final Set<RouteImpl> routes;
+  private final TreeSet<RouteImpl> routes;
   private final int orderSequence;
   private final Map<Integer, Handler<RoutingContext>> errorHandlers;
   private final Handler<Router> modifiedHandler;
@@ -108,7 +108,7 @@ final class RouterState {
   }
 
   RouterState addRoute(RouteImpl route) {
-    Set<RouteImpl> routes = new TreeSet<>(routeComparator);
+    TreeSet<RouteImpl> routes = new TreeSet<>(routeComparator);
     if (this.routes != null) {
       routes.addAll(this.routes);
     }
@@ -136,7 +136,7 @@ final class RouterState {
   }
 
   RouterState removeRoute(RouteImpl route) {
-    Set<RouteImpl> routes = new TreeSet<>(routeComparator);
+    TreeSet<RouteImpl> routes = new TreeSet<>(routeComparator);
     if (this.routes != null) {
       routes.addAll(this.routes);
     }

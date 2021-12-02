@@ -16,9 +16,7 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.ext.web.RoutingContext;
 
 /**
  * HTTP Strict Transport Security (HSTS) <a href="http://tools.ietf.org/html/rfc6797">RFC6797</a>.

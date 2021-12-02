@@ -263,27 +263,32 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
+  @Deprecated
   public Cookie getCookie(String name) {
     return request.getCookie(name);
   }
 
   @Override
+  @Deprecated
   public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
     request.response().addCookie(cookie);
     return this;
   }
 
   @Override
+  @Deprecated
   public Cookie removeCookie(String name, boolean invalidate) {
     return request.response().removeCookie(name, invalidate);
   }
 
   @Override
+  @Deprecated
   public int cookieCount() {
     return request.cookieCount();
   }
 
   @Override
+  @Deprecated
   public Map<String, Cookie> cookieMap() {
     return request.cookieMap();
   }

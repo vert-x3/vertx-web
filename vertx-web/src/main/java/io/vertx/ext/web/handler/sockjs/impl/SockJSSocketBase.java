@@ -49,7 +49,7 @@ public abstract class SockJSSocketBase implements SockJSSocket {
 
   private final MessageConsumer<Object> registration;
   protected final Vertx vertx;
-  protected RoutingContext routingContext;
+  protected final RoutingContext routingContext;
 
   /**
    * When a {@code SockJSSocket} is created it automatically registers an event handler with the event bus, the ID of that

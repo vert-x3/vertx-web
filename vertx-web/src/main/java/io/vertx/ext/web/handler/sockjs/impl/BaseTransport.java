@@ -68,7 +68,7 @@ class BaseTransport {
 
   protected final Vertx vertx;
   protected final LocalMap<String, SockJSSession> sessions;
-  protected SockJSHandlerOptions options;
+  protected final SockJSHandlerOptions options;
 
   static final String COMMON_PATH_ELEMENT_RE = "\\/[^\\/\\.]+\\/([^\\/\\.]+)\\/";
 

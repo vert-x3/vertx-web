@@ -67,6 +67,11 @@ public class Utils {
   public static String pathOffset(String path, RoutingContext context) {
     final Route route = context.currentRoute();
 
+    // cannot make any assumptions
+    if (route == null) {
+      return path;
+    }
+
     if (!route.isExactPath()) {
       final String rest = context.pathParam("*");
       if (rest != null) {

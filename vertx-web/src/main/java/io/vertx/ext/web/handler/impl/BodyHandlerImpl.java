@@ -163,8 +163,8 @@ public class BodyHandlerImpl implements BodyHandler {
     final long contentLength;
     Buffer body;
     boolean failed;
-    AtomicInteger uploadCount = new AtomicInteger();
-    AtomicBoolean cleanup = new AtomicBoolean(false);
+    final AtomicInteger uploadCount = new AtomicInteger();
+    final AtomicBoolean cleanup = new AtomicBoolean(false);
     boolean ended;
     long uploadSize = 0L;
     final boolean isMultipart;

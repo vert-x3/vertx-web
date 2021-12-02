@@ -18,6 +18,8 @@ package io.vertx.ext.web.impl;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
@@ -38,6 +40,9 @@ import java.util.regex.Pattern;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 final class RouteState {
+
+  private static final Logger LOG = LoggerFactory.getLogger(RouteState.class);
+
 
   enum Priority {
     PLATFORM,
@@ -524,12 +529,16 @@ final class RouteState {
       this.exclusive,
       this.exactPath);
 
-    final Priority weight = weight(contextHandler);
+    int len = newState.contextHandlers.size();
 
-    for (int i = 0; i < newState.contextHandlers.size(); i++) {
-      Priority iterWeith = weight(newState.contextHandlers.get(i));
+    if (len > 0) {
+      final Priority weight = weight(contextHandler);
+      Priority iterWeith = weight(newState.contextHandlers.get(len - 1));
       if (iterWeith.ordinal() > weight.ordinal()) {
-        throw new IllegalStateException("Cannot add [" + weight.name() + "] handler to route with [" + iterWeith.name() + "] handler at index " + i);
+        String message = "Cannot add [" + weight.name() + "] handler to route with [" + iterWeith.name() + "] handler at index " + (len - 1);
+        // when assertions are enabled, throw AssertionError to signal that the implementation is not correct
+        assert false : message;
+        LOG.warn(message);
       }
     }
 

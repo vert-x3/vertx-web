@@ -33,6 +33,7 @@ final class SparseArray<H> {
 
   private Object[] elements = EMPTY;
 
+  @SuppressWarnings("unchecked")
   void forEachInReverseOrder(final java.util.function.Consumer<H> action) {
     for (int i = elements.length - 1; i >= 0; i--) {
       final Object element = elements[i];
@@ -70,6 +71,7 @@ final class SparseArray<H> {
     }
   }
 
+  @SuppressWarnings("unchecked")
   @Nullable H remove(final int handlerID) {
     if (handlerID < elements.length) {
       final H removed = (H) elements[handlerID];
