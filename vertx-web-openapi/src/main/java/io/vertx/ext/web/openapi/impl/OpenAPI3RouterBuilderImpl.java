@@ -25,6 +25,7 @@ import io.vertx.json.schema.openapi3.OpenAPI3SchemaParser;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -239,6 +240,23 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
     return this;
   }
 
+  private static class ResolvedOpenAPI3Path implements Comparable<ResolvedOpenAPI3Path> {
+    private final OperationImpl operation;
+    private final OpenAPI3PathResolver resolver;
+    private final Optional<Pattern> optionalPattern;
+
+    ResolvedOpenAPI3Path(OperationImpl operation, OpenAPIHolder openapi) {
+      this.operation = operation;
+      this.resolver =  new OpenAPI3PathResolver(operation.getOpenAPIPath(), new ArrayList<>(operation.getParameters().values()), openapi);
+      this.optionalPattern = resolver.solve();
+    }
+
+    @Override
+    public int compareTo(ResolvedOpenAPI3Path other) {
+      return this.resolver.mappedGroups.size() - other.resolver.mappedGroups.size();
+    }
+  }
+
   @Override
   public Router createRouter() {
     Router router = Router.router(vertx);
@@ -248,7 +266,17 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
     }
     globalHandlers.forEach(globalRoute::handler);
 
-    for (OperationImpl operation : operations.values()) {
+    // sort paths by number of patterned fields so /pets/mine is matched first
+    // when there is a choice between /pets/{petId} and /pets/mine
+    List<ResolvedOpenAPI3Path> resolvedPaths = operations
+      .values()
+      .stream()
+      .map(it -> new ResolvedOpenAPI3Path(it, openapi))
+      .sorted()
+      .collect(Collectors.toList());
+
+    for (ResolvedOpenAPI3Path resolvedPath : resolvedPaths) {
+      OperationImpl operation = resolvedPath.operation;
       // If user don't want 501 handlers and the operation is not configured, skip it
       if (!options.isMountNotImplementedHandler() && !operation.isConfigured())
         continue;
@@ -316,9 +344,8 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
       }
 
       // Now add all handlers to route
-      OpenAPI3PathResolver pathResolver = new OpenAPI3PathResolver(operation.getOpenAPIPath(), new ArrayList<>(operation.getParameters().values()), openapi);
-      Route route = pathResolver
-        .solve() // If this optional is empty, this route doesn't need regex
+      Route route = resolvedPath
+        .optionalPattern // If this optional is empty, this route doesn't need regex
         .map(solvedRegex -> router.routeWithRegex(operation.getHttpMethod(), solvedRegex.toString()))
         .orElseGet(() -> router.route(operation.getHttpMethod(), operation.getOpenAPIPath()))
         .setName(options.getRouteNamingStrategy().apply(operation));
@@ -353,7 +380,7 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
       if (options.isMountResponseContentTypeHandler() && produces.size() != 0)
         route.handler(ResponseContentTypeHandler.create());
 
-      route.setRegexGroupsNames(new ArrayList<>(pathResolver.getMappedGroups().values()));
+      route.setRegexGroupsNames(new ArrayList<>(resolvedPath.resolver.getMappedGroups().values()));
       for (Handler<RoutingContext> handler : handlersToLoad)
         route.handler(handler);
       for (Handler<RoutingContext> failureHandler : failureHandlersToLoad)

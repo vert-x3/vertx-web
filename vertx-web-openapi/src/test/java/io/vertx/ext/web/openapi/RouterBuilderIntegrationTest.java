@@ -279,6 +279,57 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
   }
 
   @Test
+  public void concretePathsMatchFirst(Vertx vertx, VertxTestContext testContext) {
+    // make sure /pets/mine is matched first when there is a choice between /pets/{petId} and /pets/mine
+    // see https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#patterned-fields
+    // also test situations (working in Vert.x 3) not strictly defined by the spec but agreed by one OpenAPI top contributor:
+    // https://stackoverflow.com/questions/67382759/are-those-openapi-3-paths-ambiguous
+    Checkpoint checkpoint = testContext.checkpoint(4);
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/path_matching_order.yaml", testContext,
+      routerBuilder -> {
+      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+
+      routerBuilder
+        .operation("searchPets")
+        .handler(routingContext -> {
+          routingContext.response().setStatusMessage("searchPets").end();
+        });
+      routerBuilder
+        .operation("searchPetsInShop")
+        .handler(routingContext -> {
+          routingContext.response().setStatusMessage("searchPetsInShop").end();
+        });
+      routerBuilder
+        .operation("addPet")
+        .handler(routingContext -> {
+          routingContext.response().setStatusMessage("addPet").end();
+        });
+        routerBuilder
+          .operation("addPetToShop")
+          .handler(routingContext -> {
+            routingContext.response().setStatusMessage("addPetToShop").end();
+          });
+    }).onComplete(h -> {
+      testRequest(client, HttpMethod.POST, "/pets/wolfie")
+        .expect(statusCode(200), statusMessage("addPet"))
+        .sendJson(new JsonObject(), testContext, checkpoint);
+
+      testRequest(client, HttpMethod.POST, "/pets/_search")
+        .expect(statusCode(200), statusMessage("searchPets"))
+        .send(testContext, checkpoint);
+
+      testRequest(client, HttpMethod.POST, "/shops/mine/pets/wolfie")
+        .expect(statusCode(200), statusMessage("addPetToShop"))
+        .sendJson(new JsonObject(), testContext, checkpoint);
+
+      testRequest(client, HttpMethod.POST, "/shops/mine/pets/_search")
+        .expect(statusCode(200), statusMessage("searchPetsInShop"))
+        .send(testContext, checkpoint);
+
+    });
+  }
+
+  @Test
   public void mountNotImplementedHandler(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint();
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
