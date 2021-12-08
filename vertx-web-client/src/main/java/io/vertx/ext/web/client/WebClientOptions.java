@@ -563,6 +563,16 @@ public class WebClientOptions extends HttpClientOptions {
     return (WebClientOptions) super.setPoolEventLoopSize(poolEventLoopSize);
   }
 
+  @Override
+  public WebClientOptions setShared(boolean shared) {
+    return (WebClientOptions) super.setShared(shared);
+  }
+
+  @Override
+  public WebClientOptions setName(String name) {
+    return (WebClientOptions) super.setName(name);
+  }
+
   public static String loadUserAgent() {
     String userAgent = "Vert.x-WebClient";
     String version = VersionCommand.getVersion();
