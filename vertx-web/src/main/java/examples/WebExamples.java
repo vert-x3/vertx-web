@@ -33,6 +33,7 @@ import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
@@ -1978,6 +1979,18 @@ public class WebExamples {
     router.get("/protected")
       .handler(ctx -> {
         ctx.end("Super secret content");
+      });
+  }
+
+  public void example87(Router router) {
+    router
+      .route("/metadata/route")
+      .putMetadata("metadata-key", "123")
+      .handler(ctx -> {
+        Route route = ctx.currentRoute();
+        String value = route.getMetadata("metadata-key"); // 123
+        // will end the request with the value 123
+        ctx.end(value);
       });
   }
 }

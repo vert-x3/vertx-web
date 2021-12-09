@@ -3022,7 +3022,7 @@ public class RouterTest extends WebTestBase {
       .putMetadata("abc", "123")
       .handler(rc -> {
         Route route = rc.currentRoute();
-        String value = route.getMetadataValue("abc");
+        String value = route.getMetadata("abc");
         rc.end(value);
       });
 
@@ -3036,8 +3036,8 @@ public class RouterTest extends WebTestBase {
     Router sub = Router.router(vertx).putMetadata("sub", "123");
     sub.route("/metadata")
       .handler(rc -> {
-        String subVal = ((RoutingContextInternal)rc).currentRouter().getMetadataValue("sub");
-        String parentVal = ((RoutingContextInternal)rc).parent().currentRouter().getMetadataValue("parent");
+        String subVal = ((RoutingContextInternal)rc).currentRouter().getMetadata("sub");
+        String parentVal = ((RoutingContextInternal)rc).parent().currentRouter().getMetadata("parent");
         rc.end(parentVal + "-" + subVal);
       });
     router.mountSubRouter("/sub", sub);

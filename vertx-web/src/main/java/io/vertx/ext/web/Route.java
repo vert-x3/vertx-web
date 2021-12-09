@@ -237,7 +237,7 @@ public interface Route {
    * @return the metadata of this route, never returns null.
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  Map<String, Object> getMetadata();
+  Map<String, Object> metadata();
 
   /**
    * Get some data from metadata.
@@ -247,8 +247,8 @@ public interface Route {
    * @return  the data
    */
   @SuppressWarnings("unchecked")
-  default <T> T getMetadataValue(String key) {
-    return (T) getMetadata().get(key);
+  default <T> T getMetadata(String key) {
+    return (T) metadata().get(key);
   }
 
   /**

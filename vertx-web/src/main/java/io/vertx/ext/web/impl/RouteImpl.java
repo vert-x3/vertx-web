@@ -221,7 +221,7 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public Map<String, Object> getMetadata() {
+  public Map<String, Object> metadata() {
     Map<String, Object> metadata = state.getMetadata();
     return metadata != null ? metadata : Collections.emptyMap();
   }

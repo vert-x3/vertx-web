@@ -52,7 +52,7 @@ public interface Router extends Handler<HttpServerRequest> {
   /**
    * @return the metadata of this router, never returns null.
    */
-  Map<String, Object> getMetadata();
+  Map<String, Object> metadata();
 
   /**
    * Get some data from metadata.
@@ -62,8 +62,8 @@ public interface Router extends Handler<HttpServerRequest> {
    * @return  the data
    */
   @SuppressWarnings("unchecked")
-  default <T> T getMetadataValue(String key) {
-    return (T) getMetadata().get(key);
+  default <T> T getMetadata(String key) {
+    return (T) metadata().get(key);
   }
 
   /**

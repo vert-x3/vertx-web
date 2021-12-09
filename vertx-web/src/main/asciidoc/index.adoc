@@ -635,6 +635,21 @@ A request sent to path `/some/path/other` will match both routes.
 
 Alternatively you can access the entire context data map with {@link io.vertx.ext.web.RoutingContext#data}.
 
+== Metadata
+
+While the context allows you to store data during the request-response lifecycle, there are times it is important to
+have runtime metadata available. For example, to build API documentation, or to hold specific configuration for a given
+route.
+
+The metadata functionality works similarly to the context data. You can either access the holding `Map` or use the
+dedicated getter and setter defined both on the `Router` and `Route` interfaces:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example87}
+----
+
+
 == Helper functions
 
 While the routing context will allow you to access the underlying request and response objects, sometimes it will be
