@@ -15,6 +15,9 @@
  */
 package io.vertx.ext.web.impl;
 
+import io.vertx.codegen.annotations.CacheReturn;
+import io.vertx.codegen.annotations.Nullable;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -49,4 +52,21 @@ public interface RoutingContextInternal extends RoutingContext {
    * @return fluent self
    */
   RoutingContextInternal setMatchFailure(int matchFailure);
+
+  /**
+   * @return the current router this context is being routed through. All routingContext is associated with a router and
+   * never returns null.
+   */
+  @CacheReturn
+  Router currentRouter();
+
+  /**
+   * If a sub router is mounted to a parent router and the request is routed to the sub Router, two routingContexts are generated.
+   * sub routingContext associated sub router and {@code parent()} of sub routingContext associated parent router.
+   *
+   * @return the parent context for this context. It will be null for a top level router. For a sub-router of context has parent
+   */
+  @CacheReturn
+  @Nullable RoutingContextInternal parent();
+
 }

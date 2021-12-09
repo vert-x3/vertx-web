@@ -48,6 +48,18 @@ public class RouterImpl implements Router {
   }
 
   @Override
+  public synchronized Router putMetadata(String key, Object value) {
+    state = state.putMetadata(key, value);
+    return this;
+  }
+
+  @Override
+  public Map<String, Object> getMetadata() {
+    Map<String, Object> metadata = state.getMetadata();
+    return metadata != null ? metadata : Collections.emptyMap();
+  }
+
+  @Override
   public void handle(HttpServerRequest request) {
     if (LOG.isTraceEnabled()) {
       LOG.trace("Router: " + System.identityHashCode(this) + " accepting request " + request.method() + " " + request.absoluteURI());
@@ -233,12 +245,12 @@ public class RouterImpl implements Router {
 
   @Override
   public void handleContext(RoutingContext ctx) {
-    new RoutingContextWrapper(getAndCheckRoutePath(ctx), state.getRoutes(), ctx).next();
+    new RoutingContextWrapper(getAndCheckRoutePath(ctx), state.getRoutes(), (RoutingContextInternal) ctx, this).next();
   }
 
   @Override
   public void handleFailure(RoutingContext ctx) {
-    new RoutingContextWrapper(getAndCheckRoutePath(ctx), state.getRoutes(), ctx).next();
+    new RoutingContextWrapper(getAndCheckRoutePath(ctx), state.getRoutes(), (RoutingContextInternal) ctx, this).next();
   }
 
   @Override

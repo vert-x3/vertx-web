@@ -75,7 +75,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private volatile boolean endHandlerCalled = false;
 
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
-    super(mountPoint, routes);
+    super(mountPoint, routes, router);
     this.router = router;
     this.request = new HttpServerRequestWrapper(request, router.getAllowForward());
 
@@ -201,6 +201,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public Vertx vertx() {
     return router.vertx();
+  }
+
+  @Override
+  public @Nullable RoutingContextInternal parent() {
+    return null;
   }
 
   @Override

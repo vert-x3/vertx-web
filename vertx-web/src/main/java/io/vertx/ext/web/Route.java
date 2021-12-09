@@ -17,6 +17,7 @@
 package io.vertx.ext.web;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
@@ -27,6 +28,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.HttpException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -38,6 +40,18 @@ import java.util.function.Function;
  */
 @VertxGen
 public interface Route {
+
+  /**
+   * Put metadata to this route. Used for saved extra data.
+   * Remove the existing value if value is null.
+   *
+   * @param key the metadata of key
+   * @param value the metadata of value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  Route putMetadata(String key, Object value);
 
   /**
    * Add an HTTP method for this route. By default a route will match all HTTP methods. If any are specified then the route
@@ -218,6 +232,24 @@ public interface Route {
    */
   @Fluent
   Route useNormalizedPath(boolean useNormalizedPath);
+
+  /**
+   * @return the metadata of this route, never returns null.
+   */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  Map<String, Object> getMetadata();
+
+  /**
+   * Get some data from metadata.
+   *
+   * @param key the key for the metadata
+   * @param <T> the type of the data
+   * @return  the data
+   */
+  @SuppressWarnings("unchecked")
+  default <T> T getMetadataValue(String key) {
+    return (T) getMetadata().get(key);
+  }
 
   /**
    * @return the path prefix (if any) for this route
