@@ -21,6 +21,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Route;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.HttpException;
 
@@ -42,6 +43,7 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
 
   private final Set<RouteImpl> routes;
 
+  protected final Router currentRouter;
   protected final String mountPoint;
   private volatile int currentRouteNextHandlerIndex;
   private volatile int currentRouteNextFailureHandlerIndex;
@@ -56,10 +58,12 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   // internal runtime state
   private volatile long seen;
 
-  RoutingContextImplBase(String mountPoint, Set<RouteImpl> routes) {
+  RoutingContextImplBase(String mountPoint, Set<RouteImpl> routes, Router currentRouter) {
     this.mountPoint = mountPoint;
     this.routes = routes;
     this.iter = routes.iterator();
+
+    this.currentRouter = currentRouter;
     resetMatchFailure();
   }
 
@@ -91,6 +95,11 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
       return null;
     }
     return currentRoute.getRoute();
+  }
+
+  @Override
+  public Router currentRouter() {
+    return currentRouter;
   }
 
   int currentRouteNextHandlerIndex() {

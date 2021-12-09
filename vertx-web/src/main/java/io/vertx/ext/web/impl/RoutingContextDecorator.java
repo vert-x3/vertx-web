@@ -30,9 +30,9 @@ import java.util.Set;
 public class RoutingContextDecorator implements RoutingContextInternal {
 
   private final Route currentRoute;
-  private final RoutingContext decoratedContext;
+  private final RoutingContextInternal decoratedContext;
 
-  public RoutingContextDecorator(Route currentRoute, RoutingContext decoratedContext) {
+  public RoutingContextDecorator(Route currentRoute, RoutingContextInternal decoratedContext) {
     Objects.requireNonNull(currentRoute);
     Objects.requireNonNull(decoratedContext);
     this.currentRoute = currentRoute;
@@ -87,6 +87,16 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   @Override
   public Route currentRoute() {
     return currentRoute;
+  }
+
+  @Override
+  public Router currentRouter() {
+    return decoratedContext.currentRouter();
+  }
+
+  @Override
+  public @Nullable RoutingContextInternal parent() {
+    return decoratedContext.parent();
   }
 
   @Override

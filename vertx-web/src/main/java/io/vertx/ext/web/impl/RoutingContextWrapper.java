@@ -41,11 +41,11 @@ import java.util.Set;
  */
 public class RoutingContextWrapper extends RoutingContextImplBase {
 
-  protected final RoutingContext inner;
+  protected final RoutingContextInternal inner;
   private final String mountPoint;
 
-  public RoutingContextWrapper(String mountPoint, Set<RouteImpl> iter, RoutingContext inner) {
-    super(mountPoint, iter);
+  public RoutingContextWrapper(String mountPoint, Set<RouteImpl> iter, RoutingContextInternal inner, Router currentRouter) {
+    super(mountPoint, iter, currentRouter);
     this.inner = inner;
     String parentMountPoint = inner.mountPoint();
     if (parentMountPoint == null) {
@@ -224,6 +224,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public String mountPoint() {
     return mountPoint;
+  }
+
+  @Override
+  public RoutingContextInternal parent() {
+    return inner;
   }
 
   @Override

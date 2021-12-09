@@ -45,7 +45,7 @@ public class BlockingHandlerDecorator implements Handler<RoutingContext> {
   public void handle(RoutingContext context) {
     Route currentRoute = context.currentRoute();
     context.vertx().executeBlocking(fut -> {
-      decoratedHandler.handle(new RoutingContextDecorator(currentRoute, context));
+      decoratedHandler.handle(new RoutingContextDecorator(currentRoute, (RoutingContextInternal) context));
       fut.complete();
     }, ordered, res -> {
       if (res.failed()) {
