@@ -16,6 +16,7 @@
 package io.vertx.ext.web.client.impl;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.QueryStringEncoder;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -34,27 +35,33 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
+import io.vertx.uritemplate.UriTemplate;
+import io.vertx.uritemplate.Variables;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 public class HttpRequestImpl<T> implements HttpRequest<T> {
 
-  final WebClientInternal client;
-  final WebClientOptions options;
+  final WebClientBase client;
   ProxyOptions proxyOptions;
   SocketAddress serverAddress;
-  MultiMap params;
+  MultiMap queryParams;
+  Variables templateParams;
   HttpMethod method;
-  String protocol;
+  UriTemplate absoluteUri;
   private Integer port;
   private String host;
   String virtualHost;
-  String uri;
+  Object uri;
   MultiMap headers;
   long timeout = -1;
   BodyCodec<T> codec;
@@ -63,29 +70,17 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   boolean multipartMixed = true;
   public List<ResponsePredicate> expectations;
 
-  HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, Boolean ssl, Integer port, String host, String uri, BodyCodec<T>
-    codec, WebClientOptions options, ProxyOptions proxyOptions) {
-    this(client, method, serverAddress, null, ssl, port, host, uri, codec, options, proxyOptions);
-  }
-
-  HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, Boolean ssl, Integer port, String host, String uri, BodyCodec<T>
-          codec, WebClientOptions options) {
-    this(client, method, serverAddress, null, ssl, port, host, uri, codec, options, null);
-  }
-
-  HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, String protocol, Boolean ssl, Integer port, String host, String
-          uri, BodyCodec<T> codec, WebClientOptions options, ProxyOptions proxyOptions) {
+  private HttpRequestImpl(WebClientBase client,
+                          HttpMethod method,
+                          SocketAddress serverAddress,
+                          BodyCodec<T> codec,
+                          WebClientOptions options,
+                          ProxyOptions proxyOptions) {
     this.client = client;
     this.method = method;
-    this.protocol = protocol;
     this.codec = codec;
-    this.port = port;
-    this.host = host;
-    this.uri = uri;
-    this.ssl = ssl;
     this.serverAddress = serverAddress;
     this.followRedirects = options.isFollowRedirects();
-    this.options = options;
     this.proxyOptions = proxyOptions != null ? new ProxyOptions(proxyOptions) : null;
     if (options.isUserAgentEnabled()) {
       headers = HttpHeaders.set(HttpHeaders.USER_AGENT, options.getUserAgent());
@@ -94,19 +89,49 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     }
   }
 
+  HttpRequestImpl(WebClientBase client,
+                  HttpMethod method,
+                  SocketAddress serverAddress,
+                  UriTemplate absoluteUri,
+                  BodyCodec<T> codec,
+                  WebClientOptions options,
+                  ProxyOptions proxyOptions) {
+    this(client, method, serverAddress, codec, options, proxyOptions);
+    Objects.requireNonNull(absoluteUri, "absoluteUri cannot be null");
+    this.absoluteUri = absoluteUri;
+  }
+
+  HttpRequestImpl(WebClientBase client,
+                  HttpMethod method,
+                  SocketAddress serverAddress,
+                  Boolean ssl,
+                  int port,
+                  String host,
+                  Object uri,
+                  BodyCodec<T> codec,
+                  WebClientOptions options,
+                  ProxyOptions proxyOptions) {
+    this(client, method, serverAddress, codec, options, proxyOptions);
+    Objects.requireNonNull(host, "Host cannot be null");
+    this.codec = codec;
+    this.port = port;
+    this.host = host;
+    this.uri = uri;
+    this.ssl = ssl;
+  }
+
   private HttpRequestImpl(HttpRequestImpl<T> other) {
     this.client = other.client;
     this.serverAddress = other.serverAddress;
-    this.options = other.options;
     this.proxyOptions = other.proxyOptions != null ? new ProxyOptions(other.proxyOptions) : null;
     this.method = other.method;
-    this.protocol = other.protocol;
+    this.absoluteUri = other.absoluteUri;
     this.port = other.port;
     this.host = other.host;
     this.timeout = other.timeout;
     this.uri = other.uri;
     this.headers = other.headers != null ? HttpHeaders.headers().addAll(other.headers) : HttpHeaders.headers();
-    this.params = other.params != null ? MultiMap.caseInsensitiveMultiMap().addAll(other.params) : null;
+    this.queryParams = other.queryParams != null ? MultiMap.caseInsensitiveMultiMap().addAll(other.queryParams) : null;
     this.codec = other.codec;
     this.followRedirects = other.followRedirects;
     this.ssl = other.ssl;
@@ -127,28 +152,93 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     return this;
   }
 
-  public HttpMethod method() {
-    return method;
-  }
-
   @Override
   public HttpRequest<T> port(int value) {
     port = value;
     return this;
   }
 
-  public int port() {
-    return port != null ? port : options.getDefaultPort();
+  private static String buildUri(String uri, MultiMap queryParams) {
+    QueryStringDecoder decoder = new QueryStringDecoder(uri);
+    QueryStringEncoder encoder = new QueryStringEncoder(decoder.rawPath());
+    decoder.parameters().forEach((name, values) -> {
+      for (String value : values) {
+        encoder.addParam(name, value);
+      }
+    });
+    queryParams.forEach(param -> {
+      encoder.addParam(param.getKey(), param.getValue());
+    });
+    uri = encoder.toString();
+    return uri;
+  }
+
+  RequestOptions buildRequestOptions() throws URISyntaxException, MalformedURLException {
+
+    int port;
+    String host;
+    String protocol;
+    Boolean ssl;
+    String uri;
+    if (absoluteUri != null) {
+      uri = absoluteUri.expandToString(templateParams());
+      ClientUri curi = ClientUri.parse(uri);
+      uri = curi.uri;
+      host = curi.host;
+      port = curi.port;
+      protocol = curi.protocol;
+      ssl = curi.ssl;
+    } else {
+      port = this.port;
+      host = this.host;
+      ssl = this.ssl;
+      if (this.uri instanceof String) {
+        uri = (String) this.uri;
+      } else {
+        uri = ((UriTemplate) this.uri).expandToString(templateParams());
+      }
+      protocol = null;
+    }
+
+    if (queryParams != null) {
+      uri = buildUri(uri, queryParams);
+    }
+
+    RequestOptions requestOptions = new RequestOptions();
+    if (protocol != null && !protocol.equals("http") && !protocol.equals("https")) {
+      // we have to create an abs url again to parse it in HttpClient
+      URI tmp = new URI(protocol, null, host, port, uri, null, null);
+      requestOptions.setServer(this.serverAddress)
+        .setMethod(this.method)
+        .setAbsoluteURI(tmp.toString());
+    } else {
+      requestOptions.setServer(this.serverAddress)
+        .setMethod(this.method)
+        .setHost(host)
+        .setPort(port)
+        .setURI(uri);
+      if (ssl != null && ssl != client.options.isSsl()) {
+        requestOptions
+          .setSsl(ssl);
+      }
+    }
+    if (this.virtualHost != null) {
+      if (requestOptions.getServer() == null) {
+        requestOptions.setServer(SocketAddress.inetSocketAddress(requestOptions.getPort(), requestOptions.getHost()));
+      }
+      requestOptions.setHost(this.virtualHost);
+    }
+    this.mergeHeaders(requestOptions);
+    requestOptions.setTimeout(this.timeout);
+    requestOptions.setProxyOptions(this.proxyOptions);
+    return requestOptions;
   }
 
   @Override
   public HttpRequest<T> host(String value) {
+    Objects.requireNonNull(host, "Host cannot be null");
     host = value;
     return this;
-  }
-
-  public String host() {
-    return host != null ? host : options.getDefaultHost();
   }
 
   @Override
@@ -157,19 +247,15 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     return this;
   }
 
-  public String virtualHost() {
-    return virtualHost;
-  }
-
   @Override
   public HttpRequest<T> uri(String value) {
-    params = null;
+    queryParams = null;
     uri = value;
     return this;
   }
 
   public String uri() {
-    return uri;
+    return uri.toString();
   }
 
   @Override
@@ -213,18 +299,10 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     return this;
   }
 
-  public Boolean ssl() {
-    return ssl;
-  }
-
   @Override
   public HttpRequest<T> timeout(long value) {
     timeout = value;
     return this;
-  }
-
-  public long timeout() {
-    return timeout;
   }
 
   @Override
@@ -240,6 +318,18 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
+  public HttpRequest<T> setTemplateParam(String paramName, String paramValue) {
+    templateParams().set(paramName, paramValue);
+    return this;
+  }
+
+  @Override
+  public HttpRequest<T> setTemplateParam(String paramName, Map<String, String> paramValue) {
+    templateParams().set(paramName, paramValue);
+    return this;
+  }
+
+  @Override
   public HttpRequest<T> followRedirects(boolean value) {
     followRedirects = value;
     return this;
@@ -249,10 +339,6 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   public HttpRequest<T> proxy(ProxyOptions proxyOptions) {
     this.proxyOptions = proxyOptions;
     return this;
-  }
-
-  public boolean followRedirects() {
-    return followRedirects;
   }
 
   @Override
@@ -266,18 +352,29 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   @Override
   public MultiMap queryParams() {
-    if (params == null) {
-      params = MultiMap.caseInsensitiveMultiMap();
-    }
-    if (params.isEmpty()) {
-      int idx = uri.indexOf('?');
-      if (idx >= 0) {
-        QueryStringDecoder dec = new QueryStringDecoder(uri);
-        dec.parameters().forEach((name, value) -> params.add(name, value));
-        uri = uri.substring(0, idx);
+    if (queryParams == null) {
+      queryParams = MultiMap.caseInsensitiveMultiMap();
+      if (uri instanceof String) {
+        int idx = ((String)uri).indexOf('?');
+        if (idx >= 0) {
+          QueryStringDecoder dec = new QueryStringDecoder((String)uri);
+          dec.parameters().forEach((name, value) -> queryParams.add(name, value));
+          uri = ((String)uri).substring(0, idx);
+        }
       }
     }
-    return params;
+    return queryParams;
+  }
+
+  @Override
+  public Variables templateParams() {
+    if (!(uri instanceof UriTemplate) && !(absoluteUri instanceof UriTemplate)) {
+      throw new IllegalStateException();
+    }
+    if (templateParams == null) {
+      templateParams = Variables.variables();
+    }
+    return templateParams;
   }
 
   @Override
