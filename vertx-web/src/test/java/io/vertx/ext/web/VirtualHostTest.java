@@ -36,6 +36,61 @@ public class VirtualHostTest extends WebTestBase {
   }
 
   @Test
+  public void testVHostPort() throws Exception {
+    router.route().virtualHost("*.com").handler(ctx -> ctx.response().end());
+
+    router.route().handler(ctx -> ctx.fail(500));
+
+    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setHost("www.mysite.com:8080")
+      .setPort(80), req -> {}, 200, "OK", null);
+  }
+
+  @Test
+  public void testVHostIPv6Any() throws Exception {
+    router.route().virtualHost("::").handler(ctx -> ctx.response().end());
+
+    router.route().handler(ctx -> ctx.fail(500));
+
+    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setHost("[::]")
+      .setPort(80), req -> {}, 200, "OK", null);
+  }
+
+  @Test
+  public void testVHostIPv6AnyPort() throws Exception {
+    router.route().virtualHost("::").handler(ctx -> ctx.response().end());
+
+    router.route().handler(ctx -> ctx.fail(500));
+
+    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setHost("[::]:8080")
+      .setPort(80), req -> {}, 200, "OK", null);
+  }
+
+  @Test
+  public void testVHostIPv6Home() throws Exception {
+    router.route().virtualHost("::1").handler(ctx -> ctx.response().end());
+
+    router.route().handler(ctx -> ctx.fail(500));
+
+    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setHost("[::1]")
+      .setPort(80), req -> {}, 200, "OK", null);
+  }
+
+  @Test
+  public void testVHostIPv6HomePort() throws Exception {
+    router.route().virtualHost("::1").handler(ctx -> ctx.response().end());
+
+    router.route().handler(ctx -> ctx.fail(500));
+
+    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setHost("[::1]:8080")
+      .setPort(80), req -> {}, 200, "OK", null);
+  }
+
+  @Test
   public void testVHostShouldFail() throws Exception {
     router.route().virtualHost("*.com").handler(ctx -> ctx.response().end());
 

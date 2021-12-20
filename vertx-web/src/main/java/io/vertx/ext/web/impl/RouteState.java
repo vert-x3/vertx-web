@@ -1139,9 +1139,26 @@ final class RouteState {
       return false;
     }
 
+    int len = host.length();
+
+    // knowing that the shortest IPv6 is [::]
+    if (len > 3 && host.charAt(0) == '[') {
+      // attempt to parse IPv6
+      int delim = host.indexOf(']');
+      if (delim != -1) {
+        // the delim must be the terminal character OR right before a ':'
+        if (delim == len - 1 || host.charAt(delim + 1) == ':') {
+          // OK
+          host = host.substring(1, delim);
+          return virtualHostPattern.matcher(host).matches();
+        }
+      }
+    }
+
+    // assume IPv4 or name
     int portSeparatorIdx = host.lastIndexOf(':');
-    if (portSeparatorIdx > host.lastIndexOf(']')) {
-      host = host.substring(0, portSeparatorIdx).trim();
+    if (portSeparatorIdx != -1) {
+      host = host.substring(0, portSeparatorIdx);
     }
 
     return virtualHostPattern.matcher(host).matches();
