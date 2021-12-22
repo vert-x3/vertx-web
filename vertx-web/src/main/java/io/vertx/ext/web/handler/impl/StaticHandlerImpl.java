@@ -73,6 +73,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(StaticHandlerImpl.class);
 
+  // TODO change to private final after setWebRoot has been removed
   private String webRoot = DEFAULT_WEB_ROOT;
   private long maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS; // One day
   private boolean directoryListing = DEFAULT_DIRECTORY_LISTING;
@@ -97,10 +98,13 @@ public class StaticHandlerImpl implements StaticHandler {
   public StaticHandlerImpl(String root, HandlerPathOptions options) {
 
     this.allowRootFileSystemAccess = HandlerPathOptions.ANY_PATH.equals(options);
+    this.setRoot(root != null ? root : DEFAULT_WEB_ROOT);
+  }
 
-    if (root != null) {
-      this.setRoot(root);
-    }
+  public StaticHandlerImpl() {
+
+    this.allowRootFileSystemAccess = false;
+    this.setRoot(DEFAULT_WEB_ROOT);
   }
 
   private String directoryTemplate(FileSystem fileSystem) {
