@@ -16,6 +16,9 @@
 
 package io.vertx.ext.web.handler;
 
+import java.util.List;
+import java.util.Set;
+
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
@@ -24,16 +27,29 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.common.WebEnvironment;
 import io.vertx.ext.web.handler.impl.StaticHandlerImpl;
 
-import java.util.List;
-import java.util.Set;
-
 /**
  * A handler for serving static resources from the file system or classpath.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="https://wissel.net">Stephan Wissel</a>
  */
 @VertxGen
 public interface StaticHandler extends Handler<RoutingContext> {
+
+  /**
+   * Where can the static directory be located
+   * relative to the working directory or anywhere on disk
+   */
+  public enum HandlerPathOptions {
+    /**
+     * Absolute path, a.k.a. Root access
+     */
+    ANY_PATH,
+    /**
+     * Only relative to working directory / classpath
+     */
+    RELATIVE_TO_WORKING_DIR
+  }
 
   /**
    * Default value of the web-root, where files are served from
@@ -106,7 +122,8 @@ public interface StaticHandler extends Handler<RoutingContext> {
   boolean DEFAULT_RANGE_SUPPORT = true;
 
   /**
-   * Default of whether access to the root of the file system should be allowed or just allow from the current working
+   * Default of whether access to the root of the file system should be allowed or
+   * just allow from the current working
    * directory.
    */
   boolean DEFAULT_ROOT_FILESYSTEM_ACCESS = false;
@@ -122,7 +139,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static StaticHandler create() {
-    return new StaticHandlerImpl();
+    return create(null, HandlerPathOptions.RELATIVE_TO_WORKING_DIR);
   }
 
   /**
@@ -132,25 +149,41 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static StaticHandler create(String root) {
-    return create().setWebRoot(root);
+    return create(root, HandlerPathOptions.RELATIVE_TO_WORKING_DIR);
+  }
+
+  /**
+   * Create a handler, specifying web-root
+   * and access option: absolute path or relative
+   *
+   * @param root the web-root
+   * @return the handler
+   */
+  static StaticHandler create(String root, HandlerPathOptions pathOptions) {
+    return new StaticHandlerImpl(root, pathOptions);
   }
 
   /**
    * Enable/Disable access to the root of the filesystem
-   *
+   * 
+   * @deprecated root file system access is set when constructed
+   * 
    * @param allowRootFileSystemAccess whether root access is allowed
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
+  @Deprecated
   StaticHandler setAllowRootFileSystemAccess(boolean allowRootFileSystemAccess);
 
   /**
    * Set the web root
-   *
+   * 
+   * @deprecated webroot is set on creation only
    * @param webRoot the web root
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
+  @Deprecated
   StaticHandler setWebRoot(String webRoot);
 
   /**
@@ -235,8 +268,10 @@ public interface StaticHandler extends Handler<RoutingContext> {
   StaticHandler setHttp2PushMapping(List<Http2PushMapping> http2PushMappings);
 
   /**
-   * Skip compression if the media type of the file to send is in the provided {@code mediaTypes} set.
-   * {@code Content-Encoding} header set to {@code identity} for the types present in the {@code mediaTypes} set
+   * Skip compression if the media type of the file to send is in the provided
+   * {@code mediaTypes} set.
+   * {@code Content-Encoding} header set to {@code identity} for the types present
+   * in the {@code mediaTypes} set
    *
    * @param mediaTypes the set of mime types that are already compressed
    * @return a reference to this, so the API can be used fluently
@@ -245,8 +280,10 @@ public interface StaticHandler extends Handler<RoutingContext> {
   StaticHandler skipCompressionForMediaTypes(Set<String> mediaTypes);
 
   /**
-   * Skip compression if the suffix of the file to send is in the provided {@code fileSuffixes} set.
-   * {@code Content-Encoding} header set to {@code identity} for the suffixes present in the {@code fileSuffixes} set
+   * Skip compression if the suffix of the file to send is in the provided
+   * {@code fileSuffixes} set.
+   * {@code Content-Encoding} header set to {@code identity} for the suffixes
+   * present in the {@code fileSuffixes} set
    *
    * @param fileSuffixes the set of file suffixes that are already compressed
    * @return a reference to this, so the API can be used fluently
@@ -291,7 +328,8 @@ public interface StaticHandler extends Handler<RoutingContext> {
   StaticHandler setDirectoryTemplate(String directoryTemplate);
 
   /**
-   * Set whether range requests (resumable downloads; media streaming) should be enabled.
+   * Set whether range requests (resumable downloads; media streaming) should be
+   * enabled.
    *
    * @param enableRangeSupport true to enable range support
    * @return a reference to this, so the API can be used fluently
@@ -309,7 +347,8 @@ public interface StaticHandler extends Handler<RoutingContext> {
   StaticHandler setSendVaryHeader(boolean varyHeader);
 
   /**
-   * Set the default content encoding for text related files. This allows overriding the system settings default value.
+   * Set the default content encoding for text related files. This allows
+   * overriding the system settings default value.
    *
    * @param contentEncoding the desired content encoding e.g.: "UTF-8"
    * @return a reference to this, so the API can be used fluently
