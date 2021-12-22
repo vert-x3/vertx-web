@@ -23,6 +23,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 import org.junit.Test;
@@ -3045,6 +3046,29 @@ public class RouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/sub/metadata", 200, "OK", "abc-123");
   }
 
+  @Test
+  public void testMultiExceptionCallBug() throws Exception {
+    router.route()
+      .failureHandler(ctx -> {
+        ctx.response()
+          .setStatusCode(400)
+          .end("returned in first error handler");
+      })
+      .failureHandler(ctx -> {
+        fail("Second error handler, don't expect to get here");
+      });
 
+    router.route(HttpMethod.GET, "/fail")
+      .handler(BodyHandler.create())
+      .handler(ctx -> ctx.response().setStatusCode(200).end(ctx.getBodyAsString()));
 
+    testRequest(
+      HttpMethod.GET,
+      "/fail",
+      req -> {
+        req.putHeader("Content-Type", "application/x-www-form-urlencoded");
+        req.end("{\"confidence\":\"56%\",\"info\":\"a&b\"}");
+      },
+      400, "Bad Request", "returned in first error handler");
+  }
 }
