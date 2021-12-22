@@ -40,15 +40,15 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * Where can the static directory be located
    * relative to the working directory or anywhere on disk
    */
-  public enum HandlerPathOptions {
+  public enum StaticHandlerVisibility {
     /**
      * Absolute path, a.k.a. Root access
      */
-    ANY_PATH,
+    ROOT,
     /**
-     * Only relative to working directory / classpath
+     * Only relative to current working directory (CWD) / classpath
      */
-    RELATIVE_TO_WORKING_DIR
+    CWD
   }
 
   /**
@@ -139,7 +139,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static StaticHandler create() {
-    return create(null, HandlerPathOptions.RELATIVE_TO_WORKING_DIR);
+    return create(null, StaticHandlerVisibility.CWD);
   }
 
   /**
@@ -149,18 +149,19 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static StaticHandler create(String root) {
-    return create(root, HandlerPathOptions.RELATIVE_TO_WORKING_DIR);
+    return create(root, StaticHandlerVisibility.CWD);
   }
 
   /**
    * Create a handler, specifying web-root
    * and access option: absolute path or relative
    *
-   * @param root the web-root
+   * @param root              the web-root
+   * @param handlerVisibility CWD or file system root
    * @return the handler
    */
-  static StaticHandler create(String root, HandlerPathOptions pathOptions) {
-    return new StaticHandlerImpl(root, pathOptions);
+  static StaticHandler create(String root, StaticHandlerVisibility handlerVisibility) {
+    return new StaticHandlerImpl(root, handlerVisibility);
   }
 
   /**

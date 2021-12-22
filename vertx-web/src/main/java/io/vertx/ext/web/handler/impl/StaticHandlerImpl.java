@@ -95,9 +95,9 @@ public class StaticHandlerImpl implements StaticHandler {
   private final FSTune tune = new FSTune();
   private final FSPropsCache cache = new FSPropsCache();
 
-  public StaticHandlerImpl(String root, HandlerPathOptions options) {
+  public StaticHandlerImpl(String root, StaticHandlerVisibility visibility) {
 
-    this.allowRootFileSystemAccess = HandlerPathOptions.ANY_PATH.equals(options);
+    this.allowRootFileSystemAccess = StaticHandlerVisibility.ROOT.equals(visibility);
     this.setRoot(root != null ? root : DEFAULT_WEB_ROOT);
   }
 
