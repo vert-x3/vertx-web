@@ -56,6 +56,7 @@ import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.FileSystemAccess;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.impl.LRUCache;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
@@ -95,12 +96,22 @@ public class StaticHandlerImpl implements StaticHandler {
   private final FSTune tune = new FSTune();
   private final FSPropsCache cache = new FSPropsCache();
 
-  public StaticHandlerImpl(String root, StaticHandlerVisibility visibility) {
+  /**
+   * Constructor called by static factory method
+   * 
+   * @param visibility          path specified by root is RELATIVE or ROOT
+   * @param staticRootDirectory path on host with static file location
+   */
+  public StaticHandlerImpl(FileSystemAccess visibility, String staticRootDirectory) {
 
-    this.allowRootFileSystemAccess = StaticHandlerVisibility.ROOT.equals(visibility);
-    this.setRoot(root != null ? root : DEFAULT_WEB_ROOT);
+    this.allowRootFileSystemAccess = FileSystemAccess.ROOT.equals(visibility);
+    this.setRoot(staticRootDirectory != null ? staticRootDirectory : DEFAULT_WEB_ROOT);
   }
 
+  /**
+   * Default constructor with DEFAULT_WEB_ROOT and
+   * relative file access only
+   */
   public StaticHandlerImpl() {
 
     this.allowRootFileSystemAccess = false;

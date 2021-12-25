@@ -37,21 +37,6 @@ import io.vertx.ext.web.handler.impl.StaticHandlerImpl;
 public interface StaticHandler extends Handler<RoutingContext> {
 
   /**
-   * Where can the static directory be located
-   * relative to the working directory or anywhere on disk
-   */
-  public enum StaticHandlerVisibility {
-    /**
-     * Absolute path, a.k.a. Root access
-     */
-    ROOT,
-    /**
-     * Only relative to current working directory (CWD) / classpath
-     */
-    CWD
-  }
-
-  /**
    * Default value of the web-root, where files are served from
    */
   String DEFAULT_WEB_ROOT = "webroot";
@@ -139,7 +124,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static StaticHandler create() {
-    return create(null, StaticHandlerVisibility.CWD);
+    return create(FileSystemAccess.RELATIVE, null);
   }
 
   /**
@@ -149,19 +134,19 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static StaticHandler create(String root) {
-    return create(root, StaticHandlerVisibility.CWD);
+    return create(FileSystemAccess.RELATIVE, root);
   }
 
   /**
    * Create a handler, specifying web-root
    * and access option: absolute path or relative
-   *
-   * @param root              the web-root
+   * 
    * @param handlerVisibility CWD or file system root
+   * @param root              the web-root
    * @return the handler
    */
-  static StaticHandler create(String root, StaticHandlerVisibility handlerVisibility) {
-    return new StaticHandlerImpl(root, handlerVisibility);
+  static StaticHandler create(FileSystemAccess handlerVisibility, String root) {
+    return new StaticHandlerImpl(handlerVisibility, root);
   }
 
   /**
