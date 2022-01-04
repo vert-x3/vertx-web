@@ -104,7 +104,17 @@ public class StaticHandlerImpl implements StaticHandler {
    */
   public StaticHandlerImpl(FileSystemAccess visibility, String staticRootDirectory) {
 
-    this.allowRootFileSystemAccess = FileSystemAccess.ROOT.equals(visibility);
+    switch (visibility) {
+      case ROOT:
+        this.allowRootFileSystemAccess = true;
+        break;
+      case RELATIVE:
+        this.allowRootFileSystemAccess = false;
+        break;
+      default:
+        throw new IllegalStateException("Unsupported visibility: " + visibility);
+    }
+
     this.setRoot(staticRootDirectory != null ? staticRootDirectory : DEFAULT_WEB_ROOT);
   }
 

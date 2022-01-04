@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Eclipse foundation
+ * Copyright 2021, 2022 The Eclipse foundation
  *
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
@@ -15,6 +15,8 @@
  */
 package io.vertx.ext.web.handler;
 
+import io.vertx.codegen.annotations.VertxGen;
+
 /**
  * Enumaration of FileSystem access permissions, used in
  * 
@@ -22,6 +24,7 @@ package io.vertx.ext.web.handler;
  * 
  * @author <a href="https://wissel.net">Stephan Wissel</a>
  */
+@VertxGen
 public enum FileSystemAccess {
 
     /**
