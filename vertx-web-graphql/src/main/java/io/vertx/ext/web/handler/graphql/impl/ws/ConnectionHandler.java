@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import static io.vertx.ext.web.handler.graphql.impl.ErrorUtil.toJsonObject;
 import static io.vertx.ext.web.handler.graphql.ws.MessageType.*;
@@ -229,16 +230,20 @@ public class ConnectionHandler {
     }
   };
 
+  private static final AtomicLongFieldUpdater<ReadyState.Subscriber> PENDING_UPDATER = AtomicLongFieldUpdater.newUpdater(ReadyState.Subscriber.class, "pending");
+
   private class ReadyState implements ConnectionState {
 
     final Object connectionParams;
     final Executor executor;
     final ConcurrentMap<String, Subscription> subscriptions;
 
-    class Subscriber implements org.reactivestreams.Subscriber<ExecutionResult> {
+    class Subscriber implements org.reactivestreams.Subscriber<ExecutionResult>, Handler<Void> {
+
 
       final String id;
       volatile Subscription subscription;
+      volatile long pending;
 
       Subscriber(String id) {
         this.id = id;
@@ -250,14 +255,33 @@ public class ConnectionHandler {
         if (!subscriptions.replace(id, TRANSIENT_SUBSCRIPTION, s)) {
           s.cancel();
         } else {
-          s.request(1);
+          if (!socket.writeQueueFull()) {
+            requestMore();
+          }
+          socket.drainHandler(this);
+        }
+      }
+
+      private void requestMore() {
+        long p;
+        for (; ; ) {
+          p = PENDING_UPDATER.get(this);
+          if (p >= 64) {
+            break;
+          } else if (PENDING_UPDATER.compareAndSet(this, p, p + 256)) {
+            subscription.request(256);
+            break;
+          }
         }
       }
 
       @Override
       public void onNext(ExecutionResult er) {
         sendMessage(id, NEXT, new JsonObject(er.toSpecification()));
-        subscription.request(1);
+        PENDING_UPDATER.decrementAndGet(this);
+        if (!socket.writeQueueFull()) {
+          requestMore();
+        }
       }
 
       @Override
@@ -270,6 +294,11 @@ public class ConnectionHandler {
       public void onComplete() {
         sendMessage(id, COMPLETE, null);
         subscriptions.remove(id);
+      }
+
+      @Override
+      public void handle(Void drain) {
+        requestMore();
       }
     }
 
