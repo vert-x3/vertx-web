@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10.19.0]
+        node-version: [16.13.1]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -68,7 +68,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10.19.0]
+        node-version: [16.13.1]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -99,7 +99,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10.19.0]
+        node-version: [16.13.1]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
