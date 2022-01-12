@@ -1651,7 +1651,7 @@ The variable 'foo' from the session is @{context.session().get('foo')}
 The value 'bar' from the context data is @{context.get('bar')}
 ----
 
-Please consult the http://mvel.codehaus.org/MVEL+2.0+Templating+Guide[MVEL templates documentation] for how to write
+Please consult the http://mvel.documentnode.com/#mvel-2.0-templating-guide[MVEL templates documentation] for how to write
 MVEL templates.
 
 === Jade template engine
