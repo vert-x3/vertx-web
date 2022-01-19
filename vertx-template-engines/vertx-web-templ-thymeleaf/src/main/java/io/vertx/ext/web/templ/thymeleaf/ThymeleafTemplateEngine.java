@@ -16,6 +16,9 @@
 
 package io.vertx.ext.web.templ.thymeleaf;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
@@ -35,14 +38,17 @@ public interface ThymeleafTemplateEngine extends TemplateEngine {
   TemplateMode DEFAULT_TEMPLATE_MODE = TemplateMode.HTML;
 
   /**
-   * Create a template engine using defaults
+   * Create a template engine using defaults, read template file use utf-8 charset
    *
    * @return the engine
    */
   static ThymeleafTemplateEngine create(Vertx vertx) {
-    return new ThymeleafTemplateEngineImpl(vertx);
+    return new ThymeleafTemplateEngineImpl(vertx, StandardCharsets.UTF_8);
   }
 
+  static ThymeleafTemplateEngine create(Vertx vertx, String charset) {
+    return new ThymeleafTemplateEngineImpl(vertx, Charset.forName(charset));
+  }
   /**
    * @deprecated see {@link #unwrap()}
    * Set the mode for the engine

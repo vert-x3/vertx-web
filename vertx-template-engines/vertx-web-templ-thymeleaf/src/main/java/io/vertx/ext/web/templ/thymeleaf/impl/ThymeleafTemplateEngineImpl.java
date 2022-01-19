@@ -50,8 +50,8 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
   private final TemplateEngine templateEngine = new TemplateEngine();
   private final ResourceTemplateResolver templateResolver;
 
-  public ThymeleafTemplateEngineImpl(Vertx vertx) {
-    ResourceTemplateResolver templateResolver = new ResourceTemplateResolver(vertx);
+  public ThymeleafTemplateEngineImpl(Vertx vertx, Charset charset) {
+    ResourceTemplateResolver templateResolver = new ResourceTemplateResolver(vertx, charset);
     templateResolver.setCacheable(!WebEnvironment.development());
     templateResolver.setTemplateMode(ThymeleafTemplateEngine.DEFAULT_TEMPLATE_MODE);
 
@@ -153,10 +153,12 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
   private static class ResourceTemplateResolver extends StringTemplateResolver {
     private final Vertx vertx;
+    private final Charset charset;
 
-    ResourceTemplateResolver(Vertx vertx) {
+    ResourceTemplateResolver(Vertx vertx, Charset charset) {
       super();
       this.vertx = vertx;
+      this.charset = charset;
       setName("vertx/Thymeleaf3");
     }
 
@@ -165,7 +167,7 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
       return new StringTemplateResource(
         vertx.fileSystem()
           .readFileBlocking(template)
-          .toString(Charset.defaultCharset()));
+          .toString(charset));
     }
   }
 }
