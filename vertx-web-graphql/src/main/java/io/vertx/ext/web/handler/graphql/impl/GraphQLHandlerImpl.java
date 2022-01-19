@@ -398,6 +398,8 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       builder.locale(locale);
     }
 
+    builder.graphQLContext(Collections.singletonMap(RoutingContext.class, rc));
+
     if (be != null) {
       be.handle(new ExecutionInputBuilderWithContext<RoutingContext>() {
         @Override
@@ -411,8 +413,6 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
         }
       });
     }
-
-    builder.graphQLContext(Collections.singletonMap(RoutingContext.class, rc));
 
     return Future.fromCompletionStage(graphQL.executeAsync(builder.build()), rc.vertx().getOrCreateContext())
       .map(executionResult -> new JsonObject(executionResult.toSpecification()));
