@@ -207,8 +207,6 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   }
 
   protected void unhandledFailure(int statusCode, Throwable failure, RouterImpl router) {
-    LOG.error("Unhandled exception in router", failure);
-
     int code = statusCode != -1 ?
       statusCode :
       (failure instanceof HttpException) ?
@@ -222,6 +220,9 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
       } catch (Throwable t) {
         LOG.error("Error in error handler", t);
       }
+    } else {
+      // if there are no user defined handlers, we will log the exception
+      LOG.error("Unhandled exception in router", failure);
     }
 
     if (!response().ended() && !response().closed()) {
