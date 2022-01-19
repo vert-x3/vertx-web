@@ -11,10 +11,10 @@
   <packaging>pom</packaging>
 
   <artifactId>vertx-web-parent</artifactId>
-  <version>4.2.4-SNAPSHOT</version>
+  <version>4.2.4</version>
 
   <properties>
-    <stack.version>4.2.4-SNAPSHOT</stack.version>
+    <stack.version>4.2.4</stack.version>
     <pac4j.version>1.6.0</pac4j.version>
     <doc.skip>true</doc.skip>
     <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
