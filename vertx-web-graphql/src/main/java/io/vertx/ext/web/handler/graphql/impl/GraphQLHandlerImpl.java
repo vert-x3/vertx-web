@@ -376,35 +376,30 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     }
 
     Function<RoutingContext, Object> qc;
+    Function<RoutingContext, DataLoaderRegistry> dlr;
+    Function<RoutingContext, Locale> l;
+    Handler<ExecutionInputBuilderWithContext<RoutingContext>> be;
     synchronized (this) {
       qc = queryContextFactory;
+      dlr = dataLoaderRegistryFactory;
+      l = localeFactory;
+      be = beforeExecute;
     }
+
     builder.context(qc.apply(rc));
 
-    Function<RoutingContext, DataLoaderRegistry> dlr;
-    synchronized (this) {
-      dlr = dataLoaderRegistryFactory;
-    }
     DataLoaderRegistry registry = dlr.apply(rc);
     if (registry != null) {
       builder.dataLoaderRegistry(registry);
     }
 
-    Function<RoutingContext, Locale> l;
-    synchronized (this) {
-      l = localeFactory;
-    }
     Locale locale = l.apply(rc);
     if (locale != null) {
       builder.locale(locale);
     }
 
-    Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecute;
-    synchronized (this) {
-      beforeExecute = this.beforeExecute;
-    }
-    if (beforeExecute != null) {
-      beforeExecute.handle(new ExecutionInputBuilderWithContext<RoutingContext>() {
+    if (be != null) {
+      be.handle(new ExecutionInputBuilderWithContext<RoutingContext>() {
         @Override
         public RoutingContext context() {
           return rc;
