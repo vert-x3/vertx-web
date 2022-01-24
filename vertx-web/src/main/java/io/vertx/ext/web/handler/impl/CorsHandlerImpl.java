@@ -174,7 +174,7 @@ public class CorsHandlerImpl implements CorsHandler {
     if (origin == null) {
       // https://fetch.spec.whatwg.org/#cors-protocol-and-http-caches
       // If CORS protocol requirements are more complicated than setting `Access-Control-Allow-Origin` to *
-      // `Vary` is to be used.
+      // or a static origin, `Vary` is to be used.
       if (!starOrigin() && !staticOrigin()) {
         Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
       }
