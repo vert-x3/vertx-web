@@ -164,7 +164,10 @@ public class CorsHandlerImpl implements CorsHandler {
     HttpServerResponse response = context.response();
     String origin = context.request().headers().get(ORIGIN);
     if (origin == null) {
-      Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
+      // allowed origin: *
+      if (allowedOrigin == null && allowedOrigins == null) {
+        Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
+      }
       // Not a CORS request - we don't set any headers and just call the next handler
       context.next();
     } else if (isValidOrigin(origin)) {
