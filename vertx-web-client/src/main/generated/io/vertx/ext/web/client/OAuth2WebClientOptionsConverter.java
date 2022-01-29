@@ -20,6 +20,11 @@ public class OAuth2WebClientOptionsConverter {
   public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, OAuth2WebClientOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
+        case "failFast":
+          if (member.getValue() instanceof Boolean) {
+            obj.setFailFast((Boolean)member.getValue());
+          }
+          break;
         case "leeway":
           if (member.getValue() instanceof Number) {
             obj.setLeeway(((Number)member.getValue()).intValue());
@@ -39,6 +44,7 @@ public class OAuth2WebClientOptionsConverter {
   }
 
   public static void toJson(OAuth2WebClientOptions obj, java.util.Map<String, Object> json) {
+    json.put("failFast", obj.getFailFast());
     json.put("leeway", obj.getLeeway());
     json.put("renewTokenOnForbidden", obj.isRenewTokenOnForbidden());
   }

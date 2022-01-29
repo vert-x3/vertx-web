@@ -1,8 +1,10 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
@@ -14,6 +16,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import static io.vertx.core.Future.failedFuture;
@@ -117,6 +120,126 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       });
 
     awaitLatch(latchClient);
+  }
+
+  @Test
+  public void testFastFailWhilePendingAuth() throws Exception {
+    final CountDownLatch latch = new CountDownLatch(1);
+    final CountDownLatch latchClient = new CountDownLatch(2);
+
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+      .setFlow(OAuth2FlowType.CLIENT)
+      .setClientId("client-id")
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:8080"));
+
+    OAuth2WebClient oauth2WebClient =
+      OAuth2WebClient.create(WebClientSession.create(webClient), oauth2);
+
+    server = vertx.createHttpServer().requestHandler(req -> {
+      if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
+        assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
+        // Send second auth request while first is still in-flight
+        oauth2WebClient
+          .withCredentials(oauthConfig)
+          .get(8080, "localhost", "/protected/path")
+          .send(result -> {
+            if (result.succeeded()) {
+              fail("Second auth request should fail when fail fast is enabled");
+            } else {
+              latchClient.countDown();
+              // Respond to first request
+              req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
+            }
+          });
+      } else if (req.method() == HttpMethod.GET && "/protected/path".equals(req.path())) {
+        assertEquals("Bearer " + fixture.getString("access_token"), req.getHeader("Authorization"));
+        req.response().end();
+      } else {
+        req.response().setStatusCode(400).end();
+      }
+    }).listen(8080, ready -> {
+      if (ready.failed()) {
+        throw new RuntimeException(ready.cause());
+      }
+      // ready
+      latch.countDown();
+    });
+
+    awaitLatch(latch);
+
+    oauth2WebClient
+      .withCredentials(oauthConfig)
+      .get(8080, "localhost", "/protected/path")
+      .send(result -> {
+        if (result.failed()) {
+          fail(result.cause());
+        } else {
+          assertEquals(200, result.result().statusCode());
+          latchClient.countDown();
+        }
+      });
+
+    awaitLatch(latchClient);
+  }
+
+  @Test
+  public void testOnlyOneAuthReqReachesServerWhenFailFastDisabled() throws Exception {
+    final CountDownLatch latch = new CountDownLatch(1);
+    final AtomicInteger serverReachedAuthRequestCount = new AtomicInteger();
+
+    server = vertx.createHttpServer().requestHandler(req -> {
+      if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
+        assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
+        req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
+        serverReachedAuthRequestCount.incrementAndGet();
+      } else if (req.method() == HttpMethod.GET && "/protected/path".equals(req.path())) {
+        assertEquals("Bearer " + fixture.getString("access_token"), req.getHeader("Authorization"));
+        req.response().end();
+      } else {
+        req.response().setStatusCode(400).end();
+      }
+    }).listen(8080, ready -> {
+      if (ready.failed()) {
+        throw new RuntimeException(ready.cause());
+      }
+      // ready
+      latch.countDown();
+    });
+
+    awaitLatch(latch);
+
+
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+      .setFlow(OAuth2FlowType.CLIENT)
+      .setClientId("client-id")
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:8080"));
+
+    OAuth2WebClient oauth2WebClient =
+      OAuth2WebClient.create(WebClientSession.create(webClient), oauth2, new OAuth2WebClientOptions().setFailFast(false));
+
+    final int requestCount = 100;
+
+    final CountDownLatch latchClient = new CountDownLatch(requestCount);
+
+    for (int i = 0; i < requestCount; i++) {
+      oauth2WebClient
+        .withCredentials(oauthConfig)
+        .get(8080, "localhost", "/protected/path")
+        .send(result -> {
+          if (result.failed()) {
+            fail(result.cause());
+          } else {
+            assertEquals(200, result.result().statusCode());
+            latchClient.countDown();
+          }
+        });
+    }
+
+    awaitLatch(latchClient);
+
+    assertEquals(1, serverReachedAuthRequestCount.get());
   }
 
   @Test
