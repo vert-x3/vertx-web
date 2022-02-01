@@ -25,6 +25,7 @@ import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.CSRFHandler;
+import io.vertx.ext.web.handler.CSRFValidationException;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.Origin;
 import io.vertx.ext.web.impl.RoutingContextInternal;
@@ -193,21 +194,21 @@ public class CSRFHandlerImpl implements CSRFHandler {
       if (((RoutingContextInternal) ctx).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
         header = ctx.request().getFormAttribute(headerName);
       } else {
-        ctx.fail(new IllegalStateException("BodyHandler is required to process POST requests"));
+        ctx.fail(new CSRFValidationException("BodyHandler is required to process POST requests"));
         return false;
       }
     }
 
     // both the header and the cookie must be present, not null and not empty
     if (header == null || cookie == null || isBlank(header)) {
-      ctx.fail(403, new IllegalArgumentException("Token provided via HTTP Header/Form is absent/empty"));
+      ctx.fail(403, new CSRFValidationException("Token provided via HTTP Header/Form is absent/empty"));
       return false;
     }
 
     final String cookieValue = cookie.getValue();
 
     if (cookieValue == null || isBlank(cookieValue)) {
-      ctx.fail(403, new IllegalArgumentException("Token provided via HTTP Header/Form is absent/empty"));
+      ctx.fail(403, new CSRFValidationException("Token provided via HTTP Header/Form is absent/empty"));
       return false;
     }
 
@@ -216,7 +217,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
     //Verify that token from header and one from cookie are the same
     if (!MessageDigest.isEqual(headerBytes, cookieBytes)) {
-      ctx.fail(403, new IllegalArgumentException("Token provided via HTTP Header and via Cookie are not equal"));
+      ctx.fail(403, new CSRFValidationException("Token provided via HTTP Header and via Cookie are not equal"));
       return false;
     }
 
@@ -232,22 +233,22 @@ public class CSRFHandlerImpl implements CSRFHandler {
           String challenge = sessionToken.substring(idx + 1);
           // the challenge must match the user-agent input
           if (!MessageDigest.isEqual(challenge.getBytes(StandardCharsets.UTF_8), headerBytes)) {
-            ctx.fail(403, new IllegalArgumentException("Token has been used or is outdated"));
+            ctx.fail(403, new CSRFValidationException("Token has been used or is outdated"));
             return false;
           }
         } else {
-          ctx.fail(403, new IllegalArgumentException("Token has been issued for a different session"));
+          ctx.fail(403, new CSRFValidationException("Token has been issued for a different session"));
           return false;
         }
       } else {
-        ctx.fail(403, new IllegalArgumentException("No Token has been added to the session"));
+        ctx.fail(403, new CSRFValidationException("No Token has been added to the session"));
         return false;
       }
     }
 
     String[] tokens = header.split("\\.");
     if (tokens.length != 3) {
-      ctx.fail(403);
+      ctx.fail(403, new CSRFValidationException("Invalid Token format"));
       return false;
     }
 
@@ -260,7 +261,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     final byte[] signature = base64UrlEncode(saltPlusToken).getBytes(StandardCharsets.US_ASCII);
 
     if (!MessageDigest.isEqual(signature, tokens[2].getBytes(StandardCharsets.US_ASCII))) {
-      ctx.fail(403, new IllegalArgumentException("Token signature does not match"));
+      ctx.fail(403, new CSRFValidationException("Token signature does not match"));
       return false;
     }
 
@@ -272,13 +273,13 @@ public class CSRFHandlerImpl implements CSRFHandler {
     final long ts = parseLong(tokens[1]);
 
     if (ts == -1) {
-      ctx.fail(403);
+      ctx.fail(403, new CSRFValidationException("Invalid Token format"));
       return false;
     }
 
     // validate validity
     if (System.currentTimeMillis() > ts + timeout) {
-      ctx.fail(403, new IllegalArgumentException("CSRF validity expired"));
+      ctx.fail(403, new CSRFValidationException("CSRF validity expired"));
       return false;
     }
 
@@ -301,7 +302,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     // if we're being strict with the origin
     // ensure that they are always valid
     if (!Origin.check(origin, ctx)) {
-      ctx.fail(403, new IllegalStateException("Invalid Origin"));
+      ctx.fail(403, new CSRFValidationException("Invalid Origin"));
       return;
     }
 
