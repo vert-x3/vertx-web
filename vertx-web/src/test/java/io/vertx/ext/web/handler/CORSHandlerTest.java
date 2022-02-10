@@ -252,12 +252,21 @@ public class CORSHandlerTest extends WebTestBase {
                             String accessControlAllowMethods, String accessControlAllowHeaders,
                             String accessControlExposeHeaders, String allowCredentials,
                             String maxAgeSeconds) {
+    checkHeaders(resp, accessControlAllowOrigin, accessControlAllowMethods, accessControlAllowHeaders,
+      accessControlExposeHeaders, allowCredentials, maxAgeSeconds, null);
+  }
+
+  private void checkHeaders(HttpClientResponse resp, String accessControlAllowOrigin,
+                            String accessControlAllowMethods, String accessControlAllowHeaders,
+                            String accessControlExposeHeaders, String allowCredentials,
+                            String maxAgeSeconds, String privateNetwork) {
     assertEquals(accessControlAllowOrigin, resp.headers().get("access-control-allow-origin"));
     assertEquals(accessControlAllowMethods, resp.headers().get("access-control-allow-methods"));
     assertEquals(accessControlAllowHeaders, resp.headers().get("access-control-allow-headers"));
     assertEquals(accessControlExposeHeaders, resp.headers().get("access-control-expose-headers"));
     assertEquals(allowCredentials, resp.headers().get("access-control-allow-credentials"));
     assertEquals(maxAgeSeconds, resp.headers().get("access-control-max-age"));
+    assertEquals(privateNetwork, resp.headers().get("access-control-allow-private-network"));
   }
 
   @Test
@@ -501,6 +510,28 @@ public class CORSHandlerTest extends WebTestBase {
     router.route().handler(CorsHandler.create().addOrigin("*"));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "null"), resp -> checkHeaders(resp, "*", null, null, null), 200, "OK", null);
+  }
+
+  @Test
+  public void testPreflightAllowPrivateNetwork() throws Exception {
+    router.route().handler(CorsHandler.create("http://vertx.*").allowedMethod(HttpMethod.GET).allowPrivateNetwork(true));
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.OPTIONS, "/", req -> {
+      req.headers().add("origin", "http://vertx.io");
+      req.headers().add("access-control-request-method", "GET");
+      req.headers().add("access-control-request-private-network", "true");
+    }, resp -> checkHeaders(resp, "http://vertx.io", "GET", null, null, null, null, "true"), 204, "No Content", null);
+  }
+
+  @Test
+  public void testPreflightDenyPrivateNetwork() throws Exception {
+    router.route().handler(CorsHandler.create("http://vertx.*").allowedMethod(HttpMethod.GET).allowPrivateNetwork(false));
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.OPTIONS, "/", req -> {
+      req.headers().add("origin", "http://vertx.io");
+      req.headers().add("access-control-request-method", "GET");
+      req.headers().add("access-control-request-private-network", "true");
+    }, resp -> checkHeaders(resp, "http://vertx.io", "GET", null, null, null, null, null), 204, "No Content", null);
   }
 
 }

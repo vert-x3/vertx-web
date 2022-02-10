@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Red Hat, Inc.
+ * Copyright 2022 Red Hat, Inc.
  *
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
@@ -150,5 +150,15 @@ public interface CorsHandler extends Handler<RoutingContext> {
    */
   @Fluent
   CorsHandler maxAgeSeconds(int maxAgeSeconds);
+
+  /**
+   * Set whether access from public to private networks are allowed.
+   * Defaults to false
+   *
+   * @param allow true if allowed
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  CorsHandler allowPrivateNetwork(boolean allow);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Red Hat, Inc.
+ * Copyright 2022 Red Hat, Inc.
  *
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
@@ -48,6 +48,7 @@ public class CorsHandlerImpl implements CorsHandler {
   private String exposedHeadersString;
   private boolean allowCredentials;
   private String maxAgeSeconds;
+  private boolean allowPrivateNetwork;
   private final Set<String> allowedMethods = new LinkedHashSet<>();
   private final Set<String> allowedHeaders = new LinkedHashSet<>();
   private final Set<String> exposedHeaders = new LinkedHashSet<>();
@@ -159,6 +160,12 @@ public class CorsHandlerImpl implements CorsHandler {
   }
 
   @Override
+  public CorsHandler allowPrivateNetwork(boolean allow) {
+    this.allowPrivateNetwork = allow;
+    return this;
+  }
+
+  @Override
   public void handle(RoutingContext context) {
     HttpServerRequest request = context.request();
     HttpServerResponse response = context.response();
@@ -188,7 +195,9 @@ public class CorsHandlerImpl implements CorsHandler {
         if (maxAgeSeconds != null) {
           response.putHeader(ACCESS_CONTROL_MAX_AGE, maxAgeSeconds);
         }
-
+        if (request.headers().contains(ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK) && allowPrivateNetwork) {
+          response.putHeader(ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK, "true");
+        }
         response
           // for old Safari
           .putHeader(CONTENT_LENGTH, "0")
