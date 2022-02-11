@@ -238,6 +238,8 @@ public class SessionHandlerImpl implements SessionHandler {
             }
           });
         }
+      } else {
+        handler.handle(Future.failedFuture("Skipping session store: ignoreStatus || (currentStatusCode >= 200 && currentStatusCode < 400)"));
       }
     } else {
       if (!cookieless) {
