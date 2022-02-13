@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.handler.impl.CSRFValidationException;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.AfterClass;
@@ -62,7 +63,10 @@ public class CSRFHandlerTest extends WebTestBase {
       .handler(BodyHandler.create())
       .handler(CSRFHandler.create(vertx, "Abracadabra"));
     router.route().handler(rc -> rc.response().end());
-    router.errorHandler(403, rc -> latch.countDown());
+    router.errorHandler(403, rc -> {
+      assertTrue(rc.failure() instanceof CSRFValidationException);
+      latch.countDown();
+    });
 
     testRequest(HttpMethod.POST, "/", null, null, 403, "Forbidden", null);
 
@@ -93,12 +97,16 @@ public class CSRFHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testPostWithExpiredCookie() throws Exception {
+  public void testPostWithExpiredCookie() {
     router.route().handler(CSRFHandler.create(vertx, "Abracadabra").setTimeout(1));
     router.route().handler(rc -> rc.response().end());
 
-    testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
-      "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34="), null, 403, "Forbidden", null);
+    try {
+      testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
+        "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34="), null, 403, "Forbidden", null);
+    } catch (Exception e) {
+      assertTrue(e instanceof CSRFValidationException);
+    }
   }
 
   @Test
@@ -146,6 +154,9 @@ public class CSRFHandlerTest extends WebTestBase {
         rc.response().end();
       }
     });
+    router.errorHandler(403, rc -> {
+      assertTrue(rc.failure() instanceof CSRFValidationException);
+    });
 
     // we need to wait parsing the response body
     CountDownLatch latch = new CountDownLatch(1);
@@ -184,6 +195,9 @@ public class CSRFHandlerTest extends WebTestBase {
   public void testPostWithCustomResponseBody() throws Exception {
     router.route().handler(CSRFHandler.create(vertx, "Abracadabra").setTimeout(1));
     router.route().handler(rc -> rc.response().end());
+    router.errorHandler(403, rc -> {
+      assertTrue(rc.failure() instanceof CSRFValidationException);
+    });
 
     testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
       "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34="), null, 403, "Forbidden", "Forbidden");
@@ -224,6 +238,9 @@ public class CSRFHandlerTest extends WebTestBase {
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
     router.route().handler(CSRFHandler.create(vertx, "Abracadabra"));
     router.route().handler(rc -> rc.response().end());
+    router.errorHandler(403, rc -> {
+      assertTrue(rc.failure() instanceof CSRFValidationException);
+    });
 
     testRequest(HttpMethod.GET, "/", null, resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
@@ -326,6 +343,9 @@ public class CSRFHandlerTest extends WebTestBase {
     router.route().handler(StaticHandler.create());
     router.route("/xsrf").handler(CSRFHandler.create(vertx, "Abracadabra").setOrigin("http://myserver.com"));
     router.route("/xsrf").handler(rc -> rc.response().end());
+    router.errorHandler(403, rc -> {
+      assertTrue(rc.failure() instanceof CSRFValidationException);
+    });
 
     testRequest(HttpMethod.GET, "/xsrf", req -> req.putHeader("Origin", "https://myserver.com"), null, 403, "Forbidden", null);
     testRequest(HttpMethod.GET, "/xsrf", req -> req.putHeader("Origin", "http://myserver.com/"), null, 200, "OK", null);

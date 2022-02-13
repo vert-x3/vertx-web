@@ -25,7 +25,6 @@ import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.CSRFHandler;
-import io.vertx.ext.web.handler.CSRFValidationException;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.Origin;
 import io.vertx.ext.web.impl.RoutingContextInternal;
