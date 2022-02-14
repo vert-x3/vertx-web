@@ -231,7 +231,11 @@ public class SessionHandlerImpl implements SessionHandler {
               handler.handle(Future.succeededFuture());
             }
           });
+        } else {
+          handler.handle(Future.succeededFuture());
         }
+      } else {
+        handler.handle(Future.succeededFuture());
       }
     } else {
       if (!cookieless) {
