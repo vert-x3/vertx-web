@@ -164,7 +164,8 @@ public class SessionHandlerImpl implements SessionHandler {
     final Session session = context.session();
 
     if (session == null) {
-      handler.handle(Future.failedFuture("No session in context"));
+      // No session in context
+      handler.handle(Future.succeededFuture());
       return this;
     }
 
@@ -237,9 +238,13 @@ public class SessionHandlerImpl implements SessionHandler {
               handler.handle(Future.succeededFuture());
             }
           });
+        } else {
+          // No-Op, just accept that the store skipped
+          handler.handle(Future.succeededFuture());
         }
       } else {
-        handler.handle(Future.failedFuture("Skipping session store: ignoreStatus || (currentStatusCode >= 200 && currentStatusCode < 400)"));
+        // No-Op, just accept that the store skipped
+        handler.handle(Future.succeededFuture());
       }
     } else {
       if (!cookieless) {
