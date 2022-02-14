@@ -50,7 +50,8 @@ public class LocalSessionHandlerTest extends SessionHandlerTestBase {
       ctx.session();
       ctx.response().setStatusCode(500);
       sessionHandler.flush(ctx, asyncResult -> {
-        assertTrue(asyncResult.failed());
+        // store was skipped, so we signed with a success
+        assertTrue(asyncResult.succeeded());
         ctx.end();
       });
     });
