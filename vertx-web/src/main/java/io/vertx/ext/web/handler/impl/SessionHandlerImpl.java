@@ -189,7 +189,11 @@ public class SessionHandlerImpl implements SessionHandler {
               handler.handle(Future.succeededFuture());
             }
           });
+        } else {
+          handler.handle(Future.succeededFuture());
         }
+      } else {
+        handler.handle(Future.succeededFuture());
       }
     } else {
       // invalidate the cookie as the session has been destroyed
