@@ -35,8 +35,8 @@ class CacheVariationsKey {
     HttpRequestImpl<?> impl = (HttpRequestImpl<?>) request;
     this.host = impl.host();
     this.port = impl.port();
-    this.path = impl.uri();
     this.queryString = queryString(impl.queryParams());
+    this.path = impl.uri();
   }
 
   @Override
