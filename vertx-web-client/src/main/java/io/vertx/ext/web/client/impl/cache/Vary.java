@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
+ * @author <a href="mailto:jllachf@gmail.com">Jordi Llach</a>
  */
 public class Vary {
 
@@ -58,10 +59,8 @@ public class Vary {
   private boolean variationMatches(CharSequence variation, HttpRequest<?> request) {
     if (HttpHeaders.USER_AGENT.equals(variation)) {
       return isUserAgentMatch(request);
-    } else if (HttpHeaders.CONTENT_ENCODING.equals(variation)) {
-      return isEncodingMatch(request);
     } else if (HttpHeaders.ACCEPT_ENCODING.equals(variation)) {
-      return isEncodingMatch(request);
+      return true;
     } else {
       return isExactMatch(variation, request);
     }
@@ -72,18 +71,6 @@ public class Vary {
     UserAgent current = UserAgent.parse(request.headers());
 
     return original.equals(current);
-  }
-
-  private boolean isEncodingMatch(HttpRequest<?> request) {
-    Set<String> req = normalizeValues(request.headers().getAll(HttpHeaders.ACCEPT_ENCODING));
-    Set<String> res = normalizeValues(responseHeaders.getAll(HttpHeaders.CONTENT_ENCODING));
-
-    // If the request is asking for any form of encoding the response mentioned, assume a match
-    // For example, `Accept-Encoding: gzip,deflate` should match `Content-Encoding: gzip`
-    Set<String> intersection = new HashSet<>(req);
-    intersection.retainAll(res);
-
-    return !intersection.isEmpty();
   }
 
   private boolean isExactMatch(CharSequence variation, HttpRequest<?> request) {
