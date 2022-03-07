@@ -792,7 +792,7 @@ public class CachingWebClientTest {
   }
 
   @Test
-  public void testVaryEncodingIsIgnored(TestContext context) {
+  public void testVaryEncodingDifferent(TestContext context) {
     startMockServer(context, req -> {
       req.response().headers().add("Cache-Control", "public, max-age=300");
       req.response().headers().add("Content-Encoding", "gzip");
@@ -807,7 +807,7 @@ public class CachingWebClientTest {
       req.putHeader("Accept-Encoding", "br");
     });
 
-    context.assertEquals(body1, body2);
+    context.assertNotEquals(body1, body2);
   }
 
   @Test
