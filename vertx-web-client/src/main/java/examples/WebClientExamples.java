@@ -39,6 +39,7 @@ import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
+import io.vertx.uritemplate.UriTemplate;
 
 import java.util.function.Function;
 
@@ -598,6 +599,32 @@ public class WebClientExamples {
         // Obtain response
         System.out.println("Received response with status code" + res.statusCode());
       })
+      .onFailure(err ->
+        System.out.println("Something went wrong " + err.getMessage()));
+  }
+
+  public void testUriTemplate1(WebClient client, UriTemplate REQUEST_URI) {
+    HttpRequest<Buffer> request = client.get(8080, "myserver.mycompany.com", REQUEST_URI);
+  }
+
+  public void testUriTemplate2(HttpRequest<Buffer> request) {
+    request.setTemplateParam("param", "param_value");
+  }
+
+  public void testUriTemplate3(HttpRequest<Buffer> request) {
+    request.send()
+      .onSuccess(res ->
+        System.out.println("Received response with status code" + res.statusCode()))
+      .onFailure(err ->
+        System.out.println("Something went wrong " + err.getMessage()));
+  }
+
+  public void testUriTemplateFluent(WebClient client, UriTemplate REQUEST_URI) {
+    client.get(8080, "myserver.mycompany.com", REQUEST_URI)
+      .setTemplateParam("param", "param_value")
+      .send()
+      .onSuccess(res ->
+        System.out.println("Received response with status code" + res.statusCode()))
       .onFailure(err ->
         System.out.println("Something went wrong " + err.getMessage()));
   }

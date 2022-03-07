@@ -516,6 +516,45 @@ a {@link io.vertx.ext.web.client.WebClientSession}.
 {@link examples.CachingWebClientExamples#createWithSession(io.vertx.core.Vertx)}
 ----
 
+== URI templates
+
+URI templates provide an alternative to string URIs to perform requests.
+
+You can parse a Java string to a `UriTemplate`
+
+[source,$lang]
+----
+public static final UriTemplate REQUEST_URI = UriTemplate.of("/some-uri?{param}");
+----
+
+then use it to create a request
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#testUriTemplate1}
+----
+
+set the template variable
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#testUriTemplate2}
+----
+
+and finally send the request as usual
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#testUriTemplate3}
+----
+
+or fluently
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#testUriTemplateFluent}
+----
+
 == Using HTTPS
 
 Vert.x Web Client can be configured to use HTTPS in exactly the same way as the Vert.x {@link io.vertx.core.http.HttpClient}.
