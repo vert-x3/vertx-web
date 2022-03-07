@@ -143,6 +143,13 @@ public class RouteImpl implements Route {
     state = state.addContextHandler(contextHandler);
 
     checkAdd();
+
+    // after the checkAdd the flag "added" should be true, fixing the order of the route
+
+    if (contextHandler instanceof OrderListener) {
+      ((OrderListener) contextHandler).onOrder(order());
+    }
+
     return this;
   }
 

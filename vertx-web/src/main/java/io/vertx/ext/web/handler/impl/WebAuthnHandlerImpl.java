@@ -29,12 +29,14 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.WebAuthnHandler;
+import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.Origin;
 
-public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> implements WebAuthnHandler {
+public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> implements WebAuthnHandler, OrderListener {
 
   private static final boolean CONFORMANCE = Boolean.getBoolean("io.vertx.ext.web.fido2.conformance.tests");
 
+  private int order = -1;
   // the extra routes
   private Route register = null;
   private Route login = null;
@@ -92,32 +94,10 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
     }
   }
 
-  private static boolean matchesRoute(RoutingContext ctx, Route route) {
-    if (route != null) {
-      return ctx.request().method() == HttpMethod.POST && ctx.normalizedPath().equals(route.getPath());
-    }
-    return false;
-  }
-
   @Override
   public void authenticate(RoutingContext ctx, Handler<AsyncResult<User>> handler) {
     if (response == null) {
       handler.handle(Future.failedFuture(new HttpException(500, new IllegalStateException("No callback mounted!"))));
-      return;
-    }
-
-    if (matchesRoute(ctx, response)) {
-      handler.handle(Future.failedFuture(new HttpException(500, new IllegalStateException("The callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!"))));
-      return;
-    }
-
-    if (matchesRoute(ctx, register)) {
-      handler.handle(Future.failedFuture(new HttpException(500, new IllegalStateException("The register callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!"))));
-      return;
-    }
-
-    if (matchesRoute(ctx, login)) {
-      handler.handle(Future.failedFuture(new HttpException(500, new IllegalStateException("The login callback route is shaded by the WebAuthNAuthHandler, ensure the callback route is added BEFORE the WebAuthNAuthHandler route!"))));
       return;
     }
 
@@ -131,9 +111,81 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
 
   @Override
   public WebAuthnHandler setupCredentialsCreateCallback(Route route) {
-    this.register = route
-      // force a post if otherwise
+    this.register = route;
+    if (order != -1) {
+      mountRegister();
+    }
+    return this;
+  }
+
+  @Override
+  public WebAuthnHandler setupCredentialsGetCallback(Route route) {
+    this.login = route;
+    if (order != -1) {
+      mountLogin();
+    }
+    return this;
+  }
+
+  @Override
+  public WebAuthnHandler setupCallback(Route route) {
+    this.response = route;
+    if (order != -1) {
+      mountResponse();
+    }
+    return this;
+  }
+
+  @Override
+  public WebAuthnHandler setOrigin(String origin) {
+    if (origin != null) {
+      Origin o = Origin.parse(origin);
+      this.origin = o.encode();
+      domain = o.host();
+    } else {
+      this.origin = null;
+      domain = null;
+    }
+    return this;
+  }
+
+  private static void ok(RoutingContext ctx) {
+    if (CONFORMANCE) {
+      ctx.json(new JsonObject().put("status", "ok").put("errorMessage", ""));
+    } else {
+      ctx.response()
+        .setStatusCode(204)
+        .end();
+    }
+  }
+
+  private static void ok(RoutingContext ctx, JsonObject result) {
+    if (CONFORMANCE) {
+      ctx.json(result.put("status", "ok").put("errorMessage", ""));
+    } else {
+      ctx.json(result);
+    }
+  }
+
+  @Override
+  public void onOrder(int order) {
+    this.order = order;
+    if (register != null) {
+      mountRegister();
+    }
+    if (login != null) {
+      mountLogin();
+    }
+    if (response != null) {
+      mountResponse();
+    }
+  }
+
+  private void mountRegister() {
+    register
+    // force a post if otherwise
       .method(HttpMethod.POST)
+      .order(order - 1)
       .handler(ctx -> {
         try {
           // might throw runtime exception if there's no json or is bad formed
@@ -175,14 +227,13 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
           ctx.fail(e);
         }
       });
-    return this;
   }
 
-  @Override
-  public WebAuthnHandler setupCredentialsGetCallback(Route route) {
-    this.login = route
-      // force a post if otherwise
+  private void mountLogin() {
+    login
+    // force a post if otherwise
       .method(HttpMethod.POST)
+      .order(order - 1)
       .handler(ctx -> {
         try {
           // might throw runtime exception if there's no json or is bad formed
@@ -224,14 +275,13 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
           ctx.fail(e);
         }
       });
-    return this;
   }
 
-  @Override
-  public WebAuthnHandler setupCallback(Route route) {
-    this.response = route
-      // force a post if otherwise
+  private void mountResponse() {
+    response
+    // force a post if otherwise
       .method(HttpMethod.POST)
+      .order(order - 1)
       .handler(ctx -> {
         try {
           // might throw runtime exception if there's no json or is bad formed
@@ -294,38 +344,5 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
           ctx.fail(e);
         }
       });
-
-    return this;
-  }
-
-  @Override
-  public WebAuthnHandler setOrigin(String origin) {
-    if (origin != null) {
-      Origin o = Origin.parse(origin);
-      this.origin = o.encode();
-      domain = o.host();
-    } else {
-      this.origin = null;
-      domain = null;
-    }
-    return this;
-  }
-
-  private static void ok(RoutingContext ctx) {
-    if (CONFORMANCE) {
-      ctx.json(new JsonObject().put("status", "ok").put("errorMessage", ""));
-    } else {
-      ctx.response()
-        .setStatusCode(204)
-        .end();
-    }
-  }
-
-  private static void ok(RoutingContext ctx, JsonObject result) {
-    if (CONFORMANCE) {
-      ctx.json(result.put("status", "ok").put("errorMessage", ""));
-    } else {
-      ctx.json(result);
-    }
   }
 }
