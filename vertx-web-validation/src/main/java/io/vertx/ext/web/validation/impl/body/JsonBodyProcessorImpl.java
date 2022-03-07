@@ -28,7 +28,7 @@ public class JsonBodyProcessorImpl implements BodyProcessor {
   @Override
   public Future<RequestParameter> process(RoutingContext requestContext) {
     try {
-      Buffer body = requestContext.getBody();
+      Buffer body = requestContext.body().buffer();
       if (body == null) {
         throw BodyProcessorException.createParsingError(
           requestContext.request().getHeader(HttpHeaders.CONTENT_TYPE),

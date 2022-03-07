@@ -34,6 +34,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
@@ -387,7 +388,7 @@ public class SockJSHandlerTest extends WebTestBase {
           assertFalse(result.failed());
           assertNotSame(session, oldSession);
           assertEquals(session, sock.webSession());
-          sock.routingContext().setSession(session);
+          ((RoutingContextInternal) sock.routingContext()).setSession(session);
           assertEquals(sock.webSession(), sock.routingContext().session());
           assertEquals(sock.webUser(), sock.routingContext().user());
           assertEquals(sock.webUser(), user);
@@ -406,7 +407,7 @@ public class SockJSHandlerTest extends WebTestBase {
         } catch (InterruptedException | ExecutionException e) {
           fail();
         }
-        sock.routingContext().setSession(session);
+        ((RoutingContextInternal) sock.routingContext()).setSession(session);
         try {
           assertEquals(sessionID.get(), store.get(sessionID.get()).result().id());
           assertEquals(sessionUser.get(), sock.webUser());

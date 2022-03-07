@@ -10,8 +10,6 @@ import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.*;
 
@@ -41,17 +39,17 @@ public class RoutingContextDecorator implements RoutingContextInternal {
 
   @Override
   public RoutingContextInternal visitHandler(int id) {
-    return ((RoutingContextInternal) decoratedContext).visitHandler(id);
+    return decoratedContext.visitHandler(id);
   }
 
   @Override
   public boolean seenHandler(int id) {
-    return ((RoutingContextInternal) decoratedContext).seenHandler(id);
+    return decoratedContext.seenHandler(id);
   }
 
   @Override
   public RoutingContextInternal setMatchFailure(int matchFailure) {
-    return ((RoutingContextInternal) decoratedContext).setMatchFailure(matchFailure);
+    return decoratedContext.setMatchFailure(matchFailure);
   }
 
   @Override
@@ -157,28 +155,8 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
-  public Buffer getBody() {
-    return decoratedContext.getBody();
-  }
-
-  @Override
-  public JsonObject getBodyAsJson(int maxAllowedLength) {
-    return decoratedContext.getBodyAsJson(maxAllowedLength);
-  }
-
-  @Override
-  public JsonArray getBodyAsJsonArray(int maxAllowedLength) {
-    return decoratedContext.getBodyAsJsonArray(maxAllowedLength);
-  }
-
-  @Override
-  public String getBodyAsString() {
-    return decoratedContext.getBodyAsString();
-  }
-
-  @Override
-  public String getBodyAsString(String encoding) {
-    return decoratedContext.getBodyAsString(encoding);
+  public RequestBody body() {
+    return decoratedContext.body();
   }
 
   @Override

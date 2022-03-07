@@ -17,8 +17,10 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 
 /**
  * Internal methods that are not expected or prime to be in the public API
@@ -69,4 +71,17 @@ public interface RoutingContextInternal extends RoutingContext {
   @CacheReturn
   @Nullable RoutingContextInternal parent();
 
+  /**
+   * Set the body. Used by the {@link io.vertx.ext.web.handler.BodyHandler}.
+   *
+   * @param body  the body
+   */
+  void setBody(Buffer body);
+
+  /**
+   * Set the session. Used by the {@link io.vertx.ext.web.handler.SessionHandler}.
+   *
+   * @param session  the session
+   */
+  void setSession(Session session);
 }

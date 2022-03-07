@@ -14,6 +14,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.WebAuthnHandler;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -172,14 +173,14 @@ public class FIDO2TCK {
 
         app.post("/attestation/options")
           .handler(ctx -> {
-            JsonObject json = ctx.getBodyAsJson();
+            JsonObject json = ctx.body().asJsonObject();
             // vert.x doesn't work with "username" but "name"
             if (json.containsKey("username")) {
               String username = json.getString("username");
               json.remove("username");
               json.put("name", username);
               // patch the request
-              ctx.setBody(json.toBuffer());
+              ((RoutingContextInternal) ctx).setBody(json.toBuffer());
             }
 
             // register, we need to listen to the request and change the config
@@ -208,14 +209,14 @@ public class FIDO2TCK {
 
         app.post("/assertion/options")
           .handler(ctx -> {
-            JsonObject json = ctx.getBodyAsJson();
+            JsonObject json = ctx.body().asJsonObject();
             // vert.x doesn't work with "username" but "name"
             if (json.containsKey("username")) {
               String username = json.getString("username");
               json.remove("username");
               json.put("name", username);
               // patch the request
-              ctx.setBody(json.toBuffer());
+              ((RoutingContextInternal) ctx).setBody(json.toBuffer());
             }
 
             config.setUserVerification(UserVerification.of(json.getString("userVerification", "discouraged")));

@@ -30,7 +30,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_empty_array_as_json_array_yields_empty_json_array() throws Exception {
     router.route().handler(event -> {
-      assertEquals(new JsonArray(), event.getBodyAsJsonArray());
+      assertEquals(new JsonArray(), event.body().asJsonArray());
       event.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -42,8 +42,8 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_empty_yields_null_json_types() throws Exception {
     router.route().handler(event -> {
-      assertNull(event.getBodyAsJsonArray());
-      assertNull(event.getBodyAsJson());
+      assertNull(event.body().asJsonArray());
+      assertNull(event.body().asJsonObject());
       event.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -60,7 +60,7 @@ public class RoutingContextImplTest extends WebTestBase {
           new JsonObject(Collections.singletonMap("foo", "bar"))
         )
       );
-      assertEquals(array, event.getBodyAsJsonArray());
+      assertEquals(array, event.body().asJsonArray());
       event.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -72,7 +72,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_null_literal_array_as_json_array_yields_null_json_array() throws Exception {
     router.route().handler(event -> {
-      assertEquals(null, event.getBodyAsJsonArray());
+      assertEquals(null, event.body().asJsonArray());
       event.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -84,7 +84,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_non_array_as_json_array_fails_json_array() throws Exception {
     router.route().handler(event -> {
-      assertEquals(null, event.getBodyAsJsonArray());
+      assertEquals(null, event.body().asJsonArray());
       event.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -96,7 +96,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_invalid_array_as_json_array_fails_json_array() throws Exception {
     router.route().handler(event -> {
-      assertEquals(null, event.getBodyAsJsonArray());
+      assertEquals(null, event.body().asJsonArray());
       event.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -108,7 +108,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_empty_object_as_json_yields_empty_json_object() throws Exception {
     router.route().handler(event -> {
-      assertEquals(new JsonObject(), event.getBodyAsJson());
+      assertEquals(new JsonObject(), event.body().asJsonObject());
       event.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -120,7 +120,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_object_as_json_yields_json_object() throws Exception {
     router.route().handler(event -> {
-      assertEquals(new JsonObject(Collections.singletonMap("foo", "bar")), event.getBodyAsJson());
+      assertEquals(new JsonObject(Collections.singletonMap("foo", "bar")), event.body().asJsonObject());
       event.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -132,7 +132,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_null_literal_object_as_json_yields_empty_json_object() throws Exception {
     router.route().handler(event -> {
-      assertEquals(null, event.getBodyAsJson());
+      assertEquals(null, event.body().asJsonObject());
       event.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -144,7 +144,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_invalid_json_object_as_json_fails_json_object() throws Exception {
     router.route().handler(event -> {
-      assertEquals(null, event.getBodyAsJson());
+      assertEquals(null, event.body().asJsonObject());
       event.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -156,7 +156,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_non_json_object_as_json_fails_json_object() throws Exception {
     router.route().handler(event -> {
-      assertEquals(null, event.getBodyAsJson());
+      assertEquals(null, event.body().asJsonObject());
       event.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -168,7 +168,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_remove_data() throws Exception {
     router.route().handler(event -> {
-      String foo = event.getBodyAsJson().encode();
+      String foo = event.body().asJsonObject().encode();
       event.put("foo", foo);
       String removedFoo = event.remove("foo");
       assertEquals(removedFoo, foo);

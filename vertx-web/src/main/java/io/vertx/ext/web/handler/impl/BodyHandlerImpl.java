@@ -318,7 +318,7 @@ public class BodyHandlerImpl implements BodyHandler {
       if (mergeFormAttributes && req.isExpectMultipart()) {
         req.params().addAll(req.formAttributes());
       }
-      context.setBody(body);
+      ((RoutingContextInternal) context).setBody(body);
       // release body as it may take lots of memory
       body = null;
 

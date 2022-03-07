@@ -23,13 +23,11 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpUtils;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.FileUpload;
+import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.impl.UserHolder;
 
@@ -49,6 +47,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private final RouterImpl router;
   private final HttpServerRequest request;
+  private final RequestBodyImpl body;
 
   private volatile int handlerSeq;
 
@@ -66,7 +65,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private String acceptableContentType;
   private ParsableHeaderValuesContainer parsedHeaders;
 
-  private Buffer body;
   private Set<FileUpload> fileUploads;
   private Session session;
   private User user;
@@ -78,6 +76,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     super(mountPoint, routes, router);
     this.router = router;
     this.request = new HttpServerRequestWrapper(request, router.getAllowForward());
+    this.body = new RequestBodyImpl(this);
 
     final String path = request.path();
 
@@ -288,76 +287,13 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public String getBodyAsString() {
-    if (body != null) {
-      ParsableHeaderValuesContainer parsedHeaders = parsedHeaders();
-      if (parsedHeaders != null) {
-        ParsableMIMEValue contentType = parsedHeaders.contentType();
-        if (contentType != null) {
-          String charset = contentType.parameter("charset");
-          if (charset != null) {
-            return body.toString(charset);
-          }
-        }
-      }
-      return body.toString();
-    } else {
-      if (!seenHandler(BODY_HANDLER)) {
-        if (LOG.isWarnEnabled()) {
-          LOG.warn("BodyHandler in not enabled on this route: RoutingContext.getBodyAsString(...) in always be NULL");
-        }
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public String getBodyAsString(String encoding) {
-    return body != null ? body.toString(encoding) : null;
-  }
-
-  @Override
-  public JsonObject getBodyAsJson(int maxAllowedLength) {
-    if (body != null) {
-      if (maxAllowedLength >= 0 && body.length() > maxAllowedLength) {
-        throw new IllegalStateException("RoutingContext body size exceeds the allowed limit");
-      }
-      return BodyCodecImpl.JSON_OBJECT_DECODER.apply(body);
-    } else {
-      if (!seenHandler(BODY_HANDLER)) {
-        if (LOG.isWarnEnabled()) {
-          LOG.warn("BodyHandler in not enabled on this route: RoutingContext.getBodyAsJson() in always be NULL");
-        }
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public JsonArray getBodyAsJsonArray(int maxAllowedLength) {
-    if (body != null) {
-      if (maxAllowedLength >= 0 && body.length() > maxAllowedLength) {
-        throw new IllegalStateException("RoutingContext body size exceeds the allowed limit");
-      }
-      return BodyCodecImpl.JSON_ARRAY_DECODER.apply(body);
-    } else {
-      if (!seenHandler(BODY_HANDLER)) {
-        if (LOG.isWarnEnabled()) {
-          LOG.warn("BodyHandler in not enabled on this route: RoutingContext.getBodyAsJsonArray(...) in always be NULL");
-        }
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public Buffer getBody() {
+  public RequestBody body() {
     return body;
   }
 
   @Override
   public void setBody(Buffer body) {
-    this.body = body;
+    this.body.setBuffer(body);
   }
 
   @Override

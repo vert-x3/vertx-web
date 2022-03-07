@@ -61,7 +61,7 @@ public class BodyHandlerTest extends WebTestBase {
   @Test
   public void testGETWithoutBody() throws Exception {
     router.route().handler(rc -> {
-      assertNull(rc.getBody());
+      assertNull(rc.body().buffer());
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", 200, "OK");
@@ -70,7 +70,7 @@ public class BodyHandlerTest extends WebTestBase {
   @Test
   public void testHEADWithoutBody() throws Exception {
     router.route().handler(rc -> {
-      assertNull(rc.getBody());
+      assertNull(rc.body().buffer());
       rc.response().end();
     });
     testRequest(HttpMethod.HEAD, "/", 200, "OK");
@@ -80,7 +80,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyBuffer() throws Exception {
     Buffer buff = TestUtils.randomBuffer(1000);
     router.route().handler(rc -> {
-      assertEquals(buff, rc.getBody());
+      assertEquals(buff, rc.body().buffer());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -93,7 +93,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyString() throws Exception {
     String str = "sausages";
     router.route().handler(rc -> {
-      assertEquals(str, rc.getBodyAsString());
+      assertEquals(str, rc.body().asString());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -106,8 +106,8 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyStringWithEncoding() throws Exception {
     String str = "\u00FF";
     router.route().handler(rc -> {
-      assertEquals(1, rc.getBody().length());
-      String decoded = rc.getBodyAsString();
+      assertEquals(1, rc.body().length());
+      String decoded = rc.body().asString();
       assertEquals(str, decoded);
       rc.response().end();
     });
@@ -124,7 +124,7 @@ public class BodyHandlerTest extends WebTestBase {
     String str = TestUtils.randomUnicodeString(100);
     String enc = "UTF-16";
     router.route().handler(rc -> {
-      assertEquals(str, rc.getBodyAsString(enc));
+      assertEquals(str, rc.body().asString(enc));
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -137,7 +137,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyJson() throws Exception {
     JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
     router.route().handler(rc -> {
-      assertEquals(json, rc.getBodyAsJson());
+      assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -150,7 +150,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyJsonWithNegativeContentLength() throws Exception {
     JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
     router.route().handler(rc -> {
-      assertEquals(json, rc.getBodyAsJson());
+      assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -164,7 +164,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyJsonWithEmptyContentLength() throws Exception {
     JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
     router.route().handler(rc -> {
-      assertEquals(json, rc.getBodyAsJson());
+      assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -178,7 +178,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyJsonWithHugeContentLength() throws Exception {
     JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
     router.route().handler(rc -> {
-      assertEquals(json, rc.getBodyAsJson());
+      assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -261,7 +261,7 @@ public class BodyHandlerTest extends WebTestBase {
       Buffer uploaded = vertx.fileSystem().readFileBlocking(uploadedFileName);
       assertEquals(fileData, uploaded);
       // the data is upload as HTML form, so the body should be empty
-      Buffer rawBody = rc.getBody();
+      Buffer rawBody = rc.body().buffer();
       assertNull(rawBody);
       rc.response().end();
     });
@@ -563,7 +563,7 @@ public class BodyHandlerTest extends WebTestBase {
     router.route().handler(BodyHandler.create()
       .setUploadsDirectory(uploadsDirectory));
     router.route().handler(ctx -> {
-      assertNull(ctx.getBody());
+      assertNull(ctx.body().buffer());
       assertEquals(1, ctx.fileUploads().size());
       ctx.response().end();
     });
@@ -788,7 +788,7 @@ public class BodyHandlerTest extends WebTestBase {
     Buffer buffer = Buffer.buffer("000000000000000000000000000000000000000000000000");
     router.route().handler(rc -> {
       try {
-        rc.getBodyAsJson(10);
+        rc.body().asJsonObject(10);
         // should not reach here!
         rc.fail(500);
       } catch (IllegalStateException e) {
@@ -809,7 +809,7 @@ public class BodyHandlerTest extends WebTestBase {
     Buffer buffer = Buffer.buffer("{\"k\":1111}");
     router.route().handler(rc -> {
       try {
-        rc.getBodyAsJson(10);
+        rc.body().asJsonObject(10);
         rc.end();
       } catch (IllegalStateException e) {
         // should not reach here!
@@ -845,7 +845,7 @@ public class BodyHandlerTest extends WebTestBase {
       Buffer uploaded = vertx.fileSystem().readFileBlocking(uploadedFileName);
       assertEquals(fileData, uploaded);
       // the data is upload as HTML form, so the body should be empty
-      Buffer rawBody = rc.getBody();
+      Buffer rawBody = rc.body().buffer();
       assertNull(rawBody);
       rc.response().end();
     });

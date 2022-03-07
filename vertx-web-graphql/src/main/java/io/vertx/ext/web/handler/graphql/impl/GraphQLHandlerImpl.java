@@ -106,7 +106,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
         // as well as resource cleanup
         rc.fail(500, new NoStackTraceThrowable("BodyHandler is required to process POST requests"));
       } else {
-        handlePost(rc, rc.getBody());
+        handlePost(rc, rc.body().buffer());
       }
     } else {
       rc.fail(405);

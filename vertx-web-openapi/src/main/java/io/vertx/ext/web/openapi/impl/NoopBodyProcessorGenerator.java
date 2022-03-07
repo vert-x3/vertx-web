@@ -28,7 +28,7 @@ public class NoopBodyProcessorGenerator implements BodyProcessorGenerator {
 
       @Override
       public Future<RequestParameter> process(RoutingContext requestContext) {
-        return Future.succeededFuture(RequestParameter.create(requestContext.getBody()));
+        return Future.succeededFuture(RequestParameter.create(requestContext.body().buffer()));
       }
     };
   }

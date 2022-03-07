@@ -3060,7 +3060,7 @@ public class RouterTest extends WebTestBase {
 
     router.route(HttpMethod.GET, "/fail")
       .handler(BodyHandler.create())
-      .handler(ctx -> ctx.response().setStatusCode(200).end(ctx.getBodyAsString()));
+      .handler(ctx -> ctx.response().setStatusCode(200).end(ctx.body().asString()));
 
     testRequest(
       HttpMethod.GET,
