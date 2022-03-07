@@ -769,30 +769,8 @@ public class CachingWebClientTest {
     context.assertNotEquals(body1, body2);
   }
 
-  // Cache-Control: public; Vary: Content-Encoding
-
   @Test
-  public void testVaryEncodingOverlap(TestContext context) {
-    startMockServer(context, req -> {
-      req.response().headers().add("Cache-Control", "public, max-age=300");
-      req.response().headers().add("Content-Encoding", "gzip");
-      req.response().headers().add("Vary", "Accept-Encoding");
-    });
-
-    String body1 = executeGetBlocking(context, varyClient, req -> {
-      req.putHeader("Accept-Encoding", "gzip,deflate,sdch");
-    });
-
-    String body2 = executeGetBlocking(context, varyClient, req -> {
-      req.putHeader("Accept-Encoding", "gzip,deflate");
-    });
-
-    // Both accept gzip, so cache should be used
-    context.assertEquals(body1, body2);
-  }
-
-  @Test
-  public void testVaryEncodingDifferent(TestContext context) {
+  public void testVaryEncodingTransformedToIdentityAlwaysSoWeIgnoreIt(TestContext context) {
     startMockServer(context, req -> {
       req.response().headers().add("Cache-Control", "public, max-age=300");
       req.response().headers().add("Content-Encoding", "gzip");
@@ -807,7 +785,7 @@ public class CachingWebClientTest {
       req.putHeader("Accept-Encoding", "br");
     });
 
-    context.assertNotEquals(body1, body2);
+    context.assertEquals(body1, body2);
   }
 
   @Test
