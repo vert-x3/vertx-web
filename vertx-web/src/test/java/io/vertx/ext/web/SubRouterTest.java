@@ -647,5 +647,55 @@ public class SubRouterTest extends WebTestBase {
     router.route("/level1/*").handler(level2);
     testRequest(HttpMethod.GET, "/level1/level2/level3", 200, "ok");
   }
+
+  @Test
+  public void testHierarchicalWithParams() throws Exception {
+
+    Router restRouter = Router.router(vertx);
+    Router subRouter = Router.router(vertx);
+
+    subRouter.get("/files").handler(ctx -> {
+      // version is extracted from the root router
+      assertEquals("1", ctx.pathParam("version"));
+      ctx.response().end();
+    });
+
+    restRouter.mountSubRouter("/:version", subRouter);
+
+    router.mountSubRouter("/rest", restRouter);
+
+    // router
+    // /rest -> restRouter
+    //      /:version -> subRouter
+    //                    /files -> OK
+
+    testRequest(HttpMethod.GET, "/rest/1/files", 200, "OK");
+  }
+
+  @Test
+  public void testHierarchicalWithParamsInAllRouters() throws Exception {
+
+    Router restRouter = Router.router(vertx);
+    Router subRouter = Router.router(vertx);
+
+    subRouter.get("/files/:id").handler(ctx -> {
+      // version is extracted from the root router
+      assertEquals("1", ctx.pathParam("version"));
+      // id is extracted from this router
+      assertEquals("2", ctx.pathParam("id"));
+      ctx.response().end();
+    });
+
+    restRouter.mountSubRouter("/:version", subRouter);
+
+    router.mountSubRouter("/rest", restRouter);
+
+    // router
+    // /rest -> restRouter
+    //      /:version -> subRouter
+    //                    /files/:id -> OK
+
+    testRequest(HttpMethod.GET, "/rest/1/files/2", 200, "OK");
+  }
 }
 

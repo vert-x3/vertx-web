@@ -346,12 +346,14 @@ public class RouterImpl implements Router {
     }
     // regex
     if (ctx.matchRest != -1) {
+      // if we're on a sub router already we need to skip the matched path
+      int skip = ctx.mountPoint != null ? ctx.mountPoint.length() : 0;
       if (ctx.matchNormalized) {
-        return ctx.normalizedPath().substring(0, ctx.matchRest);
+        return ctx.normalizedPath().substring(skip, skip + ctx.matchRest);
       } else {
         String path = ctx.request().path();
         if (path != null) {
-          return path.substring(0, ctx.matchRest);
+          return path.substring(skip, skip + ctx.matchRest);
         }
         return null;
       }
