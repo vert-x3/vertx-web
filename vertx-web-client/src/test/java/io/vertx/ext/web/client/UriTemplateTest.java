@@ -1,11 +1,14 @@
 package io.vertx.ext.web.client;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.uritemplate.ExpandOptions;
 import io.vertx.uritemplate.UriTemplate;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -76,5 +79,21 @@ public class UriTemplateTest extends WebClientTestBase {
       assertEquals("red", req.getParam("color"));
       assertEquals(EURO_SYMBOL, req.getParam("currency"));
     });
+  }
+
+  @Test
+  public void testIncomplete() throws Exception {
+    UriTemplate template = UriTemplate.of("/{missing}");
+    WebClient webClient = WebClient.create(vertx, new WebClientOptions()
+      .setDefaultPort(8080)
+      .setDefaultHost("localhost")
+      .setTemplateExpandOptions(new ExpandOptions()
+        .setAllowVariableMiss(false)));
+    HttpRequest<Buffer> request = webClient.get(template);
+    request.send(onFailure(err -> {
+      assertEquals(NoSuchElementException.class, err.getClass());
+      testComplete();
+    }));
+    await();
   }
 }

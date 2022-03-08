@@ -39,7 +39,9 @@ import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
+import io.vertx.uritemplate.ExpandOptions;
 import io.vertx.uritemplate.UriTemplate;
+import io.vertx.uritemplate.Variables;
 
 import java.util.function.Function;
 
@@ -628,6 +630,24 @@ public class WebClientExamples {
       .onFailure(err ->
         System.out.println("Something went wrong " + err.getMessage()));
   }
+
+  private void assertEquals(String a, String b) {
+  }
+
+  public void testUriTemplateEncoding(HttpRequest<Buffer> request) {
+    String euroSymbol = "\u20AC";
+    Variables params = Variables.variables().set("currency", euroSymbol);
+    UriTemplate template = UriTemplate.of("{currency}");
+    assertEquals("%E2%82%AC", template.expandToString(params));
+  }
+
+  public void testConfigureTemplateExpansion(Vertx vertx) {
+    WebClient webClient = WebClient.create(vertx, new WebClientOptions()
+      .setTemplateExpandOptions(new ExpandOptions()
+        .setAllowVariableMiss(false))
+    );
+  }
+
 
   public void testOverrideRequestSSL(WebClient client) {
 

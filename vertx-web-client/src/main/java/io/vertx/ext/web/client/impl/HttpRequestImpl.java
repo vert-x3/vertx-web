@@ -181,7 +181,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     Boolean ssl;
     String uri;
     if (absoluteUri != null) {
-      uri = absoluteUri.expandToString(templateParams());
+      uri = absoluteUri.expandToString(templateParams(), client.options.getTemplateExpandOptions());
       ClientUri curi = ClientUri.parse(uri);
       uri = curi.uri;
       host = curi.host;
@@ -195,7 +195,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
       if (this.uri instanceof String) {
         uri = (String) this.uri;
       } else {
-        uri = ((UriTemplate) this.uri).expandToString(templateParams());
+        uri = ((UriTemplate) this.uri).expandToString(templateParams(), client.options.getTemplateExpandOptions());
       }
       protocol = null;
     }

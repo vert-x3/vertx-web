@@ -26,6 +26,7 @@ import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.uritemplate.ExpandOptions;
 import io.vertx.uritemplate.UriTemplate;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.impl.predicate.PredicateInterceptor;
@@ -46,8 +47,14 @@ public class WebClientBase implements WebClientInternal {
   final List<Handler<HttpContext<?>>> interceptors;
 
   public WebClientBase(HttpClient client, WebClientOptions options) {
+
+    options = new WebClientOptions(options);
+    if (options.getTemplateExpandOptions() == null) {
+      options.setTemplateExpandOptions(new ExpandOptions());
+    }
+
     this.client = client;
-    this.options = new WebClientOptions(options);
+    this.options = options;
     this.interceptors = new CopyOnWriteArrayList<>();
 
     // Add base interceptor
