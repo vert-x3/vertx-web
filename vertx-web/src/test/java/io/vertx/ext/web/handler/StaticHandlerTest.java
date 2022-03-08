@@ -693,7 +693,7 @@ public class StaticHandlerTest extends WebTestBase {
     router.clear();
     Router subRouter = Router.router(vertx);
     subRouter.route("/somedir/*").handler(stat);
-    router.mountSubRouter("/mymount/", subRouter);
+    router.route("/mymount/*").subRouter(subRouter);
     testRequest(HttpMethod.GET, "/mymount/somedir/otherpage.html", 200, "OK", "<html><body>Other page</body></html>");
   }
 
@@ -969,7 +969,7 @@ public class StaticHandlerTest extends WebTestBase {
 
     router.clear();
     router
-      .mountSubRouter("/test", subRouter);
+      .route("/test*").subRouter(subRouter);
 
     router
       .route()

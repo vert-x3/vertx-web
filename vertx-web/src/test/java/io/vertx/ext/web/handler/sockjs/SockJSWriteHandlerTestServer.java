@@ -95,7 +95,7 @@ public class SockJSWriteHandlerTestServer {
       String mountPoint = "/transport/" + transport.name()
         + "/" + (register ? "registered":"unregistered")
         + "/" + (local ? "local":"clustered");
-      router.mountSubRouter(mountPoint, sockJSHandler.socketHandler(socket -> {
+      router.route(mountPoint + "*").subRouter(sockJSHandler.socketHandler(socket -> {
         String id = socket.writeHandlerID();
         socket.write(id != null ? id:"--null--");
       }));

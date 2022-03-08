@@ -2160,7 +2160,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testSubRouterNPE() throws Exception {
     Router subRouter = Router.router(vertx);
-    router.mountSubRouter("/", subRouter);
+    router.route("/*").subRouter(subRouter);
 
     testRequest(HttpMethod.GET, "foo", 404, "Not Found");
   }
@@ -2988,7 +2988,7 @@ public class RouterTest extends WebTestBase {
     swagger.route("/swagger/*")
       .handler(RoutingContext::end);
 
-    router.mountSubRouter("/q", swagger);
+    router.route("/q*").subRouter(swagger);
 
     testRequest(HttpMethod.GET, "/q/swagge", 404, "Not Found");
     testRequest(HttpMethod.GET, "/q/swagger", 200, "OK");
@@ -3041,7 +3041,7 @@ public class RouterTest extends WebTestBase {
         String parentVal = ((RoutingContextInternal)rc).parent().currentRouter().getMetadata("parent");
         rc.end(parentVal + "-" + subVal);
       });
-    router.mountSubRouter("/sub", sub);
+    router.route("/sub*").subRouter(sub);
 
     testRequest(HttpMethod.GET, "/sub/metadata", 200, "OK", "abc-123");
   }

@@ -628,7 +628,7 @@ public class WebExamples {
 
   public void example24(Router mainRouter, Router restAPI) {
 
-    mainRouter.mountSubRouter("/productsAPI", restAPI);
+    mainRouter.route("/productsAPI/*").subRouter(restAPI);
 
   }
 
@@ -903,8 +903,8 @@ public class WebExamples {
     router.route().handler(
       // create the handler that will perform the attestation
       AuthorizationHandler.create(
-        // what to attest
-        PermissionBasedAuthorization.create("can-do-work"))
+          // what to attest
+          PermissionBasedAuthorization.create("can-do-work"))
         // where to lookup the authorizations for the user
         .addAuthorizationProvider(authProvider));
   }
@@ -915,8 +915,8 @@ public class WebExamples {
     router.route("/listproducts/*").handler(
       // create the handler that will perform the attestation
       AuthorizationHandler.create(
-        // what to attest
-        PermissionBasedAuthorization.create("list_products"))
+          // what to attest
+          PermissionBasedAuthorization.create("list_products"))
         // where to lookup the authorizations for the user
         .addAuthorizationProvider(authProvider));
 
@@ -924,8 +924,8 @@ public class WebExamples {
     router.route("/private/settings/*").handler(
       // create the handler that will perform the attestation
       AuthorizationHandler.create(
-        // what to attest
-        RoleBasedAuthorization.create("admin"))
+          // what to attest
+          RoleBasedAuthorization.create("admin"))
         .addAuthorizationProvider(authProvider));
   }
 
@@ -1001,12 +1001,13 @@ public class WebExamples {
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
-    router.mountSubRouter("/myapp", sockJSHandler.socketHandler(sockJSSocket -> {
+    router
+      .route("/myapp/*")
+      .subRouter(sockJSHandler.socketHandler(sockJSSocket -> {
+        // Just echo the data back
+        sockJSSocket.handler(sockJSSocket::write);
 
-      // Just echo the data back
-      sockJSSocket.handler(sockJSSocket::write);
-
-    }));
+      }));
 
   }
 
@@ -1017,12 +1018,14 @@ public class WebExamples {
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
-    router.mountSubRouter("/myapp", sockJSHandler.socketHandler(sockJSSocket -> {
+    router
+      .route("/myapp/*")
+      .subRouter(sockJSHandler.socketHandler(sockJSSocket -> {
 
-      // Retrieve the writeHandlerID and store it (e.g. in a local map)
-      String writeHandlerID = sockJSSocket.writeHandlerID();
+        // Retrieve the writeHandlerID and store it (e.g. in a local map)
+        String writeHandlerID = sockJSSocket.writeHandlerID();
 
-    }));
+      }));
 
   }
 
@@ -1042,7 +1045,9 @@ public class WebExamples {
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
     SockJSBridgeOptions options = new SockJSBridgeOptions();
     // mount the bridge on the router
-    router.mountSubRouter("/eventbus", sockJSHandler.bridge(options));
+    router
+      .route("/eventbus/*")
+      .subRouter(sockJSHandler.bridge(options));
   }
 
   public void example46(Vertx vertx) {
@@ -1088,7 +1093,9 @@ public class WebExamples {
       addOutboundPermitted(outboundPermitted2);
 
     // mount the bridge on the router
-    router.mountSubRouter("/eventbus", sockJSHandler.bridge(options));
+    router
+      .route("/eventbus/*")
+      .subRouter(sockJSHandler.bridge(options));
   }
 
   public void example47() {
@@ -1126,9 +1133,9 @@ public class WebExamples {
     router.route("/eventbus/*").handler(basicAuthHandler);
 
     // mount the bridge on the router
-    router.mountSubRouter(
-      "/eventbus",
-      sockJSHandler.bridge(new SockJSBridgeOptions()
+    router
+      .route("/eventbus/*")
+      .subRouter(sockJSHandler.bridge(new SockJSBridgeOptions()
         .addInboundPermitted(inboundPermitted)));
   }
 
@@ -1145,9 +1152,9 @@ public class WebExamples {
       .addInboundPermitted(inboundPermitted);
 
     // mount the bridge on the router
-    router.mountSubRouter(
-      "/eventbus",
-      sockJSHandler.bridge(options, be -> {
+    router
+      .route("/eventbus/*")
+      .subRouter(sockJSHandler.bridge(options, be -> {
         if (
           be.type() == BridgeEventType.PUBLISH ||
             be.type() == BridgeEventType.SEND) {
@@ -1179,7 +1186,8 @@ public class WebExamples {
 
     // mount the bridge on the router
     router
-      .mountSubRouter("/eventbus", sockJSHandler
+      .route("/eventbus/*")
+      .subRouter(sockJSHandler
         .bridge(options, be -> {
           if (be.type() == BridgeEventType.PUBLISH ||
             be.type() == BridgeEventType.RECEIVE) {
@@ -1205,7 +1213,8 @@ public class WebExamples {
 
     // mount the bridge on the router
     router
-      .mountSubRouter("/eventbus", sockJSHandler.bridge(options, be -> {
+      .route("/eventbus/*")
+      .subRouter(sockJSHandler.bridge(options, be -> {
         if (be.type() == BridgeEventType.SOCKET_IDLE) {
           // Do some custom handling...
         }
@@ -1469,7 +1478,7 @@ public class WebExamples {
     // we now protect the resource under the path "/protected"
     router.route("/protected").handler(
       OAuth2AuthHandler.create(
-        vertx,
+          vertx,
           authProvider,
           "http://localhost:8080/callback")
         // we now configure the oauth2 handler, it will
@@ -1759,7 +1768,7 @@ public class WebExamples {
       // modified at creation time in the factory method
       String tenant = ctx.get(MultiTenantHandler.TENANT);
 
-      switch(tenant) {
+      switch (tenant) {
         case "google":
           // do something for google users
           break;
@@ -1773,15 +1782,15 @@ public class WebExamples {
   public void example75(Vertx vertx, Router router, Function<Authenticator, Future<List<Authenticator>>> fetcher, Function<Authenticator, Future<Void>> updater) {
     // create the webauthn security object
     WebAuthn webAuthn = WebAuthn.create(
-      vertx,
-      new WebAuthnOptions()
-        .setRelyingParty(new RelyingParty().setName("Vert.x WebAuthN Demo"))
-        // What kind of authentication do you want? do you care?
-        // # security keys
-        .setAuthenticatorAttachment(AuthenticatorAttachment.CROSS_PLATFORM)
-        // # fingerprint
-        .setAuthenticatorAttachment(AuthenticatorAttachment.PLATFORM)
-        .setUserVerification(UserVerification.REQUIRED))
+        vertx,
+        new WebAuthnOptions()
+          .setRelyingParty(new RelyingParty().setName("Vert.x WebAuthN Demo"))
+          // What kind of authentication do you want? do you care?
+          // # security keys
+          .setAuthenticatorAttachment(AuthenticatorAttachment.CROSS_PLATFORM)
+          // # fingerprint
+          .setAuthenticatorAttachment(AuthenticatorAttachment.PLATFORM)
+          .setUserVerification(UserVerification.REQUIRED))
       // where to load the credentials from?
       .authenticatorFetcher(fetcher)
       // update the state of an authenticator
@@ -1876,7 +1885,8 @@ public class WebExamples {
   }
 
   @DataObject
-  static class Pojo {}
+  static class Pojo {
+  }
 
   public void example82(Router router) {
 
@@ -1902,8 +1912,8 @@ public class WebExamples {
       .respond(
         ctx -> ctx
           .response()
-            .putHeader("Content-Type", "text/plain")
-            .end("hello world!"));
+          .putHeader("Content-Type", "text/plain")
+          .end("hello world!"));
 
     router
       .get("/some/path")
@@ -1911,8 +1921,8 @@ public class WebExamples {
       .respond(
         ctx -> ctx
           .response()
-            .setChunked(true)
-            .write("Write some text..."));
+          .setChunked(true)
+          .write("Write some text..."));
   }
 
   public void example84(Router router) {

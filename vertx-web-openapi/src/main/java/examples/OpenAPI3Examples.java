@@ -275,6 +275,6 @@ public class OpenAPI3Examples {
     Router global = Router.router(vertx);
 
     Router generated = routerBuilder.createRouter();
-    global.mountSubRouter("/v1", generated);
+    global.route("/v1/*").subRouter(generated);
   }
 }
