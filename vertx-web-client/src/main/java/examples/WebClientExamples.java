@@ -16,6 +16,7 @@
 
 package examples;
 
+import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -43,6 +44,8 @@ import io.vertx.uritemplate.ExpandOptions;
 import io.vertx.uritemplate.UriTemplate;
 import io.vertx.uritemplate.Variables;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -634,11 +637,15 @@ public class WebClientExamples {
   private void assertEquals(String a, String b) {
   }
 
-  public void testUriTemplateEncoding(HttpRequest<Buffer> request) {
+  public void testUriTemplateEncoding(WebClient client, String amount) {
     String euroSymbol = "\u20AC";
-    Variables params = Variables.variables().set("currency", euroSymbol);
-    UriTemplate template = UriTemplate.of("{currency}");
-    assertEquals("%E2%82%AC", template.expandToString(params));
+    UriTemplate template = UriTemplate.of("/convert?{amount}&{currency}");
+
+    // Request uri: /convert?amount=1234&currency=%E2%82%AC
+    Future<HttpResponse<Buffer>> fut = client.get(template)
+      .setTemplateParam("amount", amount)
+      .setTemplateParam("currency", euroSymbol)
+      .send();
   }
 
   public void testConfigureTemplateExpansion(Vertx vertx) {
@@ -648,6 +655,18 @@ public class WebClientExamples {
     );
   }
 
+  public void testUriTemplateMapExpansion(WebClient client) {
+    Map<String, String> query = new HashMap<>();
+    query.put("color", "red");
+    query.put("width", "30");
+    query.put("height", "50");
+    UriTemplate template = UriTemplate.of("/{?query*}");
+
+    // Request uri: /?color=red&width=30&height=50
+    Future<HttpResponse<Buffer>> fut = client.getAbs(template)
+      .setTemplateParam("query", query)
+      .send();
+  }
 
   public void testOverrideRequestSSL(WebClient client) {
 

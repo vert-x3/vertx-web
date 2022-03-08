@@ -32,6 +32,7 @@ import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.uritemplate.Variables;
 import io.vertx.uritemplate.UriTemplate;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -275,6 +276,16 @@ public interface HttpRequest<T> {
    */
   @Fluent
   HttpRequest<T> setTemplateParam(String paramName, String paramValue);
+
+  /**
+   * Set a request URI template list parameter to the request, expanded when the request URI is a {@link UriTemplate}.
+   *
+   * @param paramName  the param name
+   * @param paramValue the param value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> setTemplateParam(String paramName, List<String> paramValue);
 
   /**
    * Set a request URI template map parameter to the request, expanded when the request URI is a {@link UriTemplate}.

@@ -584,6 +584,20 @@ this behavior to fail instead:
 {@link examples.WebClientExamples#testConfigureTemplateExpansion}
 ----
 
+=== Template parameter values
+
+Template parameters accept `String`, `List<String>` and `Map<String, String` values.
+
+The expansion of each kind depends on the expansion style (denoted by the `?` prefix) , here is an example of the _query_ parameter that is exploded
+(denoted by the `*` suffix) and expanded using form-style query expansion:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#testUriTemplateMapExpansion}
+----
+
+Form-style query expansion expands the variable `{?query*}` as `?color=red&width=30&height=50` per definition.
+
 == Using HTTPS
 
 Vert.x Web Client can be configured to use HTTPS in exactly the same way as the Vert.x {@link io.vertx.core.http.HttpClient}.

@@ -324,6 +324,12 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
+  public HttpRequest<T> setTemplateParam(String paramName, List<String> paramValue) {
+    templateParams().set(paramName, paramValue);
+    return this;
+  }
+
+  @Override
   public HttpRequest<T> setTemplateParam(String paramName, Map<String, String> paramValue) {
     templateParams().set(paramName, paramValue);
     return this;
