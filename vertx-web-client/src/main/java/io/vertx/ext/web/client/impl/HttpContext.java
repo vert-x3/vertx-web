@@ -15,7 +15,6 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import io.netty.handler.codec.http.QueryStringEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -31,15 +30,15 @@ import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.spi.CacheStore;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.ext.web.multipart.MultipartForm;
-import java.net.URI;
+
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,6 +54,7 @@ public class HttpContext<T> {
 
   private final Handler<AsyncResult<HttpResponse<T>>> handler;
   private final HttpClientImpl client;
+  private final WebClientOptions options;
   private final List<Handler<HttpContext<?>>> interceptors;
   private Context context;
   private HttpRequestImpl<T> request;
@@ -75,9 +75,10 @@ public class HttpContext<T> {
   private List<String> redirectedLocations = Collections.emptyList();
   private CacheStore privateCacheStore;
 
-  HttpContext(HttpClientImpl client, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
+  HttpContext(HttpClientImpl client, WebClientOptions options, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.handler = handler;
     this.client = client;
+    this.options = options;
     this.interceptors = interceptors;
   }
 
@@ -402,63 +403,23 @@ public class HttpContext<T> {
 
   private void handlePrepareRequest() {
     context = client.getVertx().getOrCreateContext();
-    String requestURI;
-    if (request.params != null && request.params.size() > 0) {
-      QueryStringEncoder enc = new QueryStringEncoder(request.uri);
-      request.params.forEach(param -> enc.addParam(param.getKey(), param.getValue()));
-      requestURI = enc.toString();
-    } else {
-      requestURI = request.uri;
-    }
-    int port = request.port();
-    String host = request.host();
-    RequestOptions options = new RequestOptions();
-    if (request.ssl != null && request.ssl != request.options.isSsl()) {
-      options.setServer(request.serverAddress)
-        .setMethod(request.method)
-        .setSsl(request.ssl)
-        .setHost(host)
-        .setPort(port)
-        .setURI(requestURI);
-    } else {
-      if (request.protocol != null && !request.protocol.equals("http") && !request.protocol.equals("https")) {
-        // we have to create an abs url again to parse it in HttpClient
-        try {
-          URI uri = new URI(request.protocol, null, host, port, requestURI, null, null);
-          options.setServer(request.serverAddress)
-            .setMethod(request.method)
-            .setAbsoluteURI(uri.toString());
-        } catch (URISyntaxException ex) {
-          fail(ex);
-          return;
-        }
-      } else {
-        options.setServer(request.serverAddress)
-          .setMethod(request.method)
-          .setHost(host)
-          .setPort(port)
-          .setURI(requestURI);
-      }
-    }
     redirects = 0;
-    if (request.virtualHost != null) {
-      if (options.getServer() == null) {
-        options.setServer(SocketAddress.inetSocketAddress(options.getPort(), options.getHost()));
-      }
-      options.setHost(request.virtualHost);
+    RequestOptions requestOptions;
+    try {
+      requestOptions = request.buildRequestOptions();
+    } catch (Exception e) {
+      fail(e);
+      return;
     }
-    request.mergeHeaders(options);
     if (contentType != null) {
-      String prev = options.getHeaders().get(HttpHeaders.CONTENT_TYPE);
+      String prev = requestOptions.getHeaders().get(HttpHeaders.CONTENT_TYPE);
       if (prev == null) {
-        options.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
+        requestOptions.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
       } else {
         contentType = prev;
       }
     }
-    options.setTimeout(request.timeout);
-    options.setProxyOptions(request.proxyOptions);
-    createRequest(options);
+    createRequest(requestOptions);
   }
 
   private void handleCreateRequest() {

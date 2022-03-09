@@ -25,6 +25,7 @@ import io.vertx.core.impl.launcher.commands.VersionCommand;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.*;
 import io.vertx.core.tracing.TracingPolicy;
+import io.vertx.uritemplate.ExpandOptions;
 
 import java.util.List;
 import java.util.Set;
@@ -51,9 +52,12 @@ public class WebClientOptions extends HttpClientOptions {
    */
   public static final boolean DEFAULT_FOLLOW_REDIRECTS = true;
 
+  public static final ExpandOptions DEFAULT_EXPAND_OPTIONS = null;
+
   private boolean userAgentEnabled = DEFAULT_USER_AGENT_ENABLED;
   private String userAgent = DEFAULT_USER_AGENT;
   private boolean followRedirects = DEFAULT_FOLLOW_REDIRECTS;
+  private ExpandOptions templateExpandOptions = DEFAULT_EXPAND_OPTIONS;
 
   public WebClientOptions() {
   }
@@ -91,6 +95,7 @@ public class WebClientOptions extends HttpClientOptions {
     this.userAgentEnabled = other.userAgentEnabled;
     this.userAgent = other.userAgent;
     this.followRedirects = other.followRedirects;
+    this.templateExpandOptions = other.templateExpandOptions != null ? new ExpandOptions(other.templateExpandOptions) : null;
   }
 
   /**
@@ -155,6 +160,15 @@ public class WebClientOptions extends HttpClientOptions {
    */
   public WebClientOptions setFollowRedirects(boolean followRedirects) {
     this.followRedirects = followRedirects;
+    return this;
+  }
+
+  public ExpandOptions getTemplateExpandOptions() {
+    return templateExpandOptions;
+  }
+
+  public WebClientOptions setTemplateExpandOptions(ExpandOptions templateExpandOptions) {
+    this.templateExpandOptions = templateExpandOptions;
     return this;
   }
 

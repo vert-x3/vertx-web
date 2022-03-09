@@ -20,6 +20,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.web.client.CachingWebClientOptions;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
@@ -69,16 +70,16 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
   }
 
   private void handleSendRequest(HttpContext<Buffer> context) {
-    HttpRequestImpl<Buffer> requestImpl = (HttpRequestImpl<Buffer>) context.request();
+    RequestOptions request = context.requestOptions();
     Vary variation;
 
-    if (!options.getCachedMethods().contains(requestImpl.method()) || (variation = selectVariation(requestImpl)) == null) {
+    if (!options.getCachedMethods().contains(request.getMethod()) || (variation = selectVariation(request)) == null) {
       context.next();
       return;
     }
 
     Promise<CachedHttpResponse> promise = Promise.promise();
-    CacheKey key = new CacheKey(context.request(), variation);
+    CacheKey key = new CacheKey(request, variation);
 
     if (context.privateCacheStore() != null) {
       // Check the local private store first
@@ -131,7 +132,7 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
     }
   }
 
-  private Vary selectVariation(HttpRequest<?> request) {
+  private Vary selectVariation(RequestOptions request) {
     CacheVariationsKey key = new CacheVariationsKey(request);
     Set<Vary> possibleVariations = variationsRegistry.getOrDefault(key, Collections.emptySet());
 
@@ -216,11 +217,11 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
       return Future.succeededFuture(response);
     }
 
-    CacheVariationsKey variationsKey = new CacheVariationsKey(request);
+    CacheVariationsKey variationsKey = new CacheVariationsKey(context.requestOptions());
     Vary variation = new Vary(request.headers(), response.headers());
     registerVariation(variationsKey, variation);
 
-    CacheKey key = new CacheKey(request, variation);
+    CacheKey key = new CacheKey(context.requestOptions(), variation);
     CachedHttpResponse cachedResponse = CachedHttpResponse.wrap(response, cacheControl);
 
     if (cacheControl.isPrivate()) {

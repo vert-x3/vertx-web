@@ -15,6 +15,7 @@
  */
 package io.vertx.ext.web.client.impl.cache;
 
+import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.spi.CacheStore;
 import java.nio.charset.StandardCharsets;
@@ -33,7 +34,7 @@ public class CacheKey extends CacheVariationsKey {
 
   private final String variations;
 
-  public CacheKey(HttpRequest<?> request, Vary vary) {
+  public CacheKey(RequestOptions request, Vary vary) {
     super(request);
     this.variations = vary.toString();
   }

@@ -16,6 +16,7 @@
 
 package examples;
 
+import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -39,7 +40,12 @@ import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
+import io.vertx.uritemplate.ExpandOptions;
+import io.vertx.uritemplate.UriTemplate;
+import io.vertx.uritemplate.Variables;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -600,6 +606,66 @@ public class WebClientExamples {
       })
       .onFailure(err ->
         System.out.println("Something went wrong " + err.getMessage()));
+  }
+
+  public void testUriTemplate1(WebClient client, UriTemplate REQUEST_URI) {
+    HttpRequest<Buffer> request = client.get(8080, "myserver.mycompany.com", REQUEST_URI);
+  }
+
+  public void testUriTemplate2(HttpRequest<Buffer> request) {
+    request.setTemplateParam("param", "param_value");
+  }
+
+  public void testUriTemplate3(HttpRequest<Buffer> request) {
+    request.send()
+      .onSuccess(res ->
+        System.out.println("Received response with status code" + res.statusCode()))
+      .onFailure(err ->
+        System.out.println("Something went wrong " + err.getMessage()));
+  }
+
+  public void testUriTemplateFluent(WebClient client, UriTemplate REQUEST_URI) {
+    client.get(8080, "myserver.mycompany.com", REQUEST_URI)
+      .setTemplateParam("param", "param_value")
+      .send()
+      .onSuccess(res ->
+        System.out.println("Received response with status code" + res.statusCode()))
+      .onFailure(err ->
+        System.out.println("Something went wrong " + err.getMessage()));
+  }
+
+  private void assertEquals(String a, String b) {
+  }
+
+  public void testUriTemplateEncoding(WebClient client, String amount) {
+    String euroSymbol = "\u20AC";
+    UriTemplate template = UriTemplate.of("/convert?{amount}&{currency}");
+
+    // Request uri: /convert?amount=1234&currency=%E2%82%AC
+    Future<HttpResponse<Buffer>> fut = client.get(template)
+      .setTemplateParam("amount", amount)
+      .setTemplateParam("currency", euroSymbol)
+      .send();
+  }
+
+  public void testConfigureTemplateExpansion(Vertx vertx) {
+    WebClient webClient = WebClient.create(vertx, new WebClientOptions()
+      .setTemplateExpandOptions(new ExpandOptions()
+        .setAllowVariableMiss(false))
+    );
+  }
+
+  public void testUriTemplateMapExpansion(WebClient client) {
+    Map<String, String> query = new HashMap<>();
+    query.put("color", "red");
+    query.put("width", "30");
+    query.put("height", "50");
+    UriTemplate template = UriTemplate.of("/{?query*}");
+
+    // Request uri: /?color=red&width=30&height=50
+    Future<HttpResponse<Buffer>> fut = client.getAbs(template)
+      .setTemplateParam("query", query)
+      .send();
   }
 
   public void testOverrideRequestSSL(WebClient client) {

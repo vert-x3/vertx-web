@@ -17,7 +17,7 @@ package io.vertx.ext.web.client.impl.cache;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.core.http.RequestOptions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -40,7 +40,7 @@ public class Vary {
     this.variations = parseHeaders(responseHeaders);
   }
 
-  public boolean matchesRequest(HttpRequest<?> request) {
+  public boolean matchesRequest(RequestOptions request) {
     return variations.stream().allMatch(variation -> variationMatches(variation, request));
   }
 
@@ -55,7 +55,7 @@ public class Vary {
     return parts.stream().sorted().collect(Collectors.joining(","));
   }
 
-  private boolean variationMatches(CharSequence variation, HttpRequest<?> request) {
+  private boolean variationMatches(CharSequence variation, RequestOptions request) {
     if (HttpHeaders.USER_AGENT.equals(variation)) {
       return isUserAgentMatch(request);
     } else if (HttpHeaders.CONTENT_ENCODING.equals(variation)) {
@@ -67,15 +67,15 @@ public class Vary {
     }
   }
 
-  private boolean isUserAgentMatch(HttpRequest<?> request) {
+  private boolean isUserAgentMatch(RequestOptions request) {
     UserAgent original = UserAgent.parse(requestHeaders);
-    UserAgent current = UserAgent.parse(request.headers());
+    UserAgent current = UserAgent.parse(request.getHeaders());
 
     return original.equals(current);
   }
 
-  private boolean isEncodingMatch(HttpRequest<?> request) {
-    Set<String> req = normalizeValues(request.headers().getAll(HttpHeaders.ACCEPT_ENCODING));
+  private boolean isEncodingMatch(RequestOptions request) {
+    Set<String> req = normalizeValues(request.getHeaders().getAll(HttpHeaders.ACCEPT_ENCODING));
     Set<String> res = normalizeValues(responseHeaders.getAll(HttpHeaders.CONTENT_ENCODING));
 
     // If the request is asking for any form of encoding the response mentioned, assume a match
@@ -86,8 +86,8 @@ public class Vary {
     return !intersection.isEmpty();
   }
 
-  private boolean isExactMatch(CharSequence variation, HttpRequest<?> request) {
-    Set<String> a = normalizeValues(request.headers().getAll(variation));
+  private boolean isExactMatch(CharSequence variation, RequestOptions request) {
+    Set<String> a = normalizeValues(request.getHeaders().getAll(variation));
     Set<String> b = normalizeValues(requestHeaders.getAll(variation));
 
     return a.equals(b);

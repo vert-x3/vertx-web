@@ -516,6 +516,88 @@ a {@link io.vertx.ext.web.client.WebClientSession}.
 {@link examples.CachingWebClientExamples#createWithSession(io.vertx.core.Vertx)}
 ----
 
+== URI templates
+
+URI templates provide an alternative to HTTP request string URIs based on the https://datatracker.ietf.org/doc/html/rfc6570[URI Template RFC 6570].
+
+You can create a `HttpRequest` with a `UriTemplate` URI instead of a Java string URI,
+
+first parse the template string to a `UriTemplate`
+
+[source,$lang]
+----
+UriTemplate REQUEST_URI = UriTemplate.of("/some-uri?{param}");
+----
+
+then use it to create a request
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#testUriTemplate1}
+----
+
+set the template parameter
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#testUriTemplate2}
+----
+
+and finally send the request as usual
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#testUriTemplate3}
+----
+
+or fluently
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#testUriTemplateFluent}
+----
+
+=== URI templates expansion
+
+Before sending the request, Vert.x WebClient expands the template to a string with the request template parameters.
+
+String expansion takes care of encoding the parameters for you,
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#testUriTemplateEncoding}
+----
+
+The default expansion syntax is known as _simple string expansion_, there are other expansion syntax available
+
+- _path segment expansion_ (`{/varname}`)
+- _form-style query expansion_ (`{?varname}`)
+- etc...
+
+You can refer to the Vert.x URI Template documentation (add link when available) for a complete overview of the various expansion styles.
+
+As mandated by the RFC, template expansion will replace missing template parameters by empty strings. You can change
+this behavior to fail instead:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#testConfigureTemplateExpansion}
+----
+
+=== Template parameter values
+
+Template parameters accept `String`, `List<String>` and `Map<String, String` values.
+
+The expansion of each kind depends on the expansion style (denoted by the `?` prefix) , here is an example of the _query_ parameter that is exploded
+(denoted by the `*` suffix) and expanded using form-style query expansion:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#testUriTemplateMapExpansion}
+----
+
+Form-style query expansion expands the variable `{?query*}` as `?color=red&width=30&height=50` per definition.
+
 == Using HTTPS
 
 Vert.x Web Client can be configured to use HTTPS in exactly the same way as the Vert.x {@link io.vertx.core.http.HttpClient}.
