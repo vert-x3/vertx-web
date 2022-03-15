@@ -184,7 +184,7 @@ public class StaticHandlerTest extends WebTestBase {
     mappings.add(new Http2PushMapping("style.css", "style", false));
     mappings.add(new Http2PushMapping("coin.png", "image", false));
     stat.setHttp2PushMapping(mappings)
-        .setWebRoot("webroot/somedir3");
+      .setWebRoot("webroot/somedir3");
     testRequest(HttpMethod.GET, "/testLinkPreload.html", null, res -> {
       List<String> linkHeaders = res.headers().getAll("Link");
       assertTrue(linkHeaders.contains("<style.css>; rel=preload; as=style"));
@@ -196,30 +196,34 @@ public class StaticHandlerTest extends WebTestBase {
   public void testNoHttp2Push() throws Exception {
     stat.setWebRoot("webroot/somedir3");
     router.route().handler(stat);
-    HttpServer http2Server = vertx.createHttpServer(new HttpServerOptions()
-      .setUseAlpn(true)
-      .setSsl(true)
-      .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")));
-    http2Server.requestHandler(router).listen(8443);
 
-    HttpClientOptions options = new HttpClientOptions()
-      .setSsl(true)
-      .setUseAlpn(true)
-      .setProtocolVersion(HttpVersion.HTTP_2)
-      .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem"));
-    HttpClient client = vertx.createHttpClient(options);
-    client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
-      .onComplete(onSuccess(req -> {
-        req.pushHandler(pushedReq -> pushedReq.response(pushedResp -> {
-          fail();
-        }));
-        req.send(onSuccess(resp -> {
-          assertEquals(200, resp.statusCode());
-          assertEquals(HttpVersion.HTTP_2, resp.version());
-          resp.bodyHandler(this::assertNotNull);
-          testComplete();
-        }));
-      }));
+    vertx.createHttpServer(new HttpServerOptions()
+        .setUseAlpn(true)
+        .setSsl(true)
+        .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")))
+      .requestHandler(router).listen(8443)
+      .onFailure(this::fail)
+      .onSuccess(server -> {
+        HttpClientOptions options = new HttpClientOptions()
+          .setSsl(true)
+          .setUseAlpn(true)
+          .setProtocolVersion(HttpVersion.HTTP_2)
+          .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem"));
+        HttpClient client = vertx.createHttpClient(options);
+        client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
+          .onComplete(onSuccess(req -> {
+            req.pushHandler(pushedReq -> pushedReq.response(pushedResp -> {
+              fail();
+            }));
+            req.send(onSuccess(resp -> {
+              assertEquals(200, resp.statusCode());
+              assertEquals(HttpVersion.HTTP_2, resp.version());
+              resp.bodyHandler(this::assertNotNull);
+              testComplete();
+            }));
+          }));
+      });
+
     await();
   }
 
@@ -229,34 +233,39 @@ public class StaticHandlerTest extends WebTestBase {
     mappings.add(new Http2PushMapping("style.css", "style", false));
     mappings.add(new Http2PushMapping("coin.png", "image", false));
     stat.setHttp2PushMapping(mappings)
-        .setWebRoot("webroot/somedir3");
+      .setWebRoot("webroot/somedir3");
     router.route().handler(stat);
-    HttpServer http2Server = vertx.createHttpServer(new HttpServerOptions()
+
+    CountDownLatch latch = new CountDownLatch(2);
+
+    vertx.createHttpServer(new HttpServerOptions()
         .setUseAlpn(true)
         .setSsl(true)
-        .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")));
-    http2Server.requestHandler(router).listen(8443);
-
-    HttpClientOptions options = new HttpClientOptions()
-      .setSsl(true)
-      .setUseAlpn(true)
-      .setProtocolVersion(HttpVersion.HTTP_2)
-      .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem"));
-    HttpClient client = vertx.createHttpClient(options);
-    CountDownLatch latch = new CountDownLatch(2);
-    client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
-      .onComplete(onSuccess(req -> {
-        req.pushHandler(pushedReq -> pushedReq.response(onSuccess(pushedResp -> {
-            assertNotNull(pushedResp);
-            pushedResp.bodyHandler(this::assertNotNull);
-            latch.countDown();
-          })))
-          .send(onSuccess(resp -> {
-            assertEquals(200, resp.statusCode());
-            assertEquals(HttpVersion.HTTP_2, resp.version());
-            resp.bodyHandler(this::assertNotNull);
+        .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")))
+      .requestHandler(router).listen(8443)
+      .onFailure(this::fail)
+      .onSuccess(server -> {
+        HttpClientOptions options = new HttpClientOptions()
+          .setSsl(true)
+          .setUseAlpn(true)
+          .setProtocolVersion(HttpVersion.HTTP_2)
+          .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem"));
+        HttpClient client = vertx.createHttpClient(options);
+        client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
+          .onComplete(onSuccess(req -> {
+            req.pushHandler(pushedReq -> pushedReq.response(onSuccess(pushedResp -> {
+                assertNotNull(pushedResp);
+                pushedResp.bodyHandler(this::assertNotNull);
+                latch.countDown();
+              })))
+              .send(onSuccess(resp -> {
+                assertEquals(200, resp.statusCode());
+                assertEquals(HttpVersion.HTTP_2, resp.version());
+                resp.bodyHandler(this::assertNotNull);
+              }));
           }));
-      }));
+      });
+
     latch.await();
   }
 
@@ -502,10 +511,10 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testCacheFilesEntryOld() throws Exception {
-	String webroot = "src/test/filesystemwebroot", page = "/fspage.html";
-	File resource = new File(webroot + page);
-	String html = new String(Files.readAllBytes(resource.toPath()));
-	int cacheEntryTimeout = 100;
+    String webroot = "src/test/filesystemwebroot", page = "/fspage.html";
+    File resource = new File(webroot + page);
+    String html = new String(Files.readAllBytes(resource.toPath()));
+    int cacheEntryTimeout = 100;
 
     stat.setFilesReadOnly(false);
     stat.setWebRoot(webroot);
@@ -579,7 +588,7 @@ public class StaticHandlerTest extends WebTestBase {
         String sBuff = buff.toString();
         String[] elems = sBuff.split("\n");
         assertEquals(expected.size(), elems.length);
-        for (String elem: elems) {
+        for (String elem : elems) {
           assertTrue(expected.contains(elem));
         }
       });
@@ -598,7 +607,7 @@ public class StaticHandlerTest extends WebTestBase {
         String sBuff = buff.toString();
         JsonArray arr = new JsonArray(sBuff);
         assertEquals(expected.size(), arr.size());
-        for (Object elem: arr) {
+        for (Object elem : arr) {
           assertTrue(expected.contains(elem));
         }
         testComplete();
@@ -620,7 +629,7 @@ public class StaticHandlerTest extends WebTestBase {
         String sBuff = buff.toString();
         JsonArray arr = new JsonArray(sBuff);
         assertEquals(expected.size(), arr.size());
-        for (Object elem: arr) {
+        for (Object elem : arr) {
           assertTrue(expected.contains(elem));
         }
         testComplete();
@@ -952,7 +961,7 @@ public class StaticHandlerTest extends WebTestBase {
 
   private long toDateTime(String header) {
     try {
-      return  Utils.parseRFC1123DateTime(header);
+      return Utils.parseRFC1123DateTime(header);
     } catch (Exception e) {
       fail(e.getMessage());
       return -1;
