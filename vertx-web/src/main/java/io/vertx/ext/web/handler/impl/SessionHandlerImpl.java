@@ -338,10 +338,10 @@ public class SessionHandlerImpl implements SessionHandler {
             // create a new anonymous session.
             createNewSession(context);
           }
+          context.next();
         } else {
           context.fail(res.cause());
         }
-        context.next();
       });
     } else {
       // requirements were not met, so a anonymous session is created.

@@ -121,14 +121,14 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   @Test
   public void testSessionSerializationNullPrincipal() {
     long timeout = 123;
-    SharedDataSessionImpl session = (SharedDataSessionImpl)store.createSession(timeout);
+    SharedDataSessionImpl session = (SharedDataSessionImpl) store.createSession(timeout);
     session.setAccessed();
     long lastAccessed = session.lastAccessed();
     stuffSession(session);
     checkSession(session);
     Buffer buffer = Buffer.buffer();
     session.writeToBuffer(buffer);
-    SharedDataSessionImpl session2 = (SharedDataSessionImpl)store.createSession(0);
+    SharedDataSessionImpl session2 = (SharedDataSessionImpl) store.createSession(0);
     session2.readFromBuffer(0, buffer);
     checkSession(session2);
     assertEquals(timeout, session2.timeout());
@@ -180,12 +180,18 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   public void testDelayedLookupWithRequestUpgrade() {
     String sessionCookieName = "session";
     router.route().handler(SessionHandler.create(store).setSessionCookieName(sessionCookieName).setMinLength(0));
-    router.route().handler(rc -> {
-      rc.request().toWebSocket(onSuccess(serverWebSocket -> serverWebSocket.textMessageHandler(msg -> {
-        assertEquals("foo", msg);
-        testComplete();
-      })));
-    });
+    router.route().handler(rc ->
+      rc.request()
+        .pause()
+        .toWebSocket()
+        .onFailure(this::fail)
+        .onSuccess(serverWebSocket -> {
+          rc.request().resume();
+          serverWebSocket.textMessageHandler(msg -> {
+            assertEquals("foo", msg);
+            testComplete();
+          });
+        }));
     WebSocketConnectOptions options = new WebSocketConnectOptions()
       .setURI("/")
       .addHeader("cookie", sessionCookieName + "=" + TestUtils.randomAlphaString(32));
