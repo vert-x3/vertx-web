@@ -1,9 +1,11 @@
 package io.vertx.ext.web.client;
 
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
+import io.vertx.core.file.AsyncFileLock;
 import io.vertx.core.http.*;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
@@ -925,9 +927,14 @@ public class WebClientTest extends WebClientTestBase {
       public boolean writeQueueFull() {
         return false;
       }
-      public long getWritePos() {
-        throw new UnsupportedOperationException();
-      }
+      public long getWritePos() { throw new UnsupportedOperationException(); }
+      public AsyncFileLock tryLock() { throw new UnsupportedOperationException(); }
+      public AsyncFileLock tryLock(long l, long l1, boolean b) { throw new UnsupportedOperationException(); }
+      public Future<AsyncFileLock> lock() { throw new UnsupportedOperationException(); }
+      public void lock(Handler<AsyncResult<AsyncFileLock>> handler) { throw new UnsupportedOperationException(); }
+      public Future<AsyncFileLock> lock(long l, long l1, boolean b) { throw new UnsupportedOperationException(); }
+      public void lock(long l, long l1, boolean b, Handler<AsyncResult<AsyncFileLock>> handler) { throw new UnsupportedOperationException(); }
+
       public Future<Void> write(Buffer buffer) {
         Promise<Void> promise = Promise.promise();
         write(buffer, promise);
