@@ -1121,11 +1121,7 @@ public class EventbusBridgeTest extends WebTestBase {
     router.route("/eventbus/*").handler(rc -> {
       // we need to be logged in
       if (rc.user() == null) {
-        UsernamePasswordCredentials authInfo = new UsernamePasswordCredentials("tim", "delicious:sausages");
-        HttpServerRequest request = rc.request();
-        request.pause();
-        authProvider.authenticate(authInfo, res -> {
-          request.resume();
+        authProvider.authenticate(new UsernamePasswordCredentials("tim", "delicious:sausages"), res -> {
           if (res.succeeded()) {
             rc.setUser(res.result());
             rc.next();

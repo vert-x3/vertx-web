@@ -75,22 +75,11 @@ class WebSocketTransport extends BaseTransport {
           ctx.fail(403, new IllegalStateException("Invalid Origin"));
           return;
         }
-        // we're about to upgrade the connection, which means an asynchronous
-        // operation. We have to pause the request otherwise we will loose the
-        // body of the request once the upgrade completes
-        final boolean parseEnded = req.isEnded();
-        if (!parseEnded) {
-          req.pause();
-        }
         // upgrade
         req.toWebSocket(toWebSocket -> {
           if (toWebSocket.succeeded()) {
             if (LOG.isTraceEnabled()) {
               LOG.trace("WS, handler");
-            }
-            // resume the parsing
-            if (!parseEnded) {
-              req.resume();
             }
             // handle the sockjs session as usual
             SockJSSession session = new SockJSSession(vertx, sessions, ctx, options, sockHandler);

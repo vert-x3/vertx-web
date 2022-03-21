@@ -47,6 +47,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.util.Arrays;
 
@@ -117,22 +118,13 @@ class XhrTransport extends BaseTransport {
   }
 
   private void handleSend(RoutingContext rc, SockJSSession session) {
-    Buffer body = rc.getBody();
-    if (body != null) {
-      handleSendMessage(rc, session, body);
-    } else if (rc.request().isEnded()) {
-      LOG.error("Request ended before SockJS handler could read the body. Do you have an asynchronous request "
-          + "handler before the SockJS handler? If so, add a BodyHandler before the SockJS handler "
-          + "(see the docs).");
+    if (!((RoutingContextInternal) rc).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+      LOG.error("No BodyHandler was executed on the route. Please add a BodyHandler before the SockJS handler.");
       rc.fail(500);
-    } else {
-      rc.request().resume();
-      rc.request().bodyHandler(buff -> handleSendMessage(rc, session, buff));
+      return;
     }
-  }
 
-  private void handleSendMessage(RoutingContext rc, SockJSSession session, Buffer body) {
-    String msgs = body.toString();
+    String msgs = rc.getBody().toString();
     if (msgs.equals("")) {
       rc.response().setStatusCode(500);
       rc.response().end("Payload expected.");

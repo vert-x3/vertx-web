@@ -69,15 +69,6 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
         return;
       }
     }
-    // before starting any potential async operation here
-    // pause parsing the request body. The reason is that
-    // we don't want to loose the body or protocol upgrades
-    // for async operations
-    HttpServerRequest request = ctx.request();
-    final boolean parseEnded = request.isEnded();
-    if (!parseEnded) {
-      request.pause();
-    }
     // perform the authentication
     authenticate(ctx, authN -> {
       if (authN.succeeded()) {
@@ -90,22 +81,13 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
           session.regenerateId();
         }
         // proceed with the router
-        resume(request, parseEnded);
         postAuthentication(ctx);
       } else {
         // to allow further processing if needed
-        resume(request, parseEnded);
         Throwable cause = authN.cause();
         processException(ctx, cause);
       }
     });
-  }
-
-  private void resume(HttpServerRequest request, boolean parseEnded) {
-    // resume as the error handler may allow this request to become valid again
-    if (!parseEnded && !request.headers().contains(HttpHeaders.UPGRADE, HttpHeaders.WEBSOCKET, true)) {
-      request.resume();
-    }
   }
 
   /**

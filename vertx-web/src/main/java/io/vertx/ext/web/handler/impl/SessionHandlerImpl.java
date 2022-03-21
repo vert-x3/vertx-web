@@ -23,7 +23,6 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -301,19 +300,8 @@ public class SessionHandlerImpl implements SessionHandler {
     // Look for existing session id
     String sessionID = getSessionId(context);
     if (sessionID != null && sessionID.length() > minLength) {
-      // before starting any potential async operation here
-      // pause parsing the request body. The reason is that
-      // we don't want to lose the body or protocol upgrades
-      // for async operations
-      final boolean parseEnded = request.isEnded();
-      if (!parseEnded) {
-        request.pause();
-      }
       // we passed the OWASP min length requirements
       getSession(context.vertx(), sessionID, res -> {
-        if (!parseEnded && !request.headers().contains(HttpHeaders.UPGRADE, HttpHeaders.WEBSOCKET, true)) {
-          request.resume();
-        }
         if (res.succeeded()) {
           Session session = res.result();
           if (session != null) {

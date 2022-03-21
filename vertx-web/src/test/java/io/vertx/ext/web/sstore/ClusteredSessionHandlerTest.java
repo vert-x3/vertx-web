@@ -182,11 +182,9 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     router.route().handler(SessionHandler.create(store).setSessionCookieName(sessionCookieName).setMinLength(0));
     router.route().handler(rc ->
       rc.request()
-        .pause()
         .toWebSocket()
         .onFailure(this::fail)
         .onSuccess(serverWebSocket -> {
-          rc.request().resume();
           serverWebSocket.textMessageHandler(msg -> {
             assertEquals("foo", msg);
             testComplete();
