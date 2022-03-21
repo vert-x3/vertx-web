@@ -91,13 +91,12 @@ public class BodyHandlerImpl implements BodyHandler {
         return;
       }
 
-      // resume the request (if paused)
-      request.resume();
-
-      long contentLength = isPreallocateBodyBuffer ? parsedContentLength : -1;
-      BHandler handler = new BHandler(context, contentLength);
-      request.handler(handler);
-      request.endHandler(v -> handler.end());
+      final BHandler handler = new BHandler(context, isPreallocateBodyBuffer ? parsedContentLength : -1);
+      request
+        // resume the request (if paused)
+        .resume()
+        .handler(handler)
+        .endHandler(handler::end);
     } else {
       // on reroute we need to re-merge the form params if that was desired
       if (mergeFormAttributes && request.isExpectMultipart()) {
@@ -293,7 +292,7 @@ public class BodyHandlerImpl implements BodyHandler {
       }
     }
 
-    void end() {
+    void end(Void v) {
       // this marks the end of body parsing, calling doEnd should
       // only be possible from this moment onwards
       ended = true;

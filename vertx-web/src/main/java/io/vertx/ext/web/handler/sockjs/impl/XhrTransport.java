@@ -40,6 +40,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.impl.NoStackTraceThrowable;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
@@ -119,8 +120,11 @@ class XhrTransport extends BaseTransport {
 
   private void handleSend(RoutingContext rc, SockJSSession session) {
     if (!((RoutingContextInternal) rc).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
-      LOG.error("No BodyHandler was executed on the route. Please add a BodyHandler before the SockJS handler.");
-      rc.fail(500);
+      // the body handler was not set, so we cannot securely process POST bodies
+      // we could just add an ad-hoc body handler but this can lead to DDoS attacks
+      // and it doesn't really cover all the uploads, such as multipart, etc...
+      // as well as resource cleanup
+      rc.fail(500, new NoStackTraceThrowable("BodyHandler is required to process POST requests"));
       return;
     }
 
