@@ -80,11 +80,13 @@ public class BodyHandlerImpl implements BodyHandler {
     }
     // we need to keep state since we can be called again on reroute
     if (!((RoutingContextInternal) context).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+      ((RoutingContextInternal) context).visitHandler(RoutingContextInternal.BODY_HANDLER);
+      request.resume();
+
       long contentLength = isPreallocateBodyBuffer ? parseContentLengthHeader(request) : -1;
       BHandler handler = new BHandler(context, contentLength);
       request.handler(handler);
       request.endHandler(v -> handler.end());
-      ((RoutingContextInternal) context).visitHandler(RoutingContextInternal.BODY_HANDLER);
     } else {
       // on reroute we need to re-merge the form params if that was desired
       if (mergeFormAttributes && request.isExpectMultipart()) {

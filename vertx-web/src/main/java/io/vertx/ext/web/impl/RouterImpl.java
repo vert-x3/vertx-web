@@ -64,6 +64,11 @@ public class RouterImpl implements Router {
     if (LOG.isTraceEnabled()) {
       LOG.trace("Router: " + System.identityHashCode(this) + " accepting request " + request.method() + " " + request.absoluteURI());
     }
+
+    // will pause the request, this means the body is not parsed yet
+    // or protocol upgrades will be on-hold.
+    request.pause();
+
     new RoutingContextImpl(null, this, request, state.getRoutes()).next();
   }
 

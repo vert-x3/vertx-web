@@ -126,6 +126,7 @@ class XhrTransport extends BaseTransport {
           + "(see the docs).");
       rc.fail(500);
     } else {
+      rc.request().resume();
       rc.request().bodyHandler(buff -> handleSendMessage(rc, session, buff));
     }
   }
