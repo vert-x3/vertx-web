@@ -27,7 +27,6 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.CSRFHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.Origin;
-import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -190,7 +189,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     String header = ctx.request().getHeader(headerName);
     if (header == null) {
       // fallback to form attributes
-      if (((RoutingContextInternal) ctx).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+      if (ctx.body().available()) {
         header = ctx.request().getFormAttribute(headerName);
       } else {
         ctx.fail(new IllegalStateException("BodyHandler is required to process POST requests"));

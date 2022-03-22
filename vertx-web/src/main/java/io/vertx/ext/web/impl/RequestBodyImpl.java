@@ -17,6 +17,7 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.impl.NoStackTraceThrowable;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -139,5 +140,10 @@ public class RequestBodyImpl implements RequestBody {
     } else {
       return body.length();
     }
+  }
+
+  @Override
+  public boolean available() {
+    return ((RoutingContextInternal) ctx).seenHandler(RoutingContextInternal.BODY_HANDLER);
   }
 }

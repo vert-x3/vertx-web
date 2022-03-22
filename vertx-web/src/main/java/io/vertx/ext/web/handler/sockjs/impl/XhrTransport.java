@@ -48,7 +48,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
-import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.util.Arrays;
 
@@ -119,7 +118,7 @@ class XhrTransport extends BaseTransport {
   }
 
   private void handleSend(RoutingContext rc, SockJSSession session) {
-    if (!((RoutingContextInternal) rc).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+    if (!rc.body().available()) {
       // the body handler was not set, so we cannot securely process POST bodies
       // we could just add an ad-hoc body handler but this can lead to DDoS attacks
       // and it doesn't really cover all the uploads, such as multipart, etc...
@@ -128,13 +127,12 @@ class XhrTransport extends BaseTransport {
       return;
     }
 
-    String msgs = rc.getBody().toString();
-    if (msgs.equals("")) {
+    if (rc.body().length() == 0) {
       rc.response().setStatusCode(500);
       rc.response().end("Payload expected.");
       return;
     }
-    if (!session.handleMessages(msgs)) {
+    if (!session.handleMessages(rc.body().toString())) {
       sendInvalidJSON(rc.response());
     } else {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8");

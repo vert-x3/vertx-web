@@ -122,4 +122,10 @@ public interface RequestBody {
    * @return length in bytes.
    */
   int length();
+
+  /**
+   * Return {@code true} if a {@link io.vertx.ext.web.handler.BodyHandler} was executed before this call.
+   * @return {@code true} if body is available.
+   */
+  boolean available();
 }
