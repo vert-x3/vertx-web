@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler.sockjs;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
+import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.startsWith;
@@ -32,6 +33,8 @@ public class SockJSSessionContextTest extends SockJSTestBase {
   public void setUp() throws Exception {
     numServers = 2;
     super.setUp();
+    // add a body handler to the setup
+    preSockJSHandlerSetup = router -> router.route().handler(BodyHandler.create());
   }
 
   @Test

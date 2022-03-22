@@ -43,7 +43,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.impl.Origin;
-import io.vertx.ext.web.impl.Utils;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -68,17 +67,20 @@ class RawWebSocketTransport {
       });
     }
 
+    @Override
     public SockJSSocket handler(Handler<Buffer> handler) {
       ws.binaryMessageHandler(handler);
       ws.textMessageHandler(textMessage -> handler.handle(Buffer.buffer(textMessage)));
       return this;
     }
 
+    @Override
     public SockJSSocket pause() {
       ws.pause();
       return this;
     }
 
+    @Override
     public SockJSSocket resume() {
       ws.resume();
       return this;
@@ -114,25 +116,30 @@ class RawWebSocketTransport {
       }
     }
 
+    @Override
     public SockJSSocket setWriteQueueMaxSize(int maxQueueSize) {
       ws.setWriteQueueMaxSize(maxQueueSize);
       return this;
     }
 
+    @Override
     public boolean writeQueueFull() {
       return ws.writeQueueFull();
     }
 
+    @Override
     public SockJSSocket drainHandler(Handler<Void> handler) {
       ws.drainHandler(handler);
       return this;
     }
 
+    @Override
     public SockJSSocket exceptionHandler(Handler<Throwable> handler) {
       ws.exceptionHandler(handler);
       return this;
     }
 
+    @Override
     public SockJSSocket endHandler(Handler<Void> endHandler) {
       ws.endHandler(endHandler);
       return this;
@@ -144,6 +151,7 @@ class RawWebSocketTransport {
       return this;
     }
 
+    @Override
     public void close() {
       synchronized (this) {
         if (closed) {
@@ -155,10 +163,12 @@ class RawWebSocketTransport {
       ws.close();
     }
 
+    @Override
     public void closeAfterSessionExpired() {
       this.close((short) 1001, "Session expired");
     }
 
+    @Override
     public void close(int statusCode, String reason) {
       synchronized (this) {
         if (closed) {
@@ -204,28 +214,18 @@ class RawWebSocketTransport {
         ctx.fail(403, new IllegalStateException("Invalid Origin"));
         return;
       }
-      // we're about to upgrade the connection, which means an asynchronous
-      // operation. We have to pause the request otherwise we will loose the
-      // body of the request once the upgrade completes
-      final boolean parseEnded = ctx.request().isEnded();
-      if (!parseEnded) {
-        ctx.request().pause();
-      }
       // upgrade
-      ctx.request().toWebSocket(toWebSocket -> {
-        if (toWebSocket.succeeded()) {
-          // resume the parsing
-          if (!parseEnded) {
-            ctx.request().resume();
+      ctx.request()
+        .toWebSocket(toWebSocket -> {
+          if (toWebSocket.succeeded()) {
+            // handle the sockjs session as usual
+            SockJSSocket sock = new RawWSSockJSSocket(vertx, ctx, options, toWebSocket.result());
+            sockHandler.handle(sock);
+          } else {
+            // the upgrade failed
+            ctx.fail(toWebSocket.cause());
           }
-          // handle the sockjs session as usual
-          SockJSSocket sock = new RawWSSockJSSocket(vertx, ctx, options, toWebSocket.result());
-          sockHandler.handle(sock);
-        } else {
-          // the upgrade failed
-          ctx.fail(toWebSocket.cause());
-        }
-      });
+        });
     });
 
     router.get(wsRE).handler(rc -> rc.response().setStatusCode(400).end("Can \"Upgrade\" only to \"WebSocket\"."));

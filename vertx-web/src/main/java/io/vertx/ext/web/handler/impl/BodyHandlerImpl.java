@@ -73,18 +73,30 @@ public class BodyHandlerImpl implements BodyHandler {
 
   @Override
   public void handle(RoutingContext context) {
-    HttpServerRequest request = context.request();
-    if (request.headers().contains(HttpHeaders.UPGRADE, HttpHeaders.WEBSOCKET, true)) {
-      context.next();
-      return;
-    }
+    final HttpServerRequest request = context.request();
+
     // we need to keep state since we can be called again on reroute
     if (!((RoutingContextInternal) context).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
-      long contentLength = isPreallocateBodyBuffer ? parseContentLengthHeader(request) : -1;
-      BHandler handler = new BHandler(context, contentLength);
-      request.handler(handler);
-      request.endHandler(v -> handler.end());
       ((RoutingContextInternal) context).visitHandler(RoutingContextInternal.BODY_HANDLER);
+
+      // Check if a request has a request body.
+      // A request with a body __must__ either have `transfer-encoding`
+      // or `content-length` headers set.
+      // http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.3
+      final long parsedContentLength = parseContentLengthHeader(request);
+
+      if (!request.headers().contains(HttpHeaders.TRANSFER_ENCODING) && parsedContentLength == -1) {
+        // there is no "body", so we can skip this handler
+        context.next();
+        return;
+      }
+
+      final BHandler handler = new BHandler(context, isPreallocateBodyBuffer ? parsedContentLength : -1);
+      request
+        // resume the request (if paused)
+        .resume()
+        .handler(handler)
+        .endHandler(handler::end);
     } else {
       // on reroute we need to re-merge the form params if that was desired
       if (mergeFormAttributes && request.isExpectMultipart()) {
@@ -280,7 +292,7 @@ public class BodyHandlerImpl implements BodyHandler {
       }
     }
 
-    void end() {
+    void end(Void v) {
       // this marks the end of body parsing, calling doEnd should
       // only be possible from this moment onwards
       ended = true;

@@ -36,7 +36,7 @@ import static io.vertx.ext.web.openapi.asserts.MyAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(VertxExtension.class)
-@Timeout(value = 1, timeUnit = TimeUnit.SECONDS)
+@Timeout(value = 5, timeUnit = TimeUnit.SECONDS)
 public class OpenAPIHolderTest {
 
   private HttpServer schemaServer;

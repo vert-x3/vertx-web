@@ -40,6 +40,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.impl.NoStackTraceThrowable;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
@@ -47,6 +48,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.util.Arrays;
 
@@ -117,21 +119,16 @@ class XhrTransport extends BaseTransport {
   }
 
   private void handleSend(RoutingContext rc, SockJSSession session) {
-    Buffer body = rc.getBody();
-    if (body != null) {
-      handleSendMessage(rc, session, body);
-    } else if (rc.request().isEnded()) {
-      LOG.error("Request ended before SockJS handler could read the body. Do you have an asynchronous request "
-          + "handler before the SockJS handler? If so, add a BodyHandler before the SockJS handler "
-          + "(see the docs).");
-      rc.fail(500);
-    } else {
-      rc.request().bodyHandler(buff -> handleSendMessage(rc, session, buff));
+    if (!((RoutingContextInternal) rc).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+      // the body handler was not set, so we cannot securely process POST bodies
+      // we could just add an ad-hoc body handler but this can lead to DDoS attacks
+      // and it doesn't really cover all the uploads, such as multipart, etc...
+      // as well as resource cleanup
+      rc.fail(500, new NoStackTraceThrowable("BodyHandler is required to process POST requests"));
+      return;
     }
-  }
 
-  private void handleSendMessage(RoutingContext rc, SockJSSession session, Buffer body) {
-    String msgs = body.toString();
+    String msgs = rc.getBody().toString();
     if (msgs.equals("")) {
       rc.response().setStatusCode(500);
       rc.response().end("Payload expected.");

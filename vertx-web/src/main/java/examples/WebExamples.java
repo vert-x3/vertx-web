@@ -690,32 +690,6 @@ public class WebExamples {
 
   }
 
-  public void example27_1(Router router) {
-
-    router.route().handler(ctx -> {
-
-      HttpServerRequest request = ctx.request();
-
-      // Pause the request
-      request.pause();
-
-      someAsyncCall(result -> {
-
-        // Resume the request
-        request.resume();
-
-        // And continue processing
-        ctx.next();
-      });
-    });
-
-    // This body handler will be called for all routes
-    router.route().handler(BodyHandler.create());
-  }
-
-  private void someAsyncCall(Handler<Void> handler) {
-  }
-
   public void example28(Router router) {
 
     router.route().handler(BodyHandler.create());

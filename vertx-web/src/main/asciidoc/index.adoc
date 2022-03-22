@@ -133,7 +133,9 @@ Here's the 10000 foot view:
 A {@link io.vertx.ext.web.Router} is one of the core concepts of Vert.x-Web. It's an object which maintains zero or more
 {@link io.vertx.ext.web.Route Routes}.
 
-A router takes an HTTP request and finds the first matching route for that request, and passes the request to that route.
+A router will pause the incoming {@link io.vertx.core.http.HttpServerRequest}, to ensure that the request body or any
+protocol upgrades are not lost. Second, it will find the first matching route for that request, and passes the request
+to that route.
 
 The route can have a _handler_ associated with it, which then receives the request. You then _do something_ with the
 request, and then, either end it or pass it to the next matching handler.
@@ -862,20 +864,12 @@ file uploads.
 
 You should make sure a body handler is on a matching route for any requests that require this functionality.
 
-The usage of this handler requires that it is installed as soon as possible in the router since it needs
-to install handlers to consume the HTTP request body and this must be done before executing any async call.
+The usage of this handler requires that it is installed as soon as possible. The handler will resume the
+{@link io.vertx.core.http.HttpServerRequest} processing, since it installs handlers to consume the HTTP request body.
 
 [source,$lang]
 ----
 {@link examples.WebExamples#example27}
-----
-
-If an async call is required before, the `HttpServerRequest` should be paused and then resumed so that the request
-events are not delivered until the body handler is ready to process them.
-
-[source,$lang]
-----
-{@link examples.WebExamples#example27_1}
 ----
 
 NOTE: Uploads can be a source of DDoS attacks, in order to reduce the attack surface, it is recommended to
