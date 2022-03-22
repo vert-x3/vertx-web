@@ -23,7 +23,7 @@ public class TextPlainBodyProcessorImpl implements BodyProcessor {
 
   @Override
   public Future<RequestParameter> process(RoutingContext requestContext) {
-    String body = requestContext.getBodyAsString();
+    String body = requestContext.body().asString();
     if (body == null) {
       throw BodyProcessorException.createParsingError(
         requestContext.request().getHeader(HttpHeaders.CONTENT_TYPE),

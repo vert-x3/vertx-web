@@ -153,7 +153,7 @@ class BaseTransport {
     }
   }
 
-  static void setCORS(RoutingContext rc) {
+  static void setCORSIfNeeded(RoutingContext rc) {
     if (!((RoutingContextInternal) rc).seenHandler(RoutingContextInternal.CORS_HANDLER)) {
       HttpServerRequest req = rc.request();
       String origin = req.getHeader(ORIGIN);
@@ -191,7 +191,7 @@ class BaseTransport {
         // Java ints are signed, so we need to use a long and add the offset so
         // the result is not negative
         json.put("entropy", offset + prng.nextInt());
-        setCORS(rc);
+        setCORSIfNeeded(rc);
         rc.response().end(json.encode());
       }
     };
@@ -214,7 +214,7 @@ class BaseTransport {
         .putHeader(EXPIRES, expires)
         .putHeader(ACCESS_CONTROL_ALLOW_METHODS, methods)
         .putHeader(ACCESS_CONTROL_MAX_AGE, String.valueOf(oneYearSeconds));
-      setCORS(rc);
+      setCORSIfNeeded(rc);
       setJSESSIONID(options, rc);
       rc.response().setStatusCode(204);
       rc.response().end();

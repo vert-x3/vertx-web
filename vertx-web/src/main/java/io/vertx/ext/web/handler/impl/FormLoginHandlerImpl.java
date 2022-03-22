@@ -30,7 +30,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.FormLoginHandler;
 import io.vertx.ext.web.handler.HttpException;
-import io.vertx.ext.web.impl.RoutingContextInternal;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -81,7 +80,7 @@ public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<Authenticati
     if (req.method() != HttpMethod.POST) {
       handler.handle(Future.failedFuture(BAD_METHOD)); // Must be a POST
     } else {
-      if (!((RoutingContextInternal) context).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+      if (!context.body().available()) {
         handler.handle(Future.failedFuture("BodyHandler is required to process POST requests"));
       } else {
         MultiMap params = req.formAttributes();

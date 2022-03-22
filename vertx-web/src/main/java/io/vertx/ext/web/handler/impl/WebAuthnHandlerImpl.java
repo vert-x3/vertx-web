@@ -137,7 +137,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
       .handler(ctx -> {
         try {
           // might throw runtime exception if there's no json or is bad formed
-          final JsonObject webauthnRegister = ctx.getBodyAsJson();
+          final JsonObject webauthnRegister = ctx.body().asJsonObject();
           final Session session = ctx.session();
 
           // the register object should match a Webauthn user.
@@ -186,7 +186,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
       .handler(ctx -> {
         try {
           // might throw runtime exception if there's no json or is bad formed
-          final JsonObject webauthnLogin = ctx.getBodyAsJson();
+          final JsonObject webauthnLogin = ctx.body().asJsonObject();
           final Session session = ctx.session();
 
           if (webauthnLogin == null || !containsRequiredString(webauthnLogin, "name")) {
@@ -235,7 +235,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
       .handler(ctx -> {
         try {
           // might throw runtime exception if there's no json or is bad formed
-          final JsonObject webauthnResp = ctx.getBodyAsJson();
+          final JsonObject webauthnResp = ctx.body().asJsonObject();
           // input validation
           if (
             webauthnResp == null ||

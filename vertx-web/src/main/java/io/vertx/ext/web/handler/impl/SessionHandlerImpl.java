@@ -30,6 +30,7 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.sstore.impl.SessionInternal;
 
@@ -305,7 +306,7 @@ public class SessionHandlerImpl implements SessionHandler {
         if (res.succeeded()) {
           Session session = res.result();
           if (session != null) {
-            context.setSession(session);
+            ((RoutingContextInternal) context).setSession(session);
             // attempt to load the user from the session
             UserHolder holder = session.get(SESSION_USER_HOLDER_KEY);
             if (holder != null) {
@@ -340,7 +341,7 @@ public class SessionHandlerImpl implements SessionHandler {
 
   public Session newSession(RoutingContext context) {
     Session session = sessionStore.createSession(sessionTimeout, minLength);
-    context.setSession(session);
+    ((RoutingContextInternal) context).setSession(session);
     if (!cookieless) {
       context.response().removeCookie(sessionCookieName, false);
     }
@@ -445,7 +446,7 @@ public class SessionHandlerImpl implements SessionHandler {
 
   private void createNewSession(RoutingContext context) {
     Session session = sessionStore.createSession(sessionTimeout, minLength);
-    context.setSession(session);
+    ((RoutingContextInternal) context).setSession(session);
     if (!cookieless) {
       context.response().removeCookie(sessionCookieName, false);
     }

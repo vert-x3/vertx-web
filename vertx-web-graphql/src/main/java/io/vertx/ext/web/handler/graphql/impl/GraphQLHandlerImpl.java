@@ -31,7 +31,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
-import io.vertx.ext.web.impl.RoutingContextInternal;
 import org.dataloader.DataLoaderRegistry;
 
 import java.util.*;
@@ -99,14 +98,14 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     if (method == GET) {
       handleGet(rc);
     } else if (method == POST) {
-      if (!((RoutingContextInternal) rc).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+      if (!rc.body().available()) {
         // the body handler was not set, so we cannot securely process POST bodies
         // we could just add an ad-hoc body handler but this can lead to DDoS attacks
         // and it doesn't really cover all the uploads, such as multipart, etc...
         // as well as resource cleanup
         rc.fail(500, new NoStackTraceThrowable("BodyHandler is required to process POST requests"));
       } else {
-        handlePost(rc, rc.getBody());
+        handlePost(rc, rc.body().buffer());
       }
     } else {
       rc.fail(405);

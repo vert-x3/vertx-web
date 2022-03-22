@@ -26,8 +26,6 @@ import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.*;
 
@@ -72,12 +70,12 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
 
   @Override
   public synchronized RoutingContextInternal visitHandler(int id) {
-    return ((RoutingContextInternal) inner).visitHandler(id);
+    return inner.visitHandler(id);
   }
 
   @Override
   public boolean seenHandler(int id) {
-    return ((RoutingContextInternal) inner).seenHandler(id);
+    return inner.seenHandler(id);
   }
 
   @Override
@@ -263,28 +261,8 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public String getBodyAsString() {
-    return inner.getBodyAsString();
-  }
-
-  @Override
-  public String getBodyAsString(String encoding) {
-    return inner.getBodyAsString(encoding);
-  }
-
-  @Override
-  public JsonObject getBodyAsJson(int maxAllowedLength) {
-    return inner.getBodyAsJson(maxAllowedLength);
-  }
-
-  @Override
-  public JsonArray getBodyAsJsonArray(int maxAllowedLength) {
-    return inner.getBodyAsJsonArray(maxAllowedLength);
-  }
-
-  @Override
-  public Buffer getBody() {
-    return inner.getBody();
+  public RequestBody body() {
+    return inner.body();
   }
 
   @Override

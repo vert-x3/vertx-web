@@ -292,7 +292,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
   }
 
   private RequestParameter validateEntireBody(RoutingContext routingContext) throws ValidationException {
-    if (entireBodyValidator != null) return entireBodyValidator.isValid(routingContext.getBodyAsString());
+    if (entireBodyValidator != null) return entireBodyValidator.isValid(routingContext.body().asString());
     else return RequestParameter.create(null);
   }
 

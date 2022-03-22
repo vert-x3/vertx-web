@@ -65,7 +65,7 @@ public class SockJSWriteHandlerTestServer {
 
       router.post("/message").handler(BodyHandler.create()).handler(rc -> {
         EventBus eventBus = vertx.eventBus();
-        JsonObject body = rc.getBodyAsJson();
+        JsonObject body = rc.body().asJsonObject();
         if (rc.queryParams().contains("relay")) {
           eventBus.send("relay", body);
         } else {
