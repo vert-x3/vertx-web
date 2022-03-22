@@ -124,8 +124,19 @@ public interface RequestBody {
   int length();
 
   /**
-   * Return {@code true} if a {@link io.vertx.ext.web.handler.BodyHandler} was executed before this call.
-   * @return {@code true} if body is available.
+   * A body can be empty if it is not available, or its length is {@code 0}.
+   *
+   * @return {@code true} if empty.
+   */
+  default boolean isEmpty() {
+    return length() <= 0;
+  }
+
+  /**
+   * Return {@code true} if a {@link io.vertx.ext.web.handler.BodyHandler} was executed before this call in the lifetime
+   * of the request.
+   *
+   * @return {@code true} if body was parsed during the duration of the request.
    */
   boolean available();
 }

@@ -44,6 +44,7 @@ import io.vertx.core.impl.NoStackTraceThrowable;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
+import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
@@ -118,7 +119,9 @@ class XhrTransport extends BaseTransport {
   }
 
   private void handleSend(RoutingContext rc, SockJSSession session) {
-    if (!rc.body().available()) {
+    final RequestBody body = rc.body();
+
+    if (!body.available()) {
       // the body handler was not set, so we cannot securely process POST bodies
       // we could just add an ad-hoc body handler but this can lead to DDoS attacks
       // and it doesn't really cover all the uploads, such as multipart, etc...
@@ -127,20 +130,22 @@ class XhrTransport extends BaseTransport {
       return;
     }
 
-    if (rc.body().length() == 0) {
-      rc.response().setStatusCode(500);
-      rc.response().end("Payload expected.");
+    if (body.length() == 0) {
+      rc.response()
+        .setStatusCode(500)
+        .end("Payload expected.");
       return;
     }
-    if (!session.handleMessages(rc.body().toString())) {
+    if (!session.handleMessages(body.asString())) {
       sendInvalidJSON(rc.response());
     } else {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8");
       setNoCacheHeaders(rc);
       setJSESSIONID(options, rc);
-      setCORS(rc);
-      rc.response().setStatusCode(204);
-      rc.response().end();
+      setCORSIfNeeded(rc);
+      rc.response()
+        .setStatusCode(204)
+        .end();
     }
     if (LOG.isTraceEnabled()) LOG.trace("XHR send processed ok");
   }
@@ -159,7 +164,7 @@ class XhrTransport extends BaseTransport {
         HttpServerResponse resp = rc.response();
         resp.putHeader(HttpHeaders.CONTENT_TYPE, "application/javascript; charset=UTF-8");
         setJSESSIONID(options, rc);
-        setCORS(rc);
+        setCORSIfNeeded(rc);
         if (rc.request().version() != HttpVersion.HTTP_1_0) {
           resp.setChunked(true);
         }
@@ -169,6 +174,7 @@ class XhrTransport extends BaseTransport {
       }
     }
 
+    @Override
     public void close() {
     }
   }
@@ -187,6 +193,7 @@ class XhrTransport extends BaseTransport {
       close();
     }
 
+    @Override
     public void close() {
       if (LOG.isTraceEnabled()) LOG.trace("XHR poll closing listener");
       if (!closed) {
@@ -229,6 +236,7 @@ class XhrTransport extends BaseTransport {
       }
     }
 
+    @Override
     public void close() {
       if (LOG.isTraceEnabled()) LOG.trace("XHR stream closing listener");
       if (!closed) {
