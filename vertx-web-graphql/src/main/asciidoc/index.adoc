@@ -4,7 +4,7 @@ Vert.x Web GraphQL extends Vert.x Web with the https://www.graphql-java.com[Grap
 
 TIP: This is the reference documentation for Vert.x Web GraphQL.
 It is highly recommended to get familiar with the GraphQL-Java API first.
-You may start by reading the https://www.graphql-java.com/documentation/${graphql.java.doc.version}/[GraphQL-Java documentation].
+You may start by reading the https://www.graphql-java.com/documentation/${graphql.java.doc.version}/getting-started/[GraphQL-Java documentation].
 
 == Getting started
 
