@@ -44,7 +44,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
 
   @Override
   public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
-    if (handlers.size() == 0) {
+    if (handlers.isEmpty()) {
       handler.handle(Future.failedFuture("No providers in the auth chain."));
     } else {
       // iterate all possible authN
@@ -111,12 +111,42 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
 
   @Override
   public String authenticateHeader(RoutingContext ctx) {
-    for (AuthenticationHandlerInternal authHandler : handlers) {
-      String header = authHandler.authenticateHeader(ctx);
-      if (header != null) {
-        return header;
+    return null;
+  }
+
+  @Override
+  protected void processException(final RoutingContext ctx, final Throwable exception)
+  {
+    if (exception != null)
+    {
+      if (exception instanceof HttpException)
+      {
+        final int statusCode = ((HttpException)exception).getStatusCode();
+        if (statusCode == 401)
+        {
+          if (!"XMLHttpRequest".equals(ctx.request().getHeader("X-Requested-With")))
+          {
+            for (final AuthenticationHandlerInternal handler : handlers)
+            {
+              final String header = handler.authenticateHeader(ctx);
+              if (header != null)
+              {
+                ctx.response().headers().add("WWW-Authenticate", header);
+              }
+            }
+          }
+          ctx.fail(401, exception);
+          return;
+        }
+        else
+        {
+          super.processException(ctx, exception);
+        }
       }
     }
-    return null;
+    else
+    {
+      super.processException(ctx, null);
+    }
   }
 }
