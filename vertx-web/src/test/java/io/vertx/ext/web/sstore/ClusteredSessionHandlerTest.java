@@ -173,7 +173,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   @Test
   public void testRetryTimeout() throws Exception {
     long val = doTestSessionRetryTimeout();
-    assertTrue(String.valueOf(val), val >= 3000 && val < 5000);
+    assertTrue(String.valueOf(val), val >= 2500 && val < 5000);
   }
 
   @Test
