@@ -24,6 +24,7 @@ package io.vertx.ext.web.impl;
  *
  * @author Paulo Lopes
  */
+@FunctionalInterface
 public interface OrderListener {
 
   /**
