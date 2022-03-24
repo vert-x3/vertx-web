@@ -16,9 +16,8 @@
 
 package io.vertx.ext.web.sstore.impl;
 
-import io.vertx.core.AsyncResult;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.AsyncMap;
@@ -78,134 +77,72 @@ public class ClusteredSessionStoreImpl implements SessionStore, ClusteredSession
   }
 
   @Override
-  public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
-    getMap(res -> {
-      if (res.succeeded()) {
-        res.result().get(id, res2 -> {
-          if (res2.succeeded()) {
-            AbstractSession session = (AbstractSession) res2.result();
+  public Future<@Nullable Session> get(String id) {
+    return getMap()
+      .compose(map ->
+        map.get(id)
+          .onSuccess(session -> {
             if (session != null) {
-              session.setPRNG(random);
+              ((AbstractSession) session).setPRNG(random);
             }
-            resultHandler.handle(Future.succeededFuture(res2.result()));
-          } else {
-            resultHandler.handle(Future.failedFuture(res2.cause()));
-          }
-        });
-      } else {
-        resultHandler.handle(Future.failedFuture(res.cause()));
-      }
-    });
+          }));
   }
 
   @Override
-  public void delete(String id, Handler<AsyncResult<Void>> resultHandler) {
-    getMap(res -> {
-      if (res.succeeded()) {
-        res.result().remove(id, res2 -> {
-          if (res2.succeeded()) {
-            resultHandler.handle(Future.succeededFuture());
-          } else {
-            resultHandler.handle(Future.failedFuture(res2.cause()));
-          }
-        });
-      } else {
-        resultHandler.handle(Future.failedFuture(res.cause()));
-      }
-    });
+  public Future<Void> delete(String id) {
+    return getMap()
+      .compose(map -> map.remove(id))
+      .mapEmpty();
   }
 
   @Override
-  public void put(Session session, Handler<AsyncResult<Void>> resultHandler) {
-    getMap(res -> {
-      if (res.succeeded()) {
+  public Future<Void> put(Session session) {
+    return getMap()
+      .compose(map ->
         // we need to take care of the transactionality of session data
-        res.result().get(session.id(), old -> {
-          final AbstractSession oldSession;
-          final AbstractSession newSession = (AbstractSession) session;
-          // only care if succeeded
-          if (old.succeeded()) {
-            oldSession = (AbstractSession) old.result();
-          } else {
-            // either not existent or error getting it from the map
-            oldSession = null;
-          }
+        map.get(session.id())
+          .compose(old -> {
+            final AbstractSession oldSession = (AbstractSession) old;
+            final AbstractSession newSession = (AbstractSession) session;
 
-          if (oldSession != null) {
-            // there was already some stored data in this case we need to validate versions
-            if (oldSession.version() != newSession.version()) {
-              resultHandler.handle(Future.failedFuture("Version mismatch"));
-              return;
+            if (oldSession != null) {
+              // there was already some stored data in this case we need to validate versions
+              if (oldSession.version() != newSession.version()) {
+                return Future.failedFuture("Session version mismatch");
+              }
             }
-          }
 
-          // we can now safely store the new version
-          newSession.incrementVersion();
+            // we can now safely store the new version
+            newSession.incrementVersion();
 
-          res.result().put(session.id(), session, session.timeout(), res2 -> {
-            if (res2.succeeded()) {
-              resultHandler.handle(Future.succeededFuture());
-            } else {
-              resultHandler.handle(Future.failedFuture(res2.cause()));
-            }
-          });
-        });
-      } else {
-        resultHandler.handle(Future.failedFuture(res.cause()));
-      }
-    });
+            return map.put(session.id(), session, session.timeout());
+          })
+      );
   }
 
   @Override
-  public void clear(Handler<AsyncResult<Void>> resultHandler) {
-    getMap(res -> {
-      if (res.succeeded()) {
-        res.result().clear(res2 -> {
-          if (res2.succeeded()) {
-            resultHandler.handle(Future.succeededFuture());
-          } else {
-            resultHandler.handle(Future.failedFuture(res2.cause()));
-          }
-        });
-      } else {
-        resultHandler.handle(Future.failedFuture(res.cause()));
-      }
-    });
+  public Future<Void> clear() {
+    return getMap()
+      .compose(AsyncMap::clear);
   }
 
   @Override
-  public void size(Handler<AsyncResult<Integer>> resultHandler) {
-    getMap(res -> {
-      if (res.succeeded()) {
-        res.result().size(res2 -> {
-          if (res2.succeeded()) {
-            resultHandler.handle(Future.succeededFuture(res2.result()));
-          } else {
-            resultHandler.handle(Future.failedFuture(res2.cause()));
-          }
-        });
-      } else {
-        resultHandler.handle(Future.failedFuture(res.cause()));
-      }
-    });
+  public Future<Integer> size() {
+    return getMap()
+      .compose(AsyncMap::size);
   }
 
   @Override
   public void close() {
   }
 
-  private void getMap(Handler<AsyncResult<AsyncMap<String, Session>>> resultHandler) {
+  private Future<AsyncMap<String, Session>> getMap() {
     if (sessionMap == null) {
-      vertx.sharedData().<String, Session>getClusterWideMap(sessionMapName, res -> {
-        if (res.succeeded()) {
-          sessionMap = res.result();
-          resultHandler.handle(Future.succeededFuture(res.result()));
-        } else {
-          resultHandler.handle(res);
-        }
-      });
+      return vertx.sharedData()
+        .<String, Session>getClusterWideMap(sessionMapName)
+        .onSuccess(sessionMap -> this.sessionMap = sessionMap);
     } else {
-      resultHandler.handle(Future.succeededFuture(sessionMap));
+      return Future.succeededFuture(sessionMap);
     }
   }
 }

@@ -35,6 +35,7 @@ package io.vertx.ext.web.handler.sockjs.impl;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.SocketAddress;
@@ -115,33 +116,46 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     });
   }
 
-  @Override
-  public void write(Buffer buffer, Handler<AsyncResult<Void>> handler) {
-    synchronized (this) {
-      if (closed) {
-        if (handler != null) {
-          context.runOnContext(v -> handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION)));
-        }
-        return;
-      }
-      String msgStr = buffer.toString();
-      pendingWrites.add(msgStr);
-      messagesSize += msgStr.length();
-      if (handler != null) {
-        if (writeAcks == null) {
-          writeAcks = new ArrayList<>();
-        }
-        writeAcks.add(handler);
-      }
-      if (listener != null) {
-        Context ctx = transportCtx;
-        if (Vertx.currentContext() != ctx) {
-          ctx.runOnContext(v -> writePendingMessages());
-        } else {
-          writePendingMessages();
-        }
+  private synchronized void writeInternal(String msg, Promise<Void> promise) {
+    pendingWrites.add(msg);
+    messagesSize += msg.length();
+    if (writeAcks == null) {
+      writeAcks = new ArrayList<>();
+    }
+    writeAcks.add(promise);
+
+    if (listener != null) {
+      Context ctx = transportCtx;
+      if (Vertx.currentContext() != ctx) {
+        ctx.runOnContext(v -> writePendingMessages());
+      } else {
+        writePendingMessages();
       }
     }
+  }
+
+  @Override
+  public Future<Void> write(Buffer buffer) {
+    final Promise<Void> promise = ((VertxInternal) vertx).promise();
+
+    if (isClosed()) {
+      vertx.runOnContext(v -> promise.fail(ConnectionBase.CLOSED_EXCEPTION));
+    } else {
+      writeInternal(buffer.toString(), promise);
+    }
+    return promise.future();
+  }
+
+  @Override
+  public Future<Void> write(String text) {
+    final Promise<Void> promise = ((VertxInternal) vertx).promise();
+
+    if (isClosed()) {
+      vertx.runOnContext(v -> promise.fail(ConnectionBase.CLOSED_EXCEPTION));
+    } else {
+      writeInternal(text, promise);
+    }
+    return promise.future();
   }
 
   @Override
@@ -363,7 +377,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
       sessions.remove(id);
     }
 
-    if (!closed) {
+    if (!isClosed()) {
       closed = true;
       handleClosed();
     }

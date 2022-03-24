@@ -36,6 +36,7 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.ServerWebSocket;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.net.impl.ConnectionBase;
 import io.vertx.ext.web.Router;
@@ -92,28 +93,24 @@ class RawWebSocketTransport {
       return this;
     }
 
-    private synchronized boolean canWrite(Handler<AsyncResult<Void>> handler) {
-      if (closed) {
-        if (handler != null) {
-          vertx.runOnContext(v -> handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION)));
-        }
-        return false;
+    @Override
+    public Future<Void> write(Buffer data) {
+      if (!closed) {
+        return ws.writeBinaryMessage(data);
       }
-      return true;
+      final Promise<Void> promise = ((VertxInternal) vertx).promise();
+      vertx.runOnContext(v -> promise.fail(ConnectionBase.CLOSED_EXCEPTION));
+      return promise.future();
     }
 
     @Override
-    public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
-      if (canWrite(handler)) {
-        ws.writeBinaryMessage(data, handler);
+    public Future<Void> write(String data) {
+      if (!closed) {
+        return ws.writeTextMessage(data);
       }
-    }
-
-    @Override
-    public void write(String data, Handler<AsyncResult<Void>> handler) {
-      if (canWrite(handler)) {
-        ws.writeTextMessage(data, handler);
-      }
+      final Promise<Void> promise = ((VertxInternal) vertx).promise();
+      vertx.runOnContext(v -> promise.fail(ConnectionBase.CLOSED_EXCEPTION));
+      return promise.future();
     }
 
     @Override

@@ -122,18 +122,20 @@ public interface SessionStore {
    * @param cookieValue  the unique ID of the session
    * @param resultHandler  will be called with a result holding the session, or a failure
    */
-  void get(String cookieValue, Handler<AsyncResult<@Nullable Session>> resultHandler);
+  @Fluent
+  default SessionStore get(String cookieValue, Handler<AsyncResult<@Nullable Session>> resultHandler) {
+    get(cookieValue)
+      .onComplete(resultHandler);
+
+    return this;
+  }
 
   /**
    * @see SessionStore#get(String, Handler)
    * @param cookieValue  the unique ID of the session
    * @return future that will be called with a result holding the session, or a failure
    */
-  default Future<@Nullable Session> get(String cookieValue) {
-    Promise<Session> promise = Promise.promise();
-    get(cookieValue, promise);
-    return promise.future();
-  }
+  Future<@Nullable Session> get(String cookieValue);
 
   /**
    * Delete the session with the specified ID.
@@ -141,18 +143,20 @@ public interface SessionStore {
    * @param id  the session id
    * @param resultHandler  will be called with a success or a failure
    */
-  void delete(String id, Handler<AsyncResult<Void>> resultHandler);
+  @Fluent
+  default SessionStore delete(String id, Handler<AsyncResult<Void>> resultHandler) {
+    delete(id)
+      .onComplete(resultHandler);
+
+    return this;
+  }
 
   /**
    * @see SessionStore#delete(String, Handler)
    * @param cookieValue  the unique ID of the session
    * @return future that will be called with a result, or a failure
    */
-  default Future<Void> delete(String cookieValue) {
-    Promise<Void> promise = Promise.promise();
-    delete(cookieValue, promise);
-    return promise.future();
-  }
+  Future<Void> delete(String cookieValue);
 
   /**
    * Add a session with the specified ID.
@@ -160,35 +164,39 @@ public interface SessionStore {
    * @param session  the session
    * @param resultHandler  will be called with a success or a failure
    */
-  void put(Session session, Handler<AsyncResult<Void>> resultHandler);
+  @Fluent
+  default SessionStore put(Session session, Handler<AsyncResult<Void>> resultHandler) {
+    put(session)
+      .onComplete(resultHandler);
+
+    return this;
+  }
 
   /**
    * @see SessionStore#put(Session, Handler)
    * @param session the session
    * @return future that will be called with a result, or a failure
    */
-  default Future<Void> put(Session session) {
-    Promise<Void> promise = Promise.promise();
-    put(session, promise);
-    return promise.future();
-  }
+  Future<Void> put(Session session);
 
   /**
    * Remove all sessions from the store.
    *
    * @param resultHandler  will be called with a success or a failure
    */
-  void clear(Handler<AsyncResult<Void>> resultHandler);
+  @Fluent
+  default SessionStore clear(Handler<AsyncResult<Void>> resultHandler) {
+    clear()
+      .onComplete(resultHandler);
+
+    return this;
+  }
 
   /**
    * @see SessionStore#clear(Handler)
    * @return future that will be called with a result, or a failure
    */
-  default Future<Void> clear() {
-    Promise<Void> promise = Promise.promise();
-    clear(promise);
-    return promise.future();
-  }
+  Future<Void> clear();
 
   /**
    * Get the number of sessions in the store.
@@ -197,17 +205,19 @@ public interface SessionStore {
    *
    * @param resultHandler  will be called with the number, or a failure
    */
-  void size(Handler<AsyncResult<Integer>> resultHandler);
+  @Fluent
+  default SessionStore size(Handler<AsyncResult<Integer>> resultHandler) {
+    size()
+      .onComplete(resultHandler);
+
+    return this;
+  }
 
   /**
    * @see SessionStore#size(Handler)
    * @return future that will be called with a result, or a failure
    */
-  default Future<Integer> size() {
-    Promise<Integer> promise = Promise.promise();
-    size(promise);
-    return promise.future();
-  }
+  Future<Integer> size();
 
   /**
    * Close the store

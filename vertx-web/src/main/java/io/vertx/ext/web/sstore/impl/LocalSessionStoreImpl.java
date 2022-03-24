@@ -16,7 +16,7 @@
 
 package io.vertx.ext.web.sstore.impl;
 
-import io.vertx.core.AsyncResult;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -84,43 +84,42 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
   }
 
   @Override
-  public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(localMap.get(id)));
+  public Future<@Nullable Session> get(String id) {
+    return Future.succeededFuture(localMap.get(id));
   }
 
   @Override
-  public void delete(String id, Handler<AsyncResult<Void>> resultHandler) {
+  public Future<Void> delete(String id) {
     localMap.remove(id);
-    resultHandler.handle(Future.succeededFuture());
+    return Future.succeededFuture();
   }
 
   @Override
-  public void put(Session session, Handler<AsyncResult<Void>> resultHandler) {
+  public Future<Void> put(Session session) {
     final AbstractSession oldSession = (AbstractSession) localMap.get(session.id());
     final AbstractSession newSession = (AbstractSession) session;
 
     if (oldSession != null) {
       // there was already some stored data in this case we need to validate versions
       if (oldSession.version() != newSession.version()) {
-        resultHandler.handle(Future.failedFuture("Version mismatch"));
-        return;
+        return Future.failedFuture("Session version mismatch");
       }
     }
 
     newSession.incrementVersion();
     localMap.put(session.id(), session);
-    resultHandler.handle(Future.succeededFuture());
+    return Future.succeededFuture();
   }
 
   @Override
-  public void clear(Handler<AsyncResult<Void>> resultHandler) {
+  public Future<Void> clear() {
     localMap.clear();
-    resultHandler.handle(Future.succeededFuture());
+    return Future.succeededFuture();
   }
 
   @Override
-  public void size(Handler<AsyncResult<Integer>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(localMap.size()));
+  public Future<Integer> size() {
+    return Future.succeededFuture(localMap.size());
   }
 
   @Override

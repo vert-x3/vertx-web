@@ -19,7 +19,6 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
@@ -131,13 +130,8 @@ public class SessionHandlerImpl implements SessionHandler {
   }
 
   @Override
-  public SessionHandler flush(RoutingContext context, Handler<AsyncResult<Void>> handler) {
-    return flush(context, false, false, handler);
-  }
-
-  @Override
-  public SessionHandler flush(RoutingContext context, boolean ignoreStatus, Handler<AsyncResult<Void>> handler) {
-    return flush(context, false, ignoreStatus, handler);
+  public Future<Void> flush(RoutingContext context, boolean ignoreStatus) {
+    return flush(context, false, ignoreStatus);
   }
 
   /**
@@ -159,14 +153,13 @@ public class SessionHandlerImpl implements SessionHandler {
     }
   }
 
-  private SessionHandler flush(RoutingContext context, boolean skipCrc, boolean ignoreStatus, Handler<AsyncResult<Void>> handler) {
+  private Future<Void> flush(RoutingContext context, boolean skipCrc, boolean ignoreStatus) {
     final boolean sessionUsed = context.isSessionAccessed();
     final Session session = context.session();
 
     if (session == null) {
       // No session in context
-      handler.handle(Future.succeededFuture());
-      return this;
+      return Future.succeededFuture();
     }
 
     if (!session.isDestroyed()) {
@@ -203,48 +196,37 @@ public class SessionHandlerImpl implements SessionHandler {
           }
 
           // we must invalidate the old id
-          sessionStore.delete(session.oldId(), delete -> {
-            if (delete.failed()) {
-              handler.handle(Future.failedFuture(delete.cause()));
-            } else {
+          return sessionStore.delete(session.oldId())
+            .compose(delete -> {
               // we must wait for the result of the previous call in order to save the new one
-              sessionStore.put(session, put -> {
-                if (put.failed()) {
-                  handler.handle(Future.failedFuture(put.cause()));
-                } else {
+              return sessionStore.put(session)
+                .onSuccess(put -> {
                   context.put(SESSION_FLUSHED_KEY, true);
                   if (session instanceof SessionInternal) {
                     ((SessionInternal) session).flushed(skipCrc);
                   }
-                  handler.handle(Future.succeededFuture());
-                }
-              });
-            }
-          });
+                });
+            });
         } else if (!lazySession || sessionUsed) {
           if (!cookieless) {
             // if lazy mode activated, no need to store the session nor to create the session cookie if not used.
             sessionCookie(context, session);
           }
           session.setAccessed();
-          sessionStore.put(session, put -> {
-            if (put.failed()) {
-              handler.handle(Future.failedFuture(put.cause()));
-            } else {
+          return sessionStore.put(session)
+            .onSuccess(put -> {
               context.put(SESSION_FLUSHED_KEY, true);
               if (session instanceof SessionInternal) {
                 ((SessionInternal) session).flushed(skipCrc);
               }
-              handler.handle(Future.succeededFuture());
-            }
-          });
+            });
         } else {
           // No-Op, just accept that the store skipped
-          handler.handle(Future.succeededFuture());
+          return Future.succeededFuture();
         }
       } else {
         // No-Op, just accept that the store skipped
-        handler.handle(Future.succeededFuture());
+        return Future.succeededFuture();
       }
     } else {
       if (!cookieless) {
@@ -257,34 +239,22 @@ public class SessionHandlerImpl implements SessionHandler {
       // if the session was regenerated in the request
       // the old id must also be removed
       if (session.isRegenerated()) {
-        sessionStore.delete(session.oldId(), delete -> {
-          if (delete.failed()) {
-            handler.handle(Future.failedFuture(delete.cause()));
-          } else {
+        return sessionStore.delete(session.oldId())
+          .compose(delete -> {
             // delete from the storage
-            sessionStore.delete(session.id(), delete2 -> {
-              if (delete2.failed()) {
-                handler.handle(Future.failedFuture(delete2.cause()));
-              } else {
+            return sessionStore.delete(session.id())
+              .onSuccess(delete2 -> {
                 context.put(SESSION_FLUSHED_KEY, true);
-                handler.handle(Future.succeededFuture());
-              }
-            });
-          }
-        });
+              });
+          });
       } else {
         // delete from the storage
-        sessionStore.delete(session.id(), delete -> {
-          if (delete.failed()) {
-            handler.handle(Future.failedFuture(delete.cause()));
-          } else {
+        return sessionStore.delete(session.id())
+          .onSuccess(delete -> {
             context.put(SESSION_FLUSHED_KEY, true);
-            handler.handle(Future.succeededFuture());
-          }
-        });
+          });
       }
     }
-    return this;
   }
 
   @Override
@@ -347,11 +317,10 @@ public class SessionHandlerImpl implements SessionHandler {
     }
     // it's a new session we must store the user too otherwise it won't be linked
     context.put(SESSION_STOREUSER_KEY, true);
-    flush(context, true, true, flush -> {
-      if (flush.failed()) {
-        LOG.warn("Failed to flush the session to the underlying store", flush.cause());
-      }
-    });
+
+    flush(context, true, true)
+      .onFailure(err -> LOG.warn("Failed to flush the session to the underlying store", err));
+
     return session;
   }
 
@@ -362,12 +331,10 @@ public class SessionHandlerImpl implements SessionHandler {
     context.setUser(user);
     // signal we must store the user to link it to the session
     context.put(SESSION_STOREUSER_KEY, true);
-    Promise<Void> promise = Promise.promise();
-    flush(context, true, true, promise);
-    return promise.future();
+    return flush(context, true, true);
   }
 
-  private String getSessionId(RoutingContext  context) {
+  private String getSessionId(RoutingContext context) {
     if (cookieless) {
       // cookieless sessions store the session on the path or the request
       // a session is identified by a sequence of characters between braces
@@ -435,11 +402,8 @@ public class SessionHandlerImpl implements SessionHandler {
       // skip flush if we already flushed
       Boolean flushed = context.get(SESSION_FLUSHED_KEY);
       if (flushed == null || !flushed) {
-        flush(context, true, false, flush -> {
-          if (flush.failed()) {
-            LOG.warn("Failed to flush the session to the underlying store", flush.cause());
-          }
-        });
+        flush(context, true, false)
+          .onFailure(err -> LOG.warn("Failed to flush the session to the underlying store", err));
       }
     });
   }
