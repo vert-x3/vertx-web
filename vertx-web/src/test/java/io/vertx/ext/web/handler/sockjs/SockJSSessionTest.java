@@ -15,15 +15,19 @@
  */
 package io.vertx.ext.web.handler.sockjs;
 
+import io.vertx.core.Context;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.BooleanSupplier;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -117,5 +121,58 @@ public class SockJSSessionTest extends SockJSTestBase {
       ws.close();
     }));
     await();
+  }
+
+  @Test
+  public void doesNotSendEmptyAnswerForWriteSentInEarlierBatch() throws Exception {
+    AtomicInteger answerCount = new AtomicInteger();
+    socketHandler = () -> {
+      return socket -> socket.handler(buf -> {
+        Context transportContext = vertx.getOrCreateContext();
+        new Thread(() -> {
+          CountDownLatch latch = blockTransportContext(transportContext);
+          socket.write(Buffer.buffer("\"\""));
+          socket.write(Buffer.buffer("\"\""));
+          latch.countDown();
+          try {
+            Thread.sleep(1000);
+          } catch (InterruptedException ignored) {
+          } finally {
+            socket.close();
+          }
+        }).start();
+      });
+    };
+    startServers();
+    client.webSocket("/test/400/8ne8e94a/websocket", onSuccess(ws -> {
+      ws.frameHandler(wsf -> {
+        switch (wsf.type()) {
+          case TEXT:
+            String text = wsf.binaryData().toString();
+            if (text.startsWith("a[")) {
+              answerCount.getAndIncrement();
+            }
+            break;
+          case CLOSE:
+            assertEquals(1, answerCount.get());
+            testComplete();
+            break;
+        }
+      });
+      ws.writeFinalTextFrame("\"\"");
+    }));
+    await();
+  }
+
+  private CountDownLatch blockTransportContext(Context context) {
+    CountDownLatch latch = new CountDownLatch(1);
+    context.runOnContext(v -> {
+      try {
+        latch.await(1L, SECONDS);
+      } catch (InterruptedException e) {
+        throw new IllegalStateException(e);
+      }
+    });
+    return latch;
   }
 }
