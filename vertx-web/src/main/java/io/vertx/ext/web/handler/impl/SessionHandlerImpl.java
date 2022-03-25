@@ -273,9 +273,9 @@ public class SessionHandlerImpl implements SessionHandler {
     if (sessionID != null && sessionID.length() > minLength) {
       // we passed the OWASP min length requirements
       final Context ctx = context.vertx().getOrCreateContext();
-      getSession(context.vertx(), sessionID, res -> {
-        if (res.succeeded()) {
-          Session session = res.result();
+      getSession(ctx, context.vertx(), sessionID)
+        .onFailure(context::fail)
+        .onSuccess(session -> {
           if (session != null) {
             ((RoutingContextInternal) context).setSession(session);
             // attempt to load the user from the session
@@ -298,10 +298,7 @@ public class SessionHandlerImpl implements SessionHandler {
             // create a new anonymous session.
             createNewSession(context);
           }
-          ctx.runOnContext(v -> context.next());
-        } else {
-          ctx.runOnContext(v -> context.fail(res.cause()));
-        }
+          context.next();
       });
     } else {
       // requirements were not met, so a anonymous session is created.
@@ -374,14 +371,14 @@ public class SessionHandlerImpl implements SessionHandler {
     return null;
   }
 
-  private void getSession(Vertx vertx, String sessionID, Handler<AsyncResult<Session>> resultHandler) {
-    doGetSession(vertx, System.currentTimeMillis(), sessionID, resultHandler);
+  private Future<Session> getSession(Context ctx, Vertx vertx, String sessionID) {
+    return doGetSession(ctx, vertx, System.currentTimeMillis(), sessionID);
   }
 
-  private void doGetSession(Vertx vertx, long startTime, String sessionID, Handler<AsyncResult<Session>> resultHandler) {
-    sessionStore.get(sessionID, res -> {
-      if (res.succeeded()) {
-        if (res.result() == null) {
+  private Future<Session> doGetSession(Context ctx, Vertx vertx, long startTime, String sessionID) {
+    return sessionStore.get(sessionID)
+      .compose(session -> {
+        if (session == null) {
           // Can't find it so retry. This is necessary for clustered sessions as it can
           // take sometime for the session
           // to propagate across the cluster so if the next request for the session comes
@@ -389,12 +386,15 @@ public class SessionHandlerImpl implements SessionHandler {
           // node there is a possibility it isn't available yet.
           long retryTimeout = sessionStore.retryTimeout();
           if (retryTimeout > 0 && System.currentTimeMillis() - startTime < retryTimeout) {
-            vertx.setTimer(5, v -> doGetSession(vertx, startTime, sessionID, resultHandler));
-            return;
+            final Promise<Session> retry = ((ContextInternal) ctx).promise();
+            vertx.setTimer(5, v -> {
+              doGetSession(ctx, vertx, startTime, sessionID)
+                .onComplete(retry);
+            });
+            return retry.future();
           }
         }
-      }
-      resultHandler.handle(res);
+        return ((ContextInternal) ctx).succeededFuture(session);
     });
   }
 
