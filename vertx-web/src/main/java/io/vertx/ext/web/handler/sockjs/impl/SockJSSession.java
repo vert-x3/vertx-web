@@ -116,7 +116,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     });
   }
 
-  private synchronized void writeInternal(String msg, Promise<Void> promise) {
+  private void writeInternal(String msg, Promise<Void> promise) {
     pendingWrites.add(msg);
     messagesSize += msg.length();
     if (writeAcks == null) {
@@ -137,11 +137,12 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   @Override
   public Future<Void> write(Buffer buffer) {
     final Promise<Void> promise = ((VertxInternal) vertx).promise();
-
-    if (isClosed()) {
-      vertx.runOnContext(v -> promise.fail(ConnectionBase.CLOSED_EXCEPTION));
-    } else {
-      writeInternal(buffer.toString(), promise);
+    synchronized (this) {
+      if (closed) {
+        vertx.runOnContext(v -> promise.fail(ConnectionBase.CLOSED_EXCEPTION));
+      } else {
+        writeInternal(buffer.toString(), promise);
+      }
     }
     return promise.future();
   }
@@ -149,11 +150,12 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   @Override
   public Future<Void> write(String text) {
     final Promise<Void> promise = ((VertxInternal) vertx).promise();
-
-    if (isClosed()) {
-      vertx.runOnContext(v -> promise.fail(ConnectionBase.CLOSED_EXCEPTION));
-    } else {
-      writeInternal(text, promise);
+    synchronized (this) {
+      if (closed) {
+        vertx.runOnContext(v -> promise.fail(ConnectionBase.CLOSED_EXCEPTION));
+      } else {
+        writeInternal(text, promise);
+      }
     }
     return promise.future();
   }
@@ -379,7 +381,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
       sessions.remove(id);
     }
 
-    if (!isClosed()) {
+    if (!closed) {
       closed = true;
       handleClosed();
     }
