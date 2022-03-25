@@ -272,6 +272,7 @@ public class SessionHandlerImpl implements SessionHandler {
     String sessionID = getSessionId(context);
     if (sessionID != null && sessionID.length() > minLength) {
       // we passed the OWASP min length requirements
+      final Context ctx = context.vertx().getOrCreateContext();
       getSession(context.vertx(), sessionID, res -> {
         if (res.succeeded()) {
           Session session = res.result();
@@ -297,9 +298,9 @@ public class SessionHandlerImpl implements SessionHandler {
             // create a new anonymous session.
             createNewSession(context);
           }
-          context.next();
+          ctx.runOnContext(v -> context.next());
         } else {
-          context.fail(res.cause());
+          ctx.runOnContext(v -> context.fail(res.cause()));
         }
       });
     } else {
