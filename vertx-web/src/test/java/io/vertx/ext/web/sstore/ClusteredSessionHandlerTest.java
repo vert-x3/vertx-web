@@ -185,7 +185,9 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
         .toWebSocket()
         .onFailure(this::fail)
         .onSuccess(serverWebSocket -> {
+          System.out.println("Upgrade successful");
           serverWebSocket.textMessageHandler(msg -> {
+            System.out.println("WS txt message receive successful");
             assertEquals("foo", msg);
             testComplete();
           });
@@ -193,7 +195,12 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     WebSocketConnectOptions options = new WebSocketConnectOptions()
       .setURI("/")
       .addHeader("cookie", sessionCookieName + "=" + TestUtils.randomAlphaString(32));
-    client.webSocket(options, onSuccess(ws -> ws.writeTextMessage("foo")));
+    client.webSocket(options, onSuccess(ws -> {
+      System.out.println("WS connection successful");
+      ws.writeTextMessage("foo", onSuccess(v -> {
+        System.out.println("WS txt message write successful");
+      }));
+    }));
     await();
   }
 }
