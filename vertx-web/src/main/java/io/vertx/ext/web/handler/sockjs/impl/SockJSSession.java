@@ -298,16 +298,18 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   private synchronized void writePendingMessages() {
     if (listener != null) {
-      String json = JsonCodec.encode(pendingWrites.toArray(new String[0]));
-      pendingWrites.clear();
-      if (writeAcks != null) {
-        List<Handler<AsyncResult<Void>>> acks = this.writeAcks;
-        this.writeAcks = null;
-        listener.sendFrame("a" + json, ar -> acks.forEach(a -> a.handle(ar)));
-      } else {
-        listener.sendFrame("a" + json, null);
+      if (!pendingWrites.isEmpty()) {
+        String json = JsonCodec.encode(pendingWrites.toArray(new String[0]));
+        pendingWrites.clear();
+        if (writeAcks != null) {
+          List<Handler<AsyncResult<Void>>> acks = this.writeAcks;
+          this.writeAcks = null;
+          listener.sendFrame("a" + json, ar -> acks.forEach(a -> a.handle(ar)));
+        } else {
+          listener.sendFrame("a" + json, null);
+        }
+        messagesSize = 0;
       }
-      messagesSize = 0;
       if (drainHandler != null) {
         Handler<Void> dh = drainHandler;
         drainHandler = null;
