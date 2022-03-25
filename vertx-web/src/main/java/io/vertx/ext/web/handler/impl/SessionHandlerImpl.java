@@ -16,13 +16,11 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
@@ -156,10 +154,12 @@ public class SessionHandlerImpl implements SessionHandler {
   private Future<Void> flush(RoutingContext context, boolean skipCrc, boolean ignoreStatus) {
     final boolean sessionUsed = context.isSessionAccessed();
     final Session session = context.session();
+    final ContextInternal ctx = (ContextInternal) context.vertx()
+      .getOrCreateContext();
 
     if (session == null) {
       // No session in context
-      return Future.succeededFuture();
+      return ctx.succeededFuture();
     }
 
     if (!session.isDestroyed()) {
@@ -222,11 +222,11 @@ public class SessionHandlerImpl implements SessionHandler {
             });
         } else {
           // No-Op, just accept that the store skipped
-          return Future.succeededFuture();
+          return ctx.succeededFuture();
         }
       } else {
         // No-Op, just accept that the store skipped
-        return Future.succeededFuture();
+        return ctx.succeededFuture();
       }
     } else {
       if (!cookieless) {

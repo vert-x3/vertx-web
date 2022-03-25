@@ -20,6 +20,7 @@ import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.auth.VertxContextPRNG;
@@ -54,7 +55,8 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
   private long timerID = -1;
   private boolean closed;
 
-  protected Vertx vertx;
+  private Vertx vertx;
+  private ContextInternal ctx;
 
   @Override
   public Session createSession(long timeout) {
@@ -71,6 +73,7 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
     // initialize a secure random
     this.random = VertxContextPRNG.current(vertx);
     this.vertx = vertx;
+    this.ctx = (ContextInternal) vertx.getOrCreateContext();
     this.reaperInterval = options.getLong("reaperInterval", DEFAULT_REAPER_INTERVAL);
     localMap = vertx.sharedData().getLocalMap(options.getString("mapName", DEFAULT_SESSION_MAP_NAME));
     setTimer();
@@ -85,13 +88,13 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
 
   @Override
   public Future<@Nullable Session> get(String id) {
-    return Future.succeededFuture(localMap.get(id));
+    return ctx.succeededFuture(localMap.get(id));
   }
 
   @Override
   public Future<Void> delete(String id) {
     localMap.remove(id);
-    return Future.succeededFuture();
+    return ctx.succeededFuture();
   }
 
   @Override
@@ -102,24 +105,24 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
     if (oldSession != null) {
       // there was already some stored data in this case we need to validate versions
       if (oldSession.version() != newSession.version()) {
-        return Future.failedFuture("Session version mismatch");
+        return ctx.failedFuture("Session version mismatch");
       }
     }
 
     newSession.incrementVersion();
     localMap.put(session.id(), session);
-    return Future.succeededFuture();
+    return ctx.succeededFuture();
   }
 
   @Override
   public Future<Void> clear() {
     localMap.clear();
-    return Future.succeededFuture();
+    return ctx.succeededFuture();
   }
 
   @Override
   public Future<Integer> size() {
-    return Future.succeededFuture(localMap.size());
+    return ctx.succeededFuture(localMap.size());
   }
 
   @Override
