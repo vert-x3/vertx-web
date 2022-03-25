@@ -30,11 +30,12 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OtpAuthHandler;
+import io.vertx.ext.web.impl.OrderListener;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> implements OtpAuthHandler {
+public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> implements OtpAuthHandler, OrderListener {
 
   private final OtpKeyGenerator otpKeyGen;
 
@@ -42,6 +43,7 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
   private String issuer;
   private String label;
 
+  private int order = -1;
   // the extra routes
   private Route register = null;
   private Route verify = null;
@@ -51,27 +53,10 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
     this.otpKeyGen = otpKeyGen;
   }
 
-  private static boolean matchesRoute(RoutingContext ctx, Route route) {
-    if (route != null) {
-      return ctx.request().method() == HttpMethod.POST && ctx.normalizedPath().equals(route.getPath());
-    }
-    return false;
-  }
-
   @Override
   public void authenticate(RoutingContext ctx, Handler<AsyncResult<User>> handler) {
     if (verify == null) {
       handler.handle(Future.failedFuture(new HttpException(500, new IllegalStateException("No callback mounted!"))));
-      return;
-    }
-
-    if (matchesRoute(ctx, verify)) {
-      handler.handle(Future.failedFuture(new HttpException(500, new IllegalStateException("The verify callback route is shaded by the OTPAuthHandler, ensure the callback route is added BEFORE the OTPAuthHandler route!"))));
-      return;
-    }
-
-    if (matchesRoute(ctx, register)) {
-      handler.handle(Future.failedFuture(new HttpException(500, new IllegalStateException("The register callback route is shaded by the OTPAuthHandler, ensure the callback route is added BEFORE the OTPAuthHandler route!"))));
       return;
     }
 
@@ -121,9 +106,43 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
 
   @Override
   public OtpAuthHandler setupRegisterCallback(Route route) {
-    this.register = route
-      // force a post if otherwise
+    this.register = route;
+
+    if (order != -1) {
+      mountRegister();
+    }
+
+    return this;
+  }
+
+  @Override
+  public OtpAuthHandler setupCallback(Route route) {
+    this.verify = route;
+
+    if (order != -1) {
+      mountVerify();
+    }
+
+    return this;
+  }
+
+  @Override
+  public void onOrder(int order) {
+    this.order = order;
+
+    if (register != null) {
+      mountRegister();
+    }
+    if (verify != null) {
+      mountVerify();
+    }
+  }
+
+  private void mountRegister() {
+    // force a post if otherwise
+    register
       .method(HttpMethod.POST)
+      .order(order - 1)
       .handler(ctx -> {
         final User user = ctx.user();
         if (user == null || user.get("username") == null) {
@@ -141,15 +160,13 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
                 .put("label", label)
                 .put("url", authProvider.generateUri(key, issuer, user.get("username"), label))));
       });
-
-    return this;
   }
 
-  @Override
-  public OtpAuthHandler setupCallback(Route route) {
-    this.verify = route
+  private void mountVerify() {
+    verify
       // force a post if otherwise
       .method(HttpMethod.POST)
+      .order(order - 1)
       .handler(ctx -> {
         final User user = ctx.user();
         if (user == null || user.get("username") == null) {
@@ -184,7 +201,5 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
           })
           .onFailure(err -> ctx.fail(401, err));
       });
-
-    return this;
   }
 }

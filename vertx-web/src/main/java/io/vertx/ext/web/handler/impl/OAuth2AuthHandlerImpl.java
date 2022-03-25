@@ -36,6 +36,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
+import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.Origin;
 
 import java.nio.charset.StandardCharsets;
@@ -46,7 +47,7 @@ import java.util.*;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> implements OAuth2AuthHandler, ScopedAuthentication<OAuth2AuthHandler> {
+public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> implements OAuth2AuthHandler, ScopedAuthentication<OAuth2AuthHandler>, OrderListener {
 
   private static final Logger LOG = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
 
@@ -61,6 +62,9 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   private int pkce = -1;
   // explicit signal that tokens are handled as bearer only (meaning, no backend server known)
   private boolean bearerOnly = true;
+
+  private int order = -1;
+  private Route callback;
 
   public OAuth2AuthHandlerImpl(Vertx vertx, OAuth2Auth authProvider, String callbackURL) {
     this(vertx, authProvider, callbackURL, null);
@@ -287,9 +291,108 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       }
     }
 
-    route.method(HttpMethod.GET);
+    this.callback = route;
+    // order was already known, but waiting for the callback
+    if (this.order != -1) {
+      mountCallback();
+    }
 
-    route.handler(ctx -> {
+    // the redirect handler has been setup so we can process this
+    // handler has full oauth2 support, not just basic JWT
+    bearerOnly = false;
+    return this;
+  }
+
+  private static final Set<String> OPENID_SCOPES = new HashSet<>();
+
+  static {
+    OPENID_SCOPES.add("openid");
+    OPENID_SCOPES.add("profile");
+    OPENID_SCOPES.add("email");
+    OPENID_SCOPES.add("phone");
+    OPENID_SCOPES.add("offline");
+  }
+
+  /**
+   * The default behavior for post-authentication
+   */
+  @Override
+  public void postAuthentication(RoutingContext ctx) {
+    // the user is authenticated, however the user may not have all the required scopes
+    if (scopes != null && scopes.size() > 0) {
+      final User user = ctx.user();
+      if (user == null) {
+        // bad state
+        ctx.fail(403, new IllegalStateException("no user in the context"));
+        return;
+      }
+
+      if (user.principal().containsKey("scope")) {
+        final String scopes = user.principal().getString("scope");
+        if (scopes != null) {
+          // user principal contains scope, a basic assertion is required to ensure that
+          // the scopes present match the required ones
+          for (String scope : this.scopes) {
+            // do not assert openid scopes if openid is active
+            if (openId && OPENID_SCOPES.contains(scope)) {
+              continue;
+            }
+
+            int idx = scopes.indexOf(scope);
+            if (idx != -1) {
+              // match, but is it valid?
+              if (
+                (idx != 0 && scopes.charAt(idx -1) != ' ') ||
+                  (idx + scope.length() != scopes.length() && scopes.charAt(idx + scope.length()) != ' ')) {
+                // invalid scope assignment
+                ctx.fail(403, new IllegalStateException("principal scope != handler scopes"));
+                return;
+              }
+            } else {
+              // invalid scope assignment
+              ctx.fail(403, new IllegalStateException("principal scope != handler scopes"));
+              return;
+            }
+          }
+        }
+      }
+    }
+    ctx.next();
+  }
+
+  @Override
+  public boolean performsRedirect() {
+    // depending on the time this method is invoked
+    // we can deduct with more accuracy if a redirect is possible or not
+    if (!bearerOnly) {
+      // we know that a redirect is definitely possible
+      // as the callback handler has been created
+      return true;
+    } else {
+      // the callback hasn't been mounted so we need to assume
+      // that if no callbackURL is provided, then there isn't
+      // a redirect happening in this application
+      return callbackURL != null;
+    }
+  }
+
+  @Override
+  public void onOrder(int order) {
+    this.order = order;
+    // callback route already known, but waiting for order
+    if (callback != null) {
+      mountCallback();
+    }
+  }
+
+  private void mountCallback() {
+
+    callback
+      .method(HttpMethod.GET)
+      // we want the callback before this handler
+      .order(order - 1);
+
+    callback.handler(ctx -> {
       // Some IdP's (e.g.: AWS Cognito) returns errors as query arguments
       String error = ctx.request().getParam("error");
 
@@ -403,83 +506,5 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         }
       });
     });
-
-    // the redirect handler has been setup so we can process this
-    // handler has full oauth2
-    bearerOnly = false;
-    return this;
-  }
-
-  private static final Set<String> OPENID_SCOPES = new HashSet<>();
-
-  static {
-    OPENID_SCOPES.add("openid");
-    OPENID_SCOPES.add("profile");
-    OPENID_SCOPES.add("email");
-    OPENID_SCOPES.add("phone");
-    OPENID_SCOPES.add("offline");
-  }
-
-  /**
-   * The default behavior for post-authentication
-   */
-  @Override
-  public void postAuthentication(RoutingContext ctx) {
-    // the user is authenticated, however the user may not have all the required scopes
-    if (scopes != null && scopes.size() > 0) {
-      final User user = ctx.user();
-      if (user == null) {
-        // bad state
-        ctx.fail(403, new IllegalStateException("no user in the context"));
-        return;
-      }
-
-      if (user.principal().containsKey("scope")) {
-        final String scopes = user.principal().getString("scope");
-        if (scopes != null) {
-          // user principal contains scope, a basic assertion is required to ensure that
-          // the scopes present match the required ones
-          for (String scope : this.scopes) {
-            // do not assert openid scopes if openid is active
-            if (openId && OPENID_SCOPES.contains(scope)) {
-              continue;
-            }
-
-            int idx = scopes.indexOf(scope);
-            if (idx != -1) {
-              // match, but is it valid?
-              if (
-                (idx != 0 && scopes.charAt(idx -1) != ' ') ||
-                  (idx + scope.length() != scopes.length() && scopes.charAt(idx + scope.length()) != ' ')) {
-                // invalid scope assignment
-                ctx.fail(403, new IllegalStateException("principal scope != handler scopes"));
-                return;
-              }
-            } else {
-              // invalid scope assignment
-              ctx.fail(403, new IllegalStateException("principal scope != handler scopes"));
-              return;
-            }
-          }
-        }
-      }
-    }
-    ctx.next();
-  }
-
-  @Override
-  public boolean performsRedirect() {
-    // depending on the time this method is invoked
-    // we can deduct with more accuracy if a redirect is possible or not
-    if (!bearerOnly) {
-      // we know that a redirect is definitely possible
-      // as the callback handler has been created
-      return true;
-    } else {
-      // the callback hasn't been mounted so we need to assume
-      // that if no callbackURL is provided, then there isn't
-      // a redirect happening in this application
-      return callbackURL != null;
-    }
   }
 }

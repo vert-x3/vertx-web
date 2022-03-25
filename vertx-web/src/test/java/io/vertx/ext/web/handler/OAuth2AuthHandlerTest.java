@@ -454,7 +454,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     latch.await();
 
     // protect everything. This has the bad sideffect that it will also shade the callback route which is computed
-    // after this handler, the proper way to fix this would be create the route before
+    // after this handler, HOWEVER, the handler implements the OrderListener, so the setup will be fixed OOTB
     router.route()
       .handler(
         OAuth2AuthHandler
@@ -474,9 +474,9 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       assertNotNull(redirectURL);
     }, 302, "Found", null);
 
-    // fake the redirect
+    // fake the redirect (Given that the setup is fixed by the OrderListener), this will succeed
     testRequest(HttpMethod.GET, "/callback?state=/protected/somepage&code=1", null, resp -> {
-    }, 500, "Internal Server Error", "Internal Server Error");
+    }, 200, "OK", "Welcome to the protected resource!");
 
     // second attempt with proper config
     router.clear();
