@@ -110,13 +110,9 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   }
 
   @Override
-  public String authenticateHeader(RoutingContext ctx) {
+  public void setAuthenticateHeader(RoutingContext ctx) {
     for (AuthenticationHandlerInternal authHandler : handlers) {
-      String header = authHandler.authenticateHeader(ctx);
-      if (header != null) {
-        return header;
-      }
+      authHandler.setAuthenticateHeader(ctx);
     }
-    return null;
   }
 }

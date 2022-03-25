@@ -108,10 +108,8 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
               .end("Redirecting to " + payload + ".");
             return;
           case 401:
-            String header = authenticateHeader(ctx);
-            if (header != null && !"XMLHttpRequest".equals(ctx.request().getHeader("X-Requested-With"))) {
-              ctx.response()
-                .putHeader("WWW-Authenticate", header);
+            if (!"XMLHttpRequest".equals(ctx.request().getHeader("X-Requested-With"))) {
+              setAuthenticateHeader(ctx);
             }
             ctx.fail(401, exception);
             return;

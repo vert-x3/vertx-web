@@ -114,11 +114,11 @@ public abstract class HTTPAuthorizationHandler<T extends AuthenticationProvider>
   }
 
   @Override
-  public String authenticateHeader(RoutingContext context) {
+  public void setAuthenticateHeader(RoutingContext context) {
     if (realm != null && realm.length() > 0) {
-      return type + " realm=\"" +realm + "\"";
+      context.response()
+        .headers()
+        .add("WWW-Authenticate", type + " realm=\"" +realm + "\"");
     }
-    return null;
   }
-
 }
