@@ -110,9 +110,17 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   }
 
   @Override
-  public void setAuthenticateHeader(RoutingContext ctx) {
+  public boolean setAuthenticateHeader(RoutingContext ctx) {
+    boolean added = false;
     for (AuthenticationHandlerInternal authHandler : handlers) {
-      authHandler.setAuthenticateHeader(ctx);
+      if (all && added) {
+        // we can only allow 1 header in this case,
+        // otherwise we tell the user agent to pick the strongest,
+        // yet we want them all
+        break;
+      }
+      added |= authHandler.setAuthenticateHeader(ctx);
     }
+    return added;
   }
 }

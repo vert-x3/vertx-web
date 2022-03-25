@@ -226,7 +226,7 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
   }
 
   @Override
-  public void setAuthenticateHeader(RoutingContext context) {
+  public boolean setAuthenticateHeader(RoutingContext context) {
     final byte[] bytes = new byte[32];
     random.nextBytes(bytes);
     // generate nonce
@@ -250,6 +250,8 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
     context.response()
       .headers()
       .add("WWW-Authenticate", "Digest realm=\"" + realm + "\", qop=\"auth\", nonce=\"" + nonce + "\", opaque=\"" + opaque + "\"");
+
+    return true;
   }
 
   private static synchronized String md5(byte[] payload) {

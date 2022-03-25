@@ -30,9 +30,10 @@ public interface AuthenticationHandlerInternal extends AuthenticationHandler {
    * a "401 Unauthorized" status code, and a WWW-Authenticate header.
    *
    * @param context the routing context
-   * @return the header or null if not applicable.
+   * @return the {@code true} if a header was added.
    */
-  default void setAuthenticateHeader(RoutingContext context) {
+  default boolean setAuthenticateHeader(RoutingContext context) {
+    return false;
   }
 
   /**
