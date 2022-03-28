@@ -35,7 +35,6 @@ package io.vertx.ext.web.handler.sockjs.impl;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -241,8 +240,8 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
         closed = true;
         handleClosed();
       }
-      doClose();
     }
+    doClose();
   }
 
   private void doClose() {
