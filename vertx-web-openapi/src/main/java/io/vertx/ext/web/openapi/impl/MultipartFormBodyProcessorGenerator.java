@@ -35,10 +35,14 @@ public class MultipartFormBodyProcessorGenerator implements BodyProcessorGenerat
     ValueParser<List<String>> additionalPropertiesValueParser =
       ValueParserInferenceUtils.infeerAdditionalPropertiesFormValueParserForObjectSchema(schemas.getFakeSchema());
 
+    // Get the required properties
+    JsonObject requiredFields = schemas.getFakeSchema().getJsonObject("required", new JsonObject());
+
     for (Entry<String, Object> pe : schemas.getFakeSchema().getJsonObject("properties", new JsonObject())) {
       JsonObject propSchema = (JsonObject) pe.getValue();
       String encoding = (String) JsonPointer.create().append("encoding").append(pe.getKey()).append("contentType").queryJson(mediaTypeObject);
 
+      boolean required = requiredFields.getValue(pe.getKey()) != null;
       if (encoding == null) {
         if (OpenAPI3Utils.isSchemaObjectOrCombinators(propSchema) ||
           (OpenAPI3Utils.isSchemaArray(propSchema) &&
@@ -47,14 +51,14 @@ public class MultipartFormBodyProcessorGenerator implements BodyProcessorGenerat
         } else if ("string".equals(propSchema.getString("type")) &&
           ("binary".equals(propSchema.getString("format")) || "base64".equals(propSchema.getString("format")))) {
           context.addPredicate(
-            RequestPredicate.multipartFileUploadExists(pe.getKey(), Pattern.quote("application/octet-stream"))
+            RequestPredicate.multipartFileUploadExists(pe.getKey(), Pattern.quote("application/octet-stream"), required)
           );
           propertiesValueParsers.remove(pe.getKey());
           searchPropAndRemoveInSchema(schemas.getNormalizedSchema(), pe.getKey());
         }
       } else {
         context.addPredicate(
-          RequestPredicate.multipartFileUploadExists(pe.getKey(), OpenAPI3Utils.resolveContentTypeRegex(encoding))
+          RequestPredicate.multipartFileUploadExists(pe.getKey(), OpenAPI3Utils.resolveContentTypeRegex(encoding), required)
         );
         propertiesValueParsers.remove(pe.getKey());
         searchPropAndRemoveInSchema(schemas.getNormalizedSchema(), pe.getKey());
