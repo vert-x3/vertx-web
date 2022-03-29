@@ -18,6 +18,7 @@ package io.vertx.ext.web.sstore.cookie.impl;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.Session;
@@ -45,11 +46,13 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
 
   private Mac mac;
   private VertxContextPRNG random;
+  private ContextInternal ctx;
 
   @Override
   public SessionStore init(Vertx vertx, JsonObject options) {
     // initialize a secure random
     this.random = VertxContextPRNG.current(vertx);
+    this.ctx = (ContextInternal) vertx.getOrCreateContext();
 
     try {
       mac = Mac.getInstance("HmacSHA256");
@@ -82,17 +85,17 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
       Session session = new CookieSession(mac, random).setValue(cookieValue);
 
       if (session == null) {
-        return Future.succeededFuture();
+        return ctx.succeededFuture();
       }
 
       // need to validate for expired
       long now = System.currentTimeMillis();
       // if expired, the operation succeeded, but returns null
       if (now - session.lastAccessed() > session.timeout()) {
-        return Future.succeededFuture();
+        return ctx.succeededFuture();
       } else {
         // return the already recreated session
-        return Future.succeededFuture(session);
+        return ctx.succeededFuture(session);
       }
     } catch (RuntimeException e) {
       return Future.failedFuture(e);
@@ -101,7 +104,7 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
 
   @Override
   public Future<Void> delete(String id) {
-    return Future.succeededFuture();
+    return ctx.succeededFuture();
   }
 
   @Override
@@ -116,17 +119,17 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
     }
 
     cookieSession.incrementVersion();
-    return Future.succeededFuture();
+    return ctx.succeededFuture();
   }
 
   @Override
   public Future<Void> clear() {
-    return Future.succeededFuture();
+    return ctx.succeededFuture();
   }
 
   @Override
   public Future<Integer> size() {
-    return Future.succeededFuture(0);
+    return ctx.succeededFuture(0);
   }
 
   @Override

@@ -3,6 +3,8 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.RoutingContext;
@@ -12,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements ChainAuthHandler {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ChainAuthHandler.class);
 
   private final List<AuthenticationHandlerInternal> handlers = new ArrayList<>();
   private final boolean all;
@@ -110,13 +114,18 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   }
 
   @Override
-  public String authenticateHeader(RoutingContext ctx) {
+  public boolean setAuthenticateHeader(RoutingContext ctx) {
+    boolean added = false;
     for (AuthenticationHandlerInternal authHandler : handlers) {
-      String header = authHandler.authenticateHeader(ctx);
-      if (header != null) {
-        return header;
+      if (all && added) {
+        // we can only allow 1 header in this case,
+        // otherwise we tell the user agent to pick the strongest,
+        // yet we want them all
+        LOG.warn("Multiple WWW-Authenticate headers will be suppressed on a ALL chain");
+        break;
       }
+      added |= authHandler.setAuthenticateHeader(ctx);
     }
-    return null;
+    return added;
   }
 }

@@ -1,9 +1,11 @@
 package io.vertx.ext.web.it;
 
 import io.vertx.core.CompositeFuture;
+import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.file.FileSystem;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.webauthn.*;
 import io.vertx.ext.unit.Async;
@@ -16,6 +18,7 @@ import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.WebAuthnHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.sstore.LocalSessionStore;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -111,7 +114,12 @@ public class FIDO2TCK {
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
 
-  final AuthenticatorStore database = new AuthenticatorStore();
+  AuthenticatorStore database;
+
+  @Before
+  public void init() {
+    database = new AuthenticatorStore(rule.vertx().getOrCreateContext());
+  }
 
   @Test(timeout = 300_000)
   @Ignore("This test needs to be executed manually against the Conformance Tools")
@@ -269,6 +277,12 @@ public class FIDO2TCK {
 
 class AuthenticatorStore {
 
+  final ContextInternal ctx;
+
+  public AuthenticatorStore(Context ctx) {
+    this.ctx = (ContextInternal) ctx;
+  }
+
   /**
    * This is a dummy database, just for demo purposes.
    * In a real world scenario you should be using something like:
@@ -284,7 +298,7 @@ class AuthenticatorStore {
   private final List<Authenticator> database = new ArrayList<>();
 
   public Future<List<Authenticator>> fetcher(Authenticator query) {
-    return Future.succeededFuture(
+    return ctx.succeededFuture(
       database.stream()
         .filter(entry -> {
           if (query.getUserName() != null) {
@@ -310,10 +324,10 @@ class AuthenticatorStore {
       }).count();
 
     if (updated > 0) {
-      return Future.succeededFuture();
+      return ctx.succeededFuture();
     } else {
       database.add(authenticator);
-      return Future.succeededFuture();
+      return ctx.succeededFuture();
     }
   }
 

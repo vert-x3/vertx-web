@@ -7,6 +7,9 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 
+import java.util.Collections;
+import java.util.List;
+
 public interface AuthenticationHandlerInternal extends AuthenticationHandler {
 
   /**
@@ -20,17 +23,17 @@ public interface AuthenticationHandlerInternal extends AuthenticationHandler {
   void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler);
 
   /**
-   * Returns a {@code WWW-Authenticate} Response Header.
+   * Applies a {@code WWW-Authenticate} Response Header.
    *
    * If a server receives a request for an access-protected object, and an
    * acceptable Authorization header is not sent, the server responds with
    * a "401 Unauthorized" status code, and a WWW-Authenticate header.
-
+   *
    * @param context the routing context
-   * @return the header or null if not applicable.
+   * @return the {@code true} if a header was added.
    */
-  default @Nullable String authenticateHeader(RoutingContext context) {
-    return null;
+  default boolean setAuthenticateHeader(RoutingContext context) {
+    return false;
   }
 
   /**

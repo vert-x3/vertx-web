@@ -2,10 +2,13 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import org.junit.Test;
+
+import java.util.List;
 
 public class ChainAuthHandlerTest extends WebTestBase {
 
@@ -64,5 +67,28 @@ public class ChainAuthHandlerTest extends WebTestBase {
     router.route().handler(ctx -> ctx.response().end());
 
     testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="), resp -> assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWW-Authenticate")),401, "Unauthorized", "Unauthorized");
+  }
+
+  @Test
+  public void testWithMultipleWWWAuthenticate() throws Exception {
+    router.clear();
+
+    // create a chain
+    chain = ChainAuthHandler.any()
+      .add(BasicAuthHandler.create(authProvider))
+      .add(DigestAuthHandler.create(vertx, HtdigestAuth.create(vertx)));
+
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+    router.route().handler(chain);
+    router.route().handler(ctx -> ctx.response().end());
+
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      assertNotNull(resp.getHeader("WWW-Authenticate"));
+      List<String> headers = resp.headers().getAll("WWW-Authenticate");
+      assertNotNull(headers);
+      assertEquals(2, headers.size());
+      assertTrue(headers.get(0).startsWith("Basic realm=\"vertx-web\""));
+      assertTrue(headers.get(1).startsWith("Digest realm=\"testrealm@host.com\""));
+    },401, "Unauthorized", "Unauthorized");
   }
 }

@@ -19,6 +19,7 @@ import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.Session;
@@ -42,6 +43,7 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
   private Redis redis;
   private VertxContextPRNG random;
   private long retryTimeout;
+  private ContextInternal ctx;
 
   public RedisSessionStoreImpl() {
     // required for the service loader
@@ -57,6 +59,7 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
 
   public SessionStore init(Vertx vertx, long retryTimeout, Redis redis) {
     random = VertxContextPRNG.current(vertx);
+    ctx = (ContextInternal) vertx.getOrCreateContext();
     this.retryTimeout = retryTimeout;
     this.redis = Objects.requireNonNull(redis, "redis is required");
     return this;
@@ -89,7 +92,7 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
             .send(cmd(PEXPIRE).arg(id).arg(session.timeout()))
             .map(session);
         } else {
-          return Future.succeededFuture();
+          return ctx.succeededFuture();
         }
       });
   }
@@ -145,11 +148,11 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
     return redis.send(cmd(DBSIZE))
       .compose(response -> {
         if (response == null) {
-          return Future.succeededFuture(-1);
+          return ctx.succeededFuture(-1);
         } else {
           Long lngCount = response.toLong();
           int count = (lngCount > Integer.MAX_VALUE) ? Integer.MAX_VALUE : lngCount.intValue();
-          return Future.succeededFuture(count);
+          return ctx.succeededFuture(count);
         }
     });
   }

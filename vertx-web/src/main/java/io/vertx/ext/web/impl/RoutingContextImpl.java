@@ -23,6 +23,7 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpUtils;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RequestBody;
@@ -494,27 +495,28 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private SparseArray<Handler<AsyncResult<Void>>> getEndHandlers() {
     if (endHandlers == null) {
-      // order is important we we should traverse backwards
+      // order is important as we should traverse backwards
       endHandlers = new SparseArray<>();
+      final ContextInternal ctx = (ContextInternal) vertx().getOrCreateContext();
 
       final Handler<Void> endHandler = v -> {
         if (!endHandlerCalled) {
           endHandlerCalled = true;
-          endHandlers.forEachInReverseOrder(handler -> handler.handle(Future.succeededFuture()));
+          endHandlers.forEachInReverseOrder(handler -> handler.handle(ctx.succeededFuture()));
         }
       };
 
       final Handler<Throwable> exceptionHandler = cause -> {
         if (!endHandlerCalled) {
           endHandlerCalled = true;
-          endHandlers.forEachInReverseOrder(handler -> handler.handle(Future.failedFuture(cause)));
+          endHandlers.forEachInReverseOrder(handler -> handler.handle(ctx.failedFuture(cause)));
         }
       };
 
       final Handler<Void> closeHandler = cause -> {
         if (!endHandlerCalled) {
           endHandlerCalled = true;
-          endHandlers.forEachInReverseOrder(handler -> handler.handle(Future.failedFuture("Connection closed")));
+          endHandlers.forEachInReverseOrder(handler -> handler.handle(ctx.failedFuture("Connection closed")));
         }
       };
 
