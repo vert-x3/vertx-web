@@ -311,18 +311,33 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private void writePendingMessages() {
     final TransportListener listener = this.listener;
     if (listener != null) {
+      final String json;
+      final List<Handler<AsyncResult<Void>>> acks;
+      final boolean hasAcks;
       synchronized (this) {
         if (!pendingWrites.isEmpty()) {
-          String json = JsonCodec.encode(pendingWrites.toArray(new String[0]));
+          json = JsonCodec.encode(pendingWrites.toArray(new String[0]));
           pendingWrites.clear();
           if (writeAcks != null) {
-            List<Handler<AsyncResult<Void>>> acks = this.writeAcks;
+            hasAcks = true;
+            acks = this.writeAcks;
             this.writeAcks = null;
-            listener.sendFrame("a" + json, ar -> acks.forEach(a -> a.handle(ar)));
           } else {
-            listener.sendFrame("a" + json, null);
+            acks = null;
+            hasAcks = false;
           }
           messagesSize = 0;
+        } else {
+          json = null;
+          acks = null;
+          hasAcks = false;
+        }
+      }
+      if (json != null) {
+        if (hasAcks) {
+          listener.sendFrame("a" + json, ar -> acks.forEach(a -> a.handle(ar)));
+        } else {
+          listener.sendFrame("a" + json, null);
         }
       }
       if (drainHandler != null) {
@@ -394,13 +409,15 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
       sessions.remove(id);
     }
 
-    if (!closed) {
-      closed = true;
-      handleClosed();
+    synchronized (this) {
+      if (!closed) {
+        closed = true;
+        handleClosed();
+      }
     }
   }
 
-  private synchronized void handleClosed() {
+  private void handleClosed() {
     pendingReads.clear();
     pendingWrites.clear();
     if (writeAcks != null) {
@@ -438,10 +455,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   }
 
   void handleException(Throwable t) {
-    Handler<Throwable> eh;
-    synchronized (this) {
-      eh = exceptionHandler;
-    }
+    final Handler<Throwable> eh = exceptionHandler;
     if (eh != null) {
       if (context == Vertx.currentContext()) {
         eh.handle(t);
