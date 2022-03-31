@@ -47,10 +47,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static io.vertx.core.buffer.Buffer.buffer;
 
@@ -76,7 +73,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private final long timeout;
   private final Handler<SockJSSocket> sockHandler;
   private final long heartbeatID;
-  private List<Handler<AsyncResult<Void>>> writeAcks;
+  private final List<Handler<AsyncResult<Void>>> writeAcks = new ArrayList<>();
   private TransportListener listener;
   private boolean closed;
   private boolean openWritten;
@@ -120,9 +117,6 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     synchronized (this) {
       pendingWrites.add(msg);
       messagesSize += msg.length();
-      if (writeAcks == null) {
-        writeAcks = new ArrayList<>();
-      }
       writeAcks.add(promise);
     }
 
@@ -313,28 +307,24 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     if (listener != null) {
       final String json;
       final List<Handler<AsyncResult<Void>>> acks;
-      final boolean hasAcks;
       synchronized (this) {
         if (!pendingWrites.isEmpty()) {
           json = JsonCodec.encode(pendingWrites.toArray(new String[0]));
           pendingWrites.clear();
-          if (writeAcks != null) {
-            hasAcks = true;
-            acks = this.writeAcks;
-            this.writeAcks = null;
+          if (!writeAcks.isEmpty()) {
+            acks = new ArrayList<>(writeAcks);
+            writeAcks.clear();
           } else {
-            acks = null;
-            hasAcks = false;
+            acks = Collections.emptyList();
           }
           messagesSize = 0;
         } else {
           json = null;
-          acks = null;
-          hasAcks = false;
+          acks = Collections.emptyList();
         }
       }
       if (json != null) {
-        if (hasAcks) {
+        if (!acks.isEmpty()) {
           listener.sendFrame("a" + json, ar -> acks.forEach(a -> a.handle(ar)));
         } else {
           listener.sendFrame("a" + json, null);
@@ -352,7 +342,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     return transportCtx;
   }
 
-  synchronized void register(HttpServerRequest req, TransportListener lst) {
+  void register(HttpServerRequest req, TransportListener lst) {
     this.transportCtx = vertx.getOrCreateContext();
     this.localAddress = req.localAddress();
     this.remoteAddress = req.remoteAddress();
@@ -418,9 +408,9 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   }
 
   private void handleClosed() {
-    pendingReads.clear();
-    pendingWrites.clear();
-    if (writeAcks != null) {
+    synchronized (this) {
+      pendingReads.clear();
+      pendingWrites.clear();
       writeAcks.forEach(handler -> context.runOnContext(v -> handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION))));
       writeAcks.clear();
     }

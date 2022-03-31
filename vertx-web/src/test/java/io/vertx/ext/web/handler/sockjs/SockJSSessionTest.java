@@ -67,6 +67,7 @@ public class SockJSSessionTest extends SockJSTestBase {
 
   @Test
   public void testNoDeadlockWhenWritingFromAnotherThreadWithWebsocketTransport() throws Exception {
+    final Buffer random = Buffer.buffer(TestUtils.randomAlphaString(256));
     int numMsg = 1000;
     waitFor(1);
     AtomicInteger clientReceived = new AtomicInteger();
@@ -76,11 +77,13 @@ public class SockJSSessionTest extends SockJSTestBase {
       return socket -> {
         socket.handler(msg -> serverReceived.addAndGet(msg.length()));
         socket.write("hello");
+
         new Thread(() -> {
           while (!shallStop.getAsBoolean()) {
             LockSupport.parkNanos(50);
             try {
-              socket.write(Buffer.buffer(TestUtils.randomAlphaString(256)));
+              socket.write(random)
+                .onFailure(this::fail);
             } catch (IllegalStateException e) {
               // Websocket has been closed
             }
@@ -89,14 +92,20 @@ public class SockJSSessionTest extends SockJSTestBase {
       };
     };
     startServers();
-    client.webSocket("/test/400/8ne8e94a/websocket", onSuccess(ws -> ws.handler(msg -> {
-      clientReceived.addAndGet(msg.length());
-      ws.writeTextMessage("\"hello\"");
-      if (shallStop.getAsBoolean()) {
-        ws.handler(null);
-        complete();
-      }
-    })));
+    client.webSocket("/test/400/8ne8e94a/websocket")
+      .onFailure(this::fail)
+      .onSuccess(ws -> ws.handler(msg -> {
+        clientReceived.addAndGet(msg.length());
+        ws.writeTextMessage("\"hello\"")
+          .compose(v -> ws.write(random))
+          .onFailure(this::fail)
+          .onSuccess(v -> {
+            if (shallStop.getAsBoolean()) {
+              ws.handler(null);
+              complete();
+            }
+          });
+      }));
     try {
       await();
     } catch (Throwable e) {
