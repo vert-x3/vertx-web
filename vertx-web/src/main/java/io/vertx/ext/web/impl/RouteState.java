@@ -23,10 +23,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.AuthenticationHandler;
-import io.vertx.ext.web.handler.AuthorizationHandler;
-import io.vertx.ext.web.handler.PlatformHandler;
-import io.vertx.ext.web.handler.SecurityPolicyHandler;
+import io.vertx.ext.web.handler.*;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -47,7 +44,9 @@ final class RouteState {
   enum Priority {
     PLATFORM,
     SECURITY_POLICY,
+    BODY,
     AUTHENTICATION,
+    INPUT_TRUST,
     AUTHORIZATION,
     USER
   }
@@ -59,8 +58,14 @@ final class RouteState {
     if (handler instanceof SecurityPolicyHandler) {
       return Priority.SECURITY_POLICY;
     }
+    if (handler instanceof BodyHandler) {
+      return Priority.BODY;
+    }
     if (handler instanceof AuthenticationHandler) {
       return Priority.AUTHENTICATION;
+    }
+    if (handler instanceof InputTrustHandler) {
+      return Priority.INPUT_TRUST;
     }
     if (handler instanceof AuthorizationHandler) {
       return Priority.AUTHORIZATION;

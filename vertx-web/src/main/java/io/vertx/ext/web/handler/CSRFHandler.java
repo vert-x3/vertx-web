@@ -2,7 +2,9 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.CSRFHandlerImpl;
 
 /**
@@ -16,7 +18,7 @@ import io.vertx.ext.web.handler.impl.CSRFHandlerImpl;
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface CSRFHandler extends SecurityPolicyHandler {
+public interface CSRFHandler extends InputTrustHandler {
 
   String DEFAULT_COOKIE_NAME = "XSRF-TOKEN";
 

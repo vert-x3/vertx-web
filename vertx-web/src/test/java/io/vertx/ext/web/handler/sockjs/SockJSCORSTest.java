@@ -32,8 +32,8 @@ public class SockJSCORSTest extends WebTestBase {
   public void testNoConflictsSockJSAndCORSHandler() {
     router
       .route()
-      .handler(BodyHandler.create())
-      .handler(CorsHandler.create("*").allowCredentials(false));
+      .handler(CorsHandler.create("*").allowCredentials(false))
+      .handler(BodyHandler.create());
     SockJSProtocolTest.installTestApplications(router, vertx);
     client.request(HttpMethod.GET, "/echo/info?t=21321")
       .compose(req -> req

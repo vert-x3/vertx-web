@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
@@ -534,4 +535,37 @@ public class CORSHandlerTest extends WebTestBase {
     }, resp -> checkHeaders(resp, "http://vertx.io", "GET", null, null, null, null, null), 204, "No Content", null);
   }
 
+  @Test
+  public void testCORSSetup() throws Exception {
+
+    router
+      .route()
+      .handler(CorsHandler.create()
+        .addOrigin("https://mydomain.org:3000")
+        .addOrigin("https://mydomain.org:9443")
+        .allowCredentials(true)
+        .allowedHeader("Content-Type")
+        .allowedMethod(HttpMethod.GET)
+        .allowedMethod(HttpMethod.POST)
+        .allowedMethod(HttpMethod.OPTIONS)
+        .allowedHeader("Access-Control-Allow-Origin"))
+      .handler(BodyHandler.create().setBodyLimit(1))
+      .handler(context -> context.response().end());
+
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.headers().add("origin", "https://mydomain.org:3000");
+    }, resp -> {
+      assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
+      assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+    }, 200, "OK", null);
+
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.headers().add("origin", "https://mydomain.org:3000");
+      req.send("abc");
+    }, resp -> {
+      assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
+      assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+    }, 413, "Request Entity Too Large", null);
+
+  }
 }
