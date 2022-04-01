@@ -52,7 +52,7 @@ public class SockJSErrorTest extends VertxTestBase {
     router.route("/").handler(event -> event.request().response().end("test"));
 
     Router sockJSRouter = createEventBusRouter();
-    router.mountSubRouter(WSS_PATH, sockJSRouter);
+    router.route(WSS_PATH + "*").subRouter(sockJSRouter);
 
     server.requestHandler(router);
     server.listen(PORT, context.asyncAssertSuccess());

@@ -728,7 +728,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     Router subRouter = Router.router(vertx);
 
-    router.mountSubRouter("/secret", subRouter);
+    router.route("/secret*").subRouter(subRouter);
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/secret/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/secret/callback");

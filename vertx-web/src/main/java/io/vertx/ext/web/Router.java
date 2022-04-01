@@ -360,12 +360,15 @@ public interface Router extends Handler<HttpServerRequest> {
   Router clear();
 
   /**
+   * @deprecated This method duplicates the sub router functionality from {@link Route#subRouter(Router)}.
+   *
    * Mount a sub router on this router
    *
    * @param mountPoint  the mount point (path prefix) to mount it on
    * @param subRouter  the router to mount as a sub router
    * @return a reference to this, so the API can be used fluently
    */
+  @Deprecated
   Route mountSubRouter(String mountPoint, Router subRouter);
 
   /**
