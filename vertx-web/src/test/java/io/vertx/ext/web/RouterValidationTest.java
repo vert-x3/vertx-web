@@ -33,7 +33,7 @@ public class RouterValidationTest {
       .handler(RoutingContext::end);
   }
 
-  @Test(expected = AssertionError.class)
+  @Test(expected = IllegalStateException.class)
   public void addBodyHandlerAndUserHandlerBadOrder() {
     Router router = Router.router(rule.vertx());
     router.route()
@@ -58,7 +58,7 @@ public class RouterValidationTest {
       .handler(AuthorizationHandler.create(RoleBasedAuthorization.create("my-role")));
   }
 
-  @Test(expected = AssertionError.class)
+  @Test(expected = IllegalStateException.class)
   public void addBodyHandlerAndAuthnAuthzBadOrder() {
     Router router = Router.router(rule.vertx());
     router.route()
@@ -68,7 +68,7 @@ public class RouterValidationTest {
       .handler(OAuth2AuthHandler.create(rule.vertx(), OAuth2Auth.create(rule.vertx(), new OAuth2Options().setClientId("test-id"))));
   }
 
-  @Test(expected = AssertionError.class)
+  @Test(expected = IllegalStateException.class)
   public void addBodyHandlerAndAuthnAuthzBadOrder2() {
     Router router = Router.router(rule.vertx());
     router.route()
@@ -95,7 +95,7 @@ public class RouterValidationTest {
       .handler(CorsHandler.create());
   }
 
-  @Test(expected = AssertionError.class)
+  @Test(expected = IllegalStateException.class)
   public void addSecurityPolicyAndUserHandlersBadOrder2() {
     Router router = Router.router(rule.vertx());
     router.route()

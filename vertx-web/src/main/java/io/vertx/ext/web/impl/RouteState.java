@@ -542,7 +542,9 @@ final class RouteState {
       if (iterWeith.ordinal() > weight.ordinal()) {
         String message = "Cannot add [" + weight.name() + "] handler to route with [" + iterWeith.name() + "] handler at index " + (len - 1);
         // when assertions are enabled, throw AssertionError to signal that the implementation is not correct
-        assert false : message;
+        if (!Boolean.getBoolean("io.vertx.web.router.setup.lenient")) {
+          throw new IllegalStateException(message);
+        }
         LOG.warn(message);
       }
     }
