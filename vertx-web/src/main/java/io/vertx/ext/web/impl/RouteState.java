@@ -541,7 +541,7 @@ final class RouteState {
       Priority iterWeith = weight(newState.contextHandlers.get(len - 1));
       if (iterWeith.ordinal() > weight.ordinal()) {
         String message = "Cannot add [" + weight.name() + "] handler to route with [" + iterWeith.name() + "] handler at index " + (len - 1);
-        // when assertions are enabled, throw AssertionError to signal that the implementation is not correct
+        // when lenient mode is disabled, throw IllegalStateException to signal that the setup is not correct
         if (!Boolean.getBoolean("io.vertx.web.router.setup.lenient")) {
           throw new IllegalStateException(message);
         }
