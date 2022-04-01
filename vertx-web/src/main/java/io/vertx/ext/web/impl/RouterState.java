@@ -61,7 +61,7 @@ final class RouterState {
   private final AllowForwardHeaders allowForward;
   private final Map<String, Object> metadata;
 
-  public RouterState(RouterImpl router, Set<RouteImpl> routes, int orderSequence, Map<Integer, Handler<RoutingContext>> errorHandlers, Handler<Router> modifiedHandler, AllowForwardHeaders allowForward, Map<String, Object> metadata) {
+  public RouterState(RouterImpl router, TreeSet<RouteImpl> routes, int orderSequence, Map<Integer, Handler<RoutingContext>> errorHandlers, Handler<Router> modifiedHandler, AllowForwardHeaders allowForward, Map<String, Object> metadata) {
     this.router = router;
     this.routes = routes;
     this.orderSequence = orderSequence;
