@@ -293,6 +293,7 @@ public class RouterImpl implements Router {
   }
 
   @Override
+  @Deprecated
   public Route mountSubRouter(String mountPoint, Router subRouter) {
     if (mountPoint.endsWith("*")) {
       throw new IllegalArgumentException("Don't include * when mounting a sub router");

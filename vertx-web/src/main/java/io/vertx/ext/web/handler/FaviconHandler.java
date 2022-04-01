@@ -17,9 +17,7 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.FaviconHandlerImpl;
 
 /**
@@ -30,7 +28,7 @@ import io.vertx.ext.web.handler.impl.FaviconHandlerImpl;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface FaviconHandler extends Handler<RoutingContext> {
+public interface FaviconHandler extends PlatformHandler {
 
   /**
    * The default max age in seconds as set in the cache-control header

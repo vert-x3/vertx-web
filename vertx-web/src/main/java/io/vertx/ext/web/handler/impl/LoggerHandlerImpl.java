@@ -191,6 +191,7 @@ public class LoggerHandlerImpl implements LoggerHandler {
   }
 
   @Override
+  @Deprecated
   public LoggerHandler customFormatter(Function<HttpServerRequest, String> formatter) {
     if (format != LoggerFormat.CUSTOM) {
       throw new IllegalStateException("Setting a formatter requires the handler to be set to CUSTOM format");

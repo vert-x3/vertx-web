@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Red Hat, Inc.
+ * Copyright 2021 Red Hat, Inc.
  *
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
@@ -13,28 +13,24 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.handler.impl.ResponseTimeHandlerImpl;
+import io.vertx.core.Handler;
+import io.vertx.ext.web.RoutingContext;
 
 /**
- * Handler which adds a header `x-response-time` in the response of matching requests containing the time taken
- * in ms to process the request.
+ * Base platform interface for handlers that provide functionality to the application platform.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
+ * Two examples are:
+ *
+ * <ul>
+ *   <li>{@link BodyHandler}</li>
+ *   <li>{@link SessionHandler}</li>
+ * </ul>
+ *
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-@VertxGen
-public interface ResponseTimeHandler extends PlatformHandler {
-
-  /**
-   * Create a handler
-   *
-   * @return the handler
-   */
-  static ResponseTimeHandler create() {
-    return new ResponseTimeHandlerImpl();
-  }
-
+@VertxGen(concrete = false)
+public interface PlatformHandler extends Handler<RoutingContext> {
 }

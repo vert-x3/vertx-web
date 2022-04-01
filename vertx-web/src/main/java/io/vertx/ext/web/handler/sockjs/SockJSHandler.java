@@ -77,7 +77,6 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    */
   default Router bridge(SockJSBridgeOptions bridgeOptions) {
     return bridge(null, bridgeOptions, null);
-
   }
 
   /**
@@ -103,7 +102,7 @@ public interface SockJSHandler extends Handler<RoutingContext> {
 
   /**
    * @deprecated mount the router as a sub-router instead. This method will not properly handle errors.
-   * @param routingContext the rounting context
+   * @param routingContext the routing context
    */
   @Deprecated
   void handle(RoutingContext routingContext);

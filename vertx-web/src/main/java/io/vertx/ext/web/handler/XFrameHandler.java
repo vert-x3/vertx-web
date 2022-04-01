@@ -16,8 +16,6 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
 
 /**
  * The X-Frame-Options HTTP response header can be used to indicate whether or not a browser should be allowed to render
@@ -27,10 +25,10 @@ import io.vertx.ext.web.RoutingContext;
  * The added security is provided only if the user accessing the document is using a browser that supports
  * {@code X-Frame-Options}.
  *
- * @author Paulo Lopes
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface XFrameHandler extends Handler<RoutingContext> {
+public interface XFrameHandler extends SecurityPolicyHandler {
 
   /**
    * The page cannot be displayed in a frame, regardless of the site attempting to do so.

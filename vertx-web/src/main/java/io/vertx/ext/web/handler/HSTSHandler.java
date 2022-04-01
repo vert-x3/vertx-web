@@ -16,17 +16,17 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.ext.web.RoutingContext;
 
 /**
  * HTTP Strict Transport Security (HSTS) <a href="http://tools.ietf.org/html/rfc6797">RFC6797</a>.
  *
  * This handler adds the strict transport security headers, for this domain or subdomains.
+ *
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface HSTSHandler extends Handler<RoutingContext> {
+public interface HSTSHandler extends SecurityPolicyHandler {
 
   // 6 months
   long DEFAULT_MAX_AGE = 15768000;

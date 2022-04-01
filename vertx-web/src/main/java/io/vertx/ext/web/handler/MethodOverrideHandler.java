@@ -17,16 +17,13 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.MethodOverrideHandlerImpl;
-
-import io.vertx.core.Handler;
 
 /**
  * @author <a href="mailto:victorqrsilva@gmail.com">Victor Quezado</a>
  */
 @VertxGen
-public interface MethodOverrideHandler extends Handler<RoutingContext> {
+public interface MethodOverrideHandler extends PlatformHandler {
   /**
    * Create a X-HTTP-METHOD-OVERRIDE handler with safe downgrade of methods
    *

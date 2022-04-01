@@ -58,6 +58,7 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  @Deprecated
   public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
     return decoratedContext.addCookie(cookie);
   }
@@ -73,11 +74,13 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  @Deprecated
   public int cookieCount() {
     return decoratedContext.cookieCount();
   }
 
   @Override
+  @Deprecated
   public Map<String, io.vertx.core.http.Cookie> cookieMap() {
     return decoratedContext.cookieMap();
   }
@@ -160,6 +163,7 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  @Deprecated
   public Cookie getCookie(String name) {
     return decoratedContext.getCookie(name);
   }
@@ -191,6 +195,7 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  @Deprecated
   public Cookie removeCookie(String name, boolean invalidate) {
     return decoratedContext.removeCookie(name, invalidate);
   }
@@ -271,11 +276,13 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  @Deprecated
   public void setBody(Buffer body) {
     decoratedContext.setBody(body);
   }
 
   @Override
+  @Deprecated
   public void setSession(Session session) {
     decoratedContext.setSession(session);
   }

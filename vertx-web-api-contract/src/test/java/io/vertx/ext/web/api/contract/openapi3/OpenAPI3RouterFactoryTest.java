@@ -63,7 +63,12 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
   }
 
   private void startServer() throws InterruptedException {
-    router = routerFactory.getRouter();
+    try {
+      router = routerFactory.getRouter();
+    } catch (RuntimeException e) {
+      e.printStackTrace();
+      throw e;
+    }
     server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
     CountDownLatch latch = new CountDownLatch(1);
     server.requestHandler(router).listen(onSuccess(res -> latch.countDown()));

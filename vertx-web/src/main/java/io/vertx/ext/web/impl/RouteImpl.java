@@ -170,7 +170,7 @@ public class RouteImpl implements Route {
       throw new IllegalStateException("Sub router cannot be mounted on a regular expression path.");
     }
     // No other handler can be registered before or after this call (but they can on a new route object for the same path)
-    if (state.getContextHandlersLength() > 0 || state.getFailureHandlersLength() > 0) {
+    if (state.isExclusive()) {
       throw new IllegalStateException("Only one sub router per Route object is allowed.");
     }
 

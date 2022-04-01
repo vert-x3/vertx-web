@@ -17,10 +17,8 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.handler.impl.LoggerHandlerImpl;
-import io.vertx.ext.web.RoutingContext;
 
 import java.util.function.Function;
 
@@ -32,7 +30,7 @@ import java.util.function.Function;
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface LoggerHandler extends Handler<RoutingContext> {
+public interface LoggerHandler extends PlatformHandler {
 
   LoggerFormat DEFAULT_FORMAT = LoggerFormat.DEFAULT;
 

@@ -165,6 +165,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  @Deprecated
   public void setSession(Session session) {
     inner.setSession(session);
   }
@@ -235,37 +236,44 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  @Deprecated
   public Cookie getCookie(String name) {
     return inner.getCookie(name);
   }
 
   @Override
+  @Deprecated
   public RoutingContext addCookie(Cookie cookie) {
     inner.addCookie(cookie);
     return this;
   }
 
   @Override
+  @Deprecated
   public Cookie removeCookie(String name, boolean invalidate) {
     return inner.removeCookie(name, invalidate);
   }
 
   @Override
+  @Deprecated
   public int cookieCount() {
     return inner.cookieCount();
   }
 
   @Override
+  @Deprecated
   public Map<String, io.vertx.core.http.Cookie> cookieMap() {
     return inner.cookieMap();
   }
 
   @Override
+  @Deprecated
   public RequestBody body() {
     return inner.body();
   }
 
   @Override
+  @Deprecated
   public void setBody(Buffer body) {
     inner.setBody(body);
   }

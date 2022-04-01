@@ -212,7 +212,7 @@ class XhrTransport extends BaseTransport {
   private class XhrStreamingListener extends BaseXhrListener {
 
     int bytesSent;
-    int maxBytesStreaming;
+    final int maxBytesStreaming;
 
     XhrStreamingListener(int maxBytesStreaming, RoutingContext rc, SockJSSession session) {
       super(rc, session);

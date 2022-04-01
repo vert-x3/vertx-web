@@ -628,8 +628,8 @@ public class WebExamples {
 
   public void example24(Router mainRouter, Router restAPI) {
 
-    mainRouter.route("/productsAPI/*").subRouter(restAPI);
-
+    mainRouter.route("/productsAPI/*")
+      .subRouter(restAPI);
   }
 
   public void example25(Router router) {
@@ -975,9 +975,9 @@ public class WebExamples {
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
-    router
-      .route("/myapp/*")
+    router.route("/myapp/*")
       .subRouter(sockJSHandler.socketHandler(sockJSSocket -> {
+
         // Just echo the data back
         sockJSSocket.handler(sockJSSocket::write);
 
@@ -988,12 +988,12 @@ public class WebExamples {
   public void sockJsWriteHandler(Vertx vertx) {
     Router router = Router.router(vertx);
 
-    SockJSHandlerOptions options = new SockJSHandlerOptions().setRegisterWriteHandler(true);
+    SockJSHandlerOptions options = new SockJSHandlerOptions()
+      .setRegisterWriteHandler(true);
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
-    router
-      .route("/myapp/*")
+    router.route("/myapp/*")
       .subRouter(sockJSHandler.socketHandler(sockJSSocket -> {
 
         // Retrieve the writeHandlerID and store it (e.g. in a local map)
@@ -1133,17 +1133,17 @@ public class WebExamples {
           be.type() == BridgeEventType.PUBLISH ||
             be.type() == BridgeEventType.SEND) {
 
-          // Add some headers
-          JsonObject headers = new JsonObject()
-            .put("header1", "val")
-            .put("header2", "val2");
+            // Add some headers
+            JsonObject headers = new JsonObject()
+              .put("header1", "val")
+              .put("header2", "val2");
 
-          JsonObject rawMessage = be.getRawMessage();
-          rawMessage.put("headers", headers);
-          be.setRawMessage(rawMessage);
-        }
-        be.complete(true);
-      }));
+            JsonObject rawMessage = be.getRawMessage();
+            rawMessage.put("headers", headers);
+            be.setRawMessage(rawMessage);
+          }
+          be.complete(true);
+        }));
   }
 
   public void example49(Vertx vertx) {
@@ -1166,14 +1166,14 @@ public class WebExamples {
           if (be.type() == BridgeEventType.PUBLISH ||
             be.type() == BridgeEventType.RECEIVE) {
 
-            if (be.getRawMessage().getString("body").equals("armadillos")) {
-              // Reject it
-              be.complete(false);
-              return;
+              if (be.getRawMessage().getString("body").equals("armadillos")) {
+                // Reject it
+                be.complete(false);
+                return;
+              }
             }
-          }
-          be.complete(true);
-        }));
+            be.complete(true);
+          }));
   }
 
   public void handleSocketIdle(Vertx vertx, PermittedOptions inboundPermitted) {
@@ -1193,8 +1193,8 @@ public class WebExamples {
           // Do some custom handling...
         }
 
-        be.complete(true);
-      }));
+          be.complete(true);
+        }));
   }
 
   public void example50(Vertx vertx) {
@@ -1961,9 +1961,7 @@ public class WebExamples {
     // To view protected details, user must be authenticated and
     // using 2nd factor authentication
     router.get("/protected")
-      .handler(ctx -> {
-        ctx.end("Super secret content");
-      });
+      .handler(ctx -> ctx.end("Super secret content"));
   }
 
   public void example87(Router router) {

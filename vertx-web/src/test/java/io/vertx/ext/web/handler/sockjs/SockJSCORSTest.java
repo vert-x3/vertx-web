@@ -49,4 +49,26 @@ public class SockJSCORSTest extends WebTestBase {
     await();
   }
 
+  @Test(expected = IllegalStateException.class)
+  public void testNoConflictsSockJSAndCORSHandlerBadSetup() {
+    router
+      .route()
+      .handler(BodyHandler.create())
+      .handler(CorsHandler.create("*").allowCredentials(false));
+    SockJSProtocolTest.installTestApplications(router, vertx);
+  }
+
+  @Test
+  public void testNoConflictsSockJSAndCORSHandlerBadSetupLenient() {
+    try {
+      System.setProperty("io.vertx.web.router.setup.lenient", "true");
+      router
+        .route()
+        .handler(BodyHandler.create())
+        .handler(CorsHandler.create("*").allowCredentials(false));
+      SockJSProtocolTest.installTestApplications(router, vertx);
+    } finally {
+      System.clearProperty("io.vertx.web.router.setup.lenient");
+    }
+  }
 }

@@ -17,8 +17,6 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.TimeoutHandlerImpl;
 
 /**
@@ -28,7 +26,7 @@ import io.vertx.ext.web.handler.impl.TimeoutHandlerImpl;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface TimeoutHandler extends Handler<RoutingContext> {
+public interface TimeoutHandler extends PlatformHandler {
 
   /**
    * The default timeout, in ms

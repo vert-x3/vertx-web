@@ -15,10 +15,10 @@ import io.vertx.ext.web.handler.impl.CSRFHandlerImpl;
  *
  * This Handler requires session support, thus should be added somewhere below Session and Body handlers.
  *
- * @author Paulo Lopes
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface CSRFHandler extends Handler<RoutingContext> {
+public interface CSRFHandler extends InputTrustHandler {
 
   String DEFAULT_COOKIE_NAME = "XSRF-TOKEN";
 

@@ -18,9 +18,12 @@ package io.vertx.ext.web.impl;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.*;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -34,6 +37,42 @@ import java.util.regex.Pattern;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 final class RouteState {
+
+  private static final Logger LOG = LoggerFactory.getLogger(RouteState.class);
+
+
+  enum Priority {
+    PLATFORM,
+    SECURITY_POLICY,
+    BODY,
+    AUTHENTICATION,
+    INPUT_TRUST,
+    AUTHORIZATION,
+    USER
+  }
+
+  private static Priority weight(Handler<RoutingContext> handler) {
+    if (handler instanceof PlatformHandler) {
+      return Priority.PLATFORM;
+    }
+    if (handler instanceof SecurityPolicyHandler) {
+      return Priority.SECURITY_POLICY;
+    }
+    if (handler instanceof BodyHandler) {
+      return Priority.BODY;
+    }
+    if (handler instanceof AuthenticationHandler) {
+      return Priority.AUTHENTICATION;
+    }
+    if (handler instanceof InputTrustHandler) {
+      return Priority.INPUT_TRUST;
+    }
+    if (handler instanceof AuthorizationHandler) {
+      return Priority.AUTHORIZATION;
+    }
+
+    return Priority.USER;
+  }
 
   private final RouteImpl route;
 
@@ -495,6 +534,21 @@ final class RouteState {
       this.exclusive,
       this.exactPath);
 
+    int len = newState.contextHandlers.size();
+
+    if (len > 0) {
+      final Priority weight = weight(contextHandler);
+      Priority iterWeith = weight(newState.contextHandlers.get(len - 1));
+      if (iterWeith.ordinal() > weight.ordinal()) {
+        String message = "Cannot add [" + weight.name() + "] handler to route with [" + iterWeith.name() + "] handler at index " + (len - 1);
+        // when assertions are enabled, throw AssertionError to signal that the implementation is not correct
+        if (!Boolean.getBoolean("io.vertx.web.router.setup.lenient")) {
+          throw new IllegalStateException(message);
+        }
+        LOG.warn(message);
+      }
+    }
+
     newState.contextHandlers.add(contextHandler);
     return newState;
   }
@@ -900,6 +954,7 @@ final class RouteState {
       this.exclusive,
       this.exactPath);
   }
+
   private boolean containsMethod(HttpServerRequest request) {
     if (!isEmpty(methods)) {
       return methods.contains(request.method());
