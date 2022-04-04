@@ -35,6 +35,7 @@ package io.vertx.ext.web.handler.sockjs.impl;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -132,7 +133,8 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   @Override
   public Future<Void> write(Buffer buffer) {
-    final Promise<Void> promise = ((VertxInternal) vertx).promise();
+    final ContextInternal callerCtx = (ContextInternal) vertx.getOrCreateContext();
+    final Promise<Void> promise = callerCtx.promise();
     if (isClosed()) {
       final Context ctx = transportCtx;
       if (Vertx.currentContext() != ctx) {
@@ -149,7 +151,8 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   @Override
   public Future<Void> write(String text) {
-    final Promise<Void> promise = ((VertxInternal) vertx).promise();
+    final ContextInternal callerCtx = (ContextInternal) vertx.getOrCreateContext();
+    final Promise<Void> promise = callerCtx.promise();
     if (isClosed()) {
       final Context ctx = transportCtx;
       if (Vertx.currentContext() != ctx) {

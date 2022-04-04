@@ -9,6 +9,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.*;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
@@ -327,19 +328,25 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   }
 
   private Future<JsonObject> solveLocalRef(final URI ref) {
+    final String scheme = ref.getScheme();
+    if (scheme != null && !"file".equals(scheme)) {
+      // this is an unsupported protocol
+      return Future.failedFuture("Unsupported protocol: " + ref.getScheme());
+    }
     String filePath = ref.getPath();
+    final ContextInternal ctx = (ContextInternal) vertx.getOrCreateContext();
 
     return fs
       .readFile(filePath)
       .compose(buf -> {
         try {
-          return Future.succeededFuture(buf.toJsonObject());
+          return ctx.succeededFuture(buf.toJsonObject());
         } catch (DecodeException e) {
           // Maybe it's yaml
           try {
-            return Future.succeededFuture(this.yamlToJson(buf));
+            return ctx.succeededFuture(this.yamlToJson(buf));
           } catch (Exception e1) {
-            return Future.failedFuture(new RuntimeException("File " + filePath + " is not a valid YAML or JSON", e1));
+            return ctx.failedFuture(new RuntimeException("File " + filePath + " is not a valid YAML or JSON", e1));
           }
         }
       });
