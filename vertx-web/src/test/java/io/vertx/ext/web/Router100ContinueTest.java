@@ -52,23 +52,28 @@ public class Router100ContinueTest {
         should.assertEquals("100-continue", ctx.request().getHeader(HttpHeaders.EXPECT));
         // Send a 100 continue response
         ctx.response().writeContinue();
-
-        // The client should send the body when it receives the 100 response
-        ctx.request().bodyHandler(body -> {
-          // Do something with body
-        });
-
-        ctx.request().endHandler(v -> {
-          ctx.response().end();
-        });
-
+        ctx.next();
+      })
+      .handler(BodyHandler.create())
+      .handler(ctx -> {
+        should.assertEquals("DATA", ctx.body().asString());
+        ctx.end();
       });
 
     client.request(HttpMethod.POST, "/")
       .onFailure(should::fail)
       .onSuccess(req -> {
         req
+          .response()
+          .onFailure(should::fail)
+          .onSuccess(res -> {
+            should.assertEquals(200, res.statusCode());
+            test.complete();
+          });
+
+        req
           .putHeader(HttpHeaders.EXPECT, "100-continue")
+          .setChunked(true)
           .continueHandler(v -> {
             req
               .end("DATA")
@@ -77,12 +82,6 @@ public class Router100ContinueTest {
           .sendHead()
           .onFailure(should::fail);
 
-        req
-          .response()
-          .onFailure(should::fail)
-          .onComplete(res -> {
-            test.complete();
-          });
       });
   }
 
