@@ -74,14 +74,12 @@ public class Router100ContinueTest {
         req
           .putHeader(HttpHeaders.EXPECT, "100-continue")
           .setChunked(true)
-          .continueHandler(v -> {
+          .continueHandler(v ->
             req
               .end("DATA")
-              .onFailure(should::fail);
-          })
+              .onFailure(should::fail))
           .sendHead()
           .onFailure(should::fail);
-
       });
   }
 

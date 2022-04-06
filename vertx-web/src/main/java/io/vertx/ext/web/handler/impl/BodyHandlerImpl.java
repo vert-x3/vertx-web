@@ -91,6 +91,15 @@ public class BodyHandlerImpl implements BodyHandler {
         return;
       }
 
+      // before parsing the body we can already discard a bad request just by inspecting the content-length against
+      // the body limit, this will reduce load, on the server by totally skipping parsing the request body
+      if (bodyLimit != -1 && parsedContentLength != -1) {
+        if (parsedContentLength > bodyLimit) {
+          context.fail(413);
+          return;
+        }
+      }
+
       final BHandler handler = new BHandler(context, isPreallocateBodyBuffer ? parsedContentLength : -1);
       request
         // resume the request (if paused)
