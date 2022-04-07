@@ -22,12 +22,14 @@ import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.SchemaRouter;
 import io.vertx.json.schema.common.SchemaURNId;
 import io.vertx.json.schema.common.URIUtils;
+import io.vertx.json.schema.draft201909.Draft201909SchemaParser;
 import io.vertx.json.schema.draft7.Draft7SchemaParser;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -40,13 +42,13 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   private final Map<URI, JsonObject> absolutePaths;
   private final HttpClient client;
   private final FileSystem fs;
-  private final Schema openapiSchema;
   private final OpenAPILoaderOptions options;
   private URI initialScope;
   private String initialScopeDirectory;
   private final Map<URI, Future<JsonObject>> externalSolvingRefs;
   private final YAMLMapper yamlMapper;
   private JsonObject openapiRoot;
+  private Schema openapiSchema;
 
   public OpenAPIHolderImpl(Vertx vertx, HttpClient client, FileSystem fs, OpenAPILoaderOptions options) {
     this.vertx = vertx;
@@ -55,15 +57,55 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     this.client = client;
     this.fs = fs;
     this.options = options;
-    SchemaRouter router = SchemaRouter.create(vertx, client, fs, options.toSchemaRouterOptions());
-    SchemaParser parser = Draft7SchemaParser.create(router);
     this.yamlMapper = new YAMLMapper();
-    this.openapiSchema = parser.parseFromString(OpenAPI3Utils.openapiSchemaJson);
   }
 
   public Future<JsonObject> loadOpenAPI(String u) {
+    final ContextInternal ctx = (ContextInternal) vertx.getOrCreateContext();
+
     URI uri = URIUtils.removeFragment(URI.create(u));
     return ((URIUtils.isRemoteURI(uri)) ? solveRemoteRef(uri) : solveLocalRef(uri))
+      .compose(json -> {
+        SchemaRouter router;
+        SchemaParser parser;
+
+        String version = json.getString("openapi", "3.0");
+        int dots = 0;
+        for (int i = 0; i < version.length(); i++) {
+          if (version.charAt(i) == '.') {
+            dots++;
+          }
+          if (dots == 2) {
+            version = version.substring(0, i);
+            break;
+          }
+        }
+
+        // select the parser based on the version
+        switch (version) {
+          case "3.0":
+            router = SchemaRouter.create(vertx, client, fs, options.toSchemaRouterOptions());
+            parser = Draft7SchemaParser.create(router);
+            openapiSchema = parser.parseFromString(
+              fs
+                .readFileBlocking("io/vertx/ext/web/openapi/schemas/v3.0/schema.json")
+                .toString(StandardCharsets.UTF_8));
+            break;
+          case "3.1":
+            router = SchemaRouter.create(vertx, client, fs, options.toSchemaRouterOptions());
+            // TODO: this should be 202012
+            parser = Draft201909SchemaParser.create(router);
+            openapiSchema = parser.parseFromString(
+              fs
+                .readFileBlocking("io/vertx/ext/web/openapi/schemas/v3.1/schema.json")
+                .toString(StandardCharsets.UTF_8));
+            break;
+          default:
+            return ctx.failedFuture("Unsupported OpenAPI version: " + version);
+        }
+        // continue processing
+        return ctx.succeededFuture(json);
+      })
       .onSuccess(openapiBytes -> {
         // If we're here, the file exists.
         // Now we need to set the proper initialScope and initialScopeDirectory in order
