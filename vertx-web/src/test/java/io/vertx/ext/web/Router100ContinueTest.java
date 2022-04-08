@@ -48,12 +48,6 @@ public class Router100ContinueTest {
   public void testContinue(TestContext should) {
     final Async test = should.async();
     router.route()
-      .handler((PlatformHandler) ctx -> {
-        should.assertEquals("100-continue", ctx.request().getHeader(HttpHeaders.EXPECT));
-        // Send a 100 continue response
-        ctx.response().writeContinue();
-        ctx.next();
-      })
       .handler(BodyHandler.create())
       .handler(ctx -> {
         should.assertEquals("DATA", ctx.body().asString());
@@ -83,4 +77,70 @@ public class Router100ContinueTest {
       });
   }
 
+  @Test
+  public void testBadExpectation(TestContext should) {
+    final Async test = should.async();
+    router.route()
+      .handler(BodyHandler.create())
+      .handler(ctx -> {
+        should.assertEquals("DATA", ctx.body().asString());
+        ctx.end();
+      });
+
+    client.request(HttpMethod.POST, "/")
+      .onFailure(should::fail)
+      .onSuccess(req -> {
+        req
+          .response()
+          .onFailure(should::fail)
+          .onSuccess(res -> {
+            should.assertEquals(417, res.statusCode());
+            test.complete();
+          });
+
+        req
+          .putHeader(HttpHeaders.EXPECT, "lets-go")
+          .setChunked(true)
+          .continueHandler(v ->
+            req
+              .end("DATA")
+              .onFailure(should::fail))
+          .sendHead()
+          .onFailure(should::fail);
+      });
+  }
+
+  @Test
+  public void testExpectButTooLarge(TestContext should) {
+    final Async test = should.async();
+    router.route()
+      .handler(BodyHandler.create().setBodyLimit(1))
+      .handler(ctx -> {
+        should.assertEquals("DATA", ctx.body().asString());
+        ctx.end();
+      });
+
+    client.request(HttpMethod.POST, "/")
+      .onFailure(should::fail)
+      .onSuccess(req -> {
+        req
+          .response()
+          .onFailure(should::fail)
+          .onSuccess(res -> {
+            // entity too large
+            should.assertEquals(413, res.statusCode());
+            test.complete();
+          });
+
+        req
+          .putHeader(HttpHeaders.EXPECT, "100-continue")
+          .setChunked(true)
+          .continueHandler(v ->
+            req
+              .end("DATA")
+              .onFailure(should::fail))
+          .sendHead()
+          .onFailure(should::fail);
+      });
+  }
 }
