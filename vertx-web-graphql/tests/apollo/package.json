@@ -3,18 +3,18 @@
     "test": "jest"
   },
   "devDependencies": {
-    "apollo-cache-inmemory": "1.6.3",
-    "apollo-client": "2.6.4",
-    "apollo-link": "1.2.12",
-    "apollo-link-batch-http": "1.2.12",
-    "apollo-link-http": "1.5.15",
-    "apollo-link-ws": "1.0.18",
+    "apollo-cache-inmemory": "1.6.6",
+    "apollo-client": "2.6.10",
+    "apollo-link": "1.2.14",
+    "apollo-link-batch-http": "1.2.14",
+    "apollo-link-http": "1.5.17",
+    "apollo-link-ws": "1.0.19",
     "apollo-upload-client": "11.0.0",
     "babel-plugin-transform-es2015-modules-commonjs": "6.26.2",
     "graphql": "14.4.2",
-    "graphql-tag": "2.10.1",
+    "graphql-tag": "2.12.6",
     "jest": "24.8.0",
-    "subscriptions-transport-ws": "0.9.16",
+    "subscriptions-transport-ws": "0.11.0",
     "unfetch": "4.1.0"
   },
   "dependencies": {

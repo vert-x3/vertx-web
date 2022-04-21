@@ -4,16 +4,16 @@
   "private": true,
   "homepage": ".",
   "dependencies": {
-    "graphiql": "0.13.2",
+    "graphiql": "0.17.5",
     "graphql": "14.4.2",
     "isomorphic-fetch": "2.2.1",
-    "lodash": "4.17.15",
+    "lodash": "4.17.19",
     "react": "16.8.6",
-    "react-dom": "16.8.6",
+    "react-dom": "16.14.0",
     "react-scripts": "3.0.1"
   },
   "devDependencies": {
-    "recursive-copy": "2.0.10"
+    "recursive-copy": "2.0.14"
   },
   "scripts": {
     "start": "react-scripts start",
