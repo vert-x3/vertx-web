@@ -10,7 +10,7 @@
     "babel-plugin-transform-es2015-modules-commonjs": "6.26.2",
     "jest": "24.8.0",
     "jest-puppeteer": "4.4.0",
-    "puppeteer": "5.3.0",
-    "node-fetch": "2.6.1"
+    "puppeteer": "5.3.1",
+    "node-fetch": "2.6.7"
   }
 }
