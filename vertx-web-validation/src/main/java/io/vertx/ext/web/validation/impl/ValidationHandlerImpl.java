@@ -17,12 +17,12 @@ import java.util.stream.Collectors;
  */
 public class ValidationHandlerImpl implements ValidationHandler {
 
-  private ParameterProcessor[] queryParameters;
-  private ParameterProcessor[] pathParameters;
-  private ParameterProcessor[] cookieParameters;
-  private ParameterProcessor[] headerParameters;
-  private BodyProcessor[] bodyProcessors;
-  private Function<RoutingContext, RequestPredicateResult>[] predicates;
+  private final ParameterProcessor[] queryParameters;
+  private final ParameterProcessor[] pathParameters;
+  private final ParameterProcessor[] cookieParameters;
+  private final ParameterProcessor[] headerParameters;
+  private final BodyProcessor[] bodyProcessors;
+  private final Function<RoutingContext, RequestPredicateResult>[] predicates;
 
   @SuppressWarnings("unchecked")
   public ValidationHandlerImpl(Map<ParameterLocation, List<ParameterProcessor>> parameterProcessors, List<BodyProcessor> bodyProcessors, List<Function<RoutingContext, RequestPredicateResult>> predicates) {

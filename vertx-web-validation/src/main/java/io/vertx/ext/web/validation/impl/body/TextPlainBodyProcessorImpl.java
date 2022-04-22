@@ -10,7 +10,7 @@ import io.vertx.ext.web.validation.impl.validator.ValueValidator;
 
 public class TextPlainBodyProcessorImpl implements BodyProcessor {
 
-  ValueValidator valueValidator;
+  final ValueValidator valueValidator;
 
   public TextPlainBodyProcessorImpl(ValueValidator valueValidator) {
     this.valueValidator = valueValidator;

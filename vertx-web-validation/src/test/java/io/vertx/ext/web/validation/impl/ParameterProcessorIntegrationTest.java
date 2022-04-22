@@ -68,14 +68,12 @@ public class ParameterProcessorIntegrationTest {
     map.put("myParam", Collections.singletonList(TestSchemas.INVALID_OBJECT.encode()));
 
     processor.process(map).onComplete(testContext.failing(throwable -> {
-      testContext.verify(() -> {
-        assertThat(throwable)
-          .isInstanceOf(ParameterProcessorException.class)
-          .hasFieldOrPropertyWithValue("errorType", ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
-          .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
-          .hasFieldOrPropertyWithValue("parameterName", "myParam")
-          .hasCauseInstanceOf(ValidationException.class);
-      });
+      testContext.verify(() -> assertThat(throwable)
+        .isInstanceOf(ParameterProcessorException.class)
+        .hasFieldOrPropertyWithValue("errorType", ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
+        .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
+        .hasFieldOrPropertyWithValue("parameterName", "myParam")
+        .hasCauseInstanceOf(ValidationException.class));
       testContext.completeNow();
     }));
   }

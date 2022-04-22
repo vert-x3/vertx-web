@@ -15,7 +15,7 @@ import static io.vertx.ext.web.validation.impl.parameter.ExplodedObjectValuePara
 
 public class DeepObjectValueParameterParser extends ObjectParser<String> implements ParameterParser {
 
-  String parameterName;
+  final String parameterName;
 
   public DeepObjectValueParameterParser(String parameterName, Map<String, ValueParser<String>> propertiesParsers,
                                         Map<Pattern, ValueParser<String>> patternPropertiesParsers,

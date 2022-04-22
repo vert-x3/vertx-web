@@ -7,8 +7,8 @@ import java.util.List;
 
 public class FormValueParser implements ValueParser<List<String>> {
 
-  private boolean expectedArray;
-  private ValueParser<String> innerValueParser;
+  private final boolean expectedArray;
+  private final ValueParser<String> innerValueParser;
 
   public FormValueParser(boolean expectedArray, ValueParser<String> innerValueParser) {
     this.expectedArray = expectedArray;

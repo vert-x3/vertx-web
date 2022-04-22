@@ -14,7 +14,7 @@ import static io.vertx.ext.web.validation.impl.parameter.ExplodedObjectValuePara
 
 public class ExplodedArrayValueParameterParser extends ArrayParser implements ParameterParser {
 
-  String parameterName;
+  final String parameterName;
 
   public ExplodedArrayValueParameterParser(String parameterName, ValueParser<String> itemsParser) {
     super(itemsParser);

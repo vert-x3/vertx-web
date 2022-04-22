@@ -14,7 +14,7 @@ import io.vertx.ext.web.validation.impl.validator.ValueValidator;
 
 public class JsonBodyProcessorImpl implements BodyProcessor {
 
-  private ValueValidator valueValidator;
+  private final ValueValidator valueValidator;
 
   public JsonBodyProcessorImpl(ValueValidator valueValidator) {
     this.valueValidator = valueValidator;

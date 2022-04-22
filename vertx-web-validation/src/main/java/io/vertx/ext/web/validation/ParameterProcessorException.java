@@ -25,9 +25,9 @@ public class ParameterProcessorException extends BadRequestException {
     VALIDATION_ERROR
   }
 
-  private String parameterName;
-  private ParameterLocation location;
-  private ParameterProcessorErrorType errorType;
+  private final String parameterName;
+  private final ParameterLocation location;
+  private final ParameterProcessorErrorType errorType;
 
   public ParameterProcessorException(String message, String parameterName, ParameterLocation location, ParameterProcessorErrorType errorType, Throwable cause) {
     super(message, cause);

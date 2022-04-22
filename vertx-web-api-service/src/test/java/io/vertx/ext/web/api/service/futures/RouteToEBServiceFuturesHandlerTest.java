@@ -8,6 +8,7 @@ import io.vertx.ext.web.api.service.RouteToEBServiceHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.validation.BaseValidationHandlerTest;
 import io.vertx.ext.web.validation.ValidationHandler;
+import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -42,7 +43,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
     router
       .post("/testFutureWithRequestParameter/:param")
       .handler(BodyHandler.create())
-      .handler(ValidationHandler.builder(parser).pathParameter(param("param", intSchema())).build())
+      .handler(ValidationHandlerBuilder.create(parser).pathParameter(param("param", intSchema())).build())
       .handler(
         RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "testFutureWithRequestParameter"));
 
@@ -63,7 +64,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
     router
       .post("/testFutureWithIntParameter/:param")
       .handler(BodyHandler.create())
-      .handler(ValidationHandler.builder(parser).pathParameter(param("param", intSchema())).build())
+      .handler(ValidationHandlerBuilder.create(parser).pathParameter(param("param", intSchema())).build())
       .handler(
         RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "testFutureWithIntParameter"));
 
@@ -84,7 +85,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
     router
       .post("/testFuture")
       .handler(BodyHandler.create())
-      .handler(ValidationHandler.builder(parser).build())
+      .handler(ValidationHandlerBuilder.create(parser).build())
       .handler(
         RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "testFuture"));
 

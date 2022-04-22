@@ -9,7 +9,7 @@ import io.vertx.json.schema.common.SchemaImpl;
 
 public class SchemaValidator implements ValueValidator {
 
-  Schema s;
+  final Schema s;
 
   public SchemaValidator(Schema s) {
     this.s = s;

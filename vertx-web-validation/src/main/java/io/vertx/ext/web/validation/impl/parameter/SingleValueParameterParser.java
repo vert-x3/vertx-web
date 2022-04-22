@@ -11,8 +11,8 @@ import static io.vertx.ext.web.validation.impl.parameter.ExplodedObjectValuePara
 
 public class SingleValueParameterParser implements ParameterParser  {
 
-  String parameterName;
-  ValueParser<String> valueParser;
+  final String parameterName;
+  final ValueParser<String> valueParser;
 
   public SingleValueParameterParser(String parameterName, ValueParser<String> valueParser) {
     this.parameterName = parameterName;

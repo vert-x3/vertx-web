@@ -165,14 +165,12 @@ public class ParameterProcessorUnitTest {
     when(mockedValidator.validate(any())).thenReturn(Future.failedFuture(ValidationException.createException("aaa", "aaa", "aaa")));
 
     processor.process(new HashMap<>()).onComplete(testContext.failing(throwable -> {
-      testContext.verify(() -> {
-        assertThat(throwable)
-          .isInstanceOf(ParameterProcessorException.class)
-          .hasFieldOrPropertyWithValue("errorType", ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
-          .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
-          .hasFieldOrPropertyWithValue("parameterName", "myParam")
-          .hasCauseInstanceOf(ValidationException.class);
-      });
+      testContext.verify(() -> assertThat(throwable)
+        .isInstanceOf(ParameterProcessorException.class)
+        .hasFieldOrPropertyWithValue("errorType", ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
+        .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
+        .hasFieldOrPropertyWithValue("parameterName", "myParam")
+        .hasCauseInstanceOf(ValidationException.class));
       testContext.completeNow();
     }));
   }

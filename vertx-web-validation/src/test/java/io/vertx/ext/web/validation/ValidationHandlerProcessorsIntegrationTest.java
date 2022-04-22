@@ -36,7 +36,6 @@ import static io.vertx.json.schema.draft7.dsl.Schemas.*;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-@SuppressWarnings("unchecked")
 @ExtendWith(VertxExtension.class)
 public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHandlerTest {
 
@@ -367,7 +366,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
 
   @Test
-  public void testQueryArrayParamsArrayAndPathParam(VertxTestContext testContext) throws Exception {
+  public void testQueryArrayParamsArrayAndPathParam(VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -602,11 +601,11 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testFormURLEncoded(VertxTestContext testContext, @TempDir Path tempDir) throws Exception {
+  public void testFormURLEncoded(VertxTestContext testContext, @TempDir Path tempDir) {
     Checkpoint checkpoint = testContext.checkpoint(2);
 
-    ValidationHandler validationHandler = ValidationHandler
-      .builder(parser)
+    ValidationHandler validationHandler = ValidationHandlerBuilder
+      .create(parser)
       .body(
         Bodies.formUrlEncoded(objectSchema().requiredProperty("parameter", intSchema()))
       )
@@ -637,11 +636,11 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testMultipartForm(VertxTestContext testContext, @TempDir Path tempDir) throws Exception {
+  public void testMultipartForm(VertxTestContext testContext, @TempDir Path tempDir) {
     Checkpoint checkpoint = testContext.checkpoint(2);
 
-    ValidationHandler validationHandler = ValidationHandler
-      .builder(parser)
+    ValidationHandler validationHandler = ValidationHandlerBuilder
+      .create(parser)
       .body(
         Bodies.multipartFormData(objectSchema().requiredProperty("parameter", intSchema()))
       )
@@ -672,13 +671,13 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testBothFormTypes(VertxTestContext testContext, @TempDir Path tempDir) throws Exception {
+  public void testBothFormTypes(VertxTestContext testContext, @TempDir Path tempDir) {
     Checkpoint checkpoint = testContext.checkpoint(6);
 
     ObjectSchemaBuilder bodySchema = objectSchema().requiredProperty("parameter", intSchema());
 
-    ValidationHandler validationHandler = ValidationHandler
-      .builder(parser)
+    ValidationHandler validationHandler = ValidationHandlerBuilder
+      .create(parser)
       .body(Bodies.multipartFormData(bodySchema))
       .body(Bodies.formUrlEncoded(bodySchema))
       .build();
@@ -737,7 +736,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testSameResultWithDifferentBodyTypes(VertxTestContext testContext, @TempDir Path tempDir) throws Exception {
+  public void testSameResultWithDifferentBodyTypes(VertxTestContext testContext, @TempDir Path tempDir) {
     Checkpoint checkpoint = testContext.checkpoint(3);
 
     JsonObject expectedResult = new JsonObject()
@@ -750,8 +749,8 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
       .requiredProperty("string", stringSchema())
       .property("array", arraySchema().items(numberSchema()));
 
-    ValidationHandler validationHandler = ValidationHandler
-      .builder(parser)
+    ValidationHandler validationHandler = ValidationHandlerBuilder
+      .create(parser)
       .body(Bodies.json(bodySchema))
       .body(Bodies.multipartFormData(bodySchema))
       .body(Bodies.formUrlEncoded(bodySchema))
@@ -808,13 +807,13 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   public void testValidationHandlerChaining(VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(1);
 
-    ValidationHandler validationHandler1 = ValidationHandler
-      .builder(parser)
+    ValidationHandler validationHandler1 = ValidationHandlerBuilder
+      .create(parser)
       .queryParameter(param("param1", intSchema()))
       .build();
 
-    ValidationHandler validationHandler2 = ValidationHandler
-      .builder(parser)
+    ValidationHandler validationHandler2 = ValidationHandlerBuilder
+      .create(parser)
       .queryParameter(param("param2", booleanSchema()))
       .build();
 
@@ -841,8 +840,8 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   public void testJsonBody(VertxTestContext testContext, @TempDir Path tempDir) {
     Checkpoint checkpoint = testContext.checkpoint(2);
 
-    ValidationHandler validationHandler = ValidationHandler
-      .builder(parser)
+    ValidationHandler validationHandler = ValidationHandlerBuilder
+      .create(parser)
       .body(Bodies.json(objectSchema()))
       .build();
 
@@ -873,8 +872,8 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   public void testJsonBodyAsyncCircular(VertxTestContext testContext, @TempDir Path tempDir) {
     Checkpoint checkpoint = testContext.checkpoint(2);
 
-    ValidationHandler validationHandler1 = ValidationHandler
-      .builder(parser)
+    ValidationHandler validationHandler1 = ValidationHandlerBuilder
+      .create(parser)
       .body(Bodies.json(ref(JsonPointer.fromURI(URI.create("tree_schema.json")))))
       .build();
 
@@ -909,8 +908,8 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   public void testQueryExpandedObjectAdditionalPropertiesAndDefault(VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(4);
 
-    ValidationHandler validationHandler = ValidationHandler
-      .builder(parser)
+    ValidationHandler validationHandler = ValidationHandlerBuilder
+      .create(parser)
       .queryParameter(optionalExplodedParam("explodedObject",
         objectSchema()
           .property("wellKnownProperty", intSchema())
@@ -953,8 +952,8 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
   @Test
   public void testSimpleHeaderCaseInsensitivity(VertxTestContext testContext) {
-    ValidationHandler validationHandler = ValidationHandler
-      .builder(parser)
+    ValidationHandler validationHandler = ValidationHandlerBuilder
+      .create(parser)
       .headerParameter(param("AnHeader", intSchema()))
       .build();
 

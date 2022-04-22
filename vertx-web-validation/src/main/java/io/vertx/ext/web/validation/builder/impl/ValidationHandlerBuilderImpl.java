@@ -22,11 +22,11 @@ import java.util.function.Function;
 
 public class ValidationHandlerBuilderImpl implements ValidationHandlerBuilder {
 
-  SchemaParser jsonSchemaParser;
+  private final SchemaParser jsonSchemaParser;
 
-  Map<ParameterLocation, List<ParameterProcessor>> parameterProcessors = new HashMap<>();
-  List<BodyProcessor> bodyProcessors = new ArrayList<>();
-  List<Function<RoutingContext, RequestPredicateResult>> predicates = new ArrayList<>();
+  final Map<ParameterLocation, List<ParameterProcessor>> parameterProcessors = new HashMap<>();
+  final List<BodyProcessor> bodyProcessors = new ArrayList<>();
+  final List<Function<RoutingContext, RequestPredicateResult>> predicates = new ArrayList<>();
 
   public ValidationHandlerBuilderImpl(SchemaParser jsonSchemaParser) {
     this.jsonSchemaParser = jsonSchemaParser;

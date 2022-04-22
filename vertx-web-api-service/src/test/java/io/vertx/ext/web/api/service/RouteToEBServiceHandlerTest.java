@@ -12,6 +12,7 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.validation.BaseValidationHandlerTest;
 import io.vertx.ext.web.validation.ValidationHandler;
+import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -52,7 +53,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .post("/testE/:id")
       .handler(BodyHandler.create())
       .handler(
-        ValidationHandler.builder(parser)
+        ValidationHandlerBuilder.create(parser)
           .pathParameter(param("id", intSchema()))
           .body(json(objectSchema().property("value", intSchema())))
           .build()
@@ -64,7 +65,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .post("/testF/:id")
       .handler(BodyHandler.create())
       .handler(
-        ValidationHandler.builder(parser)
+        ValidationHandlerBuilder.create(parser)
           .pathParameter(param("id", intSchema()))
           .body(json(
             anyOf(
@@ -106,7 +107,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .post("/test")
       .handler(BodyHandler.create())
       .handler(
-        ValidationHandler.builder(parser)
+        ValidationHandlerBuilder.create(parser)
           .body(json(ref(JsonPointer.fromURI(URI.create("filter.json")))))
           .build()
       ).handler(
@@ -135,7 +136,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     router
       .get("/test")
       .handler(
-        ValidationHandler.builder(parser).build()
+        ValidationHandlerBuilder.create(parser).build()
       ).handler(
         RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "testEmptyServiceResponse")
       );
@@ -157,7 +158,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     router
       .get("/test")
       .handler(
-        ValidationHandler.builder(parser).build()
+        ValidationHandlerBuilder.create(parser).build()
       ).handler(rc -> {
         rc.setUser(User.fromName("slinkydeveloper")); // Put user mock into context
         rc.next();
@@ -183,7 +184,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     router
       .get("/test")
       .handler(
-        ValidationHandler.builder(parser).build()
+        ValidationHandlerBuilder.create(parser).build()
       ).handler(
         RouteToEBServiceHandler
           .build(vertx.eventBus(), "someAddress", "extraPayload")
@@ -210,7 +211,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .post("/testFailure")
       .handler(BodyHandler.create())
       .handler(
-        ValidationHandler.builder(parser)
+        ValidationHandlerBuilder.create(parser)
           .body(json(
             objectSchema()
               .requiredProperty("hello", stringSchema())
@@ -227,7 +228,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .post("/testException")
       .handler(BodyHandler.create())
       .handler(
-        ValidationHandler.builder(parser)
+        ValidationHandlerBuilder.create(parser)
           .body(json(
             objectSchema()
               .requiredProperty("hello", stringSchema())
@@ -262,7 +263,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .get("/test")
       .handler(BodyHandler.create())
       .handler(
-        ValidationHandler.builder(parser).build()
+        ValidationHandlerBuilder.create(parser).build()
       ).handler(
         RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "binaryTest")
       );
@@ -284,7 +285,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     router
       .get("/test")
       .handler(
-        ValidationHandler.builder(parser).build()
+        ValidationHandlerBuilder.create(parser).build()
       ).handler(rc -> {
         // patch the request to include authorization header
         rc.request().headers().add(HttpHeaders.AUTHORIZATION, "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==");

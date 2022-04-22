@@ -23,8 +23,8 @@ public class BodyProcessorException extends BadRequestException {
     MISSING_MATCHING_BODY_PROCESSOR
   }
 
-  private String actualContentType;
-  private BodyProcessorErrorType errorType;
+  private final String actualContentType;
+  private final BodyProcessorErrorType errorType;
 
   public BodyProcessorException(String message, Throwable cause, String actualContentType, BodyProcessorErrorType errorType) {
     super(message, cause);

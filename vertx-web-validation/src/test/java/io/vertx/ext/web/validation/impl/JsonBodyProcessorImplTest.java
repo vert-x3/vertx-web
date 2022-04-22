@@ -84,12 +84,10 @@ class JsonBodyProcessorImplTest {
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER).create(parser);
 
     processor.process(mockedContext).onComplete(testContext.failing(err -> {
-      testContext.verify(() -> {
-        assertThat(err)
-          .isInstanceOf(BodyProcessorException.class)
-          .hasFieldOrPropertyWithValue("actualContentType", "application/json")
-          .hasCauseInstanceOf(ValidationException.class);
-      });
+      testContext.verify(() -> assertThat(err)
+        .isInstanceOf(BodyProcessorException.class)
+        .hasFieldOrPropertyWithValue("actualContentType", "application/json")
+        .hasCauseInstanceOf(ValidationException.class));
       testContext.completeNow();
     }));
   }
@@ -123,12 +121,10 @@ class JsonBodyProcessorImplTest {
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_ARRAY_SCHEMA_BUILDER).create(parser);
 
     processor.process(mockedContext).onComplete(testContext.failing(err -> {
-      testContext.verify(() -> {
-        assertThat(err)
-          .isInstanceOf(BodyProcessorException.class)
-          .hasFieldOrPropertyWithValue("actualContentType", "application/json")
-          .hasCauseInstanceOf(ValidationException.class);
-      });
+      testContext.verify(() -> assertThat(err)
+        .isInstanceOf(BodyProcessorException.class)
+        .hasFieldOrPropertyWithValue("actualContentType", "application/json")
+        .hasCauseInstanceOf(ValidationException.class));
       testContext.completeNow();
     }));
   }
@@ -156,9 +152,7 @@ class JsonBodyProcessorImplTest {
     BodyProcessor processor = Bodies.json(schema().withKeyword("type", "null")).create(parser);
 
     processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
-      testContext.verify(() -> {
-        assertThat(rp.isNull()).isTrue();
-      });
+      testContext.verify(() -> assertThat(rp.isNull()).isTrue());
       testContext.completeNow();
     }));
   }

@@ -16,7 +16,7 @@ import static io.vertx.ext.web.validation.impl.parameter.ExplodedObjectValuePara
 
 public class ExplodedTupleValueParameterParser extends TupleParser implements ParameterParser {
 
-  String parameterName;
+  final String parameterName;
 
   public ExplodedTupleValueParameterParser(String parameterName, List<ValueParser<String>> itemsParser,
                                            ValueParser<String> additionalItemsParser) {

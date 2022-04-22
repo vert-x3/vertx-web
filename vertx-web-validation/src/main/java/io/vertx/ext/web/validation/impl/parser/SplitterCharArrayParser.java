@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 public class SplitterCharArrayParser extends ArrayParser implements ValueParser<String> {
 
-  private String separator;
+  private final String separator;
 
   public SplitterCharArrayParser(ValueParser<String> itemsParser, String separator) {
     super(itemsParser);

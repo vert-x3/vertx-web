@@ -9,7 +9,7 @@ import io.vertx.ext.web.validation.RequestPredicateResult;
 @VertxGen
 public class RequestPredicateResultImpl implements RequestPredicateResult {
 
-  private String errorMessage;
+  private final String errorMessage;
 
   public RequestPredicateResultImpl(String errorMessage) {
     this.errorMessage = errorMessage;

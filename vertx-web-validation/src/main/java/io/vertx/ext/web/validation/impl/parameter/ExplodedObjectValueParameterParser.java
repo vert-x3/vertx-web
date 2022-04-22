@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 public class ExplodedObjectValueParameterParser extends ObjectParser<String> implements ParameterParser {
 
-  String parameterName;
+  final String parameterName;
 
   public ExplodedObjectValueParameterParser(String parameterName, Map<String, ValueParser<String>> propertiesParsers,
                                             Map<Pattern, ValueParser<String>> patternPropertiesParsers,

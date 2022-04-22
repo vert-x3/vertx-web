@@ -27,13 +27,13 @@ public class ValidationTestUtils {
           .end(((BadRequestException) failure).toJson().toBuffer());
       } else {
         failure.printStackTrace();
-        routingContext.response().setStatusCode(500).setStatusMessage("Unknown failure: " + failure.toString()).end();
+        routingContext.response().setStatusCode(500).setStatusMessage("Unknown failure: " + failure).end();
       }
     });
     router.errorHandler(500, routingContext -> {
       Throwable failure = routingContext.failure();
       failure.printStackTrace();
-      routingContext.response().setStatusCode(500).setStatusMessage("Unknown failure: " + failure.toString()).end();
+      routingContext.response().setStatusCode(500).setStatusMessage("Unknown failure: " + failure).end();
     });
   }
 

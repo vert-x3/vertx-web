@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 public class SplitterCharObjectParser extends ObjectParser<String> implements ValueParser<String> {
 
-  private String separator;
+  private final String separator;
 
   public SplitterCharObjectParser(Map<String, ValueParser<String>> propertiesParsers, Map<Pattern, ValueParser<String>> patternPropertiesParsers, ValueParser<String> additionalPropertiesParsers, String separator) {
     super(propertiesParsers, patternPropertiesParsers, additionalPropertiesParsers);

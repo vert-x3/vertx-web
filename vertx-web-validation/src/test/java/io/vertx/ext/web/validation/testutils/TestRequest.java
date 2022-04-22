@@ -44,9 +44,9 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class TestRequest {
 
-  HttpRequest<Buffer> req;
-  List<Consumer<HttpRequest<Buffer>>> requestTranformations;
-  List<Consumer<HttpResponse<Buffer>>> responseAsserts;
+  final HttpRequest<Buffer> req;
+  final List<Consumer<HttpRequest<Buffer>>> requestTranformations;
+  final List<Consumer<HttpResponse<Buffer>>> responseAsserts;
 
   private TestRequest(HttpRequest<Buffer> req) {
     this.req = req;
@@ -369,21 +369,15 @@ public class TestRequest {
   }
 
   public static Consumer<HttpResponse<Buffer>> responseHeader(String headerName, String headerValue) {
-    return res -> {
-      assertEquals(headerValue, res.getHeader(headerName));
-    };
+    return res -> assertEquals(headerValue, res.getHeader(headerName));
   }
 
   public static Consumer<HttpResponse<Buffer>> stringBody(Consumer<String> assertBody) {
-    return res -> {
-      assertBody.accept(res.bodyAsString());
-    };
+    return res -> assertBody.accept(res.bodyAsString());
   }
 
   public static Consumer<HttpResponse<Buffer>> emptyResponse() {
-    return res -> {
-      assertNull(res.body());
-    };
+    return res -> assertNull(res.body());
   }
 
   public static String urlEncode(String s) {

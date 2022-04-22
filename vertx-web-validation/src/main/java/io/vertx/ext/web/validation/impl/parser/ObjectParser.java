@@ -6,9 +6,9 @@ import java.util.regex.Pattern;
 
 public abstract class ObjectParser<X> {
 
-  private Map<String, ValueParser<X>> propertiesParsers;
-  private Map<Pattern, ValueParser<X>> patternPropertiesParsers;
-  protected ValueParser<X> additionalPropertiesParser;
+  private final Map<String, ValueParser<X>> propertiesParsers;
+  private final Map<Pattern, ValueParser<X>> patternPropertiesParsers;
+  protected final ValueParser<X> additionalPropertiesParser;
 
   public ObjectParser(Map<String, ValueParser<X>> propertiesParsers, Map<Pattern, ValueParser<X>> patternPropertiesParsers, ValueParser<X> additionalPropertiesParser) {
     this.propertiesParsers = propertiesParsers;

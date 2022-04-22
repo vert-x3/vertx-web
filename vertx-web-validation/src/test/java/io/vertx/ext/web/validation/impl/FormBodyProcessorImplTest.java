@@ -105,12 +105,10 @@ class FormBodyProcessorImplTest {
     assertThat(processor.canProcess("application/x-www-form-urlencoded")).isTrue();
 
     processor.process(mockedContext).onComplete(testContext.failing(err -> {
-      testContext.verify(() -> {
-        assertThat(err)
-          .isInstanceOf(BodyProcessorException.class)
-          .hasFieldOrPropertyWithValue("actualContentType", "application/x-www-form-urlencoded")
-          .hasCauseInstanceOf(MalformedValueException.class);
-      });
+      testContext.verify(() -> assertThat(err)
+        .isInstanceOf(BodyProcessorException.class)
+        .hasFieldOrPropertyWithValue("actualContentType", "application/x-www-form-urlencoded")
+        .hasCauseInstanceOf(MalformedValueException.class));
       testContext.completeNow();
     }));
 

@@ -13,11 +13,11 @@ import static io.vertx.ext.web.validation.ParameterProcessorException.*;
 
 public class ParameterProcessorImpl implements ParameterProcessor, Comparable<ParameterProcessorImpl> {
 
-  private String parameterName;
-  private ParameterLocation location;
-  private boolean isOptional;
-  private ParameterParser parser;
-  private ValueValidator validator;
+  private final String parameterName;
+  private final ParameterLocation location;
+  private final boolean isOptional;
+  private final ParameterParser parser;
+  private final ValueValidator validator;
 
   public ParameterProcessorImpl(String parameterName, ParameterLocation location, boolean isOptional, ParameterParser parser, ValueValidator validator) {
     this.parameterName = parameterName;
