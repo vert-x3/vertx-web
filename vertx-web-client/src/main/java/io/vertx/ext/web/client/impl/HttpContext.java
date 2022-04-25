@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Red Hat, Inc.
+ * Copyright 2022 Red Hat, Inc.
  *
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
@@ -16,18 +16,13 @@
 package io.vertx.ext.web.client.impl;
 
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.http.impl.HttpClientImpl;
+import io.vertx.core.http.impl.HttpClientInternal;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pipe;
@@ -39,13 +34,7 @@ import io.vertx.ext.web.client.spi.CacheStore;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.ext.web.multipart.MultipartForm;
 
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -53,7 +42,7 @@ import java.util.Objects;
 public class HttpContext<T> {
 
   private final Handler<AsyncResult<HttpResponse<T>>> handler;
-  private final HttpClientImpl client;
+  private final HttpClientInternal client;
   private final WebClientOptions options;
   private final List<Handler<HttpContext<?>>> interceptors;
   private Context context;
@@ -75,7 +64,7 @@ public class HttpContext<T> {
   private List<String> redirectedLocations = Collections.emptyList();
   private CacheStore privateCacheStore;
 
-  HttpContext(HttpClientImpl client, WebClientOptions options, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
+  HttpContext(HttpClientInternal client, WebClientOptions options, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.handler = handler;
     this.client = client;
     this.options = options;
@@ -256,7 +245,7 @@ public class HttpContext<T> {
    */
   public void receiveResponse(HttpClientResponse clientResponse) {
     int sc = clientResponse.statusCode();
-    int maxRedirects = request.followRedirects ? client.getOptions().getMaxRedirects(): 0;
+    int maxRedirects = request.followRedirects ? client.options().getMaxRedirects() : 0;
     this.clientResponse = clientResponse;
     if (redirects < maxRedirects && sc >= 300 && sc < 400) {
       redirects++;
@@ -402,7 +391,7 @@ public class HttpContext<T> {
   }
 
   private void handlePrepareRequest() {
-    context = client.getVertx().getOrCreateContext();
+    context = client.vertx().getOrCreateContext();
     redirects = 0;
     RequestOptions requestOptions;
     try {

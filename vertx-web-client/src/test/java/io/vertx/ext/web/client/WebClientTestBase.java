@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2022 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -25,7 +25,6 @@ import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpTestBase;
 import io.vertx.core.json.JsonObject;
@@ -59,12 +58,17 @@ public class WebClientTestBase extends HttpTestBase {
   }
 
   @Override
+  protected HttpClientOptions createBaseClientOptions() {
+    return super.createBaseClientOptions().setDefaultPort(8080).setDefaultHost("localhost");
+  }
+
+  @Override
   public void setUp() throws Exception {
     super.setUp();
-    client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080).setDefaultHost("localhost"));
+    client = vertx.createHttpClient(createBaseClientOptions());
     webClient = WebClient.wrap(client);
     server.close();
-    server = vertx.createHttpServer(new HttpServerOptions().setPort(DEFAULT_HTTP_PORT).setHost(DEFAULT_HTTP_HOST));
+    server = vertx.createHttpServer(createBaseServerOptions());
   }
 
   protected void testRequest(Function<WebClient, HttpRequest<Buffer>> reqFactory, Consumer<HttpServerRequest> reqChecker) throws Exception {
