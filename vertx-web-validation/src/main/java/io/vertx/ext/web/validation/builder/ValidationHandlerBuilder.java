@@ -27,6 +27,9 @@ public interface ValidationHandlerBuilder {
    * @return
    */
   @Fluent
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   ValidationHandlerBuilder parameter(ParameterLocation location, ParameterProcessor processor);
 
@@ -52,6 +55,9 @@ public interface ValidationHandlerBuilder {
   ValidationHandlerBuilder body(BodyProcessorFactory bodyProcessor);
 
   @Fluent
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   ValidationHandlerBuilder body(BodyProcessor bodyProcessor);
 

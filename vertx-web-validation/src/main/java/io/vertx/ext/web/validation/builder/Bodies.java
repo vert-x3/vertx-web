@@ -11,6 +11,9 @@ import io.vertx.json.schema.Schema;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
 import io.vertx.json.schema.common.dsl.SchemaBuilder;
 import io.vertx.json.schema.common.dsl.StringSchemaBuilder;
+import io.vertx.json.schema.validator.Draft;
+import io.vertx.json.schema.validator.Validator;
+import io.vertx.json.schema.validator.ValidatorOptions;
 
 /**
  * In this interface you can find all available {@link BodyProcessorFactory} to use in {@link ValidationHandlerBuilder}. <br/>
@@ -26,9 +29,13 @@ public interface Bodies {
    * @param schemaBuilder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static BodyProcessorFactory json(SchemaBuilder schemaBuilder) {
-    return parser -> new JsonBodyProcessorImpl(new SchemaValidator(schemaBuilder.build(parser)));
+    return parser -> new JsonBodyProcessorImpl(new SchemaValidator(
+      Validator.create(io.vertx.json.schema.validator.Schema.of(schemaBuilder.toJson()), new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://"))));
   }
 
   /**
@@ -37,9 +44,13 @@ public interface Bodies {
    * @param schemaBuilder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static BodyProcessorFactory textPlain(StringSchemaBuilder schemaBuilder) {
-    return parser -> new TextPlainBodyProcessorImpl(new SchemaValidator(schemaBuilder.build(parser)));
+    return parser -> new TextPlainBodyProcessorImpl(new SchemaValidator(
+      Validator.create(io.vertx.json.schema.validator.Schema.of(schemaBuilder.toJson()), new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://"))));
   }
 
   /**
@@ -48,17 +59,20 @@ public interface Bodies {
    * @param schemaBuilder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static BodyProcessorFactory formUrlEncoded(ObjectSchemaBuilder schemaBuilder) {
     return parser -> {
-      Schema s = schemaBuilder.build(parser);
-      Object jsonSchema = s.getJson();
+      Object jsonSchema = schemaBuilder.toJson();
       return new FormBodyProcessorImpl(
         ValueParserInferenceUtils.infeerPropertiesFormValueParserForObjectSchema(jsonSchema),
         ValueParserInferenceUtils.infeerPatternPropertiesFormValueParserForObjectSchema(jsonSchema),
         ValueParserInferenceUtils.infeerAdditionalPropertiesFormValueParserForObjectSchema(jsonSchema),
         "application/x-www-form-urlencoded",
-        new SchemaValidator(s)
+        new SchemaValidator(
+          Validator.create(io.vertx.json.schema.validator.Schema.of(schemaBuilder.toJson()), new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://")))
       );
     };
   }
@@ -69,17 +83,20 @@ public interface Bodies {
    * @param schemaBuilder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static BodyProcessorFactory multipartFormData(ObjectSchemaBuilder schemaBuilder) {
     return parser -> {
-      Schema s = schemaBuilder.build(parser);
-      Object jsonSchema = s.getJson();
+      Object jsonSchema = schemaBuilder.toJson();
       return new FormBodyProcessorImpl(
         ValueParserInferenceUtils.infeerPropertiesFormValueParserForObjectSchema(jsonSchema),
         ValueParserInferenceUtils.infeerPatternPropertiesFormValueParserForObjectSchema(jsonSchema),
         ValueParserInferenceUtils.infeerAdditionalPropertiesFormValueParserForObjectSchema(jsonSchema),
         "multipart/form-data",
-        new SchemaValidator(s)
+        new SchemaValidator(
+          Validator.create(io.vertx.json.schema.validator.Schema.of(schemaBuilder.toJson()), new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://")))
       );
     };
   }

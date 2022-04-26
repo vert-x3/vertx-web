@@ -15,6 +15,9 @@ import java.util.List;
 @FunctionalInterface
 public interface TupleParserFactory {
 
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   ValueParser<String> newTupleParser(List<ValueParser<String>> itemsParser, ValueParser<String> additionalItemsParser);
 

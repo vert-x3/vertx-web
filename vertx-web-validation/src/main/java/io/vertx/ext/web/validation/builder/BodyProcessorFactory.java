@@ -13,6 +13,9 @@ import io.vertx.json.schema.SchemaParser;
 @VertxGen
 public interface BodyProcessorFactory {
 
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   BodyProcessor create(SchemaParser parser);
 

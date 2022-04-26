@@ -14,10 +14,7 @@ import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
 import io.vertx.json.schema.SchemaParser;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 public class ValidationHandlerBuilderImpl implements ValidationHandlerBuilder {
@@ -28,8 +25,17 @@ public class ValidationHandlerBuilderImpl implements ValidationHandlerBuilder {
   final List<BodyProcessor> bodyProcessors = new ArrayList<>();
   final List<Function<RoutingContext, RequestPredicateResult>> predicates = new ArrayList<>();
 
+  /**
+   * @deprecated Use the argument free constructor {@link #ValidationHandlerBuilderImpl()}.
+   */
+  @Deprecated
   public ValidationHandlerBuilderImpl(SchemaParser jsonSchemaParser) {
+    Objects.requireNonNull(jsonSchemaParser, "'jsonSchemaParser' cannot be null");
     this.jsonSchemaParser = jsonSchemaParser;
+  }
+
+  public ValidationHandlerBuilderImpl() {
+    this.jsonSchemaParser = null;
   }
 
   @Override

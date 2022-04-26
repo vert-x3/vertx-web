@@ -13,6 +13,9 @@ import io.vertx.ext.web.validation.impl.parser.ValueParser;
 @FunctionalInterface
 public interface ArrayParserFactory {
 
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   ValueParser<String> newArrayParser(ValueParser<String> itemsParser);
 

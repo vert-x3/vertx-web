@@ -16,7 +16,9 @@ import java.util.regex.Pattern;
 @FunctionalInterface
 public interface ObjectParserFactory {
 
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore
   ValueParser<String> newObjectParser(Map<String, ValueParser<String>> propertiesParser, Map<Pattern, ValueParser<String>> patternPropertiesParser, ValueParser<String> additionalPropertiesParser);
-
 }

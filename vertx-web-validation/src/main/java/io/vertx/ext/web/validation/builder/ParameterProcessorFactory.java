@@ -16,6 +16,9 @@ import io.vertx.json.schema.SchemaParser;
 @FunctionalInterface
 public interface ParameterProcessorFactory {
 
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   ParameterProcessor create(ParameterLocation location, SchemaParser jsonSchemaParser);
 

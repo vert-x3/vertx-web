@@ -24,6 +24,9 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, NumberSchemaBuilder schemaBuilder) {
     return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
@@ -44,6 +47,9 @@ public interface Parameters {
    * @param parameterName
    * @param schemaBuilder
    * @return
+   */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, NumberSchemaBuilder schemaBuilder) {
@@ -66,6 +72,9 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, StringSchemaBuilder schemaBuilder) {
     return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
@@ -83,6 +92,9 @@ public interface Parameters {
    * @param parameterName
    * @param schemaBuilder
    * @return
+   */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, StringSchemaBuilder schemaBuilder) {
@@ -102,6 +114,9 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, BooleanSchemaBuilder schemaBuilder) {
     return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
@@ -119,6 +134,9 @@ public interface Parameters {
    * @param parameterName
    * @param schemaBuilder
    * @return
+   */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, BooleanSchemaBuilder schemaBuilder) {
@@ -138,6 +156,9 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, ArraySchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createArrayParamFactory(
@@ -154,6 +175,9 @@ public interface Parameters {
    * @param parameterName
    * @param schemaBuilder
    * @return
+   */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, ArraySchemaBuilder schemaBuilder) {
@@ -172,6 +196,9 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, TupleSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createTupleParamFactory(
@@ -188,6 +215,9 @@ public interface Parameters {
    * @param parameterName
    * @param schemaBuilder
    * @return
+   */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, TupleSchemaBuilder schemaBuilder) {
@@ -206,6 +236,9 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createObjectParamFactory(
@@ -222,6 +255,9 @@ public interface Parameters {
    * @param parameterName
    * @param schemaBuilder
    * @return
+   */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, ObjectSchemaBuilder schemaBuilder) {
@@ -240,6 +276,9 @@ public interface Parameters {
    * @param schemaBuilder
    * @param valueParser
    * @return
+   */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, SchemaBuilder schemaBuilder, ValueParser<String> valueParser) {
@@ -260,6 +299,9 @@ public interface Parameters {
    * @param valueParser
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, SchemaBuilder schemaBuilder, ValueParser<String> valueParser) {
     return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
@@ -277,6 +319,9 @@ public interface Parameters {
    * @param parameterName
    * @param builder
    * @return
+   */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory jsonParam(String parameterName, SchemaBuilder builder) {
@@ -296,6 +341,9 @@ public interface Parameters {
    * @param builder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalJsonParam(String parameterName, SchemaBuilder builder) {
     return (location, parser) -> new ParameterProcessorImpl(
@@ -314,6 +362,9 @@ public interface Parameters {
    * @param arrayParserFactory
    * @param schemaBuilder
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory serializedParam(String parameterName, ArrayParserFactory arrayParserFactory, ArraySchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createArrayParamFactory(parameterName, arrayParserFactory, schemaBuilder, false)::apply;
@@ -325,6 +376,9 @@ public interface Parameters {
    * @param parameterName
    * @param arrayParserFactory
    * @param schemaBuilder
+   */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalSerializedParam(String parameterName, ArrayParserFactory arrayParserFactory, ArraySchemaBuilder schemaBuilder) {
@@ -338,6 +392,9 @@ public interface Parameters {
    * @param tupleParserFactory
    * @param schemaBuilder
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory serializedParam(String parameterName, TupleParserFactory tupleParserFactory, TupleSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createTupleParamFactory(parameterName, tupleParserFactory, schemaBuilder, false)::apply;
@@ -350,6 +407,9 @@ public interface Parameters {
    * @param tupleParserFactory
    * @param schemaBuilder
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalSerializedParam(String parameterName, TupleParserFactory tupleParserFactory, TupleSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createTupleParamFactory(parameterName, tupleParserFactory, schemaBuilder, true)::apply;
@@ -361,6 +421,9 @@ public interface Parameters {
    * @param parameterName
    * @param objectParserFactory
    * @param schemaBuilder
+   */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory serializedParam(String parameterName, ObjectParserFactory objectParserFactory, ObjectSchemaBuilder schemaBuilder) {
@@ -386,6 +449,9 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory explodedParam(String parameterName, ArraySchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createExplodedArrayParamFactory(parameterName, schemaBuilder, false);
@@ -397,6 +463,9 @@ public interface Parameters {
    * @param parameterName
    * @param schemaBuilder
    * @return
+   */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalExplodedParam(String parameterName, ArraySchemaBuilder schemaBuilder) {
@@ -410,6 +479,9 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory explodedParam(String parameterName, TupleSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createExplodedTupleParamFactory(parameterName, schemaBuilder, false);
@@ -421,6 +493,9 @@ public interface Parameters {
    * @param parameterName
    * @param schemaBuilder
    * @return
+   */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalExplodedParam(String parameterName, TupleSchemaBuilder schemaBuilder) {
@@ -434,6 +509,9 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory explodedParam(String parameterName, ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createExplodedObjectParamFactory(parameterName, schemaBuilder, false);
@@ -445,6 +523,9 @@ public interface Parameters {
    * @param parameterName
    * @param schemaBuilder
    * @return
+   */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalExplodedParam(String parameterName, ObjectSchemaBuilder schemaBuilder) {
@@ -458,6 +539,9 @@ public interface Parameters {
    * @param schemaBuilder
    * @return
    */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory deepObjectParam(String parameterName, ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createDeepObjectParamFactory(parameterName, schemaBuilder, false);
@@ -469,6 +553,9 @@ public interface Parameters {
    * @param parameterName
    * @param schemaBuilder
    * @return
+   */
+  /**
+   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalDeepObjectParam(String parameterName, ObjectSchemaBuilder schemaBuilder) {
