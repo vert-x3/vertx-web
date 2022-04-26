@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Red Hat, Inc.
+ * Copyright 2022 Red Hat, Inc.
  *
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
@@ -22,15 +22,15 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.http.impl.HttpClientImpl;
+import io.vertx.core.http.impl.HttpClientInternal;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.uritemplate.ExpandOptions;
-import io.vertx.uritemplate.UriTemplate;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.impl.predicate.PredicateInterceptor;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
+import io.vertx.uritemplate.ExpandOptions;
+import io.vertx.uritemplate.UriTemplate;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -140,7 +140,7 @@ public class WebClientBase implements WebClientInternal {
 
   @Override
   public <T> HttpContext<T> createContext(Handler<AsyncResult<HttpResponse<T>>> handler) {
-    HttpClientImpl client = (HttpClientImpl) this.client;
+    HttpClientInternal client = (HttpClientInternal) this.client;
     return new HttpContext<>(client, options, interceptors, handler);
   }
 
