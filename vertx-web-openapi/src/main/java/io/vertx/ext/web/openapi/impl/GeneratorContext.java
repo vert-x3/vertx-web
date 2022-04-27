@@ -5,10 +5,11 @@ import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.Operation;
 import io.vertx.ext.web.validation.RequestPredicateResult;
-import io.vertx.ext.web.validation.impl.validator.SchemaValidator;
+import io.vertx.ext.web.validation.impl.validator.ValueValidator;
 import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.validator.Draft;
 import io.vertx.json.schema.validator.JsonSchemaOptions;
+import io.vertx.json.schema.validator.impl.SchemaValidatorInternal;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +49,8 @@ public class GeneratorContext {
         schemaLocation,
         () -> normalizeSchema(originalSchema, schemaLocation),
         fakeSchema,
-        (n, s) -> new SchemaValidator(io.vertx.json.schema.validator.SchemaValidator.create(io.vertx.json.schema.validator.Schema.of(n), new JsonSchemaOptions().setDraft(Draft.DRAFT7).setBaseUri("app://")))
+        (n, s) -> new ValueValidator(
+          (SchemaValidatorInternal) io.vertx.json.schema.validator.SchemaValidator.create(io.vertx.json.schema.validator.Schema.of(n), new JsonSchemaOptions().setDraft(Draft.DRAFT7).setBaseUri("app://")))
       );
   }
 
@@ -58,7 +60,8 @@ public class GeneratorContext {
         schemaLocation,
         () -> normalizeSchema(originalSchema, schemaLocation),
         fakeSchema(originalSchema),
-        (n, s) -> new SchemaValidator(io.vertx.json.schema.validator.SchemaValidator.create(io.vertx.json.schema.validator.Schema.of(n), new JsonSchemaOptions().setDraft(Draft.DRAFT7).setBaseUri("app://")))
+        (n, s) -> new ValueValidator(
+          (SchemaValidatorInternal) io.vertx.json.schema.validator.SchemaValidator.create(io.vertx.json.schema.validator.Schema.of(n), new JsonSchemaOptions().setDraft(Draft.DRAFT7).setBaseUri("app://")))
       );
   }
 

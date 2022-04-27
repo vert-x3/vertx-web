@@ -1,7 +1,6 @@
 package io.vertx.ext.web.validation.impl;
 
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.ParameterProcessorException;
 import io.vertx.ext.web.validation.RequestParameter;
@@ -9,14 +8,9 @@ import io.vertx.ext.web.validation.impl.parameter.ParameterParser;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessorImpl;
 import io.vertx.ext.web.validation.impl.validator.ValueValidator;
-import io.vertx.json.schema.SchemaParser;
-import io.vertx.json.schema.SchemaRouter;
-import io.vertx.json.schema.SchemaRouterOptions;
 import io.vertx.json.schema.ValidationException;
-import io.vertx.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -33,19 +27,10 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ParameterProcessorUnitTest {
 
-  SchemaRouter router;
-  SchemaParser parser;
-
   @Mock
   ParameterParser mockedParser;
   @Mock
   ValueValidator mockedValidator;
-
-  @BeforeEach
-  public void setUp(Vertx vertx) {
-    router = SchemaRouter.create(vertx, new SchemaRouterOptions());
-    parser = Draft7SchemaParser.create(router);
-  }
 
   @Test
   public void testRequiredParam() {

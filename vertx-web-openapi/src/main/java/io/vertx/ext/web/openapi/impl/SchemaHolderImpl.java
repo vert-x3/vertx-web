@@ -2,7 +2,7 @@ package io.vertx.ext.web.openapi.impl;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.web.validation.impl.validator.SchemaValidator;
+import io.vertx.ext.web.validation.impl.validator.ValueValidator;
 
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -17,10 +17,10 @@ public class SchemaHolderImpl implements SchemaHolder {
   private JsonPointer normalizedSchemaPointer;
   private JsonObject normalizedSchema;
   private final JsonObject fakeSchema;
-  private final BiFunction<JsonObject, JsonPointer, SchemaValidator> validatorFactory;
-  private SchemaValidator validator;
+  private final BiFunction<JsonObject, JsonPointer, ValueValidator> validatorFactory;
+  private ValueValidator validator;
 
-  public SchemaHolderImpl(JsonObject originalSchema, JsonPointer schemaPointer, Supplier<Map.Entry<JsonPointer, JsonObject>> normalizedSchemaSupplier, JsonObject fakeSchema, BiFunction<JsonObject, JsonPointer, SchemaValidator> validatorFactory) {
+  public SchemaHolderImpl(JsonObject originalSchema, JsonPointer schemaPointer, Supplier<Map.Entry<JsonPointer, JsonObject>> normalizedSchemaSupplier, JsonObject fakeSchema, BiFunction<JsonObject, JsonPointer, ValueValidator> validatorFactory) {
     this.originalSchema = originalSchema;
     this.schemaPointer = schemaPointer;
     this.normalizedSchemaSupplier = normalizedSchemaSupplier;
@@ -54,7 +54,7 @@ public class SchemaHolderImpl implements SchemaHolder {
   }
 
   @Override
-  public SchemaValidator getValidator() {
+  public ValueValidator getValidator() {
     if (validator == null)
       validator = validatorFactory.apply(getNormalizedSchema(), this.normalizedSchemaPointer);
     return validator;

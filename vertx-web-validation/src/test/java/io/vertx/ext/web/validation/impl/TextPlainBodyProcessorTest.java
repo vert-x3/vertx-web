@@ -1,6 +1,5 @@
 package io.vertx.ext.web.validation.impl;
 
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RequestBody;
@@ -10,8 +9,6 @@ import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.testutils.TestSchemas;
-import io.vertx.json.schema.SchemaRouter;
-import io.vertx.json.schema.SchemaRouterOptions;
 import io.vertx.json.schema.validator.Draft;
 import io.vertx.json.schema.validator.JsonSchemaOptions;
 import io.vertx.json.schema.validator.SchemaRepository;
@@ -25,14 +22,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class TextPlainBodyProcessorTest {
 
-  SchemaRouter router;
   SchemaRepository repository;
 
   @Mock
@@ -43,8 +38,7 @@ public class TextPlainBodyProcessorTest {
   RequestBody mockedRequestBody;
 
   @BeforeEach
-  public void setUp(Vertx vertx) {
-    router = SchemaRouter.create(vertx, new SchemaRouterOptions());
+  public void setUp() {
     repository = SchemaRepository.create(
       new JsonSchemaOptions()
         .setDraft(Draft.DRAFT7)

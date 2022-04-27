@@ -3,7 +3,7 @@ package io.vertx.ext.web.openapi.impl;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.web.validation.impl.validator.SchemaValidator;
+import io.vertx.ext.web.validation.impl.validator.ValueValidator;
 
 public interface SchemaHolder {
 
@@ -22,6 +22,6 @@ public interface SchemaHolder {
   JsonPointer getSchemaPointer();
 
   @GenIgnore
-  SchemaValidator getValidator();
+  ValueValidator getValidator();
 
 }

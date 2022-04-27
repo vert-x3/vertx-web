@@ -12,11 +12,7 @@ import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.testutils.TestSchemas;
-import io.vertx.json.schema.SchemaParser;
-import io.vertx.json.schema.SchemaRouter;
-import io.vertx.json.schema.SchemaRouterOptions;
 import io.vertx.json.schema.ValidationException;
-import io.vertx.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.json.schema.validator.Draft;
 import io.vertx.json.schema.validator.JsonSchemaOptions;
 import io.vertx.json.schema.validator.SchemaRepository;
@@ -37,7 +33,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class JsonBodyProcessorImplTest {
 
-  SchemaRouter router;
   SchemaRepository repository;
 
   @Mock
@@ -49,7 +44,6 @@ class JsonBodyProcessorImplTest {
 
   @BeforeEach
   public void setUp(Vertx vertx) {
-    router = SchemaRouter.create(vertx, new SchemaRouterOptions());
     repository = SchemaRepository.create(
       new JsonSchemaOptions()
         .setDraft(Draft.DRAFT7)

@@ -5,8 +5,6 @@ import io.vertx.ext.web.validation.ParameterProcessorException;
 import io.vertx.ext.web.validation.builder.Parameters;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
 import io.vertx.ext.web.validation.testutils.TestSchemas;
-import io.vertx.json.schema.SchemaRouter;
-import io.vertx.json.schema.SchemaRouterOptions;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.validator.Draft;
 import io.vertx.json.schema.validator.JsonSchemaOptions;
@@ -29,12 +27,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(MockitoExtension.class)
 public class ParameterProcessorIntegrationTest {
 
-  SchemaRouter router;
-  SchemaRepository repository;
+  private SchemaRepository repository;
 
   @BeforeEach
   public void setUp(Vertx vertx) {
-    router = SchemaRouter.create(vertx, new SchemaRouterOptions());
     repository = SchemaRepository.create(
       new JsonSchemaOptions()
         .setDraft(Draft.DRAFT7)
