@@ -10,6 +10,9 @@ import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.SchemaRouter;
 import io.vertx.json.schema.SchemaRouterOptions;
 import io.vertx.json.schema.draft7.Draft7SchemaParser;
+import io.vertx.json.schema.validator.Draft;
+import io.vertx.json.schema.validator.JsonSchemaOptions;
+import io.vertx.json.schema.validator.SchemaRepository;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterEach;
@@ -19,8 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(VertxExtension.class)
 public abstract class BaseValidationHandlerTest {
 
-  public SchemaRouter schemaRouter;
-  public SchemaParser parser;
+  public SchemaRepository repository;
   public Router router;
   public HttpServer server;
   public WebClient client;
@@ -30,8 +32,10 @@ public abstract class BaseValidationHandlerTest {
     router = Router.router(vertx);
     ValidationTestUtils.mountRouterFailureHandler(router);
 
-    schemaRouter = SchemaRouter.create(vertx, new SchemaRouterOptions());
-    parser = Draft7SchemaParser.create(schemaRouter);
+    repository = SchemaRepository.create(
+      new JsonSchemaOptions()
+        .setDraft(Draft.DRAFT7)
+        .setBaseUri("app://"));
 
     client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(9000).setDefaultHost("localhost"));
     server = vertx

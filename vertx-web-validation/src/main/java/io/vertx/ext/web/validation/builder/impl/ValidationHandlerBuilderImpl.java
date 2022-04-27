@@ -12,30 +12,22 @@ import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.ValidationHandlerImpl;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
-import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.validator.SchemaRepository;
 
 import java.util.*;
 import java.util.function.Function;
 
 public class ValidationHandlerBuilderImpl implements ValidationHandlerBuilder {
 
-  private final SchemaParser jsonSchemaParser;
+  private final SchemaRepository repository;
 
   final Map<ParameterLocation, List<ParameterProcessor>> parameterProcessors = new HashMap<>();
   final List<BodyProcessor> bodyProcessors = new ArrayList<>();
   final List<Function<RoutingContext, RequestPredicateResult>> predicates = new ArrayList<>();
 
-  /**
-   * @deprecated Use the argument free constructor {@link #ValidationHandlerBuilderImpl()}.
-   */
-  @Deprecated
-  public ValidationHandlerBuilderImpl(SchemaParser jsonSchemaParser) {
-    Objects.requireNonNull(jsonSchemaParser, "'jsonSchemaParser' cannot be null");
-    this.jsonSchemaParser = jsonSchemaParser;
-  }
-
-  public ValidationHandlerBuilderImpl() {
-    this.jsonSchemaParser = null;
+  public ValidationHandlerBuilderImpl(SchemaRepository repository) {
+    Objects.requireNonNull(repository, "'repository' cannot be null");
+    this.repository = repository;
   }
 
   @Override
@@ -46,37 +38,37 @@ public class ValidationHandlerBuilderImpl implements ValidationHandlerBuilder {
 
   @Override
   public ValidationHandlerBuilder queryParameter(StyledParameterProcessorFactory parameterProcessor) {
-    return parameter(ParameterLocation.QUERY, parameterProcessor.create(ParameterLocation.QUERY, jsonSchemaParser));
+    return parameter(ParameterLocation.QUERY, parameterProcessor.create(ParameterLocation.QUERY, repository));
   }
 
   @Override
   public ValidationHandlerBuilder queryParameter(ParameterProcessorFactory parameterProcessor) {
-    return parameter(ParameterLocation.QUERY, parameterProcessor.create(ParameterLocation.QUERY, jsonSchemaParser));
+    return parameter(ParameterLocation.QUERY, parameterProcessor.create(ParameterLocation.QUERY, repository));
   }
 
   @Override
   public ValidationHandlerBuilder pathParameter(ParameterProcessorFactory parameterProcessor) {
-    return parameter(ParameterLocation.PATH, parameterProcessor.create(ParameterLocation.PATH, jsonSchemaParser));
+    return parameter(ParameterLocation.PATH, parameterProcessor.create(ParameterLocation.PATH, repository));
   }
 
   @Override
   public ValidationHandlerBuilder cookieParameter(StyledParameterProcessorFactory parameterProcessor) {
-    return parameter(ParameterLocation.COOKIE, parameterProcessor.create(ParameterLocation.COOKIE, jsonSchemaParser));
+    return parameter(ParameterLocation.COOKIE, parameterProcessor.create(ParameterLocation.COOKIE, repository));
   }
 
   @Override
   public ValidationHandlerBuilder cookieParameter(ParameterProcessorFactory parameterProcessor) {
-    return parameter(ParameterLocation.COOKIE, parameterProcessor.create(ParameterLocation.COOKIE, jsonSchemaParser));
+    return parameter(ParameterLocation.COOKIE, parameterProcessor.create(ParameterLocation.COOKIE, repository));
   }
 
   @Override
   public ValidationHandlerBuilder headerParameter(ParameterProcessorFactory parameterProcessor) {
-    return parameter(ParameterLocation.HEADER, parameterProcessor.create(ParameterLocation.HEADER, jsonSchemaParser));
+    return parameter(ParameterLocation.HEADER, parameterProcessor.create(ParameterLocation.HEADER, repository));
   }
 
   @Override
   public ValidationHandlerBuilder body(BodyProcessorFactory bodyProcessor) {
-    bodyProcessors.add(bodyProcessor.create(jsonSchemaParser));
+    bodyProcessors.add(bodyProcessor.create(repository));
     return this;
   }
 

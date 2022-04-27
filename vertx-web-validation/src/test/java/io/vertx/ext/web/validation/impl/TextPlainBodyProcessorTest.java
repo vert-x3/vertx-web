@@ -10,10 +10,11 @@ import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.testutils.TestSchemas;
-import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.SchemaRouter;
 import io.vertx.json.schema.SchemaRouterOptions;
-import io.vertx.json.schema.draft7.Draft7SchemaParser;
+import io.vertx.json.schema.validator.Draft;
+import io.vertx.json.schema.validator.JsonSchemaOptions;
+import io.vertx.json.schema.validator.SchemaRepository;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)
@@ -31,7 +33,7 @@ import static org.mockito.Mockito.when;
 public class TextPlainBodyProcessorTest {
 
   SchemaRouter router;
-  SchemaParser parser;
+  SchemaRepository repository;
 
   @Mock
   RoutingContext mockedContext;
@@ -43,7 +45,10 @@ public class TextPlainBodyProcessorTest {
   @BeforeEach
   public void setUp(Vertx vertx) {
     router = SchemaRouter.create(vertx, new SchemaRouterOptions());
-    parser = Draft7SchemaParser.create(router);
+    repository = SchemaRepository.create(
+      new JsonSchemaOptions()
+        .setDraft(Draft.DRAFT7)
+        .setBaseUri("app://"));
   }
 
   @Test
@@ -51,7 +56,7 @@ public class TextPlainBodyProcessorTest {
     when(mockedContext.body()).thenReturn(mockedRequestBody);
     when(mockedRequestBody.asString()).thenReturn(TestSchemas.VALID_STRING);
 
-    BodyProcessor processor = Bodies.textPlain(TestSchemas.SAMPLE_STRING_SCHEMA_BUILDER).create(parser);
+    BodyProcessor processor = Bodies.textPlain(TestSchemas.SAMPLE_STRING_SCHEMA_BUILDER).create(repository);
 
     processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
       testContext.verify(() -> {
@@ -71,7 +76,7 @@ public class TextPlainBodyProcessorTest {
     when(mockedContext.request()).thenReturn(mockerServerRequest);
     when(mockedContext.body()).thenReturn(mockedRequestBody);
 
-    BodyProcessor processor = Bodies.textPlain(TestSchemas.SAMPLE_STRING_SCHEMA_BUILDER).create(parser);
+    BodyProcessor processor = Bodies.textPlain(TestSchemas.SAMPLE_STRING_SCHEMA_BUILDER).create(repository);
 
     assertThatCode(() -> processor.process(mockedContext))
       .isInstanceOf(BodyProcessorException.class)

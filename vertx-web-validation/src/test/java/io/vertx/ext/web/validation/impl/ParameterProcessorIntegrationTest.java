@@ -5,11 +5,12 @@ import io.vertx.ext.web.validation.ParameterProcessorException;
 import io.vertx.ext.web.validation.builder.Parameters;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
 import io.vertx.ext.web.validation.testutils.TestSchemas;
-import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.SchemaRouter;
 import io.vertx.json.schema.SchemaRouterOptions;
 import io.vertx.json.schema.ValidationException;
-import io.vertx.json.schema.draft7.Draft7SchemaParser;
+import io.vertx.json.schema.validator.Draft;
+import io.vertx.json.schema.validator.JsonSchemaOptions;
+import io.vertx.json.schema.validator.SchemaRepository;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,19 +30,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ParameterProcessorIntegrationTest {
 
   SchemaRouter router;
-  SchemaParser parser;
+  SchemaRepository repository;
 
   @BeforeEach
   public void setUp(Vertx vertx) {
     router = SchemaRouter.create(vertx, new SchemaRouterOptions());
-    parser = Draft7SchemaParser.create(router);
+    repository = SchemaRepository.create(
+      new JsonSchemaOptions()
+        .setDraft(Draft.DRAFT7)
+        .setBaseUri("app://"));
   }
 
   @Test
   public void testJsonParam(VertxTestContext testContext) {
     ParameterProcessor processor = Parameters
       .jsonParam("myParam", TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER)
-      .create(ParameterLocation.QUERY, parser);
+      .create(ParameterLocation.QUERY, repository);
 
     Map<String, List<String>> map = new HashMap<>();
     map.put("myParam", Collections.singletonList(TestSchemas.VALID_OBJECT.encode()));
@@ -62,7 +66,7 @@ public class ParameterProcessorIntegrationTest {
   public void testInvalidJsonParam(VertxTestContext testContext) {
     ParameterProcessor processor = Parameters
       .jsonParam("myParam", TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER)
-      .create(ParameterLocation.QUERY, parser);
+      .create(ParameterLocation.QUERY, repository);
 
     Map<String, List<String>> map = new HashMap<>();
     map.put("myParam", Collections.singletonList(TestSchemas.INVALID_OBJECT.encode()));

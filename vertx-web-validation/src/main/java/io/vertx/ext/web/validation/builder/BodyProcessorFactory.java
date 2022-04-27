@@ -1,9 +1,8 @@
 package io.vertx.ext.web.validation.builder;
 
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
-import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.validator.SchemaRepository;
 
 /**
  * This interface is used to build body processors. <br/>
@@ -11,12 +10,8 @@ import io.vertx.json.schema.SchemaParser;
  * Look at {@link Bodies} for all available factories.
  */
 @VertxGen
+@FunctionalInterface
 public interface BodyProcessorFactory {
 
-  /**
-   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
-   */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  BodyProcessor create(SchemaParser parser);
-
+  BodyProcessor create(SchemaRepository parser);
 }

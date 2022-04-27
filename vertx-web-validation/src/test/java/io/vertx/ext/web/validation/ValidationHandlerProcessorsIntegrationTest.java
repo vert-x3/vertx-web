@@ -2,6 +2,7 @@ package io.vertx.ext.web.validation;
 
 import io.netty.handler.codec.http.QueryStringEncoder;
 import io.vertx.core.MultiMap;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -15,6 +16,7 @@ import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
+import io.vertx.json.schema.validator.Schema;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -22,8 +24,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
 import static io.vertx.ext.web.validation.builder.Parameters.*;
@@ -44,7 +49,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .pathParameter(param("a", stringSchema()))
       .pathParameter(param("b", booleanSchema()))
       .pathParameter(param("c", intSchema()))
@@ -82,7 +87,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .queryParameter(param("param1", booleanSchema()))
       .queryParameter(param("param2", intSchema()))
       .build();
@@ -110,12 +115,16 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testQueryJsonObjectAsyncParam(VertxTestContext testContext) {
+  public void testQueryJsonObjectAsyncParam(VertxTestContext testContext) throws IOException {
     Checkpoint checkpoint = testContext.checkpoint(2);
 
+    repository
+      .dereference("app:///tree_schema.json", Schema.of(
+        new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "tree_schema.json"))))));
+
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
-      .queryParameter(Parameters.jsonParam("myTree", ref(JsonPointer.fromURI(URI.create("tree_schema.json")))))
+      .create(repository)
+      .queryParameter(Parameters.jsonParam("myTree", ref(JsonPointer.fromURI(URI.create("app:///tree_schema.json")))))
       .build();
     router
       .get("/test")
@@ -152,13 +161,17 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testQueryParamsAsyncValidation(VertxTestContext testContext) {
+  public void testQueryParamsAsyncValidation(VertxTestContext testContext) throws IOException {
     Checkpoint checkpoint = testContext.checkpoint(4);
 
+    repository
+      .dereference("app:///int_schema.json", Schema.of(
+        new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "int_schema.json"))))));
+
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .queryParameter(param("param1", booleanSchema()))
-      .queryParameter(param("param2", ref(JsonPointer.fromURI(URI.create("int_schema.json"))), ValueParser.LONG_PARSER))
+      .queryParameter(param("param2", ref(JsonPointer.fromURI(URI.create("app:///int_schema.json"))), ValueParser.LONG_PARSER))
       .build();
     router
       .get("/test")
@@ -206,7 +219,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .queryParameter(param("param1", booleanSchema()))
       .queryParameter(optionalParam("param2", intSchema()))
       .build();
@@ -243,7 +256,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .queryParameter(explodedParam("parameter",
         arraySchema().items(intSchema().with(multipleOf(2)))
       ))
@@ -286,7 +299,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .queryParameter(serializedParam(
         "parameter",
         Parsers.commaSeparatedArrayParser(),
@@ -332,7 +345,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .queryParameter(optionalParam("param1", intSchema().defaultValue(10)))
       .queryParameter(param("param2", intSchema()))
       .build();
@@ -370,7 +383,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .pathParameter(param("pathParam", booleanSchema()))
       .queryParameter(explodedParam("awesomeArray", arraySchema().items(intSchema())))
       .queryParameter(param("anotherParam", numberSchema()))
@@ -406,7 +419,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .headerParameter(param("x-a", stringSchema()))
       .headerParameter(param("x-b", booleanSchema()))
       .headerParameter(param("x-c", intSchema()))
@@ -441,14 +454,18 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testHeaderParamsAsync(VertxTestContext testContext) {
+  public void testHeaderParamsAsync(VertxTestContext testContext) throws IOException {
     Checkpoint checkpoint = testContext.checkpoint(4);
 
+    repository
+      .dereference("app:///int_schema.json", Schema.of(
+        new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "int_schema.json"))))));
+
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .headerParameter(param("x-a", stringSchema()))
       .headerParameter(param("x-b", booleanSchema()))
-      .headerParameter(param("x-c", ref(JsonPointer.fromURI(URI.create("int_schema.json"))), ValueParser.LONG_PARSER))
+      .headerParameter(param("x-c", ref(JsonPointer.fromURI(URI.create("app:///int_schema.json"))), ValueParser.LONG_PARSER))
       .build();
     router.get("/test")
       .handler(validationHandler)
@@ -502,7 +519,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .cookieParameter(param("param1", booleanSchema()))
       .cookieParameter(param("param2", intSchema()))
       .build();
@@ -544,13 +561,17 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testCookieParamsAsync(VertxTestContext testContext) {
+  public void testCookieParamsAsync(VertxTestContext testContext) throws IOException {
     Checkpoint checkpoint = testContext.checkpoint(3);
 
+    repository
+      .dereference("app:///int_schema.json", Schema.of(
+        new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "int_schema.json"))))));
+
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .cookieParameter(param("param1", booleanSchema()))
-      .cookieParameter(param("param2", ref(JsonPointer.fromURI(URI.create("int_schema.json"))), ValueParser.LONG_PARSER))
+      .cookieParameter(param("param2", ref(JsonPointer.fromURI(URI.create("app:///int_schema.json"))), ValueParser.LONG_PARSER))
       .build();
     router
       .get("/test")
@@ -605,7 +626,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .body(
         Bodies.formUrlEncoded(objectSchema().requiredProperty("parameter", intSchema()))
       )
@@ -640,7 +661,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .body(
         Bodies.multipartFormData(objectSchema().requiredProperty("parameter", intSchema()))
       )
@@ -677,7 +698,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     ObjectSchemaBuilder bodySchema = objectSchema().requiredProperty("parameter", intSchema());
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .body(Bodies.multipartFormData(bodySchema))
       .body(Bodies.formUrlEncoded(bodySchema))
       .build();
@@ -750,7 +771,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
       .property("array", arraySchema().items(numberSchema()));
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .body(Bodies.json(bodySchema))
       .body(Bodies.multipartFormData(bodySchema))
       .body(Bodies.formUrlEncoded(bodySchema))
@@ -808,12 +829,12 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(1);
 
     ValidationHandler validationHandler1 = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .queryParameter(param("param1", intSchema()))
       .build();
 
     ValidationHandler validationHandler2 = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .queryParameter(param("param2", booleanSchema()))
       .build();
 
@@ -841,7 +862,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .body(Bodies.json(objectSchema()))
       .build();
 
@@ -869,12 +890,16 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testJsonBodyAsyncCircular(VertxTestContext testContext, @TempDir Path tempDir) {
+  public void testJsonBodyAsyncCircular(VertxTestContext testContext, @TempDir Path tempDir) throws IOException {
     Checkpoint checkpoint = testContext.checkpoint(2);
 
+    repository
+      .dereference("app:///tree_schema.json", Schema.of(
+        new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "tree_schema.json"))))));
+
     ValidationHandler validationHandler1 = ValidationHandlerBuilder
-      .create(parser)
-      .body(Bodies.json(ref(JsonPointer.fromURI(URI.create("tree_schema.json")))))
+      .create(repository)
+      .body(Bodies.json(ref(JsonPointer.fromURI(URI.create("app:///tree_schema.json")))))
       .build();
 
     JsonObject testObj = new JsonObject()
@@ -909,7 +934,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(4);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .queryParameter(optionalExplodedParam("explodedObject",
         objectSchema()
           .property("wellKnownProperty", intSchema())
@@ -953,7 +978,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   @Test
   public void testSimpleHeaderCaseInsensitivity(VertxTestContext testContext) {
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .headerParameter(param("AnHeader", intSchema()))
       .build();
 

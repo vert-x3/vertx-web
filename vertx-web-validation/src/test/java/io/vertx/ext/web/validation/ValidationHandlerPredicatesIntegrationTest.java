@@ -30,7 +30,7 @@ public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .predicate(RequestPredicate.BODY_REQUIRED)
       .build();
 
@@ -62,7 +62,7 @@ public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(4);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
-      .create(parser)
+      .create(repository)
       .predicate(RequestPredicate.multipartFileUploadExists(
         "myfile",
         Pattern.quote("text/plain")

@@ -2,70 +2,41 @@ package io.vertx.ext.web.validation.impl.validator;
 
 import io.vertx.core.Future;
 import io.vertx.ext.web.validation.RequestParameter;
-import io.vertx.json.schema.NoSyncValidationException;
-import io.vertx.json.schema.Schema;
-import io.vertx.json.schema.ValidationException;
-import io.vertx.json.schema.common.SchemaImpl;
+import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.validator.OutputUnit;
-import io.vertx.json.schema.validator.Validator;
+import io.vertx.json.schema.validator.impl.SchemaValidatorInternal;
+
+import java.util.Objects;
 
 public class SchemaValidator implements ValueValidator {
 
-  private final Schema s;
-  private final Validator validator;
+  private final SchemaValidatorInternal validator;
 
-  @Deprecated
-  public SchemaValidator(Schema s) {
-    this.s = s;
-    this.validator = null;
-  }
-
-  public SchemaValidator(Validator validator) {
-    this.validator = validator;
-    this.s = null;
+  public SchemaValidator(io.vertx.json.schema.validator.SchemaValidator validator) {
+    Objects.requireNonNull(validator, "'validator' cannot be null");
+    this.validator = (SchemaValidatorInternal) validator;
   }
 
   @Override
   public Future<RequestParameter> validate(Object json) {
-    if (validator != null) {
-      try {
-        OutputUnit res = validator.validate(json);
-        if (res.getValid()) {
-          return Future.succeededFuture(RequestParameter.create(json));
-        } else {
-          // when the validation fails, there are a list of errors and annotations
-          // while annotations are non fatal we should use the list of errors to describe the failure?
-          return Future.failedFuture(res.getError());
-        }
-      } catch (IllegalStateException e) {
-        // illegal state exception is thrown when the resolved schemas reach an illegal point
-        return Future.failedFuture(e);
-      }
-    }
-    if (s.isSync()) {
-      try {
-        s.validateSync(json);
-        ((SchemaImpl) s).getOrApplyDefaultSync(json);
+    try {
+      OutputUnit res = validator.validate(json);
+      if (res.getValid()) {
         return Future.succeededFuture(RequestParameter.create(json));
-      } catch (ValidationException e) {
-        return Future.failedFuture(e);
+      } else {
+        // when the validation fails, there are a list of errors and annotations
+        // while annotations are non fatal we should use the list of errors to describe the failure?
+        return Future.failedFuture(res.toException(json));
       }
+    } catch (SchemaException e) {
+      // schema exception is thrown when the resolved schemas reach an illegal point
+      return Future.failedFuture(e);
     }
-    return s.validateAsync(json).map(v -> {
-      try {
-        ((SchemaImpl) s).getOrApplyDefaultAsync(json);
-      } catch (NoSyncValidationException e) {
-        // This happens if I try to apply default values to an async ref schema
-      }
-      return RequestParameter.create(json);
-    });
   }
 
   @Override
   public Future<Object> getDefault() {
-    if (s.isSync()) {
-      return Future.succeededFuture( ((SchemaImpl) s).getOrApplyDefaultSync(null));
-    }
-    return ((SchemaImpl) s).getOrApplyDefaultAsync(null);
+    return Future.succeededFuture(
+      validator.schema().get("default"));
   }
 }

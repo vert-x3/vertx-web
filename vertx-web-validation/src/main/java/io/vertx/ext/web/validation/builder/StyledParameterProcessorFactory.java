@@ -5,6 +5,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
 import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.validator.SchemaRepository;
 
 /**
  * This interface is used to build complex parameter processors supported only in cookie & query. <br/>
@@ -15,9 +16,5 @@ import io.vertx.json.schema.SchemaParser;
 @FunctionalInterface
 public interface StyledParameterProcessorFactory {
 
-  /**
-   * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
-   */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  ParameterProcessor create(ParameterLocation location, SchemaParser parser);
+  ParameterProcessor create(ParameterLocation location, SchemaRepository repository);
 }

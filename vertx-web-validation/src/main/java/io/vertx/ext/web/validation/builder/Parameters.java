@@ -9,8 +9,8 @@ import io.vertx.ext.web.validation.impl.parser.ValueParser;
 import io.vertx.ext.web.validation.impl.validator.SchemaValidator;
 import io.vertx.json.schema.common.dsl.*;
 import io.vertx.json.schema.validator.Draft;
-import io.vertx.json.schema.validator.Validator;
-import io.vertx.json.schema.validator.ValidatorOptions;
+import io.vertx.json.schema.validator.JsonSchemaOptions;
+import io.vertx.json.schema.validator.Schema;
 
 /**
  * In this interface you can find all available {@link ParameterProcessorFactory} to use in {@link ValidationHandlerBuilder}. <br/>
@@ -32,7 +32,7 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, NumberSchemaBuilder schemaBuilder) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+    return (location, repository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       false,
@@ -40,8 +40,7 @@ public interface Parameters {
         location.lowerCaseIfNeeded(parameterName),
         schemaBuilder.isIntegerSchema() ? ValueParser.LONG_PARSER : ValueParser.DOUBLE_PARSER
       ),
-      new SchemaValidator(
-        Validator.create(io.vertx.json.schema.validator.Schema.of(schemaBuilder.toJson()), new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://"))));
+      new SchemaValidator(repository.validator(Schema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -56,7 +55,7 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, NumberSchemaBuilder schemaBuilder) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+    return (location, repository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       true,
@@ -64,7 +63,7 @@ public interface Parameters {
         location.lowerCaseIfNeeded(parameterName),
         schemaBuilder.isIntegerSchema() ? ValueParser.LONG_PARSER : ValueParser.DOUBLE_PARSER
       ),
-      new SchemaValidator(Validator.create(io.vertx.json.schema.validator.Schema.of(schemaBuilder.toJson()), new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://"))));
+      new SchemaValidator(repository.validator(Schema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -79,12 +78,12 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, StringSchemaBuilder schemaBuilder) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+    return (location, repository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       false,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.NOOP_PARSER),
-      new SchemaValidator(Validator.create(io.vertx.json.schema.validator.Schema.of(schemaBuilder.toJson()), new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://"))));
+      new SchemaValidator(repository.validator(Schema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -99,12 +98,12 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, StringSchemaBuilder schemaBuilder) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+    return (location, repository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       true,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.NOOP_PARSER),
-      new SchemaValidator(Validator.create(io.vertx.json.schema.validator.Schema.of(schemaBuilder.toJson()), new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://"))));
+      new SchemaValidator(repository.validator(Schema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -119,12 +118,12 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, BooleanSchemaBuilder schemaBuilder) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+    return (location, repository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       false,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.BOOLEAN_PARSER),
-      new SchemaValidator(Validator.create(io.vertx.json.schema.validator.Schema.of(schemaBuilder.toJson()), new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://"))));
+      new SchemaValidator(repository.validator(Schema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -139,12 +138,12 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, BooleanSchemaBuilder schemaBuilder) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+    return (location, repository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       true,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.BOOLEAN_PARSER),
-      new SchemaValidator(Validator.create(io.vertx.json.schema.validator.Schema.of(schemaBuilder.toJson()), new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://"))));
+      new SchemaValidator(repository.validator(Schema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -280,12 +279,12 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, SchemaBuilder schemaBuilder, ValueParser<String> valueParser) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+    return (location, repository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       false,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), valueParser),
-      new SchemaValidator(Validator.create(io.vertx.json.schema.validator.Schema.of(schemaBuilder.toJson()), new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://"))));
+      new SchemaValidator(repository.validator(Schema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -301,12 +300,12 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, SchemaBuilder schemaBuilder, ValueParser<String> valueParser) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+    return (location, repository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       true,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), valueParser),
-      new SchemaValidator(Validator.create(io.vertx.json.schema.validator.Schema.of(schemaBuilder.toJson()), new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://"))));
+      new SchemaValidator(repository.validator(Schema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -321,12 +320,12 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory jsonParam(String parameterName, SchemaBuilder builder) {
-    return (location, parser) -> new ParameterProcessorImpl(
+    return (location, repository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       false,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.JSON_PARSER),
-      new SchemaValidator(Validator.create(io.vertx.json.schema.validator.Schema.of(builder.toJson()), new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://"))));
+      new SchemaValidator(repository.validator(Schema.of(builder.toJson()))));
   }
 
   /**
@@ -341,12 +340,12 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalJsonParam(String parameterName, SchemaBuilder builder) {
-    return (location, parser) -> new ParameterProcessorImpl(
+    return (location, repository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       true,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.JSON_PARSER),
-      new SchemaValidator(Validator.create(io.vertx.json.schema.validator.Schema.of(builder.toJson()), new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://"))));
+      new SchemaValidator(repository.validator(Schema.of(builder.toJson()))));
   }
 
   /**
