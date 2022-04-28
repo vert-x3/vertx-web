@@ -1,6 +1,5 @@
 package io.vertx.ext.web.validation.impl.body;
 
-import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonArray;
@@ -12,6 +11,8 @@ import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.impl.parser.ObjectParser;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
 import io.vertx.ext.web.validation.impl.validator.ValueValidator;
+import io.vertx.json.schema.SchemaException;
+import io.vertx.json.schema.ValidationException;
 
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,7 @@ public class FormBodyProcessorImpl extends ObjectParser<List<String>> implements
   }
 
   @Override
-  public Future<RequestParameter> process(RoutingContext requestContext) {
+  public RequestParameter process(RoutingContext requestContext) {
     try {
       MultiMap multiMap = requestContext.request().formAttributes();
       JsonObject object = new JsonObject();
@@ -43,11 +44,11 @@ public class FormBodyProcessorImpl extends ObjectParser<List<String>> implements
         Map.Entry<String, Object> parsed = parseField(key, serialized);
         if (parsed != null) object.put(parsed.getKey(), parsed.getValue());
       }
-      return valueValidator.validate(object).recover(err -> Future.failedFuture(
-        BodyProcessorException.createValidationError(requestContext.parsedHeaders().contentType().value(), err)
-      ));
+      return valueValidator.validate(object);
     } catch (MalformedValueException e) {
-      return Future.failedFuture(BodyProcessorException.createParsingError(requestContext.request().getHeader(HttpHeaders.CONTENT_TYPE), e));
+      throw BodyProcessorException.createParsingError(requestContext.request().getHeader(HttpHeaders.CONTENT_TYPE), e);
+    } catch (SchemaException | ValidationException err) {
+      throw BodyProcessorException.createValidationError(requestContext.parsedHeaders().contentType().value(), err);
     }
   }
 

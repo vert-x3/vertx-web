@@ -2,6 +2,7 @@ package io.vertx.ext.web.validation.impl;
 
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.validation.ParameterProcessorException;
+import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.builder.Parameters;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
 import io.vertx.ext.web.validation.testutils.TestSchemas;
@@ -46,16 +47,15 @@ public class ParameterProcessorIntegrationTest {
     Map<String, List<String>> map = new HashMap<>();
     map.put("myParam", Collections.singletonList(TestSchemas.VALID_OBJECT.encode()));
 
-    processor.process(map).onComplete(testContext.succeeding(rp -> {
-      testContext.verify(() -> {
-        assertThat(rp.isJsonObject()).isTrue();
-        assertThat(rp.getJsonObject())
-          .isEqualTo(
-            TestSchemas.VALID_OBJECT
-          );
-      });
+    RequestParameter rp = processor.process(map);
+    testContext.verify(() -> {
+      assertThat(rp.isJsonObject()).isTrue();
+      assertThat(rp.getJsonObject())
+        .isEqualTo(
+          TestSchemas.VALID_OBJECT
+        );
       testContext.completeNow();
-    }));
+    });
   }
 
   @Test
@@ -67,15 +67,18 @@ public class ParameterProcessorIntegrationTest {
     Map<String, List<String>> map = new HashMap<>();
     map.put("myParam", Collections.singletonList(TestSchemas.INVALID_OBJECT.encode()));
 
-    processor.process(map).onComplete(testContext.failing(throwable -> {
-      testContext.verify(() -> assertThat(throwable)
+    try {
+      processor.process(map);
+      testContext.failNow("should not reach this");
+    } catch (ParameterProcessorException err) {
+      testContext.verify(() -> assertThat(err)
         .isInstanceOf(ParameterProcessorException.class)
         .hasFieldOrPropertyWithValue("errorType", ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
         .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
         .hasFieldOrPropertyWithValue("parameterName", "myParam")
         .hasCauseInstanceOf(ValidationException.class));
       testContext.completeNow();
-    }));
+    }
   }
 
 }

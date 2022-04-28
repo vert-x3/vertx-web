@@ -26,19 +26,14 @@ public class ValueValidator {
    * @param json
    * @return
    */
-  public Future<RequestParameter> validate(Object json) {
-    try {
-      OutputUnit res = validator.validate(json);
-      if (res.getValid()) {
-        return Future.succeededFuture(RequestParameter.create(json));
-      } else {
-        // when the validation fails, there are a list of errors and annotations
-        // while annotations are non fatal we should use the list of errors to describe the failure?
-        return Future.failedFuture(res.toException(json));
-      }
-    } catch (SchemaException e) {
-      // schema exception is thrown when the resolved schemas reach an illegal point
-      return Future.failedFuture(e);
+  public RequestParameter validate(Object json) {
+    OutputUnit res = validator.validate(json);
+    if (res.getValid()) {
+      return RequestParameter.create(json);
+    } else {
+      // when the validation fails, there are a list of errors and annotations
+      // while annotations are non-fatal we should use the list of errors to describe the failure?
+      throw res.toException(json);
     }
   }
 
@@ -47,8 +42,10 @@ public class ValueValidator {
    *
    * @return
    */
-  public Future<Object> getDefault() {
-    return Future.succeededFuture(
-      validator.schema().get("default"));
+  public Object getDefault() {
+    // TODO: this may fail for TRUE/FALSE schemas
+    return validator
+      .schema()
+      .get("default");
   }
 }

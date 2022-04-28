@@ -8,6 +8,7 @@ import io.vertx.ext.web.validation.impl.parameter.ParameterParser;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessorImpl;
 import io.vertx.ext.web.validation.impl.validator.ValueValidator;
+import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -62,14 +63,13 @@ public class ParameterProcessorUnitTest {
     );
 
     when(mockedParser.parseParameter(any())).thenReturn(null);
-    when(mockedValidator.getDefault()).thenReturn(Future.succeededFuture());
+    when(mockedValidator.getDefault()).thenReturn(null);
 
-    processor.process(new HashMap<>()).onComplete(testContext.succeeding(value -> {
-      testContext.verify(() ->
-        assertThat(value).isNull()
-      );
-      testContext.completeNow();
-    }));
+    RequestParameter rp = processor.process(new HashMap<>());
+    testContext.verify(() ->
+      assertThat(rp).isNull()
+    );
+    testContext.completeNow();
   }
 
 
@@ -84,14 +84,13 @@ public class ParameterProcessorUnitTest {
     );
 
     when(mockedParser.parseParameter(any())).thenReturn(null);
-    when(mockedValidator.getDefault()).thenReturn(Future.succeededFuture("bla"));
+    when(mockedValidator.getDefault()).thenReturn("bla");
 
-    processor.process(new HashMap<>()).onComplete(testContext.succeeding(value -> {
-      testContext.verify(() ->
-        assertThat(value.getString()).isEqualTo("bla")
-      );
-      testContext.completeNow();
-    }));
+    RequestParameter rp = processor.process(new HashMap<>());
+    testContext.verify(() ->
+      assertThat(rp.getString()).isEqualTo("bla")
+    );
+    testContext.completeNow();
   }
 
   @Test
@@ -125,15 +124,14 @@ public class ParameterProcessorUnitTest {
     );
 
     when(mockedParser.parseParameter(any())).thenReturn("aaa");
-    when(mockedValidator.validate(any())).thenReturn(Future.succeededFuture(RequestParameter.create("aaa")));
+    when(mockedValidator.validate(any())).thenReturn(RequestParameter.create("aaa"));
 
-    processor.process(new HashMap<>()).onComplete(testContext.succeeding(rp -> {
-      testContext.verify(() -> {
-        assertThat(rp.isString()).isTrue();
-        assertThat(rp.getString()).isEqualTo("aaa");
-      });
-      testContext.completeNow();
-    }));
+    RequestParameter rp = processor.process(new HashMap<>());
+    testContext.verify(() -> {
+      assertThat(rp.isString()).isTrue();
+      assertThat(rp.getString()).isEqualTo("aaa");
+    });
+    testContext.completeNow();
   }
 
   @Test
@@ -147,16 +145,20 @@ public class ParameterProcessorUnitTest {
     );
 
     when(mockedParser.parseParameter(any())).thenReturn("aaa");
-    when(mockedValidator.validate(any())).thenReturn(Future.failedFuture(ValidationException.createException("aaa", "aaa", "aaa")));
+    when(mockedValidator.validate(any())).thenThrow(ValidationException.createException("aaa", "aaa", "aaa"));
 
-    processor.process(new HashMap<>()).onComplete(testContext.failing(throwable -> {
-      testContext.verify(() -> assertThat(throwable)
+    try {
+      processor.process(new HashMap<>());
+      testContext.failNow("should not reach this");
+    } catch (ParameterProcessorException err) {
+      testContext.verify(() -> assertThat(err)
         .isInstanceOf(ParameterProcessorException.class)
         .hasFieldOrPropertyWithValue("errorType", ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
         .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
         .hasFieldOrPropertyWithValue("parameterName", "myParam")
         .hasCauseInstanceOf(ValidationException.class));
       testContext.completeNow();
-    }));
+
+    }
   }
 }

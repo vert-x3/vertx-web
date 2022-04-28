@@ -6,7 +6,6 @@ import io.vertx.ext.web.validation.RequestPredicateResult;
 /**
  * Data object representing a Request predicate result
  */
-@VertxGen
 public class RequestPredicateResultImpl implements RequestPredicateResult {
 
   private final String errorMessage;

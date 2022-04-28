@@ -1,6 +1,5 @@
 package io.vertx.ext.web.validation.impl.body;
 
-import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.DecodeException;
@@ -11,6 +10,8 @@ import io.vertx.ext.web.validation.BodyProcessorException;
 import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.impl.validator.ValueValidator;
+import io.vertx.json.schema.SchemaException;
+import io.vertx.json.schema.ValidationException;
 
 public class JsonBodyProcessorImpl implements BodyProcessor {
 
@@ -26,7 +27,7 @@ public class JsonBodyProcessorImpl implements BodyProcessor {
   }
 
   @Override
-  public Future<RequestParameter> process(RoutingContext requestContext) {
+  public RequestParameter process(RoutingContext requestContext) {
     try {
       Buffer body = requestContext.body().buffer();
       if (body == null) {
@@ -36,11 +37,11 @@ public class JsonBodyProcessorImpl implements BodyProcessor {
         );
       }
       Object json = Json.decodeValue(body);
-      return valueValidator.validate(json).recover(err -> Future.failedFuture(
-        BodyProcessorException.createValidationError(requestContext.request().getHeader(HttpHeaders.CONTENT_TYPE), err)
-      ));
+      return valueValidator.validate(json);
     } catch (DecodeException e) {
       throw BodyProcessorException.createParsingError(requestContext.request().getHeader(HttpHeaders.CONTENT_TYPE), e);
+    } catch (SchemaException | ValidationException err) {
+      throw BodyProcessorException.createValidationError(requestContext.request().getHeader(HttpHeaders.CONTENT_TYPE), err);
     }
   }
 }

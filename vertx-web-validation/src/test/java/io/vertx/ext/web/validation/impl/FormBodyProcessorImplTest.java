@@ -1,7 +1,6 @@
 package io.vertx.ext.web.validation.impl;
 
 import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
@@ -9,6 +8,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.BodyProcessorException;
 import io.vertx.ext.web.validation.MalformedValueException;
+import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.testutils.TestSchemas;
@@ -32,11 +32,13 @@ import static org.mockito.Mockito.when;
 class FormBodyProcessorImplTest {
 
   SchemaRepository repository;
-  @Mock RoutingContext mockedContext;
-  @Mock HttpServerRequest mockedServerRequest;
+  @Mock
+  RoutingContext mockedContext;
+  @Mock
+  HttpServerRequest mockedServerRequest;
 
   @BeforeEach
-  public void setUp(Vertx vertx) {
+  public void setUp() {
     repository = SchemaRepository.create(
       new JsonSchemaOptions()
         .setDraft(Draft.DRAFT7)
@@ -63,23 +65,21 @@ class FormBodyProcessorImplTest {
 
     assertThat(processor.canProcess("application/x-www-form-urlencoded")).isTrue();
 
-    processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
-      testContext.verify(() -> {
-        assertThat(rp.isJsonObject())
-          .isTrue();
-        assertThat(rp.getJsonObject())
-          .isEqualTo(
-            new JsonObject()
-              .put("someNumbers", new JsonArray().add(1.1d).add(2.2d))
-              .put("oneNumber", 3.3d)
-              .put("someIntegers", new JsonArray().add(1L).add(2L))
-              .put("oneInteger", 3L)
-              .put("aBoolean", true)
-          );
-      });
-      testContext.completeNow();
-    }));
-
+    RequestParameter rp = processor.process(mockedContext);
+    testContext.verify(() -> {
+      assertThat(rp.isJsonObject())
+        .isTrue();
+      assertThat(rp.getJsonObject())
+        .isEqualTo(
+          new JsonObject()
+            .put("someNumbers", new JsonArray().add(1.1d).add(2.2d))
+            .put("oneNumber", 3.3d)
+            .put("someIntegers", new JsonArray().add(1L).add(2L))
+            .put("oneInteger", 3L)
+            .put("aBoolean", true)
+        );
+    });
+    testContext.completeNow();
   }
 
   @Test
@@ -103,14 +103,15 @@ class FormBodyProcessorImplTest {
 
     assertThat(processor.canProcess("application/x-www-form-urlencoded")).isTrue();
 
-    processor.process(mockedContext).onComplete(testContext.failing(err -> {
+    try {
+      processor.process(mockedContext);
+      testContext.failNow("should not reach this");
+    } catch (BodyProcessorException err) {
       testContext.verify(() -> assertThat(err)
         .isInstanceOf(BodyProcessorException.class)
         .hasFieldOrPropertyWithValue("actualContentType", "application/x-www-form-urlencoded")
         .hasCauseInstanceOf(MalformedValueException.class));
       testContext.completeNow();
-    }));
-
+    }
   }
-
 }

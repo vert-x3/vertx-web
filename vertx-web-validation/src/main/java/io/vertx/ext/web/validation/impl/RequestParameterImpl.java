@@ -19,10 +19,6 @@ public class RequestParameterImpl implements RequestParameter {
     this.value = value;
   }
 
-  public RequestParameterImpl() {
-    this(null);
-  }
-
   @Override
   public @Nullable String getString() {
     return (isString()) ? ((String) value) : null;

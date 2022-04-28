@@ -15,7 +15,7 @@ import java.util.Map;
 @VertxGen
 public interface ParameterProcessor {
 
-  Future<RequestParameter> process(Map<String, List<String>> params);
+  RequestParameter process(Map<String, List<String>> params);
 
   String getName();
 

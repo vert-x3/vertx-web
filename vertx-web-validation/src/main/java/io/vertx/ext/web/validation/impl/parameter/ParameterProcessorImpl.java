@@ -1,10 +1,11 @@
 package io.vertx.ext.web.validation.impl.parameter;
 
-import io.vertx.core.Future;
 import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.validator.ValueValidator;
+import io.vertx.json.schema.SchemaException;
+import io.vertx.json.schema.ValidationException;
 
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,7 @@ public class ParameterProcessorImpl implements ParameterProcessor, Comparable<Pa
   }
 
   @Override
-  public Future<RequestParameter> process(Map<String, List<String>> params) {
+  public RequestParameter process(Map<String, List<String>> params) {
     Object json;
     try {
       json = parser.parseParameter(params);
@@ -36,11 +37,18 @@ public class ParameterProcessorImpl implements ParameterProcessor, Comparable<Pa
       throw createParsingError(parameterName, location, e);
     }
     if (json != null)
-      return validator.validate(json).recover(t -> Future.failedFuture(createValidationError(parameterName, location, t)));
+      try {
+        return validator.validate(json);
+      } catch (SchemaException | ValidationException err) {
+        throw createValidationError(parameterName, location, err);
+      }
     else if (!isOptional)
       throw createMissingParameterWhenRequired(parameterName, location);
     else {
-      return validator.getDefault().map(defaultValue -> null != defaultValue ? RequestParameter.create(defaultValue) : null);
+      final Object defaultValue = validator.getDefault();
+      return defaultValue == null ?
+        null :
+        RequestParameter.create(defaultValue);
     }
   }
 

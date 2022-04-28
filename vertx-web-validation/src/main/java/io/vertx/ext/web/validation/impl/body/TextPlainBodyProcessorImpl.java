@@ -1,6 +1,5 @@
 package io.vertx.ext.web.validation.impl.body;
 
-import io.vertx.core.Future;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.BodyProcessorException;
@@ -22,7 +21,7 @@ public class TextPlainBodyProcessorImpl implements BodyProcessor {
   }
 
   @Override
-  public Future<RequestParameter> process(RoutingContext requestContext) {
+  public RequestParameter process(RoutingContext requestContext) {
     String body = requestContext.body().asString();
     if (body == null) {
       throw BodyProcessorException.createParsingError(

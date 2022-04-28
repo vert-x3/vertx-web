@@ -1,6 +1,5 @@
 package io.vertx.ext.web.openapi.impl;
 
-import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.web.RoutingContext;
@@ -27,8 +26,8 @@ public class NoopBodyProcessorGenerator implements BodyProcessorGenerator {
       }
 
       @Override
-      public Future<RequestParameter> process(RoutingContext requestContext) {
-        return Future.succeededFuture(RequestParameter.create(requestContext.body().buffer()));
+      public RequestParameter process(RoutingContext requestContext) {
+        return RequestParameter.create(requestContext.body().buffer());
       }
     };
   }

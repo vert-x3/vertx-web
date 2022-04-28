@@ -1,11 +1,12 @@
 package io.vertx.ext.web.validation.impl;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.*;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
+import io.vertx.json.schema.SchemaException;
+import io.vertx.json.schema.ValidationException;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.*;
@@ -63,112 +64,40 @@ public class ValidationHandlerImpl implements ValidationHandler {
   @Override
   public void handle(RoutingContext routingContext) {
     try {
-      if (predicates != null)
+      if (predicates != null) {
         runPredicates(routingContext);
+      }
 
-      // Hacky algorithm, it should create less futures and use less locks than CompositeFuture
       RequestParametersImpl requestParameters = new RequestParametersImpl();
-      Future<RequestParametersImpl> resultFut = Future.succeededFuture(requestParameters);
-      Future<RequestParametersImpl> waitingFut = Future.succeededFuture();
 
       if (pathParameters != null) {
-        Future<Map<String, RequestParameter>> f = validatePathParams(routingContext);
-        if (f.isComplete()) {
-          if (f.succeeded()) {
-            requestParameters.setPathParameters(f.result());
-          } else {
-            routingContext.fail(400, f.cause());
-            return;
-          }
-        } else {
-          waitingFut = f.compose(res -> {
-            requestParameters.setPathParameters(res);
-            return resultFut;
-          });
-        }
+        requestParameters.setPathParameters(validatePathParams(routingContext));
       }
 
       if (cookieParameters != null) {
-        Future<Map<String, RequestParameter>> f = validateCookieParams(routingContext);
-        if (f.isComplete()) {
-          if (f.succeeded()) {
-            requestParameters.setCookieParameters(f.result());
-          } else {
-            routingContext.fail(400, f.cause());
-            return;
-          }
-        } else {
-          waitingFut = f.compose(res -> {
-            requestParameters.setCookieParameters(res);
-            return resultFut;
-          });
-        }
+        requestParameters.setCookieParameters(validateCookieParams(routingContext));
       }
 
       if (queryParameters != null) {
-        Future<Map<String, RequestParameter>> f = validateQueryParams(routingContext);
-        if (f.isComplete()) {
-          if (f.succeeded()) {
-            requestParameters.setQueryParameters(f.result());
-          } else {
-            routingContext.fail(400, f.cause());
-            return;
-          }
-        } else {
-          waitingFut = f.compose(res -> {
-            requestParameters.setQueryParameters(res);
-            return resultFut;
-          });
-        }
+        requestParameters.setQueryParameters(validateQueryParams(routingContext));
       }
 
       if (headerParameters != null) {
-        Future<Map<String, RequestParameter>> f = validateHeaderParams(routingContext);
-        if (f.isComplete()) {
-          if (f.succeeded()) {
-            requestParameters.setHeaderParameters(f.result());
-          } else {
-            routingContext.fail(400, f.cause());
-            return;
-          }
-        } else {
-          waitingFut = f.compose(res -> {
-            requestParameters.setHeaderParameters(res);
-            return resultFut;
-          });
-        }
+        requestParameters.setHeaderParameters(validateHeaderParams(routingContext));
       }
 
       if (bodyProcessors != null && routingContext.request().headers().contains("content-type")) {
-        Future<RequestParameter> f = validateBody(routingContext);
-        if (f.isComplete()) {
-          if (f.succeeded()) {
-            requestParameters.setBody(f.result());
-          } else {
-            routingContext.fail(400, f.cause());
-            return;
-          }
-        } else {
-          waitingFut = f.compose(res -> {
-            requestParameters.setBody(res);
-            return resultFut;
-          });
-        }
+        requestParameters.setBody(validateBody(routingContext));
       }
 
-      waitingFut.onComplete(ar -> {
-        if (ar.failed()) routingContext.fail(400, ar.cause());
-        else {
-          if (routingContext.data().containsKey("parsedParameters")) {
-            ((RequestParametersImpl)routingContext.get("parsedParameters")).merge(requestParameters);
-          } else {
-            routingContext.put("parsedParameters", requestParameters);
-            routingContext.put("requestParameters", requestParameters);
-          }
-          routingContext.next();
-        }
-      });
-    } catch (BadRequestException e) {
+      if (routingContext.data().containsKey("parsedParameters")) {
+        routingContext.<RequestParametersImpl>get("parsedParameters").merge(requestParameters);
+      } else {
+        routingContext.put("parsedParameters", requestParameters);
+        routingContext.put("requestParameters", requestParameters);
+      }
+      routingContext.next();
+    } catch (BadRequestException | SchemaException | ValidationException e) {
       routingContext.fail(400, e);
     }
   }
@@ -185,7 +114,7 @@ public class ValidationHandlerImpl implements ValidationHandler {
     }
   }
 
-  private Future<Map<String, RequestParameter>> validatePathParams(RoutingContext routingContext) {
+  private Map<String, RequestParameter> validatePathParams(RoutingContext routingContext) {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
     Map<String, List<String>> pathParams = routingContext
       .pathParams()
@@ -195,11 +124,10 @@ public class ValidationHandlerImpl implements ValidationHandler {
       .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     Map<String, RequestParameter> parsedParams = new HashMap<>();
-
     return processParams(parsedParams, pathParams, pathParameters, false);
   }
 
-  private Future<Map<String, RequestParameter>> validateCookieParams(RoutingContext routingContext) {
+  private Map<String, RequestParameter> validateCookieParams(RoutingContext routingContext) {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
     Map<String, List<String>> cookies = new HashMap<>();
     if (routingContext.request().headers().contains("Cookie")) {
@@ -215,11 +143,10 @@ public class ValidationHandlerImpl implements ValidationHandler {
       }
     }
     Map<String, RequestParameter> parsedParams = new HashMap<>();
-
     return processParams(parsedParams, cookies, cookieParameters, false);
   }
 
-  private Future<Map<String, RequestParameter>> validateQueryParams(RoutingContext routingContext) {
+  private Map<String, RequestParameter> validateQueryParams(RoutingContext routingContext) {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
     Map<String, RequestParameter> parsedParams = new HashMap<>();
     Map<String, List<String>> queryParams = new HashMap<>();
@@ -227,7 +154,7 @@ public class ValidationHandlerImpl implements ValidationHandler {
     return processParams(parsedParams, queryParams, queryParameters, false);
   }
 
-  private Future<Map<String, RequestParameter>> validateHeaderParams(RoutingContext routingContext) {
+  private Map<String, RequestParameter> validateHeaderParams(RoutingContext routingContext) {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
     Map<String, RequestParameter> parsedParams = new HashMap<>();
 
@@ -241,39 +168,21 @@ public class ValidationHandlerImpl implements ValidationHandler {
     return processParams(parsedParams, headers, headerParameters, true);
   }
 
-  private Future<RequestParameter> validateBody(RoutingContext routingContext) {
+  private RequestParameter validateBody(RoutingContext routingContext) {
     for (BodyProcessor processor : bodyProcessors) {
-      if (processor.canProcess(routingContext.parsedHeaders().contentType().value()))
+      if (processor.canProcess(routingContext.parsedHeaders().contentType().value())) {
         return processor.process(routingContext);
+      }
     }
     throw BodyProcessorException.createMissingMatchingBodyProcessor(routingContext.parsedHeaders().contentType().value());
   }
 
-  private Future<Map<String, RequestParameter>> processParams(Map<String, RequestParameter> parsedParams, Map<String,
-    List<String>> params, ParameterProcessor[] processors, boolean forceLowercase) {
-    Future<Map<String, RequestParameter>> waitingFutureChain = Future.succeededFuture(parsedParams);
-
+  private Map<String, RequestParameter> processParams(Map<String, RequestParameter> parsedParams, Map<String, List<String>> params, ParameterProcessor[] processors, boolean forceLowercase) {
     for (ParameterProcessor processor : processors) {
-      try {
-        Future<RequestParameter> fut = processor.process(params);
-        if (fut.isComplete()) {
-          if (fut.succeeded()) {
-            parsedParams.put(forceLowercase ? processor.getName().toLowerCase() : processor.getName(), fut.result());
-          } else if (fut.failed()) {
-            return Future.failedFuture(fut.cause());
-          }
-        } else {
-          waitingFutureChain = waitingFutureChain.compose(m -> fut.map(rp -> {
-            parsedParams.put(processor.getName(), rp);
-            return parsedParams;
-          }));
-        }
-      } catch (BadRequestException e) {
-        return Future.failedFuture(e);
-      }
+      parsedParams.put(forceLowercase ? processor.getName().toLowerCase() : processor.getName(), processor.process(params));
     }
 
-    return waitingFutureChain;
+    return parsedParams;
   }
 
 }

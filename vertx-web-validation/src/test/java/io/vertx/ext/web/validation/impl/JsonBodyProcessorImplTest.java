@@ -9,6 +9,7 @@ import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.BodyProcessorException;
 import io.vertx.ext.web.validation.MalformedValueException;
+import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.testutils.TestSchemas;
@@ -65,16 +66,15 @@ class JsonBodyProcessorImplTest {
 
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER).create(repository);
 
-    processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
-      testContext.verify(() -> {
-        assertThat(rp.isJsonObject()).isTrue();
-        assertThat(rp.getJsonObject())
-          .isEqualTo(
-            TestSchemas.VALID_OBJECT
-          );
-      });
-      testContext.completeNow();
-    }));
+    RequestParameter rp = processor.process(mockedContext);
+    testContext.verify(() -> {
+      assertThat(rp.isJsonObject()).isTrue();
+      assertThat(rp.getJsonObject())
+        .isEqualTo(
+          TestSchemas.VALID_OBJECT
+        );
+    });
+    testContext.completeNow();
   }
 
   @Test
@@ -86,13 +86,16 @@ class JsonBodyProcessorImplTest {
 
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER).create(repository);
 
-    processor.process(mockedContext).onComplete(testContext.failing(err -> {
+    try {
+      processor.process(mockedContext);
+      testContext.failNow("should not reach this");
+    } catch (BodyProcessorException err) {
       testContext.verify(() -> assertThat(err)
         .isInstanceOf(BodyProcessorException.class)
         .hasFieldOrPropertyWithValue("actualContentType", "application/json")
         .hasCauseInstanceOf(ValidationException.class));
       testContext.completeNow();
-    }));
+    }
   }
 
   @Test
@@ -102,16 +105,15 @@ class JsonBodyProcessorImplTest {
 
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_ARRAY_SCHEMA_BUILDER).create(repository);
 
-    processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
-      testContext.verify(() -> {
-        assertThat(rp.isJsonArray()).isTrue();
-        assertThat(rp.getJsonArray())
-          .isEqualTo(
-            TestSchemas.VALID_ARRAY
-          );
-      });
-      testContext.completeNow();
-    }));
+    RequestParameter rp = processor.process(mockedContext);
+    testContext.verify(() -> {
+      assertThat(rp.isJsonArray()).isTrue();
+      assertThat(rp.getJsonArray())
+        .isEqualTo(
+          TestSchemas.VALID_ARRAY
+        );
+    });
+    testContext.completeNow();
   }
 
   @Test
@@ -123,13 +125,16 @@ class JsonBodyProcessorImplTest {
 
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_ARRAY_SCHEMA_BUILDER).create(repository);
 
-    processor.process(mockedContext).onComplete(testContext.failing(err -> {
+    try {
+      processor.process(mockedContext);
+      testContext.failNow("should not reach here");
+    } catch (BodyProcessorException err) {
       testContext.verify(() -> assertThat(err)
         .isInstanceOf(BodyProcessorException.class)
         .hasFieldOrPropertyWithValue("actualContentType", "application/json")
         .hasCauseInstanceOf(ValidationException.class));
       testContext.completeNow();
-    }));
+    }
   }
 
   @Test
@@ -154,10 +159,9 @@ class JsonBodyProcessorImplTest {
 
     BodyProcessor processor = Bodies.json(schema().withKeyword("type", "null")).create(repository);
 
-    processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
-      testContext.verify(() -> assertThat(rp.isNull()).isTrue());
-      testContext.completeNow();
-    }));
+    RequestParameter rp = processor.process(mockedContext);
+    testContext.verify(() -> assertThat(rp.isNull()).isTrue());
+    testContext.completeNow();
   }
 
   @Test
