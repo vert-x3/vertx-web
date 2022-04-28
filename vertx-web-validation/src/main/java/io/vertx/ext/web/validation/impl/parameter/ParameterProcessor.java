@@ -1,5 +1,6 @@
 package io.vertx.ext.web.validation.impl.parameter;
 
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
@@ -11,6 +12,7 @@ import java.util.Map;
 /**
  * Entry point for managing request parameters
  */
+@VertxGen
 public interface ParameterProcessor {
 
   Future<RequestParameter> process(Map<String, List<String>> params);
