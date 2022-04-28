@@ -1,7 +1,6 @@
 package io.vertx.ext.web.validation.impl.body;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.RequestParameter;
 

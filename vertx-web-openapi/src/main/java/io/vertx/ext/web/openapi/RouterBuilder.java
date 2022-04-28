@@ -129,7 +129,7 @@ public interface RouterBuilder {
    */
   @Fluent
   @GenIgnore
-  RouterBuilder mountServiceInterface(Class interfaceClass, String address);
+  RouterBuilder mountServiceInterface(Class<?> interfaceClass, String address);
 
   /**
    * Set options of router builder. For more info {@link RouterBuilderOptions}

@@ -1,6 +1,5 @@
 package io.vertx.ext.web.validation.impl;
 
-import io.vertx.core.Future;
 import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.ParameterProcessorException;
 import io.vertx.ext.web.validation.RequestParameter;
@@ -8,7 +7,6 @@ import io.vertx.ext.web.validation.impl.parameter.ParameterParser;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessorImpl;
 import io.vertx.ext.web.validation.impl.validator.ValueValidator;
-import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -145,7 +143,7 @@ public class ParameterProcessorUnitTest {
     );
 
     when(mockedParser.parseParameter(any())).thenReturn("aaa");
-    when(mockedValidator.validate(any())).thenThrow(ValidationException.createException("aaa", "aaa", "aaa"));
+    when(mockedValidator.validate(any())).thenThrow(ValidationException.create("aaa", "aaa", "aaa"));
 
     try {
       processor.process(new HashMap<>());

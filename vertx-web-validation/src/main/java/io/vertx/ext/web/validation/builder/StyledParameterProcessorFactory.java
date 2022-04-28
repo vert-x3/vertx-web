@@ -1,10 +1,8 @@
 package io.vertx.ext.web.validation.builder;
 
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
-import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.validator.SchemaRepository;
 
 /**

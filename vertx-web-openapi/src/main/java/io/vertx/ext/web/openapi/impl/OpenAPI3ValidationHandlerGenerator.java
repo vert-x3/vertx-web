@@ -4,6 +4,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.web.openapi.RouterBuilderException;
 import io.vertx.ext.web.validation.RequestPredicate;
+import io.vertx.ext.web.validation.ValidationHandler;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.ValidationHandlerImpl;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
@@ -44,7 +45,7 @@ public class OpenAPI3ValidationHandlerGenerator {
     return this;
   }
 
-  public ValidationHandlerImpl create(OperationImpl operation) {
+  public ValidationHandler create(OperationImpl operation) {
     //TODO error handling of this function?
     Map<ParameterLocation, List<ParameterProcessor>> parameterProcessors = new HashMap<>();
     List<BodyProcessor> bodyProcessors = new ArrayList<>();

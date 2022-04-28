@@ -1,6 +1,5 @@
 package io.vertx.ext.web.validation.impl;
 
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.validation.RequestPredicateResult;
 
 /**

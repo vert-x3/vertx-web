@@ -87,7 +87,7 @@ public class TestRequest {
    * @return a future that will be completed when the response is ready and no response assertion fails
    */
   public Future<HttpResponse<Buffer>> send(VertxTestContext testContext, Checkpoint checkpoint) {
-    return internalSend(testContext, h -> req.send(h), checkpoint::flag);
+    return internalSend(testContext, req::send, checkpoint::flag);
   }
 
   /**
@@ -97,7 +97,7 @@ public class TestRequest {
    * @return a future that will be completed when the response is ready and no response assertion fails
    */
   public Future<HttpResponse<Buffer>> send(VertxTestContext testContext) {
-    return internalSend(testContext, h -> req.send(h), testContext::completeNow);
+    return internalSend(testContext, req::send, testContext::completeNow);
   }
 
   /**
@@ -109,7 +109,7 @@ public class TestRequest {
    * @return a future that will be completed when the response is ready and no response assertion fails
    */
   public Future<HttpResponse<Buffer>> send(VertxTestContext testContext, VertxTestContext.ExecutionBlock onEnd) {
-    return internalSend(testContext, h -> req.send(h), onEnd);
+    return internalSend(testContext, req::send, onEnd);
   }
 
   /**

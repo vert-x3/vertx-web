@@ -1,15 +1,13 @@
 package io.vertx.ext.web.validation.impl.validator;
 
-import io.vertx.core.Future;
 import io.vertx.ext.web.validation.RequestParameter;
-import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.validator.OutputUnit;
 import io.vertx.json.schema.validator.impl.SchemaValidatorInternal;
 
 import java.util.Objects;
 
 /**
- * A value validator asynchronously validates a Json value
+ * A value validator validates a Json value
  */
 public class ValueValidator {
 

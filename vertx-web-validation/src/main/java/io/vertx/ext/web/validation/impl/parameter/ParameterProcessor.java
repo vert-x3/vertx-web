@@ -1,7 +1,6 @@
 package io.vertx.ext.web.validation.impl.parameter;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
 import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.validator.ValueValidator;

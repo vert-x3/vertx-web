@@ -5,8 +5,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.web.Route;
@@ -18,6 +16,7 @@ import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.impl.RouteImpl;
 import io.vertx.ext.web.openapi.*;
+import io.vertx.ext.web.validation.ValidationHandler;
 import io.vertx.ext.web.validation.impl.ValidationHandlerImpl;
 import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.SchemaRouter;
@@ -40,7 +39,6 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
   private final static String OPENAPI_EXTENSION_METHOD_NAME = "method";
 
   private final static Handler<RoutingContext> NOT_IMPLEMENTED_HANDLER = rc -> rc.fail(501);
-  private static final Logger LOG = LoggerFactory.getLogger(OpenAPI3RouterBuilderImpl.class);
 
   private static Handler<RoutingContext> generateNotAllowedHandler(List<HttpMethod> allowedMethods) {
     return rc -> {
@@ -51,17 +49,17 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
     };
   }
 
-  private Vertx vertx;
-  private OpenAPIHolder openapi;
+  private final Vertx vertx;
+  private final OpenAPIHolder openapi;
   private RouterBuilderOptions options;
-  private Map<String, OperationImpl> operations;
+  private final Map<String, OperationImpl> operations;
   private BodyHandler bodyHandler;
-  private AuthenticationHandlersStore securityHandlers;
-  private List<Handler<RoutingContext>> globalHandlers;
+  private final AuthenticationHandlersStore securityHandlers;
+  private final List<Handler<RoutingContext>> globalHandlers;
   private Function<RoutingContext, JsonObject> serviceExtraPayloadMapper;
-  private SchemaRouter schemaRouter;
-  private OpenAPI3SchemaParser schemaParser;
-  private OpenAPI3ValidationHandlerGenerator validationHandlerGenerator;
+  private final SchemaRouter schemaRouter;
+  private final OpenAPI3SchemaParser schemaParser;
+  private final OpenAPI3ValidationHandlerGenerator validationHandlerGenerator;
 
   public OpenAPI3RouterBuilderImpl(Vertx vertx, HttpClient client, OpenAPIHolderImpl spec, OpenAPILoaderOptions options) {
     this.vertx = vertx;
@@ -194,7 +192,7 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
   }
 
   @Override
-  public RouterBuilder mountServiceInterface(Class interfaceClass, String address) {
+  public RouterBuilder mountServiceInterface(Class<?> interfaceClass, String address) {
     for (Method m : interfaceClass.getMethods()) {
       if (OpenAPI3Utils.serviceProxyMethodIsCompatibleHandler(m)) {
         String methodName = m.getName();
@@ -298,7 +296,7 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
       }
 
       // Generate ValidationHandler
-      ValidationHandlerImpl validationHandler = validationHandlerGenerator.create(operation);
+      ValidationHandler validationHandler = validationHandlerGenerator.create(operation);
       handlersToLoad.add(validationHandler);
 
       // Check if path is set by user

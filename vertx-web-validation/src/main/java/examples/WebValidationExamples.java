@@ -8,7 +8,6 @@ import io.vertx.ext.web.validation.*;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.builder.Parameters;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
-import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
 import io.vertx.json.schema.validator.SchemaRepository;
 

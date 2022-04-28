@@ -96,12 +96,14 @@ public class ValidationHandlerImpl implements ValidationHandler {
         routingContext.put("parsedParameters", requestParameters);
         routingContext.put("requestParameters", requestParameters);
       }
+
       routingContext.next();
     } catch (BadRequestException | SchemaException | ValidationException e) {
       routingContext.fail(400, e);
     }
   }
 
+  @Override
   public boolean isBodyRequired() {
     if (predicates == null) return false;
     return Arrays.stream(predicates).anyMatch(p -> p == RequestPredicate.BODY_REQUIRED);

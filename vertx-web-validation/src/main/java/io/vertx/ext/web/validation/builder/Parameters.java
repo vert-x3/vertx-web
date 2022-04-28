@@ -277,7 +277,7 @@ public interface Parameters {
    * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static ParameterProcessorFactory param(String parameterName, SchemaBuilder schemaBuilder, ValueParser<String> valueParser) {
+  static ParameterProcessorFactory param(String parameterName, SchemaBuilder<?, ?> schemaBuilder, ValueParser<String> valueParser) {
     return (location, repository) -> new ParameterProcessorImpl(
       parameterName,
       location,
@@ -298,7 +298,7 @@ public interface Parameters {
    * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static ParameterProcessorFactory optionalParam(String parameterName, SchemaBuilder schemaBuilder, ValueParser<String> valueParser) {
+  static ParameterProcessorFactory optionalParam(String parameterName, SchemaBuilder<?, ?> schemaBuilder, ValueParser<String> valueParser) {
     return (location, repository) -> new ParameterProcessorImpl(
       parameterName,
       location,
@@ -318,7 +318,7 @@ public interface Parameters {
    * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static StyledParameterProcessorFactory jsonParam(String parameterName, SchemaBuilder builder) {
+  static StyledParameterProcessorFactory jsonParam(String parameterName, SchemaBuilder<?, ?> builder) {
     return (location, repository) -> new ParameterProcessorImpl(
       parameterName,
       location,
@@ -338,7 +338,7 @@ public interface Parameters {
    * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static StyledParameterProcessorFactory optionalJsonParam(String parameterName, SchemaBuilder builder) {
+  static StyledParameterProcessorFactory optionalJsonParam(String parameterName, SchemaBuilder<?, ?> builder) {
     return (location, repository) -> new ParameterProcessorImpl(
       parameterName,
       location,
