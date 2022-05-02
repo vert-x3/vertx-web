@@ -2,7 +2,7 @@ package io.vertx.ext.web.validation.builder;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
-import io.vertx.json.schema.validator.SchemaRepository;
+import io.vertx.json.schema.SchemaRepository;
 
 /**
  * This interface is used to build body processors. <br/>

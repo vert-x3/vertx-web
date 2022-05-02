@@ -1,8 +1,8 @@
 package io.vertx.ext.web.validation.impl.validator;
 
 import io.vertx.ext.web.validation.RequestParameter;
-import io.vertx.json.schema.validator.OutputUnit;
-import io.vertx.json.schema.validator.impl.SchemaValidatorInternal;
+import io.vertx.json.schema.OutputUnit;
+import io.vertx.json.schema.impl.SchemaValidatorInternal;
 
 import java.util.Objects;
 

@@ -16,7 +16,7 @@ import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
-import io.vertx.json.schema.validator.Schema;
+import io.vertx.json.schema.JsonSchema;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -119,7 +119,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(2);
 
     repository
-      .dereference("app:///tree_schema.json", Schema.of(
+      .dereference("app:///tree_schema.json", JsonSchema.of(
         new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "tree_schema.json"))))));
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -165,7 +165,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(4);
 
     repository
-      .dereference("app:///int_schema.json", Schema.of(
+      .dereference("app:///int_schema.json", JsonSchema.of(
         new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "int_schema.json"))))));
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -458,7 +458,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(4);
 
     repository
-      .dereference("app:///int_schema.json", Schema.of(
+      .dereference("app:///int_schema.json", JsonSchema.of(
         new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "int_schema.json"))))));
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -565,7 +565,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(3);
 
     repository
-      .dereference("app:///int_schema.json", Schema.of(
+      .dereference("app:///int_schema.json", JsonSchema.of(
         new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "int_schema.json"))))));
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -894,7 +894,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     Checkpoint checkpoint = testContext.checkpoint(2);
 
     repository
-      .dereference("app:///tree_schema.json", Schema.of(
+      .dereference("app:///tree_schema.json", JsonSchema.of(
         new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "tree_schema.json"))))));
 
     ValidationHandler validationHandler1 = ValidationHandlerBuilder

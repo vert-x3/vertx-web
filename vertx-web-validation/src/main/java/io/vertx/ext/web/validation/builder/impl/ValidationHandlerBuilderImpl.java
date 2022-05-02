@@ -12,7 +12,7 @@ import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.ValidationHandlerImpl;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
-import io.vertx.json.schema.validator.SchemaRepository;
+import io.vertx.json.schema.SchemaRepository;
 
 import java.util.*;
 import java.util.function.Function;

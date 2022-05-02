@@ -9,7 +9,7 @@ import io.vertx.ext.web.validation.builder.impl.ValidationHandlerBuilderImpl;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
-import io.vertx.json.schema.validator.SchemaRepository;
+import io.vertx.json.schema.SchemaRepository;
 
 /**
  * Builder for a {@link ValidationHandler}. <br/>

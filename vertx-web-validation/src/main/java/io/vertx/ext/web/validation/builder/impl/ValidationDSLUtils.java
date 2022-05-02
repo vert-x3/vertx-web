@@ -10,12 +10,13 @@ import io.vertx.ext.web.validation.impl.ValueParserInferenceUtils;
 import io.vertx.ext.web.validation.impl.parameter.*;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
 import io.vertx.ext.web.validation.impl.validator.ValueValidator;
+import io.vertx.json.schema.JsonSchema;
 import io.vertx.json.schema.common.dsl.ArraySchemaBuilder;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
 import io.vertx.json.schema.common.dsl.TupleSchemaBuilder;
-import io.vertx.json.schema.validator.Schema;
-import io.vertx.json.schema.validator.SchemaRepository;
-import io.vertx.json.schema.validator.impl.SchemaValidatorInternal;
+import io.vertx.json.schema.Schema;
+import io.vertx.json.schema.SchemaRepository;
+import io.vertx.json.schema.impl.SchemaValidatorInternal;
 
 import java.util.function.BiFunction;
 
@@ -32,7 +33,7 @@ public class ValidationDSLUtils {
         location,
         isOptional,
         new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), parser),
-        new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(schema))));
+        new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(schema))));
     };
   }
 
@@ -48,7 +49,7 @@ public class ValidationDSLUtils {
         location,
         isOptional,
         new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), parser),
-        new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(json))));
+        new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(json))));
     };
   }
 
@@ -66,7 +67,7 @@ public class ValidationDSLUtils {
         location,
         isOptional,
         new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), parser),
-        new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(json))));
+        new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(json))));
     };
   }
 
@@ -82,7 +83,7 @@ public class ValidationDSLUtils {
         location,
         isOptional,
         parser,
-        new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(json))));
+        new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(json))));
     };
   }
 
@@ -99,7 +100,7 @@ public class ValidationDSLUtils {
         location,
         isOptional,
         parser,
-        new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(schemaBuilder.toJson()))));
+        new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(schemaBuilder.toJson()))));
     };
   }
 
@@ -116,7 +117,7 @@ public class ValidationDSLUtils {
           ValueParserInferenceUtils.infeerPatternPropertiesParsersForObjectSchema(json),
           ValueParserInferenceUtils.infeerAdditionalPropertiesParserForObjectSchema(json)
         ),
-        new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(json))));
+        new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(json))));
     };
   }
 
@@ -132,7 +133,7 @@ public class ValidationDSLUtils {
           ValueParserInferenceUtils.infeerPatternPropertiesParsersForObjectSchema(json),
           ValueParserInferenceUtils.infeerAdditionalPropertiesParserForObjectSchema(json)
         ),
-        new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(json))));
+        new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(json))));
     };
   }
 }

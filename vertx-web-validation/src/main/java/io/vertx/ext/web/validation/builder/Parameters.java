@@ -7,9 +7,9 @@ import io.vertx.ext.web.validation.impl.parameter.ParameterProcessorImpl;
 import io.vertx.ext.web.validation.impl.parameter.SingleValueParameterParser;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
 import io.vertx.ext.web.validation.impl.validator.ValueValidator;
+import io.vertx.json.schema.JsonSchema;
 import io.vertx.json.schema.common.dsl.*;
-import io.vertx.json.schema.validator.Schema;
-import io.vertx.json.schema.validator.impl.SchemaValidatorInternal;
+import io.vertx.json.schema.impl.SchemaValidatorInternal;
 
 /**
  * In this interface you can find all available {@link ParameterProcessorFactory} to use in {@link ValidationHandlerBuilder}. <br/>
@@ -39,7 +39,7 @@ public interface Parameters {
         location.lowerCaseIfNeeded(parameterName),
         schemaBuilder.isIntegerSchema() ? ValueParser.LONG_PARSER : ValueParser.DOUBLE_PARSER
       ),
-      new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(schemaBuilder.toJson()))));
+      new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -62,7 +62,7 @@ public interface Parameters {
         location.lowerCaseIfNeeded(parameterName),
         schemaBuilder.isIntegerSchema() ? ValueParser.LONG_PARSER : ValueParser.DOUBLE_PARSER
       ),
-      new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(schemaBuilder.toJson()))));
+      new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -82,7 +82,7 @@ public interface Parameters {
       location,
       false,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.NOOP_PARSER),
-      new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(schemaBuilder.toJson()))));
+      new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -102,7 +102,7 @@ public interface Parameters {
       location,
       true,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.NOOP_PARSER),
-      new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(schemaBuilder.toJson()))));
+      new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -122,7 +122,7 @@ public interface Parameters {
       location,
       false,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.BOOLEAN_PARSER),
-      new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(schemaBuilder.toJson()))));
+      new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -142,7 +142,7 @@ public interface Parameters {
       location,
       true,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.BOOLEAN_PARSER),
-      new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(schemaBuilder.toJson()))));
+      new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -283,7 +283,7 @@ public interface Parameters {
       location,
       false,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), valueParser),
-      new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(schemaBuilder.toJson()))));
+      new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -304,7 +304,7 @@ public interface Parameters {
       location,
       true,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), valueParser),
-      new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(schemaBuilder.toJson()))));
+      new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(schemaBuilder.toJson()))));
   }
 
   /**
@@ -324,7 +324,7 @@ public interface Parameters {
       location,
       false,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.JSON_PARSER),
-      new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(builder.toJson()))));
+      new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(builder.toJson()))));
   }
 
   /**
@@ -344,7 +344,7 @@ public interface Parameters {
       location,
       true,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.JSON_PARSER),
-      new ValueValidator((SchemaValidatorInternal) repository.validator(Schema.of(builder.toJson()))));
+      new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(builder.toJson()))));
   }
 
   /**
