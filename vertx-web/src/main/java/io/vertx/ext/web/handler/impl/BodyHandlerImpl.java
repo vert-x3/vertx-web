@@ -30,6 +30,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.HttpVersion;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.FileUpload;
@@ -74,6 +76,7 @@ public class BodyHandlerImpl implements BodyHandler {
   @Override
   public void handle(RoutingContext context) {
     final HttpServerRequest request = context.request();
+    final HttpServerResponse response = context.response();
 
     // we need to keep state since we can be called again on reroute
     if (!((RoutingContextInternal) context).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
@@ -89,6 +92,33 @@ public class BodyHandlerImpl implements BodyHandler {
         // there is no "body", so we can skip this handler
         context.next();
         return;
+      }
+
+      // before parsing the body we can already discard a bad request just by inspecting the content-length against
+      // the body limit, this will reduce load, on the server by totally skipping parsing the request body
+      if (bodyLimit != -1 && parsedContentLength != -1) {
+        if (parsedContentLength > bodyLimit) {
+          context.fail(413);
+          return;
+        }
+      }
+
+      // handle expectations
+      // https://httpwg.org/specs/rfc7231.html#header.expect
+      final String expect = request.getHeader(HttpHeaders.EXPECT);
+      if (expect != null) {
+        // requirements validation
+        if (expect.equalsIgnoreCase("100-continue")) {
+          // A server that receives a 100-continue expectation in an HTTP/1.0 request MUST ignore that expectation.
+          if (request.version() != HttpVersion.HTTP_1_0) {
+            // signal the client to continue
+            response.writeContinue();
+          }
+        } else {
+          // the server cannot meet the expectation, we only know about 100-continue
+          context.fail(417);
+          return;
+        }
       }
 
       final BHandler handler = new BHandler(context, isPreallocateBodyBuffer ? parsedContentLength : -1);
