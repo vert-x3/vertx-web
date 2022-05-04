@@ -1,16 +1,14 @@
 package io.vertx.ext.web.validation;
 
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
-import io.vertx.json.schema.SchemaParser;
 
 /**
  * This is the entry point of this module. Provides the parsing, validation and puts the parsed objects into {@link RoutingContext}. <br/>
  *
- * You can easily build a new validation handler using a {@link ValidationHandlerBuilder}, that you can create with {@link this#builder(SchemaParser)}. <br/>
+ * You can easily build a new validation handler using a {@link ValidationHandlerBuilder}. <br/>
  *
  * For more info read the doc. <br/>
  *
@@ -22,15 +20,8 @@ public interface ValidationHandler extends Handler<RoutingContext> {
   String REQUEST_CONTEXT_KEY = "requestParameters";
 
   /**
-   * @deprecated This method duplicates the behavior of {@link ValidationHandlerBuilder#create(SchemaParser)}.
-   *
-   * @param parser a SchemaParser
-   * @return an instance of {@link ValidationHandlerBuilder}.
+   * Returns {@code true} if this handler requires a {@link io.vertx.ext.web.handler.BodyHandler} to be present in the
+   * route.
    */
-  @Deprecated
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static ValidationHandlerBuilder builder(SchemaParser parser) {
-    return ValidationHandlerBuilder.create(parser);
-  }
-
+  boolean isBodyRequired();
 }

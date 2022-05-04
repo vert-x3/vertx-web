@@ -31,7 +31,7 @@ public interface Bodies {
    * @TODO: leaky abstraction it relies on API internals as public API breaking the codegen contract
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static BodyProcessorFactory json(SchemaBuilder<?, ?> schemaBuilder) {
+  static BodyProcessorFactory json(SchemaBuilder schemaBuilder) {
     return repository -> new JsonBodyProcessorImpl(
       new ValueValidator((SchemaValidatorInternal) repository.validator(JsonSchema.of(schemaBuilder.toJson())))
     );
