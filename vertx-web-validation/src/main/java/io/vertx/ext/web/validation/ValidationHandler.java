@@ -21,6 +21,13 @@ public interface ValidationHandler extends Handler<RoutingContext> {
 
   String REQUEST_CONTEXT_KEY = "requestParameters";
 
+  /**
+   * @deprecated This method duplicates the behavior of {@link ValidationHandlerBuilder#create(SchemaParser)}.
+   *
+   * @param parser a SchemaParser
+   * @return an instance of {@link ValidationHandlerBuilder}.
+   */
+  @Deprecated
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ValidationHandlerBuilder builder(SchemaParser parser) {
     return ValidationHandlerBuilder.create(parser);

@@ -151,13 +151,21 @@ public interface RouterBuilder {
   OpenAPIHolder getOpenAPI();
 
   /**
+   * @deprecated This method exposes the internal of the OpenAPI handler, it will be removed in the future. Users should
+   * configure the json schema module from the options.
+   *
    * @return schema router used by self to internally manage all {@link io.vertx.json.schema.Schema} instances
    */
+  @Deprecated
   SchemaRouter getSchemaRouter();
 
   /**
+   * @deprecated This method exposes the internal of the OpenAPI handler, it will be removed in the future. Users should
+   * configure the json schema module from the options.
+   *
    * @return schema parser used by self to parse all {@link io.vertx.json.schema.Schema}
    */
+  @Deprecated
   SchemaParser getSchemaParser();
 
   /**
