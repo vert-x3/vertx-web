@@ -36,7 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Set;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -247,7 +247,7 @@ public class BodyHandlerTest extends WebTestBase {
     String contentType = "application/octet-stream";
     Buffer fileData = TestUtils.randomBuffer(size);
     router.route().handler(rc -> {
-      Set<FileUpload> fileUploads = rc.fileUploads();
+      List<FileUpload> fileUploads = rc.fileUploads();
       assertNotNull(fileUploads);
       assertEquals(1, fileUploads.size());
       FileUpload upload = fileUploads.iterator().next();
@@ -830,7 +830,7 @@ public class BodyHandlerTest extends WebTestBase {
     String contentType = "application/octet-stream";
     Buffer fileData = TestUtils.randomBuffer(50);
     router.route().handler(rc -> {
-      Set<FileUpload> fileUploads = rc.fileUploads();
+      List<FileUpload> fileUploads = rc.fileUploads();
       assertNotNull(fileUploads);
       assertEquals(1, fileUploads.size());
       FileUpload upload = fileUploads.iterator().next();

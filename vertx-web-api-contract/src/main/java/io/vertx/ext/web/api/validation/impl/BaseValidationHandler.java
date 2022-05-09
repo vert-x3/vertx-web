@@ -275,7 +275,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     return parsedParams;
   }
 
-  private boolean existFileUpload(Set<FileUpload> files, String name, Pattern contentType) {
+  private boolean existFileUpload(List<FileUpload> files, String name, Pattern contentType) {
     for (FileUpload f : files) {
       if (f.name().equals(name) && contentType.matcher(f.contentType()).matches()) return true;
     }
@@ -283,7 +283,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
   }
 
   private void validateFileUpload(RoutingContext routingContext) throws ValidationException {
-    Set<FileUpload> fileUploads = routingContext.fileUploads();
+    List<FileUpload> fileUploads = routingContext.fileUploads();
     for (Map.Entry<String, Pattern> expectedFile : multipartFileRules.entrySet()) {
       if (!existFileUpload(fileUploads, expectedFile.getKey(), expectedFile.getValue()))
         throw ValidationException.ValidationExceptionFactory.generateFileNotFoundValidationException(expectedFile

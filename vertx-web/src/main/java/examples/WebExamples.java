@@ -696,7 +696,7 @@ public class WebExamples {
 
     router.post("/some/path/uploads").handler(ctx -> {
 
-      Set<FileUpload> uploads = ctx.fileUploads();
+      List<FileUpload> uploads = ctx.fileUploads();
       // Do something with uploads....
 
     });
