@@ -378,10 +378,10 @@ public interface RoutingContext {
   RequestBody body();
 
   /**
-   * @return a set of fileuploads (if any) for the request. The context must have first been routed to a
+   * @return a list of {@link FileUpload} (if any) for the request. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to work.
    */
-  Set<FileUpload> fileUploads();
+  List<FileUpload> fileUploads();
 
   /**
    * Get the session. The context must have first been routed to a {@link io.vertx.ext.web.handler.SessionHandler}

@@ -17,7 +17,7 @@
 package io.vertx.ext.web.handler.impl;
 
 import java.io.File;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -210,7 +210,7 @@ public class BodyHandlerImpl implements BodyHandler {
         initBodyBuffer();
       }
 
-      Set<FileUpload> fileUploads = context.fileUploads();
+      List<FileUpload> fileUploads = context.fileUploads();
 
       final String contentType = context.request().getHeader(HttpHeaders.CONTENT_TYPE);
       if (contentType == null) {

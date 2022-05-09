@@ -44,7 +44,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       this.isOptional = isOptional;
     }
 
-    private boolean existFileUpload(Set<FileUpload> files, String name, Pattern contentType) {
+    private boolean existFileUpload(List<FileUpload> files, String name, Pattern contentType) {
       for (FileUpload f : files) {
         if (f.name().equals(name) && contentType.matcher(f.contentType()).matches()) return true;
       }

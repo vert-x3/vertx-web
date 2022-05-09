@@ -279,7 +279,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public Set<FileUpload> fileUploads() {
+  public List<FileUpload> fileUploads() {
     return inner.fileUploads();
   }
 

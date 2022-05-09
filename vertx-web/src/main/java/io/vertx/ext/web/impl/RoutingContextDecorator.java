@@ -133,7 +133,7 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
-  public Set<FileUpload> fileUploads() {
+  public List<FileUpload> fileUploads() {
     return decoratedContext.fileUploads();
   }
 

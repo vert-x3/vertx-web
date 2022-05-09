@@ -27,7 +27,6 @@ import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.FileUpload;
-import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.HttpException;
@@ -67,7 +66,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private String acceptableContentType;
   private ParsableHeaderValuesContainer parsedHeaders;
 
-  private Set<FileUpload> fileUploads;
+  private List<FileUpload> fileUploads;
   private Session session;
   private User user;
 
@@ -304,8 +303,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public Set<FileUpload> fileUploads() {
-    return getFileUploads();
+  public List<FileUpload> fileUploads() {
+    if (fileUploads == null) {
+      fileUploads = new ArrayList<>();
+    }
+    return fileUploads;
   }
 
   @Override
@@ -533,13 +535,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     }
 
     return endHandlers;
-  }
-
-  private Set<FileUpload> getFileUploads() {
-    if (fileUploads == null) {
-      fileUploads = new HashSet<>();
-    }
-    return fileUploads;
   }
 
   private void doFail() {
