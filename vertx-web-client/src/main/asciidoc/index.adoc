@@ -520,7 +520,9 @@ a {@link io.vertx.ext.web.client.WebClientSession}.
 
 URI templates provide an alternative to HTTP request string URIs based on the https://datatracker.ietf.org/doc/html/rfc6570[URI Template RFC 6570].
 
-You can create a `HttpRequest` with a `UriTemplate` URI instead of a Java string URI,
+You can read the Vert.x URI template link:{../../vertx-uri-template/java/}[documentation] to learn more about it.
+
+You can create a `HttpRequest` with a `UriTemplate` URI instead of a Java string URI
 
 first parse the template string to a `UriTemplate`
 
@@ -586,7 +588,7 @@ this behavior to fail instead:
 
 === Template parameter values
 
-Template parameters accept `String`, `List<String>` and `Map<String, String` values.
+Template parameters accept `String`, `List<String>` and `Map<String, String>` values.
 
 The expansion of each kind depends on the expansion style (denoted by the `?` prefix) , here is an example of the _query_ parameter that is exploded
 (denoted by the `*` suffix) and expanded using form-style query expansion:
