@@ -123,8 +123,6 @@ public class BodyHandlerImpl implements BodyHandler {
 
       final BHandler handler = new BHandler(context, isPreallocateBodyBuffer ? parsedContentLength : -1);
       request
-        // resume the request (if paused)
-        .resume()
         .handler(handler)
         .endHandler(handler::end);
     } else {
