@@ -3071,4 +3071,17 @@ public class RouterTest extends WebTestBase {
       },
       400, "Bad Request", "returned in first error handler");
   }
+
+  @Test
+  public void testPauseResumeRelaxed() throws Exception {
+    // would not complete because the pause would always occur
+    router.route().handler(ctx -> {
+      ctx.request().endHandler(x -> ctx.response().end("Hello"));
+    });
+
+    testRequest(
+      HttpMethod.GET,
+      "/",
+      200, "OK", "Hello");
+  }
 }
