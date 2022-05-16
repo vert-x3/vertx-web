@@ -19,6 +19,7 @@ import io.vertx.core.Context;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.test.core.TestUtils;
+import org.junit.Assume;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -78,17 +79,24 @@ public class SockJSSessionTest extends SockJSTestBase {
         socket.handler(msg -> serverReceived.addAndGet(msg.length()));
         socket.write("hello");
 
-        new Thread(() -> {
+        final Thread t = new Thread(() -> {
           while (!shallStop.getAsBoolean()) {
-            LockSupport.parkNanos(50);
+            LockSupport.parkNanos(100);
             try {
+              if (clientReceived.get() > numMsg * 256) {
+                // slow down a bit
+                Thread.yield();
+              }
               socket.write(random)
                 .onFailure(this::fail);
             } catch (IllegalStateException e) {
               // Websocket has been closed
             }
           }
-        }).start();
+        });
+
+        t.setDaemon(true);
+        t.start();
       };
     };
     startServers();
@@ -108,10 +116,9 @@ public class SockJSSessionTest extends SockJSTestBase {
       }));
     try {
       await();
-    } catch (Throwable e) {
+    } finally {
       System.out.println(clientReceived.get());
       System.out.println(serverReceived.get());
-      throw e;
     }
   }
 
