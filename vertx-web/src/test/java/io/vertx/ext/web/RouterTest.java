@@ -3076,7 +3076,6 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testPauseResumeRelaxed() throws Exception {
-    // would not complete because the pause would always occur
     router.route().handler(ctx -> {
       ctx.request().endHandler(x -> ctx.response().end("Hello"));
     });
@@ -3096,13 +3095,80 @@ public class RouterTest extends WebTestBase {
           .setTimer(1L, t -> ctx.next());
       })
       .handler(ctx -> {
-        // Request has already been read
-        ctx.request().endHandler(x -> ctx.response().end("Hello"));
+        // this is happening from an async call, the request was paused
+        // but as the user is setting body related handler the request
+        // will be resumed.
+        switch (ctx.normalizedPath()) {
+          case "/end":
+            ctx.request().end(x -> ctx.response().end("Hello"));
+            break;
+          case "/endHandler":
+            ctx.request().endHandler(x -> ctx.response().end("Hello"));
+            break;
+          case "/end/Future":
+            ctx.request().end()
+              .onSuccess(x -> ctx.response().end("Hello"));
+            break;
+          case "/bodyHandler":
+            ctx.request().bodyHandler(x -> ctx.response().end("Hello"));
+            break;
+          case "/body":
+            ctx.request().body(x -> ctx.response().end("Hello"));
+            break;
+          case "/body/Future":
+            ctx.request().body()
+              .onSuccess(x -> ctx.response().end("Hello"));
+            break;
+        }
       });
+
+    testRequest(
+      HttpMethod.GET,
+      "/endHandler",
+      200,
+      "OK");
+
+    testRequest(
+      HttpMethod.GET,
+      "/bodyHandler",
+      200,
+      "OK");
+
+    testRequest(
+      HttpMethod.GET,
+      "/body",
+      200,
+      "OK");
+
+    testRequest(
+      HttpMethod.GET,
+      "/body/Future",
+      200,
+      "OK");
+
+    testRequest(
+      HttpMethod.GET,
+      "/end",
+      200,
+      "OK");
+
+    testRequest(
+      HttpMethod.GET,
+      "/end/Future",
+      200,
+      "OK");
+  }
+
+  @Test
+  public void testBytesReadOnPause() throws Exception {
+    router.route().handler(ctx -> {
+      assertEquals(0, ctx.request().bytesRead());
+      ctx.end();
+    });
+
     testRequest(
       HttpMethod.GET,
       "/",
-      500,
-      "Internal Server Error");
+      200, "OK");
   }
 }

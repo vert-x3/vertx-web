@@ -17,9 +17,7 @@
 package io.vertx.ext.web.impl;
 
 import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
@@ -69,19 +67,7 @@ public class RouterImpl implements Router {
 
     // will pause the request, this means the body is not parsed yet
     // or protocol upgrades will be on-hold.
-    final MultiMap headers = request.headers();
-    if (
-      headers != null &&
-        (
-          // http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.3
-          // request body present
-          (headers.contains(HttpHeaders.TRANSFER_ENCODING) || headers.contains(HttpHeaders.CONTENT_LENGTH))
-            ||
-            // http 1.1 protocol upgrade
-            headers.contains(HttpHeaders.UPGRADE)
-        )) {
-      request.pause();
-    }
+    request.pause();
 
     new RoutingContextImpl(null, this, request, state.getRoutes()).next();
   }

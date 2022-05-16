@@ -20,6 +20,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Wraps the source {@link HttpServerRequestInternal}. It updates the method, path and query of the original request and
+ * resumes the request if a caller explicitly sets a handler to any callback that processes the request body.
+ */
 class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   private final HttpServerRequestInternal delegate;
@@ -44,7 +48,6 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
     this.method = method;
     this.uri = uri;
     // lazy initialization
-    this.path = null;
     this.query = null;
     this.absoluteURI = null;
 
@@ -74,7 +77,9 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   @Override
   public HttpServerRequest body(Handler<AsyncResult<Buffer>> handler) {
-    delegate.body(handler);
+    delegate
+      .resume()
+      .body(handler);
     return this;
   }
 
@@ -85,7 +90,9 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   @Override
   public Future<Buffer> body() {
-    return delegate.body();
+    return delegate
+      .resume()
+      .body();
   }
 
   @Override
@@ -101,7 +108,9 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   @Override
   public HttpServerRequest handler(Handler<Buffer> handler) {
-    delegate.handler(handler);
+    delegate
+      .resume()
+      .handler(handler);
     return this;
   }
 
@@ -125,7 +134,9 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   @Override
   public HttpServerRequest endHandler(Handler<Void> handler) {
-    delegate.endHandler(handler);
+    delegate
+      .resume()
+      .endHandler(handler);
     return this;
   }
 
@@ -282,7 +293,9 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   @Override
   public HttpServerRequest bodyHandler(Handler<Buffer> handler) {
-    delegate.bodyHandler(handler);
+    delegate
+      .resume()
+      .bodyHandler(handler);
     return this;
   }
 
@@ -394,12 +407,16 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   @Override
   public void end(Handler<AsyncResult<Void>> handler) {
-    delegate.end(handler);
+    delegate
+      .resume()
+      .end(handler);
   }
 
   @Override
   public Future<Void> end() {
-    return delegate.end();
+    return delegate
+      .resume()
+      .end();
   }
 
   @Override
