@@ -934,12 +934,14 @@ public class RouterTest extends WebTestBase {
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidPattern() throws Exception {
-    router.route("/blah/:!!!/").handler(rc -> {});
+    router.route("/blah/:!!!/").handler(rc -> {
+    });
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidPatternWithBuilder() throws Exception {
-    router.route().path("/blah/:!!!/").handler(rc -> {});
+    router.route().path("/blah/:!!!/").handler(rc -> {
+    });
   }
 
   @Test
@@ -3037,8 +3039,8 @@ public class RouterTest extends WebTestBase {
     Router sub = Router.router(vertx).putMetadata("sub", "123");
     sub.route("/metadata")
       .handler(rc -> {
-        String subVal = ((RoutingContextInternal)rc).currentRouter().getMetadata("sub");
-        String parentVal = ((RoutingContextInternal)rc).parent().currentRouter().getMetadata("parent");
+        String subVal = ((RoutingContextInternal) rc).currentRouter().getMetadata("sub");
+        String parentVal = ((RoutingContextInternal) rc).parent().currentRouter().getMetadata("parent");
         rc.end(parentVal + "-" + subVal);
       });
     router.route("/sub*").subRouter(sub);
@@ -3083,5 +3085,24 @@ public class RouterTest extends WebTestBase {
       HttpMethod.GET,
       "/",
       200, "OK", "Hello");
+  }
+
+  @Test
+  public void testPauseResumeRelaxed2() throws Exception {
+    // would not complete because the pause would always occur
+    router.route()
+      .handler(ctx -> {
+        ctx.vertx()
+          .setTimer(1L, t -> ctx.next());
+      })
+      .handler(ctx -> {
+        // Request has already been read
+        ctx.request().endHandler(x -> ctx.response().end("Hello"));
+      });
+    testRequest(
+      HttpMethod.GET,
+      "/",
+      500,
+      "Internal Server Error");
   }
 }
