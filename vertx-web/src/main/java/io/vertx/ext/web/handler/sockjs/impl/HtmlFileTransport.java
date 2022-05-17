@@ -87,34 +87,39 @@ class HtmlFileTransport extends BaseTransport {
     HTML_FILE_TEMPLATE = sb.toString();
   }
 
-  HtmlFileTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options,
-                    Handler<SockJSSocket> sockHandler) {
+  private final Handler<SockJSSocket> sockHandler;
+
+  HtmlFileTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
     super(vertx, sessions, options);
+
+    this.sockHandler = sockHandler;
+
     String htmlFileRE = COMMON_PATH_ELEMENT_RE + "htmlfile.*";
 
     router.getWithRegex(htmlFileRE)
-      .handler(rc -> {
-        if (LOG.isTraceEnabled()) LOG.trace("HtmlFile, get: " + rc.request().uri());
-        String callback = rc.request().getParam("callback");
-        if (callback == null) {
-          callback = rc.request().getParam("c");
-          if (callback == null) {
-            rc.response().setStatusCode(500).end("\"callback\" parameter required\n");
-            return;
-          }
-        }
+      .handler(this::handleGet);
+  }
 
-        if (CALLBACK_VALIDATION.matcher(callback).find()) {
-          rc.response().setStatusCode(500);
-          rc.response().end("invalid \"callback\" parameter\n");
-          return;
-        }
+  private void handleGet(RoutingContext ctx) {
+    String callback = ctx.request().getParam("callback");
+    if (callback == null) {
+      callback = ctx.request().getParam("c");
+      if (callback == null) {
+        ctx.response().setStatusCode(500).end("\"callback\" parameter required\n");
+        return;
+      }
+    }
 
-        HttpServerRequest req = rc.request();
-        String sessionID = req.params().get("param0");
-        SockJSSession session = getSession(rc, options, sessionID, sockHandler);
-        session.register(req, new HtmlFileListener(options.getMaxBytesStreaming(), rc, callback, session));
-      });
+    if (CALLBACK_VALIDATION.matcher(callback).find()) {
+      ctx.response().setStatusCode(500);
+      ctx.response().end("invalid \"callback\" parameter\n");
+      return;
+    }
+
+    HttpServerRequest req = ctx.request();
+    String sessionID = req.params().get("param0");
+    SockJSSession session = getSession(ctx, options, sessionID, sockHandler);
+    session.register(req, new HtmlFileListener(options.getMaxBytesStreaming(), ctx, callback, session));
   }
 
   private class HtmlFileListener extends BaseListener {

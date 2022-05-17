@@ -60,53 +60,58 @@ class JsonPTransport extends BaseTransport {
 
   private static final Pattern CALLBACK_VALIDATION = Pattern.compile("[^a-zA-Z0-9-_.]");
 
-  JsonPTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options,
-                 Handler<SockJSSocket> sockHandler) {
+  private final Handler<SockJSSocket> sockHandler;
+
+  JsonPTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
     super(vertx, sessions, options);
+
+    this.sockHandler = sockHandler;
 
     String jsonpRE = COMMON_PATH_ELEMENT_RE + "jsonp";
 
     router.getWithRegex(jsonpRE)
-      .handler(rc -> {
-        if (LOG.isTraceEnabled()) LOG.trace("JsonP, get: " + rc.request().uri());
-        String callback = rc.request().getParam("callback");
-        if (callback == null) {
-          callback = rc.request().getParam("c");
-          if (callback == null) {
-            rc.response().setStatusCode(500);
-            rc.response().end("\"callback\" parameter required\n");
-            return;
-          }
-        }
-
-        // avoid SWF exploit
-        if (callback.length() > 32 || CALLBACK_VALIDATION.matcher(callback).find()) {
-          rc.response().setStatusCode(500);
-          rc.response().end("invalid \"callback\" parameter\n");
-          return;
-        }
-
-        HttpServerRequest req = rc.request();
-        String sessionID = req.params().get("param0");
-        SockJSSession session = getSession(rc, options, sessionID, sockHandler);
-        session.register(req, new JsonPListener(rc, session, callback));
-      });
+      .handler(this::handleGet);
 
     String jsonpSendRE = COMMON_PATH_ELEMENT_RE + "jsonp_send";
 
     router.postWithRegex(jsonpSendRE)
-      .handler(rc -> {
-        if (LOG.isTraceEnabled()) LOG.trace("JsonP, post: " + rc.request().uri());
-        String sessionID = rc.request().getParam("param0");
-        final SockJSSession session = sessions.get(sessionID);
-        if (session != null && !session.isClosed()) {
-          handleSend(rc, session);
-        } else {
-          rc.response().setStatusCode(404);
-          setJSESSIONID(options, rc);
-          rc.response().end();
-        }
-      });
+      .handler(this::handlePost);
+  }
+
+  private void handleGet(RoutingContext ctx) {
+    String callback = ctx.request().getParam("callback");
+    if (callback == null) {
+      callback = ctx.request().getParam("c");
+      if (callback == null) {
+        ctx.response().setStatusCode(500);
+        ctx.response().end("\"callback\" parameter required\n");
+        return;
+      }
+    }
+
+    // avoid SWF exploit
+    if (callback.length() > 32 || CALLBACK_VALIDATION.matcher(callback).find()) {
+      ctx.response().setStatusCode(500);
+      ctx.response().end("invalid \"callback\" parameter\n");
+      return;
+    }
+
+    HttpServerRequest req = ctx.request();
+    String sessionID = req.params().get("param0");
+    SockJSSession session = getSession(ctx, options, sessionID, sockHandler);
+    session.register(req, new JsonPListener(ctx, session, callback));
+  }
+
+  private void handlePost(RoutingContext ctx) {
+    String sessionID = ctx.request().getParam("param0");
+    final SockJSSession session = sessions.get(sessionID);
+    if (session != null && !session.isClosed()) {
+      handleSend(ctx, session);
+    } else {
+      ctx.response().setStatusCode(404);
+      setJSESSIONID(options, ctx);
+      ctx.response().end();
+    }
   }
 
   private void handleSend(RoutingContext rc, SockJSSession session) {
@@ -135,7 +140,7 @@ class JsonPTransport extends BaseTransport {
 
     String stringBody = body.asString();
 
-    if (stringBody.equals("") || urlEncoded && (!stringBody.startsWith("d=") || stringBody.length() <= 2)) {
+    if (body.length() <= 0 || urlEncoded && (body.length() <= 2 || !stringBody.startsWith("d="))) {
       rc.response().setStatusCode(500).end("Payload expected.");
       return;
     }

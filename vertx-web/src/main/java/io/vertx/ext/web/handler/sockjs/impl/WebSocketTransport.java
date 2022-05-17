@@ -44,6 +44,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.impl.ConnectionBase;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
@@ -57,50 +58,52 @@ class WebSocketTransport extends BaseTransport {
 
   private static final Logger LOG = LoggerFactory.getLogger(WebSocketTransport.class);
 
-  WebSocketTransport(Vertx vertx,
-                     Router router, LocalMap<String, SockJSSession> sessions,
-                     SockJSHandlerOptions options,
-                     Handler<SockJSSocket> sockHandler) {
+  private final Origin origin;
+  private final Handler<SockJSSocket> sockHandler;
+
+  WebSocketTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
     super(vertx, sessions, options);
-    final Origin origin = options.getOrigin() != null ? Origin.parse(options.getOrigin()) : null;
+
+    this.origin = options.getOrigin() != null ? Origin.parse(options.getOrigin()) : null;
+    this.sockHandler = sockHandler;
+
     String wsRE = COMMON_PATH_ELEMENT_RE + "websocket";
 
     router.getWithRegex(wsRE)
-      .handler((ProtocolUpgradeHandler) ctx -> {
-        HttpServerRequest req = ctx.request();
-        String connectionHeader = req.headers().get(HttpHeaders.CONNECTION);
-        if (connectionHeader == null || !connectionHeader.toLowerCase().contains("upgrade")) {
-          ctx.response().setStatusCode(400);
-          ctx.response().end("Can \"Upgrade\" only to \"WebSocket\".");
-          return;
-        }
-
-        if (!Origin.check(origin, ctx)) {
-          ctx.fail(403, new IllegalStateException("Invalid Origin"));
-          return;
-        }
-
-        // upgrade
-        req
-          .toWebSocket(toWebSocket -> {
-            if (toWebSocket.succeeded()) {
-              if (LOG.isTraceEnabled()) {
-                LOG.trace("WS, handler");
-              }
-              // handle the sockjs session as usual
-              SockJSSession session = new SockJSSession(vertx, sessions, ctx, options, sockHandler);
-              session.register(req, new WebSocketListener(toWebSocket.result(), session));
-            } else {
-              // the upgrade failed
-              ctx.fail(toWebSocket.cause());
-            }
-          });
-      });
+      .handler((ProtocolUpgradeHandler) this::handleGet);
 
     router.routeWithRegex(wsRE)
-      .handler(rc -> {
-        if (LOG.isTraceEnabled()) LOG.trace("WS, all: " + rc.request().uri());
-        rc.response().putHeader(HttpHeaders.ALLOW, "GET").setStatusCode(405).end();
+      .handler(rc -> rc.response().putHeader(HttpHeaders.ALLOW, "GET").setStatusCode(405).end());
+  }
+
+  private void handleGet(RoutingContext ctx) {
+    HttpServerRequest req = ctx.request();
+    String connectionHeader = req.headers().get(HttpHeaders.CONNECTION);
+    if (connectionHeader == null || !connectionHeader.toLowerCase().contains("upgrade")) {
+      ctx.response().setStatusCode(400);
+      ctx.response().end("Can \"Upgrade\" only to \"WebSocket\".");
+      return;
+    }
+
+    if (!Origin.check(origin, ctx)) {
+      ctx.fail(403, new IllegalStateException("Invalid Origin"));
+      return;
+    }
+
+    // upgrade
+    req
+      .toWebSocket(toWebSocket -> {
+        if (toWebSocket.succeeded()) {
+          if (LOG.isTraceEnabled()) {
+            LOG.trace("WS, handler");
+          }
+          // handle the sockjs session as usual
+          SockJSSession session = new SockJSSession(vertx, sessions, ctx, options, sockHandler);
+          session.register(req, new WebSocketListener(toWebSocket.result(), session));
+        } else {
+          // the upgrade failed
+          ctx.fail(toWebSocket.cause());
+        }
       });
   }
 
