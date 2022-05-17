@@ -23,7 +23,6 @@ import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.impl.HttpClientConnection;
 import io.vertx.core.http.impl.WebSocketInternal;
 import io.vertx.core.json.Json;
@@ -34,7 +33,6 @@ import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.auth.properties.PropertyFileAuthorization;
 import io.vertx.ext.bridge.BridgeEventType;
-import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.sockjs.*;
 import io.vertx.ext.web.handler.sockjs.impl.JsonCodec;
@@ -398,7 +396,8 @@ public class EventbusBridgeTest extends WebTestBase {
     client
       .connect(websocketURI)
       .compose(v -> client.register(addr))
-      .onComplete(onSuccess(v -> { }));
+      .onComplete(onSuccess(v -> {
+      }));
 
     awaitLatch(registerLatch);
     awaitLatch(registeredLatch);
@@ -1100,8 +1099,9 @@ public class EventbusBridgeTest extends WebTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     AuthenticationProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
-    addLoginHandler(router, authProvider);
-    router.route("/eventbus/*").handler(sockJSHandler);
+    router.route("/eventbus/*")
+      .handler(addLoginHandler(authProvider))
+      .handler(sockJSHandler);
     testSend("foo");
   }
 
@@ -1112,25 +1112,24 @@ public class EventbusBridgeTest extends WebTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     AuthenticationProvider authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
-    addLoginHandler(router, authProvider);
-    router.route("/eventbus/*").handler(sockJSHandler);
+    router.route("/eventbus/*")
+      .handler(addLoginHandler(authProvider))
+      .handler(sockJSHandler);
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "access_denied");
   }
 
-  private void addLoginHandler(Router router, AuthenticationProvider authProvider) {
-    router.route("/eventbus/*").handler(rc -> {
-      // we need to be logged in
-      if (rc.user() == null) {
-        authProvider.authenticate(new UsernamePasswordCredentials("tim", "delicious:sausages"), res -> {
-          if (res.succeeded()) {
-            rc.setUser(res.result());
-            rc.next();
-          } else {
-            rc.fail(res.cause());
-          }
-        });
-      }
-    });
+  private AuthenticationHandler addLoginHandler(AuthenticationProvider authProvider) {
+    return rc -> {
+        // we need to be logged in
+        if (rc.user() == null) {
+          authProvider.authenticate(new UsernamePasswordCredentials("tim", "delicious:sausages"))
+            .onSuccess(user -> {
+              rc.setUser(user);
+              rc.next();
+            })
+            .onFailure(rc::fail);
+        }
+      };
   }
 
   @Test
@@ -1221,8 +1220,7 @@ public class EventbusBridgeTest extends WebTestBase {
       latch.countDown();
     });
     client.connect(websocketURI)
-      .compose(v -> client.transportClient.result().write(msg))
-      .onComplete(onSuccess(v -> { }));
+      .compose(v -> client.transportClient.result().write(msg));
 
     awaitLatch(latch);
   }
@@ -1265,7 +1263,7 @@ public class EventbusBridgeTest extends WebTestBase {
     testPublish(address, body, false);
   }
 
-  private void checkHeaders(Message msg) {
+  private void checkHeaders(Message<?> msg) {
     assertEquals("val1", msg.headers().get("hdr1"));
     assertEquals("val2", msg.headers().get("hdr2"));
   }
@@ -1498,6 +1496,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
   interface TransportClient {
     void handler(Handler<JsonObject> handler);
+
     void closeHandler(Handler<Void> handler);
 
     Future<Void> write(String msg);
