@@ -312,6 +312,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
   }
 
+  @Override
   public void handle(final SockJSSocket sock) {
     checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CREATED, null, sock),
       () -> {
@@ -667,6 +668,4 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     int handlerCount;
     PingInfo pingInfo;
   }
-
-
 }

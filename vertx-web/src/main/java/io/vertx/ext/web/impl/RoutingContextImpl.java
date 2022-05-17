@@ -152,6 +152,8 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       Handler<RoutingContext> handler = router.getErrorHandlerByStatusCode(this.matchFailure);
       this.statusCode = this.matchFailure;
       if (handler == null) { // Default 404 handling
+        // Restore the processing of the request
+        request.resume();
         // Send back empty default response with status code
         this.response().setStatusCode(matchFailure);
         if (this.request().method() != HttpMethod.HEAD && matchFailure == 404) {
@@ -162,8 +164,9 @@ public class RoutingContextImpl extends RoutingContextImplBase {
         } else {
           this.response().end();
         }
-      } else
+      } else {
         handler.handle(this);
+      }
     }
   }
 

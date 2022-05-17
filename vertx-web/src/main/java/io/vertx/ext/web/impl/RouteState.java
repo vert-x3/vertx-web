@@ -44,11 +44,11 @@ final class RouteState {
   enum Priority {
     PLATFORM,
     SECURITY_POLICY,
+    PROTOCOL_UPGRADE,
     BODY,
     AUTHENTICATION,
     INPUT_TRUST,
     AUTHORIZATION,
-    PROTOCOL_UPGRADE,
     USER
   }
 

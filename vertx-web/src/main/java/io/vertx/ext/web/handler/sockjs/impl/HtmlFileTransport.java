@@ -162,6 +162,7 @@ class HtmlFileTransport extends BaseTransport {
       }
     }
 
+    @Override
     public void close() {
       if (!closed) {
         try {

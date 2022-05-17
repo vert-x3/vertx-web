@@ -3543,4 +3543,31 @@ public class RouterTest extends WebTestBase {
 
     await();
   }
+
+  @Test
+  public void testPausedConnection4() {
+
+    router.route()
+      .handler((PlatformHandler) ctx -> {
+        ctx.vertx()
+          .setTimer(1L, t -> ctx.next());
+      });
+
+    int numRequests= 20;
+
+    waitFor(numRequests);
+
+    HttpClient client = vertx.createHttpClient(new HttpClientOptions().setMaxPoolSize(1));
+    for (int i = 0;i < numRequests;i++) {
+      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080), onSuccess(req -> {
+        // 8192 * 8 fills the HTTP server request pending queue
+        // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
+        req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
+          complete();
+        }));
+      }));
+    }
+
+    await();
+  }
 }

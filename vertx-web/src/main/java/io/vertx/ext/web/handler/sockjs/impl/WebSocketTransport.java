@@ -154,6 +154,7 @@ class WebSocketTransport extends BaseTransport {
       }
     }
 
+    @Override
     public void close() {
       if (!closed) {
         ws.close();
@@ -162,6 +163,7 @@ class WebSocketTransport extends BaseTransport {
       }
     }
 
+    @Override
     public void sessionClosed() {
       session.writeClosed(this);
       closed = true;
