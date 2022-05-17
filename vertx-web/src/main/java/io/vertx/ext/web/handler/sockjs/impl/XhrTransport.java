@@ -126,6 +126,8 @@ class XhrTransport extends BaseTransport {
       // we could just add an ad-hoc body handler but this can lead to DDoS attacks
       // and it doesn't really cover all the uploads, such as multipart, etc...
       // as well as resource cleanup
+      LOG.error("No BodyHandler was executed on the route. Please add a BodyHandler before the SockJS handler.");
+
       rc.fail(500, new NoStackTraceThrowable("BodyHandler is required to process POST requests"));
       return;
     }
