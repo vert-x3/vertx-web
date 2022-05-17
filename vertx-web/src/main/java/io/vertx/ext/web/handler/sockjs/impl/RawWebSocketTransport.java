@@ -52,40 +52,51 @@ import io.vertx.ext.web.impl.Origin;
  */
 class RawWebSocketTransport {
 
+  private final Origin origin;
+  private final Vertx vertx;
+  private final SockJSHandlerOptions options;
+  private final Handler<SockJSSocket> sockHandler;
+
   RawWebSocketTransport(Vertx vertx, Router router, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
 
-    final Origin origin = options.getOrigin() != null ? Origin.parse(options.getOrigin()) : null;
-    String wsRE = "/websocket";
+    this.vertx = vertx;
+    this.options = options;
+    this.origin = options.getOrigin() != null ? Origin.parse(options.getOrigin()) : null;
+    this.sockHandler = sockHandler;
 
-    router.get(wsRE).handler((ProtocolUpgradeHandler) ctx -> {
-      HttpServerRequest req = ctx.request();
-      String connectionHeader = req.headers().get(HttpHeaders.CONNECTION);
-      if (connectionHeader == null || !connectionHeader.toLowerCase().contains("upgrade")) {
-        ctx.response().setStatusCode(400);
-        ctx.response().end("Can \"Upgrade\" only to \"WebSocket\".");
-        return;
-      }
+    router.get("/websocket")
+      .handler((ProtocolUpgradeHandler) this::handleGet);
 
-      if (!Origin.check(origin, ctx)) {
-        ctx.fail(403, new IllegalStateException("Invalid Origin"));
-        return;
-      }
-      // upgrade
-      req
-        .toWebSocket(toWebSocket -> {
-          if (toWebSocket.succeeded()) {
-            // handle the sockjs session as usual
-            SockJSSocket sock = new RawWSSockJSSocket(vertx, ctx, options, toWebSocket.result());
-            sockHandler.handle(sock);
-          } else {
-            // the upgrade failed
-            ctx.fail(toWebSocket.cause());
-          }
-        });
-    });
-
-    router.route(wsRE)
+    router.route("/websocket")
       .handler(rc -> rc.response().putHeader(HttpHeaders.ALLOW, "GET").setStatusCode(405).end());
+  }
+
+  private void handleGet(RoutingContext ctx) {
+    HttpServerRequest req = ctx.request();
+    String connectionHeader = req.headers().get(HttpHeaders.CONNECTION);
+    if (connectionHeader == null || !connectionHeader.toLowerCase().contains("upgrade")) {
+      ctx.response().setStatusCode(400);
+      ctx.response().end("Can \"Upgrade\" only to \"WebSocket\".");
+      return;
+    }
+
+    if (!Origin.check(origin, ctx)) {
+      ctx.fail(403, new IllegalStateException("Invalid Origin"));
+      return;
+    }
+
+    // upgrade
+    req
+      .toWebSocket(toWebSocket -> {
+        if (toWebSocket.succeeded()) {
+          // handle the sockjs session as usual
+          SockJSSocket sock = new RawWSSockJSSocket(vertx, ctx, options, toWebSocket.result());
+          sockHandler.handle(sock);
+        } else {
+          // the upgrade failed
+          ctx.fail(toWebSocket.cause());
+        }
+      });
   }
 
   private static class RawWSSockJSSocket extends SockJSSocketBase {
