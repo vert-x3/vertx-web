@@ -22,6 +22,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SessionHandlerTestBase;
 import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
@@ -180,7 +181,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   public void testDelayedLookupWithRequestUpgrade() {
     String sessionCookieName = "session";
     router.route().handler(SessionHandler.create(store).setSessionCookieName(sessionCookieName).setMinLength(0));
-    router.route().handler(rc ->
+    router.route().handler((ProtocolUpgradeHandler) rc ->
       rc.request()
         .toWebSocket()
         .onFailure(this::fail)

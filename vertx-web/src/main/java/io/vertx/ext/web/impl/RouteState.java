@@ -48,6 +48,7 @@ final class RouteState {
     AUTHENTICATION,
     INPUT_TRUST,
     AUTHORIZATION,
+    PROTOCOL_UPGRADE,
     USER
   }
 
@@ -69,6 +70,9 @@ final class RouteState {
     }
     if (handler instanceof AuthorizationHandler) {
       return Priority.AUTHORIZATION;
+    }
+    if (handler instanceof ProtocolUpgradeHandler) {
+      return Priority.PROTOCOL_UPGRADE;
     }
 
     return Priority.USER;
@@ -535,18 +539,28 @@ final class RouteState {
       this.exactPath);
 
     int len = newState.contextHandlers.size();
-
+    final Priority weight = weight(contextHandler);
+    final Priority lastWeight;
     if (len > 0) {
-      final Priority weight = weight(contextHandler);
-      Priority iterWeith = weight(newState.contextHandlers.get(len - 1));
-      if (iterWeith.ordinal() > weight.ordinal()) {
-        String message = "Cannot add [" + weight.name() + "] handler to route with [" + iterWeith.name() + "] handler at index " + (len - 1);
+      lastWeight = weight(newState.contextHandlers.get(len - 1));
+      if (lastWeight.ordinal() > weight.ordinal()) {
+        String message = "Cannot add [" + weight.name() + "] handler to route with [" + lastWeight.name() + "] handler at index " + (len - 1);
         // when lenient mode is disabled, throw IllegalStateException to signal that the setup is not correct
         if (!Boolean.getBoolean("io.vertx.web.router.setup.lenient")) {
           throw new IllegalStateException(message);
         }
         LOG.warn(message);
       }
+    } else {
+      lastWeight = null;
+    }
+
+    if (weight == Priority.USER && lastWeight != Priority.USER) {
+      // we're switching from vertx handlers to user defined handlers
+      newState.contextHandlers.add(ctx -> {
+        ctx.request().resume();
+        ctx.next();
+      });
     }
 
     newState.contextHandlers.add(contextHandler);

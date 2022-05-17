@@ -24,8 +24,10 @@ import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
+import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 
 import java.io.*;
@@ -3092,7 +3094,7 @@ public class RouterTest extends WebTestBase {
   public void testPauseResumeRelaxed2() throws Exception {
     // would not complete because the pause would always occur
     router.route()
-      .handler(ctx -> {
+      .handler((PlatformHandler) ctx -> {
         ctx.vertx()
           .setTimer(1L, t -> ctx.next());
       })
@@ -3178,7 +3180,7 @@ public class RouterTest extends WebTestBase {
   public void testPauseResumeOnPipeline() {
     // force an async op (to ensure that the body is not lost)
     router.route()
-      .handler(ctx -> {
+      .handler((PlatformHandler) ctx -> {
         ctx.vertx()
           .setTimer(1L, t -> ctx.next());
       });
@@ -3444,5 +3446,37 @@ public class RouterTest extends WebTestBase {
         "POST /not/found HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nABC",
         "POST /parse/ok HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nDEF"
       )));
+  }
+
+  @Test
+  public void testPausedConnection() {
+
+    router.route()
+      .handler((PlatformHandler) ctx -> {
+        ctx.vertx()
+          .setTimer(1L, t -> ctx.next());
+      });
+
+    router.route("/")
+      .handler(ctx -> {
+        ctx.response().end(ctx.normalizedPath() + "\n");
+      });
+
+    int numRequests= 20;
+
+    waitFor(numRequests);
+
+    HttpClient client = vertx.createHttpClient(new HttpClientOptions().setMaxPoolSize(1));
+    for (int i = 0;i < numRequests;i++) {
+      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080), onSuccess(req -> {
+        // 8192 * 8 fills the HTTP server request pending queue
+        // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
+        req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
+          complete();
+        }));
+      }));
+    }
+
+    await();
   }
 }

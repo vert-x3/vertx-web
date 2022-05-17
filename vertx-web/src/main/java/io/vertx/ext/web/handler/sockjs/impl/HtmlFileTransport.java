@@ -64,18 +64,18 @@ class HtmlFileTransport extends BaseTransport {
 
   static {
     String str =
-    "<!doctype html>\n" +
-    "<html><head>\n" +
-    "  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n" +
-    "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" +
-    "</head><body><h2>Don't panic!</h2>\n" +
-    "  <script>\n" +
-    "    document.domain = document.domain;\n" +
-    "    var c = parent.{{ callback }};\n" +
-    "    c.start();\n" +
-    "    function p(d) {c.message(d);};\n" +
-    "    window.onload = function() {c.stop();};\n" +
-    "  </script>";
+      "<!doctype html>\n" +
+        "<html><head>\n" +
+        "  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n" +
+        "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" +
+        "</head><body><h2>Don't panic!</h2>\n" +
+        "  <script>\n" +
+        "    document.domain = document.domain;\n" +
+        "    var c = parent.{{ callback }};\n" +
+        "    c.start();\n" +
+        "    function p(d) {c.message(d);};\n" +
+        "    window.onload = function() {c.stop();};\n" +
+        "  </script>";
 
     String str2 = str.replace("{{ callback }}", "");
     StringBuilder sb = new StringBuilder(str);
@@ -92,28 +92,29 @@ class HtmlFileTransport extends BaseTransport {
     super(vertx, sessions, options);
     String htmlFileRE = COMMON_PATH_ELEMENT_RE + "htmlfile.*";
 
-    router.getWithRegex(htmlFileRE).handler(rc -> {
-      if (LOG.isTraceEnabled()) LOG.trace("HtmlFile, get: " + rc.request().uri());
-      String callback = rc.request().getParam("callback");
-      if (callback == null) {
-        callback = rc.request().getParam("c");
+    router.getWithRegex(htmlFileRE)
+      .handler(rc -> {
+        if (LOG.isTraceEnabled()) LOG.trace("HtmlFile, get: " + rc.request().uri());
+        String callback = rc.request().getParam("callback");
         if (callback == null) {
-          rc.response().setStatusCode(500).end("\"callback\" parameter required\n");
+          callback = rc.request().getParam("c");
+          if (callback == null) {
+            rc.response().setStatusCode(500).end("\"callback\" parameter required\n");
+            return;
+          }
+        }
+
+        if (CALLBACK_VALIDATION.matcher(callback).find()) {
+          rc.response().setStatusCode(500);
+          rc.response().end("invalid \"callback\" parameter\n");
           return;
         }
-      }
 
-      if (CALLBACK_VALIDATION.matcher(callback).find()) {
-        rc.response().setStatusCode(500);
-        rc.response().end("invalid \"callback\" parameter\n");
-        return;
-      }
-
-      HttpServerRequest req = rc.request();
-      String sessionID = req.params().get("param0");
-      SockJSSession session = getSession(rc, options, sessionID, sockHandler);
-      session.register(req, new HtmlFileListener(options.getMaxBytesStreaming(), rc, callback, session));
-    });
+        HttpServerRequest req = rc.request();
+        String sessionID = req.params().get("param0");
+        SockJSSession session = getSession(rc, options, sessionID, sockHandler);
+        session.register(req, new HtmlFileListener(options.getMaxBytesStreaming(), rc, callback, session));
+      });
   }
 
   private class HtmlFileListener extends BaseListener {
