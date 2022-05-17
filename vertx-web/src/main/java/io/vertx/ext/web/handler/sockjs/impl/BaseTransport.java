@@ -178,6 +178,8 @@ class BaseTransport {
 
     return new Handler<RoutingContext>() {
       final boolean websocket = !options.getDisabledTransports().contains(Transport.WEBSOCKET.toString());
+
+      @Override
       public void handle(RoutingContext rc) {
         if (LOG.isTraceEnabled()) {
           LOG.trace("In Info handler");

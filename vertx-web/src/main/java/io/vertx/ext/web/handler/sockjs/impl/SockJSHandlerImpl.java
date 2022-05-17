@@ -183,6 +183,7 @@ public class SockJSHandlerImpl implements SockJSHandler {
         }
       }
 
+      @Override
       public void handle(RoutingContext rc) {
         rc.response().headers().set("Content-Type", "application/javascript; charset=UTF-8");
 

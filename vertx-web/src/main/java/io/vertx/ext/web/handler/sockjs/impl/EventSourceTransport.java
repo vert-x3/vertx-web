@@ -114,6 +114,7 @@ class EventSourceTransport extends BaseTransport {
       }
     }
 
+    @Override
     public void close() {
       if (!closed) {
         try {

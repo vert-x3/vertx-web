@@ -199,6 +199,7 @@ class JsonPTransport extends BaseTransport {
       close();
     }
 
+    @Override
     public void close() {
       if (!closed) {
         try {
