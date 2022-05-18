@@ -88,15 +88,13 @@ class RawWebSocketTransport {
 
     // upgrade
     req
-      .toWebSocket(toWebSocket -> {
-        if (toWebSocket.succeeded()) {
-          // handle the sockjs session as usual
-          SockJSSocket sock = new RawWSSockJSSocket(vertx, ctx, options, toWebSocket.result());
-          sockHandler.handle(sock);
-        } else {
-          // the upgrade failed
-          ctx.fail(toWebSocket.cause());
-        }
+      .pause()
+      .toWebSocket()
+      .onFailure(ctx::fail)
+      .onSuccess(socket -> {
+        // handle the sockjs session as usual
+        SockJSSocket sock = new RawWSSockJSSocket(vertx, ctx, options, socket);
+        sockHandler.handle(sock);
       });
   }
 

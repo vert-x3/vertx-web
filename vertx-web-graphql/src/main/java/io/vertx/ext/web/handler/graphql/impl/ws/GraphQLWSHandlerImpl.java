@@ -79,14 +79,15 @@ public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
     MultiMap headers = rc.request().headers();
     if (headers.contains(CONNECTION) && headers.contains(UPGRADE, WEBSOCKET, true)) {
       ContextInternal context = (ContextInternal) rc.vertx().getOrCreateContext();
-      rc.request().toWebSocket().onComplete(ar -> {
-        if (ar.succeeded()) {
-          ConnectionHandler handler = new ConnectionHandler(this, context, ar.result());
+      rc
+        .request()
+        .pause()
+        .toWebSocket()
+        .onFailure(rc::fail)
+        .onSuccess(socket -> {
+          ConnectionHandler handler = new ConnectionHandler(this, context, socket);
           handler.handleConnection();
-        } else {
-          rc.fail(ar.cause());
-        }
-      });
+        });
     } else {
       rc.next();
     }

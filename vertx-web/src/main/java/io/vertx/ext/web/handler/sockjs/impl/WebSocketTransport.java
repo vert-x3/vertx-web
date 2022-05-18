@@ -93,18 +93,13 @@ class WebSocketTransport extends BaseTransport {
 
     // upgrade
     req
-      .toWebSocket(toWebSocket -> {
-        if (toWebSocket.succeeded()) {
-          if (LOG.isTraceEnabled()) {
-            LOG.trace("WS, handler");
-          }
-          // handle the sockjs session as usual
-          SockJSSession session = new SockJSSession(vertx, sessions, ctx, options, sockHandler);
-          session.register(req, new WebSocketListener(toWebSocket.result(), session));
-        } else {
-          // the upgrade failed
-          ctx.fail(toWebSocket.cause());
-        }
+      .pause()
+      .toWebSocket()
+      .onFailure(ctx::fail)
+      .onSuccess(socket -> {
+        // handle the sockjs session as usual
+        SockJSSession session = new SockJSSession(vertx, sessions, ctx, options, sockHandler);
+        session.register(req, new WebSocketListener(socket, session));
       });
   }
 
