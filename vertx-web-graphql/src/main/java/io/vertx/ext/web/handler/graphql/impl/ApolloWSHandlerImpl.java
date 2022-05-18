@@ -159,10 +159,15 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
         return;
       }
       ContextInternal context = (ContextInternal) ctx.vertx().getOrCreateContext();
-      ctx.request().toWebSocket().onSuccess(ws -> {
-        ApolloWSConnectionHandler connectionHandler = new ApolloWSConnectionHandler(this, context, ws);
-        connectionHandler.handleConnection();
-      });
+      ctx
+        .request()
+        .pause()
+        .toWebSocket()
+        .onFailure(ctx::fail)
+        .onSuccess(ws -> {
+          ApolloWSConnectionHandler connectionHandler = new ApolloWSConnectionHandler(this, context, ws);
+          connectionHandler.handleConnection();
+        });
     } else {
       ctx.next();
     }

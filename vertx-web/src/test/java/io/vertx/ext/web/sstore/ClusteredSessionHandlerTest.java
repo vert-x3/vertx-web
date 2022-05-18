@@ -209,8 +209,9 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     String sessionCookieName = "session";
     router.route()
       .handler(SessionHandler.create(store).setSessionCookieName(sessionCookieName).setMinLength(0))
-      .handler((ProtocolUpgradeHandler) rc ->
+      .handler((ProtocolUpgradeHandler) rc -> {
         rc.request()
+          .pause()
           .toWebSocket()
           .onFailure(this::fail)
           .onSuccess(serverWebSocket -> {
@@ -220,7 +221,8 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
               assertEquals("foo", msg);
               testComplete();
             });
-          }));
+          });
+        });
     WebSocketConnectOptions options = new WebSocketConnectOptions()
       .setURI("/")
       .addHeader("cookie", sessionCookieName + "=" + TestUtils.randomAlphaString(32));

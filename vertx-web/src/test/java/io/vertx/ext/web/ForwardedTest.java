@@ -346,7 +346,7 @@ public class ForwardedTest extends WebTestBase {
       HttpServerRequest request = rc.request();
       MultiMap headers = request.headers();
       if (headers.contains(CONNECTION) && headers.contains(UPGRADE, WEBSOCKET, true)) {
-        request.toWebSocket(onSuccess(socket -> {
+        request.pause().toWebSocket(onSuccess(socket -> {
           assertTrue(socket.host().equals(host));
           assertTrue(socket.isSsl());
           assertTrue(socket.remoteAddress().host().equals(address));
