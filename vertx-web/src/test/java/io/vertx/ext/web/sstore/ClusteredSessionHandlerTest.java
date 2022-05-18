@@ -91,7 +91,16 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       Session sess = rc.session();
       sess.put("foo", "bar");
       stuffSession(sess);
-      sessionHandler1.flush(rc).onFailure(rc::fail).onSuccess(v -> rc.response().end());
+      rc.request().pause();
+      sessionHandler1.flush(rc)
+        .onFailure(err -> {
+          rc.request().resume();
+          rc.fail(err);
+        })
+        .onSuccess(v -> {
+          rc.request().resume();
+          rc.response().end();
+        });
     });
 
     router2.route().handler(rc -> {
@@ -99,7 +108,16 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       checkSession(sess);
       assertEquals("bar", sess.get("foo"));
       sess.put("eek", "wibble");
-      sessionHandler2.flush(rc).onFailure(rc::fail).onSuccess(v -> rc.response().end());
+      rc.request().pause();
+      sessionHandler2.flush(rc)
+        .onFailure(err -> {
+          rc.request().resume();
+          rc.fail(err);
+        })
+        .onSuccess(v -> {
+          rc.request().resume();
+          rc.response().end();
+        });
     });
 
     router3.route().handler(rc -> {
@@ -107,7 +125,16 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       checkSession(sess);
       assertEquals("bar", sess.get("foo"));
       assertEquals("wibble", sess.get("eek"));
-      sessionHandler3.flush(rc).onFailure(rc::fail).onSuccess(v -> rc.response().end());
+      rc.request().pause();
+      sessionHandler3.flush(rc)
+        .onFailure(err -> {
+          rc.request().resume();
+          rc.fail(err);
+        })
+        .onSuccess(v -> {
+          rc.request().resume();
+          rc.response().end();
+        });
     });
 
     AtomicReference<String> rSetCookie = new AtomicReference<>();
@@ -180,19 +207,20 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   @Test
   public void testDelayedLookupWithRequestUpgrade() {
     String sessionCookieName = "session";
-    router.route().handler(SessionHandler.create(store).setSessionCookieName(sessionCookieName).setMinLength(0));
-    router.route().handler((ProtocolUpgradeHandler) rc ->
-      rc.request()
-        .toWebSocket()
-        .onFailure(this::fail)
-        .onSuccess(serverWebSocket -> {
-          System.out.println("Upgrade successful");
-          serverWebSocket.textMessageHandler(msg -> {
-            System.out.println("WS txt message receive successful");
-            assertEquals("foo", msg);
-            testComplete();
-          });
-        }));
+    router.route()
+      .handler(SessionHandler.create(store).setSessionCookieName(sessionCookieName).setMinLength(0))
+      .handler((ProtocolUpgradeHandler) rc ->
+        rc.request()
+          .toWebSocket()
+          .onFailure(this::fail)
+          .onSuccess(serverWebSocket -> {
+            System.out.println("Upgrade successful");
+            serverWebSocket.textMessageHandler(msg -> {
+              System.out.println("WS txt message receive successful");
+              assertEquals("foo", msg);
+              testComplete();
+            });
+          }));
     WebSocketConnectOptions options = new WebSocketConnectOptions()
       .setURI("/")
       .addHeader("cookie", sessionCookieName + "=" + TestUtils.randomAlphaString(32));

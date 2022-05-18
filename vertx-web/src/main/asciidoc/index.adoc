@@ -1981,12 +1981,12 @@ Please see the https://github.com/sockjs/sockjs-client[SockJS website] for more 
 
 === SockJS handler
 
-Vert.x provides an out of the box handler called {@link io.vertx.ext.web.handler.sockjs.SockJSHandler} for
+Vert.x provides an out of the box handler called {@link io.vertx.ext.web.handler.sockjs.SockJS} for
 using SockJS in your Vert.x-Web applications.
 
-You should create one handler per SockJS application using {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#create}.
+You should create one handler per SockJS application using {@link io.vertx.ext.web.handler.sockjs.SockJS#create}.
 You can also specify configuration options when creating the instance. The configuration options are described with
-an instance of {@link io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions}.
+an instance of {@link io.vertx.ext.web.handler.sockjs.SockJSOptions}.
 
 [source,$lang]
 ----
@@ -2069,7 +2069,7 @@ sock.close();
 
 === Configuring the SockJS handler
 
-The handler can be configured with various options using {@link io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions}.
+The handler can be configured with various options using {@link io.vertx.ext.web.handler.sockjs.SockJSOptions}.
 
 NOTE: By default, the configuration does not include a default `Origin` property. To prevent Cross-Site WebSocket
 Hijacking attacks from web browsers, it is recommended to set this property to the internet facing origin of the
@@ -2083,7 +2083,7 @@ When a {@link io.vertx.ext.web.handler.sockjs.SockJSSocket} is created, it can r
 The address of that handler is given by {@link io.vertx.ext.web.handler.sockjs.SockJSSocket#writeHandlerID()}.
 
 By default, the event handler is not registered.
-It must enabled in {@link io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions}.
+It must enabled in {@link io.vertx.ext.web.handler.sockjs.SockJSOptions}.
 
 [source,$lang]
 ----
@@ -2091,7 +2091,7 @@ It must enabled in {@link io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions}.
 ----
 
 NOTE: By default, the handler is registered only locally.
-It can be made cluster-wide with {@link io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions#setLocalWriteHandler}.
+It can be made cluster-wide with {@link io.vertx.ext.web.handler.sockjs.SockJSOptions#setLocalWriteHandler}.
 
 Then you can write {@link io.vertx.core.buffer.Buffer}s to the SockJS socket over the event bus.
 
@@ -2116,13 +2116,13 @@ very similar to the server-side Vert.x event-bus API, which allows you to send a
 and register handlers to receive messages.
 
 This JavaScript library uses the JavaScript SockJS client to tunnel the event bus traffic over SockJS connections
-terminating at at a {@link io.vertx.ext.web.handler.sockjs.SockJSHandler} on the server-side.
+terminating at at a {@link io.vertx.ext.web.handler.sockjs.SockJS} on the server-side.
 
-A special SockJS socket handler is then installed on the {@link io.vertx.ext.web.handler.sockjs.SockJSHandler} which
+A special SockJS socket handler is then installed on the {@link io.vertx.ext.web.handler.sockjs.SockJS} which
 handles the SockJS data and bridges it to and from the server side event bus.
 
 To activate the bridge you simply call
-{@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions)} on the
+{@link io.vertx.ext.web.handler.sockjs.SockJS#bridge(io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions)} on the
 SockJS handler.
 
 [source,$lang]
@@ -2280,7 +2280,7 @@ To handle the login and actually auth you can configure the normal Vert.x auth h
 === Handling event bus bridge events
 
 If you want to be notified when an event occurs on the bridge you can provide a handler when calling
-{@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions, io.vertx.core.Handler)}.
+{@link io.vertx.ext.web.handler.sockjs.SockJS#bridge(io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions, io.vertx.core.Handler)}.
 
 Whenever an event occurs on the bridge it will be passed to the handler. The event is described by an instance of
 {@link io.vertx.ext.web.handler.sockjs.BridgeEvent}.

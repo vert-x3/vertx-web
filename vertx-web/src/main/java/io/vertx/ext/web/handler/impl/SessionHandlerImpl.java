@@ -21,6 +21,7 @@ import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.ContextInternal;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
@@ -259,6 +260,10 @@ public class SessionHandlerImpl implements SessionHandler {
 
   @Override
   public void handle(RoutingContext context) {
+    // this handler is asynchronous, we need to pause the request
+    // if we want to be able to process it later, during a body handler or protocol upgrade
+    context.request().pause();
+
     HttpServerRequest request = context.request();
     if (nagHttps && LOG.isDebugEnabled()) {
       String uri = request.absoluteURI();
@@ -272,9 +277,11 @@ public class SessionHandlerImpl implements SessionHandler {
     String sessionID = getSessionId(context);
     if (sessionID != null && sessionID.length() > minLength) {
       // we passed the OWASP min length requirements
-      final Context ctx = context.vertx().getOrCreateContext();
-      getSession(ctx, context.vertx(), sessionID)
-        .onFailure(context::fail)
+      getSession(context.vertx(), sessionID)
+        .onFailure(err -> {
+          context.request().resume();
+          context.fail(err);
+        })
         .onSuccess(session -> {
           if (session != null) {
             ((RoutingContextInternal) context).setSession(session);
@@ -298,11 +305,13 @@ public class SessionHandlerImpl implements SessionHandler {
             // create a new anonymous session.
             createNewSession(context);
           }
+          context.request().resume();
           context.next();
       });
     } else {
       // requirements were not met, so a anonymous session is created.
       createNewSession(context);
+      context.request().resume();
       context.next();
     }
   }
@@ -371,11 +380,11 @@ public class SessionHandlerImpl implements SessionHandler {
     return null;
   }
 
-  private Future<Session> getSession(Context ctx, Vertx vertx, String sessionID) {
-    return doGetSession(ctx, vertx, System.currentTimeMillis(), sessionID);
+  private Future<Session> getSession(Vertx vertx, String sessionID) {
+    return doGetSession(vertx, System.currentTimeMillis(), sessionID);
   }
 
-  private Future<Session> doGetSession(Context ctx, Vertx vertx, long startTime, String sessionID) {
+  private Future<Session> doGetSession(Vertx vertx, long startTime, String sessionID) {
     return sessionStore.get(sessionID)
       .compose(session -> {
         if (session == null) {
@@ -386,15 +395,15 @@ public class SessionHandlerImpl implements SessionHandler {
           // node there is a possibility it isn't available yet.
           long retryTimeout = sessionStore.retryTimeout();
           if (retryTimeout > 0 && System.currentTimeMillis() - startTime < retryTimeout) {
-            final Promise<Session> retry = ((ContextInternal) ctx).promise();
+            final Promise<Session> retry = ((VertxInternal) vertx).promise();
             vertx.setTimer(5, v -> {
-              doGetSession(ctx, vertx, startTime, sessionID)
+              doGetSession(vertx, startTime, sessionID)
                 .onComplete(retry);
             });
             return retry.future();
           }
         }
-        return ((ContextInternal) ctx).succeededFuture(session);
+        return Future.succeededFuture(session);
     });
   }
 

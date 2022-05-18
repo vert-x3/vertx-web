@@ -43,7 +43,8 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.ext.web.handler.PlatformHandler;
+import io.vertx.ext.web.handler.sockjs.SockJSOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
 import java.util.regex.Pattern;
@@ -89,7 +90,7 @@ class HtmlFileTransport extends BaseTransport {
 
   private final Handler<SockJSSocket> sockHandler;
 
-  HtmlFileTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
+  HtmlFileTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSOptions options, Handler<SockJSSocket> sockHandler) {
     super(vertx, sessions, options);
 
     this.sockHandler = sockHandler;
@@ -97,7 +98,7 @@ class HtmlFileTransport extends BaseTransport {
     String htmlFileRE = COMMON_PATH_ELEMENT_RE + "htmlfile.*";
 
     router.getWithRegex(htmlFileRE)
-      .handler(this::handleGet);
+      .handler((PlatformHandler) this::handleGet);
   }
 
   private void handleGet(RoutingContext ctx) {

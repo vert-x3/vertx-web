@@ -47,7 +47,9 @@ import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.ext.web.handler.PlatformHandler;
+import io.vertx.ext.web.handler.SecurityPolicyHandler;
+import io.vertx.ext.web.handler.sockjs.SockJSOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
 import java.util.Arrays;
@@ -73,7 +75,7 @@ class XhrTransport extends BaseTransport {
 
   private final Handler<SockJSSocket> sockHandler;
 
-  XhrTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
+  XhrTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSOptions options, Handler<SockJSSocket> sockHandler) {
 
     super(vertx, sessions, options);
 
@@ -83,7 +85,7 @@ class XhrTransport extends BaseTransport {
     String xhrRE = xhrBase + "xhr";
     String xhrStreamRE = xhrBase + "xhr_streaming";
 
-    Handler<RoutingContext> xhrOptionsHandler = createCORSOptionsHandler(options, "OPTIONS, POST");
+    SecurityPolicyHandler xhrOptionsHandler = createCORSOptionsHandler(options, "OPTIONS, POST");
 
     router.optionsWithRegex(xhrRE)
       .handler(xhrOptionsHandler);
@@ -92,9 +94,9 @@ class XhrTransport extends BaseTransport {
       .handler(xhrOptionsHandler);
 
     router.postWithRegex(xhrRE)
-      .handler(this::handlePostPolling);
+      .handler((PlatformHandler) this::handlePostPolling);
     router.postWithRegex(xhrStreamRE)
-      .handler(this::handlePostStreaming);
+      .handler((PlatformHandler) this::handlePostStreaming);
 
     String xhrSendRE = COMMON_PATH_ELEMENT_RE + "xhr_send";
 
@@ -102,7 +104,7 @@ class XhrTransport extends BaseTransport {
       .handler(xhrOptionsHandler);
 
     router.postWithRegex(xhrSendRE)
-      .handler(this::handlePost);
+      .handler((PlatformHandler) this::handlePost);
   }
   private void handlePost(RoutingContext ctx) {
     String sessionID = ctx.request().getParam("param0");

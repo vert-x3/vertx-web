@@ -1,17 +1,11 @@
 package io.vertx.ext.web;
 
 import io.vertx.core.http.*;
-import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
-import io.vertx.ext.auth.oauth2.OAuth2Auth;
-import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
-import io.vertx.ext.web.handler.sockjs.SockJSHandler;
-import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
