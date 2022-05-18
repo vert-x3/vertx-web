@@ -7,7 +7,7 @@ import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
-import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.ext.web.handler.sockjs.SockJS;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -83,14 +83,14 @@ public class RouterValidationTest {
     Router router = Router.router(rule.vertx());
     router.route()
       .handler(CorsHandler.create())
-      .subRouter(SockJSHandler.create(rule.vertx()).bridge(new SockJSBridgeOptions()));
+      .subRouter(SockJS.create(rule.vertx()).bridge(new SockJSBridgeOptions()));
   }
 
   @Test(expected = IllegalStateException.class)
   public void addSecurityPolicyAndUserHandlersBadOrder() {
     Router router = Router.router(rule.vertx());
     router.route()
-      .subRouter(SockJSHandler.create(rule.vertx()).bridge(new SockJSBridgeOptions()))
+      .subRouter(SockJS.create(rule.vertx()).bridge(new SockJSBridgeOptions()))
       // will fail as the route should be exclusive
       .handler(CorsHandler.create());
   }

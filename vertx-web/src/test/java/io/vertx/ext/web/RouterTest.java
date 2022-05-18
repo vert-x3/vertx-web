@@ -3094,9 +3094,13 @@ public class RouterTest extends WebTestBase {
   public void testPauseResumeRelaxed2() throws Exception {
     // would not complete because the pause would always occur
     router.route()
-      .handler((PlatformHandler) ctx -> {
+      .handler(ctx -> {
+        ctx.request().pause();
         ctx.vertx()
-          .setTimer(1L, t -> ctx.next());
+          .setTimer(1L, t -> {
+            ctx.request().resume();
+            ctx.next();
+          });
       })
       .handler(ctx -> {
         // this is happening from an async call, the request was paused
@@ -3180,9 +3184,13 @@ public class RouterTest extends WebTestBase {
   public void testPauseResumeOnPipeline() {
     // force an async op (to ensure that the body is not lost)
     router.route()
-      .handler((PlatformHandler) ctx -> {
+      .handler(ctx -> {
+        ctx.request().pause();
         ctx.vertx()
-          .setTimer(1L, t -> ctx.next());
+          .setTimer(1L, t -> {
+            ctx.request().resume();
+            ctx.next();
+          });
       });
 
     // will parse the body, this means that the request will be resumed

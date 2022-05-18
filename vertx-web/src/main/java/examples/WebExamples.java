@@ -30,9 +30,8 @@ import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
-import io.vertx.ext.web.handler.sockjs.SockJSHandler;
-import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.ext.web.handler.sockjs.*;
+import io.vertx.ext.web.handler.sockjs.SockJS;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.LocalSessionStore;
@@ -959,10 +958,10 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    SockJSHandlerOptions options = new SockJSHandlerOptions()
+    SockJSOptions options = new SockJSOptions()
       .setHeartbeatInterval(2000);
 
-    SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
+    SockJS sockJSHandler = SockJS.create(vertx, options);
 
   }
 
@@ -970,10 +969,10 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    SockJSHandlerOptions options = new SockJSHandlerOptions()
+    SockJSOptions options = new SockJSOptions()
       .setHeartbeatInterval(2000);
 
-    SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
+    SockJS sockJSHandler = SockJS.create(vertx, options);
 
     router.route("/myapp/*")
       .subRouter(sockJSHandler.socketHandler(sockJSSocket -> {
@@ -988,10 +987,10 @@ public class WebExamples {
   public void sockJsWriteHandler(Vertx vertx) {
     Router router = Router.router(vertx);
 
-    SockJSHandlerOptions options = new SockJSHandlerOptions()
+    SockJSOptions options = new SockJSOptions()
       .setRegisterWriteHandler(true);
 
-    SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
+    SockJS sockJSHandler = SockJS.create(vertx, options);
 
     router.route("/myapp/*")
       .subRouter(sockJSHandler.socketHandler(sockJSSocket -> {
@@ -1016,7 +1015,7 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+    SockJS sockJSHandler = SockJS.create(vertx);
     SockJSBridgeOptions options = new SockJSBridgeOptions();
     // mount the bridge on the router
     router
@@ -1028,7 +1027,7 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+    SockJS sockJSHandler = SockJS.create(vertx);
 
 
     // Let through any messages sent to 'demo.orderMgr' from the client
@@ -1096,7 +1095,7 @@ public class WebExamples {
     // But only if the user is logged in and has the authority "place_orders"
     inboundPermitted.setRequiredAuthority("place_orders");
 
-    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+    SockJS sockJSHandler = SockJS.create(vertx);
 
     // Now set up some basic auth handling:
 
@@ -1121,7 +1120,7 @@ public class WebExamples {
     PermittedOptions inboundPermitted = new PermittedOptions()
       .setAddress("demo.orderService");
 
-    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+    SockJS sockJSHandler = SockJS.create(vertx);
     SockJSBridgeOptions options = new SockJSBridgeOptions()
       .addInboundPermitted(inboundPermitted);
 
@@ -1154,7 +1153,7 @@ public class WebExamples {
     PermittedOptions inboundPermitted = new PermittedOptions()
       .setAddress("demo.someService");
 
-    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+    SockJS sockJSHandler = SockJS.create(vertx);
     SockJSBridgeOptions options = new SockJSBridgeOptions()
       .addInboundPermitted(inboundPermitted);
 
@@ -1180,7 +1179,7 @@ public class WebExamples {
     Router router = Router.router(vertx);
 
     // Initialize SockJS handler
-    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+    SockJS sockJSHandler = SockJS.create(vertx);
     SockJSBridgeOptions options = new SockJSBridgeOptions()
       .addInboundPermitted(inboundPermitted)
       .setPingTimeout(5000);

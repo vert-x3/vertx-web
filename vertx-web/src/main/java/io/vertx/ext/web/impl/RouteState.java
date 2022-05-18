@@ -46,6 +46,7 @@ final class RouteState {
     SECURITY_POLICY,
     PROTOCOL_UPGRADE,
     BODY,
+    MULTI_TENANT,
     AUTHENTICATION,
     INPUT_TRUST,
     AUTHORIZATION,
@@ -59,8 +60,14 @@ final class RouteState {
     if (handler instanceof SecurityPolicyHandler) {
       return Priority.SECURITY_POLICY;
     }
+    if (handler instanceof ProtocolUpgradeHandler) {
+      return Priority.PROTOCOL_UPGRADE;
+    }
     if (handler instanceof BodyHandler) {
       return Priority.BODY;
+    }
+    if (handler instanceof MultiTenantHandler) {
+      return Priority.MULTI_TENANT;
     }
     if (handler instanceof AuthenticationHandler) {
       return Priority.AUTHENTICATION;
@@ -70,9 +77,6 @@ final class RouteState {
     }
     if (handler instanceof AuthorizationHandler) {
       return Priority.AUTHORIZATION;
-    }
-    if (handler instanceof ProtocolUpgradeHandler) {
-      return Priority.PROTOCOL_UPGRADE;
     }
 
     return Priority.USER;
@@ -555,13 +559,17 @@ final class RouteState {
       lastWeight = null;
     }
 
-    if (weight == Priority.USER && lastWeight != Priority.USER) {
-      // we're switching from vertx handlers to user defined handlers
-      newState.contextHandlers.add(ctx -> {
-        ctx.request().resume();
-        ctx.next();
-      });
+    if (lastWeight == Priority.PROTOCOL_UPGRADE) {
+      LOG.warn("Adding an handler after PROTOCOL_UPGRADE handler may not be reachable");
     }
+
+//    if (weight == Priority.USER && lastWeight != Priority.USER) {
+//      // we're switching from vertx handlers to user defined handlers
+//      newState.contextHandlers.add(ctx -> {
+//        ctx.request().resume();
+//        ctx.next();
+//      });
+//    }
 
     newState.contextHandlers.add(contextHandler);
     return newState;

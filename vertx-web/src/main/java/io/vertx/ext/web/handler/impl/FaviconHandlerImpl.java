@@ -190,7 +190,7 @@ public class FaviconHandlerImpl implements FaviconHandler {
 
   @Override
   public void handle(RoutingContext ctx) {
-    if ("/favicon.ico".equals(ctx.request().path())) {
+    if ("/favicon.ico".equals(ctx.normalizedPath())) {
       HttpServerResponse resp = ctx.response();
       if (icon == NULL_ICON) {
         resp.setStatusCode(404).end();

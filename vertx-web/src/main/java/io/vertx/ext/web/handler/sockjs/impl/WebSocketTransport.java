@@ -45,8 +45,9 @@ import io.vertx.core.net.impl.ConnectionBase;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
-import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.impl.Origin;
 
@@ -61,7 +62,7 @@ class WebSocketTransport extends BaseTransport {
   private final Origin origin;
   private final Handler<SockJSSocket> sockHandler;
 
-  WebSocketTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
+  WebSocketTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSOptions options, Handler<SockJSSocket> sockHandler) {
     super(vertx, sessions, options);
 
     this.origin = options.getOrigin() != null ? Origin.parse(options.getOrigin()) : null;
@@ -73,7 +74,7 @@ class WebSocketTransport extends BaseTransport {
       .handler((ProtocolUpgradeHandler) this::handleGet);
 
     router.routeWithRegex(wsRE)
-      .handler(rc -> rc.response().putHeader(HttpHeaders.ALLOW, "GET").setStatusCode(405).end());
+      .handler((PlatformHandler) rc -> rc.response().putHeader(HttpHeaders.ALLOW, "GET").setStatusCode(405).end());
   }
 
   private void handleGet(RoutingContext ctx) {

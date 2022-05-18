@@ -45,7 +45,8 @@ import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.ext.web.handler.PlatformHandler;
+import io.vertx.ext.web.handler.sockjs.SockJSOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
 import java.util.regex.Pattern;
@@ -62,7 +63,7 @@ class JsonPTransport extends BaseTransport {
 
   private final Handler<SockJSSocket> sockHandler;
 
-  JsonPTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
+  JsonPTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSOptions options, Handler<SockJSSocket> sockHandler) {
     super(vertx, sessions, options);
 
     this.sockHandler = sockHandler;
@@ -70,12 +71,12 @@ class JsonPTransport extends BaseTransport {
     String jsonpRE = COMMON_PATH_ELEMENT_RE + "jsonp";
 
     router.getWithRegex(jsonpRE)
-      .handler(this::handleGet);
+      .handler((PlatformHandler) this::handleGet);
 
     String jsonpSendRE = COMMON_PATH_ELEMENT_RE + "jsonp_send";
 
     router.postWithRegex(jsonpSendRE)
-      .handler(this::handlePost);
+      .handler((PlatformHandler) this::handlePost);
   }
 
   private void handleGet(RoutingContext ctx) {

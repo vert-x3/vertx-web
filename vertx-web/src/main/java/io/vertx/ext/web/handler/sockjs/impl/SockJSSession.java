@@ -36,7 +36,6 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.ContextInternal;
-import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.SocketAddress;
@@ -45,7 +44,7 @@ import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.Shareable;
 import io.vertx.core.streams.impl.InboundBuffer;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
 import java.util.*;
@@ -92,11 +91,11 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private MultiMap headers;
   private Context transportCtx;
 
-  SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
+  SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, SockJSOptions options, Handler<SockJSSocket> sockHandler) {
     this(vertx, sessions, rc, null, options, sockHandler);
   }
 
-  SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, String id, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
+  SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, String id, SockJSOptions options, Handler<SockJSSocket> sockHandler) {
     super(vertx, rc, options);
     this.sessions = sessions;
     this.id = id;

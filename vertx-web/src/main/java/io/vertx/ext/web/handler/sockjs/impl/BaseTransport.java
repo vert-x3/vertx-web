@@ -47,7 +47,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.ext.web.handler.PlatformHandler;
+import io.vertx.ext.web.handler.SecurityPolicyHandler;
+import io.vertx.ext.web.handler.sockjs.SockJSOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.handler.sockjs.Transport;
 import io.vertx.ext.web.impl.RoutingContextInternal;
@@ -68,17 +70,17 @@ class BaseTransport {
 
   protected final Vertx vertx;
   protected final LocalMap<String, SockJSSession> sessions;
-  protected final SockJSHandlerOptions options;
+  protected final SockJSOptions options;
 
   static final String COMMON_PATH_ELEMENT_RE = "\\/[^\\/\\.]+\\/([^\\/\\.]+)\\/";
 
-  public BaseTransport(Vertx vertx, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options) {
+  public BaseTransport(Vertx vertx, LocalMap<String, SockJSSession> sessions, SockJSOptions options) {
     this.vertx = vertx;
     this.sessions = sessions;
     this.options = options;
   }
 
-  protected SockJSSession getSession(RoutingContext rc, SockJSHandlerOptions options, String sessionID, Handler<SockJSSocket> sockHandler) {
+  protected SockJSSession getSession(RoutingContext rc, SockJSOptions options, String sessionID, Handler<SockJSSocket> sockHandler) {
     return sessions.computeIfAbsent(sessionID, s -> new SockJSSession(vertx, sessions, rc, s, options, sockHandler));
   }
 
@@ -128,7 +130,7 @@ class BaseTransport {
     }
   }
 
-  static void setJSESSIONID(SockJSHandlerOptions options, RoutingContext rc) {
+  static void setJSESSIONID(SockJSOptions options, RoutingContext rc) {
     String cookies = rc.request().getHeader(COOKIE);
     if (options.isInsertJSESSIONID()) {
       //Preserve existing JSESSIONID, if any
@@ -173,10 +175,10 @@ class BaseTransport {
     }
   }
 
-  static Handler<RoutingContext> createInfoHandler(final SockJSHandlerOptions options, final VertxContextPRNG prng) {
+  static PlatformHandler createInfoHandler(final SockJSOptions options, final VertxContextPRNG prng) {
     final long offset = 2L << 30;
 
-    return new Handler<RoutingContext>() {
+    return new PlatformHandler() {
       final boolean websocket = !options.getDisabledTransports().contains(Transport.WEBSOCKET.toString());
 
       @Override
@@ -203,7 +205,7 @@ class BaseTransport {
     rc.response().putHeader(CACHE_CONTROL, "no-store, no-cache, no-transform, must-revalidate, max-age=0");
   }
 
-  static Handler<RoutingContext> createCORSOptionsHandler(SockJSHandlerOptions options, String methods) {
+  static SecurityPolicyHandler createCORSOptionsHandler(SockJSOptions options, String methods) {
     return rc -> {
       if (LOG.isTraceEnabled()) {
         LOG.trace("In CORS options handler");

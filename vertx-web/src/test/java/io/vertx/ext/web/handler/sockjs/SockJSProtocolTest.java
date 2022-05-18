@@ -71,33 +71,33 @@ public class SockJSProtocolTest {
     router.post().handler(BodyHandler.create());
 
     router.route("/echo*").subRouter(
-      SockJSHandler.create(
+      SockJS.create(
         vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096))
+        new SockJSOptions().setMaxBytesStreaming(4096))
         .socketHandler(sock -> sock.handler(sock::write)));
 
     router.route("/close*").subRouter(
-      SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096))
+      SockJS.create(vertx,
+        new SockJSOptions().setMaxBytesStreaming(4096))
         .socketHandler(sock -> {
           // Close with a small delay so the opening sockjs frame "o" is not aggregated in the same TCP frame
           // than the SockJS close frame "c[3000,"Go away!"]"
           vertx.setTimer(10, id -> sock.close(3000, "Go away!"));
         }));
     router.route("/disabled_websocket_echo*").subRouter(
-      SockJSHandler.create(vertx, new SockJSHandlerOptions()
+      SockJS.create(vertx, new SockJSOptions()
         .setMaxBytesStreaming(4096).addDisabledTransport("WEBSOCKET"))
         .socketHandler(sock -> sock.handler(sock::write)));
     router.route("/ticker*").subRouter(
-      SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096))
+      SockJS.create(vertx,
+        new SockJSOptions().setMaxBytesStreaming(4096))
         .socketHandler(sock -> {
           long timerID = vertx.setPeriodic(1000, tid -> sock.write(buffer("tick!")));
           sock.endHandler(v -> vertx.cancelTimer(timerID));
         }));
     router.route("/amplify*").subRouter(
-      SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096))
+      SockJS.create(vertx,
+        new SockJSOptions().setMaxBytesStreaming(4096))
         .socketHandler(sock -> sock.handler(data -> {
           String str = data.toString();
           int n = Integer.valueOf(str);
@@ -112,8 +112,8 @@ public class SockJSProtocolTest {
           sock.write(buff);
         })));
     router.route("/broadcast*").subRouter(
-      SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096).setRegisterWriteHandler(true))
+      SockJS.create(vertx,
+        new SockJSOptions().setMaxBytesStreaming(4096).setRegisterWriteHandler(true))
         .socketHandler(new Handler<SockJSSocket>() {
           Set<String> connections = new HashSet<>();
 
@@ -130,10 +130,10 @@ public class SockJSProtocolTest {
             }
           }
         }));
-    SockJSHandlerOptions options = new SockJSHandlerOptions().
+    SockJSOptions options = new SockJSOptions().
       setMaxBytesStreaming(4096)
       .setInsertJSESSIONID(true);
-    SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
+    SockJS sockJSHandler = SockJS.create(vertx, options);
     Router socketHandler = sockJSHandler.socketHandler(sock -> sock.handler(sock::write));
     router.route("/cookie_needed_echo*").subRouter(socketHandler);
   }

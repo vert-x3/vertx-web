@@ -173,7 +173,7 @@ public class SockJSErrorTest extends VertxTestBase {
       .addInboundPermitted(permittedOptions)
       .addOutboundPermitted(permittedOptions)
       .setPingTimeout(60000);  // should not interfere with test
-    return SockJSHandler.create(vertx).bridge(bridgeOptions, new TestBridgeEventHandler());
+    return SockJS.create(vertx).bridge(bridgeOptions, new TestBridgeEventHandler());
   }
 
 
