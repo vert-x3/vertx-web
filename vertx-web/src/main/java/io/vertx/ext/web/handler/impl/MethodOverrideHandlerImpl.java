@@ -22,7 +22,6 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.MethodOverrideHandler;
-import io.vertx.ext.web.impl.RoutingContextInternal;
 
 /**
  * # MethodOverrideParser

@@ -34,7 +34,6 @@ import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 

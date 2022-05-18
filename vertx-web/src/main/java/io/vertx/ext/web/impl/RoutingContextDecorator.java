@@ -17,7 +17,6 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * Decorate a {@link RoutingContext} and simply delegate all method calls to the decorated handler

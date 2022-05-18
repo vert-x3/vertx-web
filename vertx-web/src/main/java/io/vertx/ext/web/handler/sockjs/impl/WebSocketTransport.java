@@ -36,7 +36,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.impl.logging.Logger;
@@ -50,6 +49,8 @@ import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.impl.Origin;
+
+import static io.vertx.core.http.HttpHeaders.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -74,13 +75,12 @@ class WebSocketTransport extends BaseTransport {
       .handler((ProtocolUpgradeHandler) this::handleGet);
 
     router.routeWithRegex(wsRE)
-      .handler((PlatformHandler) rc -> rc.response().putHeader(HttpHeaders.ALLOW, "GET").setStatusCode(405).end());
+      .handler((PlatformHandler) rc -> rc.response().putHeader(ALLOW, "GET").setStatusCode(405).end());
   }
 
   private void handleGet(RoutingContext ctx) {
     HttpServerRequest req = ctx.request();
-    String connectionHeader = req.headers().get(HttpHeaders.CONNECTION);
-    if (connectionHeader == null || !connectionHeader.toLowerCase().contains("upgrade")) {
+    if (!req.headers().contains(CONNECTION, UPGRADE, true)) {
       ctx.response().setStatusCode(400);
       ctx.response().end("Can \"Upgrade\" only to \"WebSocket\".");
       return;

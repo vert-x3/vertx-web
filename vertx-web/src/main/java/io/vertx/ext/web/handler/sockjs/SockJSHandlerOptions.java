@@ -16,11 +16,7 @@
 package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.codegen.annotations.DataObject;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @deprecated Use {@link SockJSOptions}.
