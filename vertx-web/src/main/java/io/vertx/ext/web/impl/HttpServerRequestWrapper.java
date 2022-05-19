@@ -77,9 +77,7 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   @Override
   public HttpServerRequest body(Handler<AsyncResult<Buffer>> handler) {
-    delegate
-      //.resume()
-      .body(handler);
+    delegate.body(handler);
     return this;
   }
 
@@ -90,9 +88,7 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   @Override
   public Future<Buffer> body() {
-    return delegate
-      //.resume()
-      .body();
+    return delegate.body();
   }
 
   @Override
@@ -108,9 +104,7 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   @Override
   public HttpServerRequest handler(Handler<Buffer> handler) {
-    delegate
-      //.resume()
-      .handler(handler);
+    delegate.handler(handler);
     return this;
   }
 
@@ -134,9 +128,7 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   @Override
   public HttpServerRequest endHandler(Handler<Void> handler) {
-    delegate
-      //.resume()
-      .endHandler(handler);
+    delegate.endHandler(handler);
     return this;
   }
 
@@ -293,9 +285,7 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   @Override
   public HttpServerRequest bodyHandler(Handler<Buffer> handler) {
-    delegate
-      //.resume()
-      .bodyHandler(handler);
+    delegate.bodyHandler(handler);
     return this;
   }
 
@@ -409,16 +399,12 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   @Override
   public void end(Handler<AsyncResult<Void>> handler) {
-    delegate
-      //.resume()
-      .end(handler);
+    delegate.end(handler);
   }
 
   @Override
   public Future<Void> end() {
-    return delegate
-      //.resume()
-      .end();
+    return delegate.end();
   }
 
   @Override

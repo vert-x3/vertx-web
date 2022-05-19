@@ -200,7 +200,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
     if (!super.iterateNext()) {
       // We didn't route request to anything so go to parent,
       // but also propagate the current status
-      ((RoutingContextInternal) inner).setMatchFailure(matchFailure);
+      inner.setMatchFailure(matchFailure);
       inner.next();
     }
   }
