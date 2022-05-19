@@ -32,6 +32,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.impl.headers.HeadersAdaptor;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.impl.InboundBuffer;
 import io.vertx.ext.web.multipart.FormDataPart;
@@ -56,14 +57,14 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
   private Handler<Void> endHandler;
   private InboundBuffer<Object> pending;
   private boolean ended;
-  private final Context context;
+  private final ContextInternal context;
 
   public MultipartFormUpload(Context context,
                              MultipartForm parts,
                              boolean multipart,
                              HttpPostRequestEncoder.EncoderMode encoderMode) throws Exception {
-    this.context = context;
-    this.pending = new InboundBuffer<>(context)
+    this.context = (ContextInternal) context;
+    this.pending = new InboundBuffer<>(this.context.executor())
       .handler(this::handleChunk)
       .drainHandler(v -> run()).pause();
     this.request = new DefaultFullHttpRequest(
