@@ -67,7 +67,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   private final LocalMap<String, SockJSSession> sessions;
   private final Deque<String> pendingWrites = new LinkedList<>();
-  private final ContextInternal context;
+  private final Context context;
   private final InboundBuffer<Buffer> pendingReads;
   private final String id;
   private final long timeout;
@@ -101,8 +101,8 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     this.id = id;
     this.timeout = id == null ? -1 : options.getSessionTimeout();
     this.sockHandler = sockHandler;
-    context = (ContextInternal) vertx.getOrCreateContext();
-    pendingReads = new InboundBuffer<>(context.executor());
+    context = vertx.getOrCreateContext();
+    pendingReads = new InboundBuffer<>(context);
 
     // Start a heartbeat
 
