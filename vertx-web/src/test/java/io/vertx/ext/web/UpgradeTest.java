@@ -61,7 +61,8 @@ public class UpgradeTest {
         });
       })
       .handler((ProtocolUpgradeHandler) ctx -> {
-        ctx.request().pause().toWebSocket()
+        ctx.request()
+          .toWebSocket()
           .onFailure(ctx::fail)
           .onSuccess(webSocket -> {
             webSocket.write(Buffer.buffer("OK"))
@@ -93,7 +94,8 @@ public class UpgradeTest {
         });
       })
       .handler((ProtocolUpgradeHandler) ctx -> {
-        ctx.request().pause().toWebSocket()
+        ctx.request()
+          .toWebSocket()
           .onFailure(ctx::fail)
           .onSuccess(webSocket -> {
             webSocket.write(Buffer.buffer("OK"))

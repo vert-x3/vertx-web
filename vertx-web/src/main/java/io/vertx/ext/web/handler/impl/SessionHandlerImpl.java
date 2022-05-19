@@ -388,24 +388,32 @@ public class SessionHandlerImpl implements SessionHandler {
     return sessionStore.get(sessionID)
       .compose(session -> {
         if (session == null) {
-          // Can't find it so retry. This is necessary for clustered sessions as it can
-          // take sometime for the session
-          // to propagate across the cluster so if the next request for the session comes
-          // in quickly at a different
-          // node there is a possibility it isn't available yet.
-          long retryTimeout = sessionStore.retryTimeout();
-          if (retryTimeout > 0 && System.currentTimeMillis() - startTime < retryTimeout) {
-            final Promise<Session> retry = context.promise();
-            context.owner()
-              .setTimer(5, v ->
-                doGetSession(context, startTime, sessionID)
-                  .onComplete(retry));
-            return retry.future();
-          }
+          // no session was found (yet), we will retry as callback to avoid stackoverflow
+          final Promise<Session> retry = context.promise();
+          doGetSession(context.owner(), startTime, sessionID, retry);
+          return retry.future();
         }
         return context.succeededFuture(session);
       });
   }
+  private void doGetSession(Vertx vertx, long startTime, String sessionID, Handler<AsyncResult<Session>> resultHandler) {
+    sessionStore.get(sessionID)
+      .onComplete(res -> {
+      if (res.succeeded()) {
+        if (res.result() == null) {
+          // Can't find it so retry. This is necessary for clustered sessions as it can take sometime for the session
+          // to propagate across the cluster so if the next request for the session comes in quickly at a different
+          // node there is a possibility it isn't available yet.
+          if (System.currentTimeMillis() - startTime < sessionStore.retryTimeout()) {
+            vertx.setTimer(5L, v -> doGetSession(vertx, startTime, sessionID, resultHandler));
+            return;
+          }
+        }
+      }
+      resultHandler.handle(res);
+    });
+  }
+
 
   private void addStoreSessionHandler(RoutingContext context) {
     context.addHeadersEndHandler(v -> {

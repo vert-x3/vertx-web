@@ -161,7 +161,6 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
       ContextInternal context = (ContextInternal) ctx.vertx().getOrCreateContext();
       ctx
         .request()
-        .pause()
         .toWebSocket()
         .onFailure(ctx::fail)
         .onSuccess(ws -> {

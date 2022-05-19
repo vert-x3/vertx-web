@@ -88,7 +88,6 @@ class RawWebSocketTransport {
 
     // upgrade
     req
-      .pause()
       .toWebSocket()
       .onFailure(ctx::fail)
       .onSuccess(socket -> {

@@ -549,7 +549,7 @@ final class RouteState {
       lastWeight = weight(newState.contextHandlers.get(len - 1));
       if (lastWeight.ordinal() > weight.ordinal()) {
         String message = "Cannot add [" + weight.name() + "] handler to route with [" + lastWeight.name() + "] handler at index " + (len - 1);
-        // when lenient mode is disabled, throw IllegalStateException to signal that the setup is not correct
+        // when lenient mode is disabled, throw IllegalStateException to signal that the setup is incorrect
         if (!Boolean.getBoolean("io.vertx.web.router.setup.lenient")) {
           throw new IllegalStateException(message);
         }
@@ -560,7 +560,10 @@ final class RouteState {
     }
 
     if (lastWeight == Priority.PROTOCOL_UPGRADE) {
-      LOG.warn("Adding an handler after PROTOCOL_UPGRADE handler may not be reachable");
+      // when lenient mode is disabled, don't log to signal that the setup might be incorrect
+      if (!Boolean.getBoolean("io.vertx.web.router.setup.lenient")) {
+        LOG.warn("Adding an handler after PROTOCOL_UPGRADE handler may not be reachable");
+      }
     }
 
 //    if (weight == Priority.USER && lastWeight != Priority.USER) {

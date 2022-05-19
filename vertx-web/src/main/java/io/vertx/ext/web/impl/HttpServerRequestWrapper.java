@@ -189,7 +189,7 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
         QueryStringDecoder queryStringDecoder = new QueryStringDecoder(uri);
         Map<String, List<String>> prms = queryStringDecoder.parameters();
         if (!prms.isEmpty()) {
-          for (Map.Entry<String, List<String>> entry: prms.entrySet()) {
+          for (Map.Entry<String, List<String>> entry : prms.entrySet()) {
             params.add(entry.getKey(), entry.getValue());
           }
         }
@@ -343,19 +343,21 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   @Override
   public void toWebSocket(Handler<AsyncResult<ServerWebSocket>> handler) {
-    delegate.toWebSocket(toWebSocket -> {
-      if (toWebSocket.succeeded()) {
-        handler.handle(Future.succeededFuture(
-          new ServerWebSocketWrapper(toWebSocket.result(), host(), scheme(), isSSL(), remoteAddress())));
-      } else {
-        handler.handle(toWebSocket);
-      }
-    });
+    delegate
+      .toWebSocket(toWebSocket -> {
+        if (toWebSocket.succeeded()) {
+          handler.handle(Future.succeededFuture(
+            new ServerWebSocketWrapper(toWebSocket.result(), host(), scheme(), isSSL(), remoteAddress())));
+        } else {
+          handler.handle(toWebSocket);
+        }
+      });
   }
 
   @Override
   public Future<ServerWebSocket> toWebSocket() {
-    return delegate.toWebSocket()
+    return delegate
+      .toWebSocket()
       .map(ws -> new ServerWebSocketWrapper(ws, host(), scheme(), isSSL(), remoteAddress()));
   }
 
