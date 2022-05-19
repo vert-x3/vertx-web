@@ -81,7 +81,6 @@ public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
       ContextInternal context = (ContextInternal) rc.vertx().getOrCreateContext();
       rc
         .request()
-        .pause()
         .toWebSocket()
         .onFailure(rc::fail)
         .onSuccess(socket -> {

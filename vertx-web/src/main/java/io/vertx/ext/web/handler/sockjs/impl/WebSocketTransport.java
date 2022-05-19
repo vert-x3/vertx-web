@@ -93,7 +93,6 @@ class WebSocketTransport extends BaseTransport {
 
     // upgrade
     req
-      .pause()
       .toWebSocket()
       .onFailure(ctx::fail)
       .onSuccess(socket -> {

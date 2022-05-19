@@ -21,7 +21,7 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.impl.ws.GraphQLWSHandlerImpl;
 
@@ -31,7 +31,7 @@ import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
  * A handler for the <a href="https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md">GraphQL over WebSocket Protocol</a>.
  */
 @VertxGen
-public interface GraphQLWSHandler extends Handler<RoutingContext> {
+public interface GraphQLWSHandler extends ProtocolUpgradeHandler {
 
 
   /**
