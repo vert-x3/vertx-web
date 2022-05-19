@@ -55,6 +55,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
   private Origin origin;
   private boolean httpOnly;
+  private boolean cookieSecure;
 
   public CSRFHandlerImpl(final Vertx vertx, final String secret) {
     try {
@@ -94,6 +95,12 @@ public class CSRFHandlerImpl implements CSRFHandler {
   }
 
   @Override
+  public CSRFHandler setCookieSecure(boolean secure) {
+    this.cookieSecure = secure;
+    return this;
+  }
+
+  @Override
   public CSRFHandler setHeaderName(String headerName) {
     this.headerName = headerName;
     return this;
@@ -125,6 +132,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
         Cookie.cookie(cookieName, token)
           .setPath(cookiePath)
           .setHttpOnly(httpOnly)
+          .setSecure(cookieSecure)
           // it's not an option to change the same site policy
           .setSameSite(CookieSameSite.STRICT));
 

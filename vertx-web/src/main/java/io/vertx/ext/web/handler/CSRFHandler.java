@@ -81,6 +81,16 @@ public interface CSRFHandler extends InputTrustHandler {
   CSRFHandler setCookieHttpOnly(boolean httpOnly);
 
   /**
+   * Sets the cookie {@code secure} flag. When set this flag instructs browsers to only send the cookie over HTTPS.
+   *
+   *
+   * @param secure true to set the secure flag on the cookie
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  CSRFHandler setCookieSecure(boolean secure);
+
+  /**
    * Set the header name. By default X-XSRF-TOKEN is used as it is the expected name by AngularJS however other
    * frameworks might use other names.
    *
