@@ -566,14 +566,6 @@ final class RouteState {
       }
     }
 
-//    if (weight == Priority.USER && lastWeight != Priority.USER) {
-//      // we're switching from vertx handlers to user defined handlers
-//      newState.contextHandlers.add(ctx -> {
-//        ctx.request().resume();
-//        ctx.next();
-//      });
-//    }
-
     newState.contextHandlers.add(contextHandler);
     return newState;
   }
