@@ -114,7 +114,7 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
    * that buffer will be received by this instance in its own event loop and written to the underlying socket. This
    * allows you to write data to other sockets which are owned by different event loops.
    *
-   * @return the {@code writeHandlerID} or {@code null} if {@code writeHandler} registration is disabled in {@link SockJSOptions}
+   * @return the {@code writeHandlerID} or {@code null} if {@code writeHandler} registration is disabled in {@link SockJSHandlerOptions}
    */
   String writeHandlerID();
 
