@@ -44,7 +44,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         testComplete();
       });
     };
-    startServers(new SockJSOptions());
+    startServers(new SockJSHandlerOptions());
     client.webSocket(
       new WebSocketConnectOptions()
         .setHost("localhost")
@@ -74,7 +74,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         testComplete();
       });
     };
-    startServers(new SockJSOptions().setOrigin("http://localhost:8080"));
+    startServers(new SockJSHandlerOptions().setOrigin("http://localhost:8080"));
     client.webSocket(
       new WebSocketConnectOptions()
         .setHost("localhost")
@@ -98,7 +98,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         testComplete();
       });
     };
-    startServers(new SockJSOptions().setOrigin("http://localhost:8080"));
+    startServers(new SockJSHandlerOptions().setOrigin("http://localhost:8080"));
     client.webSocket("/test/websocket", onSuccess(ws -> {
       ws.frameHandler(frame -> {
         if (frame.isClose()) {
@@ -122,7 +122,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         testComplete();
       });
     };
-    startServers(new SockJSOptions().setOrigin("https://www.google.com"));
+    startServers(new SockJSHandlerOptions().setOrigin("https://www.google.com"));
     client.webSocket("/test/websocket", onFailure(err -> {
       assertNotNull(err);
       assertEquals("WebSocket upgrade failure: 403 (Forbidden)", err.getMessage());
@@ -143,7 +143,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         testComplete();
       });
     };
-    startServers(new SockJSOptions());
+    startServers(new SockJSHandlerOptions());
     client.webSocket("/test/websocket", onSuccess(ws -> {
       ws.frameHandler(frame -> {
         if (frame.isClose()) {

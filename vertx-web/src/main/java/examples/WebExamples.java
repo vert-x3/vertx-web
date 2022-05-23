@@ -955,10 +955,10 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    SockJSOptions options = new SockJSOptions()
+    SockJSHandlerOptions options = new SockJSHandlerOptions()
       .setHeartbeatInterval(2000);
 
-    SockJS sockJSHandler = SockJS.create(vertx, options);
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
   }
 
@@ -966,10 +966,10 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    SockJSOptions options = new SockJSOptions()
+    SockJSHandlerOptions options = new SockJSHandlerOptions()
       .setHeartbeatInterval(2000);
 
-    SockJS sockJSHandler = SockJS.create(vertx, options);
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
     router.route("/myapp/*")
       .subRouter(sockJSHandler.socketHandler(sockJSSocket -> {
@@ -984,10 +984,10 @@ public class WebExamples {
   public void sockJsWriteHandler(Vertx vertx) {
     Router router = Router.router(vertx);
 
-    SockJSOptions options = new SockJSOptions()
+    SockJSHandlerOptions options = new SockJSHandlerOptions()
       .setRegisterWriteHandler(true);
 
-    SockJS sockJSHandler = SockJS.create(vertx, options);
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
     router.route("/myapp/*")
       .subRouter(sockJSHandler.socketHandler(sockJSSocket -> {
@@ -1001,7 +1001,7 @@ public class WebExamples {
 
   public void sockJsSendBufferEventBus(EventBus eventBus, String writeHandlerID) {
 
-    // Send buffers directly to the SockJS socket
+    // Send buffers directly to the SockJSHandler socket
 
     eventBus.send(writeHandlerID, Buffer.buffer("foo"));
 
@@ -1012,7 +1012,7 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    SockJS sockJSHandler = SockJS.create(vertx);
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
     SockJSBridgeOptions options = new SockJSBridgeOptions();
     // mount the bridge on the router
     router
@@ -1024,7 +1024,7 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    SockJS sockJSHandler = SockJS.create(vertx);
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
 
 
     // Let through any messages sent to 'demo.orderMgr' from the client
@@ -1092,7 +1092,7 @@ public class WebExamples {
     // But only if the user is logged in and has the authority "place_orders"
     inboundPermitted.setRequiredAuthority("place_orders");
 
-    SockJS sockJSHandler = SockJS.create(vertx);
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
 
     // Now set up some basic auth handling:
 
@@ -1117,7 +1117,7 @@ public class WebExamples {
     PermittedOptions inboundPermitted = new PermittedOptions()
       .setAddress("demo.orderService");
 
-    SockJS sockJSHandler = SockJS.create(vertx);
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
     SockJSBridgeOptions options = new SockJSBridgeOptions()
       .addInboundPermitted(inboundPermitted);
 
@@ -1150,7 +1150,7 @@ public class WebExamples {
     PermittedOptions inboundPermitted = new PermittedOptions()
       .setAddress("demo.someService");
 
-    SockJS sockJSHandler = SockJS.create(vertx);
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
     SockJSBridgeOptions options = new SockJSBridgeOptions()
       .addInboundPermitted(inboundPermitted);
 
@@ -1175,8 +1175,8 @@ public class WebExamples {
   public void handleSocketIdle(Vertx vertx, PermittedOptions inboundPermitted) {
     Router router = Router.router(vertx);
 
-    // Initialize SockJS handler
-    SockJS sockJSHandler = SockJS.create(vertx);
+    // Initialize SockJSHandler handler
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
     SockJSBridgeOptions options = new SockJSBridgeOptions()
       .addInboundPermitted(inboundPermitted)
       .setPingTimeout(5000);

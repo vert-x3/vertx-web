@@ -84,14 +84,14 @@ public class SockJSWriteHandlerTestServer {
     }
 
     private void setupSockJSHandler(Router router, Transport transport, boolean register, boolean local) {
-      SockJSOptions options = new SockJSOptions();
+      SockJSHandlerOptions options = new SockJSHandlerOptions();
       for (Transport t : Transport.values()) {
         if (t != transport) {
           options.addDisabledTransport(t.name());
         }
       }
       options.setRegisterWriteHandler(register).setLocalWriteHandler(local);
-      SockJS sockJSHandler = SockJS.create(vertx, options);
+      SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
       String mountPoint = "/transport/" + transport.name()
         + "/" + (register ? "registered":"unregistered")
         + "/" + (local ? "local":"clustered");

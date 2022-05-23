@@ -40,7 +40,7 @@ import io.vertx.core.impl.VertxInternal;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.sockjs.SockJSOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
 import java.util.UUID;
@@ -64,7 +64,7 @@ public abstract class SockJSSocketBase implements SockJSSocket {
   @Override
   public abstract SockJSSocket exceptionHandler(Handler<Throwable> handler);
 
-  protected SockJSSocketBase(Vertx vertx, RoutingContext rc, SockJSOptions options) {
+  protected SockJSSocketBase(Vertx vertx, RoutingContext rc, SockJSHandlerOptions options) {
     this.vertx = vertx;
     this.routingContext = rc;
     if (options.isRegisterWriteHandler()) {

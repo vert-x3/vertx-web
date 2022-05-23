@@ -66,7 +66,7 @@ public class EventbusBridgeTest extends WebTestBase {
     });
   }
 
-  protected SockJS sockJS;
+  protected SockJSHandler sockJS;
   protected SockJSBridgeOptions defaultOptions = new SockJSBridgeOptions();
   protected SockJSBridgeOptions allAccessOptions =
     new SockJSBridgeOptions().addInboundPermitted(new PermittedOptions()).addOutboundPermitted(new PermittedOptions());
@@ -83,7 +83,7 @@ public class EventbusBridgeTest extends WebTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    sockJS = SockJS.create(vertx);
+    sockJS = SockJSHandler.create(vertx);
   }
 
   @Test

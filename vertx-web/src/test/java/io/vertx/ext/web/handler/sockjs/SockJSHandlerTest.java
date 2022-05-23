@@ -306,7 +306,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
   private void setupSockJsServer(String serverPath, BiConsumer<SockJSSocket, Buffer> serverBufferHandler) {
     String path = serverPath;
-    router.route(path + "*").subRouter(SockJS.create(vertx)
+    router.route(path + "*").subRouter(SockJSHandler.create(vertx)
       .socketHandler(sock -> {
         sock.handler(buffer -> serverBufferHandler.accept(sock, buffer));
         sock.exceptionHandler(this::fail);
@@ -378,7 +378,7 @@ public class SockJSHandlerTest extends WebTestBase {
     SessionHandler handler = SessionHandler.create(store).setCookieless(true);
     CompletableFuture<String> sessionID = new CompletableFuture<>();
     CompletableFuture<User> sessionUser = new CompletableFuture<>();
-    router.route("/webcontext*").subRouter(SockJS.create(vertx)
+    router.route("/webcontext*").subRouter(SockJSHandler.create(vertx)
       .socketHandler(sock -> {
         JsonObject principal = new JsonObject().put("key", "val");
         Session oldSession = sock.webSession();
@@ -399,7 +399,7 @@ public class SockJSHandlerTest extends WebTestBase {
         });
       }));
 
-    router.route("/webcontextuser*").subRouter(SockJS.create(vertx)
+    router.route("/webcontextuser*").subRouter(SockJSHandler.create(vertx)
       .socketHandler(sock -> {
         Session session = null;
         try {
@@ -436,7 +436,7 @@ public class SockJSHandlerTest extends WebTestBase {
   @Test
   public void testCookiesRemoved() throws Exception {
     waitFor(2);
-    router.route("/cookiesremoved*").subRouter(SockJS.create(vertx)
+    router.route("/cookiesremoved*").subRouter(SockJSHandler.create(vertx)
       .socketHandler(sock -> {
         MultiMap headers = sock.headers();
         String cookieHeader = headers.get("cookie");
@@ -460,7 +460,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
   @Test
   public void testTimeoutCloseCode() {
-    router.route("/ws-timeout*").subRouter(SockJS
+    router.route("/ws-timeout*").subRouter(SockJSHandler
       .create(vertx)
       .bridge(new SockJSBridgeOptions().setPingTimeout(1))
     );
@@ -477,7 +477,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
   @Test
   public void testInvalidMessageCode() {
-    router.route("/ws-timeout*").subRouter(SockJS
+    router.route("/ws-timeout*").subRouter(SockJSHandler
       .create(vertx)
       .bridge(new SockJSBridgeOptions().addInboundPermitted(new PermittedOptions().setAddress("SockJSHandlerTest.testInvalidMessageCode")))
     );

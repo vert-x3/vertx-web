@@ -19,48 +19,91 @@ package io.vertx.ext.web.handler.sockjs;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.ext.auth.authorization.AuthorizationProvider;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.impl.SockJSImpl;
 
 /**
- * @deprecated Use {@link SockJS} instead.
+ *
+ * A handler that allows you to handle SockJS connections from clients.
+ * <p>
+ * We currently support version 0.3.3 of the SockJS protocol, which can be found in
+ * <a href="https://github.com/sockjs/sockjs-protocol/tree/v0.3.3">this tag:</a>
+ *
+ * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-@Deprecated
-public interface SockJSHandler extends SockJS, Handler<RoutingContext> {
+public interface SockJSHandler extends Handler<RoutingContext> {
 
   /**
-   * @deprecated Use {@link SockJS#create(Vertx)}
    * Create a SockJS handler
    *
    * @param vertx  the Vert.x instance
    * @return the handler
    */
-  @Deprecated
   static SockJSHandler create(Vertx vertx) {
-    return new SockJSImpl(vertx, new SockJSHandlerOptions());
+    return create(vertx, new SockJSHandlerOptions());
   }
 
   /**
-   * @deprecated Use {@link SockJS#create(Vertx, SockJSOptions)}
    * Create a SockJS handler
    *
    * @param vertx  the Vert.x instance
    * @param options  options to configure the handler
    * @return the handler
    */
-  @Deprecated
   static SockJSHandler create(Vertx vertx, SockJSHandlerOptions options) {
     return new SockJSImpl(vertx, options);
+  }
+
+  /**
+   * Set a SockJS socket handler. This handler will be called with a SockJS socket whenever a SockJS connection
+   * is made from a client
+   *
+   * @param handler  the handler
+   * @return a router to be mounted on an existing router
+   */
+  Router socketHandler(Handler<SockJSSocket> handler);
+
+  /**
+   * Bridge the SockJS handler to the Vert.x event bus. This basically installs a built-in SockJS socket handler
+   * which takes SockJS traffic and bridges it to the event bus, thus allowing you to extend the server-side
+   * Vert.x event bus to browsers
+   *
+   * @param bridgeOptions  options to configure the bridge with
+   * @return a router to be mounted on an existing router
+   */
+  default Router bridge(SockJSBridgeOptions bridgeOptions) {
+    return bridge(null, bridgeOptions, null);
+  }
+
+  /**
+   * Like {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(SockJSBridgeOptions)} but specifying a handler
+   * that will receive bridge events.
+   * @param authorizationProvider authorization provider to be used on the bridge
+   * @param bridgeOptions  options to configure the bridge with
+   * @param bridgeEventHandler  handler to receive bridge events
+   * @return a router to be mounted on an existing router
+   */
+  Router bridge(AuthorizationProvider authorizationProvider, SockJSBridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler);
+
+  /**
+   * Like {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(SockJSBridgeOptions)} but specifying a handler
+   * that will receive bridge events.
+   * @param bridgeOptions  options to configure the bridge with
+   * @param bridgeEventHandler  handler to receive bridge events
+   * @return a router to be mounted on an existing router
+   */
+  default Router bridge(SockJSBridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
+    return bridge(null, bridgeOptions, bridgeEventHandler);
   }
 
   /**
    * @deprecated mount the router as a sub-router instead. This method will not properly handle errors.
    * @param routingContext the routing context
    */
-  @Override
   @Deprecated
-  default void handle(RoutingContext routingContext) {
-    throw new UnsupportedOperationException("this handler will not work as expected if there are errors");
-  }
+  void handle(RoutingContext routingContext);
 }

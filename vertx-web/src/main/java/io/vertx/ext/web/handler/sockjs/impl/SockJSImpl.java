@@ -67,9 +67,9 @@ public class SockJSImpl implements SockJSHandler {
 
   private final Vertx vertx;
   private final LocalMap<String, SockJSSession> sessions;
-  private final SockJSOptions options;
+  private final SockJSHandlerOptions options;
 
-  public SockJSImpl(Vertx vertx, SockJSOptions options) {
+  public SockJSImpl(Vertx vertx, SockJSHandlerOptions options) {
     this.vertx = vertx;
     // TODO use clustered map
     this.sessions = vertx.sharedData().getLocalMap("_vertx.sockjssessions");
@@ -79,6 +79,12 @@ public class SockJSImpl implements SockJSHandler {
   @Override
   public Router bridge(AuthorizationProvider authorizationProvider, SockJSBridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
     return socketHandler(new EventBusBridgeImpl(vertx, authorizationProvider, bridgeOptions, bridgeEventHandler));
+  }
+
+  @Override
+  @Deprecated
+  public void handle(RoutingContext routingContext) {
+    throw new UnsupportedOperationException("Mount the router as a sub-router instead. This method will not properly handle errors.");
   }
 
   @Override

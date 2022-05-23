@@ -43,7 +43,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
-import io.vertx.ext.web.handler.sockjs.SockJSOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.impl.Origin;
 
@@ -56,10 +56,10 @@ class RawWebSocketTransport {
 
   private final Origin origin;
   private final Vertx vertx;
-  private final SockJSOptions options;
+  private final SockJSHandlerOptions options;
   private final Handler<SockJSSocket> sockHandler;
 
-  RawWebSocketTransport(Vertx vertx, Router router, SockJSOptions options, Handler<SockJSSocket> sockHandler) {
+  RawWebSocketTransport(Vertx vertx, Router router, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
 
     this.vertx = vertx;
     this.options = options;
@@ -103,7 +103,7 @@ class RawWebSocketTransport {
     MultiMap headers;
     boolean closed;
 
-    RawWSSockJSSocket(Vertx vertx, RoutingContext rc, SockJSOptions options, ServerWebSocket ws) {
+    RawWSSockJSSocket(Vertx vertx, RoutingContext rc, SockJSHandlerOptions options, ServerWebSocket ws) {
       super(vertx, rc, options);
       this.ws = ws;
       ws.closeHandler(v -> {
