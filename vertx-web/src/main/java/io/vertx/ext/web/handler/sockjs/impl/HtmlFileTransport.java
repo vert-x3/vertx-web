@@ -43,6 +43,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
@@ -64,18 +65,18 @@ class HtmlFileTransport extends BaseTransport {
 
   static {
     String str =
-    "<!doctype html>\n" +
-    "<html><head>\n" +
-    "  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n" +
-    "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" +
-    "</head><body><h2>Don't panic!</h2>\n" +
-    "  <script>\n" +
-    "    document.domain = document.domain;\n" +
-    "    var c = parent.{{ callback }};\n" +
-    "    c.start();\n" +
-    "    function p(d) {c.message(d);};\n" +
-    "    window.onload = function() {c.stop();};\n" +
-    "  </script>";
+      "<!doctype html>\n" +
+        "<html><head>\n" +
+        "  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n" +
+        "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" +
+        "</head><body><h2>Don't panic!</h2>\n" +
+        "  <script>\n" +
+        "    document.domain = document.domain;\n" +
+        "    var c = parent.{{ callback }};\n" +
+        "    c.start();\n" +
+        "    function p(d) {c.message(d);};\n" +
+        "    window.onload = function() {c.stop();};\n" +
+        "  </script>";
 
     String str2 = str.replace("{{ callback }}", "");
     StringBuilder sb = new StringBuilder(str);
@@ -87,33 +88,39 @@ class HtmlFileTransport extends BaseTransport {
     HTML_FILE_TEMPLATE = sb.toString();
   }
 
-  HtmlFileTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options,
-                    Handler<SockJSSocket> sockHandler) {
+  private final Handler<SockJSSocket> sockHandler;
+
+  HtmlFileTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
     super(vertx, sessions, options);
+
+    this.sockHandler = sockHandler;
+
     String htmlFileRE = COMMON_PATH_ELEMENT_RE + "htmlfile.*";
 
-    router.getWithRegex(htmlFileRE).handler(rc -> {
-      if (LOG.isTraceEnabled()) LOG.trace("HtmlFile, get: " + rc.request().uri());
-      String callback = rc.request().getParam("callback");
-      if (callback == null) {
-        callback = rc.request().getParam("c");
-        if (callback == null) {
-          rc.response().setStatusCode(500).end("\"callback\" parameter required\n");
-          return;
-        }
-      }
+    router.getWithRegex(htmlFileRE)
+      .handler((PlatformHandler) this::handleGet);
+  }
 
-      if (CALLBACK_VALIDATION.matcher(callback).find()) {
-        rc.response().setStatusCode(500);
-        rc.response().end("invalid \"callback\" parameter\n");
+  private void handleGet(RoutingContext ctx) {
+    String callback = ctx.request().getParam("callback");
+    if (callback == null) {
+      callback = ctx.request().getParam("c");
+      if (callback == null) {
+        ctx.response().setStatusCode(500).end("\"callback\" parameter required\n");
         return;
       }
+    }
 
-      HttpServerRequest req = rc.request();
-      String sessionID = req.params().get("param0");
-      SockJSSession session = getSession(rc, options, sessionID, sockHandler);
-      session.register(req, new HtmlFileListener(options.getMaxBytesStreaming(), rc, callback, session));
-    });
+    if (CALLBACK_VALIDATION.matcher(callback).find()) {
+      ctx.response().setStatusCode(500);
+      ctx.response().end("invalid \"callback\" parameter\n");
+      return;
+    }
+
+    HttpServerRequest req = ctx.request();
+    String sessionID = req.params().get("param0");
+    SockJSSession session = getSession(ctx, options, sessionID, sockHandler);
+    session.register(req, new HtmlFileListener(options.getMaxBytesStreaming(), ctx, callback, session));
   }
 
   private class HtmlFileListener extends BaseListener {
@@ -156,6 +163,7 @@ class HtmlFileTransport extends BaseTransport {
       }
     }
 
+    @Override
     public void close() {
       if (!closed) {
         try {

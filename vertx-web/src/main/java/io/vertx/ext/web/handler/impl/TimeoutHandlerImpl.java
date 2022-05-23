@@ -38,10 +38,12 @@ public class TimeoutHandlerImpl implements TimeoutHandler {
   public void handle(RoutingContext ctx) {
 
     // We send a error response after timeout
-    long tid = ctx.vertx().setTimer(timeout, t -> ctx.fail(errorCode));
+    long tid = ctx.vertx().setTimer(timeout, t -> {
+      ctx.request().resume();
+      ctx.fail(errorCode);
+    });
 
     ctx.addBodyEndHandler(v -> ctx.vertx().cancelTimer(tid));
-
     ctx.next();
   }
 }

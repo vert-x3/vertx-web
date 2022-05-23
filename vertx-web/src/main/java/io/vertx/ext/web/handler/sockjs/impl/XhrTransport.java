@@ -47,6 +47,8 @@ import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.PlatformHandler;
+import io.vertx.ext.web.handler.SecurityPolicyHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
@@ -71,51 +73,65 @@ class XhrTransport extends BaseTransport {
     H_BLOCK = buffer(bytes);
   }
 
-  XhrTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options,
-               Handler<SockJSSocket> sockHandler) {
+  private final Handler<SockJSSocket> sockHandler;
+
+  XhrTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
 
     super(vertx, sessions, options);
+
+    this.sockHandler = sockHandler;
 
     String xhrBase = COMMON_PATH_ELEMENT_RE;
     String xhrRE = xhrBase + "xhr";
     String xhrStreamRE = xhrBase + "xhr_streaming";
 
-    Handler<RoutingContext> xhrOptionsHandler = createCORSOptionsHandler(options, "OPTIONS, POST");
+    SecurityPolicyHandler xhrOptionsHandler = createCORSOptionsHandler(options, "OPTIONS, POST");
 
-    router.optionsWithRegex(xhrRE).handler(xhrOptionsHandler);
-    router.optionsWithRegex(xhrStreamRE).handler(xhrOptionsHandler);
+    router.optionsWithRegex(xhrRE)
+      .handler(xhrOptionsHandler);
 
-    registerHandler(router, sockHandler, xhrRE, false, options);
-    registerHandler(router, sockHandler, xhrStreamRE, true, options);
+    router.optionsWithRegex(xhrStreamRE)
+      .handler(xhrOptionsHandler);
+
+    router.postWithRegex(xhrRE)
+      .handler((PlatformHandler) this::handlePostPolling);
+    router.postWithRegex(xhrStreamRE)
+      .handler((PlatformHandler) this::handlePostStreaming);
 
     String xhrSendRE = COMMON_PATH_ELEMENT_RE + "xhr_send";
 
-    router.optionsWithRegex(xhrSendRE).handler(xhrOptionsHandler);
+    router.optionsWithRegex(xhrSendRE)
+      .handler(xhrOptionsHandler);
 
-    router.postWithRegex(xhrSendRE).handler(rc -> {
-      if (LOG.isTraceEnabled()) LOG.trace("XHR send, post, " + rc.request().uri());
-      String sessionID = rc.request().getParam("param0");
-      final SockJSSession session = sessions.get(sessionID);
-      if (session != null && !session.isClosed()) {
-        handleSend(rc, session);
-      } else {
-        rc.response().setStatusCode(404);
-        setJSESSIONID(options, rc);
-        rc.response().end();
-      }
-    });
+    router.postWithRegex(xhrSendRE)
+      .handler((PlatformHandler) this::handlePost);
+  }
+  private void handlePost(RoutingContext ctx) {
+    String sessionID = ctx.request().getParam("param0");
+    final SockJSSession session = sessions.get(sessionID);
+    if (session != null && !session.isClosed()) {
+      handleSend(ctx, session);
+    } else {
+      ctx.response().setStatusCode(404);
+      setJSESSIONID(options, ctx);
+      ctx.response().end();
+    }
   }
 
-  private void registerHandler(Router router, Handler<SockJSSocket> sockHandler, String re,
-                               boolean streaming, SockJSHandlerOptions options) {
-    router.postWithRegex(re).handler(rc -> {
-      if (LOG.isTraceEnabled()) LOG.trace("XHR, post, " + rc.request().uri());
-      setNoCacheHeaders(rc);
-      String sessionID = rc.request().getParam("param0");
-      SockJSSession session = getSession(rc, options, sessionID, sockHandler);
-      HttpServerRequest req = rc.request();
-      session.register(req, streaming? new XhrStreamingListener(options.getMaxBytesStreaming(), rc, session) : new XhrPollingListener(rc, session));
-    });
+  private void handlePostStreaming(RoutingContext ctx) {
+    setNoCacheHeaders(ctx);
+    String sessionID = ctx.request().getParam("param0");
+    SockJSSession session = getSession(ctx, options, sessionID, sockHandler);
+    HttpServerRequest req = ctx.request();
+    session.register(req, new XhrStreamingListener(options.getMaxBytesStreaming(), ctx, session));
+  }
+
+  private void handlePostPolling(RoutingContext ctx) {
+    setNoCacheHeaders(ctx);
+    String sessionID = ctx.request().getParam("param0");
+    SockJSSession session = getSession(ctx, options, sessionID, sockHandler);
+    HttpServerRequest req = ctx.request();
+    session.register(req, new XhrPollingListener(ctx, session));
   }
 
   private void handleSend(RoutingContext rc, SockJSSession session) {
@@ -132,12 +148,13 @@ class XhrTransport extends BaseTransport {
       return;
     }
 
-    if (body.length() == 0) {
+    if (body.length() <= 0) {
       rc.response()
         .setStatusCode(500)
         .end("Payload expected.");
       return;
     }
+
     if (!session.handleMessages(body.asString())) {
       sendInvalidJSON(rc.response());
     } else {

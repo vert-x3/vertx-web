@@ -47,6 +47,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.PlatformHandler;
+import io.vertx.ext.web.handler.SecurityPolicyHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.handler.sockjs.Transport;
@@ -173,11 +175,13 @@ class BaseTransport {
     }
   }
 
-  static Handler<RoutingContext> createInfoHandler(final SockJSHandlerOptions options, final VertxContextPRNG prng) {
+  static PlatformHandler createInfoHandler(final SockJSHandlerOptions options, final VertxContextPRNG prng) {
     final long offset = 2L << 30;
 
-    return new Handler<RoutingContext>() {
+    return new PlatformHandler() {
       final boolean websocket = !options.getDisabledTransports().contains(Transport.WEBSOCKET.toString());
+
+      @Override
       public void handle(RoutingContext rc) {
         if (LOG.isTraceEnabled()) {
           LOG.trace("In Info handler");
@@ -201,7 +205,7 @@ class BaseTransport {
     rc.response().putHeader(CACHE_CONTROL, "no-store, no-cache, no-transform, must-revalidate, max-age=0");
   }
 
-  static Handler<RoutingContext> createCORSOptionsHandler(SockJSHandlerOptions options, String methods) {
+  static SecurityPolicyHandler createCORSOptionsHandler(SockJSHandlerOptions options, String methods) {
     return rc -> {
       if (LOG.isTraceEnabled()) {
         LOG.trace("In CORS options handler");

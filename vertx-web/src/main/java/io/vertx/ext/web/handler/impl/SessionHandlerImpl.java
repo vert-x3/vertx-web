@@ -271,10 +271,18 @@ public class SessionHandlerImpl implements SessionHandler {
     // Look for existing session id
     String sessionID = getSessionId(context);
     if (sessionID != null && sessionID.length() > minLength) {
+      // this handler is asynchronous, we need to pause the request
+      // if we want to be able to process it later, during a body handler or protocol upgrade
+      context.request().pause();
+
+      final ContextInternal ctx = (ContextInternal) context.vertx().getOrCreateContext();
+
       // we passed the OWASP min length requirements
-      final Context ctx = context.vertx().getOrCreateContext();
-      getSession(ctx, context.vertx(), sessionID)
-        .onFailure(context::fail)
+      getSession(ctx, sessionID)
+        .onFailure(err -> {
+          context.request().resume();
+          context.fail(err);
+        })
         .onSuccess(session -> {
           if (session != null) {
             ((RoutingContextInternal) context).setSession(session);
@@ -298,8 +306,9 @@ public class SessionHandlerImpl implements SessionHandler {
             // create a new anonymous session.
             createNewSession(context);
           }
+          context.request().resume();
           context.next();
-      });
+        });
     } else {
       // requirements were not met, so a anonymous session is created.
       createNewSession(context);
@@ -371,32 +380,40 @@ public class SessionHandlerImpl implements SessionHandler {
     return null;
   }
 
-  private Future<Session> getSession(Context ctx, Vertx vertx, String sessionID) {
-    return doGetSession(ctx, vertx, System.currentTimeMillis(), sessionID);
+  private Future<Session> getSession(ContextInternal context, String sessionID) {
+    return doGetSession(context, System.currentTimeMillis(), sessionID);
   }
 
-  private Future<Session> doGetSession(Context ctx, Vertx vertx, long startTime, String sessionID) {
+  private Future<Session> doGetSession(ContextInternal context, long startTime, String sessionID) {
     return sessionStore.get(sessionID)
       .compose(session -> {
         if (session == null) {
-          // Can't find it so retry. This is necessary for clustered sessions as it can
-          // take sometime for the session
-          // to propagate across the cluster so if the next request for the session comes
-          // in quickly at a different
+          // no session was found (yet), we will retry as callback to avoid stackoverflow
+          final Promise<Session> retry = context.promise();
+          doGetSession(context.owner(), startTime, sessionID, retry);
+          return retry.future();
+        }
+        return context.succeededFuture(session);
+      });
+  }
+  private void doGetSession(Vertx vertx, long startTime, String sessionID, Handler<AsyncResult<Session>> resultHandler) {
+    sessionStore.get(sessionID)
+      .onComplete(res -> {
+      if (res.succeeded()) {
+        if (res.result() == null) {
+          // Can't find it so retry. This is necessary for clustered sessions as it can take sometime for the session
+          // to propagate across the cluster so if the next request for the session comes in quickly at a different
           // node there is a possibility it isn't available yet.
-          long retryTimeout = sessionStore.retryTimeout();
-          if (retryTimeout > 0 && System.currentTimeMillis() - startTime < retryTimeout) {
-            final Promise<Session> retry = ((ContextInternal) ctx).promise();
-            vertx.setTimer(5, v -> {
-              doGetSession(ctx, vertx, startTime, sessionID)
-                .onComplete(retry);
-            });
-            return retry.future();
+          if (System.currentTimeMillis() - startTime < sessionStore.retryTimeout()) {
+            vertx.setTimer(5L, v -> doGetSession(vertx, startTime, sessionID, resultHandler));
+            return;
           }
         }
-        return ((ContextInternal) ctx).succeededFuture(session);
+      }
+      resultHandler.handle(res);
     });
   }
+
 
   private void addStoreSessionHandler(RoutingContext context) {
     context.addHeadersEndHandler(v -> {

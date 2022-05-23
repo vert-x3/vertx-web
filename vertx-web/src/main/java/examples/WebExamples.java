@@ -30,16 +30,12 @@ import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
-import io.vertx.ext.web.handler.sockjs.SockJSHandler;
-import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
-import io.vertx.ext.web.impl.RoutingContextInternal;
+import io.vertx.ext.web.handler.sockjs.*;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -1005,7 +1001,7 @@ public class WebExamples {
 
   public void sockJsSendBufferEventBus(EventBus eventBus, String writeHandlerID) {
 
-    // Send buffers directly to the SockJS socket
+    // Send buffers directly to the SockJSHandler socket
 
     eventBus.send(writeHandlerID, Buffer.buffer("foo"));
 
@@ -1179,7 +1175,7 @@ public class WebExamples {
   public void handleSocketIdle(Vertx vertx, PermittedOptions inboundPermitted) {
     Router router = Router.router(vertx);
 
-    // Initialize SockJS handler
+    // Initialize SockJSHandler handler
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
     SockJSBridgeOptions options = new SockJSBridgeOptions()
       .addInboundPermitted(inboundPermitted)

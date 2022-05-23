@@ -36,7 +36,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.impl.logging.Logger;
@@ -44,9 +43,14 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.impl.ConnectionBase;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.PlatformHandler;
+import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.impl.Origin;
+
+import static io.vertx.core.http.HttpHeaders.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -56,52 +60,46 @@ class WebSocketTransport extends BaseTransport {
 
   private static final Logger LOG = LoggerFactory.getLogger(WebSocketTransport.class);
 
-  WebSocketTransport(Vertx vertx,
-                     Router router, LocalMap<String, SockJSSession> sessions,
-                     SockJSHandlerOptions options,
-                     Handler<SockJSSocket> sockHandler) {
+  private final Origin origin;
+  private final Handler<SockJSSocket> sockHandler;
+
+  WebSocketTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
     super(vertx, sessions, options);
-    final Origin origin = options.getOrigin() != null ? Origin.parse(options.getOrigin()) : null;
+
+    this.origin = options.getOrigin() != null ? Origin.parse(options.getOrigin()) : null;
+    this.sockHandler = sockHandler;
+
     String wsRE = COMMON_PATH_ELEMENT_RE + "websocket";
 
-    router.getWithRegex(wsRE).handler(ctx -> {
-      HttpServerRequest req = ctx.request();
-      String connectionHeader = req.headers().get(HttpHeaders.CONNECTION);
-      if (connectionHeader == null || !connectionHeader.toLowerCase().contains("upgrade")) {
-        ctx.response().setStatusCode(400);
-        ctx.response().end("Can \"Upgrade\" only to \"WebSocket\".");
-      } else {
-        if (!Origin.check(origin, ctx)) {
-          ctx.fail(403, new IllegalStateException("Invalid Origin"));
-          return;
-        }
-        // upgrade
-        req.toWebSocket(toWebSocket -> {
-          if (toWebSocket.succeeded()) {
-            if (LOG.isTraceEnabled()) {
-              LOG.trace("WS, handler");
-            }
-            // handle the sockjs session as usual
-            SockJSSession session = new SockJSSession(vertx, sessions, ctx, options, sockHandler);
-            session.register(req, new WebSocketListener(toWebSocket.result(), session));
-          } else {
-            // the upgrade failed
-            ctx.fail(toWebSocket.cause());
-          }
-        });
-      }
-    });
+    router.getWithRegex(wsRE)
+      .handler((ProtocolUpgradeHandler) this::handleGet);
 
-    router.getWithRegex(wsRE).handler(rc -> {
-      if (LOG.isTraceEnabled()) LOG.trace("WS, get: " + rc.request().uri());
-      rc.response().setStatusCode(400);
-      rc.response().end("Can \"Upgrade\" only to \"WebSocket\".");
-    });
+    router.routeWithRegex(wsRE)
+      .handler((PlatformHandler) rc -> rc.response().putHeader(ALLOW, "GET").setStatusCode(405).end());
+  }
 
-    router.routeWithRegex(wsRE).handler(rc -> {
-      if (LOG.isTraceEnabled()) LOG.trace("WS, all: " + rc.request().uri());
-      rc.response().putHeader(HttpHeaders.ALLOW, "GET").setStatusCode(405).end();
-    });
+  private void handleGet(RoutingContext ctx) {
+    HttpServerRequest req = ctx.request();
+    if (!req.headers().contains(CONNECTION, UPGRADE, true)) {
+      ctx.response().setStatusCode(400);
+      ctx.response().end("Can \"Upgrade\" only to \"WebSocket\".");
+      return;
+    }
+
+    if (!Origin.check(origin, ctx)) {
+      ctx.fail(403, new IllegalStateException("Invalid Origin"));
+      return;
+    }
+
+    // upgrade
+    req
+      .toWebSocket()
+      .onFailure(ctx::fail)
+      .onSuccess(socket -> {
+        // handle the sockjs session as usual
+        SockJSSession session = new SockJSSession(vertx, sessions, ctx, options, sockHandler);
+        session.register(req, new WebSocketListener(socket, session));
+      });
   }
 
   private static class WebSocketListener implements TransportListener {
@@ -130,7 +128,7 @@ class WebSocketTransport extends BaseTransport {
         if (msgs.equals("") || msgs.equals("[]")) {
           //Ignore empty frames
         } else if ((msgs.startsWith("[\"") && msgs.endsWith("\"]")) ||
-               (msgs.startsWith("\"") && msgs.endsWith("\""))) {
+          (msgs.startsWith("\"") && msgs.endsWith("\""))) {
           session.handleMessages(msgs);
         } else {
           //Invalid JSON - we close the connection
@@ -151,6 +149,7 @@ class WebSocketTransport extends BaseTransport {
       }
     }
 
+    @Override
     public void close() {
       if (!closed) {
         ws.close();
@@ -159,6 +158,7 @@ class WebSocketTransport extends BaseTransport {
       }
     }
 
+    @Override
     public void sessionClosed() {
       session.writeClosed(this);
       closed = true;
@@ -166,6 +166,5 @@ class WebSocketTransport extends BaseTransport {
       // due to the WebSocket client that skip some frames (bug)
       session.context().runOnContext(v -> ws.close());
     }
-
   }
 }

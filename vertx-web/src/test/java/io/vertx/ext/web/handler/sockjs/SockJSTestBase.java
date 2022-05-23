@@ -71,8 +71,7 @@ abstract class SockJSTestBase extends VertxTestBase {
         options.setHeartbeatInterval(2000);
         options.setRegisterWriteHandler(true);
         SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
-        sockJSHandler.socketHandler(socketHandler.get());
-        router.route("/test/*").handler(sockJSHandler);
+        router.route("/test/*").subRouter(sockJSHandler.socketHandler(socketHandler.get()));
 
         vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"))
           .requestHandler(router)

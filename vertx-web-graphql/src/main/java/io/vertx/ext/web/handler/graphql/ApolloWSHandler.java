@@ -23,7 +23,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
 import io.vertx.ext.web.handler.graphql.impl.ApolloWSHandlerImpl;
 import org.dataloader.DataLoaderRegistry;
 
@@ -38,7 +38,7 @@ import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
  * @author Rogelio Orts
  */
 @VertxGen
-public interface ApolloWSHandler extends Handler<RoutingContext> {
+public interface ApolloWSHandler extends ProtocolUpgradeHandler {
 
   /**
    * Create a new {@link ApolloWSHandler} that will use the provided {@code graphQL} object to execute requests.

@@ -43,7 +43,7 @@ import java.util.function.Function;
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface MultiTenantHandler extends PlatformHandler {
+public interface MultiTenantHandler extends Handler<RoutingContext> {
 
   /**
    * The default key used to identify a tenant in the context data.

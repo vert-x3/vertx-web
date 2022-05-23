@@ -162,8 +162,9 @@ public class RoutingContextImpl extends RoutingContextImplBase {
         } else {
           this.response().end();
         }
-      } else
+      } else {
         handler.handle(this);
+      }
     }
   }
 

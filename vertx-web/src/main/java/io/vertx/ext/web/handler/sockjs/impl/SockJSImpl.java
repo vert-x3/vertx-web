@@ -44,6 +44,7 @@ import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.sockjs.*;
 
 import java.nio.charset.StandardCharsets;
@@ -53,36 +54,26 @@ import java.util.*;
 
 import static io.vertx.core.buffer.Buffer.buffer;
 import static io.vertx.ext.auth.impl.Codec.base16Encode;
+import static io.vertx.ext.web.handler.sockjs.impl.BaseTransport.createCORSOptionsHandler;
+import static io.vertx.ext.web.handler.sockjs.impl.BaseTransport.createInfoHandler;
 
 /**
- *
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class SockJSHandlerImpl implements SockJSHandler {
+public class SockJSImpl implements SockJSHandler {
 
-  private static final Logger LOG = LoggerFactory.getLogger(SockJSHandlerImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SockJSImpl.class);
 
   private final Vertx vertx;
-  private final Router router;
   private final LocalMap<String, SockJSSession> sessions;
   private final SockJSHandlerOptions options;
 
-  public SockJSHandlerImpl(Vertx vertx, SockJSHandlerOptions options) {
+  public SockJSImpl(Vertx vertx, SockJSHandlerOptions options) {
     this.vertx = vertx;
     // TODO use clustered map
     this.sessions = vertx.sharedData().getLocalMap("_vertx.sockjssessions");
-    this.router = Router.router(vertx);
     this.options = options;
-  }
-
-  @Override
-  @Deprecated
-  public void handle(RoutingContext context) {
-    if (LOG.isTraceEnabled()) {
-      LOG.trace("Got request in sockjs server: " + context.request().uri());
-    }
-    router.handleContext(context);
   }
 
   @Override
@@ -91,15 +82,26 @@ public class SockJSHandlerImpl implements SockJSHandler {
   }
 
   @Override
+  @Deprecated
+  public void handle(RoutingContext routingContext) {
+    throw new UnsupportedOperationException("Mount the router as a sub-router instead. This method will not properly handle errors.");
+  }
+
+  @Override
   public Router socketHandler(Handler<SockJSSocket> sockHandler) {
-    router.route("/").useNormalizedPath(false).handler(rc -> {
-      if (LOG.isTraceEnabled()) LOG.trace("Returning welcome response");
-      rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8").end("Welcome to SockJS!\n");
-    });
+    final Router router = Router.router(vertx);
+
+    router
+      .route("/")
+      .useNormalizedPath(false)
+      .handler((PlatformHandler) rc -> {
+        if (LOG.isTraceEnabled()) LOG.trace("Returning welcome response");
+        rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8").end("Welcome to SockJS!\n");
+      });
 
     // Iframe handlers
     String iframeHTML = IFRAME_TEMPLATE.replace("{{ sockjs_url }}", options.getLibraryURL());
-    Handler<RoutingContext> iframeHandler = createIFrameHandler(iframeHTML);
+    PlatformHandler iframeHandler = createIFrameHandler(iframeHTML);
 
     // Request exactly for iframe.html
     router.get("/iframe.html").handler(iframeHandler);
@@ -109,11 +111,11 @@ public class SockJSHandlerImpl implements SockJSHandler {
 
     // Chunking test
     router.post("/chunking_test").handler(createChunkingTestHandler());
-    router.options("/chunking_test").handler(BaseTransport.createCORSOptionsHandler(options, "OPTIONS, POST"));
+    router.options("/chunking_test").handler(createCORSOptionsHandler(options, "OPTIONS, POST"));
 
     // Info
-    router.get("/info").handler(BaseTransport.createInfoHandler(options, VertxContextPRNG.current(vertx)));
-    router.options("/info").handler(BaseTransport.createCORSOptionsHandler(options, "OPTIONS, GET"));
+    router.get("/info").handler(createInfoHandler(options, VertxContextPRNG.current(vertx)));
+    router.options("/info").handler(createCORSOptionsHandler(options, "OPTIONS, GET"));
 
     // Transports
 
@@ -149,8 +151,8 @@ public class SockJSHandlerImpl implements SockJSHandler {
     return router;
   }
 
-  private Handler<RoutingContext> createChunkingTestHandler() {
-    return new Handler<RoutingContext>() {
+  private PlatformHandler createChunkingTestHandler() {
+    return new PlatformHandler() {
 
       class TimeoutInfo {
         final long timeout;
@@ -183,6 +185,7 @@ public class SockJSHandlerImpl implements SockJSHandler {
         }
       }
 
+      @Override
       public void handle(RoutingContext rc) {
         rc.response().headers().set("Content-Type", "application/javascript; charset=UTF-8");
 
@@ -214,7 +217,7 @@ public class SockJSHandlerImpl implements SockJSHandler {
     };
   }
 
-  private Handler<RoutingContext> createIFrameHandler(String iframeHTML) {
+  private PlatformHandler createIFrameHandler(String iframeHTML) {
     String etag = getMD5String(iframeHTML);
     return rc -> {
       try {
@@ -240,17 +243,17 @@ public class SockJSHandlerImpl implements SockJSHandler {
 
   private static String getMD5String(String str) {
     try {
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        byte[] bytes = md.digest(str.getBytes(StandardCharsets.UTF_8));
-        return base16Encode(bytes);
+      MessageDigest md = MessageDigest.getInstance("MD5");
+      byte[] bytes = md.digest(str.getBytes(StandardCharsets.UTF_8));
+      return base16Encode(bytes);
     } catch (Exception e) {
-        LOG.error("Failed to generate MD5 for iframe, If-None-Match headers will be ignored");
-        return null;
+      LOG.error("Failed to generate MD5 for iframe, If-None-Match headers will be ignored");
+      return null;
     }
   }
 
   private static final String IFRAME_TEMPLATE =
-      "<!DOCTYPE html>\n" +
+    "<!DOCTYPE html>\n" +
       "<html>\n" +
       "<head>\n" +
       "  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n" +

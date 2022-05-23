@@ -43,6 +43,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
@@ -56,19 +57,24 @@ class EventSourceTransport extends BaseTransport {
 
   private static final Logger LOG = LoggerFactory.getLogger(EventSourceTransport.class);
 
-  EventSourceTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options,
-                       Handler<SockJSSocket> sockHandler) {
+  private final Handler<SockJSSocket> sockHandler;
+
+  EventSourceTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
     super(vertx, sessions, options);
+
+    this.sockHandler = sockHandler;
 
     String eventSourceRE = COMMON_PATH_ELEMENT_RE + "eventsource";
 
-    router.getWithRegex(eventSourceRE).handler(rc -> {
-      if (LOG.isTraceEnabled()) LOG.trace("EventSource transport, get: " + rc.request().uri());
-      String sessionID = rc.request().getParam("param0");
-      SockJSSession session = getSession(rc, options, sessionID, sockHandler);
-      HttpServerRequest req = rc.request();
-      session.register(req, new EventSourceListener(options.getMaxBytesStreaming(), rc, session));
-    });
+    router.getWithRegex(eventSourceRE)
+      .handler((PlatformHandler) this::handleGet);
+  }
+
+  private void handleGet(RoutingContext ctx) {
+    String sessionID = ctx.request().getParam("param0");
+    SockJSSession session = getSession(ctx, options, sessionID, sockHandler);
+    HttpServerRequest req = ctx.request();
+    session.register(req, new EventSourceListener(options.getMaxBytesStreaming(), ctx, session));
   }
 
   private class EventSourceListener extends BaseListener {
@@ -109,6 +115,7 @@ class EventSourceTransport extends BaseTransport {
       }
     }
 
+    @Override
     public void close() {
       if (!closed) {
         try {

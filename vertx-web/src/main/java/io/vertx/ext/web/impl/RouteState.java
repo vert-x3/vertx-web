@@ -44,7 +44,9 @@ final class RouteState {
   enum Priority {
     PLATFORM,
     SECURITY_POLICY,
+    PROTOCOL_UPGRADE,
     BODY,
+    MULTI_TENANT,
     AUTHENTICATION,
     INPUT_TRUST,
     AUTHORIZATION,
@@ -58,8 +60,14 @@ final class RouteState {
     if (handler instanceof SecurityPolicyHandler) {
       return Priority.SECURITY_POLICY;
     }
+    if (handler instanceof ProtocolUpgradeHandler) {
+      return Priority.PROTOCOL_UPGRADE;
+    }
     if (handler instanceof BodyHandler) {
       return Priority.BODY;
+    }
+    if (handler instanceof MultiTenantHandler) {
+      return Priority.MULTI_TENANT;
     }
     if (handler instanceof AuthenticationHandler) {
       return Priority.AUTHENTICATION;
@@ -535,17 +543,26 @@ final class RouteState {
       this.exactPath);
 
     int len = newState.contextHandlers.size();
-
+    final Priority weight = weight(contextHandler);
+    final Priority lastWeight;
     if (len > 0) {
-      final Priority weight = weight(contextHandler);
-      Priority iterWeith = weight(newState.contextHandlers.get(len - 1));
-      if (iterWeith.ordinal() > weight.ordinal()) {
-        String message = "Cannot add [" + weight.name() + "] handler to route with [" + iterWeith.name() + "] handler at index " + (len - 1);
-        // when lenient mode is disabled, throw IllegalStateException to signal that the setup is not correct
+      lastWeight = weight(newState.contextHandlers.get(len - 1));
+      if (lastWeight.ordinal() > weight.ordinal()) {
+        String message = "Cannot add [" + weight.name() + "] handler to route with [" + lastWeight.name() + "] handler at index " + (len - 1);
+        // when lenient mode is disabled, throw IllegalStateException to signal that the setup is incorrect
         if (!Boolean.getBoolean("io.vertx.web.router.setup.lenient")) {
           throw new IllegalStateException(message);
         }
         LOG.warn(message);
+      }
+    } else {
+      lastWeight = null;
+    }
+
+    if (lastWeight == Priority.PROTOCOL_UPGRADE) {
+      // when lenient mode is disabled, don't log to signal that the setup might be incorrect
+      if (!Boolean.getBoolean("io.vertx.web.router.setup.lenient")) {
+        LOG.warn("Adding an handler after PROTOCOL_UPGRADE handler may not be reachable");
       }
     }
 

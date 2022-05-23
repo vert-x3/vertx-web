@@ -1,5 +1,6 @@
 package io.vertx.ext.web.templ.handlebars.impl;
 
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
@@ -24,6 +25,10 @@ public class TemplateHandlerImplTest {
     Route currentRoute = mock(Route.class);
     when(currentRoute.getPath()).thenReturn("/");
     when(routingContext.currentRoute()).thenReturn(currentRoute);
+    HttpServerRequest request = mock(HttpServerRequest.class);
+    when(routingContext.request()).thenReturn(request);
+    when(request.pause()).thenReturn(request);
+    when(request.resume()).thenReturn(request);
 
     TemplateHandler templateHandler = new TemplateHandlerImpl(templateEngine, "templates", "ext");
     templateHandler.handle(routingContext);
@@ -39,6 +44,10 @@ public class TemplateHandlerImplTest {
     Route currentRoute = mock(Route.class);
     when(currentRoute.getPath()).thenReturn("/");
     when(routingContext.currentRoute()).thenReturn(currentRoute);
+    HttpServerRequest request = mock(HttpServerRequest.class);
+    when(routingContext.request()).thenReturn(request);
+    when(request.pause()).thenReturn(request);
+    when(request.resume()).thenReturn(request);
 
     TemplateHandler templateHandler = new TemplateHandlerImpl(templateEngine, "templates", "ext");
     templateHandler.setIndexTemplate("home");
@@ -55,6 +64,10 @@ public class TemplateHandlerImplTest {
     Route currentRoute = mock(Route.class);
     when(currentRoute.getPath()).thenReturn("/");
     when(routingContext.currentRoute()).thenReturn(currentRoute);
+    HttpServerRequest request = mock(HttpServerRequest.class);
+    when(routingContext.request()).thenReturn(request);
+    when(request.pause()).thenReturn(request);
+    when(request.resume()).thenReturn(request);
 
     TemplateHandler templateHandler = new TemplateHandlerImpl(templateEngine, "templates", "ext");
     templateHandler.setIndexTemplate(null);
@@ -71,6 +84,10 @@ public class TemplateHandlerImplTest {
     Route currentRoute = mock(Route.class);
     when(currentRoute.getPath()).thenReturn("/");
     when(routingContext.currentRoute()).thenReturn(currentRoute);
+    HttpServerRequest request = mock(HttpServerRequest.class);
+    when(routingContext.request()).thenReturn(request);
+    when(request.pause()).thenReturn(request);
+    when(request.resume()).thenReturn(request);
 
     TemplateHandler templateHandler = new TemplateHandlerImpl(templateEngine, "templates", "ext");
     templateHandler.handle(routingContext);

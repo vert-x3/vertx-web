@@ -187,7 +187,6 @@ public class LoggerHandlerImpl implements LoggerHandler {
     }
 
     context.next();
-
   }
 
   @Override
@@ -209,7 +208,6 @@ public class LoggerHandlerImpl implements LoggerHandler {
     }
 
     this.logFormatter = formatter;
-
     return this;
   }
 }
