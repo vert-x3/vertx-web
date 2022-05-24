@@ -79,9 +79,15 @@ public interface RouterBuilder {
    *
    * @param bodyHandler
    * @return self
+   *
+   * @deprecated Use {@link #rootHandler(Handler)} instead. The order matters, so adding the body handler should
+   * happen after any {@code PLATFORM} or {@code SECURITY_POLICY} handler(s).
    */
   @Fluent
-  RouterBuilder bodyHandler(@Nullable BodyHandler bodyHandler);
+  @Deprecated
+  default RouterBuilder bodyHandler(@Nullable BodyHandler bodyHandler) {
+    return rootHandler(bodyHandler);
+  }
 
   /**
    * Add global handler to be applied prior to {@link Router} being generated. <br/>
