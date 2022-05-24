@@ -287,6 +287,16 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  public int restIndex() {
+    return decoratedContext.restIndex();
+  }
+
+  @Override
+  public boolean normalizedMatch() {
+    return decoratedContext.normalizedMatch();
+  }
+
+  @Override
   public void setUser(User user) {
     decoratedContext.setUser(user);
   }

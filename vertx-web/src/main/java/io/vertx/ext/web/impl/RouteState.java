@@ -1024,7 +1024,7 @@ final class RouteState {
         }
 
         context.matchRest = -1;
-        context.matchNormalized = useNormalizedPath;
+        context.normalizedMatch = useNormalizedPath;
 
         if (m.groupCount() > 0) {
           if (!exactPath) {

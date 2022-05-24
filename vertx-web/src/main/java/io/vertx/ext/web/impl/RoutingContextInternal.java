@@ -84,4 +84,25 @@ public interface RoutingContextInternal extends RoutingContext {
    * @param session  the session
    */
   void setSession(Session session);
+
+  int restIndex();
+
+  boolean normalizedMatch();
+
+  default String basePath() {
+    // if we're on a sub router already we need to skip the matched path
+    String mountPoint = mountPoint();
+
+    int skip = mountPoint != null ? mountPoint.length() : 0;
+    if (normalizedMatch()) {
+      return normalizedPath().substring(skip, skip + restIndex());
+    } else {
+      String path = request().path();
+      if (path != null) {
+        return path.substring(skip, skip + restIndex());
+      }
+      return null;
+    }
+
+  };
 }

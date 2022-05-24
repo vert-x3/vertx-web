@@ -246,12 +246,14 @@ public class RouterImpl implements Router {
 
   @Override
   public void handleContext(RoutingContext ctx) {
-    new RoutingContextWrapper(getAndCheckRoutePath(ctx), state.getRoutes(), (RoutingContextInternal) ctx, this).next();
+    final RoutingContextInternal ctxi = (RoutingContextInternal) ctx;
+    new RoutingContextWrapper(getAndCheckRoutePath(ctxi), state.getRoutes(), ctxi, this).next();
   }
 
   @Override
   public void handleFailure(RoutingContext ctx) {
-    new RoutingContextWrapper(getAndCheckRoutePath(ctx), state.getRoutes(), (RoutingContextInternal) ctx, this).next();
+    final RoutingContextInternal ctxi = (RoutingContextInternal) ctx;
+    new RoutingContextWrapper(getAndCheckRoutePath(ctxi), state.getRoutes(), ctxi, this).next();
   }
 
   @Override
@@ -333,8 +335,7 @@ public class RouterImpl implements Router {
     return state.getErrorHandler(statusCode);
   }
 
-  private String getAndCheckRoutePath(RoutingContext routingContext) {
-    final RoutingContextImplBase ctx = (RoutingContextImplBase) routingContext;
+  private String getAndCheckRoutePath(RoutingContextInternal ctx) {
     final Route route = ctx.currentRoute();
 
     if (!route.isRegexPath()) {
@@ -347,18 +348,9 @@ public class RouterImpl implements Router {
       }
     }
     // regex
-    if (ctx.matchRest != -1) {
+    if (ctx.restIndex() != -1) {
       // if we're on a sub router already we need to skip the matched path
-      int skip = ctx.mountPoint != null ? ctx.mountPoint.length() : 0;
-      if (ctx.matchNormalized) {
-        return ctx.normalizedPath().substring(skip, skip + ctx.matchRest);
-      } else {
-        String path = ctx.request().path();
-        if (path != null) {
-          return path.substring(skip, skip + ctx.matchRest);
-        }
-        return null;
-      }
+      return ctx.basePath();
     } else {
       // failure did not match
       throw new IllegalStateException("Sub routers must be mounted on paths (constant or parameterized)");

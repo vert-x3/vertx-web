@@ -54,7 +54,7 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   int matchFailure;
   // the current path matched string
   int matchRest = -1;
-  boolean matchNormalized;
+  boolean normalizedMatch;
   // internal runtime state
   private volatile long seen;
 
@@ -76,6 +76,16 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   @Override
   public boolean seenHandler(int id) {
     return (seen & id) != 0;
+  }
+
+  @Override
+  public int restIndex() {
+    return matchRest;
+  }
+
+  @Override
+  public boolean normalizedMatch() {
+    return normalizedMatch;
   }
 
   @Override

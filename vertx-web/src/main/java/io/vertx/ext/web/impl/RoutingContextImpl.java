@@ -108,7 +108,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
         HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptLanguage, ParsableLanguageValue::new)),
         new ParsableMIMEValue(contentType)
     );
-
   }
 
   @Override
