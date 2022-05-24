@@ -156,7 +156,6 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
         RouterBuilder routerBuilder = routerBuilderAsyncResult.result();
         routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
-        routerBuilder.bodyHandler(null);
 
         Router router = routerBuilder.createRouter();
 
@@ -572,7 +571,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
       BodyHandler bodyHandler = BodyHandler.create("my-uploads");
 
-      routerBuilder.bodyHandler(bodyHandler);
+      routerBuilder.rootHandler(bodyHandler);
 
       routerBuilder.operation("upload").handler(routingContext -> routingContext.response().setStatusCode(201).end());
 
