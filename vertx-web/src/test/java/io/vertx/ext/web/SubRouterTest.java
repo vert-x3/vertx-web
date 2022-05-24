@@ -690,5 +690,55 @@ public class SubRouterTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/rest/1/files/2", 200, "OK");
   }
-}
 
+  @Test
+  public void testHierarchicalWithParamsSimple() throws Exception {
+
+    Router restRouter = Router.router(vertx);
+    Router productRouter = Router.router(vertx);
+    Router instanceRouter = Router.router(vertx);
+
+    router.route("/rest*").subRouter(restRouter);
+    restRouter.route("/product*").subRouter(productRouter);
+    productRouter.route("/:id*").subRouter(instanceRouter);
+    instanceRouter.get("/").handler(ctx -> {
+      // id is extracted from the root router
+      assertEquals("123", ctx.pathParam("id"));
+      ctx.response().end();
+    });
+
+    // router
+    // /rest -> restRouter
+    //      /product -> productRouter
+    //            /:id -> instanceRouter
+    //                  / -> OK
+
+    testRequest(HttpMethod.GET, "/rest/product/123", 200, "OK");
+  }
+
+  @Test
+  public void testHierarchicalWithParamsSimpleWithDummy() throws Exception {
+
+    Router restRouter = Router.router(vertx);
+    Router productRouter = Router.router(vertx);
+    Router instanceRouter = Router.router(vertx);
+
+    router.route("/rest*").subRouter(restRouter);
+    restRouter.route("/product*").subRouter(productRouter);
+    productRouter.route("/:id*").subRouter(instanceRouter);
+    instanceRouter.get("/:foo").handler(ctx -> {
+      // id is extracted from the root router
+      assertEquals("123", ctx.pathParam("id"));
+      assertEquals("bar", ctx.pathParam("foo"));
+      ctx.response().end();
+    });
+
+    // router
+    // /rest -> restRouter
+    //      /product -> productRouter
+    //            /:id -> instanceRouter
+    //                  /:foo -> OK
+
+    testRequest(HttpMethod.GET, "/rest/product/123/bar", 200, "OK");
+  }
+}
