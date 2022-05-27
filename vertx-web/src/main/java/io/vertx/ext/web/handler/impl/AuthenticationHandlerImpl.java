@@ -24,6 +24,7 @@ import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -49,13 +50,14 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
 
   @Override
   public void handle(RoutingContext ctx) {
-
     if (handlePreflight(ctx)) {
       return;
     }
 
-    // pause the request
-    ctx.request().pause();
+    if (!((RoutingContextInternal) ctx).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+      // pause the request
+      ctx.request().pause();
+    }
 
     User user = ctx.user();
     if (user != null) {
@@ -63,13 +65,13 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
         // if we're dealing with MFA, the user principal must include a matching mfa
         if (mfa.equals(user.get("mfa"))) {
           // proceed with the router
-          ctx.request().resume();
+          resume(ctx);
           postAuthentication(ctx);
           return;
         }
       } else {
         // proceed with the router
-        ctx.request().resume();
+        resume(ctx);
         postAuthentication(ctx);
         return;
       }
@@ -86,12 +88,12 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
           session.regenerateId();
         }
         // proceed with the router
-        ctx.request().resume();
+        resume(ctx);
         postAuthentication(ctx);
       } else {
         // to allow further processing if needed
         Throwable cause = authN.cause();
-        ctx.request().resume();
+        resume(ctx);
         processException(ctx, cause);
       }
     });
@@ -102,28 +104,26 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
    * error handling
    */
   protected void processException(RoutingContext ctx, Throwable exception) {
-    if (exception != null) {
-      if (exception instanceof HttpException) {
-        final int statusCode = ((HttpException) exception).getStatusCode();
-        final String payload = ((HttpException) exception).getPayload();
+    if (exception instanceof HttpException) {
+      final int statusCode = ((HttpException) exception).getStatusCode();
+      final String payload = ((HttpException) exception).getPayload();
 
-        switch (statusCode) {
-          case 302:
-            ctx.response()
-              .putHeader(HttpHeaders.LOCATION, payload)
-              .setStatusCode(302)
-              .end("Redirecting to " + payload + ".");
-            return;
-          case 401:
-            if (!"XMLHttpRequest".equals(ctx.request().getHeader("X-Requested-With"))) {
-              setAuthenticateHeader(ctx);
-            }
-            ctx.fail(401, exception);
-            return;
-          default:
-            ctx.fail(statusCode, exception);
-            return;
-        }
+      switch (statusCode) {
+        case 302:
+          ctx.response()
+            .putHeader(HttpHeaders.LOCATION, payload)
+            .setStatusCode(302)
+            .end("Redirecting to " + payload + ".");
+          return;
+        case 401:
+          if (!"XMLHttpRequest".equals(ctx.request().getHeader("X-Requested-With"))) {
+            setAuthenticateHeader(ctx);
+          }
+          ctx.fail(401, exception);
+          return;
+        default:
+          ctx.fail(statusCode, exception);
+          return;
       }
     }
 
@@ -151,5 +151,11 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
     }
 
     return false;
+  }
+
+  private void resume(RoutingContext ctx) {
+    if (!((RoutingContextInternal) ctx).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+      ctx.request().resume();
+    }
   }
 }

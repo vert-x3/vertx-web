@@ -27,6 +27,7 @@ import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 /**
  * Implementation of the {@link io.vertx.ext.web.handler.AuthorizationHandler}
@@ -57,7 +58,9 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     } else {
       try {
         // this handler can perform asynchronous operations
-        ctx.request().pause();
+        if (!((RoutingContextInternal) ctx).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+          ctx.request().pause();
+        }
         // create the authorization context
         final AuthorizationContext authorizationContext = AuthorizationContext.create(user);
         if (variableHandler != null) {
@@ -67,7 +70,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
         checkOrFetchAuthorizations(ctx, authorizationContext, authorizationProviders.iterator());
       } catch (RuntimeException e) {
         // resume as the error handler may allow this request to become valid again
-        ctx.request().resume();
+        resume(ctx);
         ctx.fail(e);
       }
     }
@@ -89,7 +92,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
    */
   private void checkOrFetchAuthorizations(RoutingContext ctx, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
     if (authorization.match(authorizationContext)) {
-      ctx.request().resume();
+      resume(ctx);
       ctx.next();
       return;
     }
@@ -97,7 +100,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     final User user = ctx.user();
 
     if (user == null || !providers.hasNext()) {
-      ctx.request().resume();
+      resume(ctx);
       ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
       return;
     }
@@ -121,7 +124,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
       }
     } while (providers.hasNext());
     // reached the end of the iterator
-    ctx.request().resume();
+    resume(ctx);
     ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
   }
 
@@ -130,5 +133,11 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     Objects.requireNonNull(authorizationProvider);
     this.authorizationProviders.add(authorizationProvider);
     return this;
+  }
+
+  private void resume(RoutingContext ctx) {
+    if (!((RoutingContextInternal) ctx).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+      ctx.request().resume();
+    }
   }
 }
