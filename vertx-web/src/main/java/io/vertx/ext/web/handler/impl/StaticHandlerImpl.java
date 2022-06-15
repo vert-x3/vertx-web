@@ -172,8 +172,9 @@ public class StaticHandlerImpl implements StaticHandler {
         LOG.trace("Not GET or HEAD so ignoring request");
       context.next();
     } else {
-      request.pause();
-
+      if (!request.isEnded()) {
+        request.pause();
+      }
       // decode URL path
       String uriDecodedPath = URIDecoder.decodeURIComponent(context.normalizedPath(), false);
       // if the normalized path is null it cannot be resolved
@@ -211,7 +212,9 @@ public class StaticHandlerImpl implements StaticHandler {
       String name = file.substring(idx + 1);
       if (name.length() > 0 && name.charAt(0) == '.') {
         // skip
-        context.request().resume();
+        if (!context.request().isEnded()) {
+          context.request().resume();
+        }
         context.next();
         return;
       }
@@ -228,7 +231,9 @@ public class StaticHandlerImpl implements StaticHandler {
 
         // a miss signals that we should continue the chain
         if (entry.isMissing()) {
-          context.request().resume();
+          if (!context.request().isEnded()) {
+            context.request().resume();
+          }
           context.next();
           return;
         }
@@ -267,7 +272,9 @@ public class StaticHandlerImpl implements StaticHandler {
     fileSystem
         .exists(localFile, exists -> {
           if (exists.failed()) {
-            context.request().resume();
+            if (!context.request().isEnded()) {
+              context.request().resume();
+            }
             context.fail(exists.cause());
             return;
           }
@@ -277,7 +284,9 @@ public class StaticHandlerImpl implements StaticHandler {
             if (cache.enabled()) {
               cache.put(path, null);
             }
-            context.request().resume();
+            if (!context.request().isEnded()) {
+              context.request().resume();
+            }
             context.next();
             return;
           }
@@ -291,7 +300,9 @@ public class StaticHandlerImpl implements StaticHandler {
                 if (dirty) {
                   cache.remove(path);
                 }
-                context.request().resume();
+                if (!context.request().isEnded()) {
+                  context.request().resume();
+                }
                 context.next();
               } else if (fprops.isDirectory()) {
                 if (index) {
@@ -299,7 +310,9 @@ public class StaticHandlerImpl implements StaticHandler {
                   if (cache.enabled()) {
                     cache.put(path, null);
                   }
-                  context.request().resume();
+                  if (!context.request().isEnded()) {
+                    context.request().resume();
+                  }
                   context.next();
                 } else {
                   if (dirty) {
@@ -319,7 +332,9 @@ public class StaticHandlerImpl implements StaticHandler {
                 sendFile(context, fileSystem, localFile, fprops);
               }
             } else {
-              context.request().resume();
+              if (!context.request().isEnded()) {
+                context.request().resume();
+              }
               context.fail(res.cause());
             }
           });
@@ -347,7 +362,9 @@ public class StaticHandlerImpl implements StaticHandler {
       sendStatic(context, fileSystem, path, true);
     } else {
       // Directory listing denied
-      context.request().resume();
+      if (!context.request().isEnded()) {
+        context.request().resume();
+      }
       context.fail(FORBIDDEN.code());
     }
   }
@@ -413,7 +430,9 @@ public class StaticHandlerImpl implements StaticHandler {
             }
           } catch (NumberFormatException | IndexOutOfBoundsException e) {
             context.response().putHeader(HttpHeaders.CONTENT_RANGE, "bytes */" + fileProps.size());
-            context.request().resume();
+            if (!context.request().isEnded()) {
+              context.request().resume();
+            }
             context.fail(REQUESTED_RANGE_NOT_SATISFIABLE.code());
             return;
           }
@@ -452,7 +471,9 @@ public class StaticHandlerImpl implements StaticHandler {
 
         response.sendFile(file, finalOffset, finalLength, res2 -> {
           if (res2.failed()) {
-            context.request().resume();
+            if (!context.request().isEnded()) {
+              context.request().resume();
+            }
             context.fail(res2.cause());
           }
         });
@@ -520,7 +541,9 @@ public class StaticHandlerImpl implements StaticHandler {
 
         response.sendFile(file, res2 -> {
           if (res2.failed()) {
-            context.request().resume();
+            if (!context.request().isEnded()) {
+              context.request().resume();
+            }
             context.fail(res2.cause());
           }
         });
@@ -701,7 +724,9 @@ public class StaticHandlerImpl implements StaticHandler {
 
     fileSystem.readDir(dir, asyncResult -> {
       if (asyncResult.failed()) {
-        context.request().resume();
+        if (!context.request().isEnded()) {
+          context.request().resume();
+        }
         context.fail(asyncResult.cause());
       } else {
 

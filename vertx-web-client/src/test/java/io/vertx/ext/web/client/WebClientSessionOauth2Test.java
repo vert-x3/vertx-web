@@ -46,7 +46,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       "  \"expires_in\": 7200" +
       "}");
 
-  private static final Oauth2Credentials oauthConfig = new Oauth2Credentials();
+  private static final Oauth2Credentials oauthConfig = new Oauth2Credentials().setFlow(OAuth2FlowType.CLIENT);
 
   @Test
   public void testRequestHeaders() throws Exception {
@@ -94,7 +94,6 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setFlow(OAuth2FlowType.CLIENT)
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
@@ -144,7 +143,6 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setFlow(OAuth2FlowType.CLIENT)
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
@@ -172,7 +170,6 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
   @Test
   public void testWithoutAuthenticationWithoutSession() throws Exception {
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setFlow(OAuth2FlowType.CLIENT)
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
@@ -226,7 +223,6 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setFlow(OAuth2FlowType.CLIENT)
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
@@ -299,7 +295,6 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setFlow(OAuth2FlowType.CLIENT)
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
@@ -380,7 +375,6 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setFlow(OAuth2FlowType.CLIENT)
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
@@ -456,7 +450,6 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setFlow(OAuth2FlowType.CLIENT)
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
@@ -531,7 +524,6 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setFlow(OAuth2FlowType.CLIENT)
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));
@@ -586,7 +578,6 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setFlow(OAuth2FlowType.CLIENT)
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:8080"));

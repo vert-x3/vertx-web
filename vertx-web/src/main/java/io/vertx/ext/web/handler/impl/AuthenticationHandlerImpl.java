@@ -55,7 +55,9 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
     }
 
     // pause the request
-    ctx.request().pause();
+    if (!ctx.request().isEnded()) {
+      ctx.request().pause();
+    }
 
     User user = ctx.user();
     if (user != null) {
@@ -63,13 +65,17 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
         // if we're dealing with MFA, the user principal must include a matching mfa
         if (mfa.equals(user.get("mfa"))) {
           // proceed with the router
-          ctx.request().resume();
+          if (!ctx.request().isEnded()) {
+            ctx.request().resume();
+          }
           postAuthentication(ctx);
           return;
         }
       } else {
         // proceed with the router
-        ctx.request().resume();
+        if (!ctx.request().isEnded()) {
+          ctx.request().resume();
+        }
         postAuthentication(ctx);
         return;
       }
@@ -86,12 +92,16 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
           session.regenerateId();
         }
         // proceed with the router
-        ctx.request().resume();
+        if (!ctx.request().isEnded()) {
+          ctx.request().resume();
+        }
         postAuthentication(ctx);
       } else {
         // to allow further processing if needed
         Throwable cause = authN.cause();
-        ctx.request().resume();
+        if (!ctx.request().isEnded()) {
+          ctx.request().resume();
+        }
         processException(ctx, cause);
       }
     });

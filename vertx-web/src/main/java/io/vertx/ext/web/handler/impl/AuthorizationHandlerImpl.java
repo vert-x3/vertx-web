@@ -57,7 +57,9 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     } else {
       try {
         // this handler can perform asynchronous operations
-        ctx.request().pause();
+        if (!ctx.request().isEnded()) {
+          ctx.request().pause();
+        }
         // create the authorization context
         final AuthorizationContext authorizationContext = AuthorizationContext.create(user);
         if (variableHandler != null) {
@@ -67,7 +69,9 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
         checkOrFetchAuthorizations(ctx, authorizationContext, authorizationProviders.iterator());
       } catch (RuntimeException e) {
         // resume as the error handler may allow this request to become valid again
-        ctx.request().resume();
+        if (!ctx.request().isEnded()) {
+          ctx.request().resume();
+        }
         ctx.fail(e);
       }
     }
@@ -89,7 +93,9 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
    */
   private void checkOrFetchAuthorizations(RoutingContext ctx, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
     if (authorization.match(authorizationContext)) {
-      ctx.request().resume();
+      if (!ctx.request().isEnded()) {
+        ctx.request().resume();
+      }
       ctx.next();
       return;
     }
@@ -97,7 +103,9 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     final User user = ctx.user();
 
     if (user == null || !providers.hasNext()) {
-      ctx.request().resume();
+      if (!ctx.request().isEnded()) {
+        ctx.request().resume();
+      }
       ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
       return;
     }
@@ -121,7 +129,9 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
       }
     } while (providers.hasNext());
     // reached the end of the iterator
-    ctx.request().resume();
+    if (!ctx.request().isEnded()) {
+      ctx.request().resume();
+    }
     ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
   }
 

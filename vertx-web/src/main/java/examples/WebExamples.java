@@ -20,7 +20,6 @@ import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
-import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
 import io.vertx.ext.auth.otp.totp.TotpAuth;
@@ -1391,7 +1390,6 @@ public class WebExamples {
     OAuth2Auth authProvider = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("CLIENT_ID")
       .setClientSecret("CLIENT_SECRET")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setSite("https://accounts.google.com")
       .setTokenPath("https://www.googleapis.com/oauth2/v3/token")
       .setAuthorizationPath("/o/oauth2/auth"));
@@ -1693,7 +1691,6 @@ public class WebExamples {
     OAuth2Auth googleAuthProvider = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("CLIENT_ID")
       .setClientSecret("CLIENT_SECRET")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setSite("https://accounts.google.com")
       .setTokenPath("https://www.googleapis.com/oauth2/v3/token")
       .setAuthorizationPath("/o/oauth2/auth"));
