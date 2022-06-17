@@ -24,7 +24,6 @@ import io.vertx.ext.auth.PubSecKeyOptions;
 import io.vertx.ext.auth.impl.jose.JWK;
 import io.vertx.ext.auth.impl.jose.JWT;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
-import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
@@ -65,7 +64,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
@@ -123,7 +121,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // lets mock an oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
@@ -184,7 +181,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // lets mock an oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
@@ -244,7 +240,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
@@ -302,7 +297,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
@@ -428,7 +422,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
@@ -515,8 +508,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
       .setClientSecret("client-secret")
-      .setSite("http://localhost:10000")
-      .setFlow(OAuth2FlowType.PASSWORD));
+      .setSite("http://localhost:10000"));
 
     final CountDownLatch latch = new CountDownLatch(1);
 
@@ -569,7 +561,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
   public void testBearerOnly() throws Exception {
 
     // lets mock a oauth2 server using code auth code flow
-    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options().setFlow(OAuth2FlowType.AUTH_CODE).setClientId("client-id"));
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options().setClientId("client-id"));
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2);
 
     // protect everything under /protected
@@ -702,7 +694,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 

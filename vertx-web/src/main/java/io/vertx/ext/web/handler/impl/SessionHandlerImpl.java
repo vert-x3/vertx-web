@@ -273,14 +273,18 @@ public class SessionHandlerImpl implements SessionHandler {
     if (sessionID != null && sessionID.length() > minLength) {
       // this handler is asynchronous, we need to pause the request
       // if we want to be able to process it later, during a body handler or protocol upgrade
-      context.request().pause();
+      if (!context.request().isEnded()) {
+        context.request().pause();
+      }
 
       final ContextInternal ctx = (ContextInternal) context.vertx().getOrCreateContext();
 
       // we passed the OWASP min length requirements
       getSession(ctx, sessionID)
         .onFailure(err -> {
-          context.request().resume();
+          if (!context.request().isEnded()) {
+            context.request().resume();
+          }
           context.fail(err);
         })
         .onSuccess(session -> {
@@ -306,7 +310,9 @@ public class SessionHandlerImpl implements SessionHandler {
             // create a new anonymous session.
             createNewSession(context);
           }
-          context.request().resume();
+          if (!context.request().isEnded()) {
+            context.request().resume();
+          }
           context.next();
         });
     } else {
