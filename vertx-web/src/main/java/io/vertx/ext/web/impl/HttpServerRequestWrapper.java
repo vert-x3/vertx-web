@@ -16,6 +16,7 @@ import io.vertx.ext.web.AllowForwardHeaders;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.security.cert.X509Certificate;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -178,7 +179,7 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
       params = MultiMap.caseInsensitiveMultiMap();
       // if there is no query it's not really needed to parse it
       if (query != null) {
-        QueryStringDecoder queryStringDecoder = new QueryStringDecoder(uri);
+        QueryStringDecoder queryStringDecoder = new QueryStringDecoder(uri, Charset.forName(delegate.getParamsCharset()));
         Map<String, List<String>> prms = queryStringDecoder.parameters();
         if (!prms.isEmpty()) {
           for (Map.Entry<String, List<String>> entry : prms.entrySet()) {
@@ -218,6 +219,21 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
   @Override
   public String getHeader(CharSequence charSequence) {
     return delegate.getHeader(charSequence);
+  }
+
+  @Override
+  public HttpServerRequest setParamsCharset(String s) {
+    String old = delegate.getParamsCharset();
+    delegate.setParamsCharset(s);
+    if (!s.equals(old)) {
+      params = null;
+    }
+    return this;
+  }
+
+  @Override
+  public String getParamsCharset() {
+    return delegate.getParamsCharset();
   }
 
   @Override

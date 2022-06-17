@@ -21,6 +21,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.ContextInternal;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.auth.VertxContextPRNG;
@@ -55,8 +56,7 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
   private long timerID = -1;
   private boolean closed;
 
-  private Vertx vertx;
-  private ContextInternal ctx;
+  private VertxInternal vertx;
 
   @Override
   public Session createSession(long timeout) {
@@ -72,8 +72,7 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
   public SessionStore init(Vertx vertx, JsonObject options) {
     // initialize a secure random
     this.random = VertxContextPRNG.current(vertx);
-    this.vertx = vertx;
-    this.ctx = (ContextInternal) vertx.getOrCreateContext();
+    this.vertx = (VertxInternal) vertx;
     this.reaperInterval = options.getLong("reaperInterval", DEFAULT_REAPER_INTERVAL);
     localMap = vertx.sharedData().getLocalMap(options.getString("mapName", DEFAULT_SESSION_MAP_NAME));
     setTimer();
@@ -88,17 +87,20 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
 
   @Override
   public Future<@Nullable Session> get(String id) {
+    final ContextInternal ctx = vertx.getOrCreateContext();
     return ctx.succeededFuture(localMap.get(id));
   }
 
   @Override
   public Future<Void> delete(String id) {
+    final ContextInternal ctx = vertx.getOrCreateContext();
     localMap.remove(id);
     return ctx.succeededFuture();
   }
 
   @Override
   public Future<Void> put(Session session) {
+    final ContextInternal ctx = vertx.getOrCreateContext();
     final AbstractSession oldSession = (AbstractSession) localMap.get(session.id());
     final AbstractSession newSession = (AbstractSession) session;
 
@@ -116,12 +118,14 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
 
   @Override
   public Future<Void> clear() {
+    final ContextInternal ctx = vertx.getOrCreateContext();
     localMap.clear();
     return ctx.succeededFuture();
   }
 
   @Override
   public Future<Integer> size() {
+    final ContextInternal ctx = vertx.getOrCreateContext();
     return ctx.succeededFuture(localMap.size());
   }
 
@@ -159,5 +163,4 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
       timerID = vertx.setTimer(reaperInterval, this);
     }
   }
-
 }
