@@ -2,11 +2,14 @@ package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.AfterClass;
 import org.junit.Test;
 
@@ -306,5 +309,19 @@ public class RoutingContextImplTest extends WebTestBase {
       ctx.response().end();
     });
     testRequest(HttpMethod.GET, "/", HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
+  }
+
+  @Test
+  public void test_end_with_statuscode() throws Exception {
+    router.route().handler(ctx -> ctx.end(202));
+    testRequest(HttpMethod.POST, "/", HttpResponseStatus.ACCEPTED.code(), HttpResponseStatus.ACCEPTED.reasonPhrase());
+  }
+
+  @Test
+  public void test_end_with_statuscode_handler() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    router.route().handler(ctx -> ctx.end(202, v -> latch.countDown()));
+    testRequest(HttpMethod.POST, "/", HttpResponseStatus.ACCEPTED.code(), HttpResponseStatus.ACCEPTED.reasonPhrase());
+    awaitLatch(latch);
   }
 }

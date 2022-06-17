@@ -944,4 +944,22 @@ public interface RoutingContext {
     end().onComplete(handler);
     return this;
   }
+
+  /**
+   * Shortcut to the response end with a given status code.
+   * @return future
+   */
+  default Future<Void> end(int statusCode) {
+    return response().setStatusCode(statusCode).end();
+  }
+
+  /**
+   * Shortcut to the response end with a given status code.
+   * See {@link #end(int)}
+   */
+  @Fluent
+  default RoutingContext end(int statusCode, Handler<AsyncResult<Void>> handler) {
+    end(statusCode).onComplete(handler);
+    return this;
+  }
 }
