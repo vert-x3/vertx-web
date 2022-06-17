@@ -20,6 +20,7 @@ import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.ContextInternal;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.AsyncMap;
 import io.vertx.ext.auth.VertxContextPRNG;
@@ -44,19 +45,17 @@ public class ClusteredSessionStoreImpl implements SessionStore, ClusteredSession
   private static final long DEFAULT_RETRY_TIMEOUT = 5 * 1000; // 5 seconds
 
 
-  private Vertx vertx;
+  private VertxInternal vertx;
   private VertxContextPRNG random;
   private String sessionMapName;
   private long retryTimeout;
-  private ContextInternal ctx;
 
   // Clustered Map
   private volatile AsyncMap<String, Session> sessionMap;
 
   @Override
   public SessionStore init(Vertx vertx, JsonObject options) {
-    this.vertx = vertx;
-    this.ctx = (ContextInternal) vertx.getOrCreateContext();
+    this.vertx = (VertxInternal) vertx;
     this.sessionMapName = options.getString("mapName", DEFAULT_SESSION_MAP_NAME);
     this.retryTimeout = options.getLong("retryTimeout", DEFAULT_RETRY_TIMEOUT);
     this.random = VertxContextPRNG.current(vertx);
@@ -100,6 +99,7 @@ public class ClusteredSessionStoreImpl implements SessionStore, ClusteredSession
 
   @Override
   public Future<Void> put(Session session) {
+    final ContextInternal ctx = vertx.getOrCreateContext();
     return getMap()
       .compose(map ->
         // we need to take care of the transactionality of session data
@@ -145,6 +145,7 @@ public class ClusteredSessionStoreImpl implements SessionStore, ClusteredSession
         .<String, Session>getClusterWideMap(sessionMapName)
         .onSuccess(sessionMap -> this.sessionMap = sessionMap);
     } else {
+      final ContextInternal ctx = vertx.getOrCreateContext();
       return ctx.succeededFuture(sessionMap);
     }
   }
