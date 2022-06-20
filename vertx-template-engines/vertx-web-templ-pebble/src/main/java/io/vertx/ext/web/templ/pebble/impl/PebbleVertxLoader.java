@@ -75,4 +75,14 @@ public class PebbleVertxLoader implements Loader<String> {
   public String createCacheKey(String s) {
     return s;
   }
+
+  @Override
+  public boolean resourceExists(String s) {
+    try {
+      return vertx.fileSystem()
+        .existsBlocking(s);
+    } catch (RuntimeException e) {
+      throw new LoaderException(e, e.getMessage());
+    }
+  }
 }
