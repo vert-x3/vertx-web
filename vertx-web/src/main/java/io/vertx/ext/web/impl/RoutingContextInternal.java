@@ -29,8 +29,9 @@ import io.vertx.ext.web.Session;
  */
 public interface RoutingContextInternal extends RoutingContext {
 
-  int BODY_HANDLER = 1 << 1;
-  int CORS_HANDLER = 1 << 2;
+  int SESSION_HANDLER = 1 << 1;
+  int BODY_HANDLER = 1 << 2;
+  int CORS_HANDLER = 1 << 3;
 
   /**
    * flags the current routing context as having visited the handler with {@code id}.

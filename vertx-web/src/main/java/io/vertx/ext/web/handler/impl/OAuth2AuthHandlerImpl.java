@@ -172,10 +172,11 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     });
   }
 
-  public String authURI(Session session, String redirectURL) {
+  private String authURI(Session session, String redirectURL) {
 
     String state = null;
     String codeVerifier = null;
+    String loginHint = null;
 
     if (session == null) {
       if (pkce > 0) {
@@ -184,6 +185,11 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       }
     } else {
       // there's a session we can make this request comply to the Oauth2 spec and add an opaque state
+
+      loginHint = session.get("login_hint");
+      // hint will be considered at least once
+      session.remove("login_hint");
+
       session
         .put("redirect_uri", redirectURL);
 
@@ -202,6 +208,10 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     }
 
     final JsonObject config = new JsonObject();
+
+    if (loginHint != null) {
+      config.put("login_hint", loginHint);
+    }
 
     if (extraParams != null) {
       config.mergeIn(extraParams);

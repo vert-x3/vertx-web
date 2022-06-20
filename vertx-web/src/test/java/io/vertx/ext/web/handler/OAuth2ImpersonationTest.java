@@ -21,11 +21,11 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
-import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
+import io.vertx.ext.auth.oauth2.authorization.ScopeAuthorization;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.handler.impl.OAuth2AuthHandlerImpl;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.Test;
 
@@ -33,20 +33,19 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static io.vertx.ext.web.handler.UserSwitchHandler.USER_SWITCH_KEY;
+
 /**
  * @author Paulo Lopes
  */
-public class OAuth2AuthHandlerMultipleTimesTest extends WebTestBase {
+public class OAuth2ImpersonationTest extends WebTestBase {
 
   // mock an oauth2 server using code auth code flow
-  OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-    .setClientId("client-id")
-    .setFlow(OAuth2FlowType.AUTH_CODE)
-    .setClientSecret("client-secret")
-    .setSite("http://localhost:10000"));
+  OAuth2Auth oauth2;
 
   private static final JsonObject fixture_base = new JsonObject(
     "{" +
+      "  \"sub\": \"base\"," +
       "  \"access_token\": \"base\"," +
       "  \"refresh_token\": \"base\"," +
       "  \"token_type\": \"bearer\"," +
@@ -56,6 +55,7 @@ public class OAuth2AuthHandlerMultipleTimesTest extends WebTestBase {
 
   private static final JsonObject fixture_admin = new JsonObject(
     "{" +
+      "  \"sub\": \"admin\"," +
       "  \"access_token\": \"admin\"," +
       "  \"refresh_token\": \"admin\"," +
       "  \"token_type\": \"bearer\"," +
@@ -75,6 +75,11 @@ public class OAuth2AuthHandlerMultipleTimesTest extends WebTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+
+    oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+      .setClientId("client-id")
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:10000"));
 
     final CountDownLatch latch = new CountDownLatch(1);
     final AtomicBoolean base = new AtomicBoolean(true);
@@ -115,77 +120,61 @@ public class OAuth2AuthHandlerMultipleTimesTest extends WebTestBase {
     router.route()
       .handler(SessionHandler.create(SessionStore.create(vertx)));
 
-    // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
-    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/callback");
-
-    // setup the callback handler for receiving the callback
-    oauth2Handler.setupCallback(router.route("/callback"));
-
-    // switch users
-    router.route("/protected/switch-user")
-      /////////////////////////////////////////////////////////
-      // TODO: This block should become a handler on its own
-      /////////////////////////////////////////////////////////
+    // switch users setup
+    // there are 2 routes
+    router.route("/user-switch/impersonate")
       // this is a high precedence handler
-      .handler(ctx -> {
-        // TODO: this isn't enough, as the presence of a `Authorization` header could create a user object on it's own
-        //       if there's an authn handler before
-        if (ctx.user() == null) {
-          // we need to ensure that we already had a user, otherwise we can't switch
-          ctx.fail(401);
-        } else {
-          // TODO: we may need to support authz checks too
-          System.out.println(ctx.user().principal().encodePrettily());
-          // move the user out of the context
-          ctx.session().put("previous-user", ctx.user()); // TODO: use a "internal" key like __vertx.user-switch-ref
-          // remove it
-          ctx.setUser(null);
+      .handler(UserSwitchHandler.impersonate());
 
-          // TODO: we need to make this somehow generic, not just OAuth2, maybe also allow WWW-Authenticate responses?
-          // trigger the new authn
-          ctx.redirect(((OAuth2AuthHandlerImpl) oauth2Handler)
-            .authURI(ctx.session(), "/protected/admin"));
+    router.route("/user-switch/undo")
+      // this is a high precedence handler
+      .handler(UserSwitchHandler.undo());
 
-          // TODO: handle the scalling down (back to base user) One idea is to use HTTP verbs:
-          //       POST: create (upgrade the user as in the example here)
-          //       DELETE: downgrades, restores the old user back + new session id (as we changed privileges again)
-        }
-      });
-
-
-
+    // create an oauth2 handler on our domain to the callback: "http://localhost:8080/callback" and
     // protect everything under /protected
     router.route("/protected/*")
-      .handler(oauth2Handler);
+      .handler(OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/callback").setupCallback(router.route("/callback")));
 
     final AtomicReference<User> userRef = new AtomicReference<>();
 
-    // mount 1st handler under the protected zone
-    router.route("/protected/base").handler(rc -> {
-      assertNotNull(rc.user());
-      userRef.set(rc.user());
-      rc.end("OK");
-    });
+    // mount 1st handler under the protected zone (regular user only can read)
+    router
+      .route("/protected/base")
+      .handler(
+        AuthorizationHandler
+          .create(PermissionBasedAuthorization.create("read"))
+          .addAuthorizationProvider(ScopeAuthorization.create()))
+      .handler(rc -> {
+        assertNotNull(rc.user());
+        userRef.set(rc.user());
+        rc.end("OK");
+      });
 
 
-    // mount 2nd handler under the protected zone
-    router.route("/protected/admin").handler(rc -> {
-      assertNotNull(rc.user());
-      System.out.println(rc.user().principal().encodePrettily());
+    // mount 2nd handler under the protected zone (admin user can write)
+    router
+      .route("/protected/admin")
+      .handler(
+        AuthorizationHandler
+          .create(PermissionBasedAuthorization.create("write"))
+          .addAuthorizationProvider(ScopeAuthorization.create()))
+      .handler(rc -> {
+        assertNotNull(rc.user());
+        System.out.println(rc.user().principal().encodePrettily());
 
-      // assert that the old and new users are not the same
-      User oldUser = userRef.get();
-      assertNotNull(oldUser);
-      User newUser = rc.user();
-      assertFalse(oldUser.equals(newUser));
+        // assert that the old and new users are not the same
+        User oldUser = userRef.get();
+        assertNotNull(oldUser);
+        User newUser = rc.user();
+        assertFalse(oldUser.equals(newUser));
 
-      // also the old user should be in the session
-      User prevUser = rc.session().get("previous-user");
-      assertNotNull(prevUser);
-      assertEquals(prevUser, oldUser);
+        // also the old user should be in the session
+        User prevUser = rc.session().get(USER_SWITCH_KEY);
+        assertNotNull(prevUser);
+        assertEquals(prevUser, oldUser);
 
-      rc.response().end("Welcome to the 2nd protected resource!");
-    });
+        rc.response().end("Welcome to the 2nd protected resource!");
+      });
 
 
     /////////////////////////
@@ -258,13 +247,22 @@ public class OAuth2AuthHandlerMultipleTimesTest extends WebTestBase {
     // TEST SWITCHING IDENTITIES
     /////////////////////////////
 
+    // test we can't get the admin resource (we're still base user)
+    testRequest(
+      HttpMethod.GET,
+      "/protected/admin",
+      req -> {
+        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
+      }, resp -> {
+      }, 403, "Forbidden", null);
+
     // verify that the switch isn't possible for non authn requests
     // Expectations:
     //   * Given that there is no cookie and no authorization header, no user will be present in the request, forcing
     //     an Unauthorized response
     testRequest(
       HttpMethod.GET,
-      "/protected/switch-user",
+      "/user-switch/impersonate?redirect_uri=/protected/admin&login_hint=admin",
       req -> {
       }, resp -> {
       }, 401, "Unauthorized", null);
@@ -281,7 +279,50 @@ public class OAuth2AuthHandlerMultipleTimesTest extends WebTestBase {
     //   * A redirect to the IdP should happen. (maybe there's a way to hint the desired user? This doesn't do it)
     testRequest(
       HttpMethod.GET,
-      "/protected/switch-user",
+      "/user-switch/impersonate?redirect_uri=/protected/admin&login_hint=admin",
+      req -> {
+        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
+      }, resp -> {
+        // in this case we should get a redirect, and the session id must change
+        // session upgrade (secure against replay attacks)
+        String setCookie = resp.headers().get("set-cookie");
+        assertNotNull(setCookie);
+        // the session must change
+        assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
+
+        sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
+
+        String destination = resp.getHeader(HttpHeaders.LOCATION);
+        stateRef.set(destination);
+      }, 302, "Found", null);
+
+    // verify that the switch isn't possible for non authn requests
+    // Expectations:
+    //   * Given that there is no cookie and no authorization header, no user will be present in the request, forcing
+    //     a redirect to the IdP response
+    testRequest(
+      HttpMethod.GET,
+      stateRef.get(),
+      req -> {
+      }, resp -> {
+        // in this case we should get a redirect
+        String redirectURL = resp.getHeader("Location");
+        assertNotNull(redirectURL);
+
+        String setCookie = resp.headers().get("set-cookie");
+        assertNotNull(setCookie);
+
+        // the session must be different
+        assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
+      }, 302, "Found", null);
+
+    // verify that the switch is possible for authn requests
+    // Expectations:
+    //   * Given that there is no cookie and no authorization header, no user will be present in the request, forcing
+    //     a redirect to the IdP response
+    testRequest(
+      HttpMethod.GET,
+      stateRef.get(),
       req -> {
         req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
       }, resp -> {
@@ -289,12 +330,23 @@ public class OAuth2AuthHandlerMultipleTimesTest extends WebTestBase {
         String redirectURL = resp.getHeader("Location");
         assertNotNull(redirectURL);
         String[] parts = redirectURL.substring(redirectURL.indexOf('?') + 1).split("&");
+        boolean hintSeen = false;
 
         for (String part : parts) {
           if (part.startsWith("state=")) {
             stateRef.set(part.substring(6));
           }
+          if (part.startsWith("login_hint=")) {
+            hintSeen = true;
+          }
         }
+
+        // we should respect the hint
+        assertTrue(hintSeen);
+
+        // we're on the right session
+        String setCookie = resp.headers().get("set-cookie");
+        assertNull(setCookie);
       }, 302, "Found", null);
 
     // user is authenticated, it now escalates the permissions by re-doing the auth flow to upgrade the user
@@ -330,5 +382,46 @@ public class OAuth2AuthHandlerMultipleTimesTest extends WebTestBase {
         req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
       }, resp -> {
       }, 200, "OK", "Welcome to the 2nd protected resource!");
+
+    ////////////////////////////////////////
+    // UNDO IMPERSONATION
+    ////////////////////////////////////////
+
+    testRequest(
+      HttpMethod.GET,
+      "/user-switch/undo?redirect_uri=/protected/base",
+      req -> {
+        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
+      }, resp -> {
+        // in this case we should get a redirect, and the session id must change
+        // session upgrade (secure against replay attacks)
+        String setCookie = resp.headers().get("set-cookie");
+        assertNotNull(setCookie);
+        // the session must change
+        assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
+
+        sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
+
+        String destination = resp.getHeader(HttpHeaders.LOCATION);
+        stateRef.set(destination);
+      }, 302, "Found", null);
+
+    // final call to verify that the desired de-escalated user can get the final resource
+    testRequest(
+      HttpMethod.GET,
+      stateRef.get(),
+      req -> {
+        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
+      }, resp -> {
+      }, 200, "OK", "OK");
+
+    // final call to verify that the desired de-escalated user cannot get the admin resource
+    testRequest(
+      HttpMethod.GET,
+      "/protected/admin",
+      req -> {
+        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
+      }, resp -> {
+      }, 403, "Forbidden", null);
   }
 }

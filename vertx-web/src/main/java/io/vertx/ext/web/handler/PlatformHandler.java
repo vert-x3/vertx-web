@@ -25,7 +25,8 @@ import io.vertx.ext.web.RoutingContext;
  * Two examples are:
  *
  * <ul>
- *   <li>{@link BodyHandler}</li>
+ *   <li>{@link LoggerHandler}</li>
+ *   <li>{@link MethodOverrideHandler}</li>
  *   <li>{@link SessionHandler}</li>
  * </ul>
  *

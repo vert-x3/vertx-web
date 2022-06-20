@@ -268,6 +268,14 @@ public class SessionHandlerImpl implements SessionHandler {
       }
     }
 
+    // we need to keep state since we can be called again on reroute
+    if (!((RoutingContextInternal) context).seenHandler(RoutingContextInternal.SESSION_HANDLER)) {
+      ((RoutingContextInternal) context).visitHandler(RoutingContextInternal.SESSION_HANDLER);
+    } else {
+      // TODO: should we skip this? we're probably will get sessions messed up if we re-run this right?
+      //       how about reroute?
+    }
+
     // Look for existing session id
     String sessionID = getSessionId(context);
     if (sessionID != null && sessionID.length() > minLength) {

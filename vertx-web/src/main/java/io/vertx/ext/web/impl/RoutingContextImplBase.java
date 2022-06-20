@@ -232,7 +232,7 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
       }
     } else {
       // if there are no user defined handlers, we will log the exception
-      LOG.error("Unhandled exception in router", failure);
+      LOG.info("Unhandled exception in router", failure);
     }
 
     if (!response().ended() && !response().closed()) {
