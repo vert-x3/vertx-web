@@ -16,14 +16,13 @@
 
 package io.vertx.ext.web;
 
-import io.vertx.core.MultiMap;
 import io.vertx.core.http.*;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 
-import static io.vertx.core.http.HttpHeaders.*;
 import static io.vertx.ext.web.AllowForwardHeaders.*;
+import static io.vertx.ext.web.impl.Utils.canUpgradeToWebsocket;
 
 public class ForwardedTest extends WebTestBase {
 
@@ -344,8 +343,7 @@ public class ForwardedTest extends WebTestBase {
     String address = "1.2.3.4";
     router.allowForward(ALL).route("/ws").handler(rc -> {
       HttpServerRequest request = rc.request();
-      MultiMap headers = request.headers();
-      if (headers.contains(CONNECTION) && headers.contains(UPGRADE, WEBSOCKET, true)) {
+      if (canUpgradeToWebsocket(request)) {
         request
           .toWebSocket(onSuccess(socket -> {
             assertTrue(socket.host().equals(host));

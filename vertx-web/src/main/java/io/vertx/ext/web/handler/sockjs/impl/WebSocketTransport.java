@@ -51,6 +51,7 @@ import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.impl.Origin;
 
 import static io.vertx.core.http.HttpHeaders.*;
+import static io.vertx.ext.web.impl.Utils.canUpgradeToWebsocket;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -80,7 +81,7 @@ class WebSocketTransport extends BaseTransport {
 
   private void handleGet(RoutingContext ctx) {
     HttpServerRequest req = ctx.request();
-    if (!req.headers().contains(CONNECTION, UPGRADE, true)) {
+    if (!canUpgradeToWebsocket(req)) {
       ctx.response().setStatusCode(400);
       ctx.response().end("Can \"Upgrade\" only to \"WebSocket\".");
       return;

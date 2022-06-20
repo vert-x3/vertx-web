@@ -18,7 +18,6 @@ package io.vertx.ext.web.handler.graphql.impl;
 
 import graphql.GraphQL;
 import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.web.RoutingContext;
@@ -30,7 +29,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static io.vertx.core.http.HttpHeaders.*;
+import static io.vertx.ext.web.impl.Utils.canUpgradeToWebsocket;
 
 /**
  * @author Rogelio Orts
@@ -152,8 +151,7 @@ public class ApolloWSHandlerImpl implements ApolloWSHandler {
 
   @Override
   public void handle(RoutingContext ctx) {
-    MultiMap headers = ctx.request().headers();
-    if (headers.contains(CONNECTION) && headers.contains(UPGRADE, WEBSOCKET, true)) {
+    if (canUpgradeToWebsocket(ctx.request())) {
       if (!Origin.check(origin, ctx)) {
         ctx.fail(403, new IllegalStateException("Invalid Origin"));
         return;
