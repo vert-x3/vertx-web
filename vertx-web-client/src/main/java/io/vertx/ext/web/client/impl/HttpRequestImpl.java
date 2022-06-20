@@ -217,7 +217,10 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
         .setHost(host)
         .setPort(port)
         .setURI(uri);
-      if (ssl != null && ssl != client.options.isSsl()) {
+      // if the user specified SSL we always enforce it
+      // even if the client has a default, because the default
+      // may have been used previously to compute the request options
+      if (ssl != null) {
         requestOptions
           .setSsl(ssl);
       }
