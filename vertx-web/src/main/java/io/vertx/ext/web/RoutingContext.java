@@ -729,30 +729,35 @@ public interface RoutingContext {
 
   /**
    * Encode an Object to JSON and end the request.
-   * The method will apply the correct content type to the response,
-   * perform the encoding and end.
-   *
+   * When {@code Content-Type} is not set then correct {@code Content-Type} will be applied to the response
    * @param json the json
    * @return a future to handle the end of the request
    */
   default Future<Void> json(Object json) {
     final HttpServerResponse res = response();
+    final boolean hasContentType = res.headers().contains(HttpHeaders.CONTENT_TYPE);
 
     if (json == null) {
       // http://www.iana.org/assignments/media-types/application/json
       // No "charset" parameter is defined for this registration.
       // Adding one really has no effect on compliant recipients.
-      res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+
+      // apply the content type header only if content type header is not set
+      if(!hasContentType) {
+        res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+      }
       return res.end("null");
     } else {
       try {
         Buffer buffer = Json.encodeToBuffer(json);
-        // apply the content type header only if the encoding succeeds
-
         // http://www.iana.org/assignments/media-types/application/json
         // No "charset" parameter is defined for this registration.
         // Adding one really has no effect on compliant recipients.
-        res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+
+        // apply the content type header only if the encoding succeeds and content type header is not set
+        if(!hasContentType) {
+          res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+        }
         return res.end(buffer);
       } catch (EncodeException | UnsupportedOperationException e) {
         // handle the failure
