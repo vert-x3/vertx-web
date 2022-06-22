@@ -1,10 +1,10 @@
 package io.vertx.ext.web.handler;
 
-import io.vertx.core.Vertx;
-import io.vertx.ext.web.handler.impl.DigestAuthHandlerImpl;
 import org.junit.Test;
 
-import static io.vertx.ext.web.handler.HttpException.httpStatusCode;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static io.vertx.ext.web.handler.HttpException.httpStatusCodeOf;
 import static org.junit.Assert.*;
 
 public class HttpExceptionTest {
@@ -20,7 +20,7 @@ public class HttpExceptionTest {
   @Test
   public void testHttpExceptionTryCatch() {
     HttpException exception = new HttpException(401);
-    switch (httpStatusCode(exception)) {
+    switch (httpStatusCodeOf(exception)) {
       case 401:
         assertEquals("[401]: Unauthorized", exception.getMessage());
         break;
@@ -32,6 +32,21 @@ public class HttpExceptionTest {
   @Test
   public void testHttpExceptionCallee() {
     HttpException exception = new HttpException(401).setCallee(XFrameHandler.create(XFrameHandler.DENY));
-    assertTrue(exception.thrownBy(XFrameHandler.class));
+
+    final AtomicInteger cnt = new AtomicInteger();
+
+    switch (httpStatusCodeOf(exception)) {
+      case 401:
+        exception
+          .catchFrom(XFrameHandler.class, err -> {
+            cnt.incrementAndGet();
+          })
+          .catchFrom(XFrameHandler.class, err -> {
+            cnt.incrementAndGet();
+          });
+        break;
+    }
+
+    assertEquals(2, cnt.get());
   }
 }

@@ -20,6 +20,7 @@ import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * An utility exception class to signal HTTP failures.
@@ -85,7 +86,7 @@ public final class HttpException extends RuntimeException {
     return this;
   }
 
-  public static int httpStatusCode(Throwable throwable) {
+  public static int httpStatusCodeOf(Throwable throwable) {
     Objects.requireNonNull(throwable, "'throwable' must not be null");
     if (throwable instanceof HttpException) {
       return ((HttpException) throwable).getStatusCode();
@@ -94,11 +95,13 @@ public final class HttpException extends RuntimeException {
     }
   }
 
-  public boolean thrownBy(Class<?> clazz) {
+  public HttpException catchFrom(Class<?> clazz, Consumer<HttpException> consumer) {
     Objects.requireNonNull(clazz, "'clazz' must not be null");
     if (callee != null) {
-      return clazz.isAssignableFrom(callee);
+      if (clazz.isAssignableFrom(callee)) {
+        consumer.accept(this);
+      }
     }
-    return false;
+    return this;
   }
 }
