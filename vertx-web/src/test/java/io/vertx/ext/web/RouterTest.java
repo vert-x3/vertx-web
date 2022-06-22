@@ -24,6 +24,7 @@ import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
@@ -3577,5 +3578,11 @@ public class RouterTest extends WebTestBase {
     }
 
     await();
+  }
+
+  @Test
+  public void testSimpleRouteHttpException() throws Exception {
+    router.route().handler(rc -> rc.fail(new HttpException(401, "User validation failure")));
+    testRequest(HttpMethod.GET, "/", 401, "Unauthorized");
   }
 }
