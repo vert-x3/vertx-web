@@ -2,6 +2,7 @@ package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -220,6 +221,30 @@ public class RoutingContextImplTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/", null, res -> {
       assertEquals("application/json", res.getHeader("Content-Type"));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
+
+  @Test
+  public void testJsonWithContentType() throws Exception {
+    final String contentType = "application/json; charset=utf-8";
+    router.route().handler(ctx -> {
+      ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+      ctx.json(new JsonObject());
+    });
+    testRequest(HttpMethod.GET, "/", null, res -> {
+      assertEquals(contentType, res.getHeader(HttpHeaders.CONTENT_TYPE));
+    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+  }
+
+  @Test
+  public void testJsonNullWithContentType() throws Exception {
+    final String contentType = "application/json; charset=utf-8";
+    router.route().handler(ctx -> {
+      ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+      ctx.json(null);
+    });
+    testRequest(HttpMethod.GET, "/", null, res -> {
+      assertEquals(contentType, res.getHeader(HttpHeaders.CONTENT_TYPE));
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
   }
 
