@@ -747,4 +747,20 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     }, 200, "OK", "Welcome to the protected resource!");
 
     server.close();
-  }}
+  }
+
+  @Test
+  public void testSharing() throws Exception {
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(vertx, OAuth2Auth.create(vertx, new OAuth2Options()
+      .setClientId("client-id")
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:10000")), "http://localhost:8080/secret/callback");
+
+    router.route("/protected/*").handler(oauth2.setupCallback(router.route("/callback")));
+    router.route("/protected/userinfo").handler(oauth2);
+
+    assertEquals("/callback", router.getRoutes().get(0).getPath());
+    assertEquals("/protected/", router.getRoutes().get(1).getPath());
+    assertEquals("/protected/userinfo", router.getRoutes().get(2).getPath());
+  }
+}

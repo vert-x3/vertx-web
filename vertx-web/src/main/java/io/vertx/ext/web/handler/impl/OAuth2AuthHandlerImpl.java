@@ -378,10 +378,13 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
   @Override
   public void onOrder(int order) {
-    this.order = order;
-    // callback route already known, but waiting for order
-    if (callback != null) {
-      mountCallback();
+    // order isn't known yet, we can attempt to mount
+    if (this.order == -1) {
+      this.order = order;
+      // callback route already known, but waiting for order
+      if (callback != null) {
+        mountCallback();
+      }
     }
   }
 
