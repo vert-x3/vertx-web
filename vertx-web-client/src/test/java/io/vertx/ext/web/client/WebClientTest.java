@@ -1600,6 +1600,26 @@ public class WebClientTest extends WebClientTestBase {
     testTLS(false, true, client -> client.getAbs("https://" + DEFAULT_HTTPS_HOST + ":" + DEFAULT_HTTPS_PORT));
   }
 
+  @Test
+  public void testTLSEnabledDisableRequestTLSAbsURIWithOptions() throws Exception {
+    testTLS(true, false, client -> client.request(HttpMethod.GET, new RequestOptions().setAbsoluteURI("http://" + DEFAULT_HTTPS_HOST + ":" + DEFAULT_HTTPS_PORT)));
+  }
+
+  @Test
+  public void testTLSEnabledEnableRequestTLSAbsURIWithOptions() throws Exception {
+    testTLS(true, true, client -> client.request(HttpMethod.GET, new RequestOptions().setAbsoluteURI("https://" + DEFAULT_HTTPS_HOST + ":" + DEFAULT_HTTPS_PORT)));
+  }
+
+  @Test
+  public void testTLSDisabledDisableRequestTLSAbsURIWithOptions() throws Exception {
+    testTLS(false, false, client -> client.request(HttpMethod.GET, new RequestOptions().setAbsoluteURI("http://" + DEFAULT_HTTPS_HOST + ":" + DEFAULT_HTTPS_PORT)));
+  }
+
+  @Test
+  public void testTLSDisabledEnableRequestTLSAbsURIWithOptions() throws Exception {
+    testTLS(false, true, client -> client.request(HttpMethod.GET, new RequestOptions().setAbsoluteURI("https://" + DEFAULT_HTTPS_HOST + ":" + DEFAULT_HTTPS_PORT)));
+  }
+
   /**
    * Regression test for issue #563 (https://github.com/vert-x3/vertx-web/issues/563)
    * <p>

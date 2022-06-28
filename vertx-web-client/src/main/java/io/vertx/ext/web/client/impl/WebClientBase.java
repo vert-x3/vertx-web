@@ -89,6 +89,7 @@ public class WebClientBase implements WebClientInternal {
       host = options.getDefaultHost();
     }
     HttpRequestImpl<Buffer> request = request(method, serverAddress, port, host, requestOptions.getURI());
+    request.ssl(requestOptions.isSsl());
     return requestOptions.getHeaders() == null ? request : request.putHeaders(requestOptions.getHeaders());
   }
 
