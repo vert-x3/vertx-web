@@ -963,7 +963,7 @@ HTTPS when sessions are being used. Vert.x will warn you if you attempt to use s
 To enable sessions in your application you must have a {@link io.vertx.ext.web.handler.SessionHandler}
 on a matching route before your application logic.
 
-The session handler handles the creation of session cookies and the lookup of the session so you don't have to do
+The session handler handles the creation of session cookies and the lookup of the session, so you don't have to do
 that yourself.
 
 Sessions data is saved to a session store automatically after the response headers have been sent to the client.
@@ -1089,7 +1089,7 @@ distributing different requests from the same browser to different servers.
 As the session is stored in the Cookie, this means sessions survive server crashes too.
 
 A second known implementation is the Redis session store. This store works just like the normal cluster store, however
-just like it's name suggests, it uses a redis backend to keep the session data centralized.
+just like its name suggests, it uses a redis backend to keep the session data centralized.
 
 Also, there is the Infinispan session store (details below).
 
@@ -1115,6 +1115,10 @@ Here's an example:
 The session handler will ensure that your session is automatically looked up (or created if no session exists)
 from the session store and set on the routing context before it gets to your application handlers.
 
+By default, the session handler will always add a session cookie to the HTTP response, even if the session has not been
+accessed by your application. To create the session cookie only when the session has been used, use
+`sessionHandler.setLazySession(true)`.
+
 === Using the session
 
 In your handlers you can access the session instance with {@link io.vertx.ext.web.RoutingContext#session()}.
@@ -1134,7 +1138,7 @@ Here's an example of manipulating session data:
 {@link examples.WebExamples#example34}
 ----
 
-Sessions are automatically written back to the store after after responses are complete.
+Sessions are automatically written back to the store after responses are complete.
 
 You can manually destroy a session using {@link io.vertx.ext.web.Session#destroy()}. This will remove the session
 from the context and the session store. Note that if there is no session a new one will be automatically created
