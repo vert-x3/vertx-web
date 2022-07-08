@@ -6,12 +6,13 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-web-parent</artifactId>
-    <version>4.3.3-SNAPSHOT</version>
+    <version>4.3.2</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>vertx-web-client</artifactId>
+  <version>4.3.2.1</version>
 
   <properties>
     <doc.skip>false</doc.skip>
@@ -22,25 +23,25 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-uri-template</artifactId>
-      <version>${project.version}</version>
+      <version>4.3.2</version>
     </dependency>
 
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web-common</artifactId>
-      <version>${project.version}</version>
+      <version>4.3.2</version>
     </dependency>
 
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-common</artifactId>
-      <version>${project.version}</version>
+      <version>4.3.2</version>
     </dependency>
 
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-oauth2</artifactId>
-      <version>${project.version}</version>
+      <version>4.3.2</version>
       <optional>true</optional>
     </dependency>
 
