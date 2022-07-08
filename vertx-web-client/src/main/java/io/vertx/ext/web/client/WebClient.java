@@ -16,7 +16,6 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
@@ -764,7 +763,6 @@ public interface WebClient {
   /**
    * Close the client. Closing will close down any pooled connections.
    * Clients should always be closed after use.
-   * @return a future completed with the result
    */
-  Future<Void> close();
+  void close();
 }

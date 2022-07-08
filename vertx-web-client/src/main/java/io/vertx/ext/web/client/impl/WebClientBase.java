@@ -16,7 +16,6 @@
 package io.vertx.ext.web.client.impl;
 
 import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
@@ -147,7 +146,7 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public Future<Void> close() {
-    return client.close();
+  public void close() {
+    client.close();
   }
 }
