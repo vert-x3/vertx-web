@@ -61,6 +61,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   boolean followRedirects;
   Boolean ssl;
   boolean multipartMixed = true;
+  String traceOperation = null;
   public List<ResponsePredicate> expectations;
 
   HttpRequestImpl(WebClientInternal client, HttpMethod method, SocketAddress serverAddress, Boolean ssl, Integer port, String host, String uri, BodyCodec<T>
@@ -288,6 +289,12 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public HttpRequest<T> multipartMixed(boolean allow) {
     multipartMixed = allow;
+    return this;
+  }
+
+  @Override
+  public HttpRequest<T> traceOperation(String traceOperation) {
+    this.traceOperation = traceOperation;
     return this;
   }
 

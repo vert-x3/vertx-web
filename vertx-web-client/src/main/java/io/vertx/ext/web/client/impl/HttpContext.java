@@ -458,6 +458,7 @@ public class HttpContext<T> {
     }
     options.setTimeout(request.timeout);
     options.setProxyOptions(request.proxyOptions);
+    options.setTraceOperation(request.traceOperation);
     createRequest(options);
   }
 
