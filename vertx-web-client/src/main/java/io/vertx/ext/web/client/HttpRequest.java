@@ -378,6 +378,15 @@ public interface HttpRequest<T> {
   HttpRequest<T> multipartMixed(boolean allow);
 
   /**
+   * Trace operation name override.
+   *
+   * @param traceOperation Name of operation to use in traces
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> traceOperation(String traceOperation);
+
+  /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} stream.
    *
    * @param body the body

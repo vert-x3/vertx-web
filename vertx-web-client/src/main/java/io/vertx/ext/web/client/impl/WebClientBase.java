@@ -90,6 +90,7 @@ public class WebClientBase implements WebClientInternal {
     }
     HttpRequestImpl<Buffer> request = request(method, serverAddress, port, host, requestOptions.getURI());
     request.ssl(requestOptions.isSsl());
+    request.traceOperation(requestOptions.getTraceOperation());
     return requestOptions.getHeaders() == null ? request : request.putHeaders(requestOptions.getHeaders());
   }
 
