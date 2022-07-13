@@ -240,10 +240,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
           final JsonObject webauthnLogin = ctx.body().asJsonObject();
           final Session session = ctx.session();
 
-          if (webauthnLogin == null || !containsRequiredString(webauthnLogin, "name")) {
-            ctx.fail(400, new IllegalArgumentException("Request missing 'name' field"));
-            return;
-          }
+          final String username = webauthnLogin == null ? null : webauthnLogin.getString("name");
 
           // input basic validation is OK
 
@@ -251,8 +248,6 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
             ctx.fail(500, new IllegalStateException("No session or session handler is missing."));
             return;
           }
-
-          final String username = webauthnLogin.getString("name");
 
           // STEP 18 Generate assertion
           authProvider.getCredentialsOptions(username, generateServerGetAssertion -> {
