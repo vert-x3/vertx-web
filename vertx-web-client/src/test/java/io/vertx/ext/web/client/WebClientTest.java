@@ -88,7 +88,40 @@ public class WebClientTest extends WebClientTestBase {
     );
   }
 
+  @Test
+  public void testBasicAuthenticationEmptyUsername() throws Exception {
+    UsernamePasswordCredentials creds = new UsernamePasswordCredentials("", "&@#§$*éà#\"'");
+    testRequest(
+      client -> client.get("somehost", "somepath").authentication(creds),
+      req -> {
+        String auth = req.headers().get(HttpHeaders.AUTHORIZATION);
+        assertEquals("Was expecting authorization header to contain a basic authentication string", creds.toHttpAuthorization(), auth);
+      }
+    );
+  }
 
+  @Test
+  public void testBasicAuthenticationNullUsername() throws Exception {
+    UsernamePasswordCredentials creds = new UsernamePasswordCredentials(null, "&@#§$*éà#\"'");
+    testRequest(
+      client -> client.get("somehost", "somepath").authentication(creds),
+      req -> {
+        String auth = req.headers().get(HttpHeaders.AUTHORIZATION);
+        assertEquals("Was expecting authorization header to contain a basic authentication string", creds.toHttpAuthorization(), auth);
+      }
+    );
+  }
+
+  @Test
+  public void testBasicAuthenticationNullUsername2() throws Exception {
+    testRequest(
+      client -> client.get("somehost", "somepath").basicAuthentication("", "password"),
+      req -> {
+        String auth = req.headers().get(HttpHeaders.AUTHORIZATION);
+        assertEquals("Was expecting authorization header to contain a basic authentication string", "Basic OnBhc3N3b3Jk", auth);
+      }
+    );
+  }
 
   @Test
   public void testBearerTokenAuthentication() throws Exception {
