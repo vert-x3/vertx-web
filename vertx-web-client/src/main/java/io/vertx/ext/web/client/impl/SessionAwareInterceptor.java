@@ -54,7 +54,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     }
     headers.addAll(parentClient.headers());
 
-    String domain = ((HttpRequestImpl<?>)context.request()).virtualHost;
+    String domain = context.request().virtualHost();
     if (domain == null) {
       domain = requestOptions.getHost();
     }
@@ -81,8 +81,8 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     RequestOptions originalRequest = context.requestOptions();
     CookieStore cookieStore = parentClient.cookieStore();
     String domain = URI.create(context.clientResponse().request().absoluteURI()).getHost();
-    if (domain.equals(originalRequest.getHost()) && ((HttpRequestImpl<?>)context.request()).virtualHost != null) {
-      domain = ((HttpRequestImpl<?>)context.request()).virtualHost;
+    if (domain.equals(originalRequest.getHost()) && context.request().virtualHost() != null) {
+      domain = context.request().virtualHost();
     }
     final String finalDomain = domain;
     cookieHeaders.forEach(header -> {
@@ -105,8 +105,8 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     RequestOptions originalRequest = context.requestOptions();
     String redirectHost = redirectRequest.getHost();
     String domain;
-    if (redirectHost.equals(originalRequest.getHost()) && ((HttpRequestImpl<?>)context.request()).virtualHost != null) {
-      domain = ((HttpRequestImpl<?>)context.request()).virtualHost;
+    if (redirectHost.equals(originalRequest.getHost()) && context.request().virtualHost() != null) {
+      domain = context.request().virtualHost();
     } else {
       domain = redirectHost;
     }
@@ -160,7 +160,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
         if (cookie.domain() == null) {
           // Set the domain if missing, because we need to send cookies
           // only to the domains we received them from.
-          cookie.setDomain(((HttpRequestImpl<?>)context.request()).virtualHost != null ? ((HttpRequestImpl<?>)context.request()).virtualHost : request.getHost());
+          cookie.setDomain(context.request().virtualHost() != null ? context.request().virtualHost() : request.getHost());
         }
         cookieStore.put(cookie);
       }

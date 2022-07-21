@@ -17,12 +17,16 @@ package io.vertx.ext.web.client.impl;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientInternal;
+import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
@@ -75,7 +79,7 @@ public class WebClientBase implements WebClientInternal {
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, UriTemplate requestURI) {
     return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), options.getDefaultPort(), options.getDefaultHost(),
-      requestURI, BodyCodecImpl.BUFFER, options, null);
+      requestURI, BodyCodecImpl.BUFFER, options.isFollowRedirects(), buildProxyOptions(options), buildHeaders(options));
   }
 
   @Override
@@ -106,12 +110,14 @@ public class WebClientBase implements WebClientInternal {
 
   @Override
   public HttpRequestImpl<Buffer> request(HttpMethod method, SocketAddress serverAddress, int port, String host, String requestURI) {
-    return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), port, host, requestURI, BodyCodecImpl.BUFFER, options, null);
+    return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), port, host, requestURI,
+      BodyCodecImpl.BUFFER, options.isFollowRedirects(), buildProxyOptions(options), buildHeaders(options));
   }
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, int port, String host, UriTemplate requestURI) {
-    return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), port, host, requestURI, BodyCodecImpl.BUFFER, options, null);
+    return new HttpRequestImpl<>(this, method, serverAddress, options.isSsl(), port, host, requestURI,
+      BodyCodecImpl.BUFFER, options.isFollowRedirects(), buildProxyOptions(options), buildHeaders(options));
   }
 
   @Override
@@ -122,12 +128,14 @@ public class WebClientBase implements WebClientInternal {
     } catch (URISyntaxException | MalformedURLException e) {
       throw new VertxException(e);
     }
-    return new HttpRequestImpl<>(this, method, serverAddress, curi.ssl, curi.port, curi.host, curi.uri, BodyCodecImpl.BUFFER, options, null);
+    return new HttpRequestImpl<>(this, method, serverAddress, curi.ssl, curi.port, curi.host, curi.uri,
+      BodyCodecImpl.BUFFER, options.isFollowRedirects(), buildProxyOptions(options), buildHeaders(options));
   }
 
   @Override
   public HttpRequest<Buffer> requestAbs(HttpMethod method, SocketAddress serverAddress, UriTemplate absoluteURI) {
-    return new HttpRequestImpl<>(this, method, serverAddress, absoluteURI,  BodyCodecImpl.BUFFER, options, null);
+    return new HttpRequestImpl<>(this, method, serverAddress, absoluteURI,  BodyCodecImpl.BUFFER,
+      options.isFollowRedirects(), buildProxyOptions(options), buildHeaders(options));
   }
 
   @Override
@@ -149,5 +157,21 @@ public class WebClientBase implements WebClientInternal {
   @Override
   public void close() {
     client.close();
+  }
+
+  private static MultiMap buildHeaders(WebClientOptions options) {
+    if (options.isUserAgentEnabled()) {
+      return HttpHeaders.set(HttpHeaders.USER_AGENT, options.getUserAgent());
+    } else {
+      return HttpHeaders.headers();
+    }
+  }
+
+  private static ProxyOptions buildProxyOptions(WebClientOptions options) {
+    if (options.getProxyOptions() !=  null) {
+      return new ProxyOptions(options.getProxyOptions());
+    } else {
+      return null;
+    }
   }
 }

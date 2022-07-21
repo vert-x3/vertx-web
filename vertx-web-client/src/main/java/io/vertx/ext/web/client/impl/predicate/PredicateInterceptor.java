@@ -39,30 +39,28 @@ public class PredicateInterceptor implements Handler<HttpContext<?>> {
       // Run expectations
       HttpRequestImpl request = (HttpRequestImpl) httpContext.request();
       HttpClientResponse resp = httpContext.clientResponse();
-      List<ResponsePredicate> expectations = request.expectations;
-      if (expectations != null) {
-        for (ResponsePredicate expectation : expectations) {
-          ResponsePredicateResultImpl predicateResult;
-          try {
-            predicateResult = (ResponsePredicateResultImpl) expectation.apply(responseCopy(resp, httpContext, null));
-          } catch (Exception e) {
-            httpContext.fail(e);
-            return;
-          }
-          if (!predicateResult.succeeded()) {
-            ErrorConverter errorConverter = expectation.errorConverter();
-            if (!errorConverter.requiresBody()) {
-              predicateResult.setHttpResponse(responseCopy(resp, httpContext, null));
+      List<ResponsePredicate> expectations = request.expectations();
+      for (ResponsePredicate expectation : expectations) {
+        ResponsePredicateResultImpl predicateResult;
+        try {
+          predicateResult = (ResponsePredicateResultImpl) expectation.apply(responseCopy(resp, httpContext, null));
+        } catch (Exception e) {
+          httpContext.fail(e);
+          return;
+        }
+        if (!predicateResult.succeeded()) {
+          ErrorConverter errorConverter = expectation.errorConverter();
+          if (!errorConverter.requiresBody()) {
+            predicateResult.setHttpResponse(responseCopy(resp, httpContext, null));
+            failOnPredicate(httpContext, errorConverter, predicateResult);
+          } else {
+            resp.bodyHandler(buffer -> {
+              predicateResult.setHttpResponse(responseCopy(resp, httpContext, buffer));
               failOnPredicate(httpContext, errorConverter, predicateResult);
-            } else {
-              resp.bodyHandler(buffer -> {
-                predicateResult.setHttpResponse(responseCopy(resp, httpContext, buffer));
-                failOnPredicate(httpContext, errorConverter, predicateResult);
-              });
-              resp.resume();
-            }
-            return;
+            });
+            resp.resume();
           }
+          return;
         }
       }
     }

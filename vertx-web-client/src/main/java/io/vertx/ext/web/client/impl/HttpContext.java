@@ -245,7 +245,7 @@ public class HttpContext<T> {
    */
   public void receiveResponse(HttpClientResponse clientResponse) {
     int sc = clientResponse.statusCode();
-    int maxRedirects = request.followRedirects ? client.options().getMaxRedirects() : 0;
+    int maxRedirects = request.followRedirects() ? client.options().getMaxRedirects() : 0;
     this.clientResponse = clientResponse;
     if (redirects < maxRedirects && sc >= 300 && sc < 400) {
       redirects++;
@@ -418,7 +418,7 @@ public class HttpContext<T> {
         MultipartFormUpload multipartForm;
         try {
           boolean multipart = "multipart/form-data".equals(contentType);
-          HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
+          HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed() ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
           multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
           this.body = multipartForm;
         } catch (Exception e) {
@@ -509,7 +509,7 @@ public class HttpContext<T> {
       }
     });
     Pipe<Buffer> pipe = resp.pipe();
-    request.codec.create(ar1 -> {
+    request.bodyCodec().create(ar1 -> {
       if (ar1.succeeded()) {
         BodyStream<T> stream = ar1.result();
         pipe.to(stream, ar2 -> {
