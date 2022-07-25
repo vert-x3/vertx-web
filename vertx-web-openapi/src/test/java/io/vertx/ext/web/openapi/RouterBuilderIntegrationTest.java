@@ -757,6 +757,49 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
   }
 
   @Test
+  public void testMultipartMatchAllWildcard(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    loadBuilderAndStartServer(vertx, "src/test/resources/specs/multipart.yaml", testContext, routerBuilder -> {
+      routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false));
+      routerBuilder.operation("testMultipartMatchAllWildcard").handler(routingContext -> {
+        RequestParameters params = routingContext.get("parsedParameters");
+        routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(params.body().getJsonObject().getString("type"))
+          .end();
+      });
+    }).onComplete(h -> {
+      MultipartForm form1 =
+        MultipartForm
+          .create()
+          .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "text/plain")
+          .attribute("type", "text/plain");
+      testRequest(client, HttpMethod.POST, "/testMultipartMatchAllWildcard")
+        .expect(statusCode(200), statusMessage("text/plain"))
+        .sendMultipartForm(form1, testContext, checkpoint);
+
+      MultipartForm form2 =
+        MultipartForm
+          .create()
+          .binaryFileUpload("file1", "random.csv", "src/test/resources/random.csv", "text/csv")
+          .attribute("type", "text/csv");
+      testRequest(client, HttpMethod.POST, "/testMultipartMatchAllWildcard")
+        .expect(statusCode(200), statusMessage("text/csv"))
+        .sendMultipartForm(form2, testContext, checkpoint);
+
+      MultipartForm form3 =
+        MultipartForm
+          .create()
+          .binaryFileUpload("file1", "random.txt", "src/test/resources/random.txt", "application/json")
+          .attribute("type", "application/json");
+      testRequest(client, HttpMethod.POST, "/testMultipartMatchAllWildcard")
+        .expect(statusCode(200))
+        .sendMultipartForm(form3, testContext, checkpoint);
+    });
+  }
+
+  @Test
   public void multipleWildcardMultipartEncoding(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(6);
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/multipart.yaml", testContext, routerBuilder -> {

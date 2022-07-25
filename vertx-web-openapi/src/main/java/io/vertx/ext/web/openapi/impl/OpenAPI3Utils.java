@@ -64,6 +64,8 @@ class OpenAPI3Utils {
     return Arrays.stream(listContentTypes.split(","))
       .map(String::trim)
       .map(pattern -> {
+        if (pattern.equals("*/*"))
+          return ".*/.*";
         int wildcardIndex = pattern.indexOf("/*");
         if (wildcardIndex != -1) {
           return Pattern.quote(pattern.substring(0, wildcardIndex + 1)) + ".*";
