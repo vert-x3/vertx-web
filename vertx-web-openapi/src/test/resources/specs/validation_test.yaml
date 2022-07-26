@@ -122,6 +122,25 @@ paths:
       responses:
         default:
           description: ok
+  /queryTests/arrayTests/formExplodedObject:
+    get:
+      operationId: arrayTestFormExplodedObject
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          explode: true
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                foo:
+                  type: string
+            example: '[{"foo": "bar"},{"foo" : "bar"}]'
+      responses:
+        default:
+          description: ok
   /queryTests/objectTests/onlyAdditionalProperties:
     get:
       operationId: objectTestOnlyAdditionalProperties
