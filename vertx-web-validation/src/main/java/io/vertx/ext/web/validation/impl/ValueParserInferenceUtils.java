@@ -31,6 +31,8 @@ public class ValueParserInferenceUtils {
         return DOUBLE_PARSER;
       case "boolean":
         return BOOLEAN_PARSER;
+      case "object":
+        return JSON_PARSER;
       default:
         return NOOP_PARSER;
     }

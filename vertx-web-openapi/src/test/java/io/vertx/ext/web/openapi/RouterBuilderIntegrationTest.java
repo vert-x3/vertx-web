@@ -896,6 +896,40 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
   }
 
   @Test
+  public void testQueryParameterArrayExplodedObject(Vertx vertx, VertxTestContext testContext) {
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
+        .operation("arrayTestFormExplodedObject")
+        .handler(routingContext -> {
+          RequestParameters params = routingContext.get("parsedParameters");
+          String serialized = params
+            .queryParameter("parameter")
+            .getJsonArray()
+            .stream()
+            .map(JsonObject.class::cast)
+            .map(JsonObject::encode)
+            .collect(Collectors.joining(","));
+          routingContext.response().setStatusMessage(serialized).end();
+        });
+    }).onComplete(h -> {
+      QueryStringEncoder encoder = new QueryStringEncoder("/queryTests/arrayTests/formExplodedObject");
+      List<String> values = new ArrayList<>();
+      JsonObject fooBar1 = new JsonObject().put("foo", "bar1");
+      JsonObject fooBar2 = new JsonObject().put("foo", "bar2");
+      values.add(fooBar1.encode());
+      values.add(fooBar2.encode());
+      for (String s : values) {
+        encoder.addParam("parameter", s);
+      }
+      String serialized = String.join(",", values);
+
+      testRequest(client, HttpMethod.GET, encoder.toString())
+        .expect(statusCode(200), statusMessage(serialized))
+        .send(testContext);
+    });
+  }
+
+  @Test
   public void testQueryParameterArrayDefaultStyle(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
     loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
