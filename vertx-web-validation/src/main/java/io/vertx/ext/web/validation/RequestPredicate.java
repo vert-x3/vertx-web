@@ -33,7 +33,7 @@ public interface RequestPredicate extends Function<RoutingContext, RequestPredic
    * @param contentTypePattern
    * @return
    */
-  static RequestPredicate multipartFileUploadExists(String propertyName, String contentTypePattern) {
+  static RequestPredicate multipartFileUploadExists(String propertyName, String contentTypePattern, boolean required) {
     Pattern contentType = Pattern.compile(contentTypePattern);
     return rc -> {
       if (
@@ -41,10 +41,12 @@ public interface RequestPredicate extends Function<RoutingContext, RequestPredic
         rc.request().getHeader(HttpHeaders.CONTENT_TYPE).contains("multipart/form-data")
       ) {
         Set<FileUpload> files = rc.fileUploads();
-        for (FileUpload f : files) {
-          if (f.name().equals(propertyName) && contentType.matcher(f.contentType()).matches()) return success();
-        }
-        return failed(String.format("File with content type %s and name %s is missing", contentType, propertyName));
+        FileUpload thisFile = files.stream().filter(f -> propertyName.equals(f.name()) && f.size() > 0).findFirst().orElse(null);
+        if(required && (thisFile == null || thisFile.size() == 0))
+          return failed(String.format("File name %s with content type %s is missing.", propertyName, contentType));
+        if(thisFile != null && thisFile.size() > 0 && !contentType.matcher(thisFile.contentType()).matches())
+          return failed(String.format("File name %s with content type %s is mismatch.", propertyName, contentType));
+        return success();
       } else return success();
     };
   }

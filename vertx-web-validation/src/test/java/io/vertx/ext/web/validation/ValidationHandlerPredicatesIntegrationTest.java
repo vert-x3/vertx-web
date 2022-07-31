@@ -65,7 +65,8 @@ public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHa
       .builder(parser)
       .predicate(RequestPredicate.multipartFileUploadExists(
         "myfile",
-        Pattern.quote("text/plain")
+        Pattern.quote("text/plain"),
+        true
       ))
       .build();
 
