@@ -96,17 +96,19 @@ public class LocaleTest extends WebTestBase {
   }
 
   @Test
-  public void testWrongLocale() throws Exception {
+  public void testEmptyLocaleDefaulsToSystemLocale() throws Exception {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setLocale("")
       .setGraphQLQuery("query { locale }");
     request.send(client, onSuccess(body -> {
-      if (body.getJsonObject("data").getString("locale") != null) {
-        fail(body.toString());
-      } else {
-        testComplete();
-      }
+
+      Locale expectedLocale = Locale.getDefault();
+      String actualLocale = body.getJsonObject("data").getString("locale");
+      assertEquals(expectedLocale.toLanguageTag(), actualLocale);
+
+      testComplete();
+
     }));
     await();
   }
