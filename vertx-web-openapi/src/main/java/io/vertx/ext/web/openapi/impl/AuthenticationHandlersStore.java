@@ -64,14 +64,17 @@ class AuthenticationHandlersStore {
         .map(v -> (String) v)
         .collect(Collectors.toList());
 
-      for (int i = 0; i < authenticationHandlers.size(); i++) {
-        if (authenticationHandlers.get(i) instanceof ScopedAuthentication<?>) {
-          ScopedAuthentication<?> scopedHandler = (ScopedAuthentication<?>) authenticationHandlers.get(i);
-          // this mutates the state, so we replace the list with an updated handler
-          AuthenticationHandler updatedHandler = scopedHandler.withScopes(scopes);
-          authenticationHandlers.set(i, updatedHandler);
-        }
-      }
+      // Update the returned list to have handlers with the required scopes
+      authenticationHandlers = authenticationHandlers
+              .stream()
+              .map(authHandler -> {
+                if (authHandler instanceof ScopedAuthentication<?>) {
+                  return ((ScopedAuthentication<?>) authHandler).withScopes(scopes);
+                } else {
+                  return authHandler;
+                }
+              })
+              .collect(Collectors.toList());
     }
 
     return authenticationHandlers;
