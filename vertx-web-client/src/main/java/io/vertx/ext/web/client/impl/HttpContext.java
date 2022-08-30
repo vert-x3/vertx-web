@@ -438,7 +438,8 @@ public class HttpContext<T> {
         requestPromise.future().onComplete(ar -> {
           if (ar.succeeded()) {
             HttpClientRequest req = ar.result();
-            if (this.request.headers == null || !this.request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
+            MultiMap headers = req.headers();
+            if (headers == null || !headers.contains(HttpHeaders.CONTENT_LENGTH)) {
               req.setChunked(true);
             }
             pipe.endOnFailure(false);
