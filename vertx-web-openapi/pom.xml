@@ -32,6 +32,7 @@
     <junit5.version>5.7.0</junit5.version>
     <mockito.version>3.3.0</mockito.version>
     <assertj.version>3.15.0</assertj.version>
+    <snakeyaml.version>1.31</snakeyaml.version>
   </properties>
 
   <dependencies>
@@ -58,7 +59,7 @@
     <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
-      <version>1.30</version>
+      <version>${snakeyaml.version}</version>
     </dependency>
     <!-- For docs -->
     <dependency>
