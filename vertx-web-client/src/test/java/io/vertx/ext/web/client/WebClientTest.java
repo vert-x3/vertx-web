@@ -1589,6 +1589,23 @@ public class WebClientTest extends WebClientTestBase {
   }
 
   @Test
+  public void testRequestOptions() throws Exception {
+    ProxyOptions proxyOptions = new ProxyOptions().setHost("proxy-host");
+    RequestOptions options = new RequestOptions().setHost("another-host").setPort(8080).setSsl(true)
+      .setURI("/test").setTimeout(500).setProxyOptions(proxyOptions).setFollowRedirects(true);
+    HttpRequest<Buffer> request = webClient.request(HttpMethod.GET, options);
+
+    assertThat(request.host(), equalTo("another-host"));
+    assertThat(request.port(), equalTo(8080));
+    assertThat(request.ssl(), equalTo(true));
+    assertThat(request.uri(), equalTo("/test"));
+    assertThat(request.timeout(), equalTo(500l));
+    assertThat(request.followRedirects(), equalTo(true));
+    assertThat(request.proxy(), is(not(equalTo(proxyOptions))));
+    assertThat(request.proxy().getHost(), equalTo("proxy-host"));
+  }
+
+  @Test
   public void testTLSEnabled() throws Exception {
     testTLS(true, true, client -> client.get("/"));
   }

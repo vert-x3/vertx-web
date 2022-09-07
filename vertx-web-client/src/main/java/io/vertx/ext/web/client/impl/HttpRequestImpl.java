@@ -260,6 +260,11 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
+  public long timeout() {
+      return timeout;
+  }
+
+  @Override
   public HttpRequest<T> addQueryParam(String paramName, String paramValue) {
     queryParams().add(paramName, paramValue);
     return this;

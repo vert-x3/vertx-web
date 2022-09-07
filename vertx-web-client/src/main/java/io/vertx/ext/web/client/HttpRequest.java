@@ -291,6 +291,11 @@ public interface HttpRequest<T> {
   HttpRequest<T> timeout(long value);
 
   /**
+   * @return the current timeout in milliseconds
+   */
+  long timeout();
+
+  /**
    * Add a query parameter to the request.
    *
    * @param paramName  the param name
