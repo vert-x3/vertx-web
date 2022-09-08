@@ -72,6 +72,13 @@ public class HttpContext<T> {
   }
 
   /**
+   * @return a duplicate of this context
+   */
+  public HttpContext<T> duplicate() {
+    return new HttpContext<>(client, options, interceptors, handler);
+  }
+
+  /**
    * @return the underlying client request, only available during {@link ClientPhase#SEND_REQUEST} and after
    */
   public HttpClientRequest clientRequest() {
