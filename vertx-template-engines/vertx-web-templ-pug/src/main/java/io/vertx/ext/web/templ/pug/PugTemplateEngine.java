@@ -14,39 +14,36 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.web.templ.jade;
+package io.vertx.ext.web.templ.pug;
 
-import de.neuland.jade4j.JadeConfiguration;
+import de.neuland.pug4j.PugConfiguration;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.common.template.TemplateEngine;
-import io.vertx.ext.web.templ.jade.impl.JadeTemplateEngineImpl;
+import io.vertx.ext.web.templ.pug.impl.PugTemplateEngineImpl;
 
 /**
- * A template engine that uses Jade.
- * The {@link #unwrap()} shall return an object of class {@link JadeConfiguration}
+ * A template engine that uses Pug.
+ * The {@link #unwrap()} shall return an object of class {@link PugConfiguration}
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * @deprecated Use PugTemplateEngine instead; <a href="https://github.com/neuland/jade4j#readme">jade4j has been renamed to pug4j</a>.
  */
 @VertxGen
-@Deprecated
-public interface JadeTemplateEngine extends TemplateEngine {
+public interface PugTemplateEngine extends TemplateEngine {
 
   /**
    * Default template extension
    */
-  String DEFAULT_TEMPLATE_EXTENSION = "jade";
+  String DEFAULT_TEMPLATE_EXTENSION = "pug";
 
   /**
    * Create a template engine using defaults
    *
    * @return  the engine
    */
-  static JadeTemplateEngine create(Vertx vertx) {
-    return new JadeTemplateEngineImpl(vertx, DEFAULT_TEMPLATE_EXTENSION);
+  static PugTemplateEngine create(Vertx vertx) {
+    return new PugTemplateEngineImpl(vertx, DEFAULT_TEMPLATE_EXTENSION);
   }
 
   /**
@@ -54,18 +51,27 @@ public interface JadeTemplateEngine extends TemplateEngine {
    *
    * @return  the engine
    */
-  static JadeTemplateEngine create(Vertx vertx, String extension) {
-    return new JadeTemplateEngineImpl(vertx, extension);
+  static PugTemplateEngine create(Vertx vertx, String extension) {
+    return new PugTemplateEngineImpl(vertx, extension);
+  }
+
+  /**
+   * Create a template engine using defaults
+   *
+   * @return  the engine
+   */
+  static PugTemplateEngine create(Vertx vertx, String extension, String encoding) {
+    return new PugTemplateEngineImpl(vertx, extension, encoding);
   }
 
   /**
    * @deprecated see {@link #unwrap()}
-   * Get a reference to the internal JadeConfiguration object so it
+   * Get a reference to the internal PugConfiguration object so it
    * can be configured.
    *
-   * @return a reference to the internal JadeConfiguration instance.
+   * @return a reference to the internal PugConfiguration instance.
    */
   @GenIgnore
   @Deprecated
-  JadeConfiguration getJadeConfiguration();
+  PugConfiguration getPugConfiguration();
 }
