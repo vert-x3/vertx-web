@@ -153,7 +153,7 @@ public class PugTemplateTest {
   @Test
   public void testGetPugConfiguration() {
     PugTemplateEngine engine = PugTemplateEngine.create(vertx);
-    assertNotNull(engine.getPugConfiguration());
+    assertNotNull(engine.unwrap());
   }
 
   @Test

@@ -68,15 +68,4 @@ public interface PugTemplateEngine extends TemplateEngine {
   static PugTemplateEngine create(Vertx vertx, String extension, String encoding) {
     return new PugTemplateEngineImpl(vertx, extension, encoding);
   }
-
-  /**
-   * @deprecated see {@link #unwrap()}
-   * Get a reference to the internal PugConfiguration object so it
-   * can be configured.
-   *
-   * @return a reference to the internal PugConfiguration instance.
-   */
-  @GenIgnore
-  @Deprecated
-  PugConfiguration getPugConfiguration();
 }

@@ -87,11 +87,6 @@ public class PugTemplateEngineImpl extends CachingTemplateEngine<PugTemplate> im
     }
   }
 
-  @Override
-  public PugConfiguration getPugConfiguration() {
-    return config;
-  }
-
   private class PugTemplateLoader implements TemplateLoader {
 
     private final Vertx vertx;
