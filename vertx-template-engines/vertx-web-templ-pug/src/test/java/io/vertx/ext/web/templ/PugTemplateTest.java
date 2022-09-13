@@ -39,7 +39,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * @author <a href="http://tfox.org">Tim Fox</a>
+ * This implementation has been copied from
+ * <a href="https://github.com/vert-x3/vertx-web/blob/4.0.0/vertx-template-engines/vertx-web-templ-jade/src/test/java/io/vertx/ext/web/templ/JadeTemplateTest.java">
+ * JadeTemplateTest.java</a>.
+ * Authors of JadeTemplateTest.java are <a href="http://tfox.org">Tim Fox</a>, Julien Viet (vietj),
+ * Paulo Lopes (pmlopes), Kevin Macksamie (k-mack), Clement Escoffier (cescoffier).
+ *
+ * For authors of this file see git history.
  */
 @RunWith(VertxUnitRunner.class)
 public class PugTemplateTest {

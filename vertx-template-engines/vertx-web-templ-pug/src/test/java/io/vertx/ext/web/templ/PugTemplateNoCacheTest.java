@@ -34,7 +34,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
- * @author <a href="http://tfox.org">Tim Fox</a>
+ * This implementation has been copied from
+ * <a href="https://github.com/vert-x3/vertx-web/blob/4.0.0/vertx-template-engines/vertx-web-templ-jade/src/test/java/io/vertx/ext/web/templ/JadeTemplateNoCacheTest.java">
+ * JadeTemplateNoCacheTest.java</a>.
+ * Authors of JadeTemplateNoCacheTest.java are <a href="http://tfox.org">Tim Fox</a>, Julien Viet (vietj), Paulo Lopes (pmlopes).
+ *
+ * <p>For authors of this file see git history.
  */
 @RunWith(VertxUnitRunner.class)
 public class PugTemplateNoCacheTest {

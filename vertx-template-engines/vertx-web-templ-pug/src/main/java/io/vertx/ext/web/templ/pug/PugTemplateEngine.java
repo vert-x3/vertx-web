@@ -27,7 +27,12 @@ import io.vertx.ext.web.templ.pug.impl.PugTemplateEngineImpl;
  * A template engine that uses Pug.
  * The {@link #unwrap()} shall return an object of class {@link PugConfiguration}
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
+ * <p>Thís interface has been copied from <a href="https://github.com/vert-x3/vertx-web/blob/4.0.0/vertx-template-engines/vertx-web-templ-jade/src/main/java/io/vertx/ext/web/templ/jade/JadeTemplateEngine.java">
+ * JadeTemplateEngine.java</a>.
+ * Authors of JadeTemplateEngine.java are <a href="http://tfox.org">Tim Fox</a>, Paulo Lopes (pmlopes), Julien Viet (vietj),
+ * Roman Novikov (mystdeim), nEJC (mrnejc), Yunyu Lin, Kevin Macksamie (k-mack), Geoffrey Clements (baldmountain).
+ *
+ * <p>For authors of this file see git history.
  */
 @VertxGen
 public interface PugTemplateEngine extends TemplateEngine {

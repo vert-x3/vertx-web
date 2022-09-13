@@ -35,8 +35,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
- * @author <a href="http://tfox.org">Tim Fox</a>
+ * This implementation has been copied from
+ * <a href="https://github.com/vert-x3/vertx-web/blob/4.0.0/vertx-template-engines/vertx-web-templ-jade/src/main/java/io/vertx/ext/web/templ/jade/impl/JadeTemplateEngineImpl.java">
+ * JadeTemplateEngineImpl.java</a>.
+ * Authors of JadeTemplateEngineImpl.java are <a href="http://pmlopes@gmail.com">Paulo Lopes</a>,
+ * <a href="http://tfox.org">Tim Fox</a>, Julien Viet (vietj), Roman Novikov (mystdeim), nEJC (mrnejc), Yunyu Lin,
+ * Kevin Macksamie (k-mack), Clement Escoffier (cescoffier), Geoffrey Clements (baldmountain).
+ *
+ * <p>For authors of this file see git history.
  */
 public class PugTemplateEngineImpl extends CachingTemplateEngine<PugTemplate> implements PugTemplateEngine {
 
