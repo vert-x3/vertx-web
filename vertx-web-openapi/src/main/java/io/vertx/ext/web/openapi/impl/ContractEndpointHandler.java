@@ -11,6 +11,7 @@ import io.vertx.ext.web.openapi.ErrorType;
 import io.vertx.ext.web.openapi.OpenAPIHolder;
 import io.vertx.ext.web.openapi.RouterBuilderException;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -60,7 +61,7 @@ public class ContractEndpointHandler implements Handler<RoutingContext> {
   public static ContractEndpointHandler create(OpenAPIHolder holder) {
     try (StringWriter writer = new StringWriter()) {
       JsonObject openapi = holder.getOpenAPI();
-      Yaml yaml = new Yaml();
+      Yaml yaml = new Yaml(new SafeConstructor());
       yaml.dump(openapi.getMap(), writer);
       return new ContractEndpointHandler(openapi.toBuffer(), Buffer.buffer(writer.toString()));
     } catch (IOException | RuntimeException e) {
