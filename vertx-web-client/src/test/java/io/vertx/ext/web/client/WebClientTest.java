@@ -286,7 +286,7 @@ public class WebClientTest extends WebClientTestBase {
 
     webClient
       .get("http://checkip.amazonaws.com/")
-      .proxy(new ProxyOptions().setPort(proxy.getPort()))
+      .proxy(new ProxyOptions().setPort(proxy.port()))
       .send(ar -> {
         if (ar.succeeded()) {
           // Obtain response
@@ -1749,7 +1749,7 @@ public class WebClientTest extends WebClientTestBase {
     startServer();
 
     WebClientOptions options = new WebClientOptions();
-    options.setProxyOptions(new ProxyOptions().setPort(proxy.getPort()));
+    options.setProxyOptions(new ProxyOptions().setPort(proxy.port()));
     WebClient client = WebClient.create(vertx, options);
     client
     .get("ftp://ftp.gnu.org/gnu/")
