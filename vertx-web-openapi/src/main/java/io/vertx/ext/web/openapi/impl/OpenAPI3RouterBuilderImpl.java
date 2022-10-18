@@ -290,6 +290,9 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
         handlersToLoad.add(authnHandler);
       }
 
+      // Authorization Handlers
+      handlersToLoad.addAll(operation.getAuthorizationHandlers());
+
       // Generate ValidationHandler
       ValidationHandlerImpl validationHandler = validationHandlerGenerator.create(operation);
       handlersToLoad.add(validationHandler);

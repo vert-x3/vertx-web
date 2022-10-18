@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.openapi.OpenAPIHolder;
 import io.vertx.ext.web.openapi.Operation;
 
@@ -28,6 +29,7 @@ public class OperationImpl implements Operation {
 
   private Map<JsonPointer, JsonObject> parameters;
   private List<String> tags;
+  private List<AuthorizationHandler> authzHandlers;
   private List<Handler<RoutingContext>> userHandlers;
   private List<Handler<RoutingContext>> userFailureHandlers;
 
@@ -69,8 +71,15 @@ public class OperationImpl implements Operation {
         .noneMatch(j -> j.getString("in").equalsIgnoreCase(paramIn) && j.getString("name").equals(paramName)))
         this.parameters.put(pathPointer.copy().append(i), parameterModel);
     }
+    this.authzHandlers = new ArrayList<>();
     this.userHandlers = new ArrayList<>();
     this.userFailureHandlers = new ArrayList<>();
+  }
+
+  @Override
+  public Operation authorizationHandler(AuthorizationHandler handler) {
+    this.authzHandlers.add(handler);
+    return this;
   }
 
   @Override
@@ -127,6 +136,10 @@ public class OperationImpl implements Operation {
 
   protected JsonObject getPathModel() {
     return pathModel;
+  }
+
+  protected List<AuthorizationHandler> getAuthorizationHandlers() {
+    return authzHandlers;
   }
 
   protected List<Handler<RoutingContext>> getUserHandlers() {

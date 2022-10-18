@@ -7,12 +7,21 @@ import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.AuthorizationHandler;
 
 /**
  * Interface representing an <a href="https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#operationObject">Operation</a>
  */
 @VertxGen
 public interface Operation {
+
+  /**
+   * Mount an {@link io.vertx.ext.web.handler.AuthorizationHandler} for this operation
+   *
+   * @param handler
+   * @return
+   */
+  @Fluent Operation authorizationHandler(AuthorizationHandler handler);
 
   /**
    * Mount an handler for this operation
