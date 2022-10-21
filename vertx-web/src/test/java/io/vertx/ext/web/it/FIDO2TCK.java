@@ -134,7 +134,7 @@ public class FIDO2TCK {
 
 
     final WebAuthnOptions config = new WebAuthnOptions()
-      .setRelyingParty(new RelyingParty().setName("Vert.x Conformance Test 4.2.0"))
+      .setRelyingParty(new RelyingParty().setName("Vert.x Conformance Test 4.3.4"))
       .putRootCertificate("mds", MDS3_ROOT_CERTIFICATE)
 //      .addRootCrl(MDS3_MDSROOT_CRL)
       .addRootCrl(MDS3_MDSCA_1_CRL);
