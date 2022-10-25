@@ -27,7 +27,7 @@ import java.util.Set;
  */
 class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
-  private final HttpServerRequestInternal delegate;
+  private final HttpServerRequest delegate;
   private final ForwardedParser forwardedParser;
 
   private boolean modified;
@@ -40,7 +40,7 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
   private MultiMap params;
 
   HttpServerRequestWrapper(HttpServerRequest request, AllowForwardHeaders allowForward) {
-    delegate = (HttpServerRequestInternal) request;
+    delegate = request;
     forwardedParser = new ForwardedParser(delegate, allowForward);
   }
 
@@ -431,12 +431,12 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
 
   @Override
   public Context context() {
-    return delegate.context();
+    return ((HttpServerRequestInternal) delegate).context();
   }
 
   @Override
   public Object metric() {
-    return delegate.metric();
+    return ((HttpServerRequestInternal) delegate).metric();
   }
 
   @Override
