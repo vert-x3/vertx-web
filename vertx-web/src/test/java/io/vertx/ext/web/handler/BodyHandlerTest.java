@@ -28,12 +28,14 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.test.core.TestUtils;
 import org.junit.AfterClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
@@ -769,16 +771,29 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testWeirdRequestForm() throws Exception {
+  public void testFomWithoutParamNameRequestForm() throws Exception {
     router.clear();
     router.route().handler(BodyHandler.create());
-    Buffer buffer = Buffer.buffer("a=b&&c=d");
+    Buffer buffer = Buffer.buffer("a=b&=&c=d");
     router.route().handler(rc -> fail("Should not be called"));
     testRequest(HttpMethod.POST, "/", req -> {
       req.setChunked(true);
       req.putHeader("content-type", "application/x-www-form-urlencoded");
       req.write(buffer);
     }, 400, "Bad Request", null);
+  }
+
+  @Test
+  public void testFomWithoutParamRequestForm() throws Exception {
+    router.clear();
+    router.route().handler(BodyHandler.create());
+    Buffer buffer = Buffer.buffer("a=b&&c=d");
+    router.route().handler(RoutingContext::end);
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.putHeader("content-type", "application/x-www-form-urlencoded");
+      req.write(buffer);
+    }, 200, "OK", null);
   }
 
   @Test
