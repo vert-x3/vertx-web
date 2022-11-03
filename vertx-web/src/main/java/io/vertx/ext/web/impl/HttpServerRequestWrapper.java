@@ -1,33 +1,22 @@
 package io.vertx.ext.web.impl;
 
-import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpServerRequestInternal;
-import io.vertx.core.net.NetSocket;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.core.streams.Pipe;
-import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.AllowForwardHeaders;
 
-import javax.net.ssl.SSLPeerUnverifiedException;
-import javax.net.ssl.SSLSession;
-import javax.security.cert.X509Certificate;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Wraps the source {@link HttpServerRequestInternal}. It updates the method, path and query of the original request and
  * resumes the request if a caller explicitly sets a handler to any callback that processes the request body.
  */
-class HttpServerRequestWrapper implements HttpServerRequestInternal {
+class HttpServerRequestWrapper extends io.vertx.core.http.impl.HttpServerRequestWrapper {
 
-  private final HttpServerRequestInternal delegate;
   private final ForwardedParser forwardedParser;
 
   private boolean modified;
@@ -40,8 +29,8 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
   private MultiMap params;
 
   HttpServerRequestWrapper(HttpServerRequest request, AllowForwardHeaders allowForward) {
-    delegate = (HttpServerRequestInternal) request;
-    forwardedParser = new ForwardedParser(delegate, allowForward);
+    super((HttpServerRequestInternal) request);
+    forwardedParser = new ForwardedParser(request, allowForward);
   }
 
   void changeTo(HttpMethod method, String uri) {
@@ -74,68 +63,6 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
         path = uri;
       }
     }
-  }
-
-  @Override
-  public HttpServerRequest body(Handler<AsyncResult<Buffer>> handler) {
-    delegate.body(handler);
-    return this;
-  }
-
-  @Override
-  public DecoderResult decoderResult() {
-    return delegate.decoderResult();
-  }
-
-  @Override
-  public Future<Buffer> body() {
-    return delegate.body();
-  }
-
-  @Override
-  public long bytesRead() {
-    return delegate.bytesRead();
-  }
-
-  @Override
-  public HttpServerRequest exceptionHandler(Handler<Throwable> handler) {
-    delegate.exceptionHandler(handler);
-    return this;
-  }
-
-  @Override
-  public HttpServerRequest handler(Handler<Buffer> handler) {
-    delegate.handler(handler);
-    return this;
-  }
-
-  @Override
-  public HttpServerRequest pause() {
-    delegate.pause();
-    return this;
-  }
-
-  @Override
-  public HttpServerRequest resume() {
-    delegate.resume();
-    return this;
-  }
-
-  @Override
-  public HttpServerRequest fetch(long amount) {
-    delegate.fetch(amount);
-    return this;
-  }
-
-  @Override
-  public HttpServerRequest endHandler(Handler<Void> handler) {
-    delegate.endHandler(handler);
-    return this;
-  }
-
-  @Override
-  public HttpVersion version() {
-    return delegate.version();
   }
 
   @Override
@@ -202,26 +129,6 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
   }
 
   @Override
-  public HttpServerResponse response() {
-    return delegate.response();
-  }
-
-  @Override
-  public MultiMap headers() {
-    return delegate.headers();
-  }
-
-  @Override
-  public String getHeader(String s) {
-    return delegate.getHeader(s);
-  }
-
-  @Override
-  public String getHeader(CharSequence charSequence) {
-    return delegate.getHeader(charSequence);
-  }
-
-  @Override
   public HttpServerRequest setParamsCharset(String s) {
     String old = delegate.getParamsCharset();
     delegate.setParamsCharset(s);
@@ -232,29 +139,8 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
   }
 
   @Override
-  public String getParamsCharset() {
-    return delegate.getParamsCharset();
-  }
-
-  @Override
   public SocketAddress remoteAddress() {
     return forwardedParser.remoteAddress();
-  }
-
-  @Override
-  public SocketAddress localAddress() {
-    return delegate.localAddress();
-  }
-
-  @Override
-  @Deprecated
-  public X509Certificate[] peerCertificateChain() throws SSLPeerUnverifiedException {
-    return delegate.peerCertificateChain();
-  }
-
-  @Override
-  public SSLSession sslSession() {
-    return delegate.sslSession();
   }
 
   @Override
@@ -289,65 +175,6 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
   }
 
   @Override
-  public HttpServerRequest customFrameHandler(Handler<HttpFrame> handler) {
-    delegate.customFrameHandler(handler);
-    return this;
-  }
-
-  @Override
-  public HttpConnection connection() {
-    return delegate.connection();
-  }
-
-  @Override
-  public HttpServerRequest bodyHandler(Handler<Buffer> handler) {
-    delegate.bodyHandler(handler);
-    return this;
-  }
-
-  @Override
-  public void toNetSocket(Handler<AsyncResult<NetSocket>> handler) {
-    delegate.toNetSocket(handler);
-  }
-
-  @Override
-  public Future<NetSocket> toNetSocket() {
-    return delegate.toNetSocket();
-  }
-
-  @Override
-  public HttpServerRequest setExpectMultipart(boolean b) {
-    delegate.setExpectMultipart(b);
-    return this;
-  }
-
-  @Override
-  public boolean isExpectMultipart() {
-    return delegate.isExpectMultipart();
-  }
-
-  @Override
-  public HttpServerRequest uploadHandler(Handler<HttpServerFileUpload> handler) {
-    delegate.uploadHandler(handler);
-    return this;
-  }
-
-  @Override
-  public MultiMap formAttributes() {
-    return delegate.formAttributes();
-  }
-
-  @Override
-  public String getFormAttribute(String s) {
-    return delegate.getFormAttribute(s);
-  }
-
-  @Override
-  public int streamId() {
-    return delegate.streamId();
-  }
-
-  @Override
   public void toWebSocket(Handler<AsyncResult<ServerWebSocket>> handler) {
     delegate
       .toWebSocket(toWebSocket -> {
@@ -368,89 +195,8 @@ class HttpServerRequestWrapper implements HttpServerRequestInternal {
   }
 
   @Override
-  public boolean isEnded() {
-    return delegate.isEnded();
-  }
-
-  @Override
   public boolean isSSL() {
     return forwardedParser.isSSL();
   }
 
-  @Override
-  public HttpServerRequest streamPriorityHandler(Handler<StreamPriority> handler) {
-    delegate.streamPriorityHandler(handler);
-    return this;
-  }
-
-  @Override
-  public StreamPriority streamPriority() {
-    return delegate.streamPriority();
-  }
-
-  @Override
-  public @Nullable Cookie getCookie(String name) {
-    return delegate.getCookie(name);
-  }
-
-  @Override
-  public @Nullable Cookie getCookie(String name, String domain, String path) {
-    return delegate.getCookie(name, domain, path);
-  }
-
-  @Override
-  public String getParam(String paramName, String defaultValue) {
-    return delegate.getParam(paramName, defaultValue);
-  }
-
-  @Override
-  public Set<Cookie> cookies(String name) {
-    return delegate.cookies(name);
-  }
-
-  @Override
-  public Set<Cookie> cookies() {
-    return delegate.cookies();
-  }
-
-  @Override
-  public void end(Handler<AsyncResult<Void>> handler) {
-    delegate.end(handler);
-  }
-
-  @Override
-  public Future<Void> end() {
-    return delegate.end();
-  }
-
-  @Override
-  public HttpServerRequest routed(String route) {
-    delegate.routed(route);
-    return this;
-  }
-
-  @Override
-  public Context context() {
-    return delegate.context();
-  }
-
-  @Override
-  public Object metric() {
-    return delegate.metric();
-  }
-
-  @Override
-  public Pipe<Buffer> pipe() {
-    return delegate.pipe();
-  }
-
-  @Override
-  public Future<Void> pipeTo(WriteStream<Buffer> dst) {
-    return delegate.pipeTo(dst);
-  }
-
-  @Override
-  public void pipeTo(WriteStream<Buffer> dst, Handler<AsyncResult<Void>> handler) {
-    delegate.pipeTo(dst, handler);
-  }
 }
