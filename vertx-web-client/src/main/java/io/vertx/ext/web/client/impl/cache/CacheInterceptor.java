@@ -202,7 +202,10 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
   }
 
   private void markForRevalidation(HttpContext<?> context, CachedHttpResponse response) {
-    context.request().headers().set(HttpHeaders.IF_NONE_MATCH, response.getCacheControl().getEtag());
+    String etag = response.getCacheControl().getEtag();
+    if (etag != null) {
+      context.requestOptions().putHeader(HttpHeaders.IF_NONE_MATCH, etag);
+    }
     context.set(RESPONSE_TO_REVALIDATE, response);
   }
 
