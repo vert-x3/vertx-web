@@ -35,6 +35,7 @@ import io.vertx.ext.web.handler.impl.UserHolder;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.stream.Collectors;
 
 import static io.vertx.ext.web.handler.impl.SessionHandlerImpl.SESSION_USER_HOLDER_KEY;
 
@@ -158,6 +159,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
           this.response()
             .putHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
             .end(DEFAULT_404);
+        } else if (this.request().method() != HttpMethod.HEAD && matchFailure == 405) {
+          // If it's a 405 let's send a body too
+          this.response()
+            .putHeader(HttpHeaderNames.ALLOW, allowedMethods.stream().map(HttpMethod::name).collect(Collectors.joining(","))).end();
         } else {
           this.response().end();
         }
