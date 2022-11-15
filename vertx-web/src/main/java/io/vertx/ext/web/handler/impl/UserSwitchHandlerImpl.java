@@ -8,14 +8,22 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.UserSwitchHandler;
 
+import java.util.Objects;
+
 public class UserSwitchHandlerImpl implements UserSwitchHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(UserSwitchHandlerImpl.class);
 
-  private final boolean impersonate;
+  public enum Mode {
+    IMPERSONATE,
+    UNDO,
+    REFRESH
+  }
 
-  public UserSwitchHandlerImpl(boolean impersonate) {
-    this.impersonate = impersonate;
+  private final Mode mode;
+
+  public UserSwitchHandlerImpl(Mode mode) {
+    this.mode = Objects.requireNonNull(mode);
   }
 
   @Override
@@ -39,97 +47,123 @@ public class UserSwitchHandlerImpl implements UserSwitchHandler {
       return;
     }
 
-    if (impersonate) {
-      if (session.get(USER_SWITCH_KEY) != null) {
-        // we always need a session, otherwise we can't track the state of the previous user
-        LOG.debug("Impersonation already in place");
-        ctx.fail(400);
-        return;
-      }
+    // extract options from query string
+    final String redirectUri = ctx.request().params().get("redirect_uri");
 
-      // extract options from query string
-      String redirectUri = ctx.request().params().get("redirect_uri");
+    if (redirectUri == null) {
+      LOG.info("Invalid or missing redirect_uri");
+      ctx.fail(400);
+      return;
+    }
 
-      if (redirectUri == null) {
-        LOG.info("Invalid or missing redirect_uri");
-        ctx.fail(400);
-        return;
-      }
+    final String loginHint;
 
-      // From now on, we're changing the state
+    switch (mode) {
+      case IMPERSONATE:
+        if (session.get(USER_SWITCH_KEY) != null) {
+          // we always need a session, otherwise we can't track the state of the previous user
+          LOG.debug("Impersonation already in place");
+          ctx.fail(400);
+          return;
+        }
 
-      session
-        // move the user out of the context (yet keep it in the session, so we can rollback
-        .put(USER_SWITCH_KEY, user)
-        // force a session id regeneration to protect against replay attacks
-        .regenerateId();
-
-      String loginHint = ctx.request().params().get("login_hint");
-
-      if (loginHint != null) {
+        // From now on, we're changing the state
         session
-          .put("login_hint", loginHint);
-      }
+          // move the user out of the context (yet keep it in the session, so we can roll back
+          .put(USER_SWITCH_KEY, user)
+          // force a session id regeneration to protect against replay attacks
+          .regenerateId();
 
-      // remove it from the context
-      ctx
-        .setUser(null);
+        loginHint = ctx.request().params().get("login_hint");
 
-      // we should redirect the UA so this link becomes invalid
-      ctx.response()
-        // disable all caching
-        .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-        .putHeader("Pragma", "no-cache")
-        .putHeader(HttpHeaders.EXPIRES, "0")
-        // redirect (when there is no state, redirect to home
-        .putHeader(HttpHeaders.LOCATION, redirectUri)
-        .setStatusCode(302)
-        .end("Redirecting to " + redirectUri + ".");
+        if (loginHint != null) {
+          session
+            .put("login_hint", loginHint);
+        }
 
-    } else {
-      // we're undo'ing the impersonation
+        // remove it from the context
+        ctx
+          .setUser(null);
 
-      if (session.get(USER_SWITCH_KEY) == null) {
-        // we always need a session, otherwise we can't track the state of the previous user
-        LOG.debug("No previous impersonation in place");
-        ctx.fail(400);
-        return;
-      }
+        // we should redirect the UA so this link becomes invalid
+        ctx.response()
+          // disable all caching
+          .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+          .putHeader("Pragma", "no-cache")
+          .putHeader(HttpHeaders.EXPIRES, "0")
+          // redirect (when there is no state, redirect to home
+          .putHeader(HttpHeaders.LOCATION, redirectUri)
+          .setStatusCode(302)
+          .end("Redirecting to " + redirectUri + ".");
+        break;
 
-      // extract options from query string
-      String redirectUri = ctx.request().params().get("redirect_uri");
+      case UNDO:
+        // we're undo'ing the impersonation
 
-      if (redirectUri == null) {
-        LOG.info("Invalid or missing redirect_uri");
-        ctx.fail(400);
-        return;
-      }
+        if (session.get(USER_SWITCH_KEY) == null) {
+          // we always need a session, otherwise we can't track the state of the previous user
+          LOG.debug("No previous impersonation in place");
+          ctx.fail(400);
+          return;
+        }
 
-      // From now on, we're changing the state
-      User previousUser = session.get(USER_SWITCH_KEY);
+        // From now on, we're changing the state
+        User previousUser = session.get(USER_SWITCH_KEY);
 
-      session
-        // move the user out of the context (yet keep it in the session, so we can rollback
-        .remove(USER_SWITCH_KEY);
-      session
-        // force a session id regeneration to protect against replay attacks
-        .regenerateId();
+        session
+          // move the user out of the context (yet keep it in the session, so we can rollback
+          .remove(USER_SWITCH_KEY);
+        session
+          // force a session id regeneration to protect against replay attacks
+          .regenerateId();
 
-      // restore it to the context
-      ctx
-        .setUser(previousUser);
+        // restore it to the context
+        ctx
+          .setUser(previousUser);
 
-      // we should redirect the UA so this link becomes invalid
-      ctx.response()
-        // disable all caching
-        .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-        .putHeader("Pragma", "no-cache")
-        .putHeader(HttpHeaders.EXPIRES, "0")
-        // redirect (when there is no state, redirect to home
-        .putHeader(HttpHeaders.LOCATION, redirectUri)
-        .setStatusCode(302)
-        .end("Redirecting to " + redirectUri + ".");
+        // we should redirect the UA so this link becomes invalid
+        ctx.response()
+          // disable all caching
+          .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+          .putHeader("Pragma", "no-cache")
+          .putHeader(HttpHeaders.EXPIRES, "0")
+          // redirect (when there is no state, redirect to home
+          .putHeader(HttpHeaders.LOCATION, redirectUri)
+          .setStatusCode(302)
+          .end("Redirecting to " + redirectUri + ".");
+        break;
 
+      case REFRESH:
+        // From now on, we're changing the state
+        session
+          // force a session id regeneration to protect against replay attacks
+          .regenerateId();
+
+        loginHint = ctx.request().params().get("login_hint");
+
+        if (loginHint != null) {
+          session
+            .put("login_hint", loginHint);
+        }
+
+        // remove user from the context
+        ctx
+          .setUser(null);
+
+        // we should redirect the UA so this link becomes invalid
+        ctx.response()
+          // disable all caching
+          .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+          .putHeader("Pragma", "no-cache")
+          .putHeader(HttpHeaders.EXPIRES, "0")
+          // redirect (when there is no state, redirect to home
+          .putHeader(HttpHeaders.LOCATION, redirectUri)
+          .setStatusCode(302)
+          .end("Redirecting to " + redirectUri + ".");
+        break;
+
+      default:
+        ctx.fail(500, new IllegalStateException("Unsupported operation: " + mode));
     }
   }
 }
