@@ -14,11 +14,11 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.web.templ.jade.impl;
+package io.vertx.ext.web.templ.pug.impl;
 
-import de.neuland.jade4j.JadeConfiguration;
-import de.neuland.jade4j.template.JadeTemplate;
-import de.neuland.jade4j.template.TemplateLoader;
+import de.neuland.pug4j.PugConfiguration;
+import de.neuland.pug4j.template.PugTemplate;
+import de.neuland.pug4j.template.TemplateLoader;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -26,29 +26,41 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.impl.TemplateHolder;
-import io.vertx.ext.web.templ.jade.JadeTemplateEngine;
-
+import io.vertx.ext.web.templ.pug.PugTemplateEngine;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
- * @author <a href="http://tfox.org">Tim Fox</a>
+ * This implementation has been copied from
+ * <a href="https://github.com/vert-x3/vertx-web/blob/4.0.0/vertx-template-engines/vertx-web-templ-jade/src/main/java/io/vertx/ext/web/templ/jade/impl/JadeTemplateEngineImpl.java">
+ * JadeTemplateEngineImpl.java</a>.
+ * Authors of JadeTemplateEngineImpl.java are <a href="http://pmlopes@gmail.com">Paulo Lopes</a>,
+ * <a href="http://tfox.org">Tim Fox</a>, Julien Viet (vietj), Roman Novikov (mystdeim), nEJC (mrnejc), Yunyu Lin,
+ * Kevin Macksamie (k-mack), Clement Escoffier (cescoffier), Geoffrey Clements (baldmountain).
  *
- * @deprecated Use PugTemplateEngineImpl instead; Jade4J has been renamed to Pug4J.
+ * <p>For authors of this file see git history.
  */
-@Deprecated
-public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> implements JadeTemplateEngine {
+public class PugTemplateEngineImpl extends CachingTemplateEngine<PugTemplate> implements PugTemplateEngine {
 
-  private final JadeConfiguration config = new JadeConfiguration();
+  private final PugConfiguration config = new PugConfiguration();
+  private final Charset encoding;
 
-  public JadeTemplateEngineImpl(Vertx vertx, String extension) {
+  /**
+   * Constructor that reads the template file with UTF-8 encoding.
+   */
+  public PugTemplateEngineImpl(Vertx vertx, String extension) {
+    this(vertx, extension, StandardCharsets.UTF_8.name());
+  }
+
+  public PugTemplateEngineImpl(Vertx vertx, String extension, String encoding) {
     super(vertx, extension);
-    config.setTemplateLoader(new JadeTemplateLoader(vertx));
+    config.setTemplateLoader(new PugTemplateLoader(vertx));
     config.setCaching(false);
+    this.encoding = Charset.forName(encoding);
   }
 
   @Override
@@ -60,7 +72,7 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
       String src = adjustLocation(templateFile);
-      TemplateHolder<JadeTemplate> template = getTemplate(src);
+      TemplateHolder<PugTemplate> template = getTemplate(src);
 
       if (template == null) {
         synchronized (this) {
@@ -75,16 +87,11 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
     }
   }
 
-  @Override
-  public JadeConfiguration getJadeConfiguration() {
-    return config;
-  }
-
-  private class JadeTemplateLoader implements TemplateLoader {
+  private class PugTemplateLoader implements TemplateLoader {
 
     private final Vertx vertx;
 
-    JadeTemplateLoader(Vertx vertx) {
+    PugTemplateLoader(Vertx vertx) {
       this.vertx = vertx;
     }
 
@@ -104,25 +111,30 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
 
     @Override
     public String getExtension() {
-      return "jade";
+      return extension;
     }
 
     @Override
     public Reader getReader(String name) throws IOException {
-      // the internal loader will always resolve with .jade extension
+      // the internal loader will always resolve with .pug extension
       name = adjustLocation(name);
       String templ = null;
 
       if (vertx.fileSystem().existsBlocking(name)) {
         templ = vertx.fileSystem()
           .readFileBlocking(name)
-          .toString(Charset.defaultCharset());
+          .toString(encoding);
       }
 
       if (templ == null) {
         throw new IOException("Cannot find resource " + name);
       }
       return new StringReader(templ);
+    }
+
+    @Override
+    public String getBase() {
+      return "";
     }
   }
 }

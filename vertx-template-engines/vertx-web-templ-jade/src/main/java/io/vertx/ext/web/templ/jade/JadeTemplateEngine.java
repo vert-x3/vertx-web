@@ -28,8 +28,11 @@ import io.vertx.ext.web.templ.jade.impl.JadeTemplateEngineImpl;
  * The {@link #unwrap()} shall return an object of class {@link JadeConfiguration}
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ *
+ * @deprecated Use PugTemplateEngine instead; <a href="https://github.com/neuland/jade4j#readme">jade4j has been renamed to pug4j</a>.
  */
 @VertxGen
+@Deprecated
 public interface JadeTemplateEngine extends TemplateEngine {
 
   /**
