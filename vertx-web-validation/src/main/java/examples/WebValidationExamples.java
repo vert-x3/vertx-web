@@ -7,6 +7,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.validation.*;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.builder.Parameters;
+import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
 
@@ -50,8 +51,8 @@ public class WebValidationExamples {
     router
       .get("/user")
       .handler(
-        ValidationHandler
-          .builder(schemaParser)
+        ValidationHandlerBuilder
+          .create(schemaParser)
           .queryParameter(param(
             "aParam",
             intSchema().with(maximum(100))
@@ -67,8 +68,8 @@ public class WebValidationExamples {
   }
 
   public void parameters(SchemaParser schemaParser) {
-    ValidationHandler
-      .builder(schemaParser)
+    ValidationHandlerBuilder
+      .create(schemaParser)
       .pathParameter(Parameters.param("myPathParam", stringSchema()))
       .queryParameter(Parameters.optionalParam("myQueryParam", intSchema()));
   }
@@ -77,15 +78,15 @@ public class WebValidationExamples {
     ObjectSchemaBuilder bodySchemaBuilder = objectSchema()
       .property("username", stringSchema())
       .property("password", stringSchema());
-    ValidationHandler
-      .builder(schemaParser)
+    ValidationHandlerBuilder
+      .create(schemaParser)
       .body(Bodies.json(bodySchemaBuilder))
       .body(Bodies.formUrlEncoded(bodySchemaBuilder));
   }
 
   public void parametersComplex(SchemaParser schemaParser) {
-    ValidationHandler
-      .builder(schemaParser)
+    ValidationHandlerBuilder
+      .create(schemaParser)
       .queryParameter(Parameters.explodedParam(
         "myArray",
         arraySchema().items(stringSchema())
@@ -98,8 +99,8 @@ public class WebValidationExamples {
   }
 
   public void requestBodyRequired(SchemaParser schemaParser) {
-    ValidationHandler
-      .builder(schemaParser)
+    ValidationHandlerBuilder
+      .create(schemaParser)
       .predicate(RequestPredicate.BODY_REQUIRED);
   }
 
@@ -108,8 +109,8 @@ public class WebValidationExamples {
     router
       .get("/user")
       .handler(
-        ValidationHandler
-          .builder(schemaParser)
+        ValidationHandlerBuilder
+          .create(schemaParser)
           .build()
       );
   }
@@ -118,8 +119,8 @@ public class WebValidationExamples {
     router
       .get("/user")
       .handler(
-        ValidationHandler
-          .builder(schemaParser)
+        ValidationHandlerBuilder
+          .create(schemaParser)
           .queryParameter(Parameters.explodedParam(
             "myArray",
             arraySchema().items(stringSchema())

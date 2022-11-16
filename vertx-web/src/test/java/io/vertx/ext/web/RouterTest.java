@@ -2762,6 +2762,18 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testMethodNotAllowedHeader() throws Exception {
+    router.get("/path").handler(rc -> rc.response().end());
+    router.post("/path").handler(rc -> rc.response().end());
+    router.put("/hello").handler(rc -> rc.response().end());
+    testRequest(HttpMethod.PUT, "/path", null, res -> {
+      assertEquals(2, res.getHeader("allow").split(",").length);
+      assertTrue(res.getHeader("allow").contains("GET"));
+      assertTrue(res.getHeader("allow").contains("POST"));
+    }, HttpResponseStatus.METHOD_NOT_ALLOWED.code(), HttpResponseStatus.METHOD_NOT_ALLOWED.reasonPhrase(), null);
+  }
+
+  @Test
   public void testNotAcceptableStatusCode() throws Exception {
     router.route().produces("text/html").handler(rc -> rc.response().end());
     router.route("/hello").produces("something/html").handler(rc -> rc.response().end());
