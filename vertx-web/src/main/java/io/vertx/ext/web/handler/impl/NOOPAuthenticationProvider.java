@@ -9,7 +9,7 @@ import io.vertx.ext.auth.authentication.AuthenticationProvider;
 
 final class NOOPAuthenticationProvider implements AuthenticationProvider {
   @Override
-  public void authenticate(JsonObject credentials, Handler<AsyncResult<User>> handler) {
-    handler.handle(Future.failedFuture("NOOP Provider does not authenticate"));
+  public Future<User> authenticate(JsonObject jsonObject) {
+    return Future.failedFuture("NOOP Provider does not authenticate");
   }
 }
