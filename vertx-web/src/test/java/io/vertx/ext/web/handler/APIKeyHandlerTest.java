@@ -34,14 +34,11 @@ public class APIKeyHandlerTest extends WebTestBase {
 
   @Before
   public void setup() throws Exception {
-    authProvider = new AuthenticationProvider() {
-      @Override
-      public Future<User> authenticate(JsonObject credentials) {
-        if ("APIKEY".equals(credentials.getString("token"))) {
-          return Future.succeededFuture(User.create(new JsonObject()));
-        } else {
-          return Future.failedFuture("Uknown APIKEY");
-        }
+    authProvider = (credentials, resultHandler) -> {
+      if ("APIKEY".equals(credentials.getString("token"))) {
+        resultHandler.handle(Future.succeededFuture(User.create(new JsonObject())));
+      } else {
+        resultHandler.handle(Future.failedFuture("Uknown APIKEY"));
       }
     };
   }

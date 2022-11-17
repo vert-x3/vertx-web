@@ -177,9 +177,9 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       }
 
       @Override
-      public Future<Void> getAuthorizations(User user) {
+      public void getAuthorizations(User user, Handler<AsyncResult<Void>> handler) {
         user.authorizations().add(getId(), _authorizations);
-        return Future.succeededFuture();
+        handler.handle(Future.succeededFuture());
       }
     };
   }
