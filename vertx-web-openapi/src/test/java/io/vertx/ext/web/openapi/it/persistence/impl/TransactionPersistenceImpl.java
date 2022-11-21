@@ -1,4 +1,4 @@
-package io.vertx.ext.web.api.service.it.persistence.impl;
+package io.vertx.ext.web.openapi.it.persistence.impl;
 
 import java.util.HashMap;
 import java.util.List;
@@ -7,8 +7,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import io.vertx.ext.web.api.service.it.models.Transaction;
-import io.vertx.ext.web.api.service.it.persistence.TransactionPersistence;
+import io.vertx.ext.web.openapi.it.models.Transaction;
+import io.vertx.ext.web.openapi.it.persistence.TransactionPersistence;
 
 public class TransactionPersistenceImpl implements TransactionPersistence {
 

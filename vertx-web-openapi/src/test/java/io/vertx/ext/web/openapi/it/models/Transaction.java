@@ -1,4 +1,4 @@
-package io.vertx.ext.web.api.service.it.models;
+package io.vertx.ext.web.openapi.it.models;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;

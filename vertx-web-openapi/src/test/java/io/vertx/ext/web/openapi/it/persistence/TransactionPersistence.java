@@ -1,11 +1,11 @@
-package io.vertx.ext.web.api.service.it.persistence;
+package io.vertx.ext.web.openapi.it.persistence;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import io.vertx.ext.web.api.service.it.models.Transaction;
-import io.vertx.ext.web.api.service.it.persistence.impl.TransactionPersistenceImpl;
+import io.vertx.ext.web.openapi.it.models.Transaction;
+import io.vertx.ext.web.openapi.it.persistence.impl.TransactionPersistenceImpl;
 
 public interface TransactionPersistence {
 

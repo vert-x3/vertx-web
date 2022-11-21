@@ -14,7 +14,6 @@
   <properties>
     <junit5.version>5.7.0</junit5.version>
     <assertj.version>3.15.0</assertj.version>
-    <restassured.version>5.2.0</restassured.version>
     <doc.skip>false</doc.skip>
   </properties>
 
@@ -57,12 +56,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-web-openapi</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <version>${junit5.version}</version>
@@ -72,12 +65,6 @@
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <version>${assertj.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.rest-assured</groupId>
-      <artifactId>rest-assured</artifactId>
-      <version>${restassured.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -169,20 +156,8 @@
           </additionalClasspathElements>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>3.0.0-M7</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
+
 
 </project>

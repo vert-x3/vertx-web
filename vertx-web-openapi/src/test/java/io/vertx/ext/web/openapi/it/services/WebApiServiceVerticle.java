@@ -1,4 +1,4 @@
-package io.vertx.ext.web.api.service.it.services;
+package io.vertx.ext.web.openapi.it.services;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -8,9 +8,9 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.api.service.it.models.Transaction;
-import io.vertx.ext.web.api.service.it.persistence.TransactionPersistence;
 import io.vertx.ext.web.openapi.RouterBuilder;
+import io.vertx.ext.web.openapi.it.models.Transaction;
+import io.vertx.ext.web.openapi.it.persistence.TransactionPersistence;
 import io.vertx.ext.web.validation.RequestParameters;
 import io.vertx.ext.web.validation.ValidationHandler;
 import io.vertx.serviceproxy.ServiceBinder;

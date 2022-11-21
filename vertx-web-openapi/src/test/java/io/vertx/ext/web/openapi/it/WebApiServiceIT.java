@@ -1,15 +1,11 @@
-package io.vertx.ext.web.api.service.it;
-
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+package io.vertx.ext.web.openapi.it;
 
 import io.restassured.response.Response;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.ext.web.api.service.it.models.Transaction;
-import io.vertx.ext.web.api.service.it.services.WebApiServiceVerticle;
+import io.vertx.ext.web.openapi.it.models.Transaction;
+import io.vertx.ext.web.openapi.it.services.WebApiServiceVerticle;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.hamcrest.Matchers;

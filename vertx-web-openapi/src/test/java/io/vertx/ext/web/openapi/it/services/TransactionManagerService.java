@@ -1,4 +1,4 @@
-package io.vertx.ext.web.api.service.it.services;
+package io.vertx.ext.web.openapi.it.services;
 
 import java.util.List;
 
@@ -7,9 +7,9 @@ import io.vertx.core.Handler;
 import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.api.service.ServiceResponse;
 import io.vertx.ext.web.api.service.WebApiServiceGen;
-import io.vertx.ext.web.api.service.it.models.Transaction;
-import io.vertx.ext.web.api.service.it.persistence.TransactionPersistence;
-import io.vertx.ext.web.api.service.it.services.impl.TransactionManagerServiceImpl;
+import io.vertx.ext.web.openapi.it.models.Transaction;
+import io.vertx.ext.web.openapi.it.persistence.TransactionPersistence;
+import io.vertx.ext.web.openapi.it.services.impl.TransactionManagerServiceImpl;
 
 @WebApiServiceGen
 public interface TransactionManagerService {
