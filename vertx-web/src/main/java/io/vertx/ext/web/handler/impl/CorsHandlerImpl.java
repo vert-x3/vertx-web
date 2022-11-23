@@ -71,7 +71,7 @@ public class CorsHandlerImpl implements CorsHandler {
     return relativeOrigins == null && staticOrigins == null;
   }
 
-  private boolean staticOrigin() {
+  private boolean uniqueOrigin() {
     return relativeOrigins == null && staticOrigins != null && staticOrigins.size() == 1;
   }
 
@@ -212,7 +212,7 @@ public class CorsHandlerImpl implements CorsHandler {
       // https://fetch.spec.whatwg.org/#cors-protocol-and-http-caches
       // If CORS protocol requirements are more complicated than setting `Access-Control-Allow-Origin` to *
       // or a static origin, `Vary` is to be used.
-      if (!starOrigin() && !staticOrigin()) {
+      if (!starOrigin() && !uniqueOrigin()) {
         Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
       }
       // Not a CORS request - we don't set any headers and just call the next handler
