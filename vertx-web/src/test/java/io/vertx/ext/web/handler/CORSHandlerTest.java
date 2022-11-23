@@ -566,6 +566,59 @@ public class CORSHandlerTest extends WebTestBase {
       assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
       assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
     }, 413, "Request Entity Too Large", null);
+  }
 
+  @Test
+  public void testCORSSetupSingleOrigin() throws Exception {
+
+    router
+      .route()
+      .handler(CorsHandler.create()
+        .addOrigin("https://mydomain.org:3000")
+        .addOrigin("https://mydomain.org:9443")
+        .allowCredentials(true)
+        .allowedHeader("Content-Type")
+        .allowedMethod(HttpMethod.GET)
+        .allowedMethod(HttpMethod.POST)
+        .allowedMethod(HttpMethod.OPTIONS)
+        .allowedHeader("Access-Control-Allow-Origin"))
+      .handler(context -> context.response().end());
+
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.headers().add("origin", "https://mydomain.org:3000");
+    }, resp -> {
+      String cred = resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS);
+      String orig = resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN);
+      assertNotNull(cred);
+      assertNotNull(orig);
+      assertEquals("https://mydomain.org:3000", orig);
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testCORSSetupSingleRelativeOrigin() throws Exception {
+
+    router
+      .route()
+      .handler(CorsHandler.create()
+        .addRelativeOrigin("https://.*:3000")
+        .addRelativeOrigin("https://.*:9443")
+        .allowCredentials(true)
+        .allowedHeader("Content-Type")
+        .allowedMethod(HttpMethod.GET)
+        .allowedMethod(HttpMethod.POST)
+        .allowedMethod(HttpMethod.OPTIONS)
+        .allowedHeader("Access-Control-Allow-Origin"))
+      .handler(context -> context.response().end());
+
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.headers().add("origin", "https://mydomain.org:3000");
+    }, resp -> {
+      String cred = resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS);
+      String orig = resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN);
+      assertNotNull(cred);
+      assertNotNull(orig);
+      assertEquals("https://mydomain.org:3000", orig);
+    }, 200, "OK", null);
   }
 }
