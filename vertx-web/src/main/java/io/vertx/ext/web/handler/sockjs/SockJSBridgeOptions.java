@@ -51,6 +51,13 @@ public class SockJSBridgeOptions extends BridgeOptions {
    */
   public static final long DEFAULT_REPLY_TIMEOUT = 30 * 1000;
 
+  /**
+   * Default value for Socket timeout = 50000 ms
+   */
+  public static final long DEFAULT_EVENT_BUS_TIMEOUT = 50 * 1000;
+
+
+  private long eventBusTimeout;
   private int maxAddressLength;
   private int maxHandlersPerSocket;
   private long pingTimeout;
@@ -67,6 +74,7 @@ public class SockJSBridgeOptions extends BridgeOptions {
     this.maxHandlersPerSocket = other.maxHandlersPerSocket;
     this.pingTimeout = other.pingTimeout;
     this.replyTimeout = other.replyTimeout;
+    this.eventBusTimeout = other.eventBusTimeout;
   }
 
   /**
@@ -78,6 +86,7 @@ public class SockJSBridgeOptions extends BridgeOptions {
     this.maxHandlersPerSocket = DEFAULT_MAX_HANDLERS_PER_SOCKET;
     this.pingTimeout = DEFAULT_PING_TIMEOUT;
     this.replyTimeout = DEFAULT_REPLY_TIMEOUT;
+    this.eventBusTimeout = DEFAULT_EVENT_BUS_TIMEOUT;
   }
 
   /**
@@ -139,6 +148,19 @@ public class SockJSBridgeOptions extends BridgeOptions {
     return this;
   }
 
+  public SockJSBridgeOptions setEventBusTimeout(long eventBusTimeout) {
+    if (eventBusTimeout < 1) {
+      throw new IllegalArgumentException("Eventbus must be > 0");
+    }
+    this.eventBusTimeout = eventBusTimeout;
+    return this;
+  }
+
+  public long getEventBusTimeout(){
+    return this.eventBusTimeout;
+  }
+
+
   @Override
   public SockJSBridgeOptions addInboundPermitted(PermittedOptions permitted) {
     super.addInboundPermitted(permitted);
@@ -162,6 +184,7 @@ public class SockJSBridgeOptions extends BridgeOptions {
     super.setOutboundPermitteds(outboundPermitted);
     return this;
   }
+
 
   @Override
   public JsonObject toJson() {

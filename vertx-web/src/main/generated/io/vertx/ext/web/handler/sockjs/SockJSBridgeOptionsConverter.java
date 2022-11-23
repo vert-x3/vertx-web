@@ -1,10 +1,8 @@
 package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.impl.JsonUtil;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
+
 import java.util.Base64;
 
 /**
@@ -22,22 +20,27 @@ public class SockJSBridgeOptionsConverter {
       switch (member.getKey()) {
         case "maxAddressLength":
           if (member.getValue() instanceof Number) {
-            obj.setMaxAddressLength(((Number)member.getValue()).intValue());
+            obj.setMaxAddressLength(((Number) member.getValue()).intValue());
           }
           break;
         case "maxHandlersPerSocket":
           if (member.getValue() instanceof Number) {
-            obj.setMaxHandlersPerSocket(((Number)member.getValue()).intValue());
+            obj.setMaxHandlersPerSocket(((Number) member.getValue()).intValue());
           }
           break;
         case "pingTimeout":
           if (member.getValue() instanceof Number) {
-            obj.setPingTimeout(((Number)member.getValue()).longValue());
+            obj.setPingTimeout(((Number) member.getValue()).longValue());
           }
           break;
         case "replyTimeout":
           if (member.getValue() instanceof Number) {
-            obj.setReplyTimeout(((Number)member.getValue()).longValue());
+            obj.setReplyTimeout(((Number) member.getValue()).longValue());
+          }
+          break;
+        case "eventbutTimeout":
+          if (member.getValue() instanceof Number) {
+            obj.setEventBusTimeout(((Number) member.getValue()).longValue());
           }
           break;
       }
