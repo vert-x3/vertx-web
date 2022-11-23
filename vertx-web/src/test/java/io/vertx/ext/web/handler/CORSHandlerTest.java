@@ -621,4 +621,21 @@ public class CORSHandlerTest extends WebTestBase {
       assertEquals("https://mydomain.org:3000", orig);
     }, 200, "OK", null);
   }
+
+  @Test(expected = IllegalStateException.class)
+  public void testCORSSetupMixedOrigin() throws Exception {
+
+    router
+      .route()
+      .handler(CorsHandler.create()
+        .addRelativeOrigin("https://.*:3000")
+        .addOrigin("https://foo:9443")
+        .allowCredentials(true)
+        .allowedHeader("Content-Type")
+        .allowedMethod(HttpMethod.GET)
+        .allowedMethod(HttpMethod.POST)
+        .allowedMethod(HttpMethod.OPTIONS)
+        .allowedHeader("Access-Control-Allow-Origin"))
+      .handler(context -> context.response().end());
+  }
 }
