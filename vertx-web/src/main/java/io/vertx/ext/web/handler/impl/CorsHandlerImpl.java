@@ -79,9 +79,6 @@ public class CorsHandlerImpl implements CorsHandler {
   public CorsHandler addOrigin(String origin) {
     Objects.requireNonNull(origin, "'origin' cannot be null");
 
-    if (relativeOrigins != null) {
-      throw new IllegalStateException("Cannot mix Pattern mode and Origin List mode");
-    }
     if (staticOrigins == null) {
       if (origin.equals("*")) {
         // we signal any as null
@@ -112,9 +109,6 @@ public class CorsHandlerImpl implements CorsHandler {
   public CorsHandler addRelativeOrigin(String origin) {
     Objects.requireNonNull(origin, "'origin' cannot be null");
 
-    if (staticOrigins != null) {
-      throw new IllegalStateException("Cannot mix Pattern mode and Origin List mode");
-    }
     if (relativeOrigins == null) {
       if (origin.equals("*")) {
         // we signal any as null
@@ -248,7 +242,10 @@ public class CorsHandlerImpl implements CorsHandler {
           .end();
 
       } else {
-        Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
+        // when it is possible to determine if only one origin is allowed, we can skip this extra caching header
+        if (!uniqueOrigin()) {
+          Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
+        }
         addCredentialsAndOriginHeader(response, origin);
         if (exposedHeadersString != null) {
           response.putHeader(ACCESS_CONTROL_EXPOSE_HEADERS, exposedHeadersString);
@@ -283,19 +280,19 @@ public class CorsHandlerImpl implements CorsHandler {
       return Origin.isValid(origin);
     }
 
-    if(relativeOrigins != null) {
-      // check for allowed origin pattern match
-      for (Pattern allowedOrigin : relativeOrigins) {
-        if (allowedOrigin.matcher(origin).matches()) {
+    if(staticOrigins != null) {
+      // check whether origin is contained within allowed origin set
+      for (Origin allowedOrigin : staticOrigins) {
+        if (allowedOrigin.sameOrigin(origin)) {
           return true;
         }
       }
     }
 
-    if(staticOrigins != null) {
-      // check whether origin is contained within allowed origin set
-      for (Origin allowedOrigin : staticOrigins) {
-        if (allowedOrigin.sameOrigin(origin)) {
+    if(relativeOrigins != null) {
+      // check for allowed origin pattern match
+      for (Pattern allowedOrigin : relativeOrigins) {
+        if (allowedOrigin.matcher(origin).matches()) {
           return true;
         }
       }
