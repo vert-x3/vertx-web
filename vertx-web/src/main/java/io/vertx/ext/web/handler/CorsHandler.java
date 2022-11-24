@@ -44,7 +44,12 @@ public interface CorsHandler extends SecurityPolicyHandler {
    */
   @Deprecated
   static CorsHandler create(String allowedOriginPattern) {
-    return new CorsHandlerImpl(allowedOriginPattern);
+    // restore old behavior
+    if ("*".equals(allowedOriginPattern)) {
+      allowedOriginPattern = ".*";
+    }
+    return create()
+      .addRelativeOrigin(allowedOriginPattern);
   }
 
   /**

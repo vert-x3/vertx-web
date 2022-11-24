@@ -56,7 +56,7 @@ public class CORSHandlerTest extends WebTestBase {
 
   @Test
   public void testAcceptAllAllowedOrigin() throws Exception {
-    router.route().handler(CorsHandler.create("*"));
+    router.route().handler(CorsHandler.create());
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://vertx.io"), resp -> checkHeaders(resp, "*", null, null, null), 200, "OK", null);
   }
@@ -222,14 +222,14 @@ public class CORSHandlerTest extends WebTestBase {
   @Test
   public void testRealRequestCredentialsWildcard() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
-    router.route().handler(CorsHandler.create("*").allowedMethods(allowedMethods).allowCredentials(true));
+    router.route().handler(CorsHandler.create().allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://vertx.io"), resp -> checkHeaders(resp, "http://vertx.io", null, null, null, "true", null), 200, "OK", null);
   }
 
   @Test
   public void testChaining() throws Exception {
-    CorsHandler cors = CorsHandler.create("*");
+    CorsHandler cors = CorsHandler.create();
     assertNotNull(cors);
     assertSame(cors, cors.allowedMethod(HttpMethod.POST));
     assertSame(cors, cors.allowedMethod(HttpMethod.DELETE));
