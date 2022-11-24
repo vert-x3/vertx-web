@@ -243,7 +243,7 @@ public class CorsHandlerImpl implements CorsHandler {
 
       } else {
         // when it is possible to determine if only one origin is allowed, we can skip this extra caching header
-        if (!uniqueOrigin()) {
+        if (!starOrigin() && !uniqueOrigin()) {
           Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
         }
         addCredentialsAndOriginHeader(response, origin);
