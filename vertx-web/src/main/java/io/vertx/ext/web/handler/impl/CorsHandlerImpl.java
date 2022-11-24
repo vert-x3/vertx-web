@@ -53,15 +53,6 @@ public class CorsHandlerImpl implements CorsHandler {
   private final Set<String> allowedHeaders = new LinkedHashSet<>();
   private final Set<String> exposedHeaders = new LinkedHashSet<>();
 
-  @Deprecated
-  public CorsHandlerImpl(String allowedOriginPattern) {
-    Objects.requireNonNull(allowedOriginPattern);
-    if (!"*".equals(allowedOriginPattern)) {
-      addRelativeOrigin(allowedOriginPattern);
-    }
-    staticOrigins = null;
-  }
-
   public CorsHandlerImpl() {
     relativeOrigins = null;
     staticOrigins = null;
@@ -110,15 +101,15 @@ public class CorsHandlerImpl implements CorsHandler {
     Objects.requireNonNull(origin, "'origin' cannot be null");
 
     if (relativeOrigins == null) {
-      if (origin.equals("*")) {
+      if (origin.equals(".*")) {
         // we signal any as null
         return this;
       }
       relativeOrigins = new LinkedHashSet<>();
     } else {
-      if (origin.equals("*")) {
+      if (origin.equals(".*")) {
         // we signal any as null
-        throw new IllegalStateException("Cannot mix '*' with relative origins");
+        throw new IllegalStateException("Cannot mix '/.*/' with relative origins");
       }
     }
     relativeOrigins.add(Pattern.compile(origin));
