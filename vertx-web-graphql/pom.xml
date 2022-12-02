@@ -23,17 +23,13 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-web-parent</artifactId>
-    <version>4.3.5-SNAPSHOT</version>
+    <version>4.4.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>vertx-web-graphql</artifactId>
 
   <properties>
-    <!--
-    Update these properties in the vertx-lang-* modules too
-     -->
-    <graphql.java.major.version>19</graphql.java.major.version>
-    <graphql.java.version>${graphql.java.major.version}.2</graphql.java.version>
+    <graphql.java.version>19.2</graphql.java.version>
     <doc.skip>false</doc.skip>
     <restassured.version>5.2.0</restassured.version>
     <logback-classic.version>1.2.6</logback-classic.version>
@@ -101,11 +97,6 @@
           <executions>
             <execution>
               <id>generate-sources</id>
-              <configuration>
-                <optionMap>
-                  <graphql.java.doc.version>v${graphql.java.major.version}</graphql.java.doc.version>
-                </optionMap>
-              </configuration>
             </execution>
           </executions>
         </plugin>

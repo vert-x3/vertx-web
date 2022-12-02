@@ -4,7 +4,7 @@ Vert.x Web GraphQL extends Vert.x Web with the https://www.graphql-java.com[Grap
 
 TIP: This is the reference documentation for Vert.x Web GraphQL.
 It is highly recommended to get familiar with the GraphQL-Java API first.
-You may start by reading the https://www.graphql-java.com/documentation/${graphql.java.doc.version}/getting-started/[GraphQL-Java documentation].
+You may start by reading the https://www.graphql-java.com/documentation/getting-started/[GraphQL-Java documentation].
 
 == Getting started
 
@@ -157,7 +157,7 @@ IMPORTANT: A subscription `DataFetcher` has to return a `org.reactivestreams.Pub
 
 The GraphQL-Java API is very well suited for the asynchronous world: the asynchronous execution strategy is the default for queries (serial asynchronous for mutations).
 
-To https://vertx.io/docs/vertx-core/java/#golden_rule[avoid blocking the event loop], all you have to do is implement https://www.graphql-java.com/documentation/${graphql.java.doc.version}/data-fetching/[data fetchers] that return a `CompletionStage` instead of the result directly.
+To https://vertx.io/docs/vertx-core/java/#golden_rule[avoid blocking the event loop], all you have to do is implement https://www.graphql-java.com/documentation/data-fetching/[data fetchers] that return a `CompletionStage` instead of the result directly.
 
 [source,$lang]
 ----
