@@ -1,0 +1,9 @@
+type Query{
+  text(type: String = "valid"): String!
+  number(type: String = "positive"): Int!
+  floating(type: String = "valid"): Float!
+  bool(type: String = "yes"): Boolean!
+  list(type: String = "valid"): [String]!
+  array(type: String = "valid"): [String!]
+  id(type: String = "valid"): ID!
+}
