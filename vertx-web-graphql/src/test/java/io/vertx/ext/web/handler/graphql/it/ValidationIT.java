@@ -21,8 +21,8 @@ import static io.vertx.ext.web.handler.graphql.it.TestUtils.peek;
 import static io.vertx.ext.web.handler.graphql.it.TestUtils.sendQuery;
 
 @ExtendWith(VertxExtension.class)
-public class ValidationTest extends AbstractVerticle {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ValidationTest.class);
+public class ValidationIT extends AbstractVerticle {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ValidationIT.class);
 
   @BeforeAll
   public static void deploy(Vertx vertx, VertxTestContext context) {
@@ -318,10 +318,10 @@ public class ValidationTest extends AbstractVerticle {
 
   private String createQuery(String field, String type) {
     final String graphQuery = MessageFormat.format(
-      "{0}(type: \\\"{1}\\\")",
+      "{0}(type: \"{1}\")",
       field,
       type);
-    return peek(TestUtils.createQuery(graphQuery));
+    return peek(String.valueOf(TestUtils.createQuery(graphQuery)));
   }
 }
 

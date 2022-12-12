@@ -1,6 +1,5 @@
 package io.vertx.ext.web.handler.graphql.it;
 
-import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;

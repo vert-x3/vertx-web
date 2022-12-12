@@ -1,6 +1,7 @@
 package io.vertx.ext.web.handler.graphql.it;
 
 import io.restassured.response.Response;
+import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,20 +17,10 @@ public class TestUtils {
       .post();
   }
 
-  public static String createQuery(String query) {
-    return new StringBuilder()
-      .append('{')
-      .append('"')
-      .append("query")
-      .append('"')
-      .append(':')
-      .append('"')
-      .append('{')
-      .append(query)
-      .append("}")
-      .append('"')
-      .append("}")
-      .toString();
+  public static JsonObject createQuery(String query) {
+    return
+      new JsonObject()
+        .put("query", "{" + query + "}");
   }
 
   public static String peek(String query) {
