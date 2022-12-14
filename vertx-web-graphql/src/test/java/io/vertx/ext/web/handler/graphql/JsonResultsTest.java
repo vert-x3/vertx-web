@@ -60,21 +60,6 @@ public class JsonResultsTest extends GraphQLTestBase {
       .build();
   }
 
-  @Override
-  protected Object getAllLinks(DataFetchingEnvironment env) {
-    @SuppressWarnings("unchecked")
-    List<Link> links = (List<Link>) super.getAllLinks(env);
-    return links.stream()
-      .map(link -> {
-        JsonObject jsonObject = new JsonObject()
-          .put("url", link.getUrl())
-          .put("description", link.getDescription())
-          .put("userId", link.getUserId());
-        return jsonObject;
-      })
-      .collect(JsonArray::new, JsonArray::add, JsonArray::addAll);
-  }
-
   @Test
   public void testSimpleGet() throws Exception {
     GraphQLRequest request = new GraphQLRequest()

@@ -54,7 +54,7 @@ public class GetRequestsTest extends GraphQLTestBase {
       .setMethod(GET)
       .setGraphQLQuery(query)
       .setOperationName("bar")
-      .addVariable("secure", "true");
+      .addVariable("secure", true);
     request.send(client, onSuccess(body -> {
       List<String> expected = testData.urls().stream()
         .filter(url -> url.startsWith("https://"))
@@ -73,7 +73,7 @@ public class GetRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setGraphQLQuery("query($secure: Boolean) { allLinks(secureOnly: $secure) { url } }")
-      .addVariable("secure", "true");
+      .addVariable("secure", true);
     request.send(client, onSuccess(body -> {
       List<String> expected = testData.urls().stream()
         .filter(url -> url.startsWith("https://"))
