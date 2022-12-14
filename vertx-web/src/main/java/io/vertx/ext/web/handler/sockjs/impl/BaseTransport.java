@@ -47,6 +47,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.PlatformHandler;
+import io.vertx.ext.web.handler.SecurityPolicyHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.handler.sockjs.Transport;
@@ -68,7 +70,7 @@ class BaseTransport {
 
   protected final Vertx vertx;
   protected final LocalMap<String, SockJSSession> sessions;
-  protected SockJSHandlerOptions options;
+  protected final SockJSHandlerOptions options;
 
   static final String COMMON_PATH_ELEMENT_RE = "\\/[^\\/\\.]+\\/([^\\/\\.]+)\\/";
 
@@ -153,7 +155,7 @@ class BaseTransport {
     }
   }
 
-  static void setCORS(RoutingContext rc) {
+  static void setCORSIfNeeded(RoutingContext rc) {
     if (!((RoutingContextInternal) rc).seenHandler(RoutingContextInternal.CORS_HANDLER)) {
       HttpServerRequest req = rc.request();
       String origin = req.getHeader(ORIGIN);
@@ -173,11 +175,13 @@ class BaseTransport {
     }
   }
 
-  static Handler<RoutingContext> createInfoHandler(final SockJSHandlerOptions options, final VertxContextPRNG prng) {
+  static PlatformHandler createInfoHandler(final SockJSHandlerOptions options, final VertxContextPRNG prng) {
     final long offset = 2L << 30;
 
-    return new Handler<RoutingContext>() {
+    return new PlatformHandler() {
       final boolean websocket = !options.getDisabledTransports().contains(Transport.WEBSOCKET.toString());
+
+      @Override
       public void handle(RoutingContext rc) {
         if (LOG.isTraceEnabled()) {
           LOG.trace("In Info handler");
@@ -191,7 +195,7 @@ class BaseTransport {
         // Java ints are signed, so we need to use a long and add the offset so
         // the result is not negative
         json.put("entropy", offset + prng.nextInt());
-        setCORS(rc);
+        setCORSIfNeeded(rc);
         rc.response().end(json.encode());
       }
     };
@@ -201,7 +205,7 @@ class BaseTransport {
     rc.response().putHeader(CACHE_CONTROL, "no-store, no-cache, no-transform, must-revalidate, max-age=0");
   }
 
-  static Handler<RoutingContext> createCORSOptionsHandler(SockJSHandlerOptions options, String methods) {
+  static SecurityPolicyHandler createCORSOptionsHandler(SockJSHandlerOptions options, String methods) {
     return rc -> {
       if (LOG.isTraceEnabled()) {
         LOG.trace("In CORS options handler");
@@ -214,7 +218,7 @@ class BaseTransport {
         .putHeader(EXPIRES, expires)
         .putHeader(ACCESS_CONTROL_ALLOW_METHODS, methods)
         .putHeader(ACCESS_CONTROL_MAX_AGE, String.valueOf(oneYearSeconds));
-      setCORS(rc);
+      setCORSIfNeeded(rc);
       setJSESSIONID(options, rc);
       rc.response().setStatusCode(204);
       rc.response().end();

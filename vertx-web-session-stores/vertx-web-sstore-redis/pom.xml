@@ -6,7 +6,7 @@
   <parent>
     <artifactId>vertx-web-session-stores</artifactId>
     <groupId>io.vertx</groupId>
-    <version>4.2.4-SNAPSHOT</version>
+    <version>4.4.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>vertx-web-sstore-redis</artifactId>
@@ -38,7 +38,7 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>1.15.1</version>
+      <version>1.17.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>

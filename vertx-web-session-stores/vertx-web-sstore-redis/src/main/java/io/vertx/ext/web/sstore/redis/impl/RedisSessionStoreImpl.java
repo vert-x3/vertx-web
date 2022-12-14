@@ -15,11 +15,11 @@
  */
 package io.vertx.ext.web.sstore.redis.impl;
 
-import io.vertx.core.AsyncResult;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.Session;
@@ -30,7 +30,6 @@ import io.vertx.ext.web.sstore.redis.RedisSessionStore;
 import io.vertx.redis.client.Redis;
 import io.vertx.redis.client.RedisOptions;
 import io.vertx.redis.client.Request;
-import io.vertx.redis.client.Response;
 
 import java.util.Objects;
 
@@ -44,6 +43,7 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
   private Redis redis;
   private VertxContextPRNG random;
   private long retryTimeout;
+  private ContextInternal ctx;
 
   public RedisSessionStoreImpl() {
     // required for the service loader
@@ -59,6 +59,7 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
 
   public SessionStore init(Vertx vertx, long retryTimeout, Redis redis) {
     random = VertxContextPRNG.current(vertx);
+    ctx = (ContextInternal) vertx.getOrCreateContext();
     this.retryTimeout = retryTimeout;
     this.redis = Objects.requireNonNull(redis, "redis is required");
     return this;
@@ -80,69 +81,49 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
   }
 
   @Override
-  public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
-    redis.send(cmd(GET).arg(id), resGet -> {
-        if (resGet.failed()) {
-          resultHandler.handle(Future.failedFuture(resGet.cause()));
-          return;
-        }
-
-        Response response = resGet.result();
+  public Future<@Nullable Session> get(String id) {
+    return redis.send(cmd(GET).arg(id))
+      .compose(response -> {
         if (response != null) {
           SharedDataSessionImpl session = new SharedDataSessionImpl(random);
           session.readFromBuffer(0, response.toBuffer());
           // postpone expiration time, this cannot be done in a single frame with GET cmd
-          redis.send(cmd(PEXPIRE).arg(id).arg(session.timeout()), resExpire -> {
-            if (resExpire.failed()) {
-              resultHandler.handle(Future.failedFuture(resExpire.cause()));
-            } else {
-              resultHandler.handle(Future.succeededFuture(session));
-            }
-          });
+          return redis
+            .send(cmd(PEXPIRE).arg(id).arg(session.timeout()))
+            .map(session);
         } else {
-          resultHandler.handle(Future.succeededFuture());
+          return ctx.succeededFuture();
         }
       });
   }
 
   @Override
-  public void delete(String id, Handler<AsyncResult<Void>> resultHandler) {
-    redis.send(cmd(DEL).arg(id), res -> {
-      if (res.failed()) {
-        resultHandler.handle(Future.failedFuture(res.cause()));
-      } else {
-        resultHandler.handle(Future.succeededFuture());
+  public Future<Void> delete(String id) {
+    return redis.send(cmd(DEL).arg(id))
+      .mapEmpty();
+  }
+
+  @Override
+  public Future<Void> put(Session session) {
+    return redis.send(cmd(GET).arg(session.id()))
+      .compose(response -> {
+      AbstractSession newSession = (AbstractSession) session;
+      if (response != null) {
+        // Old session exists, we need to validate versions
+        SharedDataSessionImpl oldSession = new SharedDataSessionImpl(random);
+        oldSession.readFromBuffer(0, response.toBuffer());
+
+        if (oldSession.version() != newSession.version()) {
+          return Future.failedFuture("Session version mismatch");
+        }
       }
+
+      newSession.incrementVersion();
+      return writeSession(newSession);
     });
   }
 
-  @Override
-  public void put(Session session, Handler<AsyncResult<Void>> resultHandler) {
-    redis.send(cmd(GET).arg(session.id()), res -> {
-        if (res.failed()) {
-          resultHandler.handle(Future.failedFuture(res.cause()));
-          return;
-        }
-
-        AbstractSession newSession = (AbstractSession) session;
-        Response response = res.result();
-        if (response != null) {
-          // Old session exists, we need to validate versions
-          SharedDataSessionImpl oldSession = new SharedDataSessionImpl(random);
-          oldSession.readFromBuffer(0, response.toBuffer());
-
-          if (oldSession.version() != newSession.version()) {
-            resultHandler.handle(Future.failedFuture("Session version mismatch"));
-            return;
-          }
-        }
-
-        newSession.incrementVersion();
-        writeSession(newSession, resultHandler);
-      });
-  }
-
-  private void writeSession(Session session, Handler<AsyncResult<Void>> resultHandler) {
+  private Future<Void> writeSession(Session session) {
     Buffer buffer = Buffer.buffer();
     SharedDataSessionImpl sessionImpl = (SharedDataSessionImpl) session;
     sessionImpl.writeToBuffer(buffer);
@@ -152,42 +133,28 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
       .arg(session.id()).arg(buffer)
       .arg("PX").arg(session.timeout());
 
-    redis.send(rq, res -> {
-      if (res.failed()) {
-        resultHandler.handle(Future.failedFuture(res.cause()));
-      } else {
-        resultHandler.handle(Future.succeededFuture());
-      }
-    });
+    return redis.send(rq)
+      .mapEmpty();
   }
 
   @Override
-  public void clear(Handler<AsyncResult<Void>> resultHandler) {
-    redis.send(cmd(FLUSHDB), res -> {
-      if (res.failed()) {
-        resultHandler.handle(Future.failedFuture(res.cause()));
-      } else {
-        resultHandler.handle(Future.succeededFuture());
-      }
-    });
+  public Future<Void> clear() {
+    return redis.send(cmd(FLUSHDB))
+      .mapEmpty();
   }
 
   @Override
-  public void size(Handler<AsyncResult<Integer>> resultHandler) {
-    redis.send(cmd(DBSIZE), res -> {
-        if (res.succeeded()) {
-          Response response = res.result();
-          if (response == null) {
-            resultHandler.handle(Future.succeededFuture(-1));
-          } else {
-            Long lngCount = response.toLong();
-            int count = (lngCount > Integer.MAX_VALUE) ? Integer.MAX_VALUE : lngCount.intValue();
-            resultHandler.handle(Future.succeededFuture(count));
-          }
+  public Future<Integer> size() {
+    return redis.send(cmd(DBSIZE))
+      .compose(response -> {
+        if (response == null) {
+          return ctx.succeededFuture(-1);
         } else {
-          resultHandler.handle(Future.failedFuture(res.cause()));
+          Long lngCount = response.toLong();
+          int count = (lngCount > Integer.MAX_VALUE) ? Integer.MAX_VALUE : lngCount.intValue();
+          return ctx.succeededFuture(count);
         }
-      });
+    });
   }
 
   @Override

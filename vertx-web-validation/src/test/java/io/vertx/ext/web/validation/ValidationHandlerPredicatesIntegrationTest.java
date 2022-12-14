@@ -27,7 +27,7 @@ public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHa
 
   @Test
   public void testRequiredBodyPredicate(VertxTestContext testContext, @TempDir Path tempDir) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+    Checkpoint checkpoint = testContext.checkpoint(3);
 
     ValidationHandler validationHandler = ValidationHandler
       .builder(parser)

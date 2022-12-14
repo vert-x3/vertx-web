@@ -208,7 +208,7 @@ public class TemplateTest extends WebTestBase {
 
     router.clear();
 
-    router.mountSubRouter("/sub", Router.router(vertx));
+    router.route("/sub*").subRouter(Router.router(vertx));
 
     router.getWithRegex(".+\\.ftl")
       .handler(TemplateHandler.create(new TestEngine(false)));

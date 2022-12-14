@@ -16,14 +16,13 @@
 
 package io.vertx.ext.web.handler;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.shareddata.impl.ClusterSerializable;
+import io.vertx.core.shareddata.ClusterSerializable;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
@@ -221,7 +220,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
   private class SerializingSessionStore implements SessionStore {
 
-    private Map<String, Buffer> sessions = new ConcurrentHashMap<>();
+    private final Map<String, Buffer> sessions = new ConcurrentHashMap<>();
     private final VertxContextPRNG prng = VertxContextPRNG.current(vertx);
 
     @Override
@@ -245,7 +244,9 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }
 
     @Override
-    public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
+    public Future<@Nullable Session> get(String id) {
+      final Promise<Session> promise = ((VertxInternal) vertx).promise();
+
       Buffer buff = sessions.get(id);
       SharedDataSessionImpl sess;
       if (buff != null) {
@@ -254,33 +255,42 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       } else {
         sess = null;
       }
-      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(sess)));
+      vertx.runOnContext(v -> promise.complete(sess));
+      return promise.future();
     }
 
     @Override
-    public void delete(String id, Handler<AsyncResult<Void>> resultHandler) {
+    public Future<Void> delete(String id) {
+      final Promise<Void> promise = ((VertxInternal) vertx).promise();
       sessions.remove(id);
-      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture()));
+      vertx.runOnContext(v -> promise.complete());
+      return promise.future();
     }
 
     @Override
-    public void put(Session session, Handler<AsyncResult<Void>> resultHandler) {
+    public Future<Void> put(Session session) {
+      final Promise<Void> promise = ((VertxInternal) vertx).promise();
       ClusterSerializable cs = (ClusterSerializable)session;
       Buffer buff = Buffer.buffer();
       cs.writeToBuffer(buff);
       sessions.put(session.id(), buff);
-      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture()));
+      vertx.runOnContext(v -> promise.complete());
+      return promise.future();
     }
 
     @Override
-    public void clear(Handler<AsyncResult<Void>> resultHandler) {
+    public Future<Void> clear() {
+      final Promise<Void> promise = ((VertxInternal) vertx).promise();
       sessions.clear();
-      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture()));
+      vertx.runOnContext(v -> promise.complete());
+      return promise.future();
     }
 
     @Override
-    public void size(Handler<AsyncResult<Integer>> resultHandler) {
-      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(sessions.size())));
+    public Future<Integer> size() {
+      final Promise<Integer> promise = ((VertxInternal) vertx).promise();
+      vertx.runOnContext(v -> promise.complete(sessions.size()));
+      return promise.future();
     }
 
     @Override

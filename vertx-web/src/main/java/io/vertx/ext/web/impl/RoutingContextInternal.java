@@ -17,8 +17,10 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 
 /**
  * Internal methods that are not expected or prime to be in the public API
@@ -69,4 +71,38 @@ public interface RoutingContextInternal extends RoutingContext {
   @CacheReturn
   @Nullable RoutingContextInternal parent();
 
+  /**
+   * Set the body. Used by the {@link io.vertx.ext.web.handler.BodyHandler}.
+   *
+   * @param body  the body
+   */
+  void setBody(Buffer body);
+
+  /**
+   * Set the session. Used by the {@link io.vertx.ext.web.handler.SessionHandler}.
+   *
+   * @param session  the session
+   */
+  void setSession(Session session);
+
+  int restIndex();
+
+  boolean normalizedMatch();
+
+  default String basePath() {
+    // if we're on a sub router already we need to skip the matched path
+    String mountPoint = mountPoint();
+
+    int skip = mountPoint != null ? mountPoint.length() : 0;
+    if (normalizedMatch()) {
+      return normalizedPath().substring(skip, skip + restIndex());
+    } else {
+      String path = request().path();
+      if (path != null) {
+        return path.substring(skip, skip + restIndex());
+      }
+      return null;
+    }
+
+  };
 }

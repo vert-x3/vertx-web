@@ -20,6 +20,7 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.TokenCredentials;
@@ -28,7 +29,11 @@ import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
+import io.vertx.uritemplate.Variables;
+import io.vertx.uritemplate.UriTemplate;
 
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -76,12 +81,23 @@ public interface HttpRequest<T> {
   HttpRequest<T> method(HttpMethod value);
 
   /**
+   * @return the request method
+   */
+  HttpMethod method();
+
+  /**
    * Configure the request to use a new port {@code value}.
+   * <p> This overrides the port set by absolute URI requests
    *
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
   HttpRequest<T> port(int value);
+
+  /**
+   * @return the request port or {@code 0}  when none is set for absolute URI templates
+   */
+  int port();
 
   /**
    * Configure the request to decode the response with the {@code responseCodec}.
@@ -92,12 +108,23 @@ public interface HttpRequest<T> {
   <U> HttpRequest<U> as(BodyCodec<U> responseCodec);
 
   /**
+   * @return the request body codec
+   */
+  BodyCodec<T> bodyCodec();
+
+  /**
    * Configure the request to use a new host {@code value}.
+   * <p> This overrides the host set by absolute URI requests
    *
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
   HttpRequest<T> host(String value);
+
+  /**
+   * @return the request host or {@code null} when none is set for absolute URI templates
+   */
+  String host();
 
   /**
    * Configure the request to use a virtual host {@code value}.
@@ -117,15 +144,25 @@ public interface HttpRequest<T> {
   HttpRequest<T> virtualHost(String value);
 
   /**
+   * @return the request virtual host if any or {@code null}
+   */
+  String virtualHost();
+
+  /**
    * Configure the request to use a new request URI {@code value}.
-   * <p>
-   * When the uri has query parameters, they are set in the {@link #queryParams()} multimap, overwritting
-   * any parameters previously set.
+   * <p> This overrides the port set by absolute URI requests
+   * <p> When the uri has query parameters, they are set in the {@link #queryParams()}, overwriting
+   * any parameters previously set
    *
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
   HttpRequest<T> uri(String value);
+
+  /**
+   * @return the request uri or {@code null} when none is set for absolute URI templates
+   */
+  String uri();
 
   /**
    * Configure the request to add multiple HTTP headers .
@@ -227,8 +264,19 @@ public interface HttpRequest<T> {
     return authentication(new TokenCredentials(bearerToken).applyHttpChallenge(null));
   }
 
+  /**
+   * Configure the request whether to use SSL.
+   * <p> This overrides the SSL value set by absolute URI requests
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
   @Fluent
   HttpRequest<T> ssl(Boolean value);
+
+  /**
+   * @return whether the request uses SSL or {@code null} when none is set for absolute URI templates
+   */
+  Boolean ssl();
 
   /**
    * Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
@@ -241,6 +289,11 @@ public interface HttpRequest<T> {
    */
   @Fluent
   HttpRequest<T> timeout(long value);
+
+  /**
+   * @return the current timeout in milliseconds
+   */
+  long timeout();
 
   /**
    * Add a query parameter to the request.
@@ -263,13 +316,64 @@ public interface HttpRequest<T> {
   HttpRequest<T> setQueryParam(String paramName, String paramValue);
 
   /**
-   * Set wether or not to follow the directs for the request.
+   * Set a request URI template string parameter to the request, expanded when the request URI is a {@link UriTemplate}.
+   *
+   * @param paramName  the param name
+   * @param paramValue the param value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> setTemplateParam(String paramName, String paramValue);
+
+  /**
+   * Set a request URI template list parameter to the request, expanded when the request URI is a {@link UriTemplate}.
+   *
+   * @param paramName  the param name
+   * @param paramValue the param value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> setTemplateParam(String paramName, List<String> paramValue);
+
+  /**
+   * Set a request URI template map parameter to the request, expanded when the request URI is a {@link UriTemplate}.
+   *
+   * @param paramName  the param name
+   * @param paramValue the param value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> setTemplateParam(String paramName, Map<String, String> paramValue);
+
+  /**
+   * Set whether to follow request redirections
    *
    * @param value true if redirections should be followed
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
   HttpRequest<T> followRedirects(boolean value);
+
+  /**
+   * @return whether to follow request redirections
+   */
+  boolean followRedirects();
+
+  /**
+   * Configure the request to set a proxy for this request.
+   *
+   * Setting proxy here supersedes the proxy set on the client itself
+   *
+   * @param proxyOptions The proxy options
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> proxy(ProxyOptions proxyOptions);
+
+  /**
+   * @return the proxy for this request
+   */
+  ProxyOptions proxy();
 
   /**
    * Add an expectation that the response is valid according to the provided {@code predicate}.
@@ -296,11 +400,23 @@ public interface HttpRequest<T> {
   HttpRequest<T> expect(ResponsePredicate predicate);
 
   /**
+   * @return a read-only list of the response predicate expectations
+   */
+  List<ResponsePredicate> expectations();
+
+  /**
    * Return the current query parameters.
    *
    * @return the current query parameters
    */
   MultiMap queryParams();
+
+  /**
+   * Return the current request URI template parameters.
+   *
+   * @return the current request URI template parameters
+   */
+  Variables templateParams();
 
   /**
    * Copy this request
@@ -322,6 +438,25 @@ public interface HttpRequest<T> {
    */
   @Fluent
   HttpRequest<T> multipartMixed(boolean allow);
+
+  /**
+   * @return whether multipart mixed encoding is allowed
+   */
+  boolean multipartMixed();
+
+  /**
+   * Trace operation name override.
+   *
+   * @param traceOperation Name of operation to use in traces
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> traceOperation(String traceOperation);
+
+  /**
+   * @return the trace operation name override
+   */
+  String traceOperation();
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} stream.

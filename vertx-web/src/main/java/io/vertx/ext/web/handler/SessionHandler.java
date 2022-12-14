@@ -21,9 +21,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.Promise;
 import io.vertx.core.http.CookieSameSite;
-import io.vertx.core.impl.VertxInternal;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -44,7 +42,7 @@ import io.vertx.ext.web.sstore.SessionStore;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface SessionHandler extends Handler<RoutingContext> {
+public interface SessionHandler extends PlatformHandler {
 
 	/**
 	 * Default name of session cookie
@@ -208,7 +206,12 @@ public interface SessionHandler extends Handler<RoutingContext> {
    * @return fluent self
    */
 	@Fluent
-  SessionHandler flush(RoutingContext ctx, Handler<AsyncResult<Void>> handler);
+  default SessionHandler flush(RoutingContext ctx, Handler<AsyncResult<Void>> handler) {
+    flush(ctx, false)
+      .onComplete(handler);
+
+    return this;
+  }
 
   /**
    * Flush a context session earlier to the store, this will allow the end user to have full control on the event of
@@ -220,25 +223,24 @@ public interface SessionHandler extends Handler<RoutingContext> {
    * @return fluent self
    */
   @Fluent
-  SessionHandler flush(RoutingContext ctx, boolean ignoreStatus, Handler<AsyncResult<Void>> handler);
+  default SessionHandler flush(RoutingContext ctx, boolean ignoreStatus, Handler<AsyncResult<Void>> handler) {
+    flush(ctx, ignoreStatus)
+      .onComplete(handler);
+
+    return this;
+  }
 
   /**
    * Promisified flush. See {@link #flush(RoutingContext, Handler)}.
    */
 	default Future<Void> flush(RoutingContext ctx) {
-	  Promise<Void> promise = ((VertxInternal)ctx.vertx()).promise();
-	  flush(ctx, promise);
-	  return promise.future();
+    return flush(ctx, false);
   }
 
   /**
    * Promisified flush. See {@link #flush(RoutingContext, boolean, Handler)}.
    */
-  default Future<Void> flush(RoutingContext ctx, boolean ignoreStatus) {
-    Promise<Void> promise = ((VertxInternal)ctx.vertx()).promise();
-    flush(ctx, ignoreStatus, promise);
-    return promise.future();
-  }
+  Future<Void> flush(RoutingContext ctx, boolean ignoreStatus);
 
   /**
    * Use sessions based on url paths instead of cookies. This is an potential less safe alternative to cookies

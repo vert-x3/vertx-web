@@ -7,7 +7,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
-import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
@@ -293,7 +292,6 @@ public class RouterBuilderSecurityWithFactoryTest extends BaseRouterBuilderTest 
       // Some oauth2 configuration
       OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
         .setClientId("client-id")
-        .setFlow(OAuth2FlowType.AUTH_CODE)
         .setClientSecret("client-secret")
         .setSite("http://localhost:10000"));
 

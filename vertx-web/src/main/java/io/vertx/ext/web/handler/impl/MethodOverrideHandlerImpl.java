@@ -18,6 +18,8 @@ package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.MethodOverrideHandler;
 
@@ -32,6 +34,8 @@ import io.vertx.ext.web.handler.MethodOverrideHandler;
  * @author <a href="mailto:victorqrsilva@gmail.com">Victor Quezado</a>
  */
 public class MethodOverrideHandlerImpl implements MethodOverrideHandler {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodOverrideHandlerImpl.class);
 
   private final boolean useSafeDowngrade;
 

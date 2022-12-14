@@ -16,21 +16,18 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.sstore.impl.SessionInternal;
 
@@ -131,13 +128,8 @@ public class SessionHandlerImpl implements SessionHandler {
   }
 
   @Override
-  public SessionHandler flush(RoutingContext context, Handler<AsyncResult<Void>> handler) {
-    return flush(context, false, false, handler);
-  }
-
-  @Override
-  public SessionHandler flush(RoutingContext context, boolean ignoreStatus, Handler<AsyncResult<Void>> handler) {
-    return flush(context, false, ignoreStatus, handler);
+  public Future<Void> flush(RoutingContext context, boolean ignoreStatus) {
+    return flush(context, false, ignoreStatus);
   }
 
   /**
@@ -159,13 +151,15 @@ public class SessionHandlerImpl implements SessionHandler {
     }
   }
 
-  private SessionHandler flush(RoutingContext context, boolean skipCrc, boolean ignoreStatus, Handler<AsyncResult<Void>> handler) {
+  private Future<Void> flush(RoutingContext context, boolean skipCrc, boolean ignoreStatus) {
     final boolean sessionUsed = context.isSessionAccessed();
     final Session session = context.session();
+    final ContextInternal ctx = (ContextInternal) context.vertx()
+      .getOrCreateContext();
 
     if (session == null) {
-      handler.handle(Future.failedFuture("No session in context"));
-      return this;
+      // No session in context
+      return ctx.succeededFuture();
     }
 
     if (!session.isDestroyed()) {
@@ -202,42 +196,37 @@ public class SessionHandlerImpl implements SessionHandler {
           }
 
           // we must invalidate the old id
-          sessionStore.delete(session.oldId(), delete -> {
-            if (delete.failed()) {
-              handler.handle(Future.failedFuture(delete.cause()));
-            } else {
+          return sessionStore.delete(session.oldId())
+            .compose(delete -> {
               // we must wait for the result of the previous call in order to save the new one
-              sessionStore.put(session, put -> {
-                if (put.failed()) {
-                  handler.handle(Future.failedFuture(put.cause()));
-                } else {
+              return sessionStore.put(session)
+                .onSuccess(put -> {
                   context.put(SESSION_FLUSHED_KEY, true);
                   if (session instanceof SessionInternal) {
                     ((SessionInternal) session).flushed(skipCrc);
                   }
-                  handler.handle(Future.succeededFuture());
-                }
-              });
-            }
-          });
+                });
+            });
         } else if (!lazySession || sessionUsed) {
           if (!cookieless) {
             // if lazy mode activated, no need to store the session nor to create the session cookie if not used.
             sessionCookie(context, session);
           }
           session.setAccessed();
-          sessionStore.put(session, put -> {
-            if (put.failed()) {
-              handler.handle(Future.failedFuture(put.cause()));
-            } else {
+          return sessionStore.put(session)
+            .onSuccess(put -> {
               context.put(SESSION_FLUSHED_KEY, true);
               if (session instanceof SessionInternal) {
                 ((SessionInternal) session).flushed(skipCrc);
               }
-              handler.handle(Future.succeededFuture());
-            }
-          });
+            });
+        } else {
+          // No-Op, just accept that the store skipped
+          return ctx.succeededFuture();
         }
+      } else {
+        // No-Op, just accept that the store skipped
+        return ctx.succeededFuture();
       }
     } else {
       if (!cookieless) {
@@ -250,34 +239,22 @@ public class SessionHandlerImpl implements SessionHandler {
       // if the session was regenerated in the request
       // the old id must also be removed
       if (session.isRegenerated()) {
-        sessionStore.delete(session.oldId(), delete -> {
-          if (delete.failed()) {
-            handler.handle(Future.failedFuture(delete.cause()));
-          } else {
+        return sessionStore.delete(session.oldId())
+          .compose(delete -> {
             // delete from the storage
-            sessionStore.delete(session.id(), delete2 -> {
-              if (delete2.failed()) {
-                handler.handle(Future.failedFuture(delete2.cause()));
-              } else {
+            return sessionStore.delete(session.id())
+              .onSuccess(delete2 -> {
                 context.put(SESSION_FLUSHED_KEY, true);
-                handler.handle(Future.succeededFuture());
-              }
-            });
-          }
-        });
+              });
+          });
       } else {
         // delete from the storage
-        sessionStore.delete(session.id(), delete -> {
-          if (delete.failed()) {
-            handler.handle(Future.failedFuture(delete.cause()));
-          } else {
+        return sessionStore.delete(session.id())
+          .onSuccess(delete -> {
             context.put(SESSION_FLUSHED_KEY, true);
-            handler.handle(Future.succeededFuture());
-          }
-        });
+          });
       }
     }
-    return this;
   }
 
   @Override
@@ -294,23 +271,25 @@ public class SessionHandlerImpl implements SessionHandler {
     // Look for existing session id
     String sessionID = getSessionId(context);
     if (sessionID != null && sessionID.length() > minLength) {
-      // before starting any potential async operation here
-      // pause parsing the request body. The reason is that
-      // we don't want to lose the body or protocol upgrades
-      // for async operations
-      final boolean parseEnded = request.isEnded();
-      if (!parseEnded) {
-        request.pause();
+      // this handler is asynchronous, we need to pause the request
+      // if we want to be able to process it later, during a body handler or protocol upgrade
+      if (!context.request().isEnded()) {
+        context.request().pause();
       }
+
+      final ContextInternal ctx = (ContextInternal) context.vertx().getOrCreateContext();
+
       // we passed the OWASP min length requirements
-      getSession(context.vertx(), sessionID, res -> {
-        if (!parseEnded && !request.headers().contains(HttpHeaders.UPGRADE, HttpHeaders.WEBSOCKET, true)) {
-          request.resume();
-        }
-        if (res.succeeded()) {
-          Session session = res.result();
+      getSession(ctx, sessionID)
+        .onFailure(err -> {
+          if (!context.request().isEnded()) {
+            context.request().resume();
+          }
+          context.fail(err);
+        })
+        .onSuccess(session -> {
           if (session != null) {
-            context.setSession(session);
+            ((RoutingContextInternal) context).setSession(session);
             // attempt to load the user from the session
             UserHolder holder = session.get(SESSION_USER_HOLDER_KEY);
             if (holder != null) {
@@ -331,11 +310,11 @@ public class SessionHandlerImpl implements SessionHandler {
             // create a new anonymous session.
             createNewSession(context);
           }
-        } else {
-          context.fail(res.cause());
-        }
-        context.next();
-      });
+          if (!context.request().isEnded()) {
+            context.request().resume();
+          }
+          context.next();
+        });
     } else {
       // requirements were not met, so a anonymous session is created.
       createNewSession(context);
@@ -345,17 +324,16 @@ public class SessionHandlerImpl implements SessionHandler {
 
   public Session newSession(RoutingContext context) {
     Session session = sessionStore.createSession(sessionTimeout, minLength);
-    context.setSession(session);
+    ((RoutingContextInternal) context).setSession(session);
     if (!cookieless) {
       context.response().removeCookie(sessionCookieName, false);
     }
     // it's a new session we must store the user too otherwise it won't be linked
     context.put(SESSION_STOREUSER_KEY, true);
-    flush(context, true, true, flush -> {
-      if (flush.failed()) {
-        LOG.warn("Failed to flush the session to the underlying store", flush.cause());
-      }
-    });
+
+    flush(context, true, true)
+      .onFailure(err -> LOG.warn("Failed to flush the session to the underlying store", err));
+
     return session;
   }
 
@@ -366,12 +344,10 @@ public class SessionHandlerImpl implements SessionHandler {
     context.setUser(user);
     // signal we must store the user to link it to the session
     context.put(SESSION_STOREUSER_KEY, true);
-    Promise<Void> promise = Promise.promise();
-    flush(context, true, true, promise);
-    return promise.future();
+    return flush(context, true, true);
   }
 
-  private String getSessionId(RoutingContext  context) {
+  private String getSessionId(RoutingContext context) {
     if (cookieless) {
       // cookieless sessions store the session on the path or the request
       // a session is identified by a sequence of characters between braces
@@ -410,22 +386,32 @@ public class SessionHandlerImpl implements SessionHandler {
     return null;
   }
 
-  private void getSession(Vertx vertx, String sessionID, Handler<AsyncResult<Session>> resultHandler) {
-    doGetSession(vertx, System.currentTimeMillis(), sessionID, resultHandler);
+  private Future<Session> getSession(ContextInternal context, String sessionID) {
+    return doGetSession(context, System.currentTimeMillis(), sessionID);
   }
 
+  private Future<Session> doGetSession(ContextInternal context, long startTime, String sessionID) {
+    return sessionStore.get(sessionID)
+      .compose(session -> {
+        if (session == null) {
+          // no session was found (yet), we will retry as callback to avoid stackoverflow
+          final Promise<Session> retry = context.promise();
+          doGetSession(context.owner(), startTime, sessionID, retry);
+          return retry.future();
+        }
+        return context.succeededFuture(session);
+      });
+  }
   private void doGetSession(Vertx vertx, long startTime, String sessionID, Handler<AsyncResult<Session>> resultHandler) {
-    sessionStore.get(sessionID, res -> {
+    sessionStore.get(sessionID)
+      .onComplete(res -> {
       if (res.succeeded()) {
         if (res.result() == null) {
-          // Can't find it so retry. This is necessary for clustered sessions as it can
-          // take sometime for the session
-          // to propagate across the cluster so if the next request for the session comes
-          // in quickly at a different
+          // Can't find it so retry. This is necessary for clustered sessions as it can take sometime for the session
+          // to propagate across the cluster so if the next request for the session comes in quickly at a different
           // node there is a possibility it isn't available yet.
-          long retryTimeout = sessionStore.retryTimeout();
-          if (retryTimeout > 0 && System.currentTimeMillis() - startTime < retryTimeout) {
-            vertx.setTimer(5, v -> doGetSession(vertx, startTime, sessionID, resultHandler));
+          if (System.currentTimeMillis() - startTime < sessionStore.retryTimeout()) {
+            vertx.setTimer(5L, v -> doGetSession(vertx, startTime, sessionID, resultHandler));
             return;
           }
         }
@@ -434,23 +420,21 @@ public class SessionHandlerImpl implements SessionHandler {
     });
   }
 
+
   private void addStoreSessionHandler(RoutingContext context) {
     context.addHeadersEndHandler(v -> {
       // skip flush if we already flushed
       Boolean flushed = context.get(SESSION_FLUSHED_KEY);
       if (flushed == null || !flushed) {
-        flush(context, true, false, flush -> {
-          if (flush.failed()) {
-            LOG.warn("Failed to flush the session to the underlying store", flush.cause());
-          }
-        });
+        flush(context, true, false)
+          .onFailure(err -> LOG.warn("Failed to flush the session to the underlying store", err));
       }
     });
   }
 
   private void createNewSession(RoutingContext context) {
     Session session = sessionStore.createSession(sessionTimeout, minLength);
-    context.setSession(session);
+    ((RoutingContextInternal) context).setSession(session);
     if (!cookieless) {
       context.response().removeCookie(sessionCookieName, false);
     }

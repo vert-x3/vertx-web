@@ -18,9 +18,12 @@ package io.vertx.ext.web.impl;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.*;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -34,6 +37,50 @@ import java.util.regex.Pattern;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 final class RouteState {
+
+  private static final Logger LOG = LoggerFactory.getLogger(RouteState.class);
+
+
+  enum Priority {
+    PLATFORM,
+    SECURITY_POLICY,
+    PROTOCOL_UPGRADE,
+    BODY,
+    MULTI_TENANT,
+    AUTHENTICATION,
+    INPUT_TRUST,
+    AUTHORIZATION,
+    USER
+  }
+
+  private static Priority weight(Handler<RoutingContext> handler) {
+    if (handler instanceof PlatformHandler) {
+      return Priority.PLATFORM;
+    }
+    if (handler instanceof SecurityPolicyHandler) {
+      return Priority.SECURITY_POLICY;
+    }
+    if (handler instanceof ProtocolUpgradeHandler) {
+      return Priority.PROTOCOL_UPGRADE;
+    }
+    if (handler instanceof BodyHandler) {
+      return Priority.BODY;
+    }
+    if (handler instanceof MultiTenantHandler) {
+      return Priority.MULTI_TENANT;
+    }
+    if (handler instanceof AuthenticationHandler) {
+      return Priority.AUTHENTICATION;
+    }
+    if (handler instanceof InputTrustHandler) {
+      return Priority.INPUT_TRUST;
+    }
+    if (handler instanceof AuthorizationHandler) {
+      return Priority.AUTHORIZATION;
+    }
+
+    return Priority.USER;
+  }
 
   private final RouteImpl route;
 
@@ -495,6 +542,30 @@ final class RouteState {
       this.exclusive,
       this.exactPath);
 
+    int len = newState.contextHandlers.size();
+    final Priority weight = weight(contextHandler);
+    final Priority lastWeight;
+    if (len > 0) {
+      lastWeight = weight(newState.contextHandlers.get(len - 1));
+      if (lastWeight.ordinal() > weight.ordinal()) {
+        String message = "Cannot add [" + weight.name() + "] handler to route with [" + lastWeight.name() + "] handler at index " + (len - 1);
+        // when lenient mode is disabled, throw IllegalStateException to signal that the setup is incorrect
+        if (!Boolean.getBoolean("io.vertx.web.router.setup.lenient")) {
+          throw new IllegalStateException(message);
+        }
+        LOG.warn(message);
+      }
+    } else {
+      lastWeight = null;
+    }
+
+    if (lastWeight == Priority.PROTOCOL_UPGRADE) {
+      // when lenient mode is disabled, don't log to signal that the setup might be incorrect
+      if (!Boolean.getBoolean("io.vertx.web.router.setup.lenient")) {
+        LOG.warn("Adding an handler after PROTOCOL_UPGRADE handler may not be reachable");
+      }
+    }
+
     newState.contextHandlers.add(contextHandler);
     return newState;
   }
@@ -900,6 +971,7 @@ final class RouteState {
       this.exclusive,
       this.exactPath);
   }
+
   private boolean containsMethod(HttpServerRequest request) {
     if (!isEmpty(methods)) {
       return methods.contains(request.method());
@@ -952,7 +1024,7 @@ final class RouteState {
         }
 
         context.matchRest = -1;
-        context.matchNormalized = useNormalizedPath;
+        context.normalizedMatch = useNormalizedPath;
 
         if (m.groupCount() > 0) {
           if (!exactPath) {

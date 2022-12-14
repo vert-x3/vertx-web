@@ -10,8 +10,6 @@ import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.*;
 
@@ -19,7 +17,6 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * Decorate a {@link RoutingContext} and simply delegate all method calls to the decorated handler
@@ -41,17 +38,17 @@ public class RoutingContextDecorator implements RoutingContextInternal {
 
   @Override
   public RoutingContextInternal visitHandler(int id) {
-    return ((RoutingContextInternal) decoratedContext).visitHandler(id);
+    return decoratedContext.visitHandler(id);
   }
 
   @Override
   public boolean seenHandler(int id) {
-    return ((RoutingContextInternal) decoratedContext).seenHandler(id);
+    return decoratedContext.seenHandler(id);
   }
 
   @Override
   public RoutingContextInternal setMatchFailure(int matchFailure) {
-    return ((RoutingContextInternal) decoratedContext).setMatchFailure(matchFailure);
+    return decoratedContext.setMatchFailure(matchFailure);
   }
 
   @Override
@@ -60,6 +57,7 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  @Deprecated
   public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
     return decoratedContext.addCookie(cookie);
   }
@@ -75,11 +73,13 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  @Deprecated
   public int cookieCount() {
     return decoratedContext.cookieCount();
   }
 
   @Override
+  @Deprecated
   public Map<String, io.vertx.core.http.Cookie> cookieMap() {
     return decoratedContext.cookieMap();
   }
@@ -132,7 +132,7 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
-  public Set<FileUpload> fileUploads() {
+  public List<FileUpload> fileUploads() {
     return decoratedContext.fileUploads();
   }
 
@@ -157,31 +157,12 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
-  public Buffer getBody() {
-    return decoratedContext.getBody();
+  public RequestBody body() {
+    return decoratedContext.body();
   }
 
   @Override
-  public JsonObject getBodyAsJson(int maxAllowedLength) {
-    return decoratedContext.getBodyAsJson(maxAllowedLength);
-  }
-
-  @Override
-  public JsonArray getBodyAsJsonArray(int maxAllowedLength) {
-    return decoratedContext.getBodyAsJsonArray(maxAllowedLength);
-  }
-
-  @Override
-  public String getBodyAsString() {
-    return decoratedContext.getBodyAsString();
-  }
-
-  @Override
-  public String getBodyAsString(String encoding) {
-    return decoratedContext.getBodyAsString(encoding);
-  }
-
-  @Override
+  @Deprecated
   public Cookie getCookie(String name) {
     return decoratedContext.getCookie(name);
   }
@@ -213,6 +194,7 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  @Deprecated
   public Cookie removeCookie(String name, boolean invalidate) {
     return decoratedContext.removeCookie(name, invalidate);
   }
@@ -293,13 +275,25 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  @Deprecated
   public void setBody(Buffer body) {
     decoratedContext.setBody(body);
   }
 
   @Override
+  @Deprecated
   public void setSession(Session session) {
     decoratedContext.setSession(session);
+  }
+
+  @Override
+  public int restIndex() {
+    return decoratedContext.restIndex();
+  }
+
+  @Override
+  public boolean normalizedMatch() {
+    return decoratedContext.normalizedMatch();
   }
 
   @Override

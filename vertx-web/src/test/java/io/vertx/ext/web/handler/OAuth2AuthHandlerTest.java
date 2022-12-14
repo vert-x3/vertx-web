@@ -24,7 +24,6 @@ import io.vertx.ext.auth.PubSecKeyOptions;
 import io.vertx.ext.auth.impl.jose.JWK;
 import io.vertx.ext.auth.impl.jose.JWT;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
-import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
@@ -65,7 +64,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
@@ -123,7 +121,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // lets mock an oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
@@ -184,7 +181,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // lets mock an oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
@@ -244,7 +240,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
@@ -302,7 +297,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
@@ -428,7 +422,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
@@ -454,7 +447,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     latch.await();
 
     // protect everything. This has the bad sideffect that it will also shade the callback route which is computed
-    // after this handler, the proper way to fix this would be create the route before
+    // after this handler, HOWEVER, the handler implements the OrderListener, so the setup will be fixed OOTB
     router.route()
       .handler(
         OAuth2AuthHandler
@@ -474,9 +467,9 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       assertNotNull(redirectURL);
     }, 302, "Found", null);
 
-    // fake the redirect
+    // fake the redirect (Given that the setup is fixed by the OrderListener), this will succeed
     testRequest(HttpMethod.GET, "/callback?state=/protected/somepage&code=1", null, resp -> {
-    }, 500, "Internal Server Error", "Internal Server Error");
+    }, 200, "OK", "Welcome to the protected resource!");
 
     // second attempt with proper config
     router.clear();
@@ -515,8 +508,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
       .setClientSecret("client-secret")
-      .setSite("http://localhost:10000")
-      .setFlow(OAuth2FlowType.PASSWORD));
+      .setSite("http://localhost:10000"));
 
     final CountDownLatch latch = new CountDownLatch(1);
 
@@ -569,7 +561,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
   public void testBearerOnly() throws Exception {
 
     // lets mock a oauth2 server using code auth code flow
-    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options().setFlow(OAuth2FlowType.AUTH_CODE).setClientId("client-id"));
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options().setClientId("client-id"));
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2);
 
     // protect everything under /protected
@@ -702,7 +694,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
-      .setFlow(OAuth2FlowType.AUTH_CODE)
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
@@ -728,7 +719,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     Router subRouter = Router.router(vertx);
 
-    router.mountSubRouter("/secret", subRouter);
+    router.route("/secret*").subRouter(subRouter);
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/secret/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/secret/callback");
@@ -756,4 +747,20 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     }, 200, "OK", "Welcome to the protected resource!");
 
     server.close();
-  }}
+  }
+
+  @Test
+  public void testSharing() throws Exception {
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(vertx, OAuth2Auth.create(vertx, new OAuth2Options()
+      .setClientId("client-id")
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:10000")), "http://localhost:8080/secret/callback");
+
+    router.route("/protected/*").handler(oauth2.setupCallback(router.route("/callback")));
+    router.route("/protected/userinfo").handler(oauth2);
+
+    assertEquals("/callback", router.getRoutes().get(0).getPath());
+    assertEquals("/protected/", router.getRoutes().get(1).getPath());
+    assertEquals("/protected/userinfo", router.getRoutes().get(2).getPath());
+  }
+}

@@ -54,7 +54,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
   private Handler<Throwable> exceptionHandler;
   private Handler<Buffer> dataHandler;
   private Handler<Void> endHandler;
-  private InboundBuffer<Object> pending;
+  private final InboundBuffer<Object> pending;
   private boolean ended;
   private final Context context;
 

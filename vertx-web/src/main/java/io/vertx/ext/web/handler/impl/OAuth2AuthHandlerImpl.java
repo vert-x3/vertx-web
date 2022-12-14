@@ -30,12 +30,14 @@ import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
+import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.Oauth2Credentials;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
+import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.Origin;
 
 import java.nio.charset.StandardCharsets;
@@ -46,7 +48,7 @@ import java.util.*;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> implements OAuth2AuthHandler, ScopedAuthentication<OAuth2AuthHandler> {
+public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> implements OAuth2AuthHandler, ScopedAuthentication<OAuth2AuthHandler>, OrderListener {
 
   private static final Logger LOG = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
 
@@ -61,6 +63,9 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   private int pkce = -1;
   // explicit signal that tokens are handled as bearer only (meaning, no backend server known)
   private boolean bearerOnly = true;
+
+  private int order = -1;
+  private Route callback;
 
   public OAuth2AuthHandlerImpl(Vertx vertx, OAuth2Auth authProvider, String callbackURL) {
     this(vertx, authProvider, callbackURL, null);
@@ -287,125 +292,14 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       }
     }
 
-    route.method(HttpMethod.GET);
-
-    route.handler(ctx -> {
-      // Some IdP's (e.g.: AWS Cognito) returns errors as query arguments
-      String error = ctx.request().getParam("error");
-
-      if (error != null) {
-        int errorCode;
-        // standard error's from the Oauth2 RFC
-        switch (error) {
-          case "invalid_token":
-            errorCode = 401;
-            break;
-          case "insufficient_scope":
-            errorCode = 403;
-            break;
-          case "invalid_request":
-          default:
-            errorCode = 400;
-            break;
-        }
-
-        String errorDescription = ctx.request().getParam("error_description");
-        if (errorDescription != null) {
-          ctx.fail(errorCode, new IllegalStateException(error + ": " + errorDescription));
-        } else {
-          ctx.fail(errorCode, new IllegalStateException(error));
-        }
-        return;
-      }
-
-      // Handle the callback of the flow
-      final String code = ctx.request().getParam("code");
-
-      // code is a require value
-      if (code == null) {
-        ctx.fail(400, new IllegalStateException("Missing code parameter"));
-        return;
-      }
-
-      final Oauth2Credentials credentials = new Oauth2Credentials()
-        .setCode(code);
-
-      // the state that was passed to the IdP server. The state can be
-      // an opaque random string (to protect against replay attacks)
-      // or if there was no session available the target resource to
-      // server after validation
-      final String state = ctx.request().getParam("state");
-
-      // state is a required field
-      if (state == null) {
-        ctx.fail(400, new IllegalStateException("Missing IdP state parameter to the callback endpoint"));
-        return;
-      }
-
-      final String resource;
-      final Session session = ctx.session();
-
-      if (session != null) {
-        // validate the state. Here we are a bit lenient, if there is no session
-        // we always assume valid, however if there is session it must match
-        String ctxState = session.remove("state");
-        // if there's a state in the context they must match
-        if (!state.equals(ctxState)) {
-          // forbidden, the state is not valid (this is a replay attack)
-          ctx.fail(401, new IllegalStateException("Invalid oauth2 state"));
-          return;
-        }
-
-        // remove the code verifier, from the session as it will be trade for the
-        // token during the final leg of the oauth2 handshake
-        String codeVerifier = session.remove("pkce");
-        credentials.setCodeVerifier(codeVerifier);
-        // state is valid, extract the redirectUri from the session
-        resource = session.get("redirect_uri");
-      } else {
-        resource = state;
-      }
-
-      // The valid callback URL set in your IdP application settings.
-      // This must exactly match the redirect_uri passed to the authorization URL in the previous step.
-      credentials.setRedirectUri(callbackURL.href());
-
-      authProvider.authenticate(credentials, res -> {
-        if (res.failed()) {
-          ctx.fail(res.cause());
-        } else {
-          ctx.setUser(res.result());
-          String location = resource != null ? resource : "/";
-          if (session != null) {
-            // the user has upgraded from unauthenticated to authenticated
-            // session should be upgraded as recommended by owasp
-            session.regenerateId();
-          } else {
-            // there is no session object so we cannot keep state.
-            // if there is no session and the resource is relative
-            // we will reroute to "location"
-            if (location.length() != 0 && location.charAt(0) == '/') {
-              ctx.reroute(location);
-              return;
-            }
-          }
-
-          // we should redirect the UA so this link becomes invalid
-          ctx.response()
-            // disable all caching
-            .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-            .putHeader("Pragma", "no-cache")
-            .putHeader(HttpHeaders.EXPIRES, "0")
-            // redirect (when there is no state, redirect to home
-            .putHeader(HttpHeaders.LOCATION, location)
-            .setStatusCode(302)
-            .end("Redirecting to " + location + ".");
-        }
-      });
-    });
+    this.callback = route;
+    // order was already known, but waiting for the callback
+    if (this.order != -1) {
+      mountCallback();
+    }
 
     // the redirect handler has been setup so we can process this
-    // handler has full oauth2
+    // handler has full oauth2 support, not just basic JWT
     bearerOnly = false;
     return this;
   }
@@ -481,5 +375,141 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       // a redirect happening in this application
       return callbackURL != null;
     }
+  }
+
+  @Override
+  public void onOrder(int order) {
+    // order isn't known yet, we can attempt to mount
+    if (this.order == -1) {
+      this.order = order;
+      // callback route already known, but waiting for order
+      if (callback != null) {
+        mountCallback();
+      }
+    }
+  }
+
+  private void mountCallback() {
+
+    callback
+      .method(HttpMethod.GET)
+      // we want the callback before this handler
+      .order(order - 1);
+
+    callback.handler(ctx -> {
+      // Some IdP's (e.g.: AWS Cognito) returns errors as query arguments
+      String error = ctx.request().getParam("error");
+
+      if (error != null) {
+        int errorCode;
+        // standard error's from the Oauth2 RFC
+        switch (error) {
+          case "invalid_token":
+            errorCode = 401;
+            break;
+          case "insufficient_scope":
+            errorCode = 403;
+            break;
+          case "invalid_request":
+          default:
+            errorCode = 400;
+            break;
+        }
+
+        String errorDescription = ctx.request().getParam("error_description");
+        if (errorDescription != null) {
+          ctx.fail(errorCode, new IllegalStateException(error + ": " + errorDescription));
+        } else {
+          ctx.fail(errorCode, new IllegalStateException(error));
+        }
+        return;
+      }
+
+      // Handle the callback of the flow
+      final String code = ctx.request().getParam("code");
+
+      // code is a require value
+      if (code == null) {
+        ctx.fail(400, new IllegalStateException("Missing code parameter"));
+        return;
+      }
+
+      final Oauth2Credentials credentials = new Oauth2Credentials()
+        .setFlow(OAuth2FlowType.AUTH_CODE)
+        .setCode(code);
+
+      // the state that was passed to the IdP server. The state can be
+      // an opaque random string (to protect against replay attacks)
+      // or if there was no session available the target resource to
+      // server after validation
+      final String state = ctx.request().getParam("state");
+
+      // state is a required field
+      if (state == null) {
+        ctx.fail(400, new IllegalStateException("Missing IdP state parameter to the callback endpoint"));
+        return;
+      }
+
+      final String resource;
+      final Session session = ctx.session();
+
+      if (session != null) {
+        // validate the state. Here we are a bit lenient, if there is no session
+        // we always assume valid, however if there is session it must match
+        String ctxState = session.remove("state");
+        // if there's a state in the context they must match
+        if (!state.equals(ctxState)) {
+          // forbidden, the state is not valid (this is a replay attack)
+          ctx.fail(401, new IllegalStateException("Invalid oauth2 state"));
+          return;
+        }
+
+        // remove the code verifier, from the session as it will be trade for the
+        // token during the final leg of the oauth2 handshake
+        String codeVerifier = session.remove("pkce");
+        credentials.setCodeVerifier(codeVerifier);
+        // state is valid, extract the redirectUri from the session
+        resource = session.get("redirect_uri");
+      } else {
+        resource = state;
+      }
+
+      // The valid callback URL set in your IdP application settings.
+      // This must exactly match the redirect_uri passed to the authorization URL in the previous step.
+      credentials.setRedirectUri(callbackURL.href());
+
+      authProvider.authenticate(credentials, res -> {
+        if (res.failed()) {
+          ctx.fail(res.cause());
+        } else {
+          ctx.setUser(res.result());
+          String location = resource != null ? resource : "/";
+          if (session != null) {
+            // the user has upgraded from unauthenticated to authenticated
+            // session should be upgraded as recommended by owasp
+            session.regenerateId();
+          } else {
+            // there is no session object so we cannot keep state.
+            // if there is no session and the resource is relative
+            // we will reroute to "location"
+            if (location.length() != 0 && location.charAt(0) == '/') {
+              ctx.reroute(location);
+              return;
+            }
+          }
+
+          // we should redirect the UA so this link becomes invalid
+          ctx.response()
+            // disable all caching
+            .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+            .putHeader("Pragma", "no-cache")
+            .putHeader(HttpHeaders.EXPIRES, "0")
+            // redirect (when there is no state, redirect to home
+            .putHeader(HttpHeaders.LOCATION, location)
+            .setStatusCode(302)
+            .end("Redirecting to " + location + ".");
+        }
+      });
+    });
   }
 }

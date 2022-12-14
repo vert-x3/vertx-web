@@ -14,8 +14,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.ext.web.validation.BodyProcessorException;
 import io.vertx.ext.web.validation.ParameterProcessorException;
@@ -156,7 +155,6 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
         RouterBuilder routerBuilder = routerBuilderAsyncResult.result();
         routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
-        routerBuilder.bodyHandler(null);
 
         Router router = routerBuilder.createRouter();
 
@@ -205,15 +203,15 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
     Checkpoint checkpoint = testContext.checkpoint();
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
       routerBuilder -> {
-      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+        routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
 
-      routerBuilder.operation("listPets").handler(routingContext ->
-        routingContext
-          .response()
-          .setStatusCode(200)
-          .end()
-      );
-    }).onComplete(h ->
+        routerBuilder.operation("listPets").handler(routingContext ->
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .end()
+        );
+      }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(200))
         .send(testContext, checkpoint)
@@ -225,18 +223,18 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
     Checkpoint checkpoint = testContext.checkpoint();
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
       routerBuilder -> {
-      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+        routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
 
-      routerBuilder
-        .operation("listPets")
-        .handler(routingContext -> routingContext.fail(null))
-        .failureHandler(routingContext -> routingContext
-          .response()
-          .setStatusCode(500)
-          .setStatusMessage("ERROR")
-          .end()
-        );
-    }).onComplete(h ->
+        routerBuilder
+          .operation("listPets")
+          .handler(routingContext -> routingContext.fail(null))
+          .failureHandler(routingContext -> routingContext
+            .response()
+            .setStatusCode(500)
+            .setStatusMessage("ERROR")
+            .end()
+          );
+      }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(500), statusMessage("ERROR"))
         .send(testContext, checkpoint)
@@ -248,30 +246,30 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
     Checkpoint checkpoint = testContext.checkpoint();
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
       routerBuilder -> {
-      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+        routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
 
-      routerBuilder
-        .operation("listPets")
-        .handler(routingContext ->
-          routingContext.put("message", "A").next()
-        )
-        .handler(routingContext -> {
-          routingContext.put("message", routingContext.get("message") + "B");
-          routingContext.fail(500);
-        });
-      routerBuilder
-        .operation("listPets")
-        .failureHandler(routingContext ->
-          routingContext.put("message", routingContext.get("message") + "E").next()
-        )
-        .failureHandler(routingContext ->
-          routingContext
-            .response()
-            .setStatusCode(500)
-            .setStatusMessage(routingContext.get("message"))
-            .end()
-        );
-    }).onComplete(h ->
+        routerBuilder
+          .operation("listPets")
+          .handler(routingContext ->
+            routingContext.put("message", "A").next()
+          )
+          .handler(routingContext -> {
+            routingContext.put("message", routingContext.get("message") + "B");
+            routingContext.fail(500);
+          });
+        routerBuilder
+          .operation("listPets")
+          .failureHandler(routingContext ->
+            routingContext.put("message", routingContext.get("message") + "E").next()
+          )
+          .failureHandler(routingContext ->
+            routingContext
+              .response()
+              .setStatusCode(500)
+              .setStatusMessage(routingContext.get("message"))
+              .end()
+          );
+      }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(500), statusMessage("ABE"))
         .send(testContext, checkpoint)
@@ -287,29 +285,29 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
     Checkpoint checkpoint = testContext.checkpoint(4);
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/path_matching_order.yaml", testContext,
       routerBuilder -> {
-      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+        routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
 
-      routerBuilder
-        .operation("searchPets")
-        .handler(routingContext -> {
-          routingContext.response().setStatusMessage("searchPets").end();
-        });
-      routerBuilder
-        .operation("searchPetsInShop")
-        .handler(routingContext -> {
-          routingContext.response().setStatusMessage("searchPetsInShop").end();
-        });
-      routerBuilder
-        .operation("addPet")
-        .handler(routingContext -> {
-          routingContext.response().setStatusMessage("addPet").end();
-        });
+        routerBuilder
+          .operation("searchPets")
+          .handler(routingContext -> {
+            routingContext.response().setStatusMessage("searchPets").end();
+          });
+        routerBuilder
+          .operation("searchPetsInShop")
+          .handler(routingContext -> {
+            routingContext.response().setStatusMessage("searchPetsInShop").end();
+          });
+        routerBuilder
+          .operation("addPet")
+          .handler(routingContext -> {
+            routingContext.response().setStatusMessage("addPet").end();
+          });
         routerBuilder
           .operation("addPetToShop")
           .handler(routingContext -> {
             routingContext.response().setStatusMessage("addPetToShop").end();
           });
-    }).onComplete(h -> {
+      }).onComplete(h -> {
       testRequest(client, HttpMethod.POST, "/pets/wolfie")
         .expect(statusCode(200), statusMessage("addPet"))
         .sendJson(new JsonObject(), testContext, checkpoint);
@@ -334,13 +332,13 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
     Checkpoint checkpoint = testContext.checkpoint();
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
       routerBuilder -> {
-      routerBuilder.setOptions(
-        new RouterBuilderOptions()
-          .setRequireSecurityHandlers(false)
-          .setMountNotImplementedHandler(true)
-      );
-      routerBuilder.operation("showPetById").handler(RoutingContext::next);
-    }).onComplete(h ->
+        routerBuilder.setOptions(
+          new RouterBuilderOptions()
+            .setRequireSecurityHandlers(false)
+            .setMountNotImplementedHandler(true)
+        );
+        routerBuilder.operation("showPetById").handler(RoutingContext::next);
+      }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(501), statusMessage("Not Implemented"))
         .send(testContext, checkpoint)
@@ -353,15 +351,15 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
       routerBuilder -> {
-      routerBuilder.setOptions(
-        new RouterBuilderOptions()
-          .setRequireSecurityHandlers(false)
-          .setMountNotImplementedHandler(true)
-      );
+        routerBuilder.setOptions(
+          new RouterBuilderOptions()
+            .setRequireSecurityHandlers(false)
+            .setMountNotImplementedHandler(true)
+        );
 
-      routerBuilder.operation("deletePets").handler(RoutingContext::next);
-      routerBuilder.operation("createPets").handler(RoutingContext::next);
-    }).onComplete(rc ->
+        routerBuilder.operation("deletePets").handler(RoutingContext::next);
+        routerBuilder.operation("createPets").handler(RoutingContext::next);
+      }).onComplete(rc ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(405), statusMessage("Method Not Allowed"))
         .expect(resp ->
@@ -375,23 +373,23 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
   public void addGlobalHandlersTest(Vertx vertx, VertxTestContext testContext) {
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
       routerBuilder -> {
-      routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false));
+        routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false));
 
-      routerBuilder.rootHandler(rc -> {
-        rc.response().putHeader("header-from-global-handler", "some dummy data");
-        rc.next();
-      }).rootHandler(rc -> {
-        rc.response().putHeader("header-from-global-handler", "some more dummy data");
-        rc.next();
-      });
+        routerBuilder.rootHandler(rc -> {
+          rc.response().putHeader("header-from-global-handler", "some dummy data");
+          rc.next();
+        }).rootHandler(rc -> {
+          rc.response().putHeader("header-from-global-handler", "some more dummy data");
+          rc.next();
+        });
 
-      routerBuilder.operation("listPets").handler(routingContext -> routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage("OK")
-        .end()
-      );
-    }).onComplete(h ->
+        routerBuilder.operation("listPets").handler(routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage("OK")
+          .end()
+        );
+      }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/pets")
         .expect(statusCode(200))
         .expect(responseHeader("header-from-global-handler", "some more dummy data"))
@@ -405,22 +403,22 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
       routerBuilder -> {
-      routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false).setOperationModelKey(
-        "fooBarKey"));
+        routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false).setOperationModelKey(
+          "fooBarKey"));
 
-      routerBuilder.operation("listPets").handler(routingContext -> {
-        JsonObject operation = routingContext.get("fooBarKey");
+        routerBuilder.operation("listPets").handler(routingContext -> {
+          JsonObject operation = routingContext.get("fooBarKey");
 
-        routingContext
-          .response()
-          .setStatusCode(200)
-          .setStatusMessage(operation.getString("operationId"))
-          .end();
-      });
-    }).onComplete(h ->
-        testRequest(client, HttpMethod.GET, "/pets")
-          .expect(statusCode(200), statusMessage("listPets"))
-          .send(testContext, checkpoint)
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage(operation.getString("operationId"))
+            .end();
+        });
+      }).onComplete(h ->
+      testRequest(client, HttpMethod.GET, "/pets")
+        .expect(statusCode(200), statusMessage("listPets"))
+        .send(testContext, checkpoint)
     );
   }
 
@@ -430,24 +428,24 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/produces_consumes_test.yaml", testContext,
       routerBuilder -> {
-      routerBuilder.setOptions(new RouterBuilderOptions().setMountNotImplementedHandler(false));
+        routerBuilder.setOptions(new RouterBuilderOptions().setMountNotImplementedHandler(false));
 
-      routerBuilder.operation("consumesTest").handler(routingContext -> {
-        RequestParameters params = routingContext.get("parsedParameters");
-        if (params.body() != null && params.body().isJsonObject()) {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .putHeader("Content-Type", "application/json")
-            .end(params.body().getJsonObject().encode());
-        } else {
-          routingContext
-            .response()
+        routerBuilder.operation("consumesTest").handler(routingContext -> {
+          RequestParameters params = routingContext.get("parsedParameters");
+          if (params.body() != null && params.body().isJsonObject()) {
+            routingContext
+              .response()
+              .setStatusCode(200)
+              .putHeader("Content-Type", "application/json")
+              .end(params.body().getJsonObject().encode());
+          } else {
+            routingContext
+              .response()
               .setStatusCode(200)
               .end();
           }
         });
-    }).onComplete(h -> {
+      }).onComplete(h -> {
       JsonObject obj = new JsonObject().put("name", "francesco");
       testRequest(client, HttpMethod.POST, "/consumesTest")
         .expect(statusCode(200))
@@ -481,19 +479,19 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/produces_consumes_test.yaml", testContext,
       routerBuilder -> {
-      routerBuilder.setOptions(new RouterBuilderOptions().setMountNotImplementedHandler(false));
+        routerBuilder.setOptions(new RouterBuilderOptions().setMountNotImplementedHandler(false));
 
-      routerBuilder.operation("producesTest").handler(routingContext -> {
-        if (((RequestParameters) routingContext.get("parsedParameters")).queryParameter("fail").getBoolean())
-          routingContext
-            .response()
-            .putHeader("content-type", "text/plain")
-            .setStatusCode(500)
-            .end("Hate it");
-        else
-          routingContext.response().setStatusCode(200).end("{}"); // ResponseContentTypeHandler does the job for me
-      });
-    }).onComplete(h -> {
+        routerBuilder.operation("producesTest").handler(routingContext -> {
+          if (((RequestParameters) routingContext.get("parsedParameters")).queryParameter("fail").getBoolean())
+            routingContext
+              .response()
+              .putHeader("content-type", "text/plain")
+              .setStatusCode(500)
+              .end("Hate it");
+          else
+            routingContext.response().setStatusCode(200).end("{}"); // ResponseContentTypeHandler does the job for me
+        });
+      }).onComplete(h -> {
       String acceptableContentTypes = String.join(", ", "application/json", "text/plain");
       testRequest(client, HttpMethod.GET, "/producesTest")
         .with(requestHeader("Accept", acceptableContentTypes))
@@ -522,7 +520,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
         routingContext.response().setStatusMessage(params.pathParameter("id").getInteger().toString()).end();
       });
 
-        testContext.completeNow();
+      testContext.completeNow();
     }).onComplete(h -> {
       testRequest(client, HttpMethod.GET, "/product/special")
         .expect(statusCode(200), statusMessage("special"))
@@ -539,21 +537,21 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
       routerBuilder -> {
-      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+        routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
 
-      routerBuilder.operation("encodedParamTest").handler(routingContext -> {
-        RequestParameters params = routingContext.get("parsedParameters");
-        assertThat(params.pathParameter("p1").toString()).isEqualTo("a:b");
-        assertThat(params.queryParameter("p2").toString()).isEqualTo("a:b");
-        routingContext
-          .response()
-          .setStatusCode(200)
-          .setStatusMessage(params.pathParameter("p1").toString())
-          .end();
-      });
+        routerBuilder.operation("encodedParamTest").handler(routingContext -> {
+          RequestParameters params = routingContext.get("parsedParameters");
+          assertThat(params.pathParameter("p1").toString()).isEqualTo("a:b");
+          assertThat(params.queryParameter("p2").toString()).isEqualTo("a:b");
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage(params.pathParameter("p1").toString())
+            .end();
+        });
 
         testContext.completeNow();
-    }).onComplete(h ->
+      }).onComplete(h ->
       testRequest(client, HttpMethod.GET, "/foo/a%3Ab?p2=a%3Ab")
         .expect(statusCode(200), statusMessage("a:b"))
         .send(testContext, checkpoint)
@@ -572,7 +570,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
       BodyHandler bodyHandler = BodyHandler.create("my-uploads");
 
-      routerBuilder.bodyHandler(bodyHandler);
+      routerBuilder.rootHandler(bodyHandler);
 
       routerBuilder.operation("upload").handler(routingContext -> routingContext.response().setStatusCode(201).end());
 
@@ -595,23 +593,23 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/shared_request_body.yaml", testContext,
       routerBuilder -> {
-      routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+        routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
 
-      final Handler<RoutingContext> handler = routingContext -> {
-        RequestParameters params = routingContext.get("parsedParameters");
-        RequestParameter body = params.body();
-        JsonObject jsonBody = body.getJsonObject();
-        routingContext
-          .response()
-          .setStatusCode(200)
-          .setStatusMessage("OK")
-          .putHeader("Content-Type", "application/json")
-          .end(jsonBody.toBuffer());
-      };
+        final Handler<RoutingContext> handler = routingContext -> {
+          RequestParameters params = routingContext.get("parsedParameters");
+          RequestParameter body = params.body();
+          JsonObject jsonBody = body.getJsonObject();
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+            .putHeader("Content-Type", "application/json")
+            .end(jsonBody.toBuffer());
+        };
 
-      routerBuilder.operation("thisWayWorks").handler(handler);
-      routerBuilder.operation("thisWayBroken").handler(handler);
-    }).onComplete(h -> {
+        routerBuilder.operation("thisWayWorks").handler(handler);
+        routerBuilder.operation("thisWayBroken").handler(handler);
+      }).onComplete(h -> {
       JsonObject obj = new JsonObject().put("id", "aaa").put("name", "bla");
       testRequest(client, HttpMethod.POST, "/v1/working")
         .expect(statusCode(200))
@@ -628,44 +626,44 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
   public void pathResolverShouldNotCreateRegex(Vertx vertx, VertxTestContext testContext) {
     RouterBuilder.create(vertx, "src/test/resources/specs/produces_consumes_test.yaml",
       testContext.succeeding(routerBuilder -> {
-      routerBuilder.setOptions(new RouterBuilderOptions().setMountNotImplementedHandler(false));
+        routerBuilder.setOptions(new RouterBuilderOptions().setMountNotImplementedHandler(false));
 
-      routerBuilder.operation("consumesTest").handler(routingContext ->
-        routingContext
-          .response()
-          .setStatusCode(200)
-          .setStatusMessage("OK")
-      );
+        routerBuilder.operation("consumesTest").handler(routingContext ->
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+        );
 
-      testContext.verify(() ->
+        testContext.verify(() ->
           assertThat(routerBuilder.createRouter().getRoutes())
             .extracting(Route::getPath)
             .anyMatch("/consumesTest"::equals)
         );
 
         testContext.completeNow();
-    }));
+      }));
   }
 
   @Test
   public void testJsonEmptyBody(Vertx vertx, VertxTestContext testContext) {
     loadBuilderAndStartServer(vertx, "src/test/resources/specs/router_builder_test.yaml", testContext,
       routerBuilder -> {
-      routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false).setMountNotImplementedHandler(false));
+        routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false).setMountNotImplementedHandler(false));
 
-      routerBuilder.operation("jsonEmptyBody").handler(routingContext -> {
-        RequestParameters params = routingContext.get("parsedParameters");
-        RequestParameter body = params.body();
-        routingContext
-          .response()
-          .setStatusCode(200)
-          .setStatusMessage("OK")
-          .putHeader("Content-Type", "application/json")
-          .end(new JsonObject().put("bodyEmpty", body == null).toBuffer());
-      });
+        routerBuilder.operation("jsonEmptyBody").handler(routingContext -> {
+          RequestParameters params = routingContext.get("parsedParameters");
+          RequestParameter body = params.body();
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+            .putHeader("Content-Type", "application/json")
+            .end(new JsonObject().put("bodyEmpty", body == null).toBuffer());
+        });
 
         testContext.completeNow();
-    }).onComplete(h ->
+      }).onComplete(h ->
       testRequest(client, HttpMethod.POST, "/jsonBody/empty")
         .expect(statusCode(200), jsonBodyResponse(new JsonObject().put("bodyEmpty", true)))
         .send(testContext)
@@ -886,6 +884,40 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
       values.add("4");
       values.add("2");
       values.add("26");
+      for (String s : values) {
+        encoder.addParam("parameter", s);
+      }
+      String serialized = String.join(",", values);
+
+      testRequest(client, HttpMethod.GET, encoder.toString())
+        .expect(statusCode(200), statusMessage(serialized))
+        .send(testContext);
+    });
+  }
+
+  @Test
+  public void testQueryParameterArrayExplodedObject(Vertx vertx, VertxTestContext testContext) {
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+      routerBuilder
+        .operation("arrayTestFormExplodedObject")
+        .handler(routingContext -> {
+          RequestParameters params = routingContext.get("parsedParameters");
+          String serialized = params
+            .queryParameter("parameter")
+            .getJsonArray()
+            .stream()
+            .map(JsonObject.class::cast)
+            .map(JsonObject::encode)
+            .collect(Collectors.joining(","));
+          routingContext.response().setStatusMessage(serialized).end();
+        });
+    }).onComplete(h -> {
+      QueryStringEncoder encoder = new QueryStringEncoder("/queryTests/arrayTests/formExplodedObject");
+      List<String> values = new ArrayList<>();
+      JsonObject fooBar1 = new JsonObject().put("foo", "bar1");
+      JsonObject fooBar2 = new JsonObject().put("foo", "bar2");
+      values.add(fooBar1.encode());
+      values.add(fooBar2.encode());
       for (String s : values) {
         encoder.addParam("parameter", s);
       }
@@ -1547,4 +1579,44 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
     });
   }
 
+  @Test
+  public void testProperOrderOfHandlers(Vertx vertx, VertxTestContext testContext) {
+    loadBuilderAndStartServer(vertx, VALIDATION_SPEC, testContext, routerBuilder -> {
+
+      routerBuilder.rootHandler(LoggerHandler.create(true, LoggerHandler.DEFAULT_FORMAT));
+      routerBuilder.rootHandler(TimeoutHandler.create(180000));
+      routerBuilder.rootHandler(CorsHandler.create("*"));
+      routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(40000000).setDeleteUploadedFilesOnEnd(true).setHandleFileUploads(true));
+
+      routerBuilder
+        .operation("listPets")
+        .handler(routingContext -> routingContext.response().setStatusMessage("ok").end());
+    }).onComplete(h ->
+      testRequest(client, HttpMethod.GET, "/pets")
+        .expect(statusCode(200), statusMessage("ok"))
+        .send(testContext)
+    );
+  }
+
+  @Test
+  public void testIncorrectOrderOfHandlers(Vertx vertx, VertxTestContext testContext) {
+
+    RouterBuilder.create(vertx, VALIDATION_SPEC, testContext.succeeding(routerBuilder -> {
+      routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(40000000).setDeleteUploadedFilesOnEnd(true).setHandleFileUploads(true));
+      routerBuilder.rootHandler(LoggerHandler.create(true, LoggerHandler.DEFAULT_FORMAT));
+      routerBuilder.rootHandler(TimeoutHandler.create(180000));
+      routerBuilder.rootHandler(CorsHandler.create("*"));
+
+      routerBuilder
+        .operation("listPets")
+        .handler(routingContext -> routingContext.response().setStatusMessage("ok").end());
+
+      try {
+        routerBuilder.createRouter();
+        testContext.failNow("Should not reach here");
+      } catch (IllegalStateException ise) {
+        testContext.completeNow();
+      }
+    }));
+  }
 }

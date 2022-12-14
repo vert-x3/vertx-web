@@ -187,10 +187,10 @@ public class LoggerHandlerImpl implements LoggerHandler {
     }
 
     context.next();
-
   }
 
   @Override
+  @Deprecated
   public LoggerHandler customFormatter(Function<HttpServerRequest, String> formatter) {
     if (format != LoggerFormat.CUSTOM) {
       throw new IllegalStateException("Setting a formatter requires the handler to be set to CUSTOM format");
@@ -208,7 +208,6 @@ public class LoggerHandlerImpl implements LoggerHandler {
     }
 
     this.logFormatter = formatter;
-
     return this;
   }
 }

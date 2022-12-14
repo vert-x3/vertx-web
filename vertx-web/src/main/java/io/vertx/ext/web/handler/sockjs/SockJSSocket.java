@@ -78,11 +78,7 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   SockJSSocket closeHandler(Handler<Void> closeHandler);
 
   @Override
-  default Future<Void> write(Buffer data) {
-    Promise<Void> promise = Promise.promise();
-    write(data, promise);
-    return promise.future();
-  }
+  Future<Void> write(Buffer data);
 
   /**
    * Write a {@link String} to the socket, encoded in UTF-8.
@@ -90,17 +86,19 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
    * @param data  the string to write
    */
   default Future<Void> write(String data) {
-    Promise<Void> promise = Promise.promise();
-    write(data, promise);
-    return promise.future();
+    return write(Buffer.buffer(data));
   }
 
   default void write(String data, Handler<AsyncResult<Void>> handler) {
-    write(Buffer.buffer(data), handler);
+    write(data)
+      .onComplete(handler);
   }
 
   @Override
-  void write(Buffer data, Handler<AsyncResult<Void>> handler);
+  default void write(Buffer data, Handler<AsyncResult<Void>> handler) {
+    write(data)
+      .onComplete(handler);
+  }
 
   @Override
   SockJSSocket setWriteQueueMaxSize(int maxSize);

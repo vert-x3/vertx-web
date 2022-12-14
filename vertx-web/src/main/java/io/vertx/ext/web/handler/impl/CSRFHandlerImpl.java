@@ -27,7 +27,6 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.CSRFHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.Origin;
-import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -56,6 +55,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
   private Origin origin;
   private boolean httpOnly;
+  private boolean cookieSecure;
 
   public CSRFHandlerImpl(final Vertx vertx, final String secret) {
     try {
@@ -95,6 +95,12 @@ public class CSRFHandlerImpl implements CSRFHandler {
   }
 
   @Override
+  public CSRFHandler setCookieSecure(boolean secure) {
+    this.cookieSecure = secure;
+    return this;
+  }
+
+  @Override
   public CSRFHandler setHeaderName(String headerName) {
     this.headerName = headerName;
     return this;
@@ -126,6 +132,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
         Cookie.cookie(cookieName, token)
           .setPath(cookiePath)
           .setHttpOnly(httpOnly)
+          .setSecure(cookieSecure)
           // it's not an option to change the same site policy
           .setSameSite(CookieSameSite.STRICT));
 
@@ -190,7 +197,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     String header = ctx.request().getHeader(headerName);
     if (header == null) {
       // fallback to form attributes
-      if (((RoutingContextInternal) ctx).seenHandler(RoutingContextInternal.BODY_HANDLER)) {
+      if (ctx.body().available()) {
         header = ctx.request().getFormAttribute(headerName);
       } else {
         ctx.fail(new IllegalStateException("BodyHandler is required to process POST requests"));

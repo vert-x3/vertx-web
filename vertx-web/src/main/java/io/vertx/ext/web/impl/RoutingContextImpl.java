@@ -23,19 +23,19 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpUtils;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.impl.UserHolder;
 
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.stream.Collectors;
 
 import static io.vertx.ext.web.handler.impl.SessionHandlerImpl.SESSION_USER_HOLDER_KEY;
 
@@ -49,6 +49,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private final RouterImpl router;
   private final HttpServerRequest request;
+  private final RequestBodyImpl body;
 
   private volatile int handlerSeq;
 
@@ -66,8 +67,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private String acceptableContentType;
   private ParsableHeaderValuesContainer parsedHeaders;
 
-  private Buffer body;
-  private Set<FileUpload> fileUploads;
+  private List<FileUpload> fileUploads;
   private Session session;
   private User user;
 
@@ -78,6 +78,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     super(mountPoint, routes, router);
     this.router = router;
     this.request = new HttpServerRequestWrapper(request, router.getAllowForward());
+    this.body = new RequestBodyImpl(this);
 
     final String path = request.path();
 
@@ -108,7 +109,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
         HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptLanguage, ParsableLanguageValue::new)),
         new ParsableMIMEValue(contentType)
     );
-
   }
 
   @Override
@@ -159,11 +159,16 @@ public class RoutingContextImpl extends RoutingContextImplBase {
           this.response()
             .putHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
             .end(DEFAULT_404);
+        } else if (this.request().method() != HttpMethod.HEAD && matchFailure == 405) {
+          // If it's a 405 let's send a body too
+          this.response()
+            .putHeader(HttpHeaderNames.ALLOW, allowedMethods.stream().map(HttpMethod::name).collect(Collectors.joining(","))).end();
         } else {
           this.response().end();
         }
-      } else
+      } else {
         handler.handle(this);
+      }
     }
   }
 
@@ -262,107 +267,52 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
+  @Deprecated
   public Cookie getCookie(String name) {
     return request.getCookie(name);
   }
 
   @Override
+  @Deprecated
   public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
     request.response().addCookie(cookie);
     return this;
   }
 
   @Override
+  @Deprecated
   public Cookie removeCookie(String name, boolean invalidate) {
     return request.response().removeCookie(name, invalidate);
   }
 
   @Override
+  @Deprecated
   public int cookieCount() {
     return request.cookieCount();
   }
 
   @Override
+  @Deprecated
   public Map<String, Cookie> cookieMap() {
     return request.cookieMap();
   }
 
   @Override
-  public String getBodyAsString() {
-    if (body != null) {
-      ParsableHeaderValuesContainer parsedHeaders = parsedHeaders();
-      if (parsedHeaders != null) {
-        ParsableMIMEValue contentType = parsedHeaders.contentType();
-        if (contentType != null) {
-          String charset = contentType.parameter("charset");
-          if (charset != null) {
-            return body.toString(charset);
-          }
-        }
-      }
-      return body.toString();
-    } else {
-      if (!seenHandler(BODY_HANDLER)) {
-        if (LOG.isWarnEnabled()) {
-          LOG.warn("BodyHandler in not enabled on this route: RoutingContext.getBodyAsString(...) in always be NULL");
-        }
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public String getBodyAsString(String encoding) {
-    return body != null ? body.toString(encoding) : null;
-  }
-
-  @Override
-  public JsonObject getBodyAsJson(int maxAllowedLength) {
-    if (body != null) {
-      if (maxAllowedLength >= 0 && body.length() > maxAllowedLength) {
-        throw new IllegalStateException("RoutingContext body size exceeds the allowed limit");
-      }
-      return BodyCodecImpl.JSON_OBJECT_DECODER.apply(body);
-    } else {
-      if (!seenHandler(BODY_HANDLER)) {
-        if (LOG.isWarnEnabled()) {
-          LOG.warn("BodyHandler in not enabled on this route: RoutingContext.getBodyAsJson() in always be NULL");
-        }
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public JsonArray getBodyAsJsonArray(int maxAllowedLength) {
-    if (body != null) {
-      if (maxAllowedLength >= 0 && body.length() > maxAllowedLength) {
-        throw new IllegalStateException("RoutingContext body size exceeds the allowed limit");
-      }
-      return BodyCodecImpl.JSON_ARRAY_DECODER.apply(body);
-    } else {
-      if (!seenHandler(BODY_HANDLER)) {
-        if (LOG.isWarnEnabled()) {
-          LOG.warn("BodyHandler in not enabled on this route: RoutingContext.getBodyAsJsonArray(...) in always be NULL");
-        }
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public Buffer getBody() {
+  public RequestBody body() {
     return body;
   }
 
   @Override
   public void setBody(Buffer body) {
-    this.body = body;
+    this.body.setBuffer(body);
   }
 
   @Override
-  public Set<FileUpload> fileUploads() {
-    return getFileUploads();
+  public List<FileUpload> fileUploads() {
+    if (fileUploads == null) {
+      fileUploads = new ArrayList<>();
+    }
+    return fileUploads;
   }
 
   @Override
@@ -558,27 +508,28 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private SparseArray<Handler<AsyncResult<Void>>> getEndHandlers() {
     if (endHandlers == null) {
-      // order is important we we should traverse backwards
+      // order is important as we should traverse backwards
       endHandlers = new SparseArray<>();
+      final ContextInternal ctx = (ContextInternal) vertx().getOrCreateContext();
 
       final Handler<Void> endHandler = v -> {
         if (!endHandlerCalled) {
           endHandlerCalled = true;
-          endHandlers.forEachInReverseOrder(handler -> handler.handle(Future.succeededFuture()));
+          endHandlers.forEachInReverseOrder(handler -> handler.handle(ctx.succeededFuture()));
         }
       };
 
       final Handler<Throwable> exceptionHandler = cause -> {
         if (!endHandlerCalled) {
           endHandlerCalled = true;
-          endHandlers.forEachInReverseOrder(handler -> handler.handle(Future.failedFuture(cause)));
+          endHandlers.forEachInReverseOrder(handler -> handler.handle(ctx.failedFuture(cause)));
         }
       };
 
       final Handler<Void> closeHandler = cause -> {
         if (!endHandlerCalled) {
           endHandlerCalled = true;
-          endHandlers.forEachInReverseOrder(handler -> handler.handle(Future.failedFuture("Connection closed")));
+          endHandlers.forEachInReverseOrder(handler -> handler.handle(ctx.failedFuture("Connection closed")));
         }
       };
 
@@ -589,13 +540,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     }
 
     return endHandlers;
-  }
-
-  private Set<FileUpload> getFileUploads() {
-    if (fileUploads == null) {
-      fileUploads = new HashSet<>();
-    }
-    return fileUploads;
   }
 
   private void doFail() {

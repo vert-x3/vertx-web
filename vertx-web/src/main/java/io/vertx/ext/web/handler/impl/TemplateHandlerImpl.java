@@ -68,11 +68,20 @@ public class TemplateHandlerImpl implements TemplateHandler {
         break;
       }
     }
+    if (!context.request().isEnded()) {
+      context.request().pause();
+    }
     // render using the engine
     engine.render(new JsonObject(context.data()), templateDirectory + file, res -> {
       if (res.succeeded()) {
+        if (!context.request().isEnded()) {
+          context.request().resume();
+        }
         context.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType).end(res.result());
       } else {
+        if (!context.request().isEnded()) {
+          context.request().resume();
+        }
         context.fail(res.cause());
       }
     });

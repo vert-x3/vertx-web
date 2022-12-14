@@ -18,7 +18,6 @@ package io.vertx.ext.web.handler.graphql.impl.ws;
 
 import graphql.GraphQL;
 import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
@@ -29,7 +28,7 @@ import io.vertx.ext.web.handler.graphql.ws.Message;
 
 import java.util.Objects;
 
-import static io.vertx.core.http.HttpHeaders.*;
+import static io.vertx.ext.web.impl.Utils.canUpgradeToWebsocket;
 
 public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
 
@@ -76,17 +75,16 @@ public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
 
   @Override
   public void handle(RoutingContext rc) {
-    MultiMap headers = rc.request().headers();
-    if (headers.contains(CONNECTION) && headers.contains(UPGRADE, WEBSOCKET, true)) {
+    if (canUpgradeToWebsocket(rc.request())) {
       ContextInternal context = (ContextInternal) rc.vertx().getOrCreateContext();
-      rc.request().toWebSocket().onComplete(ar -> {
-        if (ar.succeeded()) {
-          ConnectionHandler handler = new ConnectionHandler(this, context, ar.result());
+      rc
+        .request()
+        .toWebSocket()
+        .onFailure(rc::fail)
+        .onSuccess(socket -> {
+          ConnectionHandler handler = new ConnectionHandler(this, context, socket);
           handler.handleConnection();
-        } else {
-          rc.fail(ar.cause());
-        }
-      });
+        });
     } else {
       rc.next();
     }

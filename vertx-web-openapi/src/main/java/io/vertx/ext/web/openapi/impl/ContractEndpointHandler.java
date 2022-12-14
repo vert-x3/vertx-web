@@ -1,10 +1,5 @@
 package io.vertx.ext.web.openapi.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
@@ -15,7 +10,11 @@ import io.vertx.ext.web.impl.ParsableMIMEValue;
 import io.vertx.ext.web.openapi.ErrorType;
 import io.vertx.ext.web.openapi.OpenAPIHolder;
 import io.vertx.ext.web.openapi.RouterBuilderException;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -60,18 +59,13 @@ public class ContractEndpointHandler implements Handler<RoutingContext> {
   }
 
   public static ContractEndpointHandler create(OpenAPIHolder holder) {
-    JsonObject openapi = holder.getOpenAPI();
-
-    ObjectMapper jsonMapper = new JsonMapper();
-    try {
-      JsonNode node = jsonMapper.readTree(openapi.toString());
-      ObjectMapper yamlMapper = new YAMLMapper();
-      byte[] yamlBytes = yamlMapper.writeValueAsBytes(node);
-      return new ContractEndpointHandler(openapi.toBuffer(), Buffer.buffer(yamlBytes));
-    } catch (JsonProcessingException e) {
-      e.printStackTrace();
-      throw new RouterBuilderException("Cannot generate yaml contract",
-        ErrorType.UNSUPPORTED_SPEC, e);
+    try (StringWriter writer = new StringWriter()) {
+      JsonObject openapi = holder.getOpenAPI();
+      Yaml yaml = new Yaml(new SafeConstructor());
+      yaml.dump(openapi.getMap(), writer);
+      return new ContractEndpointHandler(openapi.toBuffer(), Buffer.buffer(writer.toString()));
+    } catch (IOException | RuntimeException e) {
+      throw new RouterBuilderException("Cannot generate yaml contract", ErrorType.UNSUPPORTED_SPEC, e);
     }
   }
 

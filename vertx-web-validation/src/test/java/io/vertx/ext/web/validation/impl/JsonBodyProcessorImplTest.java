@@ -5,6 +5,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.DecodeException;
+import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.BodyProcessorException;
 import io.vertx.ext.web.validation.MalformedValueException;
@@ -38,6 +39,7 @@ class JsonBodyProcessorImplTest {
 
   @Mock RoutingContext mockedContext;
   @Mock HttpServerRequest mockerServerRequest;
+  @Mock RequestBody mockerRequestBody;
 
   @BeforeEach
   public void setUp(Vertx vertx) {
@@ -55,7 +57,8 @@ class JsonBodyProcessorImplTest {
 
   @Test
   public void testJsonObject(VertxTestContext testContext) {
-    when(mockedContext.getBody()).thenReturn(TestSchemas.VALID_OBJECT.toBuffer());
+    when(mockedContext.body()).thenReturn(mockerRequestBody);
+    when(mockerRequestBody.buffer()).thenReturn(TestSchemas.VALID_OBJECT.toBuffer());
 
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER).create(parser);
 
@@ -75,7 +78,8 @@ class JsonBodyProcessorImplTest {
   public void testInvalidJsonObject(VertxTestContext testContext) {
     when(mockerServerRequest.getHeader(HttpHeaders.CONTENT_TYPE)).thenReturn("application/json");
     when(mockedContext.request()).thenReturn(mockerServerRequest);
-    when(mockedContext.getBody()).thenReturn(TestSchemas.INVALID_OBJECT.toBuffer());
+    when(mockedContext.body()).thenReturn(mockerRequestBody);
+    when(mockerRequestBody.buffer()).thenReturn(TestSchemas.INVALID_OBJECT.toBuffer());
 
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER).create(parser);
 
@@ -92,7 +96,8 @@ class JsonBodyProcessorImplTest {
 
   @Test
   public void testJsonArray(VertxTestContext testContext) {
-    when(mockedContext.getBody()).thenReturn(TestSchemas.VALID_ARRAY.toBuffer());
+    when(mockedContext.body()).thenReturn(mockerRequestBody);
+    when(mockerRequestBody.buffer()).thenReturn(TestSchemas.VALID_ARRAY.toBuffer());
 
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_ARRAY_SCHEMA_BUILDER).create(parser);
 
@@ -112,7 +117,8 @@ class JsonBodyProcessorImplTest {
   public void testInvalidJsonArray(VertxTestContext testContext) {
     when(mockerServerRequest.getHeader(HttpHeaders.CONTENT_TYPE)).thenReturn("application/json");
     when(mockedContext.request()).thenReturn(mockerServerRequest);
-    when(mockedContext.getBody()).thenReturn(TestSchemas.INVALID_ARRAY.toBuffer());
+    when(mockedContext.body()).thenReturn(mockerRequestBody);
+    when(mockerRequestBody.buffer()).thenReturn(TestSchemas.INVALID_ARRAY.toBuffer());
 
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_ARRAY_SCHEMA_BUILDER).create(parser);
 
@@ -131,7 +137,8 @@ class JsonBodyProcessorImplTest {
   public void testMalformedJson() {
     when(mockerServerRequest.getHeader(HttpHeaders.CONTENT_TYPE)).thenReturn("application/json");
     when(mockedContext.request()).thenReturn(mockerServerRequest);
-    when(mockedContext.getBody()).thenReturn(Buffer.buffer("{\"a"));
+    when(mockedContext.body()).thenReturn(mockerRequestBody);
+    when(mockerRequestBody.buffer()).thenReturn(Buffer.buffer("{\"a"));
 
     BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_ARRAY_SCHEMA_BUILDER).create(parser);
 
@@ -143,7 +150,8 @@ class JsonBodyProcessorImplTest {
 
   @Test
   public void testNull(VertxTestContext testContext) {
-    when(mockedContext.getBody()).thenReturn(Buffer.buffer("null"));
+    when(mockedContext.body()).thenReturn(mockerRequestBody);
+    when(mockerRequestBody.buffer()).thenReturn(Buffer.buffer("null"));
 
     BodyProcessor processor = Bodies.json(schema().withKeyword("type", "null")).create(parser);
 
@@ -159,7 +167,8 @@ class JsonBodyProcessorImplTest {
   public void testNullBody() {
     when(mockerServerRequest.getHeader(HttpHeaders.CONTENT_TYPE)).thenReturn("application/json");
     when(mockedContext.request()).thenReturn(mockerServerRequest);
-    when(mockedContext.getBody()).thenReturn(null);
+    when(mockedContext.body()).thenReturn(mockerRequestBody);
+    when(mockerRequestBody.buffer()).thenReturn(null);
 
     BodyProcessor processor = Bodies.json(schema().withKeyword("type", "null")).create(parser);
 

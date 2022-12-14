@@ -14,6 +14,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.impl.RouteImpl;
 import io.vertx.ext.web.openapi.*;
@@ -50,23 +51,21 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
     };
   }
 
-  private Vertx vertx;
-  private OpenAPIHolder openapi;
+  private final Vertx vertx;
+  private final OpenAPIHolder openapi;
   private RouterBuilderOptions options;
-  private Map<String, OperationImpl> operations;
-  private BodyHandler bodyHandler;
-  private AuthenticationHandlersStore securityHandlers;
-  private List<Handler<RoutingContext>> globalHandlers;
+  private final Map<String, OperationImpl> operations;
+  private final AuthenticationHandlersStore securityHandlers;
+  private final List<Handler<RoutingContext>> globalHandlers;
   private Function<RoutingContext, JsonObject> serviceExtraPayloadMapper;
-  private SchemaRouter schemaRouter;
-  private OpenAPI3SchemaParser schemaParser;
-  private OpenAPI3ValidationHandlerGenerator validationHandlerGenerator;
+  private final SchemaRouter schemaRouter;
+  private final OpenAPI3SchemaParser schemaParser;
+  private final OpenAPI3ValidationHandlerGenerator validationHandlerGenerator;
 
   public OpenAPI3RouterBuilderImpl(Vertx vertx, HttpClient client, OpenAPIHolderImpl spec, OpenAPILoaderOptions options) {
     this.vertx = vertx;
     this.openapi = spec;
     this.options = new RouterBuilderOptions();
-    this.bodyHandler = BodyHandler.create();
     this.globalHandlers = new ArrayList<>();
     this.schemaRouter = SchemaRouter.create(vertx, client, vertx.fileSystem(), options.toSchemaRouterOptions());
     this.schemaParser = OpenAPI3SchemaParser.create(schemaRouter);
@@ -74,7 +73,7 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
     this.schemaParser.withStringFormatValidator("binary", v -> true);
     this.validationHandlerGenerator = new OpenAPI3ValidationHandlerGenerator(spec, schemaParser);
 
-    spec.getAbsolutePaths().forEach((u, jo) -> schemaRouter.addJson(u, jo));
+    spec.getAbsolutePaths().forEach(schemaRouter::addJson);
 
     // Load default generators
     this.validationHandlerGenerator
@@ -181,12 +180,6 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
   }
 
   @Override
-  public RouterBuilder bodyHandler(BodyHandler bodyHandler) {
-    this.bodyHandler = bodyHandler;
-    return this;
-  }
-
-  @Override
   public RouterBuilder rootHandler(Handler<RoutingContext> rootHandler) {
     this.globalHandlers.add(rootHandler);
     return this;
@@ -261,8 +254,9 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
   public Router createRouter() {
     Router router = Router.router(vertx);
     Route globalRoute = router.route();
-    if (bodyHandler != null) {
-      globalRoute.handler(bodyHandler);
+    if (globalHandlers.isEmpty()) {
+      // TODO: this is very opinionated
+      globalRoute.handler(BodyHandler.create());
     }
     globalHandlers.forEach(globalRoute::handler);
 
@@ -352,7 +346,7 @@ public class OpenAPI3RouterBuilderImpl implements RouterBuilder {
 
       String exposeConfigurationKey = this.getOptions().getOperationModelKey();
       if (exposeConfigurationKey != null)
-        route.handler(context -> context.put(exposeConfigurationKey, operation.getOperationModel()).next());
+        route.handler((PlatformHandler) context -> context.put(exposeConfigurationKey, operation.getOperationModel()).next());
 
       // Set produces/consumes
       Set<String> consumes = ((JsonObject) JsonPointer.from("/requestBody/content")

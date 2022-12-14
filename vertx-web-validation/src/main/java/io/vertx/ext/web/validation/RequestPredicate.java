@@ -5,7 +5,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 
-import java.util.Set;
+import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -40,7 +40,7 @@ public interface RequestPredicate extends Function<RoutingContext, RequestPredic
         rc.request().headers().contains(HttpHeaders.CONTENT_TYPE) &&
         rc.request().getHeader(HttpHeaders.CONTENT_TYPE).contains("multipart/form-data")
       ) {
-        Set<FileUpload> files = rc.fileUploads();
+        List<FileUpload> files = rc.fileUploads();
         for (FileUpload f : files) {
           if (f.name().equals(propertyName) && contentType.matcher(f.contentType()).matches()) return success();
         }

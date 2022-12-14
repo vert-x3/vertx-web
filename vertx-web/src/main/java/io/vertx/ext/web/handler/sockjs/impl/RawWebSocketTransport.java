@@ -34,21 +34,69 @@ package io.vertx.ext.web.handler.sockjs.impl;
 
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.net.impl.ConnectionBase;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.PlatformHandler;
+import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.impl.Origin;
-import io.vertx.ext.web.impl.Utils;
+
+import static io.vertx.core.http.HttpHeaders.*;
+import static io.vertx.ext.web.impl.Utils.canUpgradeToWebsocket;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 class RawWebSocketTransport {
+
+  private final Origin origin;
+  private final Vertx vertx;
+  private final SockJSHandlerOptions options;
+  private final Handler<SockJSSocket> sockHandler;
+
+  RawWebSocketTransport(Vertx vertx, Router router, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
+
+    this.vertx = vertx;
+    this.options = options;
+    this.origin = options.getOrigin() != null ? Origin.parse(options.getOrigin()) : null;
+    this.sockHandler = sockHandler;
+
+    router.get("/websocket")
+      .handler((ProtocolUpgradeHandler) this::handleGet);
+
+    router.route("/websocket")
+      .handler((PlatformHandler) rc -> rc.response().putHeader(ALLOW, "GET").setStatusCode(405).end());
+  }
+
+  private void handleGet(RoutingContext ctx) {
+    HttpServerRequest req = ctx.request();
+    if (!canUpgradeToWebsocket(req)) {
+      ctx.response().setStatusCode(400);
+      ctx.response().end("Can \"Upgrade\" only to \"WebSocket\".");
+      return;
+    }
+
+    if (!Origin.check(origin, ctx)) {
+      ctx.fail(403, new IllegalStateException("Invalid Origin"));
+      return;
+    }
+
+    // upgrade
+    req
+      .toWebSocket()
+      .onFailure(ctx::fail)
+      .onSuccess(socket -> {
+        // handle the sockjs session as usual
+        SockJSSocket sock = new RawWSSockJSSocket(vertx, ctx, options, socket);
+        sockHandler.handle(sock);
+      });
+  }
 
   private static class RawWSSockJSSocket extends SockJSSocketBase {
 
@@ -68,17 +116,20 @@ class RawWebSocketTransport {
       });
     }
 
+    @Override
     public SockJSSocket handler(Handler<Buffer> handler) {
       ws.binaryMessageHandler(handler);
       ws.textMessageHandler(textMessage -> handler.handle(Buffer.buffer(textMessage)));
       return this;
     }
 
+    @Override
     public SockJSSocket pause() {
       ws.pause();
       return this;
     }
 
+    @Override
     public SockJSSocket resume() {
       ws.resume();
       return this;
@@ -90,49 +141,50 @@ class RawWebSocketTransport {
       return this;
     }
 
-    private synchronized boolean canWrite(Handler<AsyncResult<Void>> handler) {
-      if (closed) {
-        if (handler != null) {
-          vertx.runOnContext(v -> handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION)));
-        }
-        return false;
+    @Override
+    public Future<Void> write(Buffer data) {
+      if (!closed) {
+        return ws.writeBinaryMessage(data);
       }
-      return true;
+      final Promise<Void> promise = ((VertxInternal) vertx).promise();
+      vertx.runOnContext(v -> promise.fail(ConnectionBase.CLOSED_EXCEPTION));
+      return promise.future();
     }
 
     @Override
-    public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
-      if (canWrite(handler)) {
-        ws.writeBinaryMessage(data, handler);
+    public Future<Void> write(String data) {
+      if (!closed) {
+        return ws.writeTextMessage(data);
       }
+      final Promise<Void> promise = ((VertxInternal) vertx).promise();
+      vertx.runOnContext(v -> promise.fail(ConnectionBase.CLOSED_EXCEPTION));
+      return promise.future();
     }
 
     @Override
-    public void write(String data, Handler<AsyncResult<Void>> handler) {
-      if (canWrite(handler)) {
-        ws.writeTextMessage(data, handler);
-      }
-    }
-
     public SockJSSocket setWriteQueueMaxSize(int maxQueueSize) {
       ws.setWriteQueueMaxSize(maxQueueSize);
       return this;
     }
 
+    @Override
     public boolean writeQueueFull() {
       return ws.writeQueueFull();
     }
 
+    @Override
     public SockJSSocket drainHandler(Handler<Void> handler) {
       ws.drainHandler(handler);
       return this;
     }
 
+    @Override
     public SockJSSocket exceptionHandler(Handler<Throwable> handler) {
       ws.exceptionHandler(handler);
       return this;
     }
 
+    @Override
     public SockJSSocket endHandler(Handler<Void> endHandler) {
       ws.endHandler(endHandler);
       return this;
@@ -144,6 +196,7 @@ class RawWebSocketTransport {
       return this;
     }
 
+    @Override
     public void close() {
       synchronized (this) {
         if (closed) {
@@ -155,10 +208,12 @@ class RawWebSocketTransport {
       ws.close();
     }
 
+    @Override
     public void closeAfterSessionExpired() {
       this.close((short) 1001, "Session expired");
     }
 
+    @Override
     public void close(int statusCode, String reason) {
       synchronized (this) {
         if (closed) {
@@ -193,44 +248,4 @@ class RawWebSocketTransport {
       return ws.uri();
     }
   }
-
-  RawWebSocketTransport(Vertx vertx, Router router, SockJSHandlerOptions options, Handler<SockJSSocket> sockHandler) {
-
-    final Origin origin = options.getOrigin() != null ? Origin.parse(options.getOrigin()) : null;
-    String wsRE = "/websocket";
-
-    router.get(wsRE).handler(ctx -> {
-      if (!Origin.check(origin, ctx)) {
-        ctx.fail(403, new IllegalStateException("Invalid Origin"));
-        return;
-      }
-      // we're about to upgrade the connection, which means an asynchronous
-      // operation. We have to pause the request otherwise we will loose the
-      // body of the request once the upgrade completes
-      final boolean parseEnded = ctx.request().isEnded();
-      if (!parseEnded) {
-        ctx.request().pause();
-      }
-      // upgrade
-      ctx.request().toWebSocket(toWebSocket -> {
-        if (toWebSocket.succeeded()) {
-          // resume the parsing
-          if (!parseEnded) {
-            ctx.request().resume();
-          }
-          // handle the sockjs session as usual
-          SockJSSocket sock = new RawWSSockJSSocket(vertx, ctx, options, toWebSocket.result());
-          sockHandler.handle(sock);
-        } else {
-          // the upgrade failed
-          ctx.fail(toWebSocket.cause());
-        }
-      });
-    });
-
-    router.get(wsRE).handler(rc -> rc.response().setStatusCode(400).end("Can \"Upgrade\" only to \"WebSocket\"."));
-
-    router.get(wsRE).handler(rc -> rc.response().putHeader(HttpHeaders.ALLOW, "GET").setStatusCode(405).end());
-  }
-
 }

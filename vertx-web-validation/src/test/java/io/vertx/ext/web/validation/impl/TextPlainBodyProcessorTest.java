@@ -3,6 +3,7 @@ package io.vertx.ext.web.validation.impl;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.BodyProcessorException;
 import io.vertx.ext.web.validation.MalformedValueException;
@@ -36,6 +37,8 @@ public class TextPlainBodyProcessorTest {
   RoutingContext mockedContext;
   @Mock
   HttpServerRequest mockerServerRequest;
+  @Mock
+  RequestBody mockedRequestBody;
 
   @BeforeEach
   public void setUp(Vertx vertx) {
@@ -45,7 +48,8 @@ public class TextPlainBodyProcessorTest {
 
   @Test
   public void testString(VertxTestContext testContext) {
-    when(mockedContext.getBodyAsString()).thenReturn(TestSchemas.VALID_STRING);
+    when(mockedContext.body()).thenReturn(mockedRequestBody);
+    when(mockedRequestBody.asString()).thenReturn(TestSchemas.VALID_STRING);
 
     BodyProcessor processor = Bodies.textPlain(TestSchemas.SAMPLE_STRING_SCHEMA_BUILDER).create(parser);
 
@@ -65,7 +69,7 @@ public class TextPlainBodyProcessorTest {
   public void testNullBody() {
     when(mockerServerRequest.getHeader(HttpHeaders.CONTENT_TYPE)).thenReturn("text/plain");
     when(mockedContext.request()).thenReturn(mockerServerRequest);
-    when(mockedContext.getBodyAsString()).thenReturn(null);
+    when(mockedContext.body()).thenReturn(mockedRequestBody);
 
     BodyProcessor processor = Bodies.textPlain(TestSchemas.SAMPLE_STRING_SCHEMA_BUILDER).create(parser);
 

@@ -79,9 +79,15 @@ public interface RouterBuilder {
    *
    * @param bodyHandler
    * @return self
+   *
+   * @deprecated Use {@link #rootHandler(Handler)} instead. The order matters, so adding the body handler should
+   * happen after any {@code PLATFORM} or {@code SECURITY_POLICY} handler(s).
    */
   @Fluent
-  RouterBuilder bodyHandler(@Nullable BodyHandler bodyHandler);
+  @Deprecated
+  default RouterBuilder bodyHandler(@Nullable BodyHandler bodyHandler) {
+    return rootHandler(bodyHandler);
+  }
 
   /**
    * Add global handler to be applied prior to {@link Router} being generated. <br/>
@@ -151,13 +157,21 @@ public interface RouterBuilder {
   OpenAPIHolder getOpenAPI();
 
   /**
+   * @deprecated This method exposes the internal of the OpenAPI handler, it will be removed in the future. Users should
+   * configure the json schema module from the options.
+   *
    * @return schema router used by self to internally manage all {@link io.vertx.json.schema.Schema} instances
    */
+  @Deprecated
   SchemaRouter getSchemaRouter();
 
   /**
+   * @deprecated This method exposes the internal of the OpenAPI handler, it will be removed in the future. Users should
+   * configure the json schema module from the options.
+   *
    * @return schema parser used by self to parse all {@link io.vertx.json.schema.Schema}
    */
+  @Deprecated
   SchemaParser getSchemaParser();
 
   /**

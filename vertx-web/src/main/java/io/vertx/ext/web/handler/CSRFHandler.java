@@ -2,9 +2,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.CSRFHandlerImpl;
 
 /**
@@ -15,10 +13,10 @@ import io.vertx.ext.web.handler.impl.CSRFHandlerImpl;
  *
  * This Handler requires session support, thus should be added somewhere below Session and Body handlers.
  *
- * @author Paulo Lopes
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface CSRFHandler extends Handler<RoutingContext> {
+public interface CSRFHandler extends InputTrustHandler {
 
   String DEFAULT_COOKIE_NAME = "XSRF-TOKEN";
 
@@ -79,6 +77,16 @@ public interface CSRFHandler extends Handler<RoutingContext> {
    */
   @Fluent
   CSRFHandler setCookieHttpOnly(boolean httpOnly);
+
+  /**
+   * Sets the cookie {@code secure} flag. When set this flag instructs browsers to only send the cookie over HTTPS.
+   *
+   *
+   * @param secure true to set the secure flag on the cookie
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  CSRFHandler setCookieSecure(boolean secure);
 
   /**
    * Set the header name. By default X-XSRF-TOKEN is used as it is the expected name by AngularJS however other

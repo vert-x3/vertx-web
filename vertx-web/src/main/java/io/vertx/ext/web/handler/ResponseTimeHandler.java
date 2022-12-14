@@ -17,8 +17,6 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.ResponseTimeHandlerImpl;
 
 /**
@@ -28,7 +26,7 @@ import io.vertx.ext.web.handler.impl.ResponseTimeHandlerImpl;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface ResponseTimeHandler extends Handler<RoutingContext> {
+public interface ResponseTimeHandler extends PlatformHandler {
 
   /**
    * Create a handler

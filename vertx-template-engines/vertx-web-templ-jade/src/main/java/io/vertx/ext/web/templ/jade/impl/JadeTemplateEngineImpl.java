@@ -37,7 +37,10 @@ import java.util.Map;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
+ *
+ * @deprecated Use PugTemplateEngineImpl instead; Jade4J has been renamed to Pug4J.
  */
+@Deprecated
 public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> implements JadeTemplateEngine {
 
   private final JadeConfiguration config = new JadeConfiguration();

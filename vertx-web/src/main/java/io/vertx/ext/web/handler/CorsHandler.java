@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Red Hat, Inc.
+ * Copyright 2022 Red Hat, Inc.
  *
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
@@ -18,9 +18,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.CorsHandlerImpl;
 
 import java.util.List;
@@ -30,19 +28,28 @@ import java.util.Set;
  * A handler which implements server side http://www.w3.org/TR/cors/[CORS] support for Vert.x-Web.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface CorsHandler extends Handler<RoutingContext> {
+public interface CorsHandler extends SecurityPolicyHandler {
 
   /**
+   * @deprecated patterns should use the relative origin method.
+   *
    * Create a CORS handler using a regular expression to match origins. An origin follows rfc6454#section-7
    * and is expected to have the format: {@code <scheme> "://" <hostname> [ ":" <port> ]}
    *
    * @param allowedOriginPattern  the allowed origin pattern
    * @return  the handler
    */
+  @Deprecated
   static CorsHandler create(String allowedOriginPattern) {
-    return new CorsHandlerImpl(allowedOriginPattern);
+    // restore old behavior
+    if ("*".equals(allowedOriginPattern)) {
+      allowedOriginPattern = ".*";
+    }
+    return create()
+      .addRelativeOrigin(allowedOriginPattern);
   }
 
   /**
@@ -61,6 +68,24 @@ public interface CorsHandler extends Handler<RoutingContext> {
    */
   @Fluent
   CorsHandler addOrigin(String origin);
+
+  /**
+   * Set the list of allowed relative origins.
+   * A relative origin is a regex that should match the format {@code <scheme> "://" <hostname> [ ":" <port> ]}.
+   * @param origins the well formatted relative origin list
+   * @return self
+   */
+  @Fluent
+  CorsHandler addRelativeOrigins(List<String> origins);
+
+  /**
+   * Add a relative origin to the list of allowed Origins.
+   * A relative origin is a regex that should match the format {@code <scheme> "://" <hostname> [ ":" <port> ]}.
+   * @param origin the well formatted static origin
+   * @return self
+   */
+  @Fluent
+  CorsHandler addRelativeOrigin(String origin);
 
   /**
    * Set the list of allowed origins. An origin follows rfc6454#section-7
@@ -150,5 +175,15 @@ public interface CorsHandler extends Handler<RoutingContext> {
    */
   @Fluent
   CorsHandler maxAgeSeconds(int maxAgeSeconds);
+
+  /**
+   * Set whether access from public to private networks are allowed.
+   * Defaults to false
+   *
+   * @param allow true if allowed
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  CorsHandler allowPrivateNetwork(boolean allow);
 
 }

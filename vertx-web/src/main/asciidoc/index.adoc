@@ -133,7 +133,9 @@ Here's the 10000 foot view:
 A {@link io.vertx.ext.web.Router} is one of the core concepts of Vert.x-Web. It's an object which maintains zero or more
 {@link io.vertx.ext.web.Route Routes}.
 
-A router takes an HTTP request and finds the first matching route for that request, and passes the request to that route.
+A router will pause the incoming {@link io.vertx.core.http.HttpServerRequest}, to ensure that the request body or any
+protocol upgrades are not lost. Second, it will find the first matching route for that request, and passes the request
+to that route.
 
 The route can have a _handler_ associated with it, which then receives the request. You then _do something_ with the
 request, and then, either end it or pass it to the next matching handler.
@@ -862,20 +864,12 @@ file uploads.
 
 You should make sure a body handler is on a matching route for any requests that require this functionality.
 
-The usage of this handler requires that it is installed as soon as possible in the router since it needs
-to install handlers to consume the HTTP request body and this must be done before executing any async call.
+The usage of this handler requires that it is installed as soon as possible. The handler will resume the
+{@link io.vertx.core.http.HttpServerRequest} processing, since it installs handlers to consume the HTTP request body.
 
 [source,$lang]
 ----
 {@link examples.WebExamples#example27}
-----
-
-If an async call is required before, the `HttpServerRequest` should be paused and then resumed so that the request
-events are not delivered until the body handler is ready to process them.
-
-[source,$lang]
-----
-{@link examples.WebExamples#example27_1}
 ----
 
 NOTE: Uploads can be a source of DDoS attacks, in order to reduce the attack surface, it is recommended to
@@ -969,7 +963,7 @@ HTTPS when sessions are being used. Vert.x will warn you if you attempt to use s
 To enable sessions in your application you must have a {@link io.vertx.ext.web.handler.SessionHandler}
 on a matching route before your application logic.
 
-The session handler handles the creation of session cookies and the lookup of the session so you don't have to do
+The session handler handles the creation of session cookies and the lookup of the session, so you don't have to do
 that yourself.
 
 Sessions data is saved to a session store automatically after the response headers have been sent to the client.
@@ -1095,7 +1089,7 @@ distributing different requests from the same browser to different servers.
 As the session is stored in the Cookie, this means sessions survive server crashes too.
 
 A second known implementation is the Redis session store. This store works just like the normal cluster store, however
-just like it's name suggests, it uses a redis backend to keep the session data centralized.
+just like its name suggests, it uses a redis backend to keep the session data centralized.
 
 Also, there is the Infinispan session store (details below).
 
@@ -1121,6 +1115,10 @@ Here's an example:
 The session handler will ensure that your session is automatically looked up (or created if no session exists)
 from the session store and set on the routing context before it gets to your application handlers.
 
+By default, the session handler will always add a session cookie to the HTTP response, even if the session has not been
+accessed by your application. To create the session cookie only when the session has been used, use
+`sessionHandler.setLazySession(true)`.
+
 === Using the session
 
 In your handlers you can access the session instance with {@link io.vertx.ext.web.RoutingContext#session()}.
@@ -1140,7 +1138,7 @@ Here's an example of manipulating session data:
 {@link examples.WebExamples#example34}
 ----
 
-Sessions are automatically written back to the store after after responses are complete.
+Sessions are automatically written back to the store after responses are complete.
 
 You can manually destroy a session using {@link io.vertx.ext.web.Session#destroy()}. This will remove the session
 from the context and the session store. Note that if there is no session a new one will be automatically created

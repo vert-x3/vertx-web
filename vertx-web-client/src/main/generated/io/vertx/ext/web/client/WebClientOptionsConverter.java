@@ -25,6 +25,11 @@ public class WebClientOptionsConverter {
             obj.setFollowRedirects((Boolean)member.getValue());
           }
           break;
+        case "templateExpandOptions":
+          if (member.getValue() instanceof JsonObject) {
+            obj.setTemplateExpandOptions(new io.vertx.uritemplate.ExpandOptions((io.vertx.core.json.JsonObject)member.getValue()));
+          }
+          break;
         case "userAgent":
           if (member.getValue() instanceof String) {
             obj.setUserAgent((String)member.getValue());
@@ -45,6 +50,9 @@ public class WebClientOptionsConverter {
 
   public static void toJson(WebClientOptions obj, java.util.Map<String, Object> json) {
     json.put("followRedirects", obj.isFollowRedirects());
+    if (obj.getTemplateExpandOptions() != null) {
+      json.put("templateExpandOptions", obj.getTemplateExpandOptions().toJson());
+    }
     if (obj.getUserAgent() != null) {
       json.put("userAgent", obj.getUserAgent());
     }

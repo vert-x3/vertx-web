@@ -16,6 +16,8 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.client.impl.WebClientSessionAware;
 import io.vertx.ext.web.client.spi.CookieStore;
 
+import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
+
 /**
  * An asynchronous sessions aware HTTP / HTTP/2 client called {@code WebClientSession}.
  * <p>
@@ -56,7 +58,7 @@ public interface WebClientSession extends WebClient {
    * @param webClient the web client instance
    * @return the created client
    */
-  @GenIgnore
+  @GenIgnore(PERMITTED_TYPE)
   static WebClientSession create(WebClient webClient, CookieStore cookieStore) {
     return new WebClientSessionAware(webClient, cookieStore);
   }
@@ -69,7 +71,7 @@ public interface WebClientSession extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  @GenIgnore
+  @GenIgnore(PERMITTED_TYPE)
   WebClientSession addHeader(CharSequence name, CharSequence value);
 
   /**
@@ -90,7 +92,7 @@ public interface WebClientSession extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  @GenIgnore
+  @GenIgnore(PERMITTED_TYPE)
   WebClientSession addHeader(CharSequence name, Iterable<CharSequence> values);
 
   /**
@@ -101,7 +103,7 @@ public interface WebClientSession extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  @GenIgnore
+  @GenIgnore(PERMITTED_TYPE)
   WebClientSession addHeader(String name, Iterable<String> values);
 
   /**
@@ -111,7 +113,7 @@ public interface WebClientSession extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  @GenIgnore
+  @GenIgnore(PERMITTED_TYPE)
   WebClientSession removeHeader(CharSequence name);
 
   /**
@@ -131,6 +133,6 @@ public interface WebClientSession extends WebClient {
    * and is automatically updated with cookies present in responses received by this client.
    * @return this client's cookie store
    */
-  @GenIgnore
+  @GenIgnore(PERMITTED_TYPE)
   CookieStore cookieStore();
 }

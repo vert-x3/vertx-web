@@ -19,7 +19,7 @@ package io.vertx.ext.web.sstore.impl;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.shareddata.Shareable;
-import io.vertx.core.shareddata.impl.ClusterSerializable;
+import io.vertx.core.shareddata.ClusterSerializable;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.sstore.AbstractSession;

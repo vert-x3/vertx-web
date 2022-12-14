@@ -67,6 +67,11 @@ public class Utils {
   public static String pathOffset(String path, RoutingContext context) {
     final Route route = context.currentRoute();
 
+    // cannot make any assumptions
+    if (route == null) {
+      return path;
+    }
+
     if (!route.isExactPath()) {
       final String rest = context.pathParam("*");
       if (rest != null) {
@@ -222,5 +227,27 @@ public class Utils {
     }
 
     return true;
+  }
+
+  public static boolean canUpgradeToWebsocket(HttpServerRequest req) {
+    // verify if we can upgrade
+    // 1. Connection header contains "Upgrade"
+    // 2. Upgrade header is "websocket"
+    final MultiMap headers = req.headers();
+    if (headers.contains(HttpHeaders.CONNECTION)) {
+      for (String connection : headers.getAll(HttpHeaders.CONNECTION)) {
+        if (connection.toLowerCase().contains(HttpHeaders.UPGRADE)) {
+          if (headers.contains(HttpHeaders.UPGRADE)) {
+            for (String upgrade : headers.getAll(HttpHeaders.UPGRADE)) {
+              if (upgrade.toLowerCase().contains(HttpHeaders.WEBSOCKET)) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return false;
   }
 }

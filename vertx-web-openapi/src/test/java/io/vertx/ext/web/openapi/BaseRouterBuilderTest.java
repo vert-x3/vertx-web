@@ -58,6 +58,7 @@ public abstract class BaseRouterBuilderTest {
     try {
       router = factory.createRouter();
     } catch (Throwable e) {
+      e.printStackTrace();
       return Future.failedFuture(e);
     }
     ValidationTestUtils.mountRouterFailureHandler(router);

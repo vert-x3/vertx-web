@@ -22,7 +22,7 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.sockjs.impl.SockJSHandlerImpl;
+import io.vertx.ext.web.handler.sockjs.impl.SockJSImpl;
 
 /**
  *
@@ -44,7 +44,7 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static SockJSHandler create(Vertx vertx) {
-    return new SockJSHandlerImpl(vertx, new SockJSHandlerOptions());
+    return create(vertx, new SockJSHandlerOptions());
   }
 
   /**
@@ -55,7 +55,7 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static SockJSHandler create(Vertx vertx, SockJSHandlerOptions options) {
-    return new SockJSHandlerImpl(vertx, options);
+    return new SockJSImpl(vertx, options);
   }
 
   /**
@@ -77,7 +77,6 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    */
   default Router bridge(SockJSBridgeOptions bridgeOptions) {
     return bridge(null, bridgeOptions, null);
-
   }
 
   /**
@@ -103,7 +102,7 @@ public interface SockJSHandler extends Handler<RoutingContext> {
 
   /**
    * @deprecated mount the router as a sub-router instead. This method will not properly handle errors.
-   * @param routingContext the rounting context
+   * @param routingContext the routing context
    */
   @Deprecated
   void handle(RoutingContext routingContext);

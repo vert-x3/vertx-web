@@ -64,6 +64,7 @@ public class RouterImpl implements Router {
     if (LOG.isTraceEnabled()) {
       LOG.trace("Router: " + System.identityHashCode(this) + " accepting request " + request.method() + " " + request.absoluteURI());
     }
+
     new RoutingContextImpl(null, this, request, state.getRoutes()).next();
   }
 
@@ -245,12 +246,14 @@ public class RouterImpl implements Router {
 
   @Override
   public void handleContext(RoutingContext ctx) {
-    new RoutingContextWrapper(getAndCheckRoutePath(ctx), state.getRoutes(), (RoutingContextInternal) ctx, this).next();
+    final RoutingContextInternal ctxi = (RoutingContextInternal) ctx;
+    new RoutingContextWrapper(getAndCheckRoutePath(ctxi), state.getRoutes(), ctxi, this).next();
   }
 
   @Override
   public void handleFailure(RoutingContext ctx) {
-    new RoutingContextWrapper(getAndCheckRoutePath(ctx), state.getRoutes(), (RoutingContextInternal) ctx, this).next();
+    final RoutingContextInternal ctxi = (RoutingContextInternal) ctx;
+    new RoutingContextWrapper(getAndCheckRoutePath(ctxi), state.getRoutes(), ctxi, this).next();
   }
 
   @Override
@@ -288,6 +291,7 @@ public class RouterImpl implements Router {
   }
 
   @Override
+  @Deprecated
   public Route mountSubRouter(String mountPoint, Router subRouter) {
     if (mountPoint.endsWith("*")) {
       throw new IllegalArgumentException("Don't include * when mounting a sub router");
@@ -331,8 +335,7 @@ public class RouterImpl implements Router {
     return state.getErrorHandler(statusCode);
   }
 
-  private String getAndCheckRoutePath(RoutingContext routingContext) {
-    final RoutingContextImplBase ctx = (RoutingContextImplBase) routingContext;
+  private String getAndCheckRoutePath(RoutingContextInternal ctx) {
     final Route route = ctx.currentRoute();
 
     if (!route.isRegexPath()) {
@@ -345,16 +348,9 @@ public class RouterImpl implements Router {
       }
     }
     // regex
-    if (ctx.matchRest != -1) {
-      if (ctx.matchNormalized) {
-        return ctx.normalizedPath().substring(0, ctx.matchRest);
-      } else {
-        String path = ctx.request().path();
-        if (path != null) {
-          return path.substring(0, ctx.matchRest);
-        }
-        return null;
-      }
+    if (ctx.restIndex() != -1) {
+      // if we're on a sub router already we need to skip the matched path
+      return ctx.basePath();
     } else {
       // failure did not match
       throw new IllegalStateException("Sub routers must be mounted on paths (constant or parameterized)");

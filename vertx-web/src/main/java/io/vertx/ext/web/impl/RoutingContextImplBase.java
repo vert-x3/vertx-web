@@ -18,6 +18,7 @@ package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Route;
@@ -25,6 +26,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.HttpException;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -54,9 +56,11 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   int matchFailure;
   // the current path matched string
   int matchRest = -1;
-  boolean matchNormalized;
+  boolean normalizedMatch;
   // internal runtime state
   private volatile long seen;
+
+  protected Set<HttpMethod> allowedMethods = new HashSet<>();
 
   RoutingContextImplBase(String mountPoint, Set<RouteImpl> routes, Router currentRouter) {
     this.mountPoint = mountPoint;
@@ -76,6 +80,16 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   @Override
   public boolean seenHandler(int id) {
     return (seen & id) != 0;
+  }
+
+  @Override
+  public int restIndex() {
+    return matchRest;
+  }
+
+  @Override
+  public boolean normalizedMatch() {
+    return normalizedMatch;
   }
 
   @Override
@@ -169,6 +183,8 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
           }
           return true;
         } else if (matchResult == 405) {
+          //We need to add supported methods for route in case we need to send 405 at end
+          allowedMethods.addAll(routeState.getMethods());
           // invalid method match, means that
           // we should "update" the failure if not found to be invalid method
           if (this.matchFailure == 404) {

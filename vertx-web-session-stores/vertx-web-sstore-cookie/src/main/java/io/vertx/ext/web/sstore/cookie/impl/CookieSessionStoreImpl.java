@@ -16,10 +16,9 @@
 package io.vertx.ext.web.sstore.cookie.impl;
 
 import io.vertx.codegen.annotations.Nullable;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.Session;
@@ -47,11 +46,13 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
 
   private Mac mac;
   private VertxContextPRNG random;
+  private ContextInternal ctx;
 
   @Override
   public SessionStore init(Vertx vertx, JsonObject options) {
     // initialize a secure random
     this.random = VertxContextPRNG.current(vertx);
+    this.ctx = (ContextInternal) vertx.getOrCreateContext();
 
     try {
       mac = Mac.getInstance("HmacSHA256");
@@ -79,58 +80,56 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
   }
 
   @Override
-  public void get(String cookieValue, Handler<AsyncResult<@Nullable Session>> resultHandler) {
+  public Future<@Nullable Session> get(String cookieValue) {
     try {
       Session session = new CookieSession(mac, random).setValue(cookieValue);
 
       if (session == null) {
-        resultHandler.handle(Future.succeededFuture());
-        return;
+        return ctx.succeededFuture();
       }
 
       // need to validate for expired
       long now = System.currentTimeMillis();
       // if expired, the operation succeeded, but returns null
       if (now - session.lastAccessed() > session.timeout()) {
-        resultHandler.handle(Future.succeededFuture());
+        return ctx.succeededFuture();
       } else {
         // return the already recreated session
-        resultHandler.handle(Future.succeededFuture(session));
+        return ctx.succeededFuture(session);
       }
     } catch (RuntimeException e) {
-      resultHandler.handle(Future.failedFuture(e));
+      return Future.failedFuture(e);
     }
   }
 
   @Override
-  public void delete(String id, Handler<AsyncResult<Void>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture());
+  public Future<Void> delete(String id) {
+    return ctx.succeededFuture();
   }
 
   @Override
-  public void put(Session session, Handler<AsyncResult<Void>> resultHandler) {
+  public Future<Void> put(Session session) {
     final CookieSession cookieSession = (CookieSession) session;
 
     if (cookieSession.oldVersion() != -1) {
       // there was already some stored data in this case we need to validate versions
       if (cookieSession.oldVersion() != cookieSession.version()) {
-        resultHandler.handle(Future.failedFuture("Version mismatch"));
-        return;
+        return Future.failedFuture("Session version mismatch");
       }
     }
 
     cookieSession.incrementVersion();
-    resultHandler.handle(Future.succeededFuture());
+    return ctx.succeededFuture();
   }
 
   @Override
-  public void clear(Handler<AsyncResult<Void>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture());
+  public Future<Void> clear() {
+    return ctx.succeededFuture();
   }
 
   @Override
-  public void size(Handler<AsyncResult<Integer>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(0));
+  public Future<Integer> size() {
+    return ctx.succeededFuture(0);
   }
 
   @Override

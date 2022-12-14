@@ -1,0 +1,44 @@
+openapi: 3.0.0
+
+info:
+  version: 1.0.0
+  title: Test for auth scopes
+  license:
+    name: Apache 2.0 License
+
+paths:
+  /two_scopes_required:
+    get:
+      operationId: twoScopesRequired
+      security:
+        - bearerAuth:
+            - read
+            - write
+      responses:
+        200:
+          description: Something
+
+  /one_scope_required:
+    get:
+      operationId: oneScopeRequired
+      security:
+        - bearerAuth:
+            - read
+      responses:
+        200:
+          description: Something
+
+  /no_scopes:
+    get:
+      operationId: noScopesRequired
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Something
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer

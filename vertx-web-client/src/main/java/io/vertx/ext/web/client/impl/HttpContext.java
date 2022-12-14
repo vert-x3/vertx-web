@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Red Hat, Inc.
+ * Copyright 2022 Red Hat, Inc.
  *
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
@@ -15,38 +15,26 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import io.netty.handler.codec.http.QueryStringEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.http.impl.HttpClientImpl;
+import io.vertx.core.http.impl.HttpClientInternal;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.spi.CacheStore;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.ext.web.multipart.MultipartForm;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+
+import java.util.*;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -54,7 +42,8 @@ import java.util.Objects;
 public class HttpContext<T> {
 
   private final Handler<AsyncResult<HttpResponse<T>>> handler;
-  private final HttpClientImpl client;
+  private final HttpClientInternal client;
+  private final WebClientOptions options;
   private final List<Handler<HttpContext<?>>> interceptors;
   private Context context;
   private HttpRequestImpl<T> request;
@@ -75,10 +64,18 @@ public class HttpContext<T> {
   private List<String> redirectedLocations = Collections.emptyList();
   private CacheStore privateCacheStore;
 
-  HttpContext(HttpClientImpl client, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
+  HttpContext(HttpClientInternal client, WebClientOptions options, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.handler = handler;
     this.client = client;
+    this.options = options;
     this.interceptors = interceptors;
+  }
+
+  /**
+   * @return a duplicate of this context
+   */
+  public HttpContext<T> duplicate() {
+    return new HttpContext<>(client, options, interceptors, handler);
   }
 
   /**
@@ -255,7 +252,7 @@ public class HttpContext<T> {
    */
   public void receiveResponse(HttpClientResponse clientResponse) {
     int sc = clientResponse.statusCode();
-    int maxRedirects = request.followRedirects ? client.getOptions().getMaxRedirects(): 0;
+    int maxRedirects = request.followRedirects() ? client.options().getMaxRedirects() : 0;
     this.clientResponse = clientResponse;
     if (redirects < maxRedirects && sc >= 300 && sc < 400) {
       redirects++;
@@ -401,63 +398,24 @@ public class HttpContext<T> {
   }
 
   private void handlePrepareRequest() {
-    context = client.getVertx().getOrCreateContext();
-    String requestURI;
-    if (request.params != null && request.params.size() > 0) {
-      QueryStringEncoder enc = new QueryStringEncoder(request.uri);
-      request.params.forEach(param -> enc.addParam(param.getKey(), param.getValue()));
-      requestURI = enc.toString();
-    } else {
-      requestURI = request.uri;
-    }
-    int port = request.port();
-    String host = request.host();
-    RequestOptions options = new RequestOptions();
-    if (request.ssl != null && request.ssl != request.options.isSsl()) {
-      options.setServer(request.serverAddress)
-        .setMethod(request.method)
-        .setSsl(request.ssl)
-        .setHost(host)
-        .setPort(port)
-        .setURI(requestURI);
-    } else {
-      if (request.protocol != null && !request.protocol.equals("http") && !request.protocol.equals("https")) {
-        // we have to create an abs url again to parse it in HttpClient
-        try {
-          URI uri = new URI(request.protocol, null, host, port, requestURI, null, null);
-          options.setServer(request.serverAddress)
-            .setMethod(request.method)
-            .setAbsoluteURI(uri.toString());
-        } catch (URISyntaxException ex) {
-          fail(ex);
-          return;
-        }
-      } else {
-        options.setServer(request.serverAddress)
-          .setMethod(request.method)
-          .setHost(host)
-          .setPort(port)
-          .setURI(requestURI);
-      }
-    }
+    context = client.vertx().getOrCreateContext();
     redirects = 0;
-    if (request.virtualHost != null) {
-      if (options.getServer() == null) {
-        options.setServer(SocketAddress.inetSocketAddress(options.getPort(), options.getHost()));
-      }
-      options.setHost(request.virtualHost);
+    RequestOptions requestOptions;
+    try {
+      requestOptions = request.buildRequestOptions();
+    } catch (Exception e) {
+      fail(e);
+      return;
     }
-    request.mergeHeaders(options);
     if (contentType != null) {
-      String prev = options.getHeaders().get(HttpHeaders.CONTENT_TYPE);
+      String prev = requestOptions.getHeaders().get(HttpHeaders.CONTENT_TYPE);
       if (prev == null) {
-        options.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
+        requestOptions.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
       } else {
         contentType = prev;
       }
     }
-    options.setTimeout(request.timeout);
-    createRequest(options);
+    createRequest(requestOptions);
   }
 
   private void handleCreateRequest() {
@@ -467,7 +425,7 @@ public class HttpContext<T> {
         MultipartFormUpload multipartForm;
         try {
           boolean multipart = "multipart/form-data".equals(contentType);
-          HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
+          HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed() ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
           multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
           this.body = multipartForm;
         } catch (Exception e) {
@@ -558,7 +516,7 @@ public class HttpContext<T> {
       }
     });
     Pipe<Buffer> pipe = resp.pipe();
-    request.codec.create(ar1 -> {
+    request.bodyCodec().create(ar1 -> {
       if (ar1.succeeded()) {
         BodyStream<T> stream = ar1.result();
         pipe.to(stream, ar2 -> {

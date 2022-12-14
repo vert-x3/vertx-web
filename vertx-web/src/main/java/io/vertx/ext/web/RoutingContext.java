@@ -21,6 +21,7 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.MimeMapping;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -33,7 +34,6 @@ import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
@@ -264,22 +264,34 @@ public interface RoutingContext {
   Map<String, io.vertx.core.http.Cookie> cookieMap();
 
   /**
+   * @deprecated Use {@link #body()} instead.
+   *
    * @return  the entire HTTP request body as a string, assuming UTF-8 encoding if the request does not provide the
    * content type charset attribute. If a charset is provided in the request that it shall be respected. The context
    * must have first been routed to a {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    */
-  @Nullable String getBodyAsString();
+  @Deprecated
+  default @Nullable String getBodyAsString() {
+    return body().asString();
+  }
 
   /**
+   * @deprecated Use {@link #body()} instead.
+   *
    * Get the entire HTTP request body as a string, assuming the specified encoding. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    *
    * @param encoding  the encoding, e.g. "UTF-16"
    * @return the body
    */
-  @Nullable String getBodyAsString(String encoding);
+  @Deprecated
+  default @Nullable String getBodyAsString(String encoding) {
+    return body().asString(encoding);
+  }
 
   /**
+   * @deprecated Use {@link #body()} instead.
+   *
    * Gets the current body buffer as a {@link JsonObject}. If a positive limit is provided the parsing will only happen
    * if the buffer length is smaller or equal to the limit. Otherwise an {@link IllegalStateException} is thrown.
    *
@@ -296,9 +308,14 @@ public interface RoutingContext {
    * <br/>
    * When the body is {@code null} or the {@code "null"} JSON literal then {@code null} is returned.
    */
-  @Nullable JsonObject getBodyAsJson(int maxAllowedLength);
+  @Deprecated
+  default @Nullable JsonObject getBodyAsJson(int maxAllowedLength) {
+    return body().asJsonObject(maxAllowedLength);
+  }
 
   /**
+   * @deprecated Use {@link #body()} instead.
+   *
    * Gets the current body buffer as a {@link JsonArray}. If a positive limit is provided the parsing will only happen
    * if the buffer length is smaller or equal to the limit. Otherwise an {@link IllegalStateException} is thrown.
    *
@@ -315,39 +332,55 @@ public interface RoutingContext {
    * <br/>
    * When the body is {@code null} or the {@code "null"} JSON literal then {@code null} is returned.
    */
-  @Nullable JsonArray getBodyAsJsonArray(int maxAllowedLength);
+  @Deprecated
+  default @Nullable JsonArray getBodyAsJsonArray(int maxAllowedLength) {
+    return body().asJsonArray(maxAllowedLength);
+  }
 
   /**
+   * @deprecated Use {@link #body()} instead.
+   *
    * @return Get the entire HTTP request body as a {@link JsonObject}. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    * <br/>
    * When the body is {@code null} or the {@code "null"} JSON literal then {@code null} is returned.
    */
+  @Deprecated
   default @Nullable JsonObject getBodyAsJson() {
-    return getBodyAsJson(-1);
+    return body().asJsonObject();
   }
 
   /**
+   * @deprecated Use {@link #body()} instead.
+   *
    * @return Get the entire HTTP request body as a {@link JsonArray}. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    * <br/>
    * When the body is {@code null} or the {@code "null"} JSON literal then {@code null} is returned.
    */
+  @Deprecated
   default @Nullable JsonArray getBodyAsJsonArray() {
-    return getBodyAsJsonArray(-1);
+    return body().asJsonArray();
   }
 
   /**
+   * @deprecated Use {@link #body()} instead.
+   *
    * @return Get the entire HTTP request body as a {@link Buffer}. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    */
-  @Nullable Buffer getBody();
+  @Deprecated
+  default @Nullable Buffer getBody() {
+    return body().buffer();
+  }
+
+  RequestBody body();
 
   /**
-   * @return a set of fileuploads (if any) for the request. The context must have first been routed to a
+   * @return a list of {@link FileUpload} (if any) for the request. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to work.
    */
-  Set<FileUpload> fileUploads();
+  List<FileUpload> fileUploads();
 
   /**
    * Get the session. The context must have first been routed to a {@link io.vertx.ext.web.handler.SessionHandler}
@@ -492,17 +525,21 @@ public interface RoutingContext {
   boolean failed();
 
   /**
+   * @deprecated This method is internal. Users that really need to use it should refer to {@link io.vertx.ext.web.impl.RoutingContextInternal#setBody(Buffer)}
    * Set the body. Used by the {@link io.vertx.ext.web.handler.BodyHandler}. You will not normally call this method.
    *
    * @param body  the body
    */
+  @Deprecated
   void setBody(Buffer body);
 
   /**
+   * @deprecated This method is internal. Users that really need to use it should refer to {@link io.vertx.ext.web.impl.RoutingContextInternal#setSession(Session)}
    * Set the session. Used by the {@link io.vertx.ext.web.handler.SessionHandler}. You will not normally call this method.
    *
    * @param session  the session
    */
+  @Deprecated
   void setSession(Session session);
 
   /**
@@ -692,37 +729,42 @@ public interface RoutingContext {
 
   /**
    * Encode an Object to JSON and end the request.
-   * The method will apply the correct content type to the response,
-   * perform the encoding and end.
-   *
+   * When {@code Content-Type} is not set then correct {@code Content-Type} will be applied to the response
    * @param json the json
    * @return a future to handle the end of the request
    */
   default Future<Void> json(Object json) {
     final HttpServerResponse res = response();
+    final boolean hasContentType = res.headers().contains(HttpHeaders.CONTENT_TYPE);
 
     if (json == null) {
       // http://www.iana.org/assignments/media-types/application/json
       // No "charset" parameter is defined for this registration.
       // Adding one really has no effect on compliant recipients.
-      res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+
+      // apply the content type header only if content type header is not set
+      if(!hasContentType) {
+        res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+      }
       return res.end("null");
     } else {
       try {
         Buffer buffer = Json.encodeToBuffer(json);
-        // apply the content type header only if the encoding succeeds
-
         // http://www.iana.org/assignments/media-types/application/json
         // No "charset" parameter is defined for this registration.
         // Adding one really has no effect on compliant recipients.
-        res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+
+        // apply the content type header only if the encoding succeeds and content type header is not set
+        if(!hasContentType) {
+          res.putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+        }
         return res.end(buffer);
       } catch (EncodeException | UnsupportedOperationException e) {
         // handle the failure
         fail(e);
         // as the operation failed return a failed future
         // this is purely a notification
-        return Future.failedFuture(e);
+        return ((ContextInternal) vertx().getOrCreateContext()).failedFuture(e);
       }
     }
   }

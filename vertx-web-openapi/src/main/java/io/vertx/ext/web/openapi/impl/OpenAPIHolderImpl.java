@@ -1,6 +1,5 @@
 package io.vertx.ext.web.openapi.impl;
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.netty.handler.codec.http.QueryStringEncoder;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -9,6 +8,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.*;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
@@ -22,11 +22,14 @@ import io.vertx.json.schema.SchemaRouter;
 import io.vertx.json.schema.common.SchemaURNId;
 import io.vertx.json.schema.common.URIUtils;
 import io.vertx.json.schema.draft7.Draft7SchemaParser;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -44,7 +47,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   private URI initialScope;
   private String initialScopeDirectory;
   private final Map<URI, Future<JsonObject>> externalSolvingRefs;
-  private final YAMLMapper yamlMapper;
+  private final Yaml yamlMapper;
   private JsonObject openapiRoot;
 
   public OpenAPIHolderImpl(Vertx vertx, HttpClient client, FileSystem fs, OpenAPILoaderOptions options) {
@@ -56,7 +59,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     this.options = options;
     SchemaRouter router = SchemaRouter.create(vertx, client, fs, options.toSchemaRouterOptions());
     SchemaParser parser = Draft7SchemaParser.create(router);
-    this.yamlMapper = new YAMLMapper();
+    this.yamlMapper = new Yaml(new SafeConstructor());
     this.openapiSchema = parser.parseFromString(OpenAPI3Utils.openapiSchemaJson);
   }
 
@@ -327,19 +330,25 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   }
 
   private Future<JsonObject> solveLocalRef(final URI ref) {
+    final String scheme = ref.getScheme();
+    if (scheme != null && !"file".equals(scheme)) {
+      // this is an unsupported protocol
+      return Future.failedFuture("Unsupported protocol: " + ref.getScheme());
+    }
     String filePath = ref.getPath();
+    final ContextInternal ctx = (ContextInternal) vertx.getOrCreateContext();
 
     return fs
       .readFile(filePath)
       .compose(buf -> {
         try {
-          return Future.succeededFuture(buf.toJsonObject());
+          return ctx.succeededFuture(buf.toJsonObject());
         } catch (DecodeException e) {
           // Maybe it's yaml
           try {
-            return Future.succeededFuture(this.yamlToJson(buf));
+            return ctx.succeededFuture(this.yamlToJson(buf));
           } catch (Exception e1) {
-            return Future.failedFuture(new RuntimeException("File " + filePath + " is not a valid YAML or JSON", e1));
+            return ctx.failedFuture(new RuntimeException("File " + filePath + " is not a valid YAML or JSON", e1));
           }
         }
       });
@@ -347,10 +356,32 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
 
   private JsonObject yamlToJson(Buffer buf) {
     try {
-      return JsonObject.mapFrom(yamlMapper.readTree(buf.getBytes()));
-    } catch (IOException e) {
+      Map<Object, Object> doc = yamlMapper.load(buf.toString(StandardCharsets.UTF_8));
+      return new JsonObject(jsonify(doc));
+    } catch (RuntimeException e) {
       throw new DecodeException("Cannot decode YAML", e);
     }
+  }
+
+  /**
+   * Yaml allows map keys of type object, however json always requires key as String,
+   * this helper method will ensure we adapt keys to the right type
+   *
+   * @param yaml yaml map
+   * @return json map
+   */
+  private Map<String, Object> jsonify(Map<Object, Object> yaml) {
+    final Map<String, Object> json = new LinkedHashMap<>();
+
+    for (Map.Entry<Object, Object> kv : yaml.entrySet()) {
+      Object value = kv.getValue();
+      if (value instanceof Map) {
+        value = jsonify((Map<Object, Object>) value);
+      }
+      json.put(kv.getKey().toString(), value);
+    }
+
+    return json;
   }
 
   private URI resolveRefResolutionURIWithoutFragment(URI ref, URI scope) {

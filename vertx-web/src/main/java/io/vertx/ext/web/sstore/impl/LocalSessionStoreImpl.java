@@ -16,10 +16,12 @@
 
 package io.vertx.ext.web.sstore.impl;
 
-import io.vertx.core.AsyncResult;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.impl.ContextInternal;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.auth.VertxContextPRNG;
@@ -54,7 +56,7 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
   private long timerID = -1;
   private boolean closed;
 
-  protected Vertx vertx;
+  private VertxInternal vertx;
 
   @Override
   public Session createSession(long timeout) {
@@ -70,7 +72,7 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
   public SessionStore init(Vertx vertx, JsonObject options) {
     // initialize a secure random
     this.random = VertxContextPRNG.current(vertx);
-    this.vertx = vertx;
+    this.vertx = (VertxInternal) vertx;
     this.reaperInterval = options.getLong("reaperInterval", DEFAULT_REAPER_INTERVAL);
     localMap = vertx.sharedData().getLocalMap(options.getString("mapName", DEFAULT_SESSION_MAP_NAME));
     setTimer();
@@ -84,43 +86,47 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
   }
 
   @Override
-  public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(localMap.get(id)));
+  public Future<@Nullable Session> get(String id) {
+    final ContextInternal ctx = vertx.getOrCreateContext();
+    return ctx.succeededFuture(localMap.get(id));
   }
 
   @Override
-  public void delete(String id, Handler<AsyncResult<Void>> resultHandler) {
+  public Future<Void> delete(String id) {
+    final ContextInternal ctx = vertx.getOrCreateContext();
     localMap.remove(id);
-    resultHandler.handle(Future.succeededFuture());
+    return ctx.succeededFuture();
   }
 
   @Override
-  public void put(Session session, Handler<AsyncResult<Void>> resultHandler) {
+  public Future<Void> put(Session session) {
+    final ContextInternal ctx = vertx.getOrCreateContext();
     final AbstractSession oldSession = (AbstractSession) localMap.get(session.id());
     final AbstractSession newSession = (AbstractSession) session;
 
     if (oldSession != null) {
       // there was already some stored data in this case we need to validate versions
       if (oldSession.version() != newSession.version()) {
-        resultHandler.handle(Future.failedFuture("Version mismatch"));
-        return;
+        return ctx.failedFuture("Session version mismatch");
       }
     }
 
     newSession.incrementVersion();
     localMap.put(session.id(), session);
-    resultHandler.handle(Future.succeededFuture());
+    return ctx.succeededFuture();
   }
 
   @Override
-  public void clear(Handler<AsyncResult<Void>> resultHandler) {
+  public Future<Void> clear() {
+    final ContextInternal ctx = vertx.getOrCreateContext();
     localMap.clear();
-    resultHandler.handle(Future.succeededFuture());
+    return ctx.succeededFuture();
   }
 
   @Override
-  public void size(Handler<AsyncResult<Integer>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(localMap.size()));
+  public Future<Integer> size() {
+    final ContextInternal ctx = vertx.getOrCreateContext();
+    return ctx.succeededFuture(localMap.size());
   }
 
   @Override
@@ -157,5 +163,4 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
       timerID = vertx.setTimer(reaperInterval, this);
     }
   }
-
 }

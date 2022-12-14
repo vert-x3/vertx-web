@@ -1,1 +1,1 @@
-@tag.inc(what = "rules")
+@template.tag.inc(what = "rules")

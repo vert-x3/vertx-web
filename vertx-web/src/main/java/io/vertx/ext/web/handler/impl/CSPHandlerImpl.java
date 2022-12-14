@@ -16,6 +16,9 @@ public class CSPHandlerImpl implements CSPHandler {
   );
 
   private final Map<String, String> policy = new LinkedHashMap<>();
+  // cache the computed policy
+  private String policyString;
+
   private boolean reportOnly;
 
   public CSPHandlerImpl() {
@@ -39,6 +42,8 @@ public class CSPHandlerImpl implements CSPHandler {
 
     policy.put(name, value);
 
+    // invalidate cache
+    policyString = null;
     return this;
   }
 
@@ -64,6 +69,8 @@ public class CSPHandlerImpl implements CSPHandler {
       policy.put(name, previous + " " + value);
     }
 
+    // invalidate cache
+    policyString = null;
     return this;
   }
 
@@ -73,32 +80,42 @@ public class CSPHandlerImpl implements CSPHandler {
     return this;
   }
 
+  private String getPolicyString() {
+    if (policyString == null) {
+      final StringBuilder buffer = new StringBuilder();
+
+      for (Map.Entry<String, String> entry : policy.entrySet()) {
+        if (buffer.length() > 0) {
+          buffer.append("; ");
+        }
+        buffer
+          .append(entry.getKey())
+          .append(' ')
+          .append(entry.getValue());
+      }
+
+      policyString = buffer.toString();
+    }
+
+    return policyString;
+  }
+
     @Override
   public void handle(RoutingContext ctx) {
 
-    final StringBuilder policyString = new StringBuilder();
-
-    for (Map.Entry<String, String> entry : policy.entrySet()) {
-      if (policyString.length() > 0) {
-        policyString.append("; ");
-      }
-      policyString
-        .append(entry.getKey())
-        .append(' ')
-        .append(entry.getValue());
-    }
+    final String policyString = getPolicyString();
 
     if (reportOnly) {
       if (!policy.containsKey("report-uri")) {
         ctx.fail(new HttpException(500, "Please disable CSP reportOnly or add a report-uri policy."));
       } else {
         ctx.response()
-          .putHeader("Content-Security-Policy-Report-Only", policyString.toString());
+          .putHeader("Content-Security-Policy-Report-Only", policyString);
         ctx.next();
       }
     } else {
       ctx.response()
-        .putHeader("Content-Security-Policy", policyString.toString());
+        .putHeader("Content-Security-Policy", policyString);
       ctx.next();
     }
   }

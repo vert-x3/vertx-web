@@ -34,6 +34,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
@@ -305,7 +306,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
   private void setupSockJsServer(String serverPath, BiConsumer<SockJSSocket, Buffer> serverBufferHandler) {
     String path = serverPath;
-    router.mountSubRouter(path, SockJSHandler.create(vertx)
+    router.route(path + "*").subRouter(SockJSHandler.create(vertx)
       .socketHandler(sock -> {
         sock.handler(buffer -> serverBufferHandler.accept(sock, buffer));
         sock.exceptionHandler(this::fail);
@@ -375,9 +376,9 @@ public class SockJSHandlerTest extends WebTestBase {
     // can't rely on the response to be available to set cookies. In this test we use cookieless
     // sessions to adress the timing issues
     SessionHandler handler = SessionHandler.create(store).setCookieless(true);
-    CompletableFuture<String> sessionID = new CompletableFuture();
-    CompletableFuture<User> sessionUser = new CompletableFuture();
-    router.mountSubRouter("/webcontext", SockJSHandler.create(vertx)
+    CompletableFuture<String> sessionID = new CompletableFuture<>();
+    CompletableFuture<User> sessionUser = new CompletableFuture<>();
+    router.route("/webcontext*").subRouter(SockJSHandler.create(vertx)
       .socketHandler(sock -> {
         JsonObject principal = new JsonObject().put("key", "val");
         Session oldSession = sock.webSession();
@@ -387,7 +388,7 @@ public class SockJSHandlerTest extends WebTestBase {
           assertFalse(result.failed());
           assertNotSame(session, oldSession);
           assertEquals(session, sock.webSession());
-          sock.routingContext().setSession(session);
+          ((RoutingContextInternal) sock.routingContext()).setSession(session);
           assertEquals(sock.webSession(), sock.routingContext().session());
           assertEquals(sock.webUser(), sock.routingContext().user());
           assertEquals(sock.webUser(), user);
@@ -398,7 +399,7 @@ public class SockJSHandlerTest extends WebTestBase {
         });
       }));
 
-    router.mountSubRouter("/webcontextuser", SockJSHandler.create(vertx)
+    router.route("/webcontextuser*").subRouter(SockJSHandler.create(vertx)
       .socketHandler(sock -> {
         Session session = null;
         try {
@@ -406,7 +407,7 @@ public class SockJSHandlerTest extends WebTestBase {
         } catch (InterruptedException | ExecutionException e) {
           fail();
         }
-        sock.routingContext().setSession(session);
+        ((RoutingContextInternal) sock.routingContext()).setSession(session);
         try {
           assertEquals(sessionID.get(), store.get(sessionID.get()).result().id());
           assertEquals(sessionUser.get(), sock.webUser());
@@ -435,7 +436,7 @@ public class SockJSHandlerTest extends WebTestBase {
   @Test
   public void testCookiesRemoved() throws Exception {
     waitFor(2);
-    router.mountSubRouter("/cookiesremoved", SockJSHandler.create(vertx)
+    router.route("/cookiesremoved*").subRouter(SockJSHandler.create(vertx)
       .socketHandler(sock -> {
         MultiMap headers = sock.headers();
         String cookieHeader = headers.get("cookie");
@@ -459,7 +460,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
   @Test
   public void testTimeoutCloseCode() {
-    router.mountSubRouter("/ws-timeout", SockJSHandler
+    router.route("/ws-timeout*").subRouter(SockJSHandler
       .create(vertx)
       .bridge(new SockJSBridgeOptions().setPingTimeout(1))
     );
@@ -476,7 +477,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
   @Test
   public void testInvalidMessageCode() {
-    router.mountSubRouter("/ws-timeout", SockJSHandler
+    router.route("/ws-timeout*").subRouter(SockJSHandler
       .create(vertx)
       .bridge(new SockJSBridgeOptions().addInboundPermitted(new PermittedOptions().setAddress("SockJSHandlerTest.testInvalidMessageCode")))
     );

@@ -10,6 +10,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -44,6 +45,7 @@ public class CachingWebClientTest {
   private WebClient sessionClient;
   private Vertx vertx;
   private HttpServer server;
+  private TestCacheStore defaultCacheStore;
 
   private WebClient buildBaseWebClient() {
     HttpClientOptions opts = new HttpClientOptions().setDefaultPort(PORT).setDefaultHost("localhost");
@@ -59,7 +61,8 @@ public class CachingWebClientTest {
   public void setUp() {
     vertx = Vertx.vertx();
     WebClient baseClient = buildBaseWebClient();
-    defaultClient = CachingWebClient.create(baseClient, new TestCacheStore());
+    defaultCacheStore = new TestCacheStore();
+    defaultClient = CachingWebClient.create(baseClient, defaultCacheStore);
     varyClient = CachingWebClient.create(baseClient, new TestCacheStore(), new CachingWebClientOptions(true));
     sessionClient = WebClientSession.create(CachingWebClient.create(baseClient, new TestCacheStore()));
     server = buildHttpServer();
@@ -435,19 +438,50 @@ public class CachingWebClientTest {
   }
 
   @Test
+  public void testCacheHitWontAllocateRequest(TestContext context) {
+
+    Async listenLatch = context.async();
+    Async busyLatch = context.async(5);
+    server.requestHandler(req -> {
+      switch (req.path()) {
+        case "/cached":
+          req.response().putHeader(HttpHeaders.CACHE_CONTROL, "public, max-age=1").end(UUID.randomUUID().toString());
+          break;
+        case "/blocked":
+          busyLatch.countDown();
+          break;
+      }
+    });
+    server.listen(context.asyncAssertSuccess(s -> listenLatch.complete()));
+    listenLatch.awaitSuccess(15_000);
+
+    String expected = executeGetBlocking(context, "/cached");
+    for (int i = 0;i < HttpClientOptions.DEFAULT_MAX_POOL_SIZE;i++) {
+      HttpRequest<Buffer> request = defaultClient.get("localhost", "/blocked");
+      request.send();
+    }
+
+    busyLatch.await(15_000);
+    context.assertEquals(executeGetBlocking(context, "/cached"), expected);
+  }
+
+  @Test
   public void test304NotModifiedResponse(TestContext context) {
     Async primer = context.async();
     Async waiter = context.async();
 
     startMockServer(context, req -> {
-      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=1");
-
+      HttpServerResponse resp = req.response();
+      resp.headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=1");
       if (primer.isCompleted()) {
-        req.response().setStatusCode(304);
-        req.response().end();
+        context.assertEquals("etag_value", req.headers().get("if-none-match"));
+        resp.setStatusCode(304);
+        resp.end();
       } else {
-        req.response().setStatusCode(200);
-        req.response().end(UUID.randomUUID().toString(), v -> primer.complete());
+        resp
+          .setStatusCode(200)
+          .putHeader("etag", "etag_value")
+          .end(UUID.randomUUID().toString(), v -> primer.complete());
       }
     });
 
@@ -463,28 +497,22 @@ public class CachingWebClientTest {
   }
 
   @Test
-  public void testStaleWhileRevalidate(TestContext context) {
+  public void testStaleWhileRevalidate(TestContext context) throws Exception {
     startMockServer(context, "public, max-age=1, stale-while-revalidate=2");
-
-    Async waiter1 = context.async();
-    Async waiter2 = context.async();
 
     String body1 = executeGetBlocking(context);
 
+    String key = defaultCacheStore.db.keySet().iterator().next();
+    context.assertEquals(defaultCacheStore.db.get(key).getBody().toString(), body1);
+
     // Wait > max-age but < stale-while-revalidate
-    vertx.setTimer(2000, l -> waiter1.complete());
-    waiter1.await();
+    Thread.sleep(2000);
 
     String body2 = executeGetBlocking(context);
 
     // Wait > max-age + stale-while-revalidate but account for already waited
-    vertx.setTimer(2000, l -> waiter2.complete());
-    waiter2.await();
-
-    String body3 = executeGetBlocking(context);
-
-    context.assertEquals(body1, body2);
-    context.assertNotEquals(body1, body3);
+    Thread.sleep(2000);
+    context.assertNotEquals(defaultCacheStore.db.get(key).getBody().toString(), body1);
   }
 
   @Test
@@ -772,27 +800,7 @@ public class CachingWebClientTest {
   // Cache-Control: public; Vary: Content-Encoding
 
   @Test
-  public void testVaryEncodingOverlap(TestContext context) {
-    startMockServer(context, req -> {
-      req.response().headers().add("Cache-Control", "public, max-age=300");
-      req.response().headers().add("Content-Encoding", "gzip");
-      req.response().headers().add("Vary", "Accept-Encoding");
-    });
-
-    String body1 = executeGetBlocking(context, varyClient, req -> {
-      req.putHeader("Accept-Encoding", "gzip,deflate,sdch");
-    });
-
-    String body2 = executeGetBlocking(context, varyClient, req -> {
-      req.putHeader("Accept-Encoding", "gzip,deflate");
-    });
-
-    // Both accept gzip, so cache should be used
-    context.assertEquals(body1, body2);
-  }
-
-  @Test
-  public void testVaryEncodingDifferent(TestContext context) {
+  public void testVaryEncodingTransformedToIdentityAlwaysSoWeIgnoreIt(TestContext context) {
     startMockServer(context, req -> {
       req.response().headers().add("Cache-Control", "public, max-age=300");
       req.response().headers().add("Content-Encoding", "gzip");
@@ -807,7 +815,7 @@ public class CachingWebClientTest {
       req.putHeader("Accept-Encoding", "br");
     });
 
-    context.assertNotEquals(body1, body2);
+    context.assertEquals(body1, body2);
   }
 
   @Test
@@ -911,7 +919,8 @@ public class CachingWebClientTest {
 
     @Override
     public Future<CachedHttpResponse> get(CacheKey key) {
-      return Future.succeededFuture(db.get(key.toString()));
+      CachedHttpResponse res = db.get(key.toString());
+      return Future.succeededFuture(res);
     }
 
     @Override

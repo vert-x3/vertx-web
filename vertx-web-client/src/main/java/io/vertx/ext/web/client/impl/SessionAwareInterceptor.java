@@ -44,7 +44,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
 
   private void createRequest(HttpContext<?> context) {
 
-    HttpRequestImpl<?> request = (HttpRequestImpl<?>) context.request();
+    RequestOptions request = context.requestOptions();
 
     RequestOptions requestOptions = context.requestOptions();
     MultiMap headers = requestOptions.getHeaders();
@@ -54,12 +54,12 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     }
     headers.addAll(parentClient.headers());
 
-    String domain = request.virtualHost();
+    String domain = context.request().virtualHost();
     if (domain == null) {
-      domain = request.host();
+      domain = requestOptions.getHost();
     }
 
-    Iterable<Cookie> cookies = parentClient.cookieStore().get(request.ssl, domain, request.uri);
+    Iterable<Cookie> cookies = parentClient.cookieStore().get(request.isSsl(), domain, request.getURI());
     String encodedCookies = ClientCookieEncoder.STRICT.encode(cookies);
     if (encodedCookies != null) {
       headers.add(HttpHeaders.COOKIE, encodedCookies);
@@ -78,11 +78,11 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       return;
     }
 
-    HttpRequestImpl<?> originalRequest = (HttpRequestImpl<?>) context.request();
+    RequestOptions originalRequest = context.requestOptions();
     CookieStore cookieStore = parentClient.cookieStore();
     String domain = URI.create(context.clientResponse().request().absoluteURI()).getHost();
-    if (domain.equals(originalRequest.host()) && originalRequest.virtualHost != null) {
-      domain = originalRequest.virtualHost;
+    if (domain.equals(originalRequest.getHost()) && context.request().virtualHost() != null) {
+      domain = context.request().virtualHost();
     }
     final String finalDomain = domain;
     cookieHeaders.forEach(header -> {
@@ -102,17 +102,17 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     // Now the context contains the redirect request in clientRequest() and the original request in request()
     RequestOptions redirectRequest = context.requestOptions();
 
-    HttpRequestImpl<?> originalRequest = (HttpRequestImpl<?>) context.request();
+    RequestOptions originalRequest = context.requestOptions();
     String redirectHost = redirectRequest.getHost();
     String domain;
-    if (redirectHost.equals(originalRequest.host()) && originalRequest.virtualHost != null) {
-      domain = originalRequest.virtualHost;
+    if (redirectHost.equals(originalRequest.getHost()) && context.request().virtualHost() != null) {
+      domain = context.request().virtualHost();
     } else {
       domain = redirectHost;
     }
 
     String path = parsePath(redirectRequest.getURI());
-    Iterable<Cookie> cookies = parentClient.cookieStore().get(originalRequest.ssl, domain, path);
+    Iterable<Cookie> cookies = parentClient.cookieStore().get(originalRequest.isSsl(), domain, path);
     String encodedCookies = ClientCookieEncoder.STRICT.encode(cookies);
     if (encodedCookies != null) {
       redirectRequest.putHeader(HttpHeaders.COOKIE, encodedCookies);
@@ -152,7 +152,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       return;
     }
 
-    HttpRequestImpl<?> request = (HttpRequestImpl<?>) context.request();
+    RequestOptions request = context.requestOptions();
     CookieStore cookieStore = parentClient.cookieStore();
     cookieHeaders.forEach(header -> {
       Cookie cookie = ClientCookieDecoder.STRICT.decode(header);
@@ -160,7 +160,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
         if (cookie.domain() == null) {
           // Set the domain if missing, because we need to send cookies
           // only to the domains we received them from.
-          cookie.setDomain(request.virtualHost != null ? request.virtualHost : request.host());
+          cookie.setDomain(context.request().virtualHost() != null ? context.request().virtualHost() : request.getHost());
         }
         cookieStore.put(cookie);
       }

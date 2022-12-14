@@ -18,8 +18,6 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
@@ -57,25 +55,23 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     if (user == null) {
       ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
     } else {
-      // before starting any potential async operation here
-      // pause parsing the request body. The reason is that
-      // we don't want to loose the body or protocol upgrades
-      // for async operations
-      final boolean parseEnded = ctx.request().isEnded();
-      if (!parseEnded) {
-        ctx.request().pause();
-      }
       try {
+        // this handler can perform asynchronous operations
+        if (!ctx.request().isEnded()) {
+          ctx.request().pause();
+        }
         // create the authorization context
         final AuthorizationContext authorizationContext = AuthorizationContext.create(user);
         if (variableHandler != null) {
           variableHandler.accept(ctx, authorizationContext);
         }
         // check or fetch authorizations
-        checkOrFetchAuthorizations(ctx, parseEnded, authorizationContext, authorizationProviders.iterator());
+        checkOrFetchAuthorizations(ctx, authorizationContext, authorizationProviders.iterator());
       } catch (RuntimeException e) {
         // resume as the error handler may allow this request to become valid again
-        resume(ctx.request(), parseEnded);
+        if (!ctx.request().isEnded()) {
+          ctx.request().resume();
+        }
         ctx.fail(e);
       }
     }
@@ -95,10 +91,11 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
    * @param authorizationContext the current authorization context
    * @param providers the providers iterator
    */
-  private void checkOrFetchAuthorizations(RoutingContext ctx, boolean parseEnded, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
+  private void checkOrFetchAuthorizations(RoutingContext ctx, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
     if (authorization.match(authorizationContext)) {
-      // resume the processing of the request
-      resume(ctx.request(), parseEnded);
+      if (!ctx.request().isEnded()) {
+        ctx.request().resume();
+      }
       ctx.next();
       return;
     }
@@ -106,8 +103,9 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     final User user = ctx.user();
 
     if (user == null || !providers.hasNext()) {
-      // resume as the error handler may allow this request to become valid again
-      resume(ctx.request(), parseEnded);
+      if (!ctx.request().isEnded()) {
+        ctx.request().resume();
+      }
       ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
       return;
     }
@@ -124,15 +122,16 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
             LOG.warn("An error occurred getting authorization - providerId: " + provider.getId(), authorizationResult.cause());
             // note that we don't 'record' the fact that we tried to fetch the authorization provider. therefore, it will be re-fetched later-on
           }
-          checkOrFetchAuthorizations(ctx, parseEnded, authorizationContext, providers);
+          checkOrFetchAuthorizations(ctx, authorizationContext, providers);
         });
         // get out right now as the callback will decide what to do next
         return;
       }
     } while (providers.hasNext());
     // reached the end of the iterator
-    // resume as the error handler may allow this request to become valid again, yet mark the request as forbidden
-    resume(ctx.request(), parseEnded);
+    if (!ctx.request().isEnded()) {
+      ctx.request().resume();
+    }
     ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
   }
 
@@ -141,11 +140,5 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     Objects.requireNonNull(authorizationProvider);
     this.authorizationProviders.add(authorizationProvider);
     return this;
-  }
-
-  private void resume(HttpServerRequest request, final boolean parseEnded) {
-    if (!parseEnded && !request.headers().contains(HttpHeaders.UPGRADE, HttpHeaders.WEBSOCKET, true)) {
-      request.resume();
-    }
   }
 }

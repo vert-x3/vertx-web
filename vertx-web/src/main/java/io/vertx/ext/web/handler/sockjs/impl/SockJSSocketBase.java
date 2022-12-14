@@ -36,6 +36,7 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -48,7 +49,7 @@ public abstract class SockJSSocketBase implements SockJSSocket {
 
   private final MessageConsumer<Object> registration;
   protected final Vertx vertx;
-  protected RoutingContext routingContext;
+  protected final RoutingContext routingContext;
 
   /**
    * When a {@code SockJSSocket} is created it automatically registers an event handler with the event bus, the ID of that
@@ -96,7 +97,7 @@ public abstract class SockJSSocketBase implements SockJSSocket {
 
   @Override
   public Future<Void> end() {
-    Promise<Void> promise = Promise.promise();
+    Promise<Void> promise = ((VertxInternal) vertx).promise();
     if (registration != null) {
       registration.unregister(promise);
     } else {
@@ -107,11 +108,8 @@ public abstract class SockJSSocketBase implements SockJSSocket {
 
   @Override
   public void end(Handler<AsyncResult<Void>> handler) {
-    if (registration != null) {
-      registration.unregister(handler);
-    } else {
-      handler.handle(Future.succeededFuture());
-    }
+    end()
+      .onComplete(handler);
   }
 
   @Override

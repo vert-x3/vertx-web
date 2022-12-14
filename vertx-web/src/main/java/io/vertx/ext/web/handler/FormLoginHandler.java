@@ -18,10 +18,8 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.handler.impl.FormLoginHandlerImpl;
-import io.vertx.ext.web.RoutingContext;
 
 /**
  * Handler that handles login from a form on a custom login page.
@@ -31,7 +29,7 @@ import io.vertx.ext.web.RoutingContext;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface FormLoginHandler extends Handler<RoutingContext> {
+public interface FormLoginHandler extends AuthenticationHandler {
 
   /**
    * The default value of the form attribute which will contain the username

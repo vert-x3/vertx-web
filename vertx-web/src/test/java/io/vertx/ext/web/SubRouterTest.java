@@ -28,35 +28,28 @@ import java.util.function.Consumer;
  */
 public class SubRouterTest extends WebTestBase {
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = IllegalStateException.class)
   public void testInvalidMountPoint1() throws Exception {
     Router subRouter = Router.router(vertx);
 
-    router.mountSubRouter("/subpath*", subRouter);
+    router.route("/subpath").subRouter(subRouter);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = IllegalStateException.class)
   public void testInvalidMountPoint2() throws Exception {
     Router subRouter = Router.router(vertx);
 
-    router.mountSubRouter("/subpath/*", subRouter);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testInvalidMountPoint3() throws Exception {
-    Router subRouter = Router.router(vertx);
-
-    router.mountSubRouter("subpath", subRouter);
+    router.route("/subpath/").subRouter(subRouter);
   }
 
   @Test
   public void testSimple() throws Exception {
     Router subRouter = Router.router(vertx);
 
-    router.mountSubRouter("/subpath", subRouter);
+    router.route("/subpath/*").subRouter(subRouter);
 
     subRouter.route("/foo").handler(rc -> {
-      assertEquals("/subpath", rc.mountPoint());
+      assertEquals("/subpath/", rc.mountPoint());
       rc.response().setStatusMessage(rc.request().path()).end();
     });
 
@@ -71,7 +64,7 @@ public class SubRouterTest extends WebTestBase {
   public void testTrailingSlash() throws Exception {
     Router subRouter = Router.router(vertx);
 
-    router.mountSubRouter("/subpath/", subRouter);
+    router.route("/subpath/*").subRouter(subRouter);
 
     subRouter.route("/foo").handler(rc -> {
       assertEquals("/subpath/", rc.mountPoint());
@@ -89,7 +82,7 @@ public class SubRouterTest extends WebTestBase {
   public void testMultiple() throws Exception {
     Router subRouter = Router.router(vertx);
 
-    router.mountSubRouter("/subpath", subRouter);
+    router.route("/subpath*").subRouter(subRouter);
 
     subRouter.route("/foo").handler(rc -> {
       assertEquals("/subpath", rc.mountPoint());
@@ -119,7 +112,7 @@ public class SubRouterTest extends WebTestBase {
 
     router.route("/otherpath1").handler(rc -> rc.response().setStatusMessage(rc.request().path()).end());
 
-    router.mountSubRouter("/subpath", subRouter);
+    router.route("/subpath*").subRouter(subRouter);
 
     subRouter.route("/foo").handler(rc -> {
       assertEquals("/subpath", rc.mountPoint());
@@ -154,7 +147,7 @@ public class SubRouterTest extends WebTestBase {
   public void testChain() throws Exception {
     Router subRouter = Router.router(vertx);
 
-    router.mountSubRouter("/subpath", subRouter);
+    router.route("/subpath*").subRouter(subRouter);
 
     subRouter.route("/foo").handler(rc -> {
       assertEquals("/subpath", rc.mountPoint());
@@ -190,7 +183,7 @@ public class SubRouterTest extends WebTestBase {
       rc.next();
     });
 
-    router.mountSubRouter("/foo", subRouter);
+    router.route("/foo*").subRouter(subRouter);
 
     subRouter.route("/bar").handler(rc -> {
       assertEquals("/foo", rc.mountPoint());
@@ -225,9 +218,9 @@ public class SubRouterTest extends WebTestBase {
     Router subRouter2 = Router.router(vertx);
     Router subRouter3 = Router.router(vertx);
 
-    router.mountSubRouter("/foo", subRouter1);
-    subRouter1.mountSubRouter("/bar", subRouter2);
-    subRouter2.mountSubRouter("/wibble", subRouter3);
+    router.route("/foo*").subRouter(subRouter1);
+    subRouter1.route("/bar*").subRouter(subRouter2);
+    subRouter2.route("/wibble*").subRouter(subRouter3);
     subRouter3.route("/eek").handler(rc -> {
       assertEquals("/foo/bar/wibble", rc.mountPoint());
       rc.response().setStatusMessage(rc.request().path()).end();
@@ -244,7 +237,7 @@ public class SubRouterTest extends WebTestBase {
   public void testEmptySubrouter() throws Exception {
     Router subRouter1 = Router.router(vertx);
 
-    router.mountSubRouter("/foo", subRouter1);
+    router.route("/foo*").subRouter(subRouter1);
 
     testRequest(HttpMethod.GET, "/foo", 404, "Not Found");
     testRequest(HttpMethod.GET, "/foo/bar", 404, "Not Found");
@@ -262,17 +255,17 @@ public class SubRouterTest extends WebTestBase {
       rc.next();
     });
 
-    router.mountSubRouter("/foo", subRouter1);
+    router.route("/foo*").subRouter(subRouter1);
     subRouter1.route("/bar/*").handler(rc -> {
       rc.put("key1", "blah1");
       rc.next();
     });
-    subRouter1.mountSubRouter("/bar", subRouter2);
+    subRouter1.route("/bar*").subRouter(subRouter2);
     subRouter2.route("/wibble/*").handler(rc -> {
       rc.put("key2", "blah2");
       rc.next();
     });
-    subRouter2.mountSubRouter("/wibble", subRouter3);
+    subRouter2.route("/wibble*").subRouter(subRouter3);
     subRouter3.route("/eek").handler(rc -> {
       assertEquals("/foo/bar/wibble", rc.mountPoint());
       rc.put("key3", "blah3");
@@ -294,7 +287,7 @@ public class SubRouterTest extends WebTestBase {
   public void testUnhandledRuntimeException() throws Exception {
     Router subRouter = Router.router(vertx);
 
-    router.mountSubRouter("/subpath", subRouter);
+    router.route("/subpath*").subRouter(subRouter);
 
     subRouter.route("/foo").handler(rc -> {
       throw new RuntimeException("Balderdash!");
@@ -307,7 +300,7 @@ public class SubRouterTest extends WebTestBase {
   public void tesHandledRuntimeException1() throws Exception {
     Router subRouter = Router.router(vertx);
 
-    router.mountSubRouter("/subpath", subRouter);
+    router.route("/subpath*").subRouter(subRouter);
 
     subRouter.route("/foo/*").handler(rc -> {
       throw new RuntimeException("Balderdash!");
@@ -326,7 +319,7 @@ public class SubRouterTest extends WebTestBase {
   public void tesHandledRuntimeException2() throws Exception {
     Router subRouter = Router.router(vertx);
 
-    router.mountSubRouter("/subpath", subRouter);
+    router.route("/subpath*").subRouter(subRouter);
 
     subRouter.route("/foo/*").handler(rc -> {
       throw new RuntimeException("Balderdash!");
@@ -345,7 +338,7 @@ public class SubRouterTest extends WebTestBase {
   public void testFailCalled1() throws Exception {
     Router subRouter = Router.router(vertx);
 
-    router.mountSubRouter("/subpath", subRouter);
+    router.route("/subpath*").subRouter(subRouter);
 
     subRouter.route("/foo/*").handler(rc -> rc.fail(557));
 
@@ -362,7 +355,7 @@ public class SubRouterTest extends WebTestBase {
   public void testFailCalled2() throws Exception {
     Router subRouter = Router.router(vertx);
 
-    router.mountSubRouter("/subpath", subRouter);
+    router.route("/subpath*").subRouter(subRouter);
 
     subRouter.route("/foo/*").handler(rc -> rc.fail(557));
 
@@ -378,7 +371,7 @@ public class SubRouterTest extends WebTestBase {
   @Test
   public void testSubRoutePattern() {
     Router subRouter = Router.router(vertx);
-    router.mountSubRouter("/foo/:abc/bar", subRouter);
+    router.route("/foo/:abc/bar*").subRouter(subRouter);
   }
 
   @Test
@@ -393,7 +386,7 @@ public class SubRouterTest extends WebTestBase {
   @Test
   public void testRegexInSubRouter() throws Exception {
     Router subRouter = Router.router(vertx);
-    router.mountSubRouter("/api", subRouter);
+    router.route("/api*").subRouter(subRouter);
     subRouter.routeWithRegex("\\/test").handler(rc -> rc.response().setStatusMessage("sausages").end());
     testRequest(HttpMethod.GET, "/api/test", 200, "sausages");
 
@@ -402,7 +395,7 @@ public class SubRouterTest extends WebTestBase {
   @Test
   public void testNormalized1() throws Exception {
     Router subRouter = Router.router(vertx);
-    router.mountSubRouter("/api", subRouter);
+    router.route("/api*").subRouter(subRouter);
     subRouter.route("/foo").handler(rc -> rc.response().setStatusMessage("sausages").end());
     testRequest(HttpMethod.GET, "/api/foo", 200, "sausages");
     testRequest(HttpMethod.GET, "/api/foo/", 200, "sausages");
@@ -414,7 +407,7 @@ public class SubRouterTest extends WebTestBase {
   @Test
   public void testNormalized2() throws Exception {
     Router subRouter = Router.router(vertx);
-    router.mountSubRouter("/api/", subRouter);
+    router.route("/api/*").subRouter(subRouter);
     subRouter.route("/foo").handler(rc -> rc.response().setStatusMessage("sausages").end());
     testRequest(HttpMethod.GET, "/api/foo", 200, "sausages");
     testRequest(HttpMethod.GET, "/api/foo/", 200, "sausages");
@@ -426,7 +419,7 @@ public class SubRouterTest extends WebTestBase {
   @Test
   public void testNormalized3() throws Exception {
     Router subRouter = Router.router(vertx);
-    router.mountSubRouter("/api", subRouter);
+    router.route("/api*").subRouter(subRouter);
     subRouter.route("/").handler(rc -> rc.response().setStatusMessage("sausages").end());
     testRequest(HttpMethod.GET, "/api/", 200, "sausages");
     testRequest(HttpMethod.GET, "/api", 200, "sausages");
@@ -437,7 +430,7 @@ public class SubRouterTest extends WebTestBase {
   @Test
   public void testNormalized4() throws Exception {
     Router subRouter = Router.router(vertx);
-    router.mountSubRouter("/api/", subRouter);
+    router.route("/api/*").subRouter(subRouter);
     subRouter.route("/").handler(rc -> rc.response().setStatusMessage("sausages").end());
     testRequest(HttpMethod.GET, "/api/", 200, "sausages");
     testRequest(HttpMethod.GET, "/api", 404, "Not Found");
@@ -450,7 +443,7 @@ public class SubRouterTest extends WebTestBase {
 
     router.get("/files/:id/info").handler(ctx -> ctx.response().end());
 
-    router.mountSubRouter("/v1", router);
+    router.route("/v1*").subRouter(router);
 
     testRequest(HttpMethod.GET, "/v1/files/some-file-id/info", 200, "OK");
     testRequest(HttpMethod.GET, "/v1/files//info", 404, "Not Found");
@@ -468,7 +461,7 @@ public class SubRouterTest extends WebTestBase {
       ctx.response().end();
     });
 
-    router.mountSubRouter("/v/:version", subRouter);
+    router.route("/v/:version*").subRouter(subRouter);
 
     testRequest(HttpMethod.GET, "/v/1/files/2/info", 200, "OK");
   }
@@ -491,7 +484,7 @@ public class SubRouterTest extends WebTestBase {
       });
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testSubRouterExclusive2() throws Exception {
     Router subRouter = Router.router(vertx);
 
@@ -533,7 +526,7 @@ public class SubRouterTest extends WebTestBase {
   public void testSubRouterWithRegex() {
     Router router = Router.router(vertx);
     router.getWithRegex("some-regex").handler(null);
-    router.mountSubRouter("/", router);
+    router.route("/*").subRouter(router);
   }
 
   @Test
@@ -544,7 +537,7 @@ public class SubRouterTest extends WebTestBase {
       ctx.response().end();
     });
 
-    router.mountSubRouter("/v/", subRouter);
+    router.route("/v/*").subRouter(subRouter);
 
     testRequest(HttpMethod.GET, "/v/files/info", 200, "OK");
   }
@@ -557,7 +550,7 @@ public class SubRouterTest extends WebTestBase {
       ctx.response().setStatusMessage("Hi").end();
     });
 
-    router.mountSubRouter("/", subRouter);
+    router.route("/*").subRouter(subRouter);
 
     testRequest(HttpMethod.GET, "/primary", 200, "Hi");
     testRequest(HttpMethod.GET, "/primary?query=1", 200, "Hi");
@@ -573,7 +566,7 @@ public class SubRouterTest extends WebTestBase {
       ctx.response().end();
     });
 
-    router.mountSubRouter("/bank", subRouter);
+    router.route("/bank*").subRouter(subRouter);
 
     testRequest(HttpMethod.POST, "/bank/order/deposit", 200, "OK");
     testRequest(HttpMethod.GET, "/bank/order/deposit", 405, "Method Not Allowed");
@@ -583,13 +576,13 @@ public class SubRouterTest extends WebTestBase {
   @Test
   public void testMountMultiLevel() throws Exception {
     Router routerFirstLevel = Router.router(vertx);
-    router.mountSubRouter("/primary", routerFirstLevel);
+    router.route("/primary*").subRouter(routerFirstLevel);
 
     Router routerSecondLevel = Router.router(vertx);
     routerSecondLevel.get("/").handler(ctx -> {
       ctx.response().setStatusMessage("Hi").end();
     });
-    routerFirstLevel.mountSubRouter("/", routerSecondLevel);
+    routerFirstLevel.route("/*").subRouter(routerSecondLevel);
 
     // Below two scenarios will fail with 3.8.4 and higher, pass with 3.8.1 and lower.
     testRequest(HttpMethod.GET, "/primary", 200, "Hi");
@@ -618,7 +611,7 @@ public class SubRouterTest extends WebTestBase {
     Router routerSecondLevel = Router.router(vertx);
     routerSecondLevel.route("/test")
       .handler(ctx -> ctx.response().setStatusMessage("H2").end());
-    routerFirstLevel.mountSubRouter("/secondary", routerSecondLevel);
+    routerFirstLevel.route("/secondary*").subRouter(routerSecondLevel);
 
     testRequest(HttpMethod.GET, "/test", 200, "Hi");
     testRequest(HttpMethod.GET, "/secondary/test", 200, "H2");
@@ -647,5 +640,105 @@ public class SubRouterTest extends WebTestBase {
     router.route("/level1/*").handler(level2);
     testRequest(HttpMethod.GET, "/level1/level2/level3", 200, "ok");
   }
-}
 
+  @Test
+  public void testHierarchicalWithParams() throws Exception {
+
+    Router restRouter = Router.router(vertx);
+    Router subRouter = Router.router(vertx);
+
+    subRouter.get("/files").handler(ctx -> {
+      // version is extracted from the root router
+      assertEquals("1", ctx.pathParam("version"));
+      ctx.response().end();
+    });
+
+    restRouter.route("/:version*").subRouter(subRouter);
+
+    router.route("/rest*").subRouter(restRouter);
+
+    // router
+    // /rest -> restRouter
+    //      /:version -> subRouter
+    //                    /files -> OK
+
+    testRequest(HttpMethod.GET, "/rest/1/files", 200, "OK");
+  }
+
+  @Test
+  public void testHierarchicalWithParamsInAllRouters() throws Exception {
+
+    Router restRouter = Router.router(vertx);
+    Router subRouter = Router.router(vertx);
+
+    subRouter.get("/files/:id").handler(ctx -> {
+      // version is extracted from the root router
+      assertEquals("1", ctx.pathParam("version"));
+      // id is extracted from this router
+      assertEquals("2", ctx.pathParam("id"));
+      ctx.response().end();
+    });
+
+    restRouter.route("/:version*").subRouter(subRouter);
+
+    router.route("/rest*").subRouter(restRouter);
+
+    // router
+    // /rest -> restRouter
+    //      /:version -> subRouter
+    //                    /files/:id -> OK
+
+    testRequest(HttpMethod.GET, "/rest/1/files/2", 200, "OK");
+  }
+
+  @Test
+  public void testHierarchicalWithParamsSimple() throws Exception {
+
+    Router restRouter = Router.router(vertx);
+    Router productRouter = Router.router(vertx);
+    Router instanceRouter = Router.router(vertx);
+
+    router.route("/rest*").subRouter(restRouter);
+    restRouter.route("/product*").subRouter(productRouter);
+    productRouter.route("/:id*").subRouter(instanceRouter);
+    instanceRouter.get("/").handler(ctx -> {
+      // id is extracted from the root router
+      assertEquals("123", ctx.pathParam("id"));
+      ctx.response().end();
+    });
+
+    // router
+    // /rest -> restRouter
+    //      /product -> productRouter
+    //            /:id -> instanceRouter
+    //                  / -> OK
+
+    testRequest(HttpMethod.GET, "/rest/product/123", 200, "OK");
+  }
+
+  @Test
+  public void testHierarchicalWithParamsSimpleWithDummy() throws Exception {
+
+    Router restRouter = Router.router(vertx);
+    Router productRouter = Router.router(vertx);
+    Router instanceRouter = Router.router(vertx);
+
+    router.route("/rest*").subRouter(restRouter);
+    restRouter.route("/product*").subRouter(productRouter);
+    productRouter.route("/:id*").subRouter(instanceRouter);
+    instanceRouter.get("/:foo").handler(ctx -> {
+      // id is extracted from the root router
+      assertEquals("123", ctx.pathParam("id"));
+      assertEquals("bar", ctx.pathParam("foo"));
+      ctx.response().end();
+    });
+
+    // router
+    // /rest -> restRouter
+    //      /product -> productRouter
+    //            /:id -> instanceRouter
+    //                  /:foo -> OK
+
+    testRequest(HttpMethod.GET, "/rest/product/123/bar", 200, "OK");
+  }
+}

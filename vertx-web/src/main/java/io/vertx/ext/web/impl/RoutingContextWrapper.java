@@ -26,8 +26,6 @@ import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.*;
 
@@ -72,12 +70,12 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
 
   @Override
   public synchronized RoutingContextInternal visitHandler(int id) {
-    return ((RoutingContextInternal) inner).visitHandler(id);
+    return inner.visitHandler(id);
   }
 
   @Override
   public boolean seenHandler(int id) {
-    return ((RoutingContextInternal) inner).seenHandler(id);
+    return inner.seenHandler(id);
   }
 
   @Override
@@ -167,6 +165,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  @Deprecated
   public void setSession(Session session) {
     inner.setSession(session);
   }
@@ -201,7 +200,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
     if (!super.iterateNext()) {
       // We didn't route request to anything so go to parent,
       // but also propagate the current status
-      ((RoutingContextInternal) inner).setMatchFailure(matchFailure);
+      inner.setMatchFailure(matchFailure);
       inner.next();
     }
   }
@@ -237,63 +236,50 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  @Deprecated
   public Cookie getCookie(String name) {
     return inner.getCookie(name);
   }
 
   @Override
+  @Deprecated
   public RoutingContext addCookie(Cookie cookie) {
     inner.addCookie(cookie);
     return this;
   }
 
   @Override
+  @Deprecated
   public Cookie removeCookie(String name, boolean invalidate) {
     return inner.removeCookie(name, invalidate);
   }
 
   @Override
+  @Deprecated
   public int cookieCount() {
     return inner.cookieCount();
   }
 
   @Override
+  @Deprecated
   public Map<String, io.vertx.core.http.Cookie> cookieMap() {
     return inner.cookieMap();
   }
 
   @Override
-  public String getBodyAsString() {
-    return inner.getBodyAsString();
+  @Deprecated
+  public RequestBody body() {
+    return inner.body();
   }
 
   @Override
-  public String getBodyAsString(String encoding) {
-    return inner.getBodyAsString(encoding);
-  }
-
-  @Override
-  public JsonObject getBodyAsJson(int maxAllowedLength) {
-    return inner.getBodyAsJson(maxAllowedLength);
-  }
-
-  @Override
-  public JsonArray getBodyAsJsonArray(int maxAllowedLength) {
-    return inner.getBodyAsJsonArray(maxAllowedLength);
-  }
-
-  @Override
-  public Buffer getBody() {
-    return inner.getBody();
-  }
-
-  @Override
+  @Deprecated
   public void setBody(Buffer body) {
     inner.setBody(body);
   }
 
   @Override
-  public Set<FileUpload> fileUploads() {
+  public List<FileUpload> fileUploads() {
     return inner.fileUploads();
   }
 

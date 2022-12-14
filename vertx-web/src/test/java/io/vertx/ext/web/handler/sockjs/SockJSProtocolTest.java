@@ -23,6 +23,7 @@ import io.vertx.core.impl.Utils;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
@@ -67,16 +68,15 @@ public class SockJSProtocolTest {
   public static void installTestApplications(Router router, Vertx vertx) {
 
     // These applications are required by the SockJS protocol and QUnit tests
+    router.post().handler(BodyHandler.create());
 
-    router.mountSubRouter(
-      "/echo",
+    router.route("/echo*").subRouter(
       SockJSHandler.create(
         vertx,
         new SockJSHandlerOptions().setMaxBytesStreaming(4096))
         .socketHandler(sock -> sock.handler(sock::write)));
 
-    router.mountSubRouter(
-      "/close",
+    router.route("/close*").subRouter(
       SockJSHandler.create(vertx,
         new SockJSHandlerOptions().setMaxBytesStreaming(4096))
         .socketHandler(sock -> {
@@ -84,21 +84,18 @@ public class SockJSProtocolTest {
           // than the SockJS close frame "c[3000,"Go away!"]"
           vertx.setTimer(10, id -> sock.close(3000, "Go away!"));
         }));
-    router.mountSubRouter(
-      "/disabled_websocket_echo",
+    router.route("/disabled_websocket_echo*").subRouter(
       SockJSHandler.create(vertx, new SockJSHandlerOptions()
         .setMaxBytesStreaming(4096).addDisabledTransport("WEBSOCKET"))
         .socketHandler(sock -> sock.handler(sock::write)));
-    router.mountSubRouter(
-      "/ticker",
+    router.route("/ticker*").subRouter(
       SockJSHandler.create(vertx,
         new SockJSHandlerOptions().setMaxBytesStreaming(4096))
         .socketHandler(sock -> {
           long timerID = vertx.setPeriodic(1000, tid -> sock.write(buffer("tick!")));
           sock.endHandler(v -> vertx.cancelTimer(timerID));
         }));
-    router.mountSubRouter(
-      "/amplify",
+    router.route("/amplify*").subRouter(
       SockJSHandler.create(vertx,
         new SockJSHandlerOptions().setMaxBytesStreaming(4096))
         .socketHandler(sock -> sock.handler(data -> {
@@ -114,8 +111,7 @@ public class SockJSProtocolTest {
           }
           sock.write(buff);
         })));
-    router.mountSubRouter(
-      "/broadcast",
+    router.route("/broadcast*").subRouter(
       SockJSHandler.create(vertx,
         new SockJSHandlerOptions().setMaxBytesStreaming(4096).setRegisterWriteHandler(true))
         .socketHandler(new Handler<SockJSSocket>() {
@@ -139,7 +135,7 @@ public class SockJSProtocolTest {
       .setInsertJSESSIONID(true);
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
     Router socketHandler = sockJSHandler.socketHandler(sock -> sock.handler(sock::write));
-    router.mountSubRouter("/cookie_needed_echo", socketHandler);
+    router.route("/cookie_needed_echo*").subRouter(socketHandler);
   }
 
   /*

@@ -17,8 +17,6 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.CSPHandlerImpl;
 
 /**
@@ -30,9 +28,11 @@ import io.vertx.ext.web.handler.impl.CSPHandlerImpl;
  * implement it, and vice-versa: browsers that don't support CSP simply ignore it, functioning as usual, defaulting to
  * the standard same-origin policy for web content. If the site doesn't offer the CSP header, browsers likewise use the
  * standard same-origin policy.
+ *
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface CSPHandler extends Handler<RoutingContext> {
+public interface CSPHandler extends SecurityPolicyHandler {
 
   /**
    * Creates a new instance of the handler.

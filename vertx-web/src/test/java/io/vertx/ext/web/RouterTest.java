@@ -24,17 +24,21 @@ import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
+import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 
-import java.io.IOException;
+import java.io.*;
+import java.net.Socket;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static io.vertx.core.Future.succeededFuture;
@@ -934,12 +938,14 @@ public class RouterTest extends WebTestBase {
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidPattern() throws Exception {
-    router.route("/blah/:!!!/").handler(rc -> {});
+    router.route("/blah/:!!!/").handler(rc -> {
+    });
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidPatternWithBuilder() throws Exception {
-    router.route().path("/blah/:!!!/").handler(rc -> {});
+    router.route().path("/blah/:!!!/").handler(rc -> {
+    });
   }
 
   @Test
@@ -2160,7 +2166,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testSubRouterNPE() throws Exception {
     Router subRouter = Router.router(vertx);
-    router.mountSubRouter("/", subRouter);
+    router.route("/*").subRouter(subRouter);
 
     testRequest(HttpMethod.GET, "foo", 404, "Not Found");
   }
@@ -2756,6 +2762,18 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testMethodNotAllowedHeader() throws Exception {
+    router.get("/path").handler(rc -> rc.response().end());
+    router.post("/path").handler(rc -> rc.response().end());
+    router.put("/hello").handler(rc -> rc.response().end());
+    testRequest(HttpMethod.PUT, "/path", null, res -> {
+      assertEquals(2, res.getHeader("allow").split(",").length);
+      assertTrue(res.getHeader("allow").contains("GET"));
+      assertTrue(res.getHeader("allow").contains("POST"));
+    }, HttpResponseStatus.METHOD_NOT_ALLOWED.code(), HttpResponseStatus.METHOD_NOT_ALLOWED.reasonPhrase(), null);
+  }
+
+  @Test
   public void testNotAcceptableStatusCode() throws Exception {
     router.route().produces("text/html").handler(rc -> rc.response().end());
     router.route("/hello").produces("something/html").handler(rc -> rc.response().end());
@@ -2988,7 +3006,7 @@ public class RouterTest extends WebTestBase {
     swagger.route("/swagger/*")
       .handler(RoutingContext::end);
 
-    router.mountSubRouter("/q", swagger);
+    router.route("/q*").subRouter(swagger);
 
     testRequest(HttpMethod.GET, "/q/swagge", 404, "Not Found");
     testRequest(HttpMethod.GET, "/q/swagger", 200, "OK");
@@ -3037,11 +3055,11 @@ public class RouterTest extends WebTestBase {
     Router sub = Router.router(vertx).putMetadata("sub", "123");
     sub.route("/metadata")
       .handler(rc -> {
-        String subVal = ((RoutingContextInternal)rc).currentRouter().getMetadata("sub");
-        String parentVal = ((RoutingContextInternal)rc).parent().currentRouter().getMetadata("parent");
+        String subVal = ((RoutingContextInternal) rc).currentRouter().getMetadata("sub");
+        String parentVal = ((RoutingContextInternal) rc).parent().currentRouter().getMetadata("parent");
         rc.end(parentVal + "-" + subVal);
       });
-    router.mountSubRouter("/sub", sub);
+    router.route("/sub*").subRouter(sub);
 
     testRequest(HttpMethod.GET, "/sub/metadata", 200, "OK", "abc-123");
   }
@@ -3060,7 +3078,7 @@ public class RouterTest extends WebTestBase {
 
     router.route(HttpMethod.GET, "/fail")
       .handler(BodyHandler.create())
-      .handler(ctx -> ctx.response().setStatusCode(200).end(ctx.getBodyAsString()));
+      .handler(ctx -> ctx.response().setStatusCode(200).end(ctx.body().asString()));
 
     testRequest(
       HttpMethod.GET,
@@ -3070,5 +3088,506 @@ public class RouterTest extends WebTestBase {
         req.end("{\"confidence\":\"56%\",\"info\":\"a&b\"}");
       },
       400, "Bad Request", "returned in first error handler");
+  }
+
+  @Test
+  public void testPauseResumeRelaxed() throws Exception {
+    router.route().handler(ctx -> {
+      ctx.request().endHandler(x -> ctx.response().end("Hello"));
+    });
+
+    testRequest(
+      HttpMethod.GET,
+      "/",
+      200, "OK", "Hello");
+  }
+
+  @Test
+  public void testPauseResumeRelaxed2() throws Exception {
+    // would not complete because the pause would always occur
+    router.route()
+      .handler(ctx -> {
+        ctx.request().pause();
+        ctx.vertx()
+          .setTimer(1L, t -> {
+            ctx.request().resume();
+            ctx.next();
+          });
+      })
+      .handler(ctx -> {
+        // this is happening from an async call, the request was paused
+        // but as the user is setting body related handler the request
+        // will be resumed.
+        switch (ctx.normalizedPath()) {
+          case "/end":
+            ctx.request().end(x -> ctx.response().end("Hello"));
+            break;
+          case "/endHandler":
+            ctx.request().endHandler(x -> ctx.response().end("Hello"));
+            break;
+          case "/end/Future":
+            ctx.request().end()
+              .onSuccess(x -> ctx.response().end("Hello"));
+            break;
+          case "/bodyHandler":
+            ctx.request().bodyHandler(x -> ctx.response().end("Hello"));
+            break;
+          case "/body":
+            ctx.request().body(x -> ctx.response().end("Hello"));
+            break;
+          case "/body/Future":
+            ctx.request().body()
+              .onSuccess(x -> ctx.response().end("Hello"));
+            break;
+        }
+      });
+
+    testRequest(
+      HttpMethod.GET,
+      "/endHandler",
+      200,
+      "OK");
+
+    testRequest(
+      HttpMethod.GET,
+      "/bodyHandler",
+      200,
+      "OK");
+
+    testRequest(
+      HttpMethod.GET,
+      "/body",
+      200,
+      "OK");
+
+    testRequest(
+      HttpMethod.GET,
+      "/body/Future",
+      200,
+      "OK");
+
+    testRequest(
+      HttpMethod.GET,
+      "/end",
+      200,
+      "OK");
+
+    testRequest(
+      HttpMethod.GET,
+      "/end/Future",
+      200,
+      "OK");
+  }
+
+  @Test
+  public void testBytesReadOnPause() throws Exception {
+    router.route().handler(ctx -> {
+      assertEquals(0, ctx.request().bytesRead());
+      ctx.end();
+    });
+
+    testRequest(
+      HttpMethod.GET,
+      "/",
+      200, "OK");
+  }
+
+  @Test
+  public void testPauseResumeOnPipeline() {
+    // force an async op (to ensure that the body is not lost)
+    router.route()
+      .handler(ctx -> {
+        ctx.request().pause();
+        ctx.vertx()
+          .setTimer(1L, t -> {
+            ctx.request().resume();
+            ctx.next();
+          });
+      });
+
+    // will parse the body, this means that the request will be resumed
+    router.route("/parse/*")
+      .handler(BodyHandler.create());
+
+    // continue
+    router.route("/")
+      .handler(ctx -> {
+        // ensure that the body wasn't parsed. This confirms that the request was paused when it got here
+        assertTrue(ctx.body().isEmpty());
+        ctx.response().end(ctx.normalizedPath() + "\n");
+      });
+
+    router.route("/parse/ok")
+      .handler(ctx -> {
+        // ensure that the body was parsed.
+        assertFalse(ctx.body().isEmpty());
+        ctx.response().end(ctx.normalizedPath() + "\n");
+      });
+
+    router.route("/expect/end")
+      .handler(ctx -> {
+        ctx.request().end(x -> ctx.response().end(ctx.normalizedPath() + "\n"));
+      });
+
+    Function<List<String>, String> test = reqs -> {
+      try (Socket socket = new Socket("localhost", 8080)) {
+        OutputStream output = socket.getOutputStream();
+        PrintWriter writer = new PrintWriter(output, true);
+
+        for (String req : reqs) {
+          writer.print(req);
+        }
+        writer.println();
+
+        InputStream input = socket.getInputStream();
+        StringBuilder buffer = new StringBuilder();
+        int ch;
+        while ((ch = input.read()) != -1) {
+          if (ch == '\r') {
+            continue;
+          }
+          buffer.append((char) ch);
+        }
+
+        return buffer.toString();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    };
+
+    // Test:
+    // 1. 1st request is paused
+    // 2. parsing is skipped, so body will be null (still paused)
+    // 3. response().end()
+    // 4. 2nd request is paused
+    // 5. body is parsed, (request is resumed)
+    // 6. body() is not null
+    // 7. response().end()
+    // Nothing is lost
+    assertEquals(
+      "HTTP/1.1 200 OK\n" +
+        "content-length: 2\n" +
+        "\n" +
+        "/\n" +
+        "HTTP/1.1 200 OK\n" +
+        "connection: close\n" +
+        "content-length: 10\n" +
+        "\n" +
+        "/parse/ok\n",
+      test.apply(Arrays.asList(
+        "POST / HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nABC",
+        "POST /parse/ok HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nDEF"
+      )));
+
+    // Test:
+    // 1. 1st request is paused
+    // 2. body is parsed, (request is resumed)
+    // 3. body() is not null
+    // 4. response().end()
+    // 5. 2nd request is paused (again)
+    // 6. parsing is skipped, so body will be null (still paused)
+    // 7. response().end()
+    // Nothing is lost
+    assertEquals(
+      "HTTP/1.1 200 OK\n" +
+        "content-length: 10\n" +
+        "\n" +
+        "/parse/ok\n" +
+        "HTTP/1.1 200 OK\n" +
+        "connection: close\n" +
+        "content-length: 2\n" +
+        "\n" +
+        "/\n",
+      test.apply(Arrays.asList(
+        "POST /parse/ok HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nDEF",
+        "POST / HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nABC"
+      )));
+
+    // Test:
+    // 1. 1st request is paused
+    // 2. body is parsed, (request is resumed)
+    // 3. body() is not null
+    // 4. response().end()
+    // 5. 2nd request is paused (again)
+    // 6. parsing is skipped, so body will be null (still paused)
+    // 7. user waits for the end of the request
+    // Nothing is lost
+    assertEquals(
+      "HTTP/1.1 200 OK\n" +
+        "content-length: 10\n" +
+        "\n" +
+        "/parse/ok\n" +
+        "HTTP/1.1 200 OK\n" +
+        "connection: close\n" +
+        "content-length: 12\n" +
+        "\n" +
+        "/expect/end\n",
+      test.apply(Arrays.asList(
+        "POST /parse/ok HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nDEF",
+        "POST /expect/end HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nABC"
+      )));
+
+    // Test:
+    // 1. 1st request is paused
+    // 2. parsing is skipped, so body will be null (still paused)
+    // 3. user waits for the end of the request
+    // 4. 2nd request is paused
+    // 5. body is parsed, (request is resumed)
+    // 6. body() is not null
+    // 7. response().end()
+    // Nothing is lost
+    assertEquals(
+      "HTTP/1.1 200 OK\n" +
+        "content-length: 12\n" +
+        "\n" +
+        "/expect/end\n" +
+        "HTTP/1.1 200 OK\n" +
+        "connection: close\n" +
+        "content-length: 10\n" +
+        "\n" +
+        "/parse/ok\n",
+      test.apply(Arrays.asList(
+        "POST /expect/end HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nABC",
+        "POST /parse/ok HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nDEF"
+      )));
+
+    // Test:
+    // 1. 1st request is paused
+    // 2. body is skipped, (request is still paused)
+    // 3. body() is null
+    // 4. response().end()
+    // 5. 2nd request is paused (again)
+    // 6. parsing is skipped, so body will be null (still paused)
+    // 7. user waits for the end of the request
+    // Nothing is lost
+    assertEquals(
+      "HTTP/1.1 200 OK\n" +
+        "content-length: 2\n" +
+        "\n" +
+        "/\n" +
+        "HTTP/1.1 200 OK\n" +
+        "connection: close\n" +
+        "content-length: 12\n" +
+        "\n" +
+        "/expect/end\n",
+      test.apply(Arrays.asList(
+        "POST / HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nDEF",
+        "POST /expect/end HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nABC"
+      )));
+
+    // Test:
+    // 1. 1st request is paused
+    // 2. parsing is skipped, so body will be null (still paused)
+    // 3. user waits for the end of the request
+    // 4. 2nd request is paused
+    // 5. body is skipped, (request is still paused)
+    // 6. body() is null
+    // 7. response().end()
+    // Nothing is lost
+    assertEquals(
+      "HTTP/1.1 200 OK\n" +
+        "content-length: 12\n" +
+        "\n" +
+        "/expect/end\n" +
+        "HTTP/1.1 200 OK\n" +
+        "connection: close\n" +
+        "content-length: 2\n" +
+        "\n" +
+        "/\n",
+      test.apply(Arrays.asList(
+        "POST /expect/end HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nABC",
+        "POST / HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nDEF"
+      )));
+
+    // Test:
+    // 1. 1st request is paused
+    // 2. returns 404
+    // 3. 2nd request is paused (again)
+    // 4. parsing is skipped, so body will be null (still paused)
+    // 5. user waits for the end of the request
+    // Nothing is lost
+    assertEquals(
+      "HTTP/1.1 404 Not Found\n" +
+        "content-type: text/html; charset=utf-8\n" +
+        "content-length: 53\n" +
+        "\n" +
+        "<html><body><h1>Resource not found</h1></body></html>HTTP/1.1 200 OK\n" +
+        "connection: close\n" +
+        "content-length: 12\n" +
+        "\n" +
+        "/expect/end\n",
+      test.apply(Arrays.asList(
+        "POST /not/found HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nDEF",
+        "POST /expect/end HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nABC"
+      )));
+
+    // Test:
+    // 1. 1st request is paused
+    // 2. returns 404
+    // 3. 2nd request is paused
+    // 4. body is skipped, (request is still paused)
+    // 5. body() is null
+    // 6. response().end()
+    // Nothing is lost
+    assertEquals(
+      "HTTP/1.1 404 Not Found\n" +
+        "content-type: text/html; charset=utf-8\n" +
+        "content-length: 53\n" +
+        "\n" +
+        "<html><body><h1>Resource not found</h1></body></html>HTTP/1.1 200 OK\n" +
+        "connection: close\n" +
+        "content-length: 2\n" +
+        "\n" +
+        "/\n",
+      test.apply(Arrays.asList(
+        "POST /not/found HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nABC",
+        "POST / HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nDEF"
+      )));
+
+    // Test:
+    // 1. 1st request is paused
+    // 2. returns 404
+    // 3. 2nd request is paused
+    // 4. body is parsed, (request is resumed)
+    // 5. body() is not null
+    // 6. response().end()
+    // Nothing is lost
+    assertEquals(
+      "HTTP/1.1 404 Not Found\n" +
+        "content-type: text/html; charset=utf-8\n" +
+        "content-length: 53\n" +
+        "\n" +
+        "<html><body><h1>Resource not found</h1></body></html>HTTP/1.1 200 OK\n" +
+        "connection: close\n" +
+        "content-length: 10\n" +
+        "\n" +
+        "/parse/ok\n",
+      test.apply(Arrays.asList(
+        "POST /not/found HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nABC",
+        "POST /parse/ok HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nDEF"
+      )));
+  }
+
+  @Test
+  public void testPausedConnection() {
+
+    router.route()
+      .handler((PlatformHandler) ctx -> {
+        ctx.vertx()
+          .setTimer(1L, t -> ctx.next());
+      });
+
+    router.route("/")
+      .handler(ctx -> {
+        ctx.response().end(ctx.normalizedPath() + "\n");
+      });
+
+    int numRequests= 20;
+
+    waitFor(numRequests);
+
+    HttpClient client = vertx.createHttpClient(new HttpClientOptions().setMaxPoolSize(1));
+    for (int i = 0;i < numRequests;i++) {
+      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080), onSuccess(req -> {
+        // 8192 * 8 fills the HTTP server request pending queue
+        // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
+        req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
+          complete();
+        }));
+      }));
+    }
+
+    await();
+  }
+
+  @Test
+  public void testPausedConnection2() {
+
+    router.route()
+      .handler((PlatformHandler) ctx -> {
+        ctx.vertx()
+          .setTimer(1L, t -> ctx.next());
+      });
+
+    // this variation shows that if there's only web handlers, it still works
+    router.route("/")
+      .handler(BodyHandler.create());
+
+    int numRequests= 20;
+
+    waitFor(numRequests);
+
+    HttpClient client = vertx.createHttpClient(new HttpClientOptions().setMaxPoolSize(1));
+    for (int i = 0;i < numRequests;i++) {
+      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080), onSuccess(req -> {
+        // 8192 * 8 fills the HTTP server request pending queue
+        // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
+        req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
+          complete();
+        }));
+      }));
+    }
+
+    await();
+  }
+
+  @Test
+  public void testPausedConnection3() {
+
+    router.route()
+      .handler((PlatformHandler) ctx -> {
+        ctx.vertx()
+          .setTimer(1L, t -> ctx.next());
+      });
+
+    // ensure that even if there are callbacks waiting for the request end event, the resume did happen correctly
+    router.route("/")
+      .handler(ctx -> {
+        ctx.request().endHandler(done -> ctx.response().end(ctx.normalizedPath() + "\n"));
+      });
+
+    int numRequests= 20;
+
+    waitFor(numRequests);
+
+    HttpClient client = vertx.createHttpClient(new HttpClientOptions().setMaxPoolSize(1));
+    for (int i = 0;i < numRequests;i++) {
+      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080), onSuccess(req -> {
+        // 8192 * 8 fills the HTTP server request pending queue
+        // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
+        req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
+          complete();
+        }));
+      }));
+    }
+
+    await();
+  }
+
+  @Test
+  public void testPausedConnection4() {
+
+    router.route()
+      .handler((PlatformHandler) ctx -> {
+        ctx.vertx()
+          .setTimer(1L, t -> ctx.next());
+      });
+
+    int numRequests= 20;
+
+    waitFor(numRequests);
+
+    HttpClient client = vertx.createHttpClient(new HttpClientOptions().setMaxPoolSize(1));
+    for (int i = 0;i < numRequests;i++) {
+      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080), onSuccess(req -> {
+        // 8192 * 8 fills the HTTP server request pending queue
+        // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
+        req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
+          complete();
+        }));
+      }));
+    }
+
+    await();
   }
 }
