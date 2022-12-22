@@ -13,7 +13,7 @@ public class TestUtils {
   public static Response sendQuery(String query) {
     return given().basePath("graphql")
       .contentType("application/json")
-      .body(query)
+      .body(query).port(8082)
       .post();
   }
 

@@ -24,7 +24,7 @@ public abstract class GraphQLServer extends AbstractVerticle {
     router.route().handler(BodyHandler.create());
     router.route("/graphql").handler(GraphQLHandler.create(graphQL));
     router.get("/health").handler(routingContext -> routingContext.response().end("OK"));
-    vertx.createHttpServer().requestHandler(router).listen(8080, httpServerAsyncResult -> {
+    vertx.createHttpServer().requestHandler(router).listen(8082, httpServerAsyncResult -> {
       if (httpServerAsyncResult.succeeded()) {
         startPromise.complete();
       } else {
