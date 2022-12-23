@@ -62,6 +62,13 @@ public class CORSHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testAcceptAllAllowedOriginBackwardsCompatability() throws Exception {
+    router.route().handler(CorsHandler.create("*"));
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://vertx.io"), resp -> checkHeaders(resp, "*", null, null, null), 200, "OK", null);
+  }
+
+  @Test
   public void testAcceptConstantOrigin() throws Exception {
     router.route().handler(CorsHandler.create("http://vertx\\.io"));
     router.route().handler(context -> context.response().end());
@@ -712,6 +719,33 @@ public class CORSHandlerTest extends WebTestBase {
       assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
       assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
       assertNull(resp.getHeader(HttpHeaders.VARY));
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testCORSSetupDotStarOriginShouldHaveVary() throws Exception {
+    router.route().handler(CorsHandler.create()
+        .addRelativeOrigin(".*")
+        .allowedMethod(HttpMethod.GET))
+      .handler(context -> context.response().end());
+
+    testRequest(HttpMethod.POST, "/", null, resp -> {
+      assertEquals("origin", resp.getHeader(HttpHeaders.VARY));
+      assertNull(resp.headers().get("access-control-allow-origin"));
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testCORSSetupDotStarOriginShouldHaveVaryAndAccessControlAllowOrigin() throws Exception {
+    router.route().handler(CorsHandler.create()
+        .addRelativeOrigin(".*")
+        .allowedMethod(HttpMethod.GET))
+      .handler(context -> context.response().end());
+
+    testRequest(HttpMethod.POST, "/", req -> req.headers().add("origin", "https://mydomain.org:3000"),
+      resp -> {
+      assertEquals("origin", resp.getHeader(HttpHeaders.VARY));
+      assertEquals("https://mydomain.org:3000", resp.headers().get("access-control-allow-origin"));
     }, 200, "OK", null);
   }
 }

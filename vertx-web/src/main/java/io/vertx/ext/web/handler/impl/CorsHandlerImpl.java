@@ -101,10 +101,6 @@ public class CorsHandlerImpl implements CorsHandler {
     Objects.requireNonNull(origin, "'origin' cannot be null");
 
     if (relativeOrigins == null) {
-      if (origin.equals(".*")) {
-        // we signal any as null
-        return this;
-      }
       relativeOrigins = new LinkedHashSet<>();
     } else {
       if (origin.equals(".*")) {
