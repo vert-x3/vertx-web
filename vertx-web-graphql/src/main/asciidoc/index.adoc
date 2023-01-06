@@ -164,26 +164,24 @@ To https://vertx.io/docs/vertx-core/java/#golden_rule[avoid blocking the event l
 {@link examples.GraphQLExamples#completionStageDataFetcher}
 ----
 
-=== Working with callback-based APIs
+[TIP]
+====
+Instead of converting Vert.x {@link io.vertx.core.Future} to `java.util.concurrent.CompletionStage` manually in every data fetcher implementation, configure GraphQL-Java with the {@link io.vertx.ext.web.handler.graphql.instrumentation.VertxFutureAdapter} https://www.graphql-java.com/documentation/instrumentation/[instrumentation].
 
-Implementing a data fetcher that returns a `CompletionStage` is not a complex task.
-But when you work with Vert.x callback-based APIs, it requires a bit of boilerplate.
-
-This is where the {@link io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher} can help:
+First, declare the instrumentation while configuring GraphQL-Java.
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#callbackDataFetcher}
+{@link examples.GraphQLExamples#vertxFutureAdapter}
 ----
 
-=== Working with Vert.x Futures
-
-{@link io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher} can also help with futurized APIs:
+Then you can return Vert.x futures directly.
 
 [source,$lang]
 ----
 {@link examples.GraphQLExamples#futureDataFetcher}
 ----
+====
 
 === Providing data fetchers with some context
 
@@ -199,8 +197,6 @@ You may retrieve this object by inspecting the `DataFetchingEnvironment`:
 ----
 {@link examples.GraphQLExamples#routingContextInDataFetchingEnvironment}
 ----
-
-NOTE: The routing context is available with any kind of data fetchers, not just {@link io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher}.
 
 === JSON data results
 
@@ -234,13 +230,6 @@ Then, configure the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} to c
 [source,$lang]
 ----
 {@link examples.GraphQLExamples#dataLoaderRegistry}
-----
-
-If you work with Vert.x APIs, you may use a {@link io.vertx.ext.web.handler.graphql.dataloader.VertxBatchLoader} or a {@link io.vertx.ext.web.handler.graphql.dataloader.VertxMappedBatchLoader} to simplify your code:
-
-[source,$lang]
-----
-{@link examples.GraphQLExamples#createVertxBatchLoader}
 ----
 
 === File uploads
