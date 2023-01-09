@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.handler.graphql.instrumentation.impl;
 
-import graphql.TrivialDataFetcher;
 import graphql.execution.instrumentation.InstrumentationState;
 import graphql.execution.instrumentation.SimpleInstrumentation;
 import graphql.execution.instrumentation.parameters.InstrumentationFieldFetchParameters;
@@ -42,7 +41,7 @@ public class ToCompletionStage<T> extends SimpleInstrumentation {
 
   @Override
   public DataFetcher<?> instrumentDataFetcher(DataFetcher<?> dataFetcher, InstrumentationFieldFetchParameters parameters, InstrumentationState state) {
-    if (dataFetcher instanceof TrivialDataFetcher) {
+    if (parameters.isTrivialDataFetcher()) {
       return dataFetcher;
     }
     if (dataFetcher instanceof InstrumentedDataFetcher) {
