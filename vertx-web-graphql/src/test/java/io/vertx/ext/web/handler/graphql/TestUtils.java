@@ -1,4 +1,4 @@
-package io.vertx.ext.web.handler.graphql.it;
+package io.vertx.ext.web.handler.graphql;
 
 import io.restassured.response.Response;
 import io.vertx.core.json.JsonObject;
@@ -13,7 +13,7 @@ public class TestUtils {
   public static Response sendQuery(String query) {
     return given().basePath("graphql")
       .contentType("application/json")
-      .body(query).port(8082)
+      .body(query).port(8080)
       .post();
   }
 

@@ -8,7 +8,6 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
-import io.vertx.ext.web.handler.graphql.it.TestUtils;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.Before;
@@ -18,8 +17,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.vertx.ext.web.handler.graphql.it.TestUtils.peek;
-import static io.vertx.ext.web.handler.graphql.it.TestUtils.sendQuery;
+import static io.vertx.ext.web.handler.graphql.TestUtils.peek;
+import static io.vertx.ext.web.handler.graphql.TestUtils.sendQuery;
 
 @ExtendWith(VertxExtension.class)
 public class ValidationTest extends AbstractVerticle {

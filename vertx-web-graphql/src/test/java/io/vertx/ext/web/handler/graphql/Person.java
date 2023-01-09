@@ -1,4 +1,4 @@
-package io.vertx.ext.web.handler.graphql.it;
+package io.vertx.ext.web.handler.graphql;
 
 public class Person {
   public String name;

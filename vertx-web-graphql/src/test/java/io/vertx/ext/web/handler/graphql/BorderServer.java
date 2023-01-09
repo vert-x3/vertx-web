@@ -6,7 +6,6 @@ import java.util.Arrays;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.idl.RuntimeWiring;
-import io.vertx.ext.web.handler.graphql.it.GraphQLServer;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 

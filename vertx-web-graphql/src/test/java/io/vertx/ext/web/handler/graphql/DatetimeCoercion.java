@@ -1,4 +1,4 @@
-package io.vertx.ext.web.handler.graphql.it;
+package io.vertx.ext.web.handler.graphql;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

@@ -1,37 +1,94 @@
-package io.vertx.ext.web.handler.graphql.it;
+package io.vertx.ext.web.handler.graphql;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import graphql.GraphQL;
+import graphql.schema.DataFetcher;
+import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLScalarType;
+import graphql.schema.GraphQLSchema;
+import graphql.schema.idl.RuntimeWiring;
+import graphql.schema.idl.SchemaGenerator;
+import graphql.schema.idl.SchemaParser;
+import graphql.schema.idl.TypeDefinitionRegistry;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
-import io.vertx.core.Vertx;
-import io.vertx.junit5.VertxExtension;
-import io.vertx.junit5.VertxTestContext;
+import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.vertx.ext.web.handler.graphql.it.TestUtils.createQuery;
-import static io.vertx.ext.web.handler.graphql.it.TestUtils.peek;
-import static io.vertx.ext.web.handler.graphql.it.TestUtils.sendQuery;
+import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
+import static io.vertx.ext.web.handler.graphql.TestUtils.createQuery;
+import static io.vertx.ext.web.handler.graphql.TestUtils.peek;
+import static io.vertx.ext.web.handler.graphql.TestUtils.sendQuery;
 
-@ExtendWith(VertxExtension.class)
-public class BasicIT {
+public class BasicTypesTest extends GraphQLTestBase {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(BasicIT.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(BasicTypesTest.class);
 
-  @BeforeAll
-  public static void deploy(Vertx vertx, VertxTestContext context) {
-    vertx.deployVerticle(HelloGraphQLServer.class.getName(), context.succeedingThenComplete());
+  private final Counter counter = new Counter();
+
+  private final Person[] philosophers;
+
+  public BasicTypesTest() {
+    final Person plato = new Person("Plato");
+    final Person aristotle = new Person("Aristotle");
+    plato.setFriend(aristotle);
+    aristotle.setFriend(plato);
+    philosophers = new Person[]{plato, aristotle};
   }
+
+  @Override
+  protected GraphQL graphQL() {
+    String schema = vertx.fileSystem().readFileBlocking("types.graphqls").toString();
+    final GraphQLScalarType datetime = GraphQLScalarType.newScalar()
+      .name("Datetime")
+      .coercing(new DatetimeCoercion())
+      .build();
+    SchemaParser schemaParser = new SchemaParser();
+    TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
+
+    RuntimeWiring runtimeWiring = newRuntimeWiring()
+      .scalar(datetime)
+      .type("Query", builder -> {
+        final HashMap<String, DataFetcher> fetchersMap = new HashMap<>();
+        fetchersMap.put("floating", env -> 3.14f);
+        fetchersMap.put("bool", env -> true);
+        fetchersMap.put("id", env -> "1001");
+        fetchersMap.put("enum", env -> Musketeer.ATHOS);
+        fetchersMap.put("when", env -> LocalDateTime.of(1991, 8, 25, 22, 57, 8));
+        fetchersMap.put("answer", env -> "Hello, " + env.getArgument("name") + "!");
+        fetchersMap.put("array", env -> new String[]{"apples", "eggs", "carrots"});
+        fetchersMap.put("list", env -> Arrays.asList("apples", "eggs", "carrots"));
+        return builder.dataFetcher("hello", env -> "Hello World!")
+          .dataFetcher("number", env -> 130)
+          .dataFetcher("changing", counter)
+          .dataFetcher("persons", env -> philosophers)
+          .dataFetchers(fetchersMap);
+      })
+      .build();
+
+
+    SchemaGenerator schemaGenerator = new SchemaGenerator();
+    GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
+
+    return GraphQL.newGraphQL(graphQLSchema)
+      .build();
+  }
+
+
+
+  /*public static void deploy(Vertx vertx, VertxTestContext context) {
+    vertx.deployVerticle(HelloGraphQLServer.class.getName(), context.succeedingThenComplete());
+  }*/
 
   @Test
   public void helloWorld() {
@@ -40,7 +97,6 @@ public class BasicIT {
     LOGGER.debug("{}", response.asString());
     Assertions.assertEquals(result, response.getBody().asString());
   }
-
   @Test
   public void integerNumber() {
     Response response = sendQuery(createQuery("number").toString());
@@ -136,5 +192,13 @@ public class BasicIT {
     Assertions.assertEquals("Plato", json.getString("data.persons[0].name"));
     Assertions.assertEquals("Aristotle", json.getString("data.persons[0].friend.name"));
     Assertions.assertEquals("Plato", json.getString("data.persons[0].friend.friend.name"));
+  }
+  class Counter implements DataFetcher<Integer> {
+    private final AtomicInteger order = new AtomicInteger(0);
+
+    @Override
+    public Integer get(DataFetchingEnvironment environment) {
+      return order.getAndIncrement();
+    }
   }
 }
