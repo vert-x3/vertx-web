@@ -30,14 +30,14 @@ import java.util.function.Function;
 /**
  * Instrument data fetchers so that results are automatically converted to {@link java.util.concurrent.CompletionStage}.
  */
-public class ToCompletionStageImpl<T> extends SimpleInstrumentation {
+public class ToCompletionStage<T> extends SimpleInstrumentation {
 
   private final Class<T> targetType;
   private final Function<T, CompletionStage<?>> converter;
 
-  public ToCompletionStageImpl(Class<T> targetType, Function<T, CompletionStage<?>> converter) {
-    this.targetType = Objects.requireNonNull(targetType);
-    this.converter = Objects.requireNonNull(converter);
+  public ToCompletionStage(Class<T> targetType, Function<T, CompletionStage<?>> converter) {
+    this.targetType = Objects.requireNonNull(targetType, "targetType is null");
+    this.converter = Objects.requireNonNull(converter, "converter is null");
   }
 
   @Override

@@ -16,8 +16,12 @@
 
 package io.vertx.ext.web.handler.graphql.instrumentation;
 
+import graphql.execution.instrumentation.InstrumentationState;
+import graphql.execution.instrumentation.SimpleInstrumentation;
+import graphql.execution.instrumentation.parameters.InstrumentationFieldFetchParameters;
+import graphql.schema.DataFetcher;
 import io.vertx.core.Future;
-import io.vertx.ext.web.handler.graphql.instrumentation.impl.ToCompletionStageImpl;
+import io.vertx.ext.web.handler.graphql.instrumentation.impl.ToCompletionStage;
 
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
@@ -26,10 +30,17 @@ import java.util.function.Function;
  * Instrument data fetchers so that {@link Future} results are automatically converted to {@link java.util.concurrent.CompletionStage}.
  */
 @SuppressWarnings("rawtypes")
-public class VertxFutureAdapter extends ToCompletionStageImpl<Future> {
+public class VertxFutureAdapter extends SimpleInstrumentation {
+
+  private final ToCompletionStage<Future> toCompletionStage;
 
   private VertxFutureAdapter(Class<Future> targetType, Function<Future, CompletionStage<?>> converter) {
-    super(targetType, converter);
+    toCompletionStage = new ToCompletionStage<>(targetType, converter);
+  }
+
+  @Override
+  public DataFetcher<?> instrumentDataFetcher(DataFetcher<?> dataFetcher, InstrumentationFieldFetchParameters parameters, InstrumentationState state) {
+    return toCompletionStage.instrumentDataFetcher(dataFetcher, parameters, state);
   }
 
   public static VertxFutureAdapter create() {
