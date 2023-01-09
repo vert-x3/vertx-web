@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -23,8 +23,10 @@ import io.vertx.core.json.JsonObject;
  * Options for configuring the {@link ApolloWSHandler}.
  *
  * @author Rogelio Orts
+ * @deprecated the subscriptions-transport-ws protocol is no longer maintained
  */
 @DataObject(generateConverter = true)
+@Deprecated
 public class ApolloWSOptions {
 
   /**

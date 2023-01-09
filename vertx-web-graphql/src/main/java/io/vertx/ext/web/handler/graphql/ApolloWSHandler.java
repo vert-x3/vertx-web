@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -30,14 +30,16 @@ import org.dataloader.DataLoaderRegistry;
 import java.util.Locale;
 import java.util.function.Function;
 
-import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
+import static io.vertx.codegen.annotations.GenIgnore.*;
 
 /**
  * A handler for GraphQL requests sent over Apollo's {@code subscriptions-transport-ws} transport.
  *
  * @author Rogelio Orts
+ * @deprecated the subscriptions-transport-ws protocol is no longer maintained
  */
 @VertxGen
+@Deprecated
 public interface ApolloWSHandler extends ProtocolUpgradeHandler {
 
   /**
