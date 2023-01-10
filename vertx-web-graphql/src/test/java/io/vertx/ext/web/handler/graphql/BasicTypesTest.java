@@ -20,6 +20,7 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+import io.vertx.core.http.HttpServerOptions;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
@@ -28,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static io.vertx.ext.web.handler.graphql.TestUtils.createQuery;
 import static io.vertx.ext.web.handler.graphql.TestUtils.peek;
-import static io.vertx.ext.web.handler.graphql.TestUtils.sendQuery;
+import static io.vertx.ext.web.handler.graphql.TestUtils.sendQueryBasicTypes;
 
 public class BasicTypesTest extends GraphQLTestBase {
 
@@ -44,6 +45,11 @@ public class BasicTypesTest extends GraphQLTestBase {
     plato.setFriend(aristotle);
     aristotle.setFriend(plato);
     philosophers = new Person[]{plato, aristotle};
+  }
+
+  @Override
+  protected HttpServerOptions getHttpServerOptions() {
+    return new HttpServerOptions().setPort(8082).setHost("localhost");
   }
 
   @Override
@@ -84,57 +90,52 @@ public class BasicTypesTest extends GraphQLTestBase {
       .build();
   }
 
-
-
-  /*public static void deploy(Vertx vertx, VertxTestContext context) {
-    vertx.deployVerticle(HelloGraphQLServer.class.getName(), context.succeedingThenComplete());
-  }*/
-
   @Test
   public void helloWorld() {
     String result = "{\"data\":{\"hello\":\"Hello World!\"}}";
-    Response response = sendQuery("{\"query\":\"{hello}\"}");
+    Response response = sendQueryBasicTypes("{\"query\":\"{hello}\"}");
     LOGGER.debug("{}", response.asString());
     Assertions.assertEquals(result, response.getBody().asString());
   }
+
   @Test
   public void integerNumber() {
-    Response response = sendQuery(createQuery("number").toString());
+    Response response = sendQueryBasicTypes(createQuery("number").toString());
     final int data = response.jsonPath().getInt("data.number");
     Assertions.assertEquals(130, data);
   }
 
   @Test
   public void floatingPointNumber() {
-    Response response = sendQuery(createQuery("floating").toString());
+    Response response = sendQueryBasicTypes(createQuery("floating").toString());
     final float data = response.jsonPath().getFloat("data.floating");
     Assertions.assertEquals(3.14, data, 0.01);
   }
 
   @Test
   public void bool() {
-    Response response = sendQuery(createQuery("bool").toString());
+    Response response = sendQueryBasicTypes(createQuery("bool").toString());
     final boolean data = response.jsonPath().getBoolean("data.bool");
     Assertions.assertTrue(data);
   }
 
   @Test
   public void id() {
-    Response response = sendQuery(createQuery("id").toString());
+    Response response = sendQueryBasicTypes(createQuery("id").toString());
     final String data = response.jsonPath().getString("data.id");
     Assertions.assertEquals("1001", data);
   }
 
   @Test
   public void enumeration() {
-    Response response = sendQuery(createQuery("enum").toString());
+    Response response = sendQueryBasicTypes(createQuery("enum").toString());
     final String data = response.jsonPath().getString("data.enum");
     Assertions.assertEquals(Musketeer.ATHOS.toString(), data);
   }
 
   @Test
   public void list() {
-    Response response = sendQuery(createQuery("list").toString());
+    Response response = sendQueryBasicTypes(createQuery("list").toString());
     final List<String> data = response.jsonPath().getList("data.list");
     Assertions.assertEquals(3, data.size());
     Collections.sort(data);
@@ -143,7 +144,7 @@ public class BasicTypesTest extends GraphQLTestBase {
 
   @Test
   public void alias() {
-    Response response = sendQuery(createQuery("arr: array").toString());
+    Response response = sendQueryBasicTypes(createQuery("arr: array").toString());
     final List<String> data = response.jsonPath().getList("data.arr");
     Assertions.assertEquals(3, data.size());
     Collections.sort(data);
@@ -152,7 +153,7 @@ public class BasicTypesTest extends GraphQLTestBase {
 
   @Test
   public void userDefined() {
-    Response response = sendQuery(createQuery("when").toString());
+    Response response = sendQueryBasicTypes(createQuery("when").toString());
     final String data = response.jsonPath().getString("data.when");
     final LocalDateTime localDateTime = new DatetimeCoercion().parseValue(data);
     final LocalDateTime linuxAnnouncement = LocalDateTime.of(LocalDate.of(1991, 8, 25),
@@ -162,14 +163,14 @@ public class BasicTypesTest extends GraphQLTestBase {
 
   @Test
   public void functionDefault() {
-    Response response = sendQuery(String.valueOf(createQuery("answer")));
+    Response response = sendQueryBasicTypes(String.valueOf(createQuery("answer")));
     final String data = response.jsonPath().getString("data.answer");
     Assertions.assertEquals("Hello, someone!", data);
   }
 
   @Test
   public void function() {
-    Response response = sendQuery(peek(String.valueOf(createQuery("answer(name:\"world\")"))));
+    Response response = sendQueryBasicTypes(peek(String.valueOf(createQuery("answer(name:\"world\")"))));
     LOGGER.debug("{}", response.asString());
     final String data = response.jsonPath().getString("data.answer");
     Assertions.assertEquals("Hello, world!", data);
@@ -178,8 +179,8 @@ public class BasicTypesTest extends GraphQLTestBase {
   @Test
   public void cached() {
     final String query = createQuery("changing").toString();
-    final String first = sendQuery(query).jsonPath().getString("data.changing");
-    final String second = sendQuery(query).jsonPath().getString("data.changing");
+    final String first = sendQueryBasicTypes(query).jsonPath().getString("data.changing");
+    final String second = sendQueryBasicTypes(query).jsonPath().getString("data.changing");
     LOGGER.debug("first is '{}' and second is '{}'", first, second);
     Assertions.assertNotEquals(first, second);
   }
@@ -187,12 +188,13 @@ public class BasicTypesTest extends GraphQLTestBase {
   @Test
   public void recursive() {
     final String query = peek(createQuery("persons{name,friend{name,friend{name}}}").toString());
-    final Response response = sendQuery(query);
+    final Response response = sendQueryBasicTypes(query);
     final JsonPath json = response.jsonPath();
     Assertions.assertEquals("Plato", json.getString("data.persons[0].name"));
     Assertions.assertEquals("Aristotle", json.getString("data.persons[0].friend.name"));
     Assertions.assertEquals("Plato", json.getString("data.persons[0].friend.friend.name"));
   }
+
   class Counter implements DataFetcher<Integer> {
     private final AtomicInteger order = new AtomicInteger(0);
 

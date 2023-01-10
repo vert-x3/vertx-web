@@ -10,10 +10,17 @@ import static io.restassured.RestAssured.given;
 public class TestUtils {
   private static final Logger LOGGER = LoggerFactory.getLogger(TestUtils.class);
 
-  public static Response sendQuery(String query) {
+  public static Response sendQueryValidation(String query) {
     return given().basePath("graphql")
       .contentType("application/json")
-      .body(query).port(8080)
+      .body(query).port(8081)
+      .post();
+  }
+
+  public static Response sendQueryBasicTypes(String query) {
+    return given().basePath("graphql")
+      .contentType("application/json")
+      .body(query).port(8082)
       .post();
   }
 

@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static io.vertx.ext.web.handler.graphql.TestUtils.peek;
-import static io.vertx.ext.web.handler.graphql.TestUtils.sendQuery;
+import static io.vertx.ext.web.handler.graphql.TestUtils.sendQueryValidation;
 
 @ExtendWith(VertxExtension.class)
 public class ValidationTest extends AbstractVerticle {
@@ -318,7 +318,7 @@ public class ValidationTest extends AbstractVerticle {
   }
 
   private ValidationResult send(String query) {
-    return new ValidationResult(sendQuery(query));
+    return new ValidationResult(sendQueryValidation(query));
   }
 
   private String createQuery(String field, String type) {
