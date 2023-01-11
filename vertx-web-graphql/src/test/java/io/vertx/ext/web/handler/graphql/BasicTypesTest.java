@@ -22,7 +22,6 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.vertx.core.http.HttpServerOptions;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +29,10 @@ import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static io.vertx.ext.web.handler.graphql.TestUtils.createQuery;
 import static io.vertx.ext.web.handler.graphql.TestUtils.peek;
 import static io.vertx.ext.web.handler.graphql.TestUtils.sendQueryBasicTypes;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.number.IsCloseTo.closeTo;
 
 public class BasicTypesTest extends GraphQLTestBase {
 
@@ -95,60 +98,59 @@ public class BasicTypesTest extends GraphQLTestBase {
     String result = "{\"data\":{\"hello\":\"Hello World!\"}}";
     Response response = sendQueryBasicTypes("{\"query\":\"{hello}\"}");
     LOGGER.debug("{}", response.asString());
-    Assertions.assertEquals(result, response.getBody().asString());
+    assertThat(result, equalTo(response.getBody().asString()));
   }
 
   @Test
   public void integerNumber() {
     Response response = sendQueryBasicTypes(createQuery("number").toString());
     final int data = response.jsonPath().getInt("data.number");
-    Assertions.assertEquals(130, data);
+    assertThat(130, equalTo(response.jsonPath().getInt("data.number")));
   }
 
   @Test
   public void floatingPointNumber() {
     Response response = sendQueryBasicTypes(createQuery("floating").toString());
     final float data = response.jsonPath().getFloat("data.floating");
-    Assertions.assertEquals(3.14, data, 0.01);
+    assertThat((double) data, closeTo(3.14, 0.01));
   }
-
   @Test
   public void bool() {
     Response response = sendQueryBasicTypes(createQuery("bool").toString());
     final boolean data = response.jsonPath().getBoolean("data.bool");
-    Assertions.assertTrue(data);
+    assertThat(data, is(true));
   }
 
   @Test
   public void id() {
     Response response = sendQueryBasicTypes(createQuery("id").toString());
     final String data = response.jsonPath().getString("data.id");
-    Assertions.assertEquals("1001", data);
+    assertThat(data, equalTo("1001"));
   }
 
   @Test
   public void enumeration() {
     Response response = sendQueryBasicTypes(createQuery("enum").toString());
     final String data = response.jsonPath().getString("data.enum");
-    Assertions.assertEquals(Musketeer.ATHOS.toString(), data);
+    assertThat(data, equalTo(Musketeer.ATHOS.toString()));
   }
 
   @Test
   public void list() {
     Response response = sendQueryBasicTypes(createQuery("list").toString());
     final List<String> data = response.jsonPath().getList("data.list");
-    Assertions.assertEquals(3, data.size());
+    assertThat(data.size(),equalTo(3));
     Collections.sort(data);
-    Assertions.assertEquals(Arrays.asList("apples", "carrots", "eggs"), data);
+    assertThat(data, equalTo(Arrays.asList("apples", "carrots", "eggs")));
   }
 
   @Test
   public void alias() {
     Response response = sendQueryBasicTypes(createQuery("arr: array").toString());
     final List<String> data = response.jsonPath().getList("data.arr");
-    Assertions.assertEquals(3, data.size());
+    assertThat(data.size(),equalTo(3));
     Collections.sort(data);
-    Assertions.assertEquals(Arrays.asList("apples", "carrots", "eggs"), data);
+    assertThat(data, equalTo(Arrays.asList("apples", "carrots", "eggs")));
   }
 
   @Test
@@ -158,14 +160,14 @@ public class BasicTypesTest extends GraphQLTestBase {
     final LocalDateTime localDateTime = new DatetimeCoercion().parseValue(data);
     final LocalDateTime linuxAnnouncement = LocalDateTime.of(LocalDate.of(1991, 8, 25),
                                                              LocalTime.of(22, 57, 8));
-    Assertions.assertEquals(linuxAnnouncement, localDateTime);
+    assertThat(localDateTime, equalTo(linuxAnnouncement));
   }
 
   @Test
   public void functionDefault() {
     Response response = sendQueryBasicTypes(String.valueOf(createQuery("answer")));
     final String data = response.jsonPath().getString("data.answer");
-    Assertions.assertEquals("Hello, someone!", data);
+    assertThat(data,equalTo("Hello, someone!"));
   }
 
   @Test
@@ -173,7 +175,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     Response response = sendQueryBasicTypes(peek(String.valueOf(createQuery("answer(name:\"world\")"))));
     LOGGER.debug("{}", response.asString());
     final String data = response.jsonPath().getString("data.answer");
-    Assertions.assertEquals("Hello, world!", data);
+    assertThat(data, equalTo("Hello, world!"));
   }
 
   @Test
@@ -182,7 +184,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     final String first = sendQueryBasicTypes(query).jsonPath().getString("data.changing");
     final String second = sendQueryBasicTypes(query).jsonPath().getString("data.changing");
     LOGGER.debug("first is '{}' and second is '{}'", first, second);
-    Assertions.assertNotEquals(first, second);
+    assertThat(first, not(equalTo(second)) );
   }
 
   @Test
@@ -190,9 +192,9 @@ public class BasicTypesTest extends GraphQLTestBase {
     final String query = peek(createQuery("persons{name,friend{name,friend{name}}}").toString());
     final Response response = sendQueryBasicTypes(query);
     final JsonPath json = response.jsonPath();
-    Assertions.assertEquals("Plato", json.getString("data.persons[0].name"));
-    Assertions.assertEquals("Aristotle", json.getString("data.persons[0].friend.name"));
-    Assertions.assertEquals("Plato", json.getString("data.persons[0].friend.friend.name"));
+    assertThat(json.getString("data.persons[0].name"), equalTo("Plato"));
+    assertThat(json.getString("data.persons[0].friend.name"), equalTo("Aristotle"));
+    assertThat(json.getString("data.persons[0].friend.friend.name"), equalTo("Plato"));
   }
 
   class Counter implements DataFetcher<Integer> {
