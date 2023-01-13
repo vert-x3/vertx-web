@@ -44,6 +44,11 @@
       <optional>true</optional>
     </dependency>
 
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web</artifactId>
+    </dependency>
+
     <!-- Testing -->
     <dependency>
       <groupId>io.vertx</groupId>
@@ -59,6 +64,10 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-htdigest</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-junit5</artifactId>
     </dependency>
   </dependencies>
 
@@ -90,6 +99,7 @@
             <configuration>
               <includes>
                 <include>io/vertx/ext/web/client/it/WebClientDatabindTest.java</include>
+                <include>io/vertx/ext/web/client/it/UriTemplateITest.java</include>
               </includes>
             </configuration>
           </execution>
