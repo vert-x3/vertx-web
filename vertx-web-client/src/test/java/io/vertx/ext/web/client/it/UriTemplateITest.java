@@ -9,7 +9,6 @@ import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -83,7 +82,6 @@ public class UriTemplateITest {
 
   @Test
   @DisplayName("expansionMultipleVariablesTest")
-  @Disabled /*This test should be pass but fails in port 8082 but pass in the port 8080 and in the server the route is configured with port set 8082*/
   void expansionMultipleVariablesTest(VertxTestContext context) {
     client.request(HttpMethod.GET, 8082, "localhost", "/subpathA/subpathB/subpathC/123,456")
       .compose(httpClientRequest -> httpClientRequest.send())
