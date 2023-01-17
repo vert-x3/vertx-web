@@ -23,7 +23,6 @@ import io.vertx.json.schema.common.SchemaURNId;
 import io.vertx.json.schema.common.URIUtils;
 import io.vertx.json.schema.draft7.Draft7SchemaParser;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,7 +58,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     this.options = options;
     SchemaRouter router = SchemaRouter.create(vertx, client, fs, options.toSchemaRouterOptions());
     SchemaParser parser = Draft7SchemaParser.create(router);
-    this.yamlMapper = new Yaml(new SafeConstructor());
+    this.yamlMapper = new Yaml(new OpenAPIYamlConstructor());
     this.openapiSchema = parser.parseFromString(OpenAPI3Utils.openapiSchemaJson);
   }
 
