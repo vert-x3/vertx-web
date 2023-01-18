@@ -73,7 +73,7 @@ public class UriTemplateVerticle extends AbstractVerticle {
           System.out.println(compositeFutureAsyncResult.cause());
           startPromise.fail(compositeFutureAsyncResult.cause());
         }
-      });
+      }).onFailure(throwable -> System.out.println(throwable.getMessage()));
 
   }
 

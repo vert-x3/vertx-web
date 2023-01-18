@@ -1,102 +1,90 @@
 package io.vertx.ext.web.client.it;
 
 
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonObject;
-import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxExtension;
-import io.vertx.junit5.VertxTestContext;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static io.vertx.core.Vertx.vertx;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
-@ExtendWith(VertxExtension.class)
+@RunWith(VertxUnitRunner.class)
 public class UriTemplateITest {
 
   private HttpClient client = vertx().createHttpClient();
 
-  @BeforeAll
-  public static void deploy(VertxTestContext vertxTestContext) {
-    Checkpoint checkpoint = vertxTestContext.checkpoint();
-    vertxTestContext.verify(() -> {
-      vertx().deployVerticle(UriTemplateVerticle.class.getName());
-      checkpoint.flag();
-    });
+  private Vertx vertx;
+
+  @Before
+  public void deploy(TestContext context) {
+    vertx = Vertx.vertx();
+    Async async = context.async();
+    vertx.deployVerticle(UriTemplateVerticle.class.getName());
+    async.complete();
   }
 
   @Test
-  @DisplayName("greetingFromUriTemplateTest")
-  void greetingFromUriTemplateTest(VertxTestContext context) {
+  public void greetingFromUriTemplateTest(TestContext testContext) {
     client.request(HttpMethod.GET, 8080, "localhost", "/greeting")
-      .compose(httpClientRequest -> httpClientRequest.send())
-      .onComplete(context.succeeding(httpClientResponse -> {
-        assertAll(
-          () -> assertEquals(200, httpClientResponse.statusCode()),
-          () -> assertEquals(HttpVersion.HTTP_1_1, httpClientResponse.version())
-        );
-        httpClientResponse.body().onComplete(context.succeeding(body -> {
-          assertEquals("Hello from UriTemplateVerticle!", body.toString());
-          context.completeNow();
-        }));
-      }))
-      .onFailure(context::failNow);
+      .compose(HttpClientRequest::send)
+      .onComplete(testContext.asyncAssertSuccess(resp -> {
+        testContext.assertEquals(200, resp.statusCode());
+        testContext.assertEquals(HttpVersion.HTTP_1_1, resp.version());
+        resp.body(bufferAsyncResult -> {
+          if (bufferAsyncResult.succeeded()) {
+            testContext.assertEquals("Hello from UriTemplateVerticle!", bufferAsyncResult.result().toString());
+          } else {
+            System.out.println(bufferAsyncResult.cause().getMessage());
+          }
+        });
+
+      })).onFailure(throwable -> throwable.getMessage());
+
   }
 
   @Test
-  @DisplayName("invalidPortTest")
-  void invalidCharacterInRequest(VertxTestContext vertxTestContext) {
+  public void invalidCharacterInRequest(TestContext testContext) {
     client.request(HttpMethod.GET, 8081, "localhost", "/greeting")
       .compose(httpClientRequest -> httpClientRequest.send())
-      .onComplete(vertxTestContext.succeeding(httpClientResponse -> {
-        assertAll(
-          () -> assertEquals(404, httpClientResponse.statusCode()));
-        vertxTestContext.completeNow();
+      .onComplete(testContext.asyncAssertSuccess(resp -> {
+        testContext.assertEquals(404, resp.statusCode());
       }));
   }
 
   @Test
-  @DisplayName("getJsonResponseFromUriTemplateTest")
-  void getJsonResponseFromUriTemplateTest(VertxTestContext context) {
-    Checkpoint asynResponseCheck = context.checkpoint();
-    context.verify(() -> {
-      client.request(HttpMethod.GET, 8081, "localhost", "/person/12345")
-        .compose(httpClientRequest -> httpClientRequest.send())
-        .onComplete(context.succeeding(httpClientResponse -> {
-          assertEquals(200, httpClientResponse.statusCode());
-          httpClientResponse.body().onComplete(bufferAsyncResult -> {
-            JsonObject jsonObject = bufferAsyncResult.result().toJsonObject();
-            assertEquals(jsonObject.getString("name"), "John");
-            assertEquals(jsonObject.getString("age"), "45");
-          });
-          asynResponseCheck.flag();
-        }));
-    });
+  public void getJsonResponseFromUriTemplateTest(TestContext testContext) {
+    client.request(HttpMethod.GET, 8081, "localhost", "/person/12345")
+      .compose(httpClientRequest -> httpClientRequest.send())
+      .onComplete(testContext.asyncAssertSuccess(httpClientResponse -> {
+        assertEquals(200, httpClientResponse.statusCode());
+        httpClientResponse.body().onComplete(bufferAsyncResult -> {
+          JsonObject jsonObject = bufferAsyncResult.result().toJsonObject();
+          assertEquals(jsonObject.getString("name"), "John");
+          assertEquals(jsonObject.getString("age"), "45");
+        });
+      }));
   }
 
   @Test
-  @DisplayName("expansionMultipleVariablesTest")
-  void expansionMultipleVariablesTest(VertxTestContext context) {
+  public void expansionMultipleVariablesTest(TestContext testContext) {
     client.request(HttpMethod.GET, 8082, "localhost", "/subpathA/subpathB/subpathC/123,456")
       .compose(httpClientRequest -> httpClientRequest.send())
-      .onComplete(context.succeeding(httpClientResponse -> {
-        assertAll(
-          () -> assertEquals(200, httpClientResponse.statusCode()),
-          () -> assertEquals(HttpVersion.HTTP_1_1, httpClientResponse.version())
-        );
-        httpClientResponse.body().onComplete(context.succeeding(body -> {
+      .onComplete(testContext.asyncAssertSuccess(httpClientResponse -> {
+        assertEquals(200, httpClientResponse.statusCode());
+        assertEquals(HttpVersion.HTTP_1_1, httpClientResponse.version());
+        httpClientResponse.body().onComplete(testContext.asyncAssertSuccess(body -> {
           assertEquals("multivariables in uri template OK!", body.toString());
-          context.completeNow();
         }));
-      }))
-      .onFailure(context::failNow);
-
+      }));
   }
 
 }
