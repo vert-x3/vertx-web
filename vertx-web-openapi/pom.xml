@@ -32,7 +32,6 @@
     <junit5.version>5.7.0</junit5.version>
     <mockito.version>3.3.0</mockito.version>
     <assertj.version>3.15.0</assertj.version>
-    <slf4j-api.version>2.0.3</slf4j-api.version>
     <restassured.version>5.2.0</restassured.version>
   </properties>
 
@@ -60,7 +59,6 @@
     <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
-      <version>${snakeyaml.version}</version>
     </dependency>
     <!-- For docs -->
     <dependency>
@@ -110,7 +108,6 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>${slf4j-api.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
