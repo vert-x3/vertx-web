@@ -34,7 +34,7 @@ public class UriTemplateITest {
 
   @Test
   public void greetingFromUriTemplateTest(TestContext testContext) {
-    client.request(HttpMethod.GET, 8080, "localhost", "/greeting")
+    client.request(HttpMethod.GET, 8089, "localhost", "/greeting")
       .compose(HttpClientRequest::send)
       .onComplete(testContext.asyncAssertSuccess(resp -> {
         testContext.assertEquals(200, resp.statusCode());
@@ -53,7 +53,7 @@ public class UriTemplateITest {
 
   @Test
   public void invalidCharacterInRequest(TestContext testContext) {
-    client.request(HttpMethod.GET, 8081, "localhost", "/greeting")
+    client.request(HttpMethod.GET, 8087, "localhost", "/greeting")
       .compose(httpClientRequest -> httpClientRequest.send())
       .onComplete(testContext.asyncAssertSuccess(resp -> {
         testContext.assertEquals(404, resp.statusCode());
@@ -62,7 +62,7 @@ public class UriTemplateITest {
 
   @Test
   public void getJsonResponseFromUriTemplateTest(TestContext testContext) {
-    client.request(HttpMethod.GET, 8081, "localhost", "/person/12345")
+    client.request(HttpMethod.GET, 8088, "localhost", "/person/12345")
       .compose(httpClientRequest -> httpClientRequest.send())
       .onComplete(testContext.asyncAssertSuccess(httpClientResponse -> {
         assertEquals(200, httpClientResponse.statusCode());
@@ -76,7 +76,7 @@ public class UriTemplateITest {
 
   @Test
   public void expansionMultipleVariablesTest(TestContext testContext) {
-    client.request(HttpMethod.GET, 8082, "localhost", "/subpathA/subpathB/subpathC/123,456")
+    client.request(HttpMethod.GET, 8087, "localhost", "/subpathA/subpathB/subpathC/123,456")
       .compose(httpClientRequest -> httpClientRequest.send())
       .onComplete(testContext.asyncAssertSuccess(httpClientResponse -> {
         assertEquals(200, httpClientResponse.statusCode());

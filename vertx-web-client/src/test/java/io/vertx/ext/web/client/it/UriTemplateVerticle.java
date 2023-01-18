@@ -40,21 +40,21 @@ public class UriTemplateVerticle extends AbstractVerticle {
     baseUri = basicTemplate.expandToString(Variables
                                              .variables()
                                              .set("host", "localhost")
-                                             .set("port", "8080")
+                                             .set("port", "8089")
     );
 
     UriTemplate jsonTemplate = UriTemplate.of("/person/{id}");
     jsonUri = jsonTemplate.expandToString(Variables
                                             .variables()
                                             .set("host", "localhost")
-                                            .set("port", "8081")
+                                            .set("port", "8088")
                                             .set("id", "12345")
     );
 
     UriTemplate variablesTemplate = UriTemplate.of("/{first}/{second}/{third}/{ids}");
     final String variablesUri = variablesTemplate.expandToString(Variables.variables()
                                                                    .set("host", "localhost")
-                                                                   .set("port", "8082")
+                                                                   .set("port", "8087")
                                                                    .set("first", "subpathA")
                                                                    .set("second", "subpathB")
                                                                    .set("third", "subpathC")
@@ -62,9 +62,9 @@ public class UriTemplateVerticle extends AbstractVerticle {
     );
 
 
-    Future<Void> port8080Future = Future.future(voidPromise -> handleDependsPortAndUr(8080, baseUri, this::handleBaseUri));
-    Future<Void> port8081Future = Future.future(voidPromise -> handleDependsPortAndUr(8081, jsonUri, this::handleJsonUri));
-    Future<Void> port8082Future = Future.future(voidPromise -> handleDependsPortAndUr(8082, variablesUri, this::handlerMultipleVariables));
+    Future<Void> port8080Future = Future.future(voidPromise -> handleDependsPortAndUr(8089, baseUri, this::handleBaseUri));
+    Future<Void> port8081Future = Future.future(voidPromise -> handleDependsPortAndUr(8088, jsonUri, this::handleJsonUri));
+    Future<Void> port8082Future = Future.future(voidPromise -> handleDependsPortAndUr(8087, variablesUri, this::handlerMultipleVariables));
     CompositeFuture.all(port8080Future, port8081Future, port8082Future)
       .onComplete(compositeFutureAsyncResult -> {
         if (compositeFutureAsyncResult.succeeded()) {
