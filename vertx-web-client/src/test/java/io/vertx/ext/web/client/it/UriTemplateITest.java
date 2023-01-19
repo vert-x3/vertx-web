@@ -10,7 +10,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -22,10 +23,10 @@ public class UriTemplateITest {
 
   private HttpClient client = vertx().createHttpClient();
 
-  private Vertx vertx;
+  private static Vertx vertx;
 
-  @Before
-  public void deploy(TestContext context) {
+  @BeforeClass
+  public static void deploy(TestContext context) {
     vertx = Vertx.vertx();
     Async async = context.async();
     vertx.deployVerticle(UriTemplateVerticle.class.getName());
@@ -47,7 +48,7 @@ public class UriTemplateITest {
           }
         });
 
-      })).onFailure(throwable -> throwable.getMessage());
+      }));
 
   }
 
@@ -85,6 +86,11 @@ public class UriTemplateITest {
           assertEquals("multivariables in uri template OK!", body.toString());
         }));
       }));
+  }
+
+  @AfterClass
+  public static void after(TestContext context) {
+    vertx.close(context.asyncAssertSuccess());
   }
 
 }
