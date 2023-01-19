@@ -1,15 +1,10 @@
 package io.vertx.ext.web.handler.graphql;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import graphql.GraphQL;
+import graphql.schema.Coercing;
+import graphql.schema.CoercingParseLiteralException;
+import graphql.schema.CoercingParseValueException;
+import graphql.schema.CoercingSerializeException;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLScalarType;
@@ -18,41 +13,36 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
-import io.restassured.path.json.JsonPath;
-import io.restassured.response.Response;
-import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Promise;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
-import static io.vertx.ext.web.handler.graphql.TestUtils.createQuery;
-import static io.vertx.ext.web.handler.graphql.TestUtils.peek;
-import static io.vertx.ext.web.handler.graphql.TestUtils.sendQueryBasicTypes;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.number.IsCloseTo.closeTo;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAccessor;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static graphql.schema.idl.RuntimeWiring.*;
+import static io.vertx.core.http.HttpMethod.*;
 
 public class BasicTypesTest extends GraphQLTestBase {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(BasicTypesTest.class);
-
   private final Counter counter = new Counter();
-
   private final Person[] philosophers;
 
   public BasicTypesTest() {
-    final Person plato = new Person("Plato");
-    final Person aristotle = new Person("Aristotle");
+    Person plato = new Person("Plato");
+    Person aristotle = new Person("Aristotle");
     plato.setFriend(aristotle);
     aristotle.setFriend(plato);
     philosophers = new Person[]{plato, aristotle};
-  }
-
-  @Override
-  protected HttpServerOptions getHttpServerOptions() {
-    return new HttpServerOptions().setPort(8082).setHost("localhost");
   }
 
   @Override
@@ -67,22 +57,19 @@ public class BasicTypesTest extends GraphQLTestBase {
 
     RuntimeWiring runtimeWiring = newRuntimeWiring()
       .scalar(datetime)
-      .type("Query", builder -> {
-        final HashMap<String, DataFetcher> fetchersMap = new HashMap<>();
-        fetchersMap.put("floating", env -> 3.14f);
-        fetchersMap.put("bool", env -> true);
-        fetchersMap.put("id", env -> "1001");
-        fetchersMap.put("enum", env -> Musketeer.ATHOS);
-        fetchersMap.put("when", env -> LocalDateTime.of(1991, 8, 25, 22, 57, 8));
-        fetchersMap.put("answer", env -> "Hello, " + env.getArgument("name") + "!");
-        fetchersMap.put("array", env -> new String[]{"apples", "eggs", "carrots"});
-        fetchersMap.put("list", env -> Arrays.asList("apples", "eggs", "carrots"));
-        return builder.dataFetcher("hello", env -> "Hello World!")
-          .dataFetcher("number", env -> 130)
-          .dataFetcher("changing", counter)
-          .dataFetcher("persons", env -> philosophers)
-          .dataFetchers(fetchersMap);
-      })
+      .type("Query", builder -> builder
+        .dataFetcher("hello", env -> "Hello World!")
+        .dataFetcher("number", env -> 130)
+        .dataFetcher("changing", counter)
+        .dataFetcher("persons", env -> philosophers)
+        .dataFetcher("floating", env -> 3.14f)
+        .dataFetcher("bool", env -> true)
+        .dataFetcher("id", env -> "1001")
+        .dataFetcher("enum", env -> Musketeer.ATHOS)
+        .dataFetcher("when", env -> LocalDateTime.of(1991, 8, 25, 22, 57, 8))
+        .dataFetcher("answer", env -> "Hello, " + env.getArgument("name") + "!")
+        .dataFetcher("array", env -> new String[]{"apples", "eggs", "carrots"})
+        .dataFetcher("list", env -> Arrays.asList("apples", "eggs", "carrots")))
       .build();
 
 
@@ -94,115 +81,263 @@ public class BasicTypesTest extends GraphQLTestBase {
   }
 
   @Test
-  public void helloWorld() {
-    String result = "{\"data\":{\"hello\":\"Hello World!\"}}";
-    Response response = sendQueryBasicTypes("{\"query\":\"{hello}\"}");
-    LOGGER.debug("{}", response.asString());
-    assertThat(result, equalTo(response.getBody().asString()));
+  public void helloWorld() throws Exception {
+    JsonObject result = new JsonObject().put("data", new JsonObject().put("hello", "Hello World!"));
+    GraphQLRequest request = new GraphQLRequest()
+      .setMethod(POST)
+      .setGraphQLQuery("query { hello }");
+    request.send(client, onSuccess(body -> {
+      assertEquals(result, body);
+      testComplete();
+    }));
+    await();
   }
 
   @Test
-  public void integerNumber() {
-    Response response = sendQueryBasicTypes(createQuery("number").toString());
-    final int data = response.jsonPath().getInt("data.number");
-    assertThat(130, equalTo(response.jsonPath().getInt("data.number")));
+  public void integerNumber() throws Exception {
+    JsonObject result = new JsonObject().put("data", new JsonObject().put("number", 130));
+    GraphQLRequest request = new GraphQLRequest()
+      .setMethod(POST)
+      .setGraphQLQuery("query { number }");
+    request.send(client, onSuccess(body -> {
+      assertEquals(result, body);
+      testComplete();
+    }));
+    await();
   }
 
   @Test
-  public void floatingPointNumber() {
-    Response response = sendQueryBasicTypes(createQuery("floating").toString());
-    final float data = response.jsonPath().getFloat("data.floating");
-    assertThat((double) data, closeTo(3.14, 0.01));
-  }
-  @Test
-  public void bool() {
-    Response response = sendQueryBasicTypes(createQuery("bool").toString());
-    final boolean data = response.jsonPath().getBoolean("data.bool");
-    assertThat(data, is(true));
-  }
-
-  @Test
-  public void id() {
-    Response response = sendQueryBasicTypes(createQuery("id").toString());
-    final String data = response.jsonPath().getString("data.id");
-    assertThat(data, equalTo("1001"));
+  public void floatingPointNumber() throws Exception {
+    JsonObject result = new JsonObject().put("data", new JsonObject().put("floating", 3.14));
+    GraphQLRequest request = new GraphQLRequest()
+      .setMethod(POST)
+      .setGraphQLQuery("query { floating }");
+    request.send(client, onSuccess(body -> {
+      assertEquals(result, body);
+      testComplete();
+    }));
+    await();
   }
 
   @Test
-  public void enumeration() {
-    Response response = sendQueryBasicTypes(createQuery("enum").toString());
-    final String data = response.jsonPath().getString("data.enum");
-    assertThat(data, equalTo(Musketeer.ATHOS.toString()));
+  public void bool() throws Exception {
+    JsonObject result = new JsonObject().put("data", new JsonObject().put("bool", true));
+    GraphQLRequest request = new GraphQLRequest()
+      .setMethod(POST)
+      .setGraphQLQuery("query { bool }");
+    request.send(client, onSuccess(body -> {
+      assertEquals(result, body);
+      testComplete();
+    }));
+    await();
   }
 
   @Test
-  public void list() {
-    Response response = sendQueryBasicTypes(createQuery("list").toString());
-    final List<String> data = response.jsonPath().getList("data.list");
-    assertThat(data.size(),equalTo(3));
-    Collections.sort(data);
-    assertThat(data, equalTo(Arrays.asList("apples", "carrots", "eggs")));
+  public void id() throws Exception {
+    JsonObject result = new JsonObject().put("data", new JsonObject().put("id", "1001"));
+    GraphQLRequest request = new GraphQLRequest()
+      .setMethod(POST)
+      .setGraphQLQuery("query { id }");
+    request.send(client, onSuccess(body -> {
+      assertEquals(result, body);
+      testComplete();
+    }));
+    await();
   }
 
   @Test
-  public void alias() {
-    Response response = sendQueryBasicTypes(createQuery("arr: array").toString());
-    final List<String> data = response.jsonPath().getList("data.arr");
-    assertThat(data.size(),equalTo(3));
-    Collections.sort(data);
-    assertThat(data, equalTo(Arrays.asList("apples", "carrots", "eggs")));
+  public void enumeration() throws Exception {
+    JsonObject result = new JsonObject().put("data", new JsonObject().put("enum", Musketeer.ATHOS.toString()));
+    GraphQLRequest request = new GraphQLRequest()
+      .setMethod(POST)
+      .setGraphQLQuery("query { enum }");
+    request.send(client, onSuccess(body -> {
+      assertEquals(result, body);
+      testComplete();
+    }));
+    await();
   }
 
   @Test
-  public void userDefined() {
-    Response response = sendQueryBasicTypes(createQuery("when").toString());
-    final String data = response.jsonPath().getString("data.when");
-    final LocalDateTime localDateTime = new DatetimeCoercion().parseValue(data);
-    final LocalDateTime linuxAnnouncement = LocalDateTime.of(LocalDate.of(1991, 8, 25),
-                                                             LocalTime.of(22, 57, 8));
-    assertThat(localDateTime, equalTo(linuxAnnouncement));
+  public void list() throws Exception {
+    JsonObject result = new JsonObject().put("data", new JsonObject()
+      .put("list", new JsonArray()
+        .add("apples")
+        .add("eggs")
+        .add("carrots")));
+    GraphQLRequest request = new GraphQLRequest()
+      .setMethod(POST)
+      .setGraphQLQuery("query { list }");
+    request.send(client, onSuccess(body -> {
+      assertEquals(result, body);
+      testComplete();
+    }));
+    await();
   }
 
   @Test
-  public void functionDefault() {
-    Response response = sendQueryBasicTypes(String.valueOf(createQuery("answer")));
-    final String data = response.jsonPath().getString("data.answer");
-    assertThat(data,equalTo("Hello, someone!"));
+  public void alias() throws Exception {
+    JsonObject result = new JsonObject().put("data", new JsonObject()
+      .put("arr", new JsonArray()
+        .add("apples")
+        .add("eggs")
+        .add("carrots")));
+    GraphQLRequest request = new GraphQLRequest()
+      .setMethod(POST)
+      .setGraphQLQuery("query { arr: array }");
+    request.send(client, onSuccess(body -> {
+      assertEquals(result, body);
+      testComplete();
+    }));
+    await();
   }
 
   @Test
-  public void function() {
-    Response response = sendQueryBasicTypes(peek(String.valueOf(createQuery("answer(name:\"world\")"))));
-    LOGGER.debug("{}", response.asString());
-    final String data = response.jsonPath().getString("data.answer");
-    assertThat(data, equalTo("Hello, world!"));
+  public void userDefined() throws Exception {
+    String when = new DatetimeCoercion().serialize(LocalDateTime.of(LocalDate.of(1991, 8, 25), LocalTime.of(22, 57, 8)));
+    JsonObject result = new JsonObject().put("data", new JsonObject().put("when", when));
+    GraphQLRequest request = new GraphQLRequest()
+      .setMethod(POST)
+      .setGraphQLQuery("query { when }");
+    request.send(client, onSuccess(body -> {
+      assertEquals(result, body);
+      testComplete();
+    }));
+    await();
   }
 
   @Test
-  public void cached() {
-    final String query = createQuery("changing").toString();
-    final String first = sendQueryBasicTypes(query).jsonPath().getString("data.changing");
-    final String second = sendQueryBasicTypes(query).jsonPath().getString("data.changing");
-    LOGGER.debug("first is '{}' and second is '{}'", first, second);
-    assertThat(first, not(equalTo(second)) );
+  public void functionDefault() throws Exception {
+    JsonObject result = new JsonObject().put("data", new JsonObject().put("answer", "Hello, someone!"));
+    GraphQLRequest request = new GraphQLRequest()
+      .setMethod(POST)
+      .setGraphQLQuery("query { answer }");
+    request.send(client, onSuccess(body -> {
+      assertEquals(result, body);
+      testComplete();
+    }));
+    await();
   }
 
   @Test
-  public void recursive() {
-    final String query = peek(createQuery("persons{name,friend{name,friend{name}}}").toString());
-    final Response response = sendQueryBasicTypes(query);
-    final JsonPath json = response.jsonPath();
-    assertThat(json.getString("data.persons[0].name"), equalTo("Plato"));
-    assertThat(json.getString("data.persons[0].friend.name"), equalTo("Aristotle"));
-    assertThat(json.getString("data.persons[0].friend.friend.name"), equalTo("Plato"));
+  public void function() throws Exception {
+    JsonObject result = new JsonObject().put("data", new JsonObject().put("answer", "Hello, world!"));
+    GraphQLRequest request = new GraphQLRequest()
+      .setMethod(POST)
+      .setGraphQLQuery("query { answer(name: \"world\") }");
+    request.send(client, onSuccess(body -> {
+      assertEquals(result, body);
+      testComplete();
+    }));
+    await();
   }
 
-  class Counter implements DataFetcher<Integer> {
-    private final AtomicInteger order = new AtomicInteger(0);
+  @Test
+  public void cached() throws Exception {
+    Promise<JsonObject> promise1 = Promise.promise();
+    GraphQLRequest request1 = new GraphQLRequest()
+      .setMethod(POST)
+      .setGraphQLQuery("query { changing }");
+    request1.send(client, promise1);
+
+    Promise<JsonObject> promise2 = Promise.promise();
+    GraphQLRequest request2 = new GraphQLRequest()
+      .setMethod(POST)
+      .setGraphQLQuery("query { changing }");
+    request2.send(client, promise2);
+
+    CompositeFuture.all(promise1.future(), promise2.future()).onComplete(onSuccess(compositeFuture -> {
+      List<JsonObject> values = compositeFuture.list();
+      Integer value1 = values.get(0).getJsonObject("data").getInteger("changing");
+      Integer value2 = values.get(1).getJsonObject("data").getInteger("changing");
+      assertFalse(value1.equals(value2));
+      testComplete();
+    }));
+
+    await();
+  }
+
+  @Test
+  public void recursive() throws Exception {
+    GraphQLRequest request = new GraphQLRequest()
+      .setMethod(POST)
+      .setGraphQLQuery("query { persons { name , friend { name, friend { name } } } }");
+    request.send(client, onSuccess(body -> {
+      JsonObject person = body.getJsonObject("data").getJsonArray("persons").getJsonObject(0);
+      assertEquals("Plato", person.getString("name"));
+      JsonObject friend = person.getJsonObject("friend");
+      assertEquals("Aristotle", friend.getString("name"));
+      JsonObject friendOfFriend = friend.getJsonObject("friend");
+      assertEquals("Plato", friendOfFriend.getString("name"));
+      testComplete();
+    }));
+    await();
+  }
+
+  private enum Musketeer {
+    ATHOS,
+    PORTHOS,
+    ARAMIS;
+  }
+
+  private static class Counter implements DataFetcher<Integer> {
+    final AtomicInteger order = new AtomicInteger(0);
 
     @Override
     public Integer get(DataFetchingEnvironment environment) {
       return order.getAndIncrement();
+    }
+  }
+
+  private static class DatetimeCoercion implements Coercing<LocalDateTime, String> {
+
+    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME;
+
+    @Override
+    public String serialize(Object dataFetcherResult) throws CoercingSerializeException {
+      if (dataFetcherResult == null)
+        return null;
+      if (!(dataFetcherResult instanceof LocalDateTime))
+        throw new CoercingSerializeException(dataFetcherResult.getClass().getCanonicalName() + "is not a date!");
+      LocalDateTime localDateTime = (LocalDateTime) dataFetcherResult;
+      return dateTimeFormatter.format(localDateTime);
+    }
+
+    @Override
+    public LocalDateTime parseValue(Object input) throws CoercingParseValueException {
+      String source = input.toString();
+      try {
+        final TemporalAccessor temporalAccessorParsed = dateTimeFormatter.parse(source);
+        return LocalDateTime.from(temporalAccessorParsed);
+      } catch (DateTimeParseException dateTimeParseException) {
+        throw new CoercingParseValueException(dateTimeParseException);
+      }
+    }
+
+    @Override
+    public LocalDateTime parseLiteral(Object input) throws CoercingParseLiteralException {
+      return parseValue(input);
+    }
+  }
+
+  private static class Person {
+    public String name;
+    private Person friend;
+
+    public Person(String name) {
+      this.name = name;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setFriend(Person friend) {
+      this.friend = friend;
+    }
+
+    public Person getFriend() {
+      return friend;
     }
   }
 }
