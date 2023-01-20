@@ -62,22 +62,21 @@ public class UriTemplateVerticle extends AbstractVerticle {
     );
 
 
-    Future<Void> port8080Future = Future.future(voidPromise -> handleDependsPortAndUr(8089, baseUri, this::handleBaseUri));
-    Future<Void> port8081Future = Future.future(voidPromise -> handleDependsPortAndUr(8088, jsonUri, this::handleJsonUri));
-    Future<Void> port8082Future = Future.future(voidPromise -> handleDependsPortAndUr(8087, variablesUri, this::handlerMultipleVariables));
-    CompositeFuture.all(port8080Future, port8081Future, port8082Future)
-      .onComplete(compositeFutureAsyncResult -> {
-        if (compositeFutureAsyncResult.succeeded()) {
-          startPromise.complete();
-        } else {
-          System.out.println(compositeFutureAsyncResult.cause());
-          startPromise.fail(compositeFutureAsyncResult.cause());
-        }
-      }).onFailure(throwable -> System.out.println(throwable.getMessage()));
+    Future<Void> port8089Future = Future.future(voidPromise -> handleDependsPortAndUri(8089, baseUri, this::handleBaseUri, voidPromise));
+    Future<Void> port8088Future = Future.future(voidPromise -> handleDependsPortAndUri(8088, jsonUri, this::handleJsonUri, voidPromise));
+    Future<Void> port8087Future = Future.future(voidPromise -> handleDependsPortAndUri(8087, variablesUri, this::handlerMultipleVariables, voidPromise));
+
+    CompositeFuture.all(port8089Future, port8088Future, port8087Future)
+      .onSuccess(compositeFutureAsyncResult -> {
+        startPromise.complete();
+      }).onFailure(throwable -> {
+        startPromise.fail(throwable);
+      });
+
 
   }
 
-  private void handleDependsPortAndUr(Integer port, String expectedUri, Handler<HttpServerRequest> requestHandler) {
+  private void handleDependsPortAndUri(Integer port, String expectedUri, Handler<HttpServerRequest> requestHandler, Promise<Void> promise) {
     server = vertx.createHttpServer();
     server.requestHandler(httpServerRequest -> {
       if (httpServerRequest.uri().equalsIgnoreCase(expectedUri)) {
@@ -85,8 +84,13 @@ public class UriTemplateVerticle extends AbstractVerticle {
       } else {
         handleError(httpServerRequest.response());
       }
-    }).listen(port);
+    }).listen(port).onSuccess(done -> {
+      promise.complete();
+    }).onFailure(err -> {
+      err.printStackTrace();
+    });
   }
+
 
   private void handleBaseUri(HttpServerRequest request) {
     request.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain")

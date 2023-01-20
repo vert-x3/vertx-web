@@ -7,7 +7,6 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.AfterClass;
@@ -28,10 +27,9 @@ public class UriTemplateITest {
   @BeforeClass
   public static void deploy(TestContext context) {
     vertx = Vertx.vertx();
-    Async async = context.async();
-    vertx.deployVerticle(UriTemplateVerticle.class.getName());
-    async.complete();
+    vertx.deployVerticle(UriTemplateVerticle.class.getName(), context.asyncAssertSuccess());
   }
+
 
   @Test
   public void greetingFromUriTemplateTest(TestContext testContext) {
