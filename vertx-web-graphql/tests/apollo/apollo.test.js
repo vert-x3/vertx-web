@@ -1,21 +1,17 @@
-import fetch from 'unfetch';
-import {execute, makePromise} from 'apollo-link';
-import {HttpLink} from 'apollo-link-http';
-import {BatchHttpLink} from 'apollo-link-batch-http';
-import {WebSocketLink} from 'apollo-link-ws';
+import {gql} from 'graphql-tag'
+import {ApolloClient, execute, HttpLink, InMemoryCache, toPromise} from '@apollo/client/core'
+import {BatchHttpLink} from '@apollo/client/link/batch-http'
+import {WebSocket} from 'ws'
+import {WebSocketLink} from '@apollo/client/link/ws';
 import {SubscriptionClient} from 'subscriptions-transport-ws';
-import {ApolloClient} from 'apollo-client';
 import {createUploadLink} from 'apollo-upload-client';
-import {InMemoryCache} from 'apollo-cache-inmemory';
-
-import gql from 'graphql-tag';
 
 const uri = 'http://localhost:8080/graphql';
 const wsUri = 'ws://localhost:8080/graphql';
 
 const client = new ApolloClient({
   cache: new InMemoryCache(),
-  link: createUploadLink({ uri, fetch })
+  link: createUploadLink({uri, fetch})
 });
 
 const allLinksQuery = gql`
@@ -69,21 +65,21 @@ const verify = result => {
 };
 
 test('http link', async () => {
-  let link = new HttpLink({uri: uri, fetch: fetch});
-  let result = await makePromise(execute(link, {query: allLinksQuery}));
+  let link = new HttpLink({uri: uri});
+  let result = await toPromise(execute(link, {query: allLinksQuery}));
   verify(result);
 });
 
 test('batch http link', async () => {
-  let link = new BatchHttpLink({uri: uri, fetch: fetch});
-  let results = await Promise.all([allLinksQuery, secureOnlyQuery].map(q => makePromise(execute(link, {query: q}))));
+  let link = new BatchHttpLink({uri: uri});
+  let results = await Promise.all([allLinksQuery, secureOnlyQuery].map(q => toPromise(execute(link, {query: q}))));
   results.forEach(verify);
 });
 
 test('ws link', async () => {
-  const client = new SubscriptionClient(wsUri);
+  const client = new SubscriptionClient(wsUri, {}, WebSocket);
   const link = new WebSocketLink(client);
-  let result = await makePromise(execute(link, {query: staticCounterQuery}));
+  let result = await toPromise(execute(link, {query: staticCounterQuery}));
 
   expect(result).toHaveProperty('data.staticCounter');
   expect(result.data.staticCounter).toBeInstanceOf(Object);
@@ -92,10 +88,10 @@ test('ws link', async () => {
 });
 
 test('ws link subscription', () => {
-  const client = new SubscriptionClient(wsUri);
+  const client = new SubscriptionClient(wsUri, {}, WebSocket);
   const link = new WebSocketLink(client);
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     execute(link, {query: counterSubscription})
       .subscribe(result => {
         expect(result).toHaveProperty('data.counter');
@@ -113,10 +109,10 @@ test('ws link subscription with connection params', () => {
     connectionParams: {
       count: 2
     }
-  });
+  }, WebSocket);
   const link = new WebSocketLink(client);
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     execute(link, {query: counterSubscription})
       .subscribe(result => {
         expect(result).toHaveProperty('data.counter');
@@ -130,21 +126,22 @@ test('ws link subscription with connection params', () => {
 });
 
 test('ws link subscription with failed promise', () => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     new SubscriptionClient(wsUri, {
       connectionParams: {
-        rejectMessage: "test"
+        rejectMessage: 'test'
       },
       connectionCallback: error => {
-        expect(error).toEqual("test");
+        expect(error).toEqual('test');
         resolve()
       }
-    });
+    }, WebSocket);
   });
 });
 
 test('upload file mutation', async () => {
-  const file = new Blob(['Foo.'], { type: 'text/plain' })
+  const file = new Blob(['Foo.'], {type: 'text/plain'})
+  file.name = 'text.txt'
 
   const result = await client.mutate({
     mutation: uploadFileMutation,
@@ -154,5 +151,5 @@ test('upload file mutation', async () => {
   });
 
   expect(result).toHaveProperty('data.singleUpload.id');
-  expect(result.data.singleUpload.id).toEqual('blob');
+  expect(result.data.singleUpload.id).toEqual('text.txt');
 })

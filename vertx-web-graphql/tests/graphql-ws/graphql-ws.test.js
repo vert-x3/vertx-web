@@ -14,6 +14,7 @@
  * under the License.
  */
 
+import {WebSocket} from "ws"
 import {createClient} from "graphql-ws";
 
 let client;
@@ -28,6 +29,7 @@ afterEach(() => {
 test('query', async () => {
   client = createClient({
     url: 'ws://localhost:8080/graphql',
+    webSocketImpl: WebSocket
   });
 
   const result = await new Promise((resolve, reject) => {
@@ -50,6 +52,7 @@ test('query', async () => {
 test('subscription', async () => {
   client = createClient({
     url: 'ws://localhost:8080/graphql',
+    webSocketImpl: WebSocket
   });
 
   const onNext = jest.fn(() => {
@@ -74,6 +77,7 @@ test('subscription', async () => {
 test('ws link subscription with failed promise', async () => {
   client = createClient({
     url: 'ws://localhost:8080/graphql',
+    webSocketImpl: WebSocket,
     connectionParams: {
       rejectMessage: "test"
     }
@@ -86,7 +90,7 @@ test('ws link subscription with failed promise', async () => {
           query: 'subscription { greetings }',
         },
         {
-          next: value => {
+          next: () => {
           },
           error: error => reject(error),
           complete: resolve,
@@ -94,7 +98,6 @@ test('ws link subscription with failed promise', async () => {
       );
     });
   } catch (e) {
-    expect(e).toBeInstanceOf(CloseEvent);
     expect(e.code).toEqual(4401);
   }
 });
