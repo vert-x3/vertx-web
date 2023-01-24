@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -19,9 +19,10 @@ package io.vertx.ext.web.handler.graphql;
 /**
  * Like {@link java.util.function.BiConsumer} but accepts three arguments.
  *
- * @author Thomas Segismont
+ * @deprecated only useful in dataloader package which is now deprecated
  */
 @FunctionalInterface
+@Deprecated
 public interface TriConsumer<T, U, V> {
 
   /**

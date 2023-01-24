@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -37,8 +37,10 @@ import java.util.function.Function;
  * A {@link MappedBatchLoaderWithContext} that works well with Vert.x callback and {@link Future} based APIs.
  *
  * @author Craig Day
+ * @deprecated use {@link Future#toCompletionStage()} with a plain {@link MappedBatchLoaderWithContext}
  */
 @VertxGen
+@Deprecated
 public interface VertxMappedBatchLoader<K, V> extends MappedBatchLoaderWithContext<K, V> {
 
   /**

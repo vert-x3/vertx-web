@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -22,21 +22,30 @@ import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.idl.FieldWiringEnvironment;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.WiringFactory;
-import io.vertx.core.*;
+import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.graphql.*;
-import io.vertx.ext.web.handler.graphql.dataloader.VertxBatchLoader;
-import io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher;
+import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
+import io.vertx.ext.web.handler.graphql.GraphQLHandler;
+import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
+import io.vertx.ext.web.handler.graphql.GraphiQLHandler;
+import io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions;
+import io.vertx.ext.web.handler.graphql.UploadScalar;
+import io.vertx.ext.web.handler.graphql.instrumentation.VertxFutureAdapter;
 import io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher;
 import io.vertx.ext.web.handler.graphql.ws.GraphQLWSHandler;
-import org.dataloader.*;
+import org.dataloader.BatchLoaderEnvironment;
+import org.dataloader.BatchLoaderWithContext;
+import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderFactory;
+import org.dataloader.DataLoaderRegistry;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -109,43 +118,9 @@ public class GraphQLExamples {
 
   public void completionStageDataFetcher() {
     DataFetcher<CompletionStage<List<Link>>> dataFetcher = environment -> {
-
-      CompletableFuture<List<Link>> completableFuture = new CompletableFuture<>();
-
-      retrieveLinksFromBackend(environment, ar -> {
-        if (ar.succeeded()) {
-          completableFuture.complete(ar.result());
-        } else {
-          completableFuture.completeExceptionally(ar.cause());
-        }
-      });
-
-      return completableFuture;
-    };
-
-    RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()
-      .type("Query", builder -> builder.dataFetcher("allLinks", dataFetcher))
-      .build();
-  }
-
-  private void retrieveLinksFromBackend(DataFetchingEnvironment environment, Handler<AsyncResult<List<Link>>> handler) {
-  }
-
-  public void callbackDataFetcher() {
-    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((env, promise) -> {
-      retrieveLinksFromBackend(env, promise);
-    });
-
-    RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()
-      .type("Query", builder -> builder.dataFetcher("allLinks", dataFetcher))
-      .build();
-  }
-
-  public void futureDataFetcher() {
-    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create(environment -> {
       Future<List<Link>> future = retrieveLinksFromBackend(environment);
-      return future;
-    });
+      return future.toCompletionStage();
+    };
 
     RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()
       .type("Query", builder -> builder.dataFetcher("allLinks", dataFetcher))
@@ -156,25 +131,34 @@ public class GraphQLExamples {
     return null;
   }
 
+  public void vertxFutureAdapter(GraphQL.Builder graphQLBuilder) {
+    graphQLBuilder.instrumentation(VertxFutureAdapter.create());
+  }
+
+  public void futureDataFetcher() {
+    DataFetcher<Future<List<Link>>> dataFetcher = environment -> {
+      Future<List<Link>> future = retrieveLinksFromBackend(environment);
+      return future;
+    };
+  }
+
   static class User {
   }
 
-  private void routingContextInDataFetchingEnvironment() {
-    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((environment, promise) -> {
+  public void routingContextInDataFetchingEnvironment() {
+    DataFetcher<CompletionStage<List<Link>>> dataFetcher = environment -> {
 
       RoutingContext routingContext = GraphQLHandler.getRoutingContext(environment.getGraphQlContext());
 
       User user = routingContext.get("user");
 
-      retrieveLinksPostedBy(user, promise);
+      Future<List<Link>> future = retrieveLinksPostedBy(user);
+      return future.toCompletionStage();
 
-    });
+    };
   }
 
-  private void retrieveLinksPostedBy(User user, Handler<AsyncResult<List<Link>>> handler) {
-  }
-
-  private GraphQL setupGraphQLJava(VertxDataFetcher<List<Link>> dataFetcher) {
+  private Future<List<Link>> retrieveLinksPostedBy(User user) {
     return null;
   }
 
@@ -212,13 +196,6 @@ public class GraphQLExamples {
 
       builderWithContext.builder().dataLoaderRegistry(dataLoaderRegistry);
 
-    });
-  }
-
-  public void createVertxBatchLoader() {
-    BatchLoaderWithContext<Long, String> commentsBatchLoader = VertxBatchLoader.create((ids, env) -> {
-      // findComments takes a list of ids and returns a Future for a list of links
-      return findComments(ids, env);
     });
   }
 
