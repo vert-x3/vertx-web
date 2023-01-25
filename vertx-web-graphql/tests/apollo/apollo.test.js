@@ -14,6 +14,14 @@ const client = new ApolloClient({
   link: createUploadLink({uri, fetch})
 });
 
+let subClient;
+
+afterEach(() => {
+  if (subClient) {
+    subClient.close();
+  }
+});
+
 const allLinksQuery = gql`
 {
   allLinks {
@@ -77,8 +85,8 @@ test('batch http link', async () => {
 });
 
 test('ws link', async () => {
-  const client = new SubscriptionClient(wsUri, {}, WebSocket);
-  const link = new WebSocketLink(client);
+  subClient = new SubscriptionClient(wsUri, {}, WebSocket);
+  const link = new WebSocketLink(subClient);
   let result = await toPromise(execute(link, {query: staticCounterQuery}));
 
   expect(result).toHaveProperty('data.staticCounter');
@@ -88,8 +96,8 @@ test('ws link', async () => {
 });
 
 test('ws link subscription', () => {
-  const client = new SubscriptionClient(wsUri, {}, WebSocket);
-  const link = new WebSocketLink(client);
+  subClient = new SubscriptionClient(wsUri, {}, WebSocket);
+  const link = new WebSocketLink(subClient);
 
   return new Promise((resolve) => {
     execute(link, {query: counterSubscription})
@@ -105,12 +113,12 @@ test('ws link subscription', () => {
 });
 
 test('ws link subscription with connection params', () => {
-  const client = new SubscriptionClient(wsUri, {
+  subClient = new SubscriptionClient(wsUri, {
     connectionParams: {
       count: 2
     }
   }, WebSocket);
-  const link = new WebSocketLink(client);
+  const link = new WebSocketLink(subClient);
 
   return new Promise((resolve) => {
     execute(link, {query: counterSubscription})
