@@ -13,16 +13,21 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
+const fs = require('fs/promises');
 const copy = require('recursive-copy');
 
-copy('build', '../src/main/resources/io/vertx/ext/web/handler/graphiql', {
-  filter: [
-    'index.html',
-    'static/**/*.js',
-    'static/**/*.css'
-  ]
-}).catch(function (error) {
-  console.error('Copy failed: ' + error);
-  process.exit(1);
-});
+const destDir = '../src/main/resources/io/vertx/ext/web/handler/graphiql';
+
+fs.rm(destDir, {force: true, recursive: true})
+  .then(() =>
+    copy('build', destDir, {
+      filter: [
+        'index.html',
+        'static/**/*.js',
+        'static/**/*.css'
+      ]
+    }))
+  .catch(function (error) {
+    console.error('Copy failed: ' + error);
+    process.exit(1);
+  });
