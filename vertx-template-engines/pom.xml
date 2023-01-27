@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-web-parent</artifactId>
-    <version>4.3.5-SNAPSHOT</version>
+    <version>4.4.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>vertx-template-engines</artifactId>
@@ -19,6 +19,7 @@
 
   <modules>
     <module>vertx-web-templ-jade</module>
+    <module>vertx-web-templ-pug</module>
     <module>vertx-web-templ-mvel</module>
     <module>vertx-web-templ-handlebars</module>
     <module>vertx-web-templ-thymeleaf</module>

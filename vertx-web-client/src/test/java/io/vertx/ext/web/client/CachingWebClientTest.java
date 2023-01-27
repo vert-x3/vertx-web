@@ -10,6 +10,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -470,14 +471,17 @@ public class CachingWebClientTest {
     Async waiter = context.async();
 
     startMockServer(context, req -> {
-      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=1");
-
+      HttpServerResponse resp = req.response();
+      resp.headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=1");
       if (primer.isCompleted()) {
-        req.response().setStatusCode(304);
-        req.response().end();
+        context.assertEquals("etag_value", req.headers().get("if-none-match"));
+        resp.setStatusCode(304);
+        resp.end();
       } else {
-        req.response().setStatusCode(200);
-        req.response().end(UUID.randomUUID().toString(), v -> primer.complete());
+        resp
+          .setStatusCode(200)
+          .putHeader("etag", "etag_value")
+          .end(UUID.randomUUID().toString(), v -> primer.complete());
       }
     });
 

@@ -87,8 +87,11 @@ public class BodyHandlerImpl implements BodyHandler {
       // or `content-length` headers set.
       // http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.3
       final long parsedContentLength = parseContentLengthHeader(request);
+      // http2 never transmits a `transfer-encoding` as frames are chunks.
+      final boolean hasTransferEncoding =
+        request.version() == HttpVersion.HTTP_2 || request.headers().contains(HttpHeaders.TRANSFER_ENCODING);
 
-      if (!request.headers().contains(HttpHeaders.TRANSFER_ENCODING) && parsedContentLength == -1) {
+      if (!hasTransferEncoding && parsedContentLength == -1) {
         // there is no "body", so we can skip this handler
         context.next();
         return;

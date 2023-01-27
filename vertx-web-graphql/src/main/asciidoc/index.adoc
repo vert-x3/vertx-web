@@ -4,7 +4,7 @@ Vert.x Web GraphQL extends Vert.x Web with the https://www.graphql-java.com[Grap
 
 TIP: This is the reference documentation for Vert.x Web GraphQL.
 It is highly recommended to get familiar with the GraphQL-Java API first.
-You may start by reading the https://www.graphql-java.com/documentation/${graphql.java.doc.version}/getting-started/[GraphQL-Java documentation].
+You may start by reading the https://www.graphql-java.com/documentation/getting-started/[GraphQL-Java documentation].
 
 == Getting started
 
@@ -94,11 +94,10 @@ Vert.x Web GraphQL is compatible with the https://github.com/enisdenjo/graphql-w
 
 The websocket transport is specially useful when you need to add subscriptions to your GraphQL schema, but you can also use it for queries and mutations.
 
-NOTE: By default, the configuration does not include a default `Origin` property. To prevent Cross-Site WebSocket
-Hijacking attacks from web browsers, it is recommended to set this property to the internet facing origin of the
-application. This will enforce a check that web sockets origin is from this application. This check is important because
-WebSockets are not restrained by the same-origin policy, an attacker can easily initiate a WebSocket request from a
-malicious webpage targeting the `ws://` or `wss://` endpoint URL of the GraphQL WS handler.
+CAUTION: By default, the configuration does not include a default `Origin` property.
+To prevent Cross-Site WebSocket Hijacking attacks from web browsers, it is recommended to set this property to the internet facing origin of the application.
+This will enforce a check that web sockets origin is from this application.
+This check is important because WebSockets are not restrained by the same-origin policy, an attacker can easily initiate a WebSocket request from a malicious webpage targeting the `ws://` or `wss://` endpoint URL of the GraphQL WS handler.
 
 [source,$lang]
 ----
@@ -125,65 +124,35 @@ To support both HTTP and Websockets on the same URI, the {@link io.vertx.ext.web
 
 IMPORTANT: A _subscription_ `DataFetcher` has to return a `org.reactivestreams.Publisher` instance.
 
-=== Apollo WebSocketLink
-
-You can use an https://www.apollographql.com/docs/link/links/ws/[Apollo WebSocketLink] which connects over a websocket.
-This is specially useful if you want to add subscriptions to your GraphQL schema, but you can also use the websocket for queries and mutations.
-
-[source,$lang]
-----
-{@link examples.GraphQLExamples#addApolloWsHandlerToRouter}
-----
-
-IMPORTANT: To support the `graphql-ws` websocket subprotocol, it has to be added to the server configuration:
-
-[source,$lang]
-----
-{@link examples.GraphQLExamples#configureServerForApolloWs}
-----
-
-NOTE: If you want to support a WebSocketLink and a HttpLink in the same path, you can add the ApolloWSHandler in first place and then the GraphQLHandler.
-
-[source,$lang]
-----
-{@link examples.GraphQLExamples#configureWebSocketLinkAndHttpLinkSamePath}
-----
-
-Here you can find how to configure the Apollo SubscriptionClient: https://github.com/apollographql/subscriptions-transport-ws
-
-IMPORTANT: A subscription `DataFetcher` has to return a `org.reactivestreams.Publisher` instance.
-
 == Fetching data
 
 The GraphQL-Java API is very well suited for the asynchronous world: the asynchronous execution strategy is the default for queries (serial asynchronous for mutations).
 
-To https://vertx.io/docs/vertx-core/java/#golden_rule[avoid blocking the event loop], all you have to do is implement https://www.graphql-java.com/documentation/${graphql.java.doc.version}/data-fetching/[data fetchers] that return a `CompletionStage` instead of the result directly.
+To https://vertx.io/docs/vertx-core/java/#golden_rule[avoid blocking the event loop], all you have to do is implement https://www.graphql-java.com/documentation/data-fetching/[data fetchers] that return a `CompletionStage` instead of the result directly.
 
 [source,$lang]
 ----
 {@link examples.GraphQLExamples#completionStageDataFetcher}
 ----
 
-=== Working with callback-based APIs
+[TIP]
+====
+Instead of converting Vert.x {@link io.vertx.core.Future} to `java.util.concurrent.CompletionStage` manually in every data fetcher implementation, configure GraphQL-Java with the {@link io.vertx.ext.web.handler.graphql.instrumentation.VertxFutureAdapter} https://www.graphql-java.com/documentation/instrumentation/[instrumentation].
 
-Implementing a data fetcher that returns a `CompletionStage` is not a complex task.
-But when you work with Vert.x callback-based APIs, it requires a bit of boilerplate.
-
-This is where the {@link io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher} can help:
+First, declare the instrumentation while configuring GraphQL-Java.
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#callbackDataFetcher}
+{@link examples.GraphQLExamples#vertxFutureAdapter}
 ----
 
-=== Working with Vert.x Futures
-
-{@link io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher} can also help with futurized APIs:
+Then you can return Vert.x futures directly.
 
 [source,$lang]
 ----
 {@link examples.GraphQLExamples#futureDataFetcher}
 ----
+====
 
 === Providing data fetchers with some context
 
@@ -199,8 +168,6 @@ You may retrieve this object by inspecting the `DataFetchingEnvironment`:
 ----
 {@link examples.GraphQLExamples#routingContextInDataFetchingEnvironment}
 ----
-
-NOTE: The routing context is available with any kind of data fetchers, not just {@link io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher}.
 
 === JSON data results
 
@@ -234,13 +201,6 @@ Then, configure the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} to c
 [source,$lang]
 ----
 {@link examples.GraphQLExamples#dataLoaderRegistry}
-----
-
-If you work with Vert.x APIs, you may use a {@link io.vertx.ext.web.handler.graphql.dataloader.VertxBatchLoader} or a {@link io.vertx.ext.web.handler.graphql.dataloader.VertxMappedBatchLoader} to simplify your code:
-
-[source,$lang]
-----
-{@link examples.GraphQLExamples#createVertxBatchLoader}
 ----
 
 === File uploads

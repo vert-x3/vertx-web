@@ -40,8 +40,8 @@ import static io.vertx.core.http.HttpHeaders.*;
  */
 public class CorsHandlerImpl implements CorsHandler {
 
-  private final Pattern allowedOrigin;
-  private Set<Origin> allowedOrigins;
+  private Set<Pattern> relativeOrigins;
+  private Set<Origin> staticOrigins;
 
   private String allowedMethodsString;
   private String allowedHeadersString;
@@ -53,60 +53,75 @@ public class CorsHandlerImpl implements CorsHandler {
   private final Set<String> allowedHeaders = new LinkedHashSet<>();
   private final Set<String> exposedHeaders = new LinkedHashSet<>();
 
-  public CorsHandlerImpl(String allowedOriginPattern) {
-    Objects.requireNonNull(allowedOriginPattern);
-    if ("*".equals(allowedOriginPattern)) {
-      allowedOrigin = null;
-    } else {
-      allowedOrigin = Pattern.compile(allowedOriginPattern);
-    }
-    allowedOrigins = null;
-  }
-
   public CorsHandlerImpl() {
-    allowedOrigin = null;
-    allowedOrigins = null;
+    relativeOrigins = null;
+    staticOrigins = null;
   }
 
   private boolean starOrigin() {
-    return allowedOrigin == null && allowedOrigins == null;
+    return relativeOrigins == null && staticOrigins == null;
   }
 
-  private boolean staticOrigin() {
-    return allowedOrigin == null && allowedOrigins != null && allowedOrigins.size() == 1;
+  private boolean uniqueOrigin() {
+    return relativeOrigins == null && staticOrigins != null && staticOrigins.size() == 1;
   }
 
   @Override
   public CorsHandler addOrigin(String origin) {
-    if (allowedOrigin != null) {
-      throw new IllegalStateException("Cannot mix Pattern mode and Origin List mode");
-    }
-    if (allowedOrigins == null) {
+    Objects.requireNonNull(origin, "'origin' cannot be null");
+
+    if (staticOrigins == null) {
       if (origin.equals("*")) {
         // we signal any as null
         return this;
       }
-      allowedOrigins = new LinkedHashSet<>();
+      staticOrigins = new LinkedHashSet<>();
     } else {
       if (origin.equals("*")) {
         // we signal any as null
         throw new IllegalStateException("Cannot mix '*' with explicit origins");
       }
     }
-    allowedOrigins.add(Origin.parse(origin));
+    staticOrigins.add(Origin.parse(origin));
     return this;
   }
 
   @Override
   public CorsHandler addOrigins(List<String> origins) {
-    if (allowedOrigin != null) {
-      throw new IllegalStateException("Cannot mix Pattern mode and Origin List mode");
-    }
-    if (allowedOrigins == null) {
-      allowedOrigins = new LinkedHashSet<>();
-    }
+    Objects.requireNonNull(origins, "'origins' cannot be null");
+
     for (String origin : origins) {
-      allowedOrigins.add(Origin.parse(origin));
+      addOrigin(origin);
+    }
+    return this;
+  }
+
+  @Override
+  public CorsHandler addRelativeOrigin(String origin) {
+    Objects.requireNonNull(origin, "'origin' cannot be null");
+
+    if (relativeOrigins == null) {
+      if (origin.equals(".*")) {
+        // we signal any as null
+        return this;
+      }
+      relativeOrigins = new LinkedHashSet<>();
+    } else {
+      if (origin.equals(".*")) {
+        // we signal any as null
+        throw new IllegalStateException("Cannot mix '/.*/' with relative origins");
+      }
+    }
+    relativeOrigins.add(Pattern.compile(origin));
+    return this;
+  }
+
+  @Override
+  public CorsHandler addRelativeOrigins(List<String> origins) {
+    Objects.requireNonNull(origins, "'origins' cannot be null");
+
+    for (String origin : origins) {
+      addRelativeOrigin(origin);
     }
     return this;
   }
@@ -182,7 +197,7 @@ public class CorsHandlerImpl implements CorsHandler {
       // https://fetch.spec.whatwg.org/#cors-protocol-and-http-caches
       // If CORS protocol requirements are more complicated than setting `Access-Control-Allow-Origin` to *
       // or a static origin, `Vary` is to be used.
-      if (!starOrigin() && !staticOrigin()) {
+      if (!starOrigin() && !uniqueOrigin()) {
         Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
       }
       // Not a CORS request - we don't set any headers and just call the next handler
@@ -218,7 +233,10 @@ public class CorsHandlerImpl implements CorsHandler {
           .end();
 
       } else {
-        Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
+        // when it is possible to determine if only one origin is allowed, we can skip this extra caching header
+        if (!starOrigin() && !uniqueOrigin()) {
+          Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
+        }
         addCredentialsAndOriginHeader(response, origin);
         if (exposedHeadersString != null) {
           response.putHeader(ACCESS_CONTROL_EXPOSE_HEADERS, exposedHeadersString);
@@ -253,15 +271,21 @@ public class CorsHandlerImpl implements CorsHandler {
       return Origin.isValid(origin);
     }
 
-    if(allowedOrigin != null) {
-      // check for allowed origin pattern match
-      return allowedOrigin.matcher(origin).matches();
+    if(staticOrigins != null) {
+      // check whether origin is contained within allowed origin set
+      for (Origin allowedOrigin : staticOrigins) {
+        if (allowedOrigin.sameOrigin(origin)) {
+          return true;
+        }
+      }
     }
 
-    // check whether origin is contained within allowed origin set
-    for (Origin allowedOrigin : allowedOrigins) {
-      if (allowedOrigin.sameOrigin(origin)) {
-        return true;
+    if(relativeOrigins != null) {
+      // check for allowed origin pattern match
+      for (Pattern allowedOrigin : relativeOrigins) {
+        if (allowedOrigin.matcher(origin).matches()) {
+          return true;
+        }
       }
     }
 

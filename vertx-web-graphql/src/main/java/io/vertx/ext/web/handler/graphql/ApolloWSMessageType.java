@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -25,8 +25,10 @@ import java.util.Map;
  * The {@link ApolloWSMessage} types.
  *
  * @author Rogelio Orts
+ * @deprecated the subscriptions-transport-ws protocol is no longer maintained
  */
 @VertxGen
+@Deprecated
 public enum ApolloWSMessageType {
 
   CONNECTION_INIT("connection_init"),
