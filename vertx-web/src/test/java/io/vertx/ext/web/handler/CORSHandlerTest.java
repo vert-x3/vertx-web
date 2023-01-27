@@ -697,6 +697,30 @@ public class CORSHandlerTest extends WebTestBase {
     router
       .route()
       .handler(CorsHandler.create()
+        .allowCredentials(false)
+        .allowedHeader("Content-Type")
+        .allowedMethod(HttpMethod.GET)
+        .allowedMethod(HttpMethod.POST)
+        .allowedMethod(HttpMethod.OPTIONS)
+        .allowedHeader("Access-Control-Allow-Origin"))
+      .handler(BodyHandler.create().setBodyLimit(1))
+      .handler(context -> context.response().end());
+
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.headers().add("origin", "https://mydomain.org:3000");
+    }, resp -> {
+      assertNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
+      assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+      assertNull(resp.getHeader(HttpHeaders.VARY));
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testCORSSetupStarOriginWithAllowCredentialsShouldHaveVary() throws Exception {
+    // When allow credentials is set with any origin, the response is dependent on the origin
+    router
+      .route()
+      .handler(CorsHandler.create()
         .allowCredentials(true)
         .allowedHeader("Content-Type")
         .allowedMethod(HttpMethod.GET)
@@ -711,7 +735,7 @@ public class CORSHandlerTest extends WebTestBase {
     }, resp -> {
       assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
       assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
-      assertNull(resp.getHeader(HttpHeaders.VARY));
+      assertEquals("origin", resp.getHeader(HttpHeaders.VARY));
     }, 200, "OK", null);
   }
 }
