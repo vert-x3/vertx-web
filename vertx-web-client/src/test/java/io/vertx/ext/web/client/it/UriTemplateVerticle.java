@@ -1,6 +1,8 @@
 package io.vertx.ext.web.client.it;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
@@ -36,25 +38,30 @@ public class UriTemplateVerticle extends AbstractVerticle {
     jsonObject.put("age", 45);
     jsonObject.put("from", "New York");
 
-    UriTemplate basicTemplate = UriTemplate.of("/greeting");
+    UriTemplate basicTemplate = UriTemplate.of("http://{host}:{port}/{greeting}");
     baseUri = basicTemplate.expandToString(Variables
                                              .variables()
                                              .set("host", "localhost")
-                                             .set("port", "8089")
+                                             .set("port", "8080")
+                                             .set("greeting", "hola")
+
     );
 
-    UriTemplate jsonTemplate = UriTemplate.of("/person/{id}");
+    Map<String, String> query = new HashMap<>();
+    query.put("firstName", "John");
+    query.put("lastName", "Cooper");
+
+    UriTemplate jsonTemplate = UriTemplate.of("http://{host}:{port}/person?firstName={query.firstName}&lastname={query.secondName}/{id}");
     jsonUri = jsonTemplate.expandToString(Variables
                                             .variables()
                                             .set("host", "localhost")
                                             .set("port", "8088")
                                             .set("id", "12345")
+                                            .set("query", query)
     );
 
-    UriTemplate variablesTemplate = UriTemplate.of("/{first}/{second}/{third}/{ids}");
+    UriTemplate variablesTemplate = UriTemplate.of("https//{first}/{second}/{third}/{ids}");
     final String variablesUri = variablesTemplate.expandToString(Variables.variables()
-                                                                   .set("host", "localhost")
-                                                                   .set("port", "8087")
                                                                    .set("first", "subpathA")
                                                                    .set("second", "subpathB")
                                                                    .set("third", "subpathC")
@@ -79,6 +86,8 @@ public class UriTemplateVerticle extends AbstractVerticle {
   private void handleDependsPortAndUri(Integer port, String expectedUri, Handler<HttpServerRequest> requestHandler, Promise<Void> promise) {
     server = vertx.createHttpServer();
     server.requestHandler(httpServerRequest -> {
+      System.out.println("URI requested " + httpServerRequest.uri());
+      System.out.println("URI expected : " + expectedUri);
       if (httpServerRequest.uri().equalsIgnoreCase(expectedUri)) {
         requestHandler.handle(httpServerRequest);
       } else {
