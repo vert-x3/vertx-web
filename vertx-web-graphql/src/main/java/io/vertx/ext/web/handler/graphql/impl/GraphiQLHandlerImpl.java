@@ -31,9 +31,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.concurrent.TimeUnit.DAYS;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.nio.charset.StandardCharsets.*;
+import static java.util.concurrent.TimeUnit.*;
 
 /**
  * @author Thomas Segismont
@@ -89,8 +88,16 @@ public class GraphiQLHandlerImpl implements GraphiQLHandler {
 
   private String replacement(RoutingContext rc) {
     JsonObject json = new JsonObject();
+    json.put("httpEnabled", options.isHttpEnabled());
     if (options.getGraphQLUri() != null) {
       json.put("graphQLUri", options.getGraphQLUri());
+    }
+    json.put("graphQLWSEnabled", options.isGraphQLWSEnabled());
+    if (options.getGraphQLWSUri() != null) {
+      json.put("graphQLWSUri", options.getGraphQLWSUri());
+    }
+    if (options.getWsConnectionParams() != null) {
+      json.put("wsConnectionParams", options.getWsConnectionParams());
     }
     MultiMap headers = MultiMap.caseInsensitiveMultiMap();
     Map<String, String> fixedHeaders = options.getHeaders();

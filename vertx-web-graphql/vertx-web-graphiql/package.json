@@ -4,9 +4,10 @@
   "private": true,
   "homepage": ".",
   "dependencies": {
+    "@graphiql/toolkit": "0.8.0",
     "graphiql": "2.2.0",
     "graphql": "16.6.0",
-    "isomorphic-fetch": "3.0.0",
+    "graphql-ws": "5.11.2",
     "lodash": "4.17.21",
     "react": "18.2.0",
     "react-dom": "18.2.0",

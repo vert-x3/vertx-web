@@ -17,17 +17,35 @@
 import React from 'react';
 import GraphiQL from 'graphiql';
 import 'graphiql/graphiql.min.css';
-import fetch from 'isomorphic-fetch';
+import {createGraphiQLFetcher} from '@graphiql/toolkit';
 import merge from 'lodash/merge';
 
 const config = merge({
+  httpEnabled: true,
   graphQLUri: '/graphql',
-  headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json'
-  },
+  graphQLWSEnabled: true,
+  graphQLWSUri: '/graphql',
+  wsConnectionParams: {},
+  headers: {},
   parameters: {}
 }, window.VERTX_GRAPHIQL_CONFIG);
+
+const graphiQLFetcherOptions = {
+  headers: config.headers,
+};
+
+if (config.httpEnabled) {
+  graphiQLFetcherOptions.url = window.location.origin + config.graphQLUri;
+}
+
+if (config.graphQLWSEnabled) {
+  const urlObj = new URL(window.location.origin);
+  urlObj.protocol = urlObj.protocol === 'https:' ? 'wss:' : 'ws:';
+  graphiQLFetcherOptions.subscriptionUrl = urlObj.toString() + config.graphQLWSUri;
+  graphiQLFetcherOptions.wsConnectionParams = config.wsConnectionParams;
+}
+
+const fetcher = createGraphiQLFetcher(graphiQLFetcherOptions);
 
 const search = window.location.search;
 search.substring(1).split('&').forEach(function (entry) {
@@ -71,18 +89,9 @@ function updateURL() {
   window.history.replaceState(null, null, newSearch);
 }
 
-function graphQLFetcher(graphQLParams) {
-  return fetch(window.location.origin + config.graphQLUri, {
-    method: 'post',
-    headers: config.headers,
-    body: JSON.stringify(graphQLParams),
-    credentials: 'include'
-  }).then(response => response.json());
-}
-
 const App = () => (
   <GraphiQL
-    fetcher={graphQLFetcher}
+    fetcher={fetcher}
     query={config.parameters.query}
     variables={config.parameters.variables}
     operationName={config.parameters.operationName}

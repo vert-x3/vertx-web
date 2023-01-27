@@ -59,35 +59,6 @@ To enable it, create the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler}
 {@link examples.GraphQLExamples#handlerSetupBatching}
 ----
 
-=== GraphiQL IDE
-
-As you are building your application, testing your GraphQL queries in https://github.com/graphql/graphiql[GraphiQL] can be handy.
-
-To do so, create a route for GraphiQL resources and a {@link io.vertx.ext.web.handler.graphql.GraphiQLHandler} for them:
-
-[source,$lang]
-----
-{@link examples.GraphQLExamples#handlerSetupGraphiQL}
-----
-
-Then browse to http://localhost:8080/graphiql/.
-
-NOTE: The GraphiQL user interface is disabled by default for security reasons.
-This is why you must configure the {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions} to enable it.
-
-TIP: GraphiQL is enabled automatically when Vert.x Web runs in development mode.
-To switch the development mode on, use the `VERTXWEB_ENVIRONMENT` environment variable or `vertxweb.environment` system property and set it to `dev`.
-In this case, create the {@link io.vertx.ext.web.handler.graphql.GraphiQLHandler} without changing the `enabled` property.
-
-If your application is protected by authentication, you can customize the headers sent by GraphiQL dynamically:
-
-[source,$lang]
-----
-{@link examples.GraphQLExamples#handlerSetupGraphiQLAuthn}
-----
-
-Please refer to the {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions} documentation for further details.
-
 === GraphQL over WebSocket
 
 Vert.x Web GraphQL is compatible with the https://github.com/enisdenjo/graphql-ws[GraphQL over Websocket protocol].
@@ -123,6 +94,38 @@ To support both HTTP and Websockets on the same URI, the {@link io.vertx.ext.web
 ----
 
 IMPORTANT: A _subscription_ `DataFetcher` has to return a `org.reactivestreams.Publisher` instance.
+
+=== GraphiQL IDE
+
+As you are building your application, testing your GraphQL queries in https://github.com/graphql/graphiql[GraphiQL] can be handy.
+
+To do so, create a route for GraphiQL resources and a {@link io.vertx.ext.web.handler.graphql.GraphiQLHandler} for them:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#handlerSetupGraphiQL}
+----
+
+Then browse to http://localhost:8080/graphiql/.
+
+NOTE: The GraphiQL user interface is disabled by default for security reasons.
+This is why you must configure the {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions} to enable it.
+
+[TIP]
+====
+GraphiQL is enabled automatically when Vert.x Web runs in development mode.
+To switch the development mode on, use the `VERTXWEB_ENVIRONMENT` environment variable or `vertxweb.environment` system property and set it to `dev`.
+In this case, create the {@link io.vertx.ext.web.handler.graphql.GraphiQLHandler} without changing the `enabled` property.
+====
+
+If your application is protected by authentication, you can customize the headers sent by GraphiQL dynamically:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#handlerSetupGraphiQLAuthn}
+----
+
+Please refer to the {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions} documentation for further details.
 
 == Fetching data
 
