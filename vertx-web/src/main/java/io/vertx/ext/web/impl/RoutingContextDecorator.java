@@ -10,6 +10,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.web.*;
 
 import java.nio.charset.Charset;
@@ -261,6 +262,11 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   @Override
   public boolean normalizedMatch() {
     return decoratedContext.normalizedMatch();
+  }
+
+  @Override
+  public SecurityAudit securityAudit() {
+    return decoratedContext.securityAudit();
   }
 
   @Override

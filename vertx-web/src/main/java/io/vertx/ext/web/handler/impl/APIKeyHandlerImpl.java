@@ -19,11 +19,14 @@ import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.Cookie;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.audit.Marker;
+import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.APIKeyHandler;
 import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
@@ -76,27 +79,39 @@ public class APIKeyHandlerImpl extends AuthenticationHandlerImpl<AuthenticationP
 
   @Override
   public Future<User> authenticate(RoutingContext context) {
+    final SecurityAudit audit = ((RoutingContextInternal) context).securityAudit();
+    final TokenCredentials credentials;
+
     switch (source) {
       case HEADER:
         MultiMap headers = context.request().headers();
         if (headers != null && headers.contains(value)) {
+          credentials = new TokenCredentials(headers.get(value));
+          audit.credentials(credentials);
           return authProvider
-            .authenticate(new TokenCredentials(headers.get(value)))
+            .authenticate(credentials)
+            .andThen(op -> audit.audit(Marker.AUTHENTICATION, op.succeeded()))
             .recover(err -> Future.failedFuture(new HttpException(401, err)));
         }
         break;
       case PARAMETER:
         MultiMap params = context.request().params();
         if (params != null && params.contains(value)) {
+          credentials = new TokenCredentials(params.get(value));
+          audit.credentials(credentials);
           return authProvider
-            .authenticate(new TokenCredentials(params.get(value)))
+            .authenticate(credentials)
+            .andThen(op -> audit.audit(Marker.AUTHENTICATION, op.succeeded()))
             .recover(err -> Future.failedFuture(new HttpException(401, err)));
         }
         break;
       case COOKIE:
         Cookie cookie = context.request().getCookie(value);
         if (cookie != null) {
-          return authProvider.authenticate(new TokenCredentials(cookie.getValue()))
+          credentials = new TokenCredentials(cookie.getValue());
+          audit.credentials(credentials);
+          return authProvider.authenticate(credentials)
+            .andThen(op -> audit.audit(Marker.AUTHENTICATION, op.succeeded()))
             .recover(err -> Future.failedFuture(new HttpException(401, err)));
         }
     }

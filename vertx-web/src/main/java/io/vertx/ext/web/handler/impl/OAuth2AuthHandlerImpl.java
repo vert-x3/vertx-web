@@ -25,6 +25,8 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.VertxContextPRNG;
+import io.vertx.ext.auth.audit.Marker;
+import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.impl.Codec;
@@ -39,6 +41,7 @@ import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.Origin;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -180,7 +183,11 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         final Credentials credentials =
           scopes.size() > 0 ? new TokenCredentials(token).setScopes(scopes) : new TokenCredentials(token);
 
+        final SecurityAudit audit = ((RoutingContextInternal) context).securityAudit();
+        audit.credentials(credentials);
+
         return authProvider.authenticate(credentials)
+          .andThen(op -> audit.audit(Marker.AUTHENTICATION, op.succeeded()))
           .recover(err -> Future.failedFuture(new HttpException(401, err)));
       }
     });
@@ -471,8 +478,12 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       // This must exactly match the redirect_uri passed to the authorization URL in the previous step.
       credentials.setRedirectUri(callbackURL.href());
 
+      final SecurityAudit audit = ((RoutingContextInternal) ctx).securityAudit();
+      audit.credentials(credentials);
+
       authProvider
         .authenticate(credentials)
+        .andThen(op -> audit.audit(Marker.AUTHENTICATION, op.succeeded()))
         .onFailure(ctx::fail)
         .onSuccess(user -> {
           ctx.setUser(user);

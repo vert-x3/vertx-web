@@ -18,11 +18,14 @@ package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.Future;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.audit.Marker;
+import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.nio.charset.StandardCharsets;
 
@@ -63,7 +66,12 @@ public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler<Authenticatio
           return Future.failedFuture(new HttpException(400, e));
         }
 
+        final SecurityAudit audit = ((RoutingContextInternal) context).securityAudit();
+        final UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(suser, spass);
+        audit.credentials(credentials);
+
         return authProvider.authenticate(new UsernamePasswordCredentials(suser, spass))
+          .andThen(result -> audit.audit(Marker.AUTHENTICATION, result.succeeded()))
           .recover(err -> Future.failedFuture(new HttpException(401, err)));
       });
   }

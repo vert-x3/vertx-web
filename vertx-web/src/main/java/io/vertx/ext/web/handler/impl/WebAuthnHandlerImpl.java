@@ -19,6 +19,8 @@ import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.audit.Marker;
+import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.webauthn.WebAuthn;
 import io.vertx.ext.auth.webauthn.WebAuthnCredentials;
 import io.vertx.ext.auth.webauthn.impl.attestation.AttestationException;
@@ -29,6 +31,7 @@ import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.WebAuthnHandler;
 import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.Origin;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> implements WebAuthnHandler, OrderListener {
 
@@ -291,15 +294,19 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
             return;
           }
 
-          authProvider.authenticate(
-              // authInfo
-              new WebAuthnCredentials()
-                .setOrigin(origin)
-                .setDomain(domain)
-                .setChallenge(session.remove("challenge"))
-                .setUsername(session.get("username"))
-                .setWebauthn(webauthnResp))
+          final WebAuthnCredentials credentials = new WebAuthnCredentials()
+            .setOrigin(origin)
+            .setDomain(domain)
+            .setChallenge(session.remove("challenge"))
+            .setUsername(session.get("username"))
+            .setWebauthn(webauthnResp);
+
+          final SecurityAudit audit = ((RoutingContextInternal) ctx).securityAudit();
+          audit.credentials(credentials);
+
+          authProvider.authenticate(credentials)
             .onSuccess(user -> {
+              audit.audit(Marker.AUTHENTICATION, true);
               // save the user into the context
               ctx.setUser(user);
               // the user has upgraded from unauthenticated to authenticated
@@ -308,6 +315,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
               ok(ctx);
             })
             .onFailure(cause -> {
+              audit.audit(Marker.AUTHENTICATION, false);
               if (cause instanceof AttestationException) {
                 ctx.fail(400, cause);
               } else {

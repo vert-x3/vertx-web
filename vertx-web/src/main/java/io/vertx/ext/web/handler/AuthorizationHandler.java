@@ -36,7 +36,7 @@ import java.util.function.BiConsumer;
 public interface AuthorizationHandler extends Handler<RoutingContext> {
 
   /**
-   * create the the handler that will check the specified authorization
+   * create the handler that will check the specified authorization
    * Note that to check several authorizations, you can specify a sub-interface such as {@link io.vertx.ext.auth.authorization.AndAuthorization} or {@link io.vertx.ext.auth.authorization.OrAuthorization}
    *
    * @param authorization the authorization to attest.

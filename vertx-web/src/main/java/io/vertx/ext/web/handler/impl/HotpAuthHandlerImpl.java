@@ -19,6 +19,8 @@ import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.audit.Marker;
+import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.otp.OtpCredentials;
 import io.vertx.ext.auth.otp.OtpKey;
 import io.vertx.ext.auth.otp.OtpKeyGenerator;
@@ -29,6 +31,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OtpAuthHandler;
 import io.vertx.ext.web.impl.OrderListener;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
@@ -176,8 +179,13 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
           return;
         }
 
-        authProvider.authenticate(new OtpCredentials(user.get("username"), ctx.request().getParam("code")))
+        final OtpCredentials credentials = new OtpCredentials(user.get("username"), ctx.request().getParam("code"));
+        final SecurityAudit audit = ((RoutingContextInternal) ctx).securityAudit();
+        audit.credentials(credentials);
+
+        authProvider.authenticate(credentials)
           .onSuccess(newUser -> {
+            audit.audit(Marker.AUTHENTICATION, true);
             user.principal().mergeIn(newUser.principal());
             user.attributes().mergeIn(newUser.attributes());
             // marker
@@ -196,7 +204,10 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
             }
             ctx.redirect(redirect);
           })
-          .onFailure(err -> ctx.fail(401, err));
+          .onFailure(err -> {
+            audit.audit(Marker.AUTHENTICATION, false);
+            ctx.fail(401, err);
+          });
       });
   }
 }

@@ -24,19 +24,21 @@ import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.Shareable;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.VertxContextPRNG;
+import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.auth.htdigest.HtdigestCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.DigestAuthHandler;
 import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.Set;
 
 import static io.vertx.ext.auth.impl.Codec.base16Encode;
 
@@ -205,8 +207,12 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
         // we now need to pass some extra info
         authInfo.setMethod(context.request().method().name());
 
+      final SecurityAudit audit = ((RoutingContextInternal) context).securityAudit();
+      audit.credentials(authInfo);
+
         return authProvider
           .authenticate(authInfo)
+          .andThen(op -> audit.audit(Marker.AUTHENTICATION, op.succeeded()))
           .recover(err -> Future.failedFuture(new HttpException(401, err)));
       });
   }

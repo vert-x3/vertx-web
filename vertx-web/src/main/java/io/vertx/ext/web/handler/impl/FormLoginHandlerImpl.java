@@ -22,12 +22,15 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.audit.Marker;
+import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.FormLoginHandler;
 import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -87,8 +90,13 @@ public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<Authenticati
         if (username == null || password == null) {
           return Future.failedFuture(BAD_REQUEST);
         } else {
+          final SecurityAudit audit = ((RoutingContextInternal) context).securityAudit();
+          final UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
+          audit.credentials(credentials);
+
           return authProvider
             .authenticate(new UsernamePasswordCredentials(username, password))
+            .andThen(op -> audit.audit(Marker.AUTHENTICATION, op.succeeded()))
             .recover(err -> Future.failedFuture(new HttpException(401, err)));
         }
       }
