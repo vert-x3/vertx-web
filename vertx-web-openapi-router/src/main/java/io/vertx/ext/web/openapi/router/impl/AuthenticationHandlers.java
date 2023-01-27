@@ -59,8 +59,7 @@ class AuthenticationHandlers {
 
     AuthenticationHandler authn = or(
       route,
-      // we may modify the list, so we need to copy it
-      securityRequirements == null ? Collections.emptyList() : new ArrayList<>(securityRequirements),
+      securityRequirements == null ? Collections.emptyList() : securityRequirements,
       failOnNotFound);
 
     if (authn != null) {
@@ -129,6 +128,8 @@ class AuthenticationHandlers {
     for (int i = 0; i < securityRequirements.size(); i++) {
       if (securityRequirements.get(i).isEmpty()) {
         emptyAuth = true;
+        // we will modify the list, so we need to copy it
+        securityRequirements = new ArrayList<>(securityRequirements);
         securityRequirements.remove(i);
         break;
       }
