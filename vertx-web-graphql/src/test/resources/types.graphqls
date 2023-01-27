@@ -1,0 +1,27 @@
+enum Musketeer {
+  ATHOS
+  PORTHOS
+  ARAMIS
+}
+
+scalar Datetime
+
+type Person {
+  name: String
+  friend: Person
+}
+
+type Query {
+  hello: String!
+  number: Int!
+  floating: Float!
+  bool: Boolean!
+  id: ID!
+  enum: Musketeer!
+  list: [String]
+  array: [String]
+  answer(name: String = "someone"): String
+  when: Datetime
+  changing: Int!
+  persons: [Person]
+}
