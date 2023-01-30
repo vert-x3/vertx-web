@@ -30,6 +30,18 @@ public class GraphiQLHandlerOptionsConverter {
             obj.setGraphQLUri((String)member.getValue());
           }
           break;
+        case "graphQLWSEnabled":
+          if (member.getValue() instanceof Boolean) {
+            obj.setGraphQLWSEnabled((Boolean)member.getValue());
+          }
+          break;
+        case "graphQLWSUri":
+          break;
+        case "graphWSQLUri":
+          if (member.getValue() instanceof String) {
+            obj.setGraphWSQLUri((String)member.getValue());
+          }
+          break;
         case "headers":
           if (member.getValue() instanceof JsonObject) {
             java.util.Map<String, java.lang.String> map = new java.util.LinkedHashMap<>();
@@ -40,6 +52,11 @@ public class GraphiQLHandlerOptionsConverter {
             obj.setHeaders(map);
           }
           break;
+        case "httpEnabled":
+          if (member.getValue() instanceof Boolean) {
+            obj.setHttpEnabled((Boolean)member.getValue());
+          }
+          break;
         case "query":
           if (member.getValue() instanceof String) {
             obj.setQuery((String)member.getValue());
@@ -48,6 +65,11 @@ public class GraphiQLHandlerOptionsConverter {
         case "variables":
           if (member.getValue() instanceof JsonObject) {
             obj.setVariables(((JsonObject)member.getValue()).copy());
+          }
+          break;
+        case "wsConnectionParams":
+          if (member.getValue() instanceof JsonObject) {
+            obj.setWsConnectionParams(((JsonObject)member.getValue()).copy());
           }
           break;
       }
@@ -63,16 +85,24 @@ public class GraphiQLHandlerOptionsConverter {
     if (obj.getGraphQLUri() != null) {
       json.put("graphQLUri", obj.getGraphQLUri());
     }
+    json.put("graphQLWSEnabled", obj.isGraphQLWSEnabled());
+    if (obj.getGraphQLWSUri() != null) {
+      json.put("graphQLWSUri", obj.getGraphQLWSUri());
+    }
     if (obj.getHeaders() != null) {
       JsonObject map = new JsonObject();
       obj.getHeaders().forEach((key, value) -> map.put(key, value));
       json.put("headers", map);
     }
+    json.put("httpEnabled", obj.isHttpEnabled());
     if (obj.getQuery() != null) {
       json.put("query", obj.getQuery());
     }
     if (obj.getVariables() != null) {
       json.put("variables", obj.getVariables());
+    }
+    if (obj.getWsConnectionParams() != null) {
+      json.put("wsConnectionParams", obj.getWsConnectionParams());
     }
   }
 }

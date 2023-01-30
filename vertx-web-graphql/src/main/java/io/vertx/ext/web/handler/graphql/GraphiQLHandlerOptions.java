@@ -36,11 +36,31 @@ public class GraphiQLHandlerOptions {
    */
   public static final boolean DEFAULT_ENABLED = WebEnvironment.development();
 
+  /**
+   * Whether HTTP transport should be enabled by default = true.
+   */
+  public static final boolean DEFAULT_HTTP_ENABLED = true;
+
+  /**
+   * Default URI for HTTP and GraphQLWS endpoints = /graphql.
+   */
+  public static final String DEFAULT_GRAPHQL_URI = "/graphql";
+
+  /**
+   * Whether GraphQLWS transport should be enabled by default = true.
+   */
+  public static final boolean DEFAULT_GRAPHQL_WS_ENABLED = true;
+
   private boolean enabled = DEFAULT_ENABLED;
 
-  private String graphQLUri;
+  private boolean httpEnabled = DEFAULT_HTTP_ENABLED;
+  private String graphQLUri = DEFAULT_GRAPHQL_URI;
+
+  private boolean graphQLWSEnabled = DEFAULT_GRAPHQL_WS_ENABLED;
+  private String graphQLWSUri = DEFAULT_GRAPHQL_URI;
 
   private Map<String, String> headers;
+  private JsonObject wsConnectionParams;
 
   private String query;
 
@@ -59,8 +79,12 @@ public class GraphiQLHandlerOptions {
    */
   public GraphiQLHandlerOptions(GraphiQLHandlerOptions other) {
     enabled = other.enabled;
+    httpEnabled = other.httpEnabled;
     graphQLUri = other.graphQLUri;
+    graphQLWSEnabled = other.graphQLWSEnabled;
+    graphQLWSUri = other.graphQLWSUri;
     headers = other.headers == null ? null : new HashMap<>(other.headers);
+    wsConnectionParams = other.wsConnectionParams == null ? null : other.wsConnectionParams.copy();
     query = other.query;
     variables = other.variables == null ? null : other.variables.copy();
   }
@@ -85,7 +109,7 @@ public class GraphiQLHandlerOptions {
   }
 
   /**
-   * @return true if the GraphiQL development tool should be enabled, false otherwise
+   * @return {@code true} if the GraphiQL development tool should be enabled, {@code false} otherwise
    */
   public boolean isEnabled() {
     return enabled;
@@ -94,12 +118,29 @@ public class GraphiQLHandlerOptions {
   /**
    * Whether the GraphiQL development tool should be enabled. Defaults to {@code false}.
    *
-   * @param enabled true to enable the GraphiQL development tool, false otherwise
-   *
+   * @param enabled {@code true} to enable the GraphiQL development tool, {@code false} otherwise
    * @return a reference to this, so the API can be used fluently
    */
   public GraphiQLHandlerOptions setEnabled(boolean enabled) {
     this.enabled = enabled;
+    return this;
+  }
+
+  /**
+   * @return {@code true} if the HTTP transport should be enabled, {@code true} otherwise
+   */
+  public boolean isHttpEnabled() {
+    return httpEnabled;
+  }
+
+  /**
+   * Whether the HTTP transport should be enabled. Defaults to {@code true}.
+   *
+   * @param httpEnabled {@code true} to enable the HTTP transport, {@code false} otherwise
+   * @return a reference to this, so the API can be used fluently
+   */
+  public GraphiQLHandlerOptions setHttpEnabled(boolean httpEnabled) {
+    this.httpEnabled = httpEnabled;
     return this;
   }
 
@@ -111,14 +152,49 @@ public class GraphiQLHandlerOptions {
   }
 
   /**
-   * Set the GraphQL endpoint URI. Defaults to the path used to get the GraphiQL user interface.
+   * Set the GraphQL HTTP endpoint URI. Defaults to {@link #DEFAULT_GRAPHQL_URI}.
    *
-   * @param graphQLUri the GraphQL endpoint URI
-   *
+   * @param graphQLUri the GraphQL HTTP endpoint URI
    * @return a reference to this, so the API can be used fluently
    */
   public GraphiQLHandlerOptions setGraphQLUri(String graphQLUri) {
     this.graphQLUri = graphQLUri;
+    return this;
+  }
+
+  /**
+   * @return {@code true} if the GraphQLWS transport should be enabled, {@code true} otherwise
+   */
+  public boolean isGraphQLWSEnabled() {
+    return graphQLWSEnabled;
+  }
+
+  /**
+   * Whether the GraphQLWS transport should be enabled. Defaults to {@code true}.
+   *
+   * @param graphQLWSEnabled {@code true} to enable the GraphQLWS transport, {@code false} otherwise
+   * @return a reference to this, so the API can be used fluently
+   */
+  public GraphiQLHandlerOptions setGraphQLWSEnabled(boolean graphQLWSEnabled) {
+    this.graphQLWSEnabled = graphQLWSEnabled;
+    return this;
+  }
+
+  /**
+   * @return the GraphQLWS endpoint URI
+   */
+  public String getGraphQLWSUri() {
+    return graphQLWSUri;
+  }
+
+  /**
+   * Set the GraphQLWS endpoint URI. Defaults to {@link #DEFAULT_GRAPHQL_URI}.
+   *
+   * @param graphQLWSUri the GraphQLWS endpoint URI
+   * @return a reference to this, so the API can be used fluently
+   */
+  public GraphiQLHandlerOptions setGraphWSQLUri(String graphQLWSUri) {
+    this.graphQLWSUri = graphQLWSUri;
     return this;
   }
 
@@ -133,11 +209,28 @@ public class GraphiQLHandlerOptions {
    * A fixed set of HTTP headers to add to GraphiQL requests. Defaults to {@code null}.
    *
    * @param headers the set of HTTP headers to add to GraphiQL requests
-   *
    * @return a reference to this, so the API can be used fluently
    */
   public GraphiQLHandlerOptions setHeaders(Map<String, String> headers) {
     this.headers = headers;
+    return this;
+  }
+
+  /**
+   * @return the initial GraphQLWS connection params
+   */
+  public JsonObject getWsConnectionParams() {
+    return wsConnectionParams;
+  }
+
+  /**
+   * Initial GraphQLWS connection params. Defaults to {@code null}.
+   *
+   * @param wsConnectionParams the initial GraphQLWS connection params
+   * @return a reference to this, so the API can be used fluently
+   */
+  public GraphiQLHandlerOptions setWsConnectionParams(JsonObject wsConnectionParams) {
+    this.wsConnectionParams = wsConnectionParams;
     return this;
   }
 

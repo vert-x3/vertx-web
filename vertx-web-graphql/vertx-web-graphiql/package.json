@@ -4,16 +4,17 @@
   "private": true,
   "homepage": ".",
   "dependencies": {
-    "graphiql": "0.13.2",
-    "graphql": "14.4.2",
-    "isomorphic-fetch": "2.2.1",
-    "lodash": "4.17.15",
-    "react": "16.8.6",
-    "react-dom": "16.8.6",
-    "react-scripts": "3.0.1"
+    "@graphiql/toolkit": "0.8.0",
+    "graphiql": "2.2.0",
+    "graphql": "16.6.0",
+    "graphql-ws": "5.11.2",
+    "lodash": "4.17.21",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-scripts": "5.0.1"
   },
   "devDependencies": {
-    "recursive-copy": "2.0.10"
+    "recursive-copy": "2.0.14"
   },
   "scripts": {
     "start": "react-scripts start",
