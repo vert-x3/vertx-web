@@ -1,0 +1,57 @@
+= Vert.x OpenAPI Router
+:toc: left
+
+Vert.x OpenAPI Router is based on https://vertx.io/docs/vertx-openapi/java/[Vert.x OpenAPI] and only provides the router functionality.
+
+Vert.x OpenAPI Router can:
+
+* generate a router according to your OpenAPI contract, with correct paths & methods.
+
+== Using Vert.x OpenAPI Router
+
+To use Vert.x OpenAPI Router, add the following dependency to the _dependencies_ section of your build descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-openapi-router</artifactId>
+  <version>${maven.version}</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-openapi-router:${maven.version}'
+}
+----
+
+== RouterBuilder
+
+With the {@link io.vertx.ext.web.openapi.router.RouterBuilder} you can easily generate a Vert.x Web Router based on the passed
+{@link io.vertx.openapi.contract.OpenAPIContract}.
+
+[source,$lang]
+----
+{@link examples.RouterExamples#createRouter}
+----
+
+The {@link io.vertx.ext.web.openapi.router.RouterBuilder} provides methods to access the generated routes.
+These routes can then be customized by adding custom handlers or enable / disable the validation.
+
+[source,$lang]
+----
+{@link examples.RouterExamples#modifyRoutes}
+----
+
+After a successful validation of the incoming request, the validated parameters and request body are stored in the RoutingContext and can be accessed inside your custom handlers.
+
+[source,$lang]
+----
+{@link examples.RouterExamples#accessValidatedRequest}
+----
