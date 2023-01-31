@@ -1,10 +1,13 @@
-import {gql} from 'graphql-tag'
-import {ApolloClient, execute, HttpLink, InMemoryCache, toPromise} from '@apollo/client/core'
-import {BatchHttpLink} from '@apollo/client/link/batch-http'
-import {WebSocket} from 'ws'
+import {gql} from 'graphql-tag';
+import {ApolloClient, execute, HttpLink, InMemoryCache, toPromise} from '@apollo/client/core';
+import {BatchHttpLink} from '@apollo/client/link/batch-http';
+import {WebSocket} from 'ws';
 import {WebSocketLink} from '@apollo/client/link/ws';
 import {SubscriptionClient} from 'subscriptions-transport-ws';
 import {createUploadLink} from 'apollo-upload-client';
+import {createPersistedQueryLink} from '@apollo/client/link/persisted-queries';
+
+const crypto = require('node:crypto').webcrypto
 
 const uri = 'http://localhost:8080/graphql';
 const wsUri = 'ws://localhost:8080/graphql';
@@ -160,4 +163,21 @@ test('upload file mutation', async () => {
 
   expect(result).toHaveProperty('data.singleUpload.id');
   expect(result.data.singleUpload.id).toEqual('text.txt');
-})
+});
+
+test('persisted queries link', async () => {
+  const httpLink = new HttpLink({uri: uri});
+  const persistedQueryLink = createPersistedQueryLink({
+    sha256: async s => {
+      const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+      return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    }
+  });
+  const linkChain = persistedQueryLink.concat(httpLink);
+
+  let result = await toPromise(execute(linkChain, {query: allLinksQuery}));
+  // FIXME the test passes because even if the backend doesn't support APQ
+  // the client fallbacks to the HTTP link
+  // We need to find a way to indicate in the results if the query cache was used on the server
+  verify(result);
+});
