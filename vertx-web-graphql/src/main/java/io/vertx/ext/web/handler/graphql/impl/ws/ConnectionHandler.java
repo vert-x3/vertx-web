@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler.graphql.impl.ws;
 
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
+import graphql.execution.preparsed.persisted.PersistedQuerySupport;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -41,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 
-import static io.vertx.ext.web.handler.graphql.impl.ErrorUtil.toJsonObject;
+import static io.vertx.ext.web.handler.graphql.impl.ErrorUtil.*;
 import static io.vertx.ext.web.handler.graphql.ws.MessageType.*;
 
 public class ConnectionHandler {
@@ -319,8 +320,6 @@ public class ConnectionHandler {
       GraphQLQuery payload = new GraphQLQuery(msg.message().getJsonObject("payload"));
       ExecutionInput.Builder builder = ExecutionInput.newExecutionInput();
 
-
-      builder.query(payload.getQuery());
       String operationName = payload.getOperationName();
       if (operationName != null) {
         builder.operationName(operationName);
@@ -332,6 +331,16 @@ public class ConnectionHandler {
       Object initialValue = payload.getInitialValue();
       if (initialValue != null) {
         builder.root(initialValue);
+      }
+      Map<String, Object> extensions = payload.getExtensions();
+      if (extensions != null) {
+        builder.extensions(extensions);
+      }
+      String query = payload.getQuery();
+      if (query != null) {
+        builder.query(query);
+      } else if (extensions != null && extensions.containsKey("persistedQuery")) {
+        builder.query(PersistedQuerySupport.PERSISTED_QUERY_MARKER);
       }
 
       Handler<ExecutionInputBuilderWithContext<Message>> beforeExecute = graphQLWSHandler.getBeforeExecute();

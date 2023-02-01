@@ -17,16 +17,14 @@
 package io.vertx.ext.web.handler.graphql.impl;
 
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
-import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.AbstractList;
+import java.util.RandomAccess;
 
 /**
  * @author Thomas Segismont
  */
-public class GraphQLBatch implements GraphQLInput, Iterable<GraphQLQuery> {
+public class GraphQLBatch extends AbstractList<GraphQLQuery> implements GraphQLInput, RandomAccess {
 
   private final JsonArray value;
 
@@ -35,31 +33,12 @@ public class GraphQLBatch implements GraphQLInput, Iterable<GraphQLQuery> {
   }
 
   @Override
-  public Iterator<GraphQLQuery> iterator() {
-    return new GraphQLQueryIterator(value.iterator());
+  public GraphQLQuery get(int index) {
+    return new GraphQLQuery(value.getJsonObject(index));
   }
 
   @Override
-  public Spliterator<GraphQLQuery> spliterator() {
-    return Spliterators.spliterator(iterator(), value.size(), 0);
-  }
-
-  private static class GraphQLQueryIterator implements Iterator<GraphQLQuery> {
-
-    private final Iterator<Object> jsonArrayIterator;
-
-    public GraphQLQueryIterator(Iterator<Object> jsonArrayIterator) {
-      this.jsonArrayIterator = jsonArrayIterator;
-    }
-
-    @Override
-    public boolean hasNext() {
-      return jsonArrayIterator.hasNext();
-    }
-
-    @Override
-    public GraphQLQuery next() {
-      return new GraphQLQuery((JsonObject) jsonArrayIterator.next());
-    }
+  public int size() {
+    return value.size();
   }
 }

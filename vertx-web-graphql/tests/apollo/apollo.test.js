@@ -166,12 +166,18 @@ test('upload file mutation', async () => {
   expect(result.data.singleUpload.id).toEqual('text.txt');
 });
 
-test('persisted queries link', async () => {
+async function testPersistedQueriesLinkHTTP(useGETForHashedQueries) {
   expect((await fetch(resetUri, {method: 'POST'})).ok).toEqual(true);
 
   let requestCount = 0;
   const interceptor = (input, init) => {
-    const body = JSON.parse(init.body);
+    let body;
+    if (init.method === "GET") {
+      body = {};
+      new URL(input).searchParams.forEach((value, name) => body[name] = JSON.parse(value));
+    } else {
+      body = JSON.parse(init.body);
+    }
     expect(body).toHaveProperty('extensions');
     expect(body['extensions']).toHaveProperty('persistedQuery');
     expect(body['extensions']['persistedQuery']).toHaveProperty('version', 1);
@@ -188,6 +194,7 @@ test('persisted queries link', async () => {
   }
   const httpLink = new HttpLink({uri: uri, fetch: interceptor});
   const persistedQueryLink = createPersistedQueryLink({
+    useGETForHashedQueries: useGETForHashedQueries,
     sha256: async s => {
       const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
       return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -199,4 +206,12 @@ test('persisted queries link', async () => {
     let result = await toPromise(execute(linkChain, {query: allLinksQuery}));
     verify(result);
   }
+}
+
+test('persisted queries link HTTP POST', async () => {
+  await testPersistedQueriesLinkHTTP(false);
+});
+
+test('persisted queries link HTTP GET', async () => {
+  await testPersistedQueriesLinkHTTP(true);
 });
