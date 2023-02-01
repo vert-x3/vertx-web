@@ -11,6 +11,7 @@ const crypto = require('node:crypto').webcrypto
 
 const uri = 'http://localhost:8080/graphql';
 const wsUri = 'ws://localhost:8080/graphql';
+const resetUri = 'http://localhost:8080/reset';
 
 const client = new ApolloClient({
   cache: new InMemoryCache(),
@@ -166,7 +167,26 @@ test('upload file mutation', async () => {
 });
 
 test('persisted queries link', async () => {
-  const httpLink = new HttpLink({uri: uri});
+  expect((await fetch(resetUri, {method: 'POST'})).ok).toEqual(true);
+
+  let requestCount = 0;
+  const interceptor = (input, init) => {
+    const body = JSON.parse(init.body);
+    expect(body).toHaveProperty('extensions');
+    expect(body['extensions']).toHaveProperty('persistedQuery');
+    expect(body['extensions']['persistedQuery']).toHaveProperty('version', 1);
+    expect(body['extensions']['persistedQuery']).toHaveProperty('sha256Hash');
+    if (requestCount === 0 || requestCount === 2) {
+      expect(body).not.toHaveProperty('query');
+    } else if (requestCount === 1) {
+      expect(body).toHaveProperty('query');
+    } else {
+      throw new Error('Too many requests sent');
+    }
+    requestCount++;
+    return fetch(input, init);
+  }
+  const httpLink = new HttpLink({uri: uri, fetch: interceptor});
   const persistedQueryLink = createPersistedQueryLink({
     sha256: async s => {
       const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
@@ -175,9 +195,8 @@ test('persisted queries link', async () => {
   });
   const linkChain = persistedQueryLink.concat(httpLink);
 
-  let result = await toPromise(execute(linkChain, {query: allLinksQuery}));
-  // FIXME the test passes because even if the backend doesn't support APQ
-  // the client fallbacks to the HTTP link
-  // We need to find a way to indicate in the results if the query cache was used on the server
-  verify(result);
+  for (let i = 0; i < 2; i++) {
+    let result = await toPromise(execute(linkChain, {query: allLinksQuery}));
+    verify(result);
+  }
 });
