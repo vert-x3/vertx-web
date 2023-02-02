@@ -20,6 +20,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 
@@ -73,10 +74,12 @@ public class Utils {
     }
 
     if (!route.isExactPath()) {
-      final String rest = context.pathParam("*");
+      String rest = context.pathParam("*");
       if (rest != null) {
         // normalize
         if (rest.length() > 0) {
+          // remove any attempt to escape the web root and use UNIX style path separators
+          rest = HttpUtils.removeDots(rest.replace('\\', '/'));
           if (rest.charAt(0) == '/') {
             return rest;
           } else {
