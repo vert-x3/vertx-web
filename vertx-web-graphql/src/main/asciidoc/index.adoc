@@ -37,6 +37,16 @@ Create a Vert.x Web {@link io.vertx.ext.web.Route} and a {@link io.vertx.ext.web
 {@link examples.GraphQLExamples#handlerSetup}
 ----
 
+[TIP]
+====
+The `GraphQLHandler` supports https://www.apollographql.com/docs/apollo-server/performance/apq/[Apollo's _automatic persisted queries_], provided GraphQL-Java is configured accordingly:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#persistedQueries}
+----
+====
+
 The handler serves both `GET` and `POST` requests.
 However, you can restrict the service to one type of HTTP method:
 
@@ -83,6 +93,16 @@ Consequently, it has to be added to the list of supported subprotocols in the se
 [source,$lang]
 ----
 {@link examples.GraphQLExamples#configureServerForGraphQLWS}
+----
+====
+
+[TIP]
+====
+The `GraphQLWSHandler` supports https://www.apollographql.com/docs/apollo-server/performance/apq/[Apollo's _automatic persisted queries_], provided GraphQL-Java is configured accordingly:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#persistedQueries}
 ----
 ====
 
