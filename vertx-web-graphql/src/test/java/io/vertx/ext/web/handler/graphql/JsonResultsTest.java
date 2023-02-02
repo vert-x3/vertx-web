@@ -17,19 +17,21 @@
 package io.vertx.ext.web.handler.graphql;
 
 import graphql.GraphQL;
-import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLSchema;
-import graphql.schema.idl.*;
+import graphql.schema.idl.RuntimeWiring;
+import graphql.schema.idl.SchemaGenerator;
+import graphql.schema.idl.SchemaParser;
+import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher;
+import io.vertx.ext.web.handler.graphql.instrumentation.JsonObjectAdapter;
 import org.junit.Test;
 
 import java.util.List;
 
-import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
-import static io.vertx.core.http.HttpMethod.GET;
+import static graphql.schema.idl.RuntimeWiring.*;
+import static io.vertx.core.http.HttpMethod.*;
 
 /**
  * @author Thomas Segismont
@@ -44,12 +46,6 @@ public class JsonResultsTest extends GraphQLTestBase {
     TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
 
     RuntimeWiring runtimeWiring = newRuntimeWiring()
-      .wiringFactory(new WiringFactory() {
-        @Override
-        public DataFetcher getDefaultDataFetcher(FieldWiringEnvironment environment) {
-          return VertxPropertyDataFetcher.create(environment.getFieldDefinition().getName());
-        }
-      })
       .type("Query", builder -> builder.dataFetcher("allLinks", this::getAllLinks))
       .build();
 
@@ -57,6 +53,7 @@ public class JsonResultsTest extends GraphQLTestBase {
     GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
 
     return GraphQL.newGraphQL(graphQLSchema)
+      .instrumentation(new JsonObjectAdapter())
       .build();
   }
 

@@ -22,14 +22,15 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.json.JsonObject;
 
-import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
+import static io.vertx.codegen.annotations.GenIgnore.*;
 
 /**
  * Extends {@link PropertyDataFetcher} so that properties can be read from a {@link JsonObject}.
  *
- * @author Thomas Segismont
+ * @deprecated with GraphQL-Java 20 and later, use {@link io.vertx.ext.web.handler.graphql.instrumentation.JsonObjectAdapter} instead
  */
 @VertxGen
+@Deprecated
 public interface VertxPropertyDataFetcher {
 
   @GenIgnore(PERMITTED_TYPE)
