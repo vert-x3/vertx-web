@@ -21,14 +21,13 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.util.Arrays;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
-import static io.vertx.ext.web.handler.graphql.GraphQLRequest.GRAPHQL;
-import static io.vertx.ext.web.handler.graphql.GraphQLRequest.encode;
-import static java.util.stream.Collectors.toList;
+import static io.vertx.ext.web.handler.graphql.GraphQLRequest.*;
+import static java.util.stream.Collectors.*;
 
 /**
  * @author Thomas Segismont
@@ -102,7 +101,7 @@ public class PostRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery(query)
       .setOperationName("bar")
-      .addVariable("secure", "true");
+      .addVariable("secure", true);
     request.send(client, onSuccess(body -> {
       List<String> expected = testData.urls().stream()
         .filter(url -> url.startsWith("https://"))
@@ -120,7 +119,7 @@ public class PostRequestsTest extends GraphQLTestBase {
   public void testSimplePostWithVariable() throws Exception {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query($secure: Boolean) { allLinks(secureOnly: $secure) { url } }")
-      .addVariable("secure", "true");
+      .addVariable("secure", true);
     request.send(client, onSuccess(body -> {
       List<String> expected = testData.urls().stream()
         .filter(url -> url.startsWith("https://"))

@@ -174,19 +174,33 @@ You may retrieve this object by inspecting the `DataFetchingEnvironment`:
 
 === JSON data results
 
-The default GraphQL data fetcher is `PropertyDataFetcher`.
-As a consequence, it will be able to read the fields of your domain objects without further configuration.
+The default GraphQL data fetcher is the `PropertyDataFetcher`.
+It is able to read the fields of your domain objects without further configuration.
 
-Nevertheless, some Vert.x data clients return {@link io.vertx.core.json.JsonArray} and {@link io.vertx.core.json.JsonObject} results.
+Nevertheless, in Vert.x applications it is common to work with {@link io.vertx.core.json.JsonArray} and {@link io.vertx.core.json.JsonObject}.
+The `PropertyDataFetcher` can read the items in a `JsonArray` out of the box, but not the fields of a `JsonObject`.
 
-If you don't need (or don't wish to) use a domain object layer, you can configure GraphQL-Java to use {@link io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher} instead:
+The solution to this problem depends on your GraphQL-Java version.
+
+NOTE: Both solutions let you mix `JsonObject`, `JsonArray` and domain objects results.
+
+==== GraphQL-Java 20 and later
+
+Configure GraphQL-Java with the {@link io.vertx.ext.web.handler.graphql.instrumentation.JsonObjectAdapter} https://www.graphql-java.com/documentation/instrumentation/[instrumentation].
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#jsonObjectAdapter}
+----
+
+==== GraphQL-Java 19 and before
+
+Configure GraphQL-Java to use {@link io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher} instead:
 
 [source,$lang]
 ----
 {@link examples.GraphQLExamples#jsonData}
 ----
-
-TIP: {@link io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher} wraps a `PropertyDataFetcher` so you can still use it with domain objects.
 
 === Batch loading
 

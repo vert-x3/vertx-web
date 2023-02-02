@@ -36,6 +36,7 @@ import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 import io.vertx.ext.web.handler.graphql.GraphiQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions;
 import io.vertx.ext.web.handler.graphql.UploadScalar;
+import io.vertx.ext.web.handler.graphql.instrumentation.JsonObjectAdapter;
 import io.vertx.ext.web.handler.graphql.instrumentation.VertxFutureAdapter;
 import io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher;
 import io.vertx.ext.web.handler.graphql.ws.GraphQLWSHandler;
@@ -174,6 +175,10 @@ public class GraphQLExamples {
 
       }
     });
+  }
+
+  public void jsonObjectAdapter(GraphQL.Builder graphQLBuilder) {
+    graphQLBuilder.instrumentation(new JsonObjectAdapter());
   }
 
   public void createBatchLoader() {

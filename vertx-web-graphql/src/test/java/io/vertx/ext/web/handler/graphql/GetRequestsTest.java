@@ -16,14 +16,14 @@
 
 package io.vertx.ext.web.handler.graphql;
 
-import java.util.Arrays;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
-import static io.vertx.core.http.HttpMethod.GET;
-import static io.vertx.ext.web.handler.graphql.GraphQLRequest.encode;
-import static java.util.stream.Collectors.toList;
+import static io.vertx.core.http.HttpMethod.*;
+import static io.vertx.ext.web.handler.graphql.GraphQLRequest.*;
+import static java.util.stream.Collectors.*;
 
 /**
  * @author Thomas Segismont
@@ -54,7 +54,7 @@ public class GetRequestsTest extends GraphQLTestBase {
       .setMethod(GET)
       .setGraphQLQuery(query)
       .setOperationName("bar")
-      .addVariable("secure", "true");
+      .addVariable("secure", true);
     request.send(client, onSuccess(body -> {
       List<String> expected = testData.urls().stream()
         .filter(url -> url.startsWith("https://"))
@@ -73,7 +73,7 @@ public class GetRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setGraphQLQuery("query($secure: Boolean) { allLinks(secureOnly: $secure) { url } }")
-      .addVariable("secure", "true");
+      .addVariable("secure", true);
     request.send(client, onSuccess(body -> {
       List<String> expected = testData.urls().stream()
         .filter(url -> url.startsWith("https://"))
