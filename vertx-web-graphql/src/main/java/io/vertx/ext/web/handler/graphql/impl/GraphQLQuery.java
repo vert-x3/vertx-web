@@ -29,6 +29,10 @@ public class GraphQLQuery implements GraphQLInput {
   private String operationName;
   private Map<String, Object> variables;
   private Object initialValue;
+  private Map<String, Object> extensions;
+
+  public GraphQLQuery() {
+  }
 
   public GraphQLQuery(JsonObject value) {
     query = value.getString("query");
@@ -36,17 +40,8 @@ public class GraphQLQuery implements GraphQLInput {
     JsonObject vars = value.getJsonObject("variables");
     this.variables = vars != null ? vars.getMap() : null;
     this.initialValue = value.getValue("initialValue");
-  }
-
-  public GraphQLQuery(String query, String operationName, Map<String, Object> variables) {
-    this.query = query;
-    this.operationName = operationName;
-    this.variables = variables;
-  }
-
-  public GraphQLQuery(String query, String operationName, Map<String, Object> variables, Object initialValue) {
-    this(query, operationName, variables);
-    this.initialValue = initialValue;
+    JsonObject exts = value.getJsonObject("extensions");
+    this.extensions = exts != null ? exts.getMap() : null;
   }
 
   public String getQuery() {
@@ -85,12 +80,23 @@ public class GraphQLQuery implements GraphQLInput {
     return this;
   }
 
+  public Map<String, Object> getExtensions() {
+    return extensions;
+  }
+
+  public GraphQLQuery setExtensions(Map<String, Object> extensions) {
+    this.extensions = extensions;
+    return this;
+  }
+
   @Override
   public String toString() {
     return "GraphQLQuery{" +
       "query='" + query + '\'' +
       ", operationName='" + operationName + '\'' +
       ", variables=" + variables +
+      ", initialValue=" + initialValue +
+      ", extensions=" + extensions +
       '}';
   }
 }

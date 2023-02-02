@@ -18,7 +18,12 @@ package io.vertx.ext.web.handler.graphql.impl;
 
 import graphql.ExecutionInput;
 import graphql.GraphQL;
-import io.vertx.core.*;
+import graphql.execution.preparsed.persisted.PersistedQuerySupport;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -33,15 +38,18 @@ import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 import org.dataloader.DataLoaderRegistry;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.StreamSupport;
 
-import static io.vertx.core.http.HttpMethod.GET;
-import static io.vertx.core.http.HttpMethod.POST;
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toList;
+import static io.vertx.core.http.HttpMethod.*;
 
 /**
  * @author Thomas Segismont
@@ -113,11 +121,6 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   }
 
   private void handleGet(RoutingContext rc) {
-    String query = rc.queryParams().get("query");
-    if (query == null) {
-      failQueryMissing(rc);
-      return;
-    }
     Map<String, Object> variables;
     try {
       variables = getVariablesFromQueryParam(rc);
@@ -132,7 +135,29 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       rc.fail(400, e);
       return;
     }
-    executeOne(rc, new GraphQLQuery(query, rc.queryParams().get("operationName"), variables, initialValue));
+    Map<String, Object> extensions;
+    try {
+      extensions = getExtensionsFromQueryParam(rc);
+    } catch (Exception e) {
+      rc.fail(400, e);
+      return;
+    }
+    String query = rc.queryParams().get("query");
+    if (query == null) {
+      if (extensions != null && extensions.containsKey("persistedQuery")) {
+        query = PersistedQuerySupport.PERSISTED_QUERY_MARKER;
+      } else {
+        failQueryMissing(rc);
+        return;
+      }
+    }
+    GraphQLQuery graphQLQuery = new GraphQLQuery()
+      .setQuery(query)
+      .setOperationName(rc.queryParams().get("operationName"))
+      .setVariables(variables)
+      .setInitialValue(initialValue)
+      .setExtensions(extensions);
+    executeOne(rc, graphQLQuery);
   }
 
   private void handlePost(RoutingContext rc, Buffer body) {
@@ -152,9 +177,23 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       return;
     }
 
+    Map<String, Object> extensions;
+    try {
+      extensions = getExtensionsFromQueryParam(rc);
+    } catch (Exception e) {
+      rc.fail(400, e);
+      return;
+    }
+
     String query = rc.queryParams().get("query");
     if (query != null) {
-      executeOne(rc, new GraphQLQuery(query, rc.queryParams().get("operationName"), variables, initialValue));
+      GraphQLQuery graphQLQuery = new GraphQLQuery()
+        .setQuery(query)
+        .setOperationName(rc.queryParams().get("operationName"))
+        .setVariables(variables)
+        .setInitialValue(initialValue)
+        .setExtensions(extensions);
+      executeOne(rc, graphQLQuery);
       return;
     }
 
@@ -165,10 +204,10 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
           rc.fail(400, new NoStackTraceThrowable("No body"));
           return;
         }
-        handlePostJson(rc, body, rc.queryParams().get("operationName"), variables, initialValue);
+        handlePostJson(rc, body, rc.queryParams().get("operationName"), variables, initialValue, extensions);
         break;
       case "multipart/form-data":
-        handlePostMultipart(rc, rc.queryParams().get("operationName"), variables, initialValue);
+        handlePostMultipart(rc, rc.queryParams().get("operationName"), variables, initialValue, extensions);
         break;
       case "application/graphql":
         if (body == null) {
@@ -176,14 +215,20 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
           rc.fail(400, new NoStackTraceThrowable("No body"));
           return;
         }
-        executeOne(rc, new GraphQLQuery(body.toString(), rc.queryParams().get("operationName"), variables, initialValue));
+        GraphQLQuery graphQLQuery = new GraphQLQuery()
+          .setQuery(body.toString())
+          .setOperationName(rc.queryParams().get("operationName"))
+          .setVariables(variables)
+          .setInitialValue(initialValue)
+          .setExtensions(extensions);
+        executeOne(rc, graphQLQuery);
         break;
       default:
         rc.fail(415);
     }
   }
 
-  private void handlePostJson(RoutingContext rc, Buffer body, String operationName, Map<String, Object> variables, Object initialValue) {
+  private void handlePostJson(RoutingContext rc, Buffer body, String operationName, Map<String, Object> variables, Object initialValue, Map<String, Object> extensions) {
     GraphQLInput graphQLInput;
     try {
       graphQLInput = GraphQLInput.decode(body);
@@ -192,24 +237,20 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       return;
     }
     if (graphQLInput instanceof GraphQLBatch) {
-      handlePostBatch(rc, (GraphQLBatch) graphQLInput, operationName, variables, initialValue);
+      handlePostBatch(rc, (GraphQLBatch) graphQLInput, operationName, variables, initialValue, extensions);
     } else if (graphQLInput instanceof GraphQLQuery) {
-      handlePostQuery(rc, (GraphQLQuery) graphQLInput, operationName, variables, initialValue);
+      handlePostQuery(rc, (GraphQLQuery) graphQLInput, operationName, variables, initialValue, extensions);
     } else {
       rc.fail(500);
     }
   }
 
-  private void handlePostBatch(RoutingContext rc, GraphQLBatch batch, String operationName, Map<String, Object> variables, Object initialValue) {
+  private void handlePostBatch(RoutingContext rc, GraphQLBatch batch, String operationName, Map<String, Object> variables, Object initialValue, Map<String, Object> extensions) {
     if (!options.isRequestBatchingEnabled()) {
       rc.fail(400);
       return;
     }
     for (GraphQLQuery query : batch) {
-      if (query.getQuery() == null) {
-        failQueryMissing(rc);
-        return;
-      }
       if (operationName != null) {
         query.setOperationName(operationName);
       }
@@ -219,24 +260,34 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       if (initialValue != null) {
         query.setInitialValue(initialValue);
       }
+      if (extensions != null) {
+        query.setExtensions(extensions);
+      }
+      if (query.getQuery() == null) {
+        Map<String, Object> exts = query.getExtensions();
+        if (exts != null && exts.containsKey("persistedQuery")) {
+          query.setQuery(PersistedQuerySupport.PERSISTED_QUERY_MARKER);
+        } else {
+          failQueryMissing(rc);
+          return;
+        }
+      }
     }
     executeBatch(rc, batch);
   }
 
+  @SuppressWarnings("rawtypes")
   private void executeBatch(RoutingContext rc, GraphQLBatch batch) {
-    @SuppressWarnings("rawtypes")
-    CompositeFuture all = StreamSupport.stream(batch.spliterator(), false)
-      .map(q -> (Future) execute(rc, q))
-      .collect(collectingAndThen(toList(), CompositeFuture::all));
-    all.map(cf -> new JsonArray(cf.list()).toBuffer())
+    List<Future> futures = new ArrayList<>(batch.size());
+    for (GraphQLQuery graphQLQuery : batch) {
+      futures.add(execute(rc, graphQLQuery));
+    }
+    CompositeFuture.all(futures)
+      .map(cf -> new JsonArray(cf.list()).toBuffer())
       .onComplete(ar -> sendResponse(rc, ar));
   }
 
-  private void handlePostQuery(RoutingContext rc, GraphQLQuery query, String operationName, Map<String, Object> variables, Object initialValue) {
-    if (query.getQuery() == null) {
-      failQueryMissing(rc);
-      return;
-    }
+  private void handlePostQuery(RoutingContext rc, GraphQLQuery query, String operationName, Map<String, Object> variables, Object initialValue, Map<String, Object> extensions) {
     if (operationName != null) {
       query.setOperationName(operationName);
     }
@@ -245,6 +296,18 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     }
     if (initialValue != null) {
       query.setInitialValue(initialValue);
+    }
+    if (extensions != null) {
+      query.setExtensions(extensions);
+    }
+    if (query.getQuery() == null) {
+      Map<String, Object> exts = query.getExtensions();
+      if (exts != null && exts.containsKey("persistedQuery")) {
+        query.setQuery(PersistedQuerySupport.PERSISTED_QUERY_MARKER);
+      } else {
+        failQueryMissing(rc);
+        return;
+      }
     }
     executeOne(rc, query);
   }
@@ -262,7 +325,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
    *
    * @see <a href="https://github.com/jaydenseric/graphql-multipart-request-spec">GraphQL multipart request specification</a>
    **/
-  private void handlePostMultipart(RoutingContext rc, String operationName, Map<String, Object> variables, Object initialValue) {
+  private void handlePostMultipart(RoutingContext rc, String operationName, Map<String, Object> variables, Object initialValue, Map<String, Object> extensions) {
     GraphQLInput graphQLInput;
     if (!options.isRequestMultipartEnabled()) {
       rc.fail(415);
@@ -277,9 +340,9 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     }
 
     if (graphQLInput instanceof GraphQLBatch) {
-      handlePostBatch(rc, (GraphQLBatch) graphQLInput, operationName, variables, initialValue);
+      handlePostBatch(rc, (GraphQLBatch) graphQLInput, operationName, variables, initialValue, extensions);
     } else if (graphQLInput instanceof GraphQLQuery) {
-      handlePostQuery(rc, (GraphQLQuery) graphQLInput, operationName, variables, initialValue);
+      handlePostQuery(rc, (GraphQLQuery) graphQLInput, operationName, variables, initialValue, extensions);
     } else {
       rc.fail(500);
     }
@@ -373,6 +436,10 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     if (initialValue != null) {
       builder.root(initialValue);
     }
+    Map<String, Object> extensions = query.getExtensions();
+    if (extensions != null) {
+      builder.extensions(extensions);
+    }
 
     Function<RoutingContext, Object> qc;
     Function<RoutingContext, DataLoaderRegistry> dlr;
@@ -437,6 +504,15 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       return null;
     } else {
       return Json.decodeValue(initialParam);
+    }
+  }
+
+  private Map<String, Object> getExtensionsFromQueryParam(RoutingContext rc) throws Exception {
+    String extensionsParam = rc.queryParams().get("extensions");
+    if (extensionsParam == null) {
+      return null;
+    } else {
+      return new JsonObject(extensionsParam).getMap();
     }
   }
 

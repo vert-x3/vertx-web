@@ -17,6 +17,8 @@
 package examples;
 
 import graphql.GraphQL;
+import graphql.execution.preparsed.persisted.ApolloPersistedQuerySupport;
+import graphql.execution.preparsed.persisted.PersistedQueryCache;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.idl.FieldWiringEnvironment;
@@ -58,6 +60,10 @@ public class GraphQLExamples {
     GraphQL graphQL = setupGraphQLJava();
 
     router.route("/graphql").handler(GraphQLHandler.create(graphQL));
+  }
+
+  public void persistedQueries(GraphQL.Builder graphQLBuilder, PersistedQueryCache queryCache) {
+    graphQLBuilder.preparsedDocumentProvider(new ApolloPersistedQuerySupport(queryCache));
   }
 
   public void handlerSetupPost(Router router) {

@@ -16,7 +16,14 @@
 
 package io.vertx.ext.web.handler.graphql;
 
+import graphql.ExecutionInput;
 import graphql.GraphQL;
+import graphql.execution.preparsed.PreparsedDocumentEntry;
+import graphql.execution.preparsed.persisted.ApolloPersistedQuerySupport;
+import graphql.execution.preparsed.persisted.PersistedQueryCache;
+import graphql.execution.preparsed.persisted.PersistedQueryCacheMiss;
+import graphql.execution.preparsed.persisted.PersistedQueryNotFound;
+import graphql.execution.preparsed.persisted.PersistedQuerySupport;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
@@ -36,11 +43,11 @@ import org.reactivestreams.Publisher;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
-import static io.vertx.core.http.HttpMethod.GET;
-import static io.vertx.core.http.HttpMethod.POST;
-import static java.util.stream.Collectors.toList;
+import static graphql.schema.idl.RuntimeWiring.*;
+import static io.vertx.core.http.HttpMethod.*;
+import static java.util.stream.Collectors.*;
 
 /**
  * Backend for the Apollo Link compatibility tests.
@@ -61,6 +68,11 @@ public class ApolloTestsServer extends AbstractVerticle {
 
     router.route().handler(CorsHandler.create("*").allowedMethod(GET).allowedMethod(POST));
     router.route().handler(BodyHandler.create());
+    TestPersistedQueryCache queryCache = new TestPersistedQueryCache();
+    router.post("/reset").handler(rc -> {
+      queryCache.reset();
+      rc.response().end();
+    });
     router.route("/graphql").handler(ApolloWSHandler.create(setupWsGraphQL())
       .connectionInitHandler(connectionInitEvent -> {
         JsonObject payload = connectionInitEvent.message().content().getJsonObject("payload");
@@ -69,12 +81,12 @@ public class ApolloTestsServer extends AbstractVerticle {
           return;
         }
         connectionInitEvent.complete(payload);
-    }));
+      }));
 
     GraphQLHandlerOptions graphQLHandlerOptions = new GraphQLHandlerOptions()
       .setRequestBatchingEnabled(true)
       .setRequestMultipartEnabled(true);
-    router.route("/graphql").handler(GraphQLHandler.create(setupGraphQL(), graphQLHandlerOptions));
+    router.route("/graphql").handler(GraphQLHandler.create(setupGraphQL(queryCache), graphQLHandlerOptions));
 
     HttpServerOptions httpServerOptions = new HttpServerOptions().addWebSocketSubProtocol("graphql-ws");
     vertx.createHttpServer(httpServerOptions)
@@ -90,7 +102,7 @@ public class ApolloTestsServer extends AbstractVerticle {
 
   }
 
-  private GraphQL setupGraphQL() {
+  private GraphQL setupGraphQL(TestPersistedQueryCache queryCache) {
     String schema = vertx.fileSystem().readFileBlocking("links.graphqls").toString();
     String uploadSchema = vertx.fileSystem().readFileBlocking("upload.graphqls").toString();
 
@@ -108,6 +120,7 @@ public class ApolloTestsServer extends AbstractVerticle {
     GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
 
     return GraphQL.newGraphQL(graphQLSchema)
+      .preparsedDocumentProvider(new ApolloPersistedQuerySupport(queryCache))
       .build();
   }
 
@@ -160,5 +173,28 @@ public class ApolloTestsServer extends AbstractVerticle {
   private Object singleUpload(DataFetchingEnvironment env) {
     final FileUpload file = env.getArgument("file");
     return new Result(file.fileName());
+  }
+
+  private static class TestPersistedQueryCache implements PersistedQueryCache {
+
+    final Map<Object, PreparsedDocumentEntry> cache = new ConcurrentHashMap<>();
+
+    void reset() {
+      cache.clear();
+    }
+
+    @Override
+    public PreparsedDocumentEntry getPersistedQueryDocument(Object persistedQueryId, ExecutionInput executionInput, PersistedQueryCacheMiss onCacheMiss) throws PersistedQueryNotFound {
+      return cache.compute(persistedQueryId, (k, v) -> {
+        if (v != null) {
+          return v;
+        }
+        String queryText = executionInput.getQuery();
+        if (queryText == null || queryText.isEmpty() || queryText.equals(PersistedQuerySupport.PERSISTED_QUERY_MARKER)) {
+          throw new PersistedQueryNotFound(persistedQueryId);
+        }
+        return onCacheMiss.apply(queryText);
+      });
+    }
   }
 }

@@ -1,13 +1,17 @@
-import {gql} from 'graphql-tag'
-import {ApolloClient, execute, HttpLink, InMemoryCache, toPromise} from '@apollo/client/core'
-import {BatchHttpLink} from '@apollo/client/link/batch-http'
-import {WebSocket} from 'ws'
+import {gql} from 'graphql-tag';
+import {ApolloClient, execute, HttpLink, InMemoryCache, toPromise} from '@apollo/client/core';
+import {BatchHttpLink} from '@apollo/client/link/batch-http';
+import {WebSocket} from 'ws';
 import {WebSocketLink} from '@apollo/client/link/ws';
 import {SubscriptionClient} from 'subscriptions-transport-ws';
 import {createUploadLink} from 'apollo-upload-client';
+import {createPersistedQueryLink} from '@apollo/client/link/persisted-queries';
+
+const crypto = require('node:crypto').webcrypto
 
 const uri = 'http://localhost:8080/graphql';
 const wsUri = 'ws://localhost:8080/graphql';
+const resetUri = 'http://localhost:8080/reset';
 
 const client = new ApolloClient({
   cache: new InMemoryCache(),
@@ -160,4 +164,54 @@ test('upload file mutation', async () => {
 
   expect(result).toHaveProperty('data.singleUpload.id');
   expect(result.data.singleUpload.id).toEqual('text.txt');
-})
+});
+
+async function testPersistedQueriesLinkHTTP(useGETForHashedQueries) {
+  expect((await fetch(resetUri, {method: 'POST'})).ok).toEqual(true);
+
+  let requestCount = 0;
+  const interceptor = (input, init) => {
+    let body;
+    if (init.method === "GET") {
+      body = {};
+      new URL(input).searchParams.forEach((value, name) => body[name] = JSON.parse(value));
+    } else {
+      body = JSON.parse(init.body);
+    }
+    expect(body).toHaveProperty('extensions');
+    expect(body['extensions']).toHaveProperty('persistedQuery');
+    expect(body['extensions']['persistedQuery']).toHaveProperty('version', 1);
+    expect(body['extensions']['persistedQuery']).toHaveProperty('sha256Hash');
+    if (requestCount === 0 || requestCount === 2) {
+      expect(body).not.toHaveProperty('query');
+    } else if (requestCount === 1) {
+      expect(body).toHaveProperty('query');
+    } else {
+      throw new Error('Too many requests sent');
+    }
+    requestCount++;
+    return fetch(input, init);
+  }
+  const httpLink = new HttpLink({uri: uri, fetch: interceptor});
+  const persistedQueryLink = createPersistedQueryLink({
+    useGETForHashedQueries: useGETForHashedQueries,
+    sha256: async s => {
+      const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+      return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    }
+  });
+  const linkChain = persistedQueryLink.concat(httpLink);
+
+  for (let i = 0; i < 2; i++) {
+    let result = await toPromise(execute(linkChain, {query: allLinksQuery}));
+    verify(result);
+  }
+}
+
+test('persisted queries link HTTP POST', async () => {
+  await testPersistedQueriesLinkHTTP(false);
+});
+
+test('persisted queries link HTTP GET', async () => {
+  await testPersistedQueriesLinkHTTP(true);
+});
