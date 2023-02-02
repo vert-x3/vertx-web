@@ -14,7 +14,7 @@ import java.util.function.Function;
 /**
  * Handler that proxy the request to an event bus endpoint, waits for the reply and then writes the HTTP response. <br/>
  *
- * The HTTP request is sent encapsulated into a {@link ServiceRequest} object through the event bus. The expected reply is a {@link ServiceResponse} <br/>
+ * The HTTP request is sent encapsulated into a {@link ServiceRequest} object through the event bus. The expected reply is a {@link ServiceResponse}, encapsulated as a {@link JsonObject}<br/>
  *
  * This handler requires a {@link io.vertx.ext.web.validation.ValidationHandler} that process request parameters, so they can be encapsulated by this handler inside the {@link ServiceRequest}
  *
