@@ -16,11 +16,11 @@
 package io.vertx.ext.web.sstore.cookie.impl;
 
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.sstore.AbstractSession;
 
 import javax.crypto.Mac;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import static io.vertx.ext.auth.impl.Codec.base64UrlDecode;
@@ -30,6 +30,8 @@ import static io.vertx.ext.auth.impl.Codec.base64UrlEncode;
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 public class CookieSession extends AbstractSession {
+
+  private static final Charset UTF8 = StandardCharsets.UTF_8;
 
   private final Mac mac;
   // track the original version
@@ -50,15 +52,16 @@ public class CookieSession extends AbstractSession {
   @Override
   public String value() {
 
-    Buffer payload = new JsonObject()
-      .put("id", id())
-      .put("timeout", timeout())
-      .put("lastAccessed", lastAccessed())
-      .put("version", version())
-      .put("data", data())
-      .toBuffer();
+    Buffer buff = Buffer.buffer();
 
-    String b64 = base64UrlEncode(payload.getBytes());
+    byte[] bytes = id().getBytes(UTF8);
+    buff.appendInt(bytes.length).appendBytes(bytes);
+    buff.appendLong(timeout());
+    buff.appendLong(lastAccessed());
+    buff.appendInt(version());
+    writeDataToBuffer(buff);
+
+    String b64 = base64UrlEncode(buff.getBytes());
     String signature = base64UrlEncode(mac.doFinal(b64.getBytes(StandardCharsets.US_ASCII)));
 
     return b64 + "." + signature;
@@ -94,14 +97,22 @@ public class CookieSession extends AbstractSession {
       throw new RuntimeException("Session data was Tampered!");
     }
 
-    // reconstruct the session
-    JsonObject decoded = new JsonObject(Buffer.buffer(base64UrlDecode(tokens[0])));
+    final Buffer buffer = Buffer.buffer(base64UrlDecode(tokens[0]));
 
-    setId(decoded.getString("id"));
-    setTimeout(decoded.getLong("timeout"));
-    setLastAccessed(decoded.getLong("lastAccessed"));
-    setVersion(decoded.getInteger("version"));
-    setData(decoded.getJsonObject("data"));
+    // reconstruct the session
+    int pos = 0;
+    int len = buffer.getInt(0);
+    pos += 4;
+    byte[] bytes = buffer.getBytes(pos, pos + len);
+    pos += len;
+    setId(new String(bytes, UTF8));
+    setTimeout(buffer.getLong(pos));
+    pos += 8;
+    setLastAccessed(buffer.getLong(pos));
+    pos += 8;
+    setVersion(buffer.getInt(pos));
+    pos += 4;
+    readDataFromBuffer(pos, buffer);
 
     // defaults
     oldVersion = version();
