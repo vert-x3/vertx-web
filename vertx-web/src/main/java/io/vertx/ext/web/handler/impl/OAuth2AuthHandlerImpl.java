@@ -108,8 +108,10 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     }
     // state copy
     if (base.extraParams != null) {
-      extraParams = extraParams.copy();
+      extraParams = base.extraParams.copy();
     }
+    this.callback = base.callback;
+    this.order = base.order;
     // apply the new scopes
     this.scopes = scopes;
     this.openId = scopes != null && scopes.contains("openid");
