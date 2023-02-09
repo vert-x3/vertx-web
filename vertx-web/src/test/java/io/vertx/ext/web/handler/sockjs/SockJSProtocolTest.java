@@ -20,23 +20,24 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.impl.Utils;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.utility.DockerImageName;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import static io.vertx.core.buffer.Buffer.buffer;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * SockJS protocol tests
@@ -44,8 +45,6 @@ import static org.junit.Assert.assertEquals;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class SockJSProtocolTest {
-
-  private static final Logger log = LoggerFactory.getLogger(SockJSProtocolTest.class);
 
   private static Vertx vertx;
   private static HttpServer server;
@@ -56,13 +55,36 @@ public class SockJSProtocolTest {
     server = vertx.createHttpServer();
     Router router = Router.router(vertx);
     installTestApplications(router, vertx);
-    server.requestHandler(router).listen(8081);
+    server.requestHandler(router).listen(8081, "localhost");
   }
 
   @AfterClass
   public static void after() {
     server.close();
     vertx.close();
+  }
+
+  private String runPython(String cmd, Predicate<String> exitTest) throws Exception {
+    StringBuilder output = new StringBuilder();
+    String path = new File("./src/test/sockjs-protocol/").getCanonicalPath();
+    try (GenericContainer<?> container = new GenericContainer<>(DockerImageName.parse("python:2.7-alpine"))) {
+      container.withFileSystemBind(path, "/usr/src/myapp");
+      container.withWorkingDirectory("/usr/src/myapp");
+      container.addEnv("SOCKJS_URL", "http://host.docker.internal:8081");
+      CountDownLatch latch = new CountDownLatch(1);
+      container.withLogConsumer(frame -> {
+        String s = frame.getUtf8String();
+        output.append(frame.getUtf8String());
+        if (exitTest.test(s)) {
+          latch.countDown();
+        }
+      });
+      container.setNetworkMode("host");
+      container.withCommand(cmd);
+      container.start();
+      latch.await(50, TimeUnit.SECONDS);
+    }
+    return output.toString();
   }
 
   public static void installTestApplications(Router router, Vertx vertx) {
@@ -145,30 +167,8 @@ public class SockJSProtocolTest {
   @Test
   public void testProtocol() throws Exception {
     Assume.assumeFalse(Utils.isWindows());
-    // does this system have python 2.x?
-    Process p = Runtime.getRuntime().exec("python pythonversion.py", null, new File("src/test"));
-    int res = p.waitFor();
-
-    if (res == 0) {
-      File dir = new File("src/test/sockjs-protocol");
-      p = Runtime
-        .getRuntime()
-        .exec("python sockjs-protocol.py", new String[]{"SOCKJS_URL=http://localhost:8081"}, dir);
-
-      try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
-        String line;
-        while ((line = input.readLine()) != null) {
-          log.info(line);
-        }
-      }
-
-      res = p.waitFor();
-
-      // Make sure all tests pass
-      assertEquals("Protocol tests failed", 0, res);
-    } else {
-      System.err.println("*** No Python runtime sockjs tests will be skiped!!!");
-    }
+    String output = runPython("python sockjs-protocol.py", s -> s.startsWith("OK"));
+    assertTrue(output, output.contains("Ran 67 tests"));
   }
 
   /*
@@ -178,29 +178,7 @@ public class SockJSProtocolTest {
   @Test
   public void testQuirks() throws Exception {
     Assume.assumeFalse(Utils.isWindows());
-    // does this system have python 2.x?
-    Process p = Runtime.getRuntime().exec("python pythonversion.py", null, new File("src/test"));
-    int res = p.waitFor();
-
-    if (res == 0) {
-      File dir = new File("src/test/sockjs-protocol");
-      p = Runtime
-        .getRuntime()
-        .exec("python http-quirks.py", new String[]{"SOCKJS_URL=http://localhost:8081"}, dir);
-
-      try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
-        String line;
-        while ((line = input.readLine()) != null) {
-          log.info(line);
-        }
-      }
-
-      res = p.waitFor();
-
-      // Make sure all tests pass
-      assertEquals("Protocol tests failed", 0, res);
-    } else {
-      System.err.println("*** No Python runtime sockjs tests will be skiped!!!");
-    }
+    String output = runPython("python http-quirks.py", s -> s.startsWith("OK"));
+    assertTrue(output, output.contains("Ran 1 test"));
   }
 }
