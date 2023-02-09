@@ -83,7 +83,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         .setAllowOriginHeader(false),
       onFailure(err -> {
         assertNotNull(err);
-        assertEquals("WebSocket upgrade failure: 403 (Forbidden)", err.getMessage());
+        assertEquals("WebSocket upgrade failure: 403", err.getMessage());
         testComplete();
       }));
     await();
@@ -125,7 +125,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
     startServers(new SockJSHandlerOptions().setOrigin("https://www.google.com"));
     client.webSocket("/test/websocket", onFailure(err -> {
       assertNotNull(err);
-      assertEquals("WebSocket upgrade failure: 403 (Forbidden)", err.getMessage());
+      assertEquals("WebSocket upgrade failure: 403", err.getMessage());
       testComplete();
     }));
     await();
