@@ -11,10 +11,10 @@
   <packaging>pom</packaging>
 
   <artifactId>vertx-web-parent</artifactId>
-  <version>4.3.8</version>
+  <version>4.3.9-SNAPSHOT</version>
 
   <properties>
-    <stack.version>4.3.8</stack.version>
+    <stack.version>4.3.9-SNAPSHOT</stack.version>
     <pac4j.version>1.6.0</pac4j.version>
     <snakeyaml.version>1.32</snakeyaml.version>
     <doc.skip>true</doc.skip>
