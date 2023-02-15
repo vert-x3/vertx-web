@@ -107,7 +107,7 @@ public class CSPHandlerImpl implements CSPHandler {
 
     if (reportOnly) {
       // add support for 'report-to'
-      if (!policy.containsKey("report-uri") || !policy.containsKey("report-to")) {
+      if (!policy.containsKey("report-uri") && !policy.containsKey("report-to")) {
         ctx.fail(new HttpException(500, "Please disable CSP reportOnly or add a report-uri/report-to policy."));
       } else {
         ctx.response()
