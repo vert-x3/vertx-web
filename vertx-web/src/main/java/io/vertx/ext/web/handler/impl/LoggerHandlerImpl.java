@@ -26,6 +26,7 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.LoggerFormat;
 import io.vertx.ext.web.handler.LoggerFormatter;
+import io.vertx.ext.web.handler.LoggerFormatterAdvanced;
 import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.impl.Utils;
 
@@ -57,8 +58,7 @@ public class LoggerHandlerImpl implements LoggerHandler {
    */
   private final LoggerFormat format;
 
-  private Function<HttpServerRequest, String> customFormatter;
-  private LoggerFormatter logFormatter;
+  private LoggerFormatterAdvanced logFormatter;
 
   public LoggerHandlerImpl(boolean immediate, LoggerFormat format) {
     this.immediate = immediate;
@@ -147,11 +147,8 @@ public class LoggerHandlerImpl implements LoggerHandler {
         break;
       case CUSTOM:
         try {
-          if (logFormatter != null) {
-            message = logFormatter.format(context, (System.currentTimeMillis() - timestamp));
-          } else {
-            message = customFormatter.apply(request);
-          }
+          message = logFormatter.format(context, timestamp, remoteClient, versionFormatted, method, uri,
+            status, contentLength, (System.currentTimeMillis() - timestamp));
         } catch (RuntimeException e) {
           // if an error happens at the user side
           // log it instead
@@ -196,7 +193,8 @@ public class LoggerHandlerImpl implements LoggerHandler {
       throw new IllegalStateException("Setting a formatter requires the handler to be set to CUSTOM format");
     }
 
-    this.customFormatter = formatter;
+    this.logFormatter = (RoutingContext routingContext, long timestamp, String remoteClient, String versionFormatted,
+      HttpMethod method, String uri, int status, long contentLength, long ms) -> formatter.apply(routingContext.request());
 
     return this;
   }
@@ -207,7 +205,19 @@ public class LoggerHandlerImpl implements LoggerHandler {
       throw new IllegalStateException("Setting a formatter requires the handler to be set to CUSTOM format");
     }
 
+    this.logFormatter = (RoutingContext routingContext, long timestamp, String remoteClient, String versionFormatted,
+      HttpMethod method, String uri, int status, long contentLength, long ms) -> formatter.format(routingContext, ms);
+    return this;
+  }
+
+  @Override
+  public LoggerHandler customFormatter(LoggerFormatterAdvanced formatter) {
+    if (format != LoggerFormat.CUSTOM) {
+      throw new IllegalStateException("Setting a formatter requires the handler to be set to CUSTOM format");
+    }
+
     this.logFormatter = formatter;
     return this;
   }
+
 }
