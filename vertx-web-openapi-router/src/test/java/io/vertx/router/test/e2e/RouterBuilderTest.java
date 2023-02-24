@@ -19,13 +19,13 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.ext.web.openapi.router.RouterBuilder;
-import io.vertx.router.test.base.RouterBuilderTestBase;
 import io.vertx.openapi.validation.ValidatedRequest;
 import io.vertx.router.ResourceHelper;
+import io.vertx.router.test.base.RouterBuilderTestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -37,6 +37,7 @@ import java.util.function.Function;
 import static com.google.common.truth.Truth.assertThat;
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
+import static io.vertx.ext.web.openapi.router.RequestExtractor.withBodyHandler;
 
 class RouterBuilderTest extends RouterBuilderTestBase {
 
@@ -97,6 +98,30 @@ class RouterBuilderTest extends RouterBuilderTestBase {
         return createRequest(POST, "/pets").sendJsonObject(invalidBodyJson)
           .onSuccess(response -> testContext.verify(() -> {
             assertThat(response.bodyAsJsonObject()).isEqualTo(invalidBodyJson);
+            testContext.completeNow();
+          }));
+      })
+      .onFailure(testContext::failNow);
+  }
+
+  @Test
+  @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
+  void testRouterWithCustomRequestExtractor(VertxTestContext testContext) {
+    Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("v3.1").resolve("petstore.json");
+    createServer(pathDereferencedContract, contract -> RouterBuilder.create(vertx, contract, withBodyHandler()), rb -> {
+      rb.rootHandler(BodyHandler.create()).getRoute("createPets")
+        .addHandler(rc -> {
+          ValidatedRequest validatedRequest = rc.get(RouterBuilder.KEY_META_DATA_VALIDATED_REQUEST);
+          rc.response().send(Json.encode(validatedRequest)).onFailure(testContext::failNow);
+        });
+      return Future.succeededFuture(rb);
+    }).compose(v -> {
+        JsonObject bodyJson = new JsonObject().put("id", 1).put("name", "FooBar");
+        return createRequest(POST, "/pets").sendJsonObject(bodyJson)
+          .onSuccess(response -> testContext.verify(() -> {
+            JsonObject body = response.bodyAsJsonObject().getJsonObject("body");
+            JsonObject bodyValueAsJson = body.getJsonObject("jsonObject");
+            assertThat(bodyValueAsJson).isEqualTo(bodyJson);
             testContext.completeNow();
           }));
       })
