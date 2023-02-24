@@ -2,10 +2,11 @@ package examples;
 
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.openapi.router.OpenAPIRoute;
+import io.vertx.ext.web.openapi.router.RequestExtractor;
+import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.openapi.contract.Operation;
-import io.vertx.ext.web.openapi.router.OpenAPIRoute;
-import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.openapi.validation.ValidatedRequest;
 
 public class RouterExamples {
@@ -18,6 +19,9 @@ public class RouterExamples {
     OpenAPIContract contract = getContract();
     RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract);
     Router router = routerBuilder.createRouter();
+
+    // In case that a BodyHandler was applied before, it is necessary to pass a RequestExtractor
+    RouterBuilder.create(vertx, contract, RequestExtractor.withBodyHandler());
   }
 
   void modifyRoutes(Vertx vertx, RouterBuilder routerBuilder) {

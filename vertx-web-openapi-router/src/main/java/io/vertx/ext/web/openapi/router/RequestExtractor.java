@@ -16,7 +16,10 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.openapi.contract.Operation;
+import io.vertx.openapi.validation.RequestUtils;
 import io.vertx.openapi.validation.ValidatableRequest;
+
+import static io.vertx.core.Future.succeededFuture;
 
 @VertxGen
 public interface RequestExtractor {
@@ -30,4 +33,12 @@ public interface RequestExtractor {
    * @return A {@link Future} holding the {@link ValidatableRequest}.
    */
   Future<ValidatableRequest> extractValidatableRequest(RoutingContext routingContext, Operation operation);
+
+  /**
+   * @return a RequestExtractor that works in case that a BodyHandler was applied to the related route.
+   */
+  static RequestExtractor withBodyHandler() {
+    return (routingContext, operation) -> RequestUtils.extract(routingContext.request(), operation,
+      () -> succeededFuture(routingContext.body().buffer()));
+  }
 }
