@@ -160,6 +160,7 @@ public class ConnectionHandler {
         state = new InitializingState(connectionPromise.future());
         connectionInitHandler.handle(new ConnectionInitEventImpl(msg, connectionPromise));
       } else {
+        sendMessage(null, CONNECTION_ACK, null);
         state = new ReadyState(null);
       }
     }

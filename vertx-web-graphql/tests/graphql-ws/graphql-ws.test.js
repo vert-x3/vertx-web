@@ -76,13 +76,14 @@ test('subscription', async () => {
 
 test('ws link subscription with failed promise', async () => {
   client = createClient({
-    url: 'ws://localhost:8080/graphql',
+    url: 'ws://localhost:8080/graphqlWithInitHandler',
     webSocketImpl: WebSocket,
     connectionParams: {
       rejectMessage: "test"
     }
   });
 
+  let err;
   try {
     await new Promise((resolve, reject) => {
       client.subscribe(
@@ -98,6 +99,8 @@ test('ws link subscription with failed promise', async () => {
       );
     });
   } catch (e) {
-    expect(e.code).toEqual(4401);
+    err = e;
   }
+  expect(err).toBeDefined();
+  expect(err.code).toEqual(4401);
 });
