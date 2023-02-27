@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 
-import static io.vertx.ext.web.handler.graphql.impl.ErrorUtil.toJsonObject;
+import static io.vertx.ext.web.handler.graphql.impl.ErrorUtil.*;
 import static io.vertx.ext.web.handler.graphql.ws.MessageType.*;
 
 public class ConnectionHandler {
@@ -159,6 +159,7 @@ public class ConnectionHandler {
         state = new InitializingState(connectionPromise.future());
         connectionInitHandler.handle(new ConnectionInitEventImpl(msg, connectionPromise));
       } else {
+        sendMessage(null, CONNECTION_ACK, null);
         state = new ReadyState(null);
       }
     }
