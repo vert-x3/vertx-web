@@ -36,9 +36,8 @@ import org.reactivestreams.Publisher;
 
 import java.util.stream.Stream;
 
-import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
-import static io.vertx.core.http.HttpMethod.GET;
-import static io.vertx.core.http.HttpMethod.POST;
+import static graphql.schema.idl.RuntimeWiring.*;
+import static io.vertx.core.http.HttpMethod.*;
 
 /**
  * Backend for the GraphQLWS compatibility tests.
@@ -58,7 +57,9 @@ public class GraphQLWSTestsServer extends AbstractVerticle {
 
     GraphQL graphQL = setupGraphQL();
 
-    router.route("/graphql").handler(GraphQLWSHandler.create(graphQL)
+    router.route("/graphql").handler(GraphQLWSHandler.create(graphQL));
+
+    router.route("/graphqlWithInitHandler").handler(GraphQLWSHandler.create(graphQL)
       .connectionInitHandler(connectionInitEvent -> {
         JsonObject payload = connectionInitEvent.message().message().getJsonObject("payload");
         if (payload != null && payload.containsKey("rejectMessage")) {
