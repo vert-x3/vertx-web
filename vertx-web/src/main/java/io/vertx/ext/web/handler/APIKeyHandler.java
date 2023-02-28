@@ -17,8 +17,11 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Future;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.handler.impl.APIKeyHandlerImpl;
+
+import java.util.function.Function;
 
 /**
  * An authentication handler that provides API Key support.
@@ -68,4 +71,13 @@ public interface APIKeyHandler extends AuthenticationHandler {
    */
   @Fluent
   APIKeyHandler cookie(String cookieName);
+
+  /**
+   * Transform from user's token format to the AuthenticationHandler's format.
+   *
+   * @param tokenExtractor extract the token from the origin payload
+   * @return fluent self
+   */
+  @Fluent
+  APIKeyHandler tokenExtractor(Function<String, Future<String>> tokenExtractor);
 }

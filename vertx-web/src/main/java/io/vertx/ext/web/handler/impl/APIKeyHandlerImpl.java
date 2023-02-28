@@ -27,6 +27,8 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.APIKeyHandler;
 import io.vertx.ext.web.handler.HttpException;
 
+import java.util.function.Function;
+
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
@@ -40,6 +42,7 @@ public class APIKeyHandlerImpl extends AuthenticationHandlerImpl<AuthenticationP
 
   private Type source = Type.HEADER;
   private String value = "X-API-KEY";
+  private Function<String, Future<String>> tokenExtractor = null;
 
   public APIKeyHandlerImpl(AuthenticationProvider authProvider) {
     super(authProvider);
@@ -78,47 +81,47 @@ public class APIKeyHandlerImpl extends AuthenticationHandlerImpl<AuthenticationP
 
   @Override
   public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
+    //fallback if no api key was found or extract token failed
+    Future<String> tokenFuture = Future.failedFuture(UNAUTHORIZED);
     switch (source) {
       case HEADER:
         MultiMap headers = context.request().headers();
-        if (headers != null && headers.contains(value)) {
-          authProvider.authenticate(new TokenCredentials(headers.get(value)), authn -> {
-            if (authn.failed()) {
-              handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
-            } else {
-              handler.handle(authn);
-            }
-          });
-          return;
+        if ((headers != null && headers.contains(value))) {
+          tokenFuture = tokenExtractor != null
+            ? tokenExtractor.apply(headers.get(value))
+            : Future.succeededFuture(headers.get(value));
         }
         break;
       case PARAMETER:
         MultiMap params = context.request().params();
         if (params != null && params.contains(value)) {
-          authProvider.authenticate(new TokenCredentials(params.get(value)), authn -> {
-            if (authn.failed()) {
-              handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
-            } else {
-              handler.handle(authn);
-            }
-          });
-          return;
+          tokenFuture = tokenExtractor != null
+            ? tokenExtractor.apply(params.get(value))
+            : Future.succeededFuture(params.get(value));
         }
         break;
       case COOKIE:
         Cookie cookie = context.request().getCookie(value);
         if (cookie != null) {
-          authProvider.authenticate(new TokenCredentials(cookie.getValue()), authn -> {
-            if (authn.failed()) {
-              handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
-            } else {
-              handler.handle(authn);
-            }
-          });
-          return;
+          tokenFuture = tokenExtractor != null
+            ? tokenExtractor.apply(cookie.getValue())
+            : Future.succeededFuture(cookie.getValue());
         }
     }
-    // fallback if no api key was found
-    handler.handle(Future.failedFuture(UNAUTHORIZED));
+    tokenFuture
+      .compose(token -> authProvider.authenticate(new TokenCredentials(token)))
+      .onComplete(authn -> {
+        if (authn.failed()) {
+          handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
+        } else {
+          handler.handle(authn);
+        }
+      });
+  }
+
+  @Override
+  public APIKeyHandler tokenExtractor(Function<String, Future<String>> tokenExtractor) {
+    this.tokenExtractor = tokenExtractor;
+    return this;
   }
 }
