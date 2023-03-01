@@ -3473,8 +3473,12 @@ public class RouterTest extends WebTestBase {
 
     router.route()
       .handler((PlatformHandler) ctx -> {
+        ctx.request().pause();
         ctx.vertx()
-          .setTimer(1L, t -> ctx.next());
+          .setTimer(1L, t -> {
+            ctx.request().resume();
+            ctx.next();
+          });
       });
 
     router.route("/")
@@ -3505,8 +3509,12 @@ public class RouterTest extends WebTestBase {
 
     router.route()
       .handler((PlatformHandler) ctx -> {
+        ctx.request().pause();
         ctx.vertx()
-          .setTimer(1L, t -> ctx.next());
+          .setTimer(1L, t -> {
+            ctx.request().resume();
+            ctx.next();
+          });
       });
 
     // this variation shows that if there's only web handlers, it still works
@@ -3523,6 +3531,7 @@ public class RouterTest extends WebTestBase {
         // 8192 * 8 fills the HTTP server request pending queue
         // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
         req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
+          assertEquals(404, resp.statusCode());
           complete();
         }));
       }));
@@ -3536,8 +3545,12 @@ public class RouterTest extends WebTestBase {
 
     router.route()
       .handler((PlatformHandler) ctx -> {
+        ctx.request().pause();
         ctx.vertx()
-          .setTimer(1L, t -> ctx.next());
+          .setTimer(1L, t -> {
+            ctx.request().resume();
+            ctx.next();
+          });
       });
 
     // ensure that even if there are callbacks waiting for the request end event, the resume did happen correctly

@@ -125,11 +125,14 @@ public class BodyHandlerImpl implements BodyHandler {
       }
 
       final BHandler handler = new BHandler(context, isPreallocateBodyBuffer ? parsedContentLength : -1);
-      request
-        // resume the request (if paused)
-        .resume()
-        .handler(handler)
-        .endHandler(handler::end);
+      boolean ended = request.isEnded();
+      if (!ended) {
+        request
+          // resume the request (if paused)
+          .handler(handler)
+          .endHandler(handler::end)
+          .resume();
+      }
     } else {
       // on reroute we need to re-merge the form params if that was desired
       if (mergeFormAttributes && request.isExpectMultipart()) {
