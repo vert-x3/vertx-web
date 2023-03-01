@@ -14,6 +14,7 @@ package io.vertx.router.test.base;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.openapi.contract.OpenAPIContract;
 
@@ -31,7 +32,7 @@ public class RouterBuilderTestBase extends HttpServerTestBase {
    * @return A Future which is succeeded when the server is started and failed if something went wrong.
    */
   protected Future<Void> createServer(Path pathToContract,
-    Function<RouterBuilder, Future<RouterBuilder>> modifyRouterBuilder) {
+                                      Function<RouterBuilder, Future<RouterBuilder>> modifyRouterBuilder) {
     return createServer(pathToContract, contract -> RouterBuilder.create(vertx, contract), modifyRouterBuilder);
   }
 
@@ -46,11 +47,15 @@ public class RouterBuilderTestBase extends HttpServerTestBase {
    * @return A Future which is succeeded when the server is started and failed if something went wrong.
    */
   protected Future<Void> createServer(Path pathToContract,
-    Function<OpenAPIContract, RouterBuilder> routerBuilderSupplier,
-    Function<RouterBuilder, Future<RouterBuilder>> modifyRouterBuilder) {
+                                      Function<OpenAPIContract, RouterBuilder> routerBuilderSupplier,
+                                      Function<RouterBuilder, Future<RouterBuilder>> modifyRouterBuilder) {
     JsonObject unresolvedContract = vertx.fileSystem().readFileBlocking(pathToContract.toString()).toJsonObject();
 
     return OpenAPIContract.from(vertx, unresolvedContract).map(routerBuilderSupplier).compose(modifyRouterBuilder)
-      .compose(rb -> super.createServer(rb.createRouter()));
+      .compose(rb -> {
+        Router basePathRouter = Router.router(vertx);
+        basePathRouter.route("/v1/*").subRouter(rb.createRouter());
+        return super.createServer(basePathRouter);
+      });
   }
 }
