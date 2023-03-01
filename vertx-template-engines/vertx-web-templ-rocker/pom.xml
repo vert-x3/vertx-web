@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-template-engines</artifactId>
-    <version>4.4.0</version>
+    <version>5.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>vertx-web-templ-rocker</artifactId>
