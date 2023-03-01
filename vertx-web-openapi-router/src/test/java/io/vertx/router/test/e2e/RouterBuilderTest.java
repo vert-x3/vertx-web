@@ -61,7 +61,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
       rb.getRoute("createPets").addHandler(buildCheckpointHandler.apply(cpCreatePets));
       rb.getRoute("showPetById").addHandler(buildCheckpointHandler.apply(cpShowPetById));
       return Future.succeededFuture(rb);
-    }).compose(v -> createRequest(GET, "/pets").addQueryParam("limit", "42").send())
+    }).compose(v -> createRequest(GET, "/v1/pets").addQueryParam("limit", "42").send())
       .onSuccess(response -> testContext.verify(() -> {
         JsonObject query = response.bodyAsJsonObject().getJsonObject("query");
         assertThat(query.getJsonObject("limit").getMap()).containsEntry("long", 42);
@@ -69,14 +69,14 @@ class RouterBuilderTest extends RouterBuilderTestBase {
       }))
       .compose(v -> {
         JsonObject bodyJson = new JsonObject().put("id", 1).put("name", "FooBar");
-        return createRequest(POST, "/pets").sendJsonObject(bodyJson).onSuccess(response -> testContext.verify(() -> {
+        return createRequest(POST, "/v1/pets").sendJsonObject(bodyJson).onSuccess(response -> testContext.verify(() -> {
           JsonObject body = response.bodyAsJsonObject().getJsonObject("body");
           JsonObject bodyValueAsJson = body.getJsonObject("jsonObject");
           assertThat(bodyValueAsJson).isEqualTo(bodyJson);
           cpCreatePets.flag();
         }));
       })
-      .compose(v -> createRequest(GET, "/pets/foobar").send())
+      .compose(v -> createRequest(GET, "/v1/pets/foobar").send())
       .onSuccess(response -> testContext.verify(() -> {
         JsonObject path = response.bodyAsJsonObject().getJsonObject("pathParameters");
         assertThat(path.getJsonObject("petId").getMap()).containsEntry("string", "foobar");
@@ -95,7 +95,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
       return Future.succeededFuture(rb);
     }).compose(v -> {
         JsonObject invalidBodyJson = new JsonObject().put("foo", "bar");
-        return createRequest(POST, "/pets").sendJsonObject(invalidBodyJson)
+        return createRequest(POST, "/v1/pets").sendJsonObject(invalidBodyJson)
           .onSuccess(response -> testContext.verify(() -> {
             assertThat(response.bodyAsJsonObject()).isEqualTo(invalidBodyJson);
             testContext.completeNow();
@@ -117,7 +117,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
       return Future.succeededFuture(rb);
     }).compose(v -> {
         JsonObject bodyJson = new JsonObject().put("id", 1).put("name", "FooBar");
-        return createRequest(POST, "/pets").sendJsonObject(bodyJson)
+        return createRequest(POST, "/v1/pets").sendJsonObject(bodyJson)
           .onSuccess(response -> testContext.verify(() -> {
             JsonObject body = response.bodyAsJsonObject().getJsonObject("body");
             JsonObject bodyValueAsJson = body.getJsonObject("jsonObject");
@@ -137,7 +137,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
       return Future.succeededFuture(rb);
     }).compose(v -> {
         JsonObject invalidBodyJson = new JsonObject().put("foo", "bar");
-        return createRequest(POST, "/pets").sendJsonObject(invalidBodyJson)
+        return createRequest(POST, "/v1/pets").sendJsonObject(invalidBodyJson)
           .onSuccess(response -> testContext.verify(() -> {
             assertThat(response.statusCode()).isEqualTo(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
             testContext.completeNow();
