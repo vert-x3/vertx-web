@@ -17,6 +17,7 @@ package io.vertx.ext.web.client.impl;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 
@@ -25,7 +26,7 @@ import io.vertx.ext.web.client.WebClient;
  */
 public interface WebClientInternal extends WebClient {
 
-  <T> HttpContext<T> createContext(Handler<AsyncResult<HttpResponse<T>>> handler);
+  <T> HttpContext<T> createContext(Promise<HttpResponse<T>> handler);
 
   /**
    * Add interceptor in the chain.

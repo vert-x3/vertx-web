@@ -17,13 +17,14 @@ package io.vertx.ext.web.client.impl;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.QueryStringEncoder;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
+import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.core.impl.ContextInternal;
+import io.vertx.core.impl.future.PromiseInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.SocketAddress;
@@ -385,48 +386,62 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
-  public void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    send(null, body, handler);
+  public Future<HttpResponse<T>> send() {
+    Promise<HttpResponse<T>> promise = client.vertx.promise();
+    send(null, null, promise);
+    return promise.future();
   }
 
   @Override
-  public void send(Handler<AsyncResult<HttpResponse<T>>> handler) {
-    send(null, null, handler);
+  public Future<HttpResponse<T>> sendStream(ReadStream<Buffer> body) {
+    Promise<HttpResponse<T>> promise = client.vertx.promise();
+    send(null, body, promise);
+    return promise.future();
   }
 
   @Override
-  public void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    send(null, body, handler);
+  public Future<HttpResponse<T>> sendBuffer(Buffer body) {
+    Promise<HttpResponse<T>> promise = client.vertx.promise();
+    send(null, body, promise);
+    return promise.future();
   }
 
   @Override
-  public void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    send("application/json", body,handler);
+  public Future<HttpResponse<T>> sendJsonObject(JsonObject body) {
+    Promise<HttpResponse<T>> promise = client.vertx.promise();
+    send("application/json", body, promise);
+    return promise.future();
   }
 
   @Override
-  public void sendJson(Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    send("application/json", body, handler);
+  public Future<HttpResponse<T>> sendJson(@Nullable Object body) {
+    Promise<HttpResponse<T>> promise = client.vertx.promise();
+    send("application/json", body, promise);
+    return promise.future();
   }
 
   @Override
-  public void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    sendForm(body, "UTF-8", handler);
+  public Future<HttpResponse<T>> sendForm(MultiMap body) {
+    return sendForm(body, "UTF-8");
   }
 
   @Override
-  public void sendForm(MultiMap body, String charset, Handler<AsyncResult<HttpResponse<T>>> handler) {
+  public Future<HttpResponse<T>> sendForm(MultiMap body, String charset) {
     MultipartForm parts = MultipartForm.create();
     for (Map.Entry<String, String> attribute : body) {
       parts.attribute(attribute.getKey(), attribute.getValue());
     }
     parts.setCharset(charset);
-    send("application/x-www-form-urlencoded", parts, handler);
+    Promise<HttpResponse<T>> promise = client.vertx.promise();
+    send("application/x-www-form-urlencoded", parts, promise);
+    return promise.future();
   }
 
   @Override
-  public void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    send("multipart/form-data", body, handler);
+  public Future<HttpResponse<T>> sendMultipartForm(MultipartForm body) {
+    Promise<HttpResponse<T>> promise = client.vertx.promise();
+    send("multipart/form-data", body, promise);
+    return promise.future();
   }
 
   RequestOptions buildRequestOptions() throws URISyntaxException, MalformedURLException {
@@ -499,8 +514,8 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     return requestOptions;
   }
 
-  void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    HttpContext<T> ctx = client.createContext(handler);
+  void send(String contentType, Object body, Promise<HttpResponse<T>> promise) {
+    HttpContext<T> ctx = client.createContext(promise);
     ctx.prepareRequest(this, contentType, body);
   }
 

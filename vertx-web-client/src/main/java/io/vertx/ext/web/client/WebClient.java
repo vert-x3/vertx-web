@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientInternal;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.impl.WebClientBase;
 import io.vertx.uritemplate.UriTemplate;
@@ -65,7 +66,7 @@ public interface WebClient {
    * @return the created web client
    */
   static WebClient create(Vertx vertx, WebClientOptions options) {
-    return new WebClientBase(vertx.createHttpClient(options), options);
+    return new WebClientBase((VertxInternal) vertx, vertx.createHttpClient(options), options);
   }
 
   /**
@@ -91,7 +92,7 @@ public interface WebClient {
   static WebClient wrap(HttpClient httpClient, WebClientOptions options) {
     WebClientOptions actualOptions = new WebClientOptions(((HttpClientInternal) httpClient).options());
     actualOptions.init(options);
-    return new WebClientBase(httpClient, actualOptions);
+    return new WebClientBase(((HttpClientInternal)httpClient).vertx(), httpClient, actualOptions);
   }
 
   /**

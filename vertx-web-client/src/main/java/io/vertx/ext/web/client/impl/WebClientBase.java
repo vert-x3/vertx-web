@@ -15,10 +15,7 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.VertxException;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
@@ -26,6 +23,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientInternal;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.HttpRequest;
@@ -46,17 +44,19 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class WebClientBase implements WebClientInternal {
 
+  final VertxInternal vertx;
   final HttpClient client;
   final WebClientOptions options;
   final List<Handler<HttpContext<?>>> interceptors;
 
-  public WebClientBase(HttpClient client, WebClientOptions options) {
+  public WebClientBase(VertxInternal vertx, HttpClient client, WebClientOptions options) {
 
     options = new WebClientOptions(options);
     if (options.getTemplateExpandOptions() == null) {
       options.setTemplateExpandOptions(new ExpandOptions());
     }
 
+    this.vertx = vertx;
     this.client = client;
     this.options = options;
     this.interceptors = new CopyOnWriteArrayList<>();
@@ -66,6 +66,7 @@ public class WebClientBase implements WebClientInternal {
   }
 
   WebClientBase(WebClientBase webClient) {
+    this.vertx = webClient.vertx;
     this.client = webClient.client;
     this.options = new WebClientOptions(webClient.options);
     this.interceptors = new CopyOnWriteArrayList<>(webClient.interceptors);
@@ -155,7 +156,7 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public <T> HttpContext<T> createContext(Handler<AsyncResult<HttpResponse<T>>> handler) {
+  public <T> HttpContext<T> createContext(Promise<HttpResponse<T>> handler) {
     HttpClientInternal client = (HttpClientInternal) this.client;
     return new HttpContext<>(client, options, interceptors, handler);
   }

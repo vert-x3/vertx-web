@@ -459,97 +459,47 @@ public interface HttpRequest<T> {
   String traceOperation();
 
   /**
-   * Like {@link #send(Handler)} but with an HTTP request {@code body} stream.
+   * Like {@link #send()} but with an HTTP request {@code body} stream.
    *
    * @param body the body
    */
-  void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  Future<HttpResponse<T>> sendStream(ReadStream<Buffer> body);
 
   /**
-   * @param body the body
-   * @see HttpRequest#sendStream(ReadStream, Handler)
-   */
-  default Future<HttpResponse<T>> sendStream(ReadStream<Buffer> body) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    sendStream(body, promise);
-    return promise.future();
-  }
-
-  /**
-   * Like {@link #send(Handler)} but with an HTTP request {@code body} buffer.
+   * Like {@link #send()} but with an HTTP request {@code body} buffer.
    *
    * @param body the body
    */
-  void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  Future<HttpResponse<T>> sendBuffer(Buffer body);
 
   /**
-   * @param body the body
-   * @see HttpRequest#sendBuffer(Buffer, Handler)
-   */
-  default Future<HttpResponse<T>> sendBuffer(Buffer body) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    sendBuffer(body, promise);
-    return promise.future();
-  }
-
-  /**
-   * Like {@link #send(Handler)} but with an HTTP request {@code body} object encoded as json and the content type
+   * Like {@link #send()} but with an HTTP request {@code body} object encoded as json and the content type
    * set to {@code application/json}.
    *
    * @param body the body
    */
-  void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  Future<HttpResponse<T>> sendJsonObject(JsonObject body);
 
   /**
-   * @param body the body
-   * @see HttpRequest#sendJsonObject(JsonObject, Handler)
-   */
-  default Future<HttpResponse<T>> sendJsonObject(JsonObject body) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    sendJsonObject(body, promise);
-    return promise.future();
-  }
-
-  /**
-   * Like {@link #send(Handler)} but with an HTTP request {@code body} object encoded as json and the content type
+   * Like {@link #send()} but with an HTTP request {@code body} object encoded as json and the content type
    * set to {@code application/json}.
    *
    * @param body the body
    */
-  void sendJson(@Nullable Object body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  Future<HttpResponse<T>> sendJson(@Nullable Object body);
 
   /**
-   * @param body the body
-   * @see HttpRequest#sendJson(Object, Handler)
-   */
-  default Future<HttpResponse<T>> sendJson(@Nullable Object body) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    sendJson(body, promise);
-    return promise.future();
-  }
-
-  /**
-   * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
+   * Like {@link #send()} but with an HTTP request {@code body} multimap encoded as form and the content type
    * set to {@code application/x-www-form-urlencoded}.
    * <p>
    * When the content type header is previously set to {@code multipart/form-data} it will be used instead.
    *
    * @param body the body
    */
-  void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  Future<HttpResponse<T>> sendForm(MultiMap body);
 
   /**
-   * @param body the body
-   * @see HttpRequest#sendForm(MultiMap, Handler)
-   */
-  default Future<HttpResponse<T>> sendForm(MultiMap body) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    sendForm(body, promise);
-    return promise.future();
-  }
-
-  /**
-   * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
+   * Like {@link #send()} but with an HTTP request {@code body} multimap encoded as form and the content type
    * set to {@code application/x-www-form-urlencoded}.
    * <p>
    * When the content type header is previously set to {@code multipart/form-data} it will be used instead.
@@ -558,49 +508,22 @@ public interface HttpRequest<T> {
    * encoded form since the charset to use must be UTF-8.
    *
    * @param body the body
+   * @return the response future
    */
-  void sendForm(MultiMap body, String charset, Handler<AsyncResult<HttpResponse<T>>> handler);
+  Future<HttpResponse<T>> sendForm(MultiMap body, String charset);
 
   /**
-   * @param body the body
-   * @param charset the charset
-   * @see HttpRequest#sendForm(MultiMap, String, Handler)
-   */
-  default Future<HttpResponse<T>> sendForm(MultiMap body, String charset) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    sendForm(body, charset, promise);
-    return promise.future();
-  }
-
-  /**
-   * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
+   * Like {@link #send()} but with an HTTP request {@code body} multimap encoded as form and the content type
    * set to {@code multipart/form-data}. You may use this method to send attributes and upload files.
    *
    * @param body the body
+   * @return the response future
    */
-  void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler);
-
-  /**
-   * @param body the body
-   * @see HttpRequest#sendMultipartForm(MultipartForm, Handler)
-   */
-  default Future<HttpResponse<T>> sendMultipartForm(MultipartForm body) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    sendMultipartForm(body, promise);
-    return promise.future();
-  }
+  Future<HttpResponse<T>> sendMultipartForm(MultipartForm body);
 
   /**
    * Send a request, the {@code handler} will receive the response as an {@link HttpResponse}.
    */
-  void send(Handler<AsyncResult<HttpResponse<T>>> handler);
+  Future<HttpResponse<T>> send();
 
-  /**
-   * @see HttpRequest#send(Handler)
-   */
-  default Future<HttpResponse<T>> send() {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    send(promise);
-    return promise.future();
-  }
 }
