@@ -190,23 +190,19 @@ public class WebClientExamples {
   }
 
   public void sendStream(WebClient client, FileSystem fs) {
-    fs.open("content.txt", new OpenOptions(), fileRes -> {
-      if (fileRes.succeeded()) {
-        ReadStream<Buffer> fileStream = fileRes.result();
-
+    fs.open("content.txt", new OpenOptions())
+      .compose(fileStream -> {
         String fileLen = "1024";
 
         // Send the file to the server using POST
-        client
+        return client
           .post(8080, "myserver.mycompany.com", "/some-uri")
           .putHeader("content-length", fileLen)
-          .sendStream(fileStream)
-          .onSuccess(res -> {
-            // OK
-          })
-        ;
-      }
-    });
+          .sendStream(fileStream);
+
+      }).onSuccess(res -> {
+        // OK
+      });
   }
 
   public void sendStreamChunked(WebClient client, ReadStream<Buffer> stream) {

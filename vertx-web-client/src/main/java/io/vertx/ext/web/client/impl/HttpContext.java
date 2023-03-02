@@ -449,7 +449,7 @@ public class HttpContext<T> {
               req.setChunked(true);
             }
             pipe.endOnFailure(false);
-            pipe.to(req, ar2 -> {
+            pipe.to(req).onComplete(ar2 -> {
               clientRequest = null;
               if (ar2.failed()) {
                 req.reset(0L, ar2.cause());
@@ -519,28 +519,19 @@ public class HttpContext<T> {
     request.bodyCodec().create(ar1 -> {
       if (ar1.succeeded()) {
         BodyStream<T> stream = ar1.result();
-        pipe.to(stream, ar2 -> {
-          if (ar2.succeeded()) {
-            stream.result().onComplete(ar3 -> {
-              if (ar3.succeeded()) {
-                promise.complete(new HttpResponseImpl<>(
-                  resp.version(),
-                  resp.statusCode(),
-                  resp.statusMessage(),
-                  resp.headers(),
-                  resp.trailers(),
-                  resp.cookies(),
-                  stream.result().result(),
-                  redirectedLocations
-                ));
-              } else {
-                promise.fail(ar3.cause());
-              }
-            });
-          } else {
-            promise.fail(ar2.cause());
-          }
-        });
+        Future<HttpResponse<T>> fut = pipe
+          .to(stream)
+          .compose(v -> stream.result())
+          .map(result -> new HttpResponseImpl<>(
+            resp.version(),
+            resp.statusCode(),
+            resp.statusMessage(),
+            resp.headers(),
+            resp.trailers(),
+            resp.cookies(),
+            result,
+            redirectedLocations));
+        fut.onComplete(promise);
       } else {
         pipe.close();
         fail(ar1.cause());
@@ -549,7 +540,7 @@ public class HttpContext<T> {
   }
 
   private void handleSendRequest() {
-    clientRequest.response(ar -> {
+    clientRequest.response().onComplete(ar -> {
       if (ar.succeeded()) {
         receiveResponse(ar.result().pause());
       } else {
