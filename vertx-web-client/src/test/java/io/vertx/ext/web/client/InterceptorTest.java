@@ -78,7 +78,7 @@ public class InterceptorTest extends HttpTestBase {
     startServer();
     client.addInterceptor(this::handleMutateRequest);
     HttpRequest<Buffer> builder = client.get("/somepath").host("another-host").port(8081);
-    builder.send(onSuccess(resp -> complete()));
+    builder.send().onComplete(onSuccess(resp -> complete()));
     await();
   }
 
@@ -100,7 +100,7 @@ public class InterceptorTest extends HttpTestBase {
     AsyncFile foo = vertx.fileSystem().openBlocking(f.getAbsolutePath(), new OpenOptions().setSync(true).setTruncateExisting(true));
     client.addInterceptor(this::handleMutateCodec);
     HttpRequest<Void> builder = client.get("/somepath").as(BodyCodec.pipe(foo));
-    builder.send(onSuccess(resp -> {
+    builder.send().onComplete(onSuccess(resp -> {
       foo.write(Buffer.buffer("bar!"));
       foo.close(onSuccess(v -> {
         assertEquals("bar!", vertx.fileSystem().readFileBlocking(f.getAbsolutePath()).toString());
@@ -133,7 +133,7 @@ public class InterceptorTest extends HttpTestBase {
     startServer();
     client.addInterceptor(this::mutateResponseHandler);
     HttpRequest<Buffer> builder = client.get("/somepath");
-    builder.send(onSuccess(resp -> {
+    builder.send().onComplete(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       complete();
     }));
@@ -154,7 +154,7 @@ public class InterceptorTest extends HttpTestBase {
       context.next();
     });
     HttpRequest<Buffer> builder = client.get("/somepath");
-    builder.send(onSuccess(resp -> {
+    builder.send().onComplete(onSuccess(resp -> {
       assertEquals(Arrays.asList(
         "PREPARE_REQUEST_1", "PREPARE_REQUEST_2",
         "CREATE_REQUEST_1", "CREATE_REQUEST_2",
@@ -193,7 +193,7 @@ public class InterceptorTest extends HttpTestBase {
     });
 
     HttpRequest<Buffer> builder = client.get("/somepath");
-    builder.send(onFailure(err -> {
+    builder.send().onComplete(onFailure(err -> {
       assertEquals(Arrays.asList(
         "PREPARE_REQUEST_1", "PREPARE_REQUEST_2", "PREPARE_REQUEST_3",
         "CREATE_REQUEST_1", "CREATE_REQUEST_2",
@@ -234,7 +234,7 @@ public class InterceptorTest extends HttpTestBase {
       context.next();
     });
     HttpRequest<Buffer> builder = client.get("/somepath");
-    builder.send(onSuccess(resp -> {
+    builder.send().onComplete(onSuccess(resp -> {
       Thread contextThread = Thread.currentThread();
       assertEquals(abc.apply(testThread, contextThread), phaseThreads);
       complete();
@@ -275,7 +275,7 @@ public class InterceptorTest extends HttpTestBase {
     AtomicInteger respCount = new AtomicInteger();
     client.addInterceptor(retryInterceptorHandler(reqCount, respCount, num));
     HttpRequest<Buffer> builder = client.get("/");
-    builder.send(onSuccess(resp -> {
+    builder.send().onComplete(onSuccess(resp -> {
       assertEquals(num + 1, reqCount.get());
       assertEquals(num + 1, respCount.get());
       assertEquals(503, resp.statusCode());
@@ -298,7 +298,7 @@ public class InterceptorTest extends HttpTestBase {
     startServer();
     client.addInterceptor(this::cacheInterceptorHandler);
     HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
-    builder.send(onSuccess(resp -> {
+    builder.send().onComplete(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       complete();
     }));
@@ -396,7 +396,7 @@ public class InterceptorTest extends HttpTestBase {
       ctx.next();
     });
     HttpRequest<Buffer> builder = client.get("/1").host("localhost").port(8080);
-    builder.send(onSuccess(resp -> {
+    builder.send().onComplete(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(Arrays.asList(
         ClientPhase.PREPARE_REQUEST,
@@ -427,7 +427,7 @@ public class InterceptorTest extends HttpTestBase {
       ctx.next();
     });
     HttpRequest<Buffer> builder = client.get("/").host("localhost").port(8080);
-    builder.send(onSuccess(resp -> {
+    builder.send().onComplete(onSuccess(resp -> {
       assertEquals(302, resp.statusCode());
       assertEquals(Arrays.asList(
         ClientPhase.PREPARE_REQUEST,
@@ -530,7 +530,9 @@ public class InterceptorTest extends HttpTestBase {
       ctx.next();
     });
     HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
-    builder.send(onSuccess(resp -> {
+    builder
+      .send()
+      .onComplete(onSuccess(resp -> {
       long prev = 0L;
       for (long val : list) {
         assertTrue(val >= prev);
@@ -551,7 +553,9 @@ public class InterceptorTest extends HttpTestBase {
       fail("Should never be executed");
     });
     HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
-    builder.send(onFailure(err -> {
+    builder
+      .send()
+      .onComplete(onFailure(err -> {
       assertSame(failure, err);
       testComplete();
     }));
@@ -571,7 +575,9 @@ public class InterceptorTest extends HttpTestBase {
       ctx.next();
     });
     HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
-    builder.send(onSuccess(resp -> {
+    builder
+      .send()
+      .onComplete(onSuccess(resp -> {
       testComplete();
     }));
     await();

@@ -41,8 +41,10 @@ public class HandlerExceptionTest {
     });
 
     WebClient client = WebClient.create(vertx);
-    client.get(8080, "localhost", "")
-      .send(resp -> {
+    client
+      .get(8080, "localhost", "")
+      .send()
+      .onComplete(resp -> {
         tc.assertTrue(resp.succeeded());
         tc.assertTrue(Context.isOnEventLoopThread());
         throw new RuntimeException("Expected exception");

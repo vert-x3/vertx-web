@@ -37,7 +37,7 @@ public class WebClientDatabindTest extends WebClientTestBase {
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
       .as(BodyCodec.json(WineAndCheese.class))
-      .send(onSuccess(resp -> {
+      .send().onComplete(onSuccess(resp -> {
         assertEquals(200, resp.statusCode());
         assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.body());
         testComplete();

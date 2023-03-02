@@ -112,34 +112,28 @@ public class SessionAwareWebClientTest {
 
   @Test
   public void testReadCookie(TestContext context) {
-    Async async = context.async();
     prepareServer(context, req -> {
       req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie("test", "toast")));
     });
 
-    client.get(PORT, "localhost", "/").send(ar -> {
-      context.assertTrue(ar.succeeded());
+    client.get(PORT, "localhost", "/").send().onComplete(context.asyncAssertSuccess(v -> {
       validate(context, client.cookieStore().get(false, "localhost", "/"),
-          new String[] { "test" }, new String[] { "toast" });
-      async.complete();
-    });
+        new String[] { "test" }, new String[] { "toast" });
+    }));
   }
 
   @Test
   public void testReadManyCookies(TestContext context) {
-    Async async = context.async();
     prepareServer(context, req -> {
       req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie("test1", "toast1")));
       req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie("test2", "toast2")));
       req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie("test3", "toast3")));
     });
 
-    client.get(PORT, "localhost", "/").send(ar -> {
-      context.assertTrue(ar.succeeded());
+    client.get(PORT, "localhost", "/").send().onComplete(context.asyncAssertSuccess(v -> {
       validate(context, client.cookieStore().get(false, "localhost", "/"),
-          new String[] { "test1" ,"test2", "test3" }, new String[] { "toast1", "toast2", "toast3" });
-      async.complete();
-    });
+        new String[] { "test1" ,"test2", "test3" }, new String[] { "toast1", "toast2", "toast3" });
+    }));
   }
 
   @Test
@@ -175,21 +169,16 @@ public class SessionAwareWebClientTest {
 
     {
       Async async = context.async();
-      req.send(ar -> {
-        context.assertTrue(ar.succeeded());
-        async.complete();
-      });
+      req.send().onComplete(context.asyncAssertSuccess(v -> async.complete()));
       async.await();
     }
 
     Async async = context.async();
-    req.send(ar -> {
-      context.assertTrue(ar.succeeded());
-      HttpResponse<Buffer> res = ar.result();
+    req.send().onComplete(context.asyncAssertSuccess(res -> {
       context.assertEquals(200, res.statusCode());
       context.assertEquals("OK", res.bodyAsString());
       async.complete();
-    });
+    }));
   }
 
   @Test
@@ -206,16 +195,11 @@ public class SessionAwareWebClientTest {
       }
     });
 
-    Async async = context.async();
     client.addHeader(headerName, headerVal);
-    client.get("/").send(ar -> {
-      context.assertTrue(ar.succeeded());
-      HttpResponse<Buffer> res = ar.result();
+    client.get("/").send().onComplete(context.asyncAssertSuccess(res -> {
       context.assertEquals(200, res.statusCode());
       context.assertEquals("OK", res.bodyAsString());
-      async.complete();
-    });
-
+    }));
   }
 
   @Test
@@ -245,19 +229,14 @@ public class SessionAwareWebClientTest {
       HttpRequest<Buffer> req = client.get(PORT, "localhost", "/index.html");
 
       Async waiter = context.async();
-      req.send(ar -> {
-        context.assertTrue(ar.succeeded());
-        waiter.complete();
-      });
+      req.send().onComplete(context.asyncAssertSuccess(v -> waiter.complete()));
       waiter.await();
 
-      req.send(ar -> {
-        context.assertTrue(ar.succeeded());
-        HttpResponse<Buffer> res = ar.result();
+      req.send().onComplete(context.asyncAssertSuccess(res -> {
         context.assertEquals(200, res.statusCode());
         context.assertEquals("OK", res.bodyAsString());
         async.countDown();
-      });
+      }));
     }
 
     async.await();
@@ -293,7 +272,7 @@ public class SessionAwareWebClientTest {
     HttpRequest<Buffer> req = client.get(PORT, "localhost", "/");
 
     Async respLatch = context.async();
-    req.send(context.asyncAssertSuccess(resp -> {
+    req.send().onComplete(context.asyncAssertSuccess(resp -> {
       context.assertEquals(500, resp.statusCode());
       respLatch.complete();
     }));
@@ -304,11 +283,10 @@ public class SessionAwareWebClientTest {
     }
 
     Async async = context.async();
-    req.send(ar -> {
-      context.assertTrue(ar.succeeded());
-      context.assertEquals(200, ar.result().statusCode());
+    req.send().onComplete(context.asyncAssertSuccess(res -> {
+      context.assertEquals(200, res.statusCode());
       async.complete();
-    });
+    }));
   }
 
   @Test
@@ -339,21 +317,19 @@ public class SessionAwareWebClientTest {
 
     {
       Async async = context.async();
-      req.send(ar -> {
-        context.assertTrue(ar.succeeded());
-        context.assertEquals(200, ar.result().statusCode());
+      req.send().onComplete(context.asyncAssertSuccess(res -> {
+        context.assertEquals(200, res.statusCode());
         async.complete();
-      });
+      }));
       async.await();
     }
 
     req.queryParams().clear();
     Async async = context.async();
-    req.send(ar -> {
-      context.assertTrue(ar.succeeded());
-      context.assertEquals(200, ar.result().statusCode());
+    req.send().onComplete(context.asyncAssertSuccess(res -> {
+      context.assertEquals(200, res.statusCode());
       async.complete();
-    });
+    }));
   }
 
   @Test
@@ -367,10 +343,10 @@ public class SessionAwareWebClientTest {
       Cookie c = new DefaultCookie("test", "localhost");
       c.setPath("/");
       client.cookieStore().remove(c);
-      r.send(ar -> {
+      r.send().onComplete(ar -> {
         async.complete();
         validate(context, client.cookieStore().get(false, "localhost", "/"),
-            new String[] { "test" }, new String[] { "toast" });
+          new String[] { "test" }, new String[] { "toast" });
       });
       async.await();
     };
@@ -426,17 +402,17 @@ public class SessionAwareWebClientTest {
     Async async = context.async(expected);
     Handler<AsyncResult<HttpResponse<Buffer>>> handler = ar -> { async.countDown(); };
     HttpRequest<Buffer> req = client.post("/");
-    req.send(handler);
-    req.sendBuffer(Buffer.buffer(), handler);
-    req.sendForm(HttpHeaders.set("a", "b"), handler);
-    req.sendJson("", handler);
-    req.sendJsonObject(new JsonObject(), handler);
-    req.sendMultipartForm(MultipartForm.create().attribute("a", "b"), handler);
+    req.send().onComplete(handler);
+    req.sendBuffer(Buffer.buffer()).onComplete(handler);
+    req.sendForm(HttpHeaders.set("a", "b")).onComplete(handler);
+    req.sendJson("").onComplete(handler);
+    req.sendJsonObject(new JsonObject()).onComplete(handler);
+    req.sendMultipartForm(MultipartForm.create().attribute("a", "b")).onComplete(handler);
 
     File f = File.createTempFile("vertx", ".tmp");
     f.deleteOnExit();
     AsyncFile asyncFile = vertx.fileSystem().openBlocking(f.getAbsolutePath(), new OpenOptions());
-    req.sendStream(asyncFile, handler);
+    req.sendStream(asyncFile).onComplete(handler);
 
     async.await();
     asyncFile.close();
@@ -463,10 +439,9 @@ public class SessionAwareWebClientTest {
       @Override
       public void start() throws Exception {
         vertx.eventBus().consumer("test", m -> {
-          client.get(host, uri).send(ar -> {
-            testContext.assertTrue(ar.succeeded());
+          client.get(host, uri).send().onComplete(testContext.asyncAssertSuccess(res -> {
             async.countDown();
-          });
+          }));
         });
       }
     };
@@ -572,7 +547,8 @@ public class SessionAwareWebClientTest {
     Async async = context.async();
     client.get("/redirect")
       .followRedirects(true)
-      .send(context.asyncAssertSuccess(resp -> {
+      .send()
+      .onComplete(context.asyncAssertSuccess(resp -> {
         assertEquals(200, resp.statusCode());
         assertEquals("/ok", resp.body().toString());
         async.complete();

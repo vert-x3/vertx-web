@@ -106,14 +106,11 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient.countDown();
-        }
-      });
+      .send()
+      .onComplete(onSuccess(res -> {
+        assertEquals(200, res.statusCode());
+        latchClient.countDown();
+      }));
 
     awaitLatch(latchClient);
   }
@@ -155,14 +152,11 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient.countDown();
-        }
-      });
+      .send()
+      .onComplete(onSuccess(res -> {
+        assertEquals(200, res.statusCode());
+        latchClient.countDown();
+      }));
 
     awaitLatch(latchClient);
   }
@@ -181,13 +175,10 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
 
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
-        if (result.failed()) {
-          latchClient.countDown();
-        } else {
-          fail("Should require credentials");
-        }
-      });
+      .send()
+      .onComplete(onFailure(err -> {
+        latchClient.countDown();
+      }));
 
     awaitLatch(latchClient);
   }
@@ -237,14 +228,11 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
 
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient1.countDown();
-        }
-      });
+      .send()
+      .onComplete(onSuccess(res -> {
+        assertEquals(200, res.statusCode());
+        latchClient1.countDown();
+      }));
 
     awaitLatch(latchClient1);
     final CountDownLatch latchClient2 = new CountDownLatch(1);
@@ -252,14 +240,11 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     // again, but this time we should not get a token
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient2.countDown();
-        }
-      });
+      .send()
+      .onComplete(onSuccess(res -> {
+        assertEquals(200, res.statusCode());
+        latchClient2.countDown();
+      }));
 
     awaitLatch(latchClient2);
   }
@@ -309,14 +294,11 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
 
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient1.countDown();
-        }
-      });
+      .send()
+      .onComplete(onSuccess(res -> {
+        assertEquals(200, res.statusCode());
+        latchClient1.countDown();
+      }));
 
     // sleep so the user expires
     Thread.sleep(2000L);
@@ -327,14 +309,11 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     // again, but this time we should not get a token
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient2.countDown();
-        }
-      });
+      .send()
+      .onComplete(onSuccess(res -> {
+        assertEquals(200, res.statusCode());
+        latchClient2.countDown();
+      }));
 
     awaitLatch(latchClient2);
   }
@@ -389,14 +368,11 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
 
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient1.countDown();
-        }
-      });
+      .send()
+      .onComplete(onSuccess(res -> {
+        assertEquals(200, res.statusCode());
+        latchClient1.countDown();
+      }));
 
     // sleep so the user expires
     Thread.sleep(2000L);
@@ -407,14 +383,11 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     // again, but this time we should not get a token
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient2.countDown();
-        }
-      });
+      .send()
+      .onComplete(onSuccess(res -> {
+        assertEquals(200, res.statusCode());
+        latchClient2.countDown();
+      }));
 
     awaitLatch(latchClient2);
   }
@@ -464,14 +437,11 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
 
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient1.countDown();
-        }
-      });
+      .send()
+      .onComplete(onSuccess(res -> {
+        assertEquals(200, res.statusCode());
+        latchClient1.countDown();
+      }));
 
     // sleep so the user expires
     Thread.sleep(2000L);
@@ -482,14 +452,11 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     // again, but this time we should not get a token
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient2.countDown();
-        }
-      });
+      .send()
+      .onComplete(onSuccess(res -> {
+        assertEquals(200, res.statusCode());
+        latchClient2.countDown();
+      }));
 
     awaitLatch(latchClient2);
   }
@@ -539,14 +506,11 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient.countDown();
-        }
-      });
+      .send()
+      .onComplete(onSuccess(res -> {
+        assertEquals(200, res.statusCode());
+        latchClient.countDown();
+      }));
 
     awaitLatch(latchClient);
   }
@@ -593,15 +557,12 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          // this one will fail as we fail to refresh request after request
-          assertEquals(401, result.result().statusCode());
-          latchClient.countDown();
-        }
-      });
+      .send()
+      .onComplete(onSuccess(res -> {
+        // this one will fail as we fail to refresh request after request
+        assertEquals(401, res.statusCode());
+        latchClient.countDown();
+      }));
 
     awaitLatch(latchClient);
   }

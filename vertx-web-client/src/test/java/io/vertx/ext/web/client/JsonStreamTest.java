@@ -70,11 +70,11 @@ public class JsonStreamTest {
       })
       .endHandler(x -> async.complete());
 
-    client.get("/?separator=nl&count=10").as(BodyCodec.jsonStream(parser)).send(x -> {
-      if (x.failed()) {
-        tc.fail(x.cause());
-      }
-    });
+    client
+      .get("/?separator=nl&count=10")
+      .as(BodyCodec.jsonStream(parser))
+      .send()
+      .onComplete(tc.asyncAssertSuccess());
   }
 
   @Test
@@ -90,11 +90,10 @@ public class JsonStreamTest {
       })
       .endHandler(x -> async.complete());
 
-    client.get("/?separator=bl&count=10").as(BodyCodec.jsonStream(parser)).send(x -> {
-      if (x.failed()) {
-        tc.fail(x.cause());
-      }
-    });
+    client.get("/?separator=bl&count=10")
+      .as(BodyCodec.jsonStream(parser))
+      .send()
+      .onComplete(tc.asyncAssertSuccess());
   }
 
 }

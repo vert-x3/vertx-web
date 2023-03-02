@@ -100,7 +100,7 @@ public class CachingWebClientTest {
 
     reqConsumer.accept(request);
 
-    request.send(context.asyncAssertSuccess(response -> {
+    request.send().onComplete(context.asyncAssertSuccess(response -> {
       body.set(response.bodyAsString());
       waiter.complete();
     }));
@@ -136,7 +136,7 @@ public class CachingWebClientTest {
     Async request2 = context.async();
     List<HttpResponse<Buffer>> responses = new ArrayList<>(2);
 
-    client.request(method, "localhost", "/").send(context.asyncAssertSuccess(resp -> {
+    client.request(method, "localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
       responses.add(resp);
       request1.complete();
     }));
@@ -144,7 +144,7 @@ public class CachingWebClientTest {
     // Wait for request 1 to finish first to make sure the cache stored a value if necessary
     request1.await();
 
-    client.request(method, "localhost", "/").send(context.asyncAssertSuccess(resp -> {
+    client.request(method, "localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
       responses.add(resp);
       request2.complete();
     }));
@@ -358,13 +358,13 @@ public class CachingWebClientTest {
       req.response().headers().set("Expires", expires);
     });
 
-    defaultClient.get("localhost", "/").send(context.asyncAssertSuccess(resp -> {
+    defaultClient.get("localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
       body1.set(resp.bodyAsString());
       req1.complete();
     }));
     req1.await();
 
-    defaultClient.get("localhost", "/").send(context.asyncAssertSuccess(resp -> {
+    defaultClient.get("localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
       body2.set(resp.bodyAsString());
       req2.complete();
     }));
@@ -374,7 +374,7 @@ public class CachingWebClientTest {
     vertx.setTimer(2000, l -> waiter.complete());
     waiter.await();
 
-    defaultClient.get("localhost", "/").send(context.asyncAssertSuccess(resp -> {
+    defaultClient.get("localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
       body3.set(resp.bodyAsString());
       req3.complete();
     }));
@@ -584,7 +584,7 @@ public class CachingWebClientTest {
     vertx.setTimer(3000L, l -> waiter2.complete());
     waiter2.await();
 
-    defaultClient.get("localhost", "/").send(context.asyncAssertSuccess(resp -> {
+    defaultClient.get("localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
       response.set(resp);
       request.complete();
     }));
