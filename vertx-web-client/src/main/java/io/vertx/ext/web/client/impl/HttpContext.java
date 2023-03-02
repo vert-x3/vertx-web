@@ -445,7 +445,7 @@ public class HttpContext<T> {
         requestPromise.future().onComplete(ar -> {
           if (ar.succeeded()) {
             HttpClientRequest req = ar.result();
-            if (this.request.headers == null || !this.request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
+            if (requestOptions.getHeaders() == null || !requestOptions.getHeaders().contains(HttpHeaders.CONTENT_LENGTH)) {
               req.setChunked(true);
             }
             pipe.endOnFailure(false);
