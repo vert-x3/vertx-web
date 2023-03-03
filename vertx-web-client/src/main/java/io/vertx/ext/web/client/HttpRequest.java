@@ -463,6 +463,7 @@ public interface HttpRequest<T> {
    *
    * @param body the body
    */
+  @Deprecated
   void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
@@ -480,6 +481,7 @@ public interface HttpRequest<T> {
    *
    * @param body the body
    */
+  @Deprecated
   void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
@@ -498,6 +500,7 @@ public interface HttpRequest<T> {
    *
    * @param body the body
    */
+  @Deprecated
   void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
@@ -516,6 +519,7 @@ public interface HttpRequest<T> {
    *
    * @param body the body
    */
+  @Deprecated
   void sendJson(@Nullable Object body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
@@ -536,6 +540,7 @@ public interface HttpRequest<T> {
    *
    * @param body the body
    */
+  @Deprecated
   void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
@@ -559,6 +564,7 @@ public interface HttpRequest<T> {
    *
    * @param body the body
    */
+  @Deprecated
   void sendForm(MultiMap body, String charset, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
@@ -578,6 +584,7 @@ public interface HttpRequest<T> {
    *
    * @param body the body
    */
+  @Deprecated
   void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
@@ -593,6 +600,7 @@ public interface HttpRequest<T> {
   /**
    * Send a request, the {@code handler} will receive the response as an {@link HttpResponse}.
    */
+  @Deprecated
   void send(Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**

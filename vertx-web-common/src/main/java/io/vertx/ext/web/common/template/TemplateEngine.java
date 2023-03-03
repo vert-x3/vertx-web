@@ -48,6 +48,7 @@ public interface TemplateEngine {
    * @param templateFileName  the template file name to use
    * @param handler  the handler that will be called with a result containing the buffer or a failure.
    */
+  @Deprecated
   default void render(JsonObject context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     render(context.getMap(), templateFileName, handler);
   }
@@ -75,6 +76,7 @@ public interface TemplateEngine {
    * @param handler  the handler that will be called with a result containing the buffer or a failure.
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @Deprecated
   void render(Map<String, Object> context, String templateFileName, Handler<AsyncResult<Buffer>> handler);
 
   /**

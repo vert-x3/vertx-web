@@ -722,6 +722,7 @@ public interface RoutingContext {
    * See {@link #redirect(String)}.
    */
   @Fluent
+  @Deprecated
   default RoutingContext redirect(String url, Handler<AsyncResult<Void>> handler) {
     redirect(url).onComplete(handler);
     return this;
@@ -773,6 +774,7 @@ public interface RoutingContext {
    * See {@link #json(Object)}.
    */
   @Fluent
+  @Deprecated
   default RoutingContext json(Object json, Handler<AsyncResult<Void>> handler) {
     json(json).onComplete(handler);
     return this;
@@ -910,6 +912,7 @@ public interface RoutingContext {
    * See {@link #end(String)}
    */
   @Fluent
+  @Deprecated
   default RoutingContext end(String chunk, Handler<AsyncResult<Void>> handler) {
     end(chunk).onComplete(handler);
     return this;
@@ -928,6 +931,7 @@ public interface RoutingContext {
    * See {@link #end(Buffer)}
    */
   @Fluent
+  @Deprecated
   default RoutingContext end(Buffer buffer, Handler<AsyncResult<Void>> handler) {
     end(buffer).onComplete(handler);
     return this;
@@ -945,6 +949,7 @@ public interface RoutingContext {
    * See {@link #end()}
    */
   @Fluent
+  @Deprecated
   default RoutingContext end(Handler<AsyncResult<Void>> handler) {
     end().onComplete(handler);
     return this;
