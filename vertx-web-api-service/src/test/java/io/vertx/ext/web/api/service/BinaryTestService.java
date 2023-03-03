@@ -6,6 +6,7 @@ import io.vertx.core.Handler;
 @WebApiServiceGen
 public interface BinaryTestService {
 
+  @Deprecated
   void binaryTest(
     final ServiceRequest request,
     final Handler<AsyncResult<ServiceResponse>> response);

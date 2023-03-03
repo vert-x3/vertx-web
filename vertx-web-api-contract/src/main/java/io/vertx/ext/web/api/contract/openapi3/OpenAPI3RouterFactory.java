@@ -139,6 +139,7 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
    * @param url location of your spec. It can be an absolute path, a local path or remote url (with HTTP protocol)
    * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
    */
+  @Deprecated
   static void create(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
     create(vertx, url, Collections.emptyList(), handler);
   }
@@ -164,6 +165,7 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
    *             of an {@link AuthorizationValue}
    * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
    */
+  @Deprecated
   static void create(Vertx vertx,
                      String url,
                      List<JsonObject> auth,
