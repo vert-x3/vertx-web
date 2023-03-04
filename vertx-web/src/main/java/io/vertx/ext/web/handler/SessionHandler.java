@@ -206,6 +206,7 @@ public interface SessionHandler extends PlatformHandler {
    * @return fluent self
    */
 	@Fluent
+  @Deprecated
   default SessionHandler flush(RoutingContext ctx, Handler<AsyncResult<Void>> handler) {
     flush(ctx, false)
       .onComplete(handler);
@@ -223,6 +224,7 @@ public interface SessionHandler extends PlatformHandler {
    * @return fluent self
    */
   @Fluent
+  @Deprecated
   default SessionHandler flush(RoutingContext ctx, boolean ignoreStatus, Handler<AsyncResult<Void>> handler) {
     flush(ctx, ignoreStatus)
       .onComplete(handler);
@@ -279,6 +281,7 @@ public interface SessionHandler extends PlatformHandler {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
+  @Deprecated
   default SessionHandler setUser(RoutingContext context, User user, Handler<AsyncResult<Void>> handler) {
     setUser(context, user).onComplete(handler);
     return this;

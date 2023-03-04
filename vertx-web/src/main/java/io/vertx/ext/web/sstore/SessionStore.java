@@ -123,6 +123,7 @@ public interface SessionStore {
    * @param resultHandler  will be called with a result holding the session, or a failure
    */
   @Fluent
+  @Deprecated
   default SessionStore get(String cookieValue, Handler<AsyncResult<@Nullable Session>> resultHandler) {
     get(cookieValue)
       .onComplete(resultHandler);
@@ -144,6 +145,7 @@ public interface SessionStore {
    * @param resultHandler  will be called with a success or a failure
    */
   @Fluent
+  @Deprecated
   default SessionStore delete(String id, Handler<AsyncResult<Void>> resultHandler) {
     delete(id)
       .onComplete(resultHandler);
@@ -165,6 +167,7 @@ public interface SessionStore {
    * @param resultHandler  will be called with a success or a failure
    */
   @Fluent
+  @Deprecated
   default SessionStore put(Session session, Handler<AsyncResult<Void>> resultHandler) {
     put(session)
       .onComplete(resultHandler);
@@ -185,6 +188,7 @@ public interface SessionStore {
    * @param resultHandler  will be called with a success or a failure
    */
   @Fluent
+  @Deprecated
   default SessionStore clear(Handler<AsyncResult<Void>> resultHandler) {
     clear()
       .onComplete(resultHandler);
@@ -206,6 +210,7 @@ public interface SessionStore {
    * @param resultHandler  will be called with the number, or a failure
    */
   @Fluent
+  @Deprecated
   default SessionStore size(Handler<AsyncResult<Integer>> resultHandler) {
     size()
       .onComplete(resultHandler);

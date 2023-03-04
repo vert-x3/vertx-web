@@ -214,6 +214,7 @@ public interface RouterBuilder {
   /**
    * Like {@link this#create(Vertx, String)}
    */
+  @Deprecated
   static void create(Vertx vertx, String url, Handler<AsyncResult<RouterBuilder>> handler) {
     RouterBuilder.create(vertx, url).onComplete(handler);
   }
@@ -260,6 +261,7 @@ public interface RouterBuilder {
   /**
    * Like {@link this#create(Vertx, String, OpenAPILoaderOptions)}
    */
+  @Deprecated
   static void create(Vertx vertx,
                      String url,
                      OpenAPILoaderOptions options,

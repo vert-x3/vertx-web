@@ -11,14 +11,19 @@ import io.vertx.ext.web.validation.RequestParameter;
 public
 interface AnotherTestService {
 
+  @Deprecated
   void testC(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 
+  @Deprecated
   void testD(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 
+  @Deprecated
   void testE(Integer id, JsonObject body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 
+  @Deprecated
   void testF(Integer id, RequestParameter body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 
+  @Deprecated
   void testDataObject(FilterData body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 
   @ProxyClose

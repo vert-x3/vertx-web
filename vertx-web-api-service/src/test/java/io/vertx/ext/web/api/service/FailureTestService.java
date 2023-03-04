@@ -8,8 +8,10 @@ import io.vertx.core.Vertx;
 public
 interface FailureTestService {
 
+  @Deprecated
   void testFailure(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 
+  @Deprecated
   void testException(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 
   static FailureTestService create(Vertx vertx) {

@@ -7,11 +7,17 @@ import io.vertx.core.json.JsonObject;
 
 @WebApiServiceGen
 public interface TestService {
+  @Deprecated
   void testA(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  @Deprecated
   void testB(JsonObject body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  @Deprecated
   void testEmptyServiceResponse(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  @Deprecated
   void testUser(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  @Deprecated
   void extraPayload(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  @Deprecated
   void testAuthorization(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
 
   static TestService create(Vertx vertx) {
