@@ -75,11 +75,6 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
     }
   }
 
-  @Override
-  public JadeConfiguration getJadeConfiguration() {
-    return config;
-  }
-
   private class JadeTemplateLoader implements TemplateLoader {
 
     private final Vertx vertx;

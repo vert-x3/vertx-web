@@ -1585,7 +1585,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
       routerBuilder.rootHandler(LoggerHandler.create(true, LoggerHandler.DEFAULT_FORMAT));
       routerBuilder.rootHandler(TimeoutHandler.create(180000));
-      routerBuilder.rootHandler(CorsHandler.create("*"));
+      routerBuilder.rootHandler(CorsHandler.create().addOrigin("*"));
       routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(40000000).setDeleteUploadedFilesOnEnd(true).setHandleFileUploads(true));
 
       routerBuilder
@@ -1605,7 +1605,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
       routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(40000000).setDeleteUploadedFilesOnEnd(true).setHandleFileUploads(true));
       routerBuilder.rootHandler(LoggerHandler.create(true, LoggerHandler.DEFAULT_FORMAT));
       routerBuilder.rootHandler(TimeoutHandler.create(180000));
-      routerBuilder.rootHandler(CorsHandler.create("*"));
+      routerBuilder.rootHandler(CorsHandler.create().addOrigin("*"));
 
       routerBuilder
         .operation("listPets")

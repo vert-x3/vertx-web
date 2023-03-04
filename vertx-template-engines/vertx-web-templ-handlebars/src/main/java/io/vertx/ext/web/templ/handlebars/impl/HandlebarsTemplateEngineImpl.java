@@ -85,7 +85,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
         putTemplate(src, template);
       }
 
-      Context engineContext = Context.newBuilder(context).resolver(getResolvers()).build();
+      Context engineContext = Context.newBuilder(context).resolver(resolvers).build();
       handler.handle(Future.succeededFuture(Buffer.buffer(template.template().apply(engineContext))));
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
@@ -95,16 +95,6 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   @Override
   public <T> T unwrap() {
     return (T) handlebars;
-  }
-
-  @Override
-  public Handlebars getHandlebars() {
-    return handlebars;
-  }
-
-  @Override
-  public ValueResolver[] getResolvers() {
-    return resolvers;
   }
 
   @Override

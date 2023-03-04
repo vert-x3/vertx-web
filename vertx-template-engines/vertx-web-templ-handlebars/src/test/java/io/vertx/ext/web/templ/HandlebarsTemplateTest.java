@@ -218,7 +218,7 @@ public class HandlebarsTemplateTest {
   @Test
   public void testGetHandlebars() {
     HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
-    assertNotNull(engine.getHandlebars());
+    assertNotNull(engine.unwrap());
   }
 
   @Test

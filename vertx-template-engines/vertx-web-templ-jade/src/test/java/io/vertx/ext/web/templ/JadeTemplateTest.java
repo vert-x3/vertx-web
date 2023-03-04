@@ -126,7 +126,7 @@ public class JadeTemplateTest {
   @Test
   public void testGetJadeConfiguration() {
     JadeTemplateEngine engine = JadeTemplateEngine.create(vertx);
-    assertNotNull(engine.getJadeConfiguration());
+    assertNotNull(engine.unwrap());
   }
 
   @Test

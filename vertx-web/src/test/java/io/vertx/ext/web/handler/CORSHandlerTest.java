@@ -40,7 +40,7 @@ public class CORSHandlerTest extends WebTestBase {
 
   @Test(expected = NullPointerException.class)
   public void testNullAllowedOrigin() {
-    CorsHandler.create(null);
+    CorsHandler.create().addRelativeOrigin(null);
   }
 
   /*
@@ -49,7 +49,7 @@ public class CORSHandlerTest extends WebTestBase {
    */
   @Test
   public void testNotCORSRequest() throws Exception {
-    router.route().handler(CorsHandler.create("http://vertx\\.io"));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx\\.io"));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", null, resp -> checkHeaders(resp, null, null, null, null), 200, "OK", null);
   }
@@ -63,21 +63,21 @@ public class CORSHandlerTest extends WebTestBase {
 
   @Test
   public void testAcceptConstantOrigin() throws Exception {
-    router.route().handler(CorsHandler.create("http://vertx\\.io"));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx\\.io"));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://vertx.io"), resp -> checkHeaders(resp, "http://vertx.io", null, null, null), 200, "OK", null);
   }
 
   @Test
   public void testAcceptConstantOriginDenied1() throws Exception {
-    router.route().handler(CorsHandler.create("http://vertx\\.io"));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx\\.io"));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://foo.io"), resp -> checkHeaders(resp, null, null, null, null), 403, "CORS Rejected - Invalid origin", null);
   }
 
   @Test
   public void testAcceptConstantOriginDenied2() throws Exception {
-    router.route().handler(CorsHandler.create("http://vertx\\.io"));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx\\.io"));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> {
       // Make sure the '.' doesn't match like a regex
@@ -87,14 +87,14 @@ public class CORSHandlerTest extends WebTestBase {
 
   @Test
   public void testAcceptDotisAnyCharacter1() throws Exception {
-    router.route().handler(CorsHandler.create("http://vertx.io")); // dot matches any character - watch out!
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx.io")); // dot matches any character - watch out!
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://vertxxio"), resp -> checkHeaders(resp, "http://vertxxio", null, null, null), 200, "OK", null);
   }
 
   @Test
   public void testAcceptDotisAnyCharacter2() throws Exception {
-    router.route().handler(CorsHandler.create("http://vertx.io")); // dot matches any character - watch out!
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx.io")); // dot matches any character - watch out!
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://vertx.io"), resp -> checkHeaders(resp, "http://vertx.io", null, null, null), 200, "OK", null);
   }
@@ -104,7 +104,7 @@ public class CORSHandlerTest extends WebTestBase {
   public void testAcceptConstantOriginDeniedErrorHandler() throws Exception {
     Consumer<RoutingContext> handler = mock(Consumer.class);
 
-    router.route().handler(CorsHandler.create("http://vertx\\.io"));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx\\.io"));
     router.route().handler(context -> context.response().end());
     router.errorHandler(403, handler::accept);
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://foo.io"), resp -> verify(handler).accept(any()), 403, "CORS Rejected - Invalid origin", null);
@@ -113,7 +113,7 @@ public class CORSHandlerTest extends WebTestBase {
   @Test
   public void testAcceptPattern() throws Exception {
     // Any subdomains of vertx.io
-    router.route().handler(CorsHandler.create("http://.*\\.vertx\\.io"));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://.*\\.vertx\\.io"));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://foo.vertx.io"), resp -> checkHeaders(resp, "http://foo.vertx.io", null, null, null), 200, "OK", null);
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://bar.vertx.io"), resp -> checkHeaders(resp, "http://bar.vertx.io", null, null, null), 200, "OK", null);
@@ -123,7 +123,7 @@ public class CORSHandlerTest extends WebTestBase {
   @Test
   public void testAcceptPatternDenied() throws Exception {
     // Any subdomains of vertx.io
-    router.route().handler(CorsHandler.create("http://.*\\.vertx\\.io"));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://.*\\.vertx\\.io"));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://foo.vertx.com"), resp -> checkHeaders(resp, null, null, null, null), 403, "CORS Rejected - Invalid origin", null);
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://barxvertxxio"), resp -> checkHeaders(resp, null, null, null, null), 403, "CORS Rejected - Invalid origin", null);
@@ -132,7 +132,7 @@ public class CORSHandlerTest extends WebTestBase {
   @Test
   public void testPreflightSimple() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
-    router.route().handler(CorsHandler.create("http://vertx\\.io").allowedMethods(allowedMethods));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx\\.io").allowedMethods(allowedMethods));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "http://vertx.io");
@@ -144,7 +144,7 @@ public class CORSHandlerTest extends WebTestBase {
   public void testPreflightAllowedHeaders() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     Set<String> allowedHeaders = new LinkedHashSet<>(Arrays.asList("X-wibble", "X-blah"));
-    router.route().handler(CorsHandler.create("http://vertx\\.io").allowedMethods(allowedMethods).allowedHeaders(allowedHeaders));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx\\.io").allowedMethods(allowedMethods).allowedHeaders(allowedHeaders));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "http://vertx.io");
@@ -157,7 +157,7 @@ public class CORSHandlerTest extends WebTestBase {
   public void testPreflightNoExposeHeaders() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     Set<String> exposeHeaders = new LinkedHashSet<>(Arrays.asList("X-floob", "X-blurp"));
-    router.route().handler(CorsHandler.create("http://vertx\\.io").allowedMethods(allowedMethods).exposedHeaders(exposeHeaders));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx\\.io").allowedMethods(allowedMethods).exposedHeaders(exposeHeaders));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "http://vertx.io");
@@ -171,7 +171,7 @@ public class CORSHandlerTest extends WebTestBase {
   @Test
   public void testPreflightAllowCredentials() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
-    router.route().handler(CorsHandler.create("http://vertx\\.io").allowedMethods(allowedMethods).allowCredentials(true));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx\\.io").allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "http://vertx.io");
@@ -183,7 +183,7 @@ public class CORSHandlerTest extends WebTestBase {
   public void testPreflightAllowCredentialsNoWildcardOrigin() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     // Make sure * isn't returned in access-control-allow-origin for credentials
-    router.route().handler(CorsHandler.create("http://vertx.*").allowedMethods(allowedMethods).allowCredentials(true));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx.*").allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "http://vertx.io");
@@ -195,7 +195,7 @@ public class CORSHandlerTest extends WebTestBase {
   public void testPreflightMaxAge() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     int maxAge = 131233;
-    router.route().handler(CorsHandler.create("http://vertx\\.io").allowedMethods(allowedMethods).maxAgeSeconds(maxAge));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx\\.io").allowedMethods(allowedMethods).maxAgeSeconds(maxAge));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "http://vertx.io");
@@ -206,7 +206,7 @@ public class CORSHandlerTest extends WebTestBase {
   @Test
   public void testRealRequestAllowCredentials() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
-    router.route().handler(CorsHandler.create("http://vertx\\.io").allowedMethods(allowedMethods).allowCredentials(true));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx\\.io").allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://vertx.io"), resp -> checkHeaders(resp, "http://vertx.io", null, null, null, "true", null), 200, "OK", null);
   }
@@ -214,7 +214,7 @@ public class CORSHandlerTest extends WebTestBase {
   @Test
   public void testRealRequestCredentialsNoWildcardOrigin() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
-    router.route().handler(CorsHandler.create("http://vertx.*").allowedMethods(allowedMethods).allowCredentials(true));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx.*").allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://vertx.io"), resp -> checkHeaders(resp, "http://vertx.io", null, null, null, "true", null), 200, "OK", null);
   }
@@ -272,7 +272,7 @@ public class CORSHandlerTest extends WebTestBase {
 
   @Test
   public void testIncludesVaryHeaderForSpecificOrigins() throws Exception {
-    router.route().handler(CorsHandler.create("http://example.com"));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://example.com"));
     router.route().handler(context -> context.response().end());
     testRequest(
       HttpMethod.GET,
@@ -289,7 +289,7 @@ public class CORSHandlerTest extends WebTestBase {
       context.response().putHeader("Vary", "Foo");
       context.next();
     });
-    router.route().handler(CorsHandler.create("http://example.com"));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://example.com"));
     router.route().handler(context -> context.response().end());
     testRequest(
       HttpMethod.GET,
@@ -302,7 +302,7 @@ public class CORSHandlerTest extends WebTestBase {
 
   @Test
   public void testCanSpecifyAllowedHeaders() throws Exception {
-    router.route().handler(CorsHandler.create("http://example.com").allowedHeader("header1").allowedHeader("header2"));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://example.com").allowedHeader("header1").allowedHeader("header2"));
     router.route().handler(context -> context.response().end());
     testRequest(
       HttpMethod.OPTIONS,
@@ -319,7 +319,7 @@ public class CORSHandlerTest extends WebTestBase {
 
   @Test
   public void testMirrorAllowedHeaders() throws Exception {
-    router.route().handler(CorsHandler.create("http://example.com"));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://example.com"));
     router.route().handler(context -> context.response().end());
     testRequest(
       HttpMethod.OPTIONS,
@@ -338,7 +338,7 @@ public class CORSHandlerTest extends WebTestBase {
   public void testMDNExample() throws Exception {
     router.route().handler(
       CorsHandler
-        .create("http://foo.example")
+        .create().addRelativeOrigin("http://foo.example")
         .allowedHeader("X-PINGOTHER")
         .allowedHeader("Content-Type")
         .allowedMethod(HttpMethod.POST)
@@ -515,7 +515,7 @@ public class CORSHandlerTest extends WebTestBase {
 
   @Test
   public void testPreflightAllowPrivateNetwork() throws Exception {
-    router.route().handler(CorsHandler.create("http://vertx.*").allowedMethod(HttpMethod.GET).allowPrivateNetwork(true));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx.*").allowedMethod(HttpMethod.GET).allowPrivateNetwork(true));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "http://vertx.io");
@@ -526,7 +526,7 @@ public class CORSHandlerTest extends WebTestBase {
 
   @Test
   public void testPreflightDenyPrivateNetwork() throws Exception {
-    router.route().handler(CorsHandler.create("http://vertx.*").allowedMethod(HttpMethod.GET).allowPrivateNetwork(false));
+    router.route().handler(CorsHandler.create().addRelativeOrigin("http://vertx.*").allowedMethod(HttpMethod.GET).allowPrivateNetwork(false));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "http://vertx.io");

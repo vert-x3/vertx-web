@@ -551,26 +551,6 @@ public class StaticHandlerImpl implements StaticHandler {
     }
   }
 
-  /**
-   * @deprecated - Use the parameters in constructor
-   */
-  @Override
-  @Deprecated
-  public StaticHandler setAllowRootFileSystemAccess(boolean allowRootFileSystemAccess) {
-    this.allowRootFileSystemAccess = allowRootFileSystemAccess;
-    return this;
-  }
-
-  /**
-   * @deprecated - Use the parameters in constructor
-   */
-  @Override
-  @Deprecated
-  public StaticHandler setWebRoot(String webRoot) {
-    setRoot(webRoot);
-    return this;
-  }
-
   @Override
   public StaticHandler setFilesReadOnly(boolean readOnly) {
     this.filesReadOnly = readOnly;

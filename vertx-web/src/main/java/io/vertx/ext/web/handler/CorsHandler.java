@@ -34,25 +34,6 @@ import java.util.Set;
 public interface CorsHandler extends SecurityPolicyHandler {
 
   /**
-   * @deprecated patterns should use the relative origin method.
-   *
-   * Create a CORS handler using a regular expression to match origins. An origin follows rfc6454#section-7
-   * and is expected to have the format: {@code <scheme> "://" <hostname> [ ":" <port> ]}
-   *
-   * @param allowedOriginPattern  the allowed origin pattern
-   * @return  the handler
-   */
-  @Deprecated
-  static CorsHandler create(String allowedOriginPattern) {
-    // restore old behavior
-    if ("*".equals(allowedOriginPattern)) {
-      allowedOriginPattern = ".*";
-    }
-    return create()
-      .addRelativeOrigin(allowedOriginPattern);
-  }
-
-  /**
    * Create a empty CORS handler that allows {@code *} origin.
    * @return the handler
    */

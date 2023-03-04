@@ -148,7 +148,7 @@ public class ThymeleafTemplateTest {
   @Test
   public void testGetThymeLeafTemplateEngine() {
     ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
-    assertNotNull(engine.getThymeleafTemplateEngine());
+    assertNotNull(engine.unwrap());
   }
 
   @Test

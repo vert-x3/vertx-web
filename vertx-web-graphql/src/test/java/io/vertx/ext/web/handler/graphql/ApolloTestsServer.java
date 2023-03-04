@@ -66,7 +66,7 @@ public class ApolloTestsServer extends AbstractVerticle {
   public void start(Promise<Void> startPromise) throws Exception {
     Router router = Router.router(vertx);
 
-    router.route().handler(CorsHandler.create("*").allowedMethod(GET).allowedMethod(POST));
+    router.route().handler(CorsHandler.create().addOrigin("*").allowedMethod(GET).allowedMethod(POST));
     router.route().handler(BodyHandler.create());
     TestPersistedQueryCache queryCache = new TestPersistedQueryCache();
     router.post("/reset").handler(rc -> {

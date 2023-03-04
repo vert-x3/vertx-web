@@ -28,14 +28,6 @@ import io.vertx.ext.web.handler.impl.ChainAuthHandlerImpl;
 public interface ChainAuthHandler extends AuthenticationHandler {
 
   /**
-   * @deprecated use {@link #any()} instead.
-   */
-  @Deprecated
-  static ChainAuthHandler create() {
-    return any();
-  }
-
-  /**
    * Create a chain authentication handler that will assert that all handlers pass the verification.
    * @return a new chain authentication handler
    */

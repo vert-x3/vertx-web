@@ -29,6 +29,7 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.TokenCredentials;
+import io.vertx.ext.auth.impl.Codec;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2AuthorizationURL;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
@@ -201,33 +202,37 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   }
 
   private String authURI(String redirectURL, String state, String codeVerifier) {
-    final JsonObject config = new JsonObject();
+    final OAuth2AuthorizationURL config = new OAuth2AuthorizationURL();
 
     if (extraParams != null) {
-      config.mergeIn(extraParams);
+      for (Map.Entry<String, Object> entry : extraParams) {
+        if (entry.getValue() != null) {
+          config.putAdditionalParameter(entry.getKey(), entry.getValue().toString());
+        }
+      }
     }
 
     config
-      .put("state", state != null ? state : redirectURL);
+      .setState(state != null ? state : redirectURL);
 
     if (callbackURL != null) {
-      config.put("redirect_uri", callbackURL.href());
+      config.setRedirectUri(callbackURL.href());
     }
 
     if (scopes.size() > 0) {
-      config.put("scopes", scopes);
+      config.setScopes(scopes);
     }
 
     if (prompt != null) {
-      config.put("prompt", prompt);
+      config.putAdditionalParameter("prompt", prompt);
     }
 
     if (codeVerifier != null) {
       synchronized (sha256) {
         sha256.update(codeVerifier.getBytes(StandardCharsets.US_ASCII));
         config
-          .put("code_challenge", sha256.digest())
-          .put("code_challenge_method", "S256");
+          .putAdditionalParameter("code_challenge", Codec.base64UrlEncode(sha256.digest()))
+          .putAdditionalParameter("code_challenge_method", "S256");
       }
     }
 

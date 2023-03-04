@@ -57,7 +57,7 @@ public class LoggerHandlerTest extends WebTestBase {
   @Test
   public void testLogger4() throws Exception {
     final CountDownLatch latch = new CountDownLatch(1);
-    LoggerHandler logger = LoggerHandler.create(true, LoggerFormat.CUSTOM).customFormatter(req -> {
+    LoggerHandler logger = LoggerHandler.create(true, LoggerFormat.CUSTOM).customFormatter((req, ms) -> {
       latch.countDown();
       return "custom log message";
     });

@@ -79,17 +79,6 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
   }
 
   @Override
-  public ThymeleafTemplateEngine setMode(TemplateMode mode) {
-    templateResolver.setTemplateMode(mode);
-    return this;
-  }
-
-  @Override
-  public TemplateEngine getThymeleafTemplateEngine() {
-    return this.templateEngine;
-  }
-
-  @Override
   public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     Buffer buffer = Buffer.buffer();
 

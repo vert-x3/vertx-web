@@ -171,7 +171,10 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testNoLinkPreload() throws Exception {
-    stat.setWebRoot("webroot/somedir3");
+    router.clear();
+    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "webroot/somedir3");
+    router.route().handler(stat);
+
     testRequest(HttpMethod.GET, "/testLinkPreload.html", null, res -> {
       List<String> linkHeaders = res.headers().getAll("Link");
       assertTrue(linkHeaders.isEmpty());
@@ -183,8 +186,12 @@ public class StaticHandlerTest extends WebTestBase {
     List<Http2PushMapping> mappings = new ArrayList<>();
     mappings.add(new Http2PushMapping("style.css", "style", false));
     mappings.add(new Http2PushMapping("coin.png", "image", false));
-    stat.setHttp2PushMapping(mappings)
-      .setWebRoot("webroot/somedir3");
+
+    router.clear();
+    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "webroot/somedir3");
+    router.route().handler(stat);
+
+    stat.setHttp2PushMapping(mappings);
     testRequest(HttpMethod.GET, "/testLinkPreload.html", null, res -> {
       List<String> linkHeaders = res.headers().getAll("Link");
       assertTrue(linkHeaders.contains("<style.css>; rel=preload; as=style"));
@@ -194,7 +201,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testNoHttp2Push() throws Exception {
-    stat.setWebRoot("webroot/somedir3");
+
+    router.clear();
+    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "webroot/somedir3");
     router.route().handler(stat);
 
     vertx.createHttpServer(new HttpServerOptions()
@@ -232,9 +241,13 @@ public class StaticHandlerTest extends WebTestBase {
     List<Http2PushMapping> mappings = new ArrayList<>();
     mappings.add(new Http2PushMapping("style.css", "style", false));
     mappings.add(new Http2PushMapping("coin.png", "image", false));
-    stat.setHttp2PushMapping(mappings)
-      .setWebRoot("webroot/somedir3");
+
+
+    router.clear();
+    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "webroot/somedir3");
     router.route().handler(stat);
+
+    stat.setHttp2PushMapping(mappings);
 
     CountDownLatch latch = new CountDownLatch(2);
 
@@ -447,13 +460,19 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testServeFilesFromFilesystem() throws Exception {
-    stat.setWebRoot("src/test/filesystemwebroot");
+    router.clear();
+    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "src/test/filesystemwebroot");
+    router.route().handler(stat);
+
     testRequest(HttpMethod.GET, "/fspage.html", 200, "OK", "<html><body>File system page</body></html>");
   }
 
   @Test
   public void testServeFilesFromFilesystemWithSpaces() throws Exception {
-    stat.setWebRoot("src/test/filesystemwebroot");
+    router.clear();
+    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "src/test/filesystemwebroot");
+    router.route().handler(stat);
+
     testRequest(HttpMethod.GET, "/file%20with%20spaces2.html", 200, "OK", "<html><body>File with spaces</body></html>");
   }
 
@@ -483,8 +502,11 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testCacheFilesNotReadOnly() throws Exception {
+    router.clear();
+    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "src/test/filesystemwebroot");
+    router.route().handler(stat);
+
     stat.setFilesReadOnly(false);
-    stat.setWebRoot("src/test/filesystemwebroot");
     long modified = Utils.secondsFactor(new File("src/test/filesystemwebroot", "fspage.html").lastModified());
     testRequest(HttpMethod.GET, "/fspage.html", null, res -> {
       String lastModified = res.headers().get("last-modified");
@@ -495,8 +517,11 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testCacheFilesEntryCached() throws Exception {
+    router.clear();
+    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "src/test/filesystemwebroot");
+    router.route().handler(stat);
+
     stat.setFilesReadOnly(false);
-    stat.setWebRoot("src/test/filesystemwebroot");
     File resource = new File("src/test/filesystemwebroot", "fspage.html");
     long modified = resource.lastModified();
     testRequest(HttpMethod.GET, "/fspage.html", null, res -> {
@@ -516,8 +541,11 @@ public class StaticHandlerTest extends WebTestBase {
     String html = new String(Files.readAllBytes(resource.toPath()));
     int cacheEntryTimeout = 100;
 
+    router.clear();
+    stat = StaticHandler.create(FileSystemAccess.RELATIVE, webroot);
+    router.route().handler(stat);
+
     stat.setFilesReadOnly(false);
-    stat.setWebRoot(webroot);
     stat.setCacheEntryTimeout(cacheEntryTimeout);
 
     long modified = Utils.secondsFactor(resource.lastModified());
@@ -549,8 +577,11 @@ public class StaticHandlerTest extends WebTestBase {
     }
     String page = '/' + pageFile.getName();
 
+    router.clear();
+    stat = StaticHandler.create(FileSystemAccess.RELATIVE, webroot.getPath());
+    router.route().handler(stat);
+
     stat.setFilesReadOnly(false);
-    stat.setWebRoot(webroot.getPath());
     stat.setCacheEntryTimeout(3600 * 1000);
 
     long modified = Utils.secondsFactor(pageFile.lastModified());
@@ -856,7 +887,7 @@ public class StaticHandlerTest extends WebTestBase {
       // expected
     }
 
-    stat = StaticHandler.create().setAllowRootFileSystemAccess(true).setWebRoot(file.getParent());
+    stat = StaticHandler.create(FileSystemAccess.ROOT, file.getParent());
     router.route().handler(stat);
 
     testRequest(HttpMethod.GET, "/" + file.getName(), 200, "OK", "");
@@ -870,7 +901,7 @@ public class StaticHandlerTest extends WebTestBase {
     file.deleteOnExit();
 
     // remap stat to the temp dir
-    stat = StaticHandler.create().setWebRoot(file.getParent());
+    stat = StaticHandler.create(FileSystemAccess.RELATIVE, file.getParent());
   }
 
   @Test

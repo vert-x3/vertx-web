@@ -3569,6 +3569,7 @@ public class RouterTest extends WebTestBase {
         // 8192 * 8 fills the HTTP server request pending queue
         // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
         req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
+          assertEquals(200, resp.statusCode());
           complete();
         }));
       }));

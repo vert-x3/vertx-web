@@ -57,15 +57,4 @@ public interface JadeTemplateEngine extends TemplateEngine {
   static JadeTemplateEngine create(Vertx vertx, String extension) {
     return new JadeTemplateEngineImpl(vertx, extension);
   }
-
-  /**
-   * @deprecated see {@link #unwrap()}
-   * Get a reference to the internal JadeConfiguration object so it
-   * can be configured.
-   *
-   * @return a reference to the internal JadeConfiguration instance.
-   */
-  @GenIgnore
-  @Deprecated
-  JadeConfiguration getJadeConfiguration();
 }

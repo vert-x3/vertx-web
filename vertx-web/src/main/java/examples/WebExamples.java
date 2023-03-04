@@ -909,7 +909,8 @@ public class WebExamples {
     // Will only accept GET requests from origin "vertx.io"
     router.route()
       .handler(
-        CorsHandler.create("vertx\\.io")
+        CorsHandler.create()
+          .addRelativeOrigin("vertx\\.io")
           .allowedMethod(HttpMethod.GET));
 
     router.route().handler(ctx -> {
