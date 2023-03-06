@@ -233,9 +233,9 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
             Match curMatch = checkMatches(false, address, msg.body());
             if (curMatch.doesMatch) {
               if (curMatch.requiredAuthority != null) {
-                authorise(curMatch, sock.webUser(), res -> {
-                  if (res.succeeded()) {
-                    if (res.result()) {
+                authorise(curMatch, sock.webUser())
+                  .onSuccess(ok -> {
+                    if (ok) {
                       checkAddAccceptedReplyAddress(msg);
                       deliverMessage(sock, address, msg);
                     } else {
@@ -243,10 +243,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
                         LOG.debug("Outbound message for address " + address + " rejected because auth is required and socket is not authed");
                       }
                     }
-                  } else {
-                    LOG.error(res.cause());
-                  }
-                });
+                  })
+                  .onFailure(LOG::error);
 
               } else {
                 checkAddAccceptedReplyAddress(msg);
@@ -440,9 +438,9 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       if (curMatch.requiredAuthority != null) {
         User webUser = sock.webUser();
         if (webUser != null) {
-          authorise(curMatch, webUser, res -> {
-            if (res.succeeded()) {
-              if (res.result()) {
+          authorise(curMatch, webUser)
+            .onSuccess(ok -> {
+              if (ok) {
                 checkAndSend(send, address, body, headers, sock, replyAddress, awaitingReply);
               } else {
                 replyError(sock, "access_denied");
@@ -450,11 +448,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
                   LOG.debug("Inbound message for address " + address + " rejected because is not authorised");
                 }
               }
-            } else {
+            })
+            .onFailure(err -> {
               replyError(sock, "auth_error");
-              LOG.error("Error in performing authorization", res.cause());
-            }
-          });
+              LOG.error("Error in performing authorization", err);
+            });
         } else {
           // no web session
           replyError(sock, "not_logged_in");
@@ -545,31 +543,21 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
   }
 
-  private void authorise(Match curMatch, User webUser, Handler<AsyncResult<Boolean>> handler) {
+  private Future<Boolean> authorise(Match curMatch, User webUser) {
     // step 1: match against the raw user, if a AuthZ handler is in the path it could have already
     //         loaded the authorizations
     if (curMatch.requiredAuthority.match(webUser)) {
-      handler.handle(Future.succeededFuture(true));
-      return;
+      return Future.succeededFuture(true);
     }
 
     if (authzProvider == null) {
       // can't load, there's no provider
-      handler.handle(Future.succeededFuture(false));
-      return;
+      return Future.succeededFuture(false);
     }
     // step 2: load authorizations
-    authzProvider.getAuthorizations(webUser, res -> {
-      if (res.succeeded()) {
-        if (curMatch.requiredAuthority.match(webUser)) {
-          handler.handle(Future.succeededFuture(true));
-        } else {
-          handler.handle(Future.succeededFuture(false));
-        }
-      } else {
-        handler.handle(Future.failedFuture(res.cause()));
-      }
-    });
+    return authzProvider
+      .getAuthorizations(webUser)
+      .map(res -> curMatch.requiredAuthority.match(webUser));
   }
 
   /*

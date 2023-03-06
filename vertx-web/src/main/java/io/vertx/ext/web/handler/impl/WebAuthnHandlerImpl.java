@@ -180,7 +180,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
 
   private void mountRegister() {
     register
-    // force a post if otherwise
+      // force a post if otherwise
       .method(HttpMethod.POST)
       .order(order - 1)
       .handler(ctx -> {
@@ -202,21 +202,16 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
               return;
             }
 
-            authProvider.createCredentialsOptions(webauthnRegister, createCredentialsOptions -> {
-              if (createCredentialsOptions.failed()) {
-                ctx.fail(createCredentialsOptions.cause());
-                return;
-              }
+            authProvider.createCredentialsOptions(webauthnRegister)
+              .onFailure(ctx::fail)
+              .onSuccess(credentialsOptions -> {
+                // save challenge to the session
+                session
+                  .put("challenge", credentialsOptions.getString("challenge"))
+                  .put("username", webauthnRegister.getString("name"));
 
-              final JsonObject credentialsOptions = createCredentialsOptions.result();
-
-              // save challenge to the session
-              session
-                .put("challenge", credentialsOptions.getString("challenge"))
-                .put("username", webauthnRegister.getString("name"));
-
-              ok(ctx, credentialsOptions);
-            });
+                ok(ctx, credentialsOptions);
+              });
           }
         } catch (IllegalArgumentException e) {
           ctx.fail(400, e);
@@ -228,7 +223,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
 
   private void mountLogin() {
     login
-    // force a post if otherwise
+      // force a post if otherwise
       .method(HttpMethod.POST)
       .order(order - 1)
       .handler(ctx -> {
@@ -247,20 +242,15 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
           }
 
           // STEP 18 Generate assertion
-          authProvider.getCredentialsOptions(username, generateServerGetAssertion -> {
-            if (generateServerGetAssertion.failed()) {
-              ctx.fail(generateServerGetAssertion.cause());
-              return;
-            }
+          authProvider.getCredentialsOptions(username)
+            .onFailure(ctx::fail)
+            .onSuccess(getAssertion -> {
+              session
+                .put("challenge", getAssertion.getString("challenge"))
+                .put("username", username);
 
-            final JsonObject getAssertion = generateServerGetAssertion.result();
-
-            session
-              .put("challenge", getAssertion.getString("challenge"))
-              .put("username", username);
-
-            ok(ctx, getAssertion);
-          });
+              ok(ctx, getAssertion);
+            });
         } catch (IllegalArgumentException e) {
           ctx.fail(400, e);
         } catch (RuntimeException e) {
@@ -271,7 +261,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
 
   private void mountResponse() {
     response
-    // force a post if otherwise
+      // force a post if otherwise
       .method(HttpMethod.POST)
       .order(order - 1)
       .handler(ctx -> {
@@ -302,32 +292,26 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
           }
 
           authProvider.authenticate(
-            // authInfo
-            new WebAuthnCredentials()
-              .setOrigin(origin)
-              .setDomain(domain)
-              .setChallenge(session.get("challenge"))
-              .setUsername(session.get("username"))
-              .setWebauthn(webauthnResp), authenticate -> {
-
-              // invalidate the challenge
-              session.remove("challenge");
-
-              if (authenticate.succeeded()) {
-                final User user = authenticate.result();
-                // save the user into the context
-                ctx.setUser(user);
-                // the user has upgraded from unauthenticated to authenticated
-                // session should be upgraded as recommended by owasp
-                session.regenerateId();
-                ok(ctx);
+              // authInfo
+              new WebAuthnCredentials()
+                .setOrigin(origin)
+                .setDomain(domain)
+                .setChallenge(session.remove("challenge"))
+                .setUsername(session.get("username"))
+                .setWebauthn(webauthnResp))
+            .onSuccess(user -> {
+              // save the user into the context
+              ctx.setUser(user);
+              // the user has upgraded from unauthenticated to authenticated
+              // session should be upgraded as recommended by owasp
+              session.regenerateId();
+              ok(ctx);
+            })
+            .onFailure(cause -> {
+              if (cause instanceof AttestationException) {
+                ctx.fail(400, cause);
               } else {
-                Throwable cause = authenticate.cause();
-                if (cause instanceof AttestationException) {
-                  ctx.fail(400, cause);
-                } else {
-                  ctx.fail(cause);
-                }
+                ctx.fail(cause);
               }
             });
         } catch (IllegalArgumentException e) {
