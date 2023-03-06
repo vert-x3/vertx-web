@@ -21,7 +21,6 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
@@ -50,7 +49,8 @@ public interface TemplateEngine {
    */
   @Deprecated
   default void render(JsonObject context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
-    render(context.getMap(), templateFileName, handler);
+    render(context, templateFileName)
+      .onComplete(handler);
   }
 
   /**
@@ -59,9 +59,7 @@ public interface TemplateEngine {
    * @param templateFileName  the template file name to use
    */
   default Future<Buffer> render(JsonObject context, String templateFileName) {
-    Promise<Buffer> promise = Promise.promise();
-    render(context, templateFileName, promise);
-    return promise.future();
+    return render(context.getMap(), templateFileName);
   }
 
   /**
@@ -77,7 +75,10 @@ public interface TemplateEngine {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   @Deprecated
-  void render(Map<String, Object> context, String templateFileName, Handler<AsyncResult<Buffer>> handler);
+  default void render(Map<String, Object> context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    render(context, templateFileName)
+      .onComplete(handler);
+  }
 
   /**
    * @see TemplateEngine#render(Map, String, Handler)
@@ -85,11 +86,7 @@ public interface TemplateEngine {
    * @param templateFileName  the template file name to use
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  default Future<Buffer> render(Map<String, Object> context, String templateFileName) {
-    Promise<Buffer> promise = Promise.promise();
-    render(context, templateFileName, promise);
-    return promise.future();
-  }
+  Future<Buffer> render(Map<String, Object> context, String templateFileName);
 
   /**
    * Returns the underlying engine, so further configurations or customizations may be applied.

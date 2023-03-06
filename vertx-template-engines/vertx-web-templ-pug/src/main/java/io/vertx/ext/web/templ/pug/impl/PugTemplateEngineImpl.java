@@ -19,9 +19,7 @@ package io.vertx.ext.web.templ.pug.impl;
 import de.neuland.pug4j.PugConfiguration;
 import de.neuland.pug4j.template.PugTemplate;
 import de.neuland.pug4j.template.TemplateLoader;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
@@ -69,7 +67,7 @@ public class PugTemplateEngineImpl extends CachingTemplateEngine<PugTemplate> im
   }
 
   @Override
-  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public Future<Buffer> render(Map<String, Object> context, String templateFile) {
     try {
       String src = adjustLocation(templateFile);
       TemplateHolder<PugTemplate> template = getTemplate(src);
@@ -81,9 +79,9 @@ public class PugTemplateEngineImpl extends CachingTemplateEngine<PugTemplate> im
         }
         putTemplate(src, template);
       }
-      handler.handle(Future.succeededFuture(Buffer.buffer(config.renderTemplate(template.template(), context))));
+      return Future.succeededFuture(Buffer.buffer(config.renderTemplate(template.template(), context)));
     } catch (Exception ex) {
-      handler.handle(Future.failedFuture(ex));
+      return Future.failedFuture(ex);
     }
   }
 

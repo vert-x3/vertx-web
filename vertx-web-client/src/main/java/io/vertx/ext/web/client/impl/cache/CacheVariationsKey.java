@@ -18,8 +18,6 @@ package io.vertx.ext.web.client.impl.cache;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.ext.web.client.HttpRequest;
-import io.vertx.ext.web.client.impl.HttpRequestImpl;
 
 import java.util.List;
 import java.util.Map;

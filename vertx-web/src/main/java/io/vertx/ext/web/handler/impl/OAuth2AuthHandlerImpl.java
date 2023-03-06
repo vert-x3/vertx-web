@@ -16,9 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -120,22 +118,16 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   }
 
   @Override
-  public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
+  public Future<User> authenticate(RoutingContext context) {
     // when the handler is working as bearer only, then the `Authorization` header is required
-    parseAuthorization(context, !bearerOnly, parseAuthorization -> {
-      if (parseAuthorization.failed()) {
-        handler.handle(Future.failedFuture(parseAuthorization.cause()));
-        return;
-      }
+    return parseAuthorization(context, !bearerOnly)
+      .compose(token -> {
       // Authorization header can be null when in not in bearerOnly mode
-      final String token = parseAuthorization.result();
-
       if (token == null) {
         // redirect request to the oauth2 server as we know nothing about this request
         if (bearerOnly) {
           // it's a failure both cases but the cause is not the same
-          handler.handle(Future.failedFuture("callback route is not configured."));
-          return;
+          return Future.failedFuture("callback route is not configured.");
         }
         // when this handle is mounted as a catch all, the callback route must be configured before,
         // as it would shade the callback route. When a request matches the callback path and has the
@@ -143,13 +135,12 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         // an infinite redirect loop. In this case an exception must be raised.
         if (context.request().method() == HttpMethod.GET && context.normalizedPath().equals(callbackURL.resource())) {
           LOG.warn("The callback route is shaded by the OAuth2AuthHandler, ensure the callback route is added BEFORE the OAuth2AuthHandler route!");
-          handler.handle(Future.failedFuture(new HttpException(500, "Infinite redirect loop [oauth2 callback]")));
+          return Future.failedFuture(new HttpException(500, "Infinite redirect loop [oauth2 callback]"));
         } else {
           if (context.request().method() != HttpMethod.GET) {
             // we can only redirect GET requests
             LOG.error("OAuth2 redirect attempt to non GET resource");
-            context.fail(405, new IllegalStateException("OAuth2 redirect attempt to non GET resource"));
-            return;
+            return Future.failedFuture(new HttpException(405, new IllegalStateException("OAuth2 redirect attempt to non GET resource")));
           }
 
           // the redirect is processed as a failure to abort the chain
@@ -162,8 +153,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
           if (session == null) {
             if (pkce > 0) {
               // we can only handle PKCE with a session
-              context.fail(500, new IllegalStateException("OAuth2 PKCE requires a session to be present"));
-              return;
+              return Future.failedFuture(new HttpException(500, new IllegalStateException("OAuth2 PKCE requires a session to be present")));
             }
           } else {
             // there's a session we can make this request comply to the Oauth2 spec and add an opaque state
@@ -183,20 +173,15 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
                 .put("pkce", codeVerifier);
             }
           }
-          handler.handle(Future.failedFuture(new HttpException(302, authURI(redirectUri, state, codeVerifier))));
+          return Future.failedFuture(new HttpException(302, authURI(redirectUri, state, codeVerifier)));
         }
       } else {
         // continue
         final Credentials credentials =
           scopes.size() > 0 ? new TokenCredentials(token).setScopes(scopes) : new TokenCredentials(token);
 
-        authProvider.authenticate(credentials, authn -> {
-          if (authn.failed()) {
-            handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
-          } else {
-            handler.handle(authn);
-          }
-        });
+        return authProvider.authenticate(credentials)
+          .recover(err -> Future.failedFuture(new HttpException(401, err)));
       }
     });
   }

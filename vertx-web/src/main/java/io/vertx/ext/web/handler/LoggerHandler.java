@@ -17,10 +17,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.handler.impl.LoggerHandlerImpl;
-
-import java.util.function.Function;
 
 /**
  * A handler which logs request information to the Vert.x logger.

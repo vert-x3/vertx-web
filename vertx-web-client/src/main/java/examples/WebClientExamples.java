@@ -42,7 +42,6 @@ import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.uritemplate.ExpandOptions;
 import io.vertx.uritemplate.UriTemplate;
-import io.vertx.uritemplate.Variables;
 
 import java.util.HashMap;
 import java.util.Map;

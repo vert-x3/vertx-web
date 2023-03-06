@@ -16,8 +16,6 @@
 
 package io.vertx.ext.web.templ.thymeleaf;
 
-import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.common.template.TemplateEngine;

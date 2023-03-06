@@ -19,9 +19,7 @@ package io.vertx.ext.web.templ.jte.impl;
 import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.output.Utf8ByteOutput;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.templ.jte.JteTemplateEngine;
@@ -64,13 +62,13 @@ public class JteTemplateEngineImpl implements JteTemplateEngine {
   }
 
   @Override
-  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public Future<Buffer> render(Map<String, Object> context, String templateFile) {
     try {
       Utf8ByteOutput output = new Utf8ByteOutput();
       templateEngine.render(templateFile, context, output);
-      handler.handle(Future.succeededFuture(JteBufferUtil.toBuffer(output)));
+      return Future.succeededFuture(JteBufferUtil.toBuffer(output));
     } catch (RuntimeException ex) {
-      handler.handle(Future.failedFuture(ex));
+      return Future.failedFuture(ex);
     }
   }
 

@@ -15,9 +15,7 @@
  */
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
@@ -54,22 +52,21 @@ public class TotpAuthHandlerImpl extends AuthenticationHandlerImpl<TotpAuth> imp
   }
 
   @Override
-  public void authenticate(RoutingContext ctx, Handler<AsyncResult<User>> handler) {
+  public Future<User> authenticate(RoutingContext ctx) {
     if (verify == null) {
-      handler.handle(Future.failedFuture(new HttpException(500, new IllegalStateException("No callback mounted!"))));
-      return;
+      return Future.failedFuture(new HttpException(500, new IllegalStateException("No callback mounted!")));
     }
 
     final User user = ctx.user();
 
     if (user == null) {
-      handler.handle(Future.failedFuture(new HttpException(401)));
+      return Future.failedFuture(new HttpException(401));
     } else {
       Boolean userOtp = user.get("mfa");
       // user hasn't 2fa yet?
       if (userOtp == null || !userOtp) {
         if (verifyUrl == null) {
-          handler.handle(Future.failedFuture(new HttpException(401, "User TOTP verification missing")));
+          return Future.failedFuture(new HttpException(401, "User TOTP verification missing"));
         } else {
           final Session session = ctx.session();
           if (session != null) {
@@ -78,10 +75,10 @@ public class TotpAuthHandlerImpl extends AuthenticationHandlerImpl<TotpAuth> imp
               .put("redirect_uri", uri);
           }
 
-          handler.handle(Future.failedFuture(new HttpException(302, verifyUrl)));
+          return Future.failedFuture(new HttpException(302, verifyUrl));
         }
       } else {
-        handler.handle(Future.succeededFuture(ctx.user()));
+        return Future.succeededFuture(ctx.user());
       }
     }
   }

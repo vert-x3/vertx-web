@@ -16,9 +16,7 @@
 
 package io.vertx.ext.web.templ.thymeleaf.impl;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.WebEnvironment;
@@ -27,7 +25,6 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.IContext;
 import org.thymeleaf.context.IExpressionContext;
 import org.thymeleaf.linkbuilder.StandardLinkBuilder;
-import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.StringTemplateResolver;
 import org.thymeleaf.templateresource.ITemplateResource;
 import org.thymeleaf.templateresource.StringTemplateResource;
@@ -79,7 +76,7 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
   }
 
   @Override
-  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public Future<Buffer> render(Map<String, Object> context, String templateFile) {
     Buffer buffer = Buffer.buffer();
 
     try {
@@ -100,9 +97,9 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
         });
       }
 
-      handler.handle(Future.succeededFuture(buffer));
+      return Future.succeededFuture(buffer);
     } catch (Exception ex) {
-      handler.handle(Future.failedFuture(ex));
+      return Future.failedFuture(ex);
     }
   }
 

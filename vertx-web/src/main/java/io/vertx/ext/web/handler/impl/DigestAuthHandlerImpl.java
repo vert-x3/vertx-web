@@ -16,9 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -99,7 +97,7 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
   }
 
   @Override
-  public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
+  public Future<User> authenticate(RoutingContext context) {
     // clean up nonce
     long now = System.currentTimeMillis();
     if (now - lastExpireRun > nonceExpireTimeout / 2) {
@@ -116,113 +114,101 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
       lastExpireRun = now;
     }
 
-    parseAuthorization(context, parseAuthorization -> {
-      if (parseAuthorization.failed()) {
-        handler.handle(Future.failedFuture(parseAuthorization.cause()));
-        return;
-      }
+    return parseAuthorization(context)
+      .compose(header -> {
+        final HtdigestCredentials authInfo = new HtdigestCredentials();
 
-      final HtdigestCredentials authInfo = new HtdigestCredentials();
+        try {
+          // Split the parameters by comma.
+          String[] tokens = SPLITTER.split(header);
+          // Parse parameters.
+          int i = 0;
+          int len = tokens.length;
 
-      try {
-        // Split the parameters by comma.
-        String[] tokens = SPLITTER.split(parseAuthorization.result());
-        // Parse parameters.
-        int i = 0;
-        int len = tokens.length;
-
-        while (i < len) {
-          // Strip quotes and whitespace.
-          Matcher m = PARSER.matcher(tokens[i]);
-          if (m.find()) {
-            switch (m.group(1)) {
-              case "algorithm":
-                authInfo.setAlgorithm(m.group(2));
-                break;
-              case "cnonce":
-                authInfo.setCnonce(m.group(2));
-                break;
-              case "method":
-                authInfo.setMethod(m.group(2));
-                break;
-              case "nc":
-                authInfo.setNc(m.group(2));
-                break;
-              case "nonce":
-                authInfo.setNonce(m.group(2));
-                break;
-              case "opaque":
-                authInfo.setOpaque(m.group(2));
-                break;
-              case "qop":
-                authInfo.setQop(m.group(2));
-                break;
-              case "realm":
-                authInfo.setRealm(m.group(2));
-                break;
-              case "response":
-                authInfo.setResponse(m.group(2));
-                break;
-              case "uri":
-                authInfo.setUri(m.group(2));
-                break;
-              case "username":
-                authInfo.setUsername(m.group(2));
-                break;
-              default:
-                LOG.info("Uknown parameter: " + m.group(1));
+          while (i < len) {
+            // Strip quotes and whitespace.
+            Matcher m = PARSER.matcher(tokens[i]);
+            if (m.find()) {
+              switch (m.group(1)) {
+                case "algorithm":
+                  authInfo.setAlgorithm(m.group(2));
+                  break;
+                case "cnonce":
+                  authInfo.setCnonce(m.group(2));
+                  break;
+                case "method":
+                  authInfo.setMethod(m.group(2));
+                  break;
+                case "nc":
+                  authInfo.setNc(m.group(2));
+                  break;
+                case "nonce":
+                  authInfo.setNonce(m.group(2));
+                  break;
+                case "opaque":
+                  authInfo.setOpaque(m.group(2));
+                  break;
+                case "qop":
+                  authInfo.setQop(m.group(2));
+                  break;
+                case "realm":
+                  authInfo.setRealm(m.group(2));
+                  break;
+                case "response":
+                  authInfo.setResponse(m.group(2));
+                  break;
+                case "uri":
+                  authInfo.setUri(m.group(2));
+                  break;
+                case "username":
+                  authInfo.setUsername(m.group(2));
+                  break;
+                default:
+                  LOG.info("Uknown parameter: " + m.group(1));
+              }
             }
+
+            ++i;
           }
 
-          ++i;
-        }
+          final String nonce = authInfo.getNonce();
 
-        final String nonce = authInfo.getNonce();
-
-        // check for expiration
-        if (!nonces.containsKey(nonce)) {
-          handler.handle(Future.failedFuture(UNAUTHORIZED));
-          return;
-        }
-
-        // check for nonce counter (prevent replay attack)
-        if (authInfo.getQop() != null) {
-          int nc = Integer.parseInt(authInfo.getNc(), 16);
-          final Nonce n = nonces.get(nonce);
-          if (nc <= n.count) {
-            handler.handle(Future.failedFuture(UNAUTHORIZED));
-            return;
+          // check for expiration
+          if (!nonces.containsKey(nonce)) {
+            return Future.failedFuture(UNAUTHORIZED);
           }
-          // update the nounce count
-          nonces.put(nonce, new Nonce(n.createdAt, nc));
+
+          // check for nonce counter (prevent replay attack)
+          if (authInfo.getQop() != null) {
+            int nc = Integer.parseInt(authInfo.getNc(), 16);
+            final Nonce n = nonces.get(nonce);
+            if (nc <= n.count) {
+              return Future.failedFuture(UNAUTHORIZED);
+            }
+            // update the nounce count
+            nonces.put(nonce, new Nonce(n.createdAt, nc));
+          }
+
+        } catch (RuntimeException e) {
+          return Future.failedFuture(e);
         }
 
-      } catch (RuntimeException e) {
-        handler.handle(Future.failedFuture(e));
-        return;
-      }
-
-      // validate the opaque value
-      final Session session = context.session();
-      if (session != null) {
-        String opaque = (String) session.data().get("opaque");
-        if (opaque != null && !opaque.equals(authInfo.getOpaque())) {
-          handler.handle(Future.failedFuture(UNAUTHORIZED));
-          return;
+        // validate the opaque value
+        final Session session = context.session();
+        if (session != null) {
+          String opaque = (String) session.data().get("opaque");
+          if (opaque != null && !opaque.equals(authInfo.getOpaque())) {
+            return Future.failedFuture(UNAUTHORIZED);
+          }
         }
-      }
 
-      // we now need to pass some extra info
-      authInfo.setMethod(context.request().method().name());
+        // we now need to pass some extra info
+        authInfo.setMethod(context.request().method().name());
 
-      authProvider.authenticate(authInfo, authn -> {
-        if (authn.failed()) {
-          handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
-        } else {
-          handler.handle(authn);
-        }
+        return authProvider
+          .authenticate(authInfo)
+          .recover(err -> Future.failedFuture(new HttpException(401, err)));
       });
-    });
   }
 
   @Override

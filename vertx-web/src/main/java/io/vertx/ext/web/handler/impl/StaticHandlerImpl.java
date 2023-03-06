@@ -36,9 +36,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.file.FileProps;
 import io.vertx.core.file.FileSystem;
@@ -118,21 +116,11 @@ public class StaticHandlerImpl implements StaticHandler {
     this.setRoot(staticRootDirectory != null ? staticRootDirectory : DEFAULT_WEB_ROOT);
   }
 
-  /**
-   * Default constructor with DEFAULT_WEB_ROOT and
-   * relative file access only
-   */
-  public StaticHandlerImpl() {
-
-    this.allowRootFileSystemAccess = false;
-    this.setRoot(DEFAULT_WEB_ROOT);
-  }
-
   private String directoryTemplate(FileSystem fileSystem) {
     if (directoryTemplate == null) {
       directoryTemplate = fileSystem
-          .readFileBlocking(directoryTemplateResource)
-          .toString(StandardCharsets.UTF_8);
+        .readFileBlocking(directoryTemplateResource)
+        .toString(StandardCharsets.UTF_8);
     }
     return directoryTemplate;
   }
@@ -190,12 +178,12 @@ public class StaticHandlerImpl implements StaticHandler {
       FileSystem fs = context.vertx().fileSystem();
 
       sendStatic(
-          context,
-          fs,
-          path,
-          // only root is known for sure to be a directory. all other directories must be
-          // identified as such.
-          !directoryListing && "/".equals(path));
+        context,
+        fs,
+        path,
+        // only root is known for sure to be a directory. all other directories must be
+        // identified as such.
+        !directoryListing && "/".equals(path));
     }
   }
 
@@ -243,8 +231,8 @@ public class StaticHandlerImpl implements StaticHandler {
 
         if (Utils.fresh(context, lastModified)) {
           context.response()
-              .setStatusCode(NOT_MODIFIED.code())
-              .end();
+            .setStatusCode(NOT_MODIFIED.code())
+            .end();
           return;
         }
       }
@@ -270,75 +258,73 @@ public class StaticHandlerImpl implements StaticHandler {
 
     // verify if the file exists
     fileSystem
-        .exists(localFile, exists -> {
-          if (exists.failed()) {
-            if (!context.request().isEnded()) {
-              context.request().resume();
-            }
-            context.fail(exists.cause());
-            return;
+      .exists(localFile)
+      .onFailure(err -> {
+        if (!context.request().isEnded()) {
+          context.request().resume();
+        }
+        context.fail(err);
+      })
+      .onSuccess(exists -> {
+        // file does not exist, continue...
+        if (!exists) {
+          if (cache.enabled()) {
+            cache.put(path, null);
           }
-
-          // file does not exist, continue...
-          if (!exists.result()) {
-            if (cache.enabled()) {
-              cache.put(path, null);
-            }
-            if (!context.request().isEnded()) {
-              context.request().resume();
-            }
-            context.next();
-            return;
+          if (!context.request().isEnded()) {
+            context.request().resume();
           }
+          context.next();
+          return;
+        }
 
-          // Need to read the props from the filesystem
-          getFileProps(fileSystem, localFile, res -> {
-            if (res.succeeded()) {
-              FileProps fprops = res.result();
-              if (fprops == null) {
-                // File does not exist
-                if (dirty) {
-                  cache.remove(path);
+        // Need to read the props from the filesystem
+        getFileProps(fileSystem, localFile)
+          .onSuccess(fprops -> {
+            if (fprops == null) {
+              // File does not exist
+              if (dirty) {
+                cache.remove(path);
+              }
+              if (!context.request().isEnded()) {
+                context.request().resume();
+              }
+              context.next();
+            } else if (fprops.isDirectory()) {
+              if (index) {
+                // file does not exist (well it exists but it's a directory), continue...
+                if (cache.enabled()) {
+                  cache.put(path, null);
                 }
                 if (!context.request().isEnded()) {
                   context.request().resume();
                 }
                 context.next();
-              } else if (fprops.isDirectory()) {
-                if (index) {
-                  // file does not exist (well it exists but it's a directory), continue...
-                  if (cache.enabled()) {
-                    cache.put(path, null);
-                  }
-                  if (!context.request().isEnded()) {
-                    context.request().resume();
-                  }
-                  context.next();
-                } else {
-                  if (dirty) {
-                    cache.remove(path);
-                  }
-                  sendDirectory(context, fileSystem, path, localFile);
-                }
               } else {
-                if (cache.enabled()) {
-                  cache.put(path, fprops);
-
-                  if (Utils.fresh(context, Utils.secondsFactor(fprops.lastModifiedTime()))) {
-                    context.response().setStatusCode(NOT_MODIFIED.code()).end();
-                    return;
-                  }
+                if (dirty) {
+                  cache.remove(path);
                 }
-                sendFile(context, fileSystem, localFile, fprops);
+                sendDirectory(context, fileSystem, path, localFile);
               }
             } else {
-              if (!context.request().isEnded()) {
-                context.request().resume();
+              if (cache.enabled()) {
+                cache.put(path, fprops);
+
+                if (Utils.fresh(context, Utils.secondsFactor(fprops.lastModifiedTime()))) {
+                  context.response().setStatusCode(NOT_MODIFIED.code()).end();
+                  return;
+                }
               }
-              context.fail(res.cause());
+              sendFile(context, fileSystem, localFile, fprops);
             }
+          })
+          .onFailure(err -> {
+            if (!context.request().isEnded()) {
+              context.request().resume();
+            }
+            context.fail(err);
           });
-        });
+      });
   }
 
   /**
@@ -349,9 +335,9 @@ public class StaticHandlerImpl implements StaticHandler {
     // the user is requesting a directory (ends with /)
     if (!path.endsWith("/")) {
       context.response()
-          .putHeader(HttpHeaders.LOCATION, path + "/")
-          .setStatusCode(301)
-          .end();
+        .putHeader(HttpHeaders.LOCATION, path + "/")
+        .setStatusCode(301)
+        .end();
       return;
     }
 
@@ -369,9 +355,9 @@ public class StaticHandlerImpl implements StaticHandler {
     }
   }
 
-  private void getFileProps(FileSystem fileSystem, String file, Handler<AsyncResult<FileProps>> resultHandler) {
+  private Future<FileProps> getFileProps(FileSystem fileSystem, String file) {
     if (tune.useAsyncFS()) {
-      fileSystem.props(file, resultHandler);
+      return fileSystem.props(file);
     } else {
       // Use synchronous access - it might well be faster!
       try {
@@ -381,9 +367,9 @@ public class StaticHandlerImpl implements StaticHandler {
         if (tuneEnabled) {
           tune.update(start, System.nanoTime());
         }
-        resultHandler.handle(Future.succeededFuture(props));
+        return Future.succeededFuture(props);
       } catch (RuntimeException e) {
-        resultHandler.handle(Future.failedFuture(e.getCause()));
+        return Future.failedFuture(e.getCause());
       }
     }
   }
@@ -469,14 +455,13 @@ public class StaticHandlerImpl implements StaticHandler {
           }
         }
 
-        response.sendFile(file, finalOffset, finalLength, res2 -> {
-          if (res2.failed()) {
+        response.sendFile(file, finalOffset, finalLength)
+          .onFailure(err -> {
             if (!context.request().isEnded()) {
               context.request().resume();
             }
-            context.fail(res2.cause());
-          }
-        });
+            context.fail(err);
+          });
       } else {
         // guess content type
         String extension = getFileExtension(file);
@@ -498,13 +483,13 @@ public class StaticHandlerImpl implements StaticHandler {
             if (!dependency.isNoPush()) {
               final String dep = webRoot + "/" + dependency.getFilePath();
               // get the file props
-              getFileProps(fileSystem, dep, filePropsAsyncResult -> {
-                if (filePropsAsyncResult.succeeded()) {
+              getFileProps(fileSystem, dep)
+                .onSuccess(fprops -> {
                   // push
-                  writeCacheHeaders(request, filePropsAsyncResult.result());
-                  response.push(HttpMethod.GET, "/" + dependency.getFilePath(), pushAsyncResult -> {
-                    if (pushAsyncResult.succeeded()) {
-                      HttpServerResponse res = pushAsyncResult.result();
+                  writeCacheHeaders(request, fprops);
+                  response
+                    .push(HttpMethod.GET, "/" + dependency.getFilePath())
+                    .onSuccess(res -> {
                       final String depContentType = MimeMapping.getMimeTypeForExtension(file);
                       if (depContentType != null) {
                         if (depContentType.startsWith("text")) {
@@ -514,10 +499,8 @@ public class StaticHandlerImpl implements StaticHandler {
                         }
                       }
                       res.sendFile(webRoot + "/" + dependency.getFilePath());
-                    }
-                  });
-                }
-              });
+                    });
+                });
             }
           }
 
@@ -527,26 +510,24 @@ public class StaticHandlerImpl implements StaticHandler {
           for (Http2PushMapping dependency : http2PushMappings) {
             final String dep = webRoot + "/" + dependency.getFilePath();
             // get the file props
-            getFileProps(fileSystem, dep, filePropsAsyncResult -> {
-              if (filePropsAsyncResult.succeeded()) {
+            getFileProps(fileSystem, dep)
+              .onSuccess(fprops -> {
                 // push
-                writeCacheHeaders(request, filePropsAsyncResult.result());
-                links.add("<" + dependency.getFilePath() + ">; rel=preload; as="
-                    + dependency.getExtensionTarget() + (dependency.isNoPush() ? "; nopush" : ""));
-              }
-            });
+                writeCacheHeaders(request, fprops);
+                links
+                  .add("<" + dependency.getFilePath() + ">; rel=preload; as=" + dependency.getExtensionTarget() + (dependency.isNoPush() ? "; nopush" : ""));
+              });
           }
           response.putHeader("Link", links);
         }
 
-        response.sendFile(file, res2 -> {
-          if (res2.failed()) {
+        response.sendFile(file)
+          .onFailure(err -> {
             if (!context.request().isEnded()) {
               context.request().resume();
             }
-            context.fail(res2.cause());
-          }
-        });
+            context.fail(err);
+          });
       }
     }
   }
@@ -695,20 +676,21 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   private static final Collection<MIMEHeader> DIRECTORY_LISTING_ACCEPT = Arrays.asList(
-      new ParsableMIMEValue("text/html").forceParse(),
-      new ParsableMIMEValue("text/plain").forceParse(),
-      new ParsableMIMEValue("application/json").forceParse());
+    new ParsableMIMEValue("text/html").forceParse(),
+    new ParsableMIMEValue("text/plain").forceParse(),
+    new ParsableMIMEValue("application/json").forceParse());
 
   private void sendDirectoryListing(FileSystem fileSystem, String dir, RoutingContext context) {
     final HttpServerResponse response = context.response();
 
-    fileSystem.readDir(dir, asyncResult -> {
-      if (asyncResult.failed()) {
+    fileSystem.readDir(dir)
+      .onFailure(err -> {
         if (!context.request().isEnded()) {
           context.request().resume();
         }
-        context.fail(asyncResult.cause());
-      } else {
+        context.fail(err);
+      })
+      .onSuccess(list -> {
 
         final List<MIMEHeader> accepts = context.parsedHeaders().accept();
         String accept = "text/plain";
@@ -716,7 +698,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
         if (accepts != null) {
           MIMEHeader header = context.parsedHeaders()
-              .findBestUserAcceptedIn(context.parsedHeaders().accept(), DIRECTORY_LISTING_ACCEPT);
+            .findBestUserAcceptedIn(context.parsedHeaders().accept(), DIRECTORY_LISTING_ACCEPT);
 
           if (header != null) {
             accept = header.component() + "/" + header.subComponent();
@@ -731,8 +713,6 @@ public class StaticHandlerImpl implements StaticHandler {
             }
 
             StringBuilder files = new StringBuilder("<ul id=\"files\">");
-
-            List<String> list = asyncResult.result();
             Collections.sort(list);
 
             for (String s : list) {
@@ -765,16 +745,16 @@ public class StaticHandlerImpl implements StaticHandler {
             String parent = "<a href=\"" + normalizedDir.substring(0, slashPos + 1) + "\">..</a>";
 
             response
-                .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
-                .end(
-                    directoryTemplate(fileSystem).replace("{directory}", normalizedDir)
-                        .replace("{parent}", parent)
-                        .replace("{files}", files.toString()));
+              .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+              .end(
+                directoryTemplate(fileSystem).replace("{directory}", normalizedDir)
+                  .replace("{parent}", parent)
+                  .replace("{files}", files.toString()));
             break;
           case "application/json":
             JsonArray json = new JsonArray();
 
-            for (String s : asyncResult.result()) {
+            for (String s : list) {
               file = s.substring(s.lastIndexOf(File.separatorChar) + 1);
               // skip dot files
               if (!includeHidden && file.charAt(0) == '.') {
@@ -783,13 +763,13 @@ public class StaticHandlerImpl implements StaticHandler {
               json.add(file);
             }
             response
-                .putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-                .end(json.encode());
+              .putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+              .end(json.encode());
             break;
           default:
             StringBuilder buffer = new StringBuilder();
 
-            for (String s : asyncResult.result()) {
+            for (String s : list) {
               file = s.substring(s.lastIndexOf(File.separatorChar) + 1);
               // skip dot files
               if (!includeHidden && file.charAt(0) == '.') {
@@ -800,10 +780,9 @@ public class StaticHandlerImpl implements StaticHandler {
             }
 
             response
-                .putHeader(HttpHeaders.CONTENT_TYPE, "text/plain")
-                .end(buffer.toString());
+              .putHeader(HttpHeaders.CONTENT_TYPE, "text/plain")
+              .end(buffer.toString());
         }
-      }
     });
   }
 
@@ -884,8 +863,8 @@ public class StaticHandlerImpl implements StaticHandler {
           useAsyncFS = true;
           if (LOG.isInfoEnabled()) {
             LOG.info(
-                "Switching to async file system access in static file server as fs access is slow! (Average access time of "
-                    + avg + " ns)");
+              "Switching to async file system access in static file server as fs access is slow! (Average access time of "
+                + avg + " ns)");
           }
           enabled = false;
         }

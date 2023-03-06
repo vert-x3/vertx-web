@@ -168,9 +168,9 @@ public class TemplateTest extends WebTestBase {
     }
 
     @Override
-    public void render(Map<String, Object> context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    public Future<Buffer> render(Map<String, Object> context, String templateFileName) {
       if (fail) {
-        handler.handle(Future.failedFuture(new Exception("eek")));
+        return Future.failedFuture(new Exception("eek"));
       } else {
         String templ = vertx.fileSystem().readFileBlocking(templateFileName).toString(StandardCharsets.UTF_8);
         if (context.containsKey("foo")) {
@@ -179,7 +179,7 @@ public class TemplateTest extends WebTestBase {
         if (context.containsKey("bar")) {
           templ = templ.replace("{bar}", (String) context.get("bar"));
         }
-        handler.handle(Future.succeededFuture(Buffer.buffer(templ)));
+        return Future.succeededFuture(Buffer.buffer(templ));
       }
     }
 

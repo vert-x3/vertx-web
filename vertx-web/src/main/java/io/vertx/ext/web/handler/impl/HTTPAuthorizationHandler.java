@@ -15,9 +15,7 @@
  */
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
@@ -75,11 +73,11 @@ public abstract class HTTPAuthorizationHandler<T extends AuthenticationProvider>
     }
   }
 
-  protected final void parseAuthorization(RoutingContext ctx, Handler<AsyncResult<String>> handler) {
-    parseAuthorization(ctx, false, handler);
+  protected final Future<String> parseAuthorization(RoutingContext ctx) {
+    return parseAuthorization(ctx, false);
   }
 
-  protected final void parseAuthorization(RoutingContext ctx, boolean optional, Handler<AsyncResult<String>> handler) {
+  protected final Future<String> parseAuthorization(RoutingContext ctx, boolean optional) {
 
     final HttpServerRequest request = ctx.request();
     final String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
@@ -87,29 +85,26 @@ public abstract class HTTPAuthorizationHandler<T extends AuthenticationProvider>
     if (authorization == null) {
       if (optional) {
         // this is allowed
-        handler.handle(Future.succeededFuture());
+        return Future.succeededFuture();
       } else {
-        handler.handle(Future.failedFuture(UNAUTHORIZED));
+        return Future.failedFuture(UNAUTHORIZED);
       }
-      return;
     }
 
     try {
       int idx = authorization.indexOf(' ');
 
       if (idx <= 0) {
-        handler.handle(Future.failedFuture(BAD_REQUEST));
-        return;
+        return Future.failedFuture(BAD_REQUEST);
       }
 
       if (!type.is(authorization.substring(0, idx))) {
-        handler.handle(Future.failedFuture(UNAUTHORIZED));
-        return;
+        return Future.failedFuture(UNAUTHORIZED);
       }
 
-      handler.handle(Future.succeededFuture(authorization.substring(idx + 1)));
+      return Future.succeededFuture(authorization.substring(idx + 1));
     } catch (RuntimeException e) {
-      handler.handle(Future.failedFuture(e));
+      return Future.failedFuture(e);
     }
   }
 

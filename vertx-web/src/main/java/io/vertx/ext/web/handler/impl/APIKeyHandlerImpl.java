@@ -15,9 +15,7 @@
  */
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.Cookie;
 import io.vertx.ext.auth.User;
@@ -77,48 +75,32 @@ public class APIKeyHandlerImpl extends AuthenticationHandlerImpl<AuthenticationP
   }
 
   @Override
-  public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
+  public Future<User> authenticate(RoutingContext context) {
     switch (source) {
       case HEADER:
         MultiMap headers = context.request().headers();
         if (headers != null && headers.contains(value)) {
-          authProvider.authenticate(new TokenCredentials(headers.get(value)), authn -> {
-            if (authn.failed()) {
-              handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
-            } else {
-              handler.handle(authn);
-            }
-          });
-          return;
+          return authProvider
+            .authenticate(new TokenCredentials(headers.get(value)))
+            .recover(err -> Future.failedFuture(new HttpException(401, err)));
         }
         break;
       case PARAMETER:
         MultiMap params = context.request().params();
         if (params != null && params.contains(value)) {
-          authProvider.authenticate(new TokenCredentials(params.get(value)), authn -> {
-            if (authn.failed()) {
-              handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
-            } else {
-              handler.handle(authn);
-            }
-          });
-          return;
+          return authProvider
+            .authenticate(new TokenCredentials(params.get(value)))
+            .recover(err -> Future.failedFuture(new HttpException(401, err)));
         }
         break;
       case COOKIE:
         Cookie cookie = context.request().getCookie(value);
         if (cookie != null) {
-          authProvider.authenticate(new TokenCredentials(cookie.getValue()), authn -> {
-            if (authn.failed()) {
-              handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
-            } else {
-              handler.handle(authn);
-            }
-          });
-          return;
+          return authProvider.authenticate(new TokenCredentials(cookie.getValue()))
+            .recover(err -> Future.failedFuture(new HttpException(401, err)));
         }
     }
     // fallback if no api key was found
-    handler.handle(Future.failedFuture(UNAUTHORIZED));
+    return Future.failedFuture(UNAUTHORIZED);
   }
 }

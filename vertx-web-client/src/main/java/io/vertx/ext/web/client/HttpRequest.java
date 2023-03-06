@@ -464,17 +464,15 @@ public interface HttpRequest<T> {
    * @param body the body
    */
   @Deprecated
-  void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  default void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    sendStream(body).onComplete(handler);
+  }
 
   /**
    * @param body the body
    * @see HttpRequest#sendStream(ReadStream, Handler)
    */
-  default Future<HttpResponse<T>> sendStream(ReadStream<Buffer> body) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    sendStream(body, promise);
-    return promise.future();
-  }
+  Future<HttpResponse<T>> sendStream(ReadStream<Buffer> body);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} buffer.
@@ -482,17 +480,15 @@ public interface HttpRequest<T> {
    * @param body the body
    */
   @Deprecated
-  void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  default void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    sendBuffer(body).onComplete(handler);
+  }
 
   /**
    * @param body the body
    * @see HttpRequest#sendBuffer(Buffer, Handler)
    */
-  default Future<HttpResponse<T>> sendBuffer(Buffer body) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    sendBuffer(body, promise);
-    return promise.future();
-  }
+  Future<HttpResponse<T>> sendBuffer(Buffer body);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} object encoded as json and the content type
@@ -501,17 +497,15 @@ public interface HttpRequest<T> {
    * @param body the body
    */
   @Deprecated
-  void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  default void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    sendJsonObject(body).onComplete(handler);
+  }
 
   /**
    * @param body the body
    * @see HttpRequest#sendJsonObject(JsonObject, Handler)
    */
-  default Future<HttpResponse<T>> sendJsonObject(JsonObject body) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    sendJsonObject(body, promise);
-    return promise.future();
-  }
+  Future<HttpResponse<T>> sendJsonObject(JsonObject body);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} object encoded as json and the content type
@@ -520,17 +514,15 @@ public interface HttpRequest<T> {
    * @param body the body
    */
   @Deprecated
-  void sendJson(@Nullable Object body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  default void sendJson(@Nullable Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    sendJson(body).onComplete(handler);
+  }
 
   /**
    * @param body the body
    * @see HttpRequest#sendJson(Object, Handler)
    */
-  default Future<HttpResponse<T>> sendJson(@Nullable Object body) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    sendJson(body, promise);
-    return promise.future();
-  }
+  Future<HttpResponse<T>> sendJson(@Nullable Object body);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
@@ -541,17 +533,15 @@ public interface HttpRequest<T> {
    * @param body the body
    */
   @Deprecated
-  void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  default void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    sendForm(body).onComplete(handler);
+  }
 
   /**
    * @param body the body
    * @see HttpRequest#sendForm(MultiMap, Handler)
    */
-  default Future<HttpResponse<T>> sendForm(MultiMap body) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    sendForm(body, promise);
-    return promise.future();
-  }
+  Future<HttpResponse<T>> sendForm(MultiMap body);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
@@ -565,18 +555,16 @@ public interface HttpRequest<T> {
    * @param body the body
    */
   @Deprecated
-  void sendForm(MultiMap body, String charset, Handler<AsyncResult<HttpResponse<T>>> handler);
+  default void sendForm(MultiMap body, String charset, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    sendForm(body, charset).onComplete(handler);
+  }
 
   /**
    * @param body the body
    * @param charset the charset
    * @see HttpRequest#sendForm(MultiMap, String, Handler)
    */
-  default Future<HttpResponse<T>> sendForm(MultiMap body, String charset) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    sendForm(body, charset, promise);
-    return promise.future();
-  }
+  Future<HttpResponse<T>> sendForm(MultiMap body, String charset);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
@@ -585,30 +573,26 @@ public interface HttpRequest<T> {
    * @param body the body
    */
   @Deprecated
-  void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  default void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    sendMultipartForm(body).onComplete(handler);
+  }
 
   /**
    * @param body the body
    * @see HttpRequest#sendMultipartForm(MultipartForm, Handler)
    */
-  default Future<HttpResponse<T>> sendMultipartForm(MultipartForm body) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    sendMultipartForm(body, promise);
-    return promise.future();
-  }
+  Future<HttpResponse<T>> sendMultipartForm(MultipartForm body);
 
   /**
    * Send a request, the {@code handler} will receive the response as an {@link HttpResponse}.
    */
   @Deprecated
-  void send(Handler<AsyncResult<HttpResponse<T>>> handler);
+  default void send(Handler<AsyncResult<HttpResponse<T>>> handler) {
+    send().onComplete(handler);
+  }
 
   /**
    * @see HttpRequest#send(Handler)
    */
-  default Future<HttpResponse<T>> send() {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    send(promise);
-    return promise.future();
-  }
+  Future<HttpResponse<T>> send();
 }

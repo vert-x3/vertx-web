@@ -24,8 +24,6 @@ import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
 import io.vertx.ext.web.impl.Utils;
@@ -318,21 +316,6 @@ public interface RoutingContext {
    * @return  the id of the handler. This can be used if you later want to remove the handler.
    */
   int addEndHandler(Handler<AsyncResult<Void>> handler);
-
-  /**
-   * Add an end handler for the request/response context. This will be called when the response is disposed or an
-   * exception has been encountered to allow consistent cleanup. The handler is called asynchronously of when the
-   * response has been received by the client.
-   *
-   * @see #addEndHandler(Handler)
-   *
-   * @return future that will be called with either a success or failure result.
-   */
-  default Future<Void> addEndHandler() {
-    Promise<Void> promise = Promise.promise();
-    addEndHandler(promise);
-    return promise.future();
-  }
 
   /**
    * Remove an end handler

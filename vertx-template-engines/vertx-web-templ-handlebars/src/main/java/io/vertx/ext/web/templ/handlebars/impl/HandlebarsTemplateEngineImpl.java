@@ -42,7 +42,7 @@ import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template> implements HandlebarsTemplateEngine {
 
   private static final List<ValueResolver> VALUE_RESOLVERS_LIST = ValueResolver.defaultValueResolvers();
-  private static final ValueResolver[] VALUE_RESOLVERS = VALUE_RESOLVERS_LIST.toArray(new ValueResolver[VALUE_RESOLVERS_LIST.size()]);
+  private static final ValueResolver[] VALUE_RESOLVERS = VALUE_RESOLVERS_LIST.toArray(new ValueResolver[0]);
 
   private final Handlebars handlebars;
   private final Loader loader;
@@ -64,7 +64,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
-  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public Future<Buffer> render(Map<String, Object> context, String templateFile) {
     try {
       String src = adjustLocation(templateFile);
       TemplateHolder<Template> template = getTemplate(src);
@@ -86,9 +86,9 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
       }
 
       Context engineContext = Context.newBuilder(context).resolver(resolvers).build();
-      handler.handle(Future.succeededFuture(Buffer.buffer(template.template().apply(engineContext))));
+      return Future.succeededFuture(Buffer.buffer(template.template().apply(engineContext)));
     } catch (Exception ex) {
-      handler.handle(Future.failedFuture(ex));
+      return Future.failedFuture(ex);
     }
   }
 

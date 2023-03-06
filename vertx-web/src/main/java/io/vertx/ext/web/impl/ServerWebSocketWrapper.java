@@ -48,6 +48,7 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
+  @Deprecated
   public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
     delegate.write(data, handler);
   }
@@ -135,6 +136,7 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
+  @Deprecated
   public ServerWebSocket writeFrame(WebSocketFrame frame, Handler<AsyncResult<Void>> handler) {
     delegate.writeFrame(frame, handler);
     return this;
@@ -146,6 +148,7 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
+  @Deprecated
   public ServerWebSocket writeFinalTextFrame(String text, Handler<AsyncResult<Void>> handler) {
     delegate.writeFinalTextFrame(text, handler);
     return this;
@@ -157,6 +160,7 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
+  @Deprecated
   public ServerWebSocket writeFinalBinaryFrame(Buffer data, Handler<AsyncResult<Void>> handler) {
     delegate.writeFinalBinaryFrame(data, handler);
     return this;
@@ -168,6 +172,7 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
+  @Deprecated
   public ServerWebSocket writeBinaryMessage(Buffer data, Handler<AsyncResult<Void>> handler) {
     delegate.writeBinaryMessage(data, handler);
     return this;
@@ -179,12 +184,14 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
+  @Deprecated
   public ServerWebSocket writeTextMessage(String text, Handler<AsyncResult<Void>> handler) {
     delegate.writeTextMessage(text, handler);
     return this;
   }
 
   @Override
+  @Deprecated
   public WebSocketBase writePing(Buffer data, Handler<AsyncResult<Void>> handler) {
     delegate.writePing(data, handler);
     return this;
@@ -196,6 +203,7 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
+  @Deprecated
   public WebSocketBase writePong(Buffer data, Handler<AsyncResult<Void>> handler) {
     delegate.writePong(data, handler);
     return this;
@@ -242,6 +250,7 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
+  @Deprecated
   public void end(Handler<AsyncResult<Void>> handler) {
     delegate.end(handler);
   }
@@ -287,6 +296,7 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
+  @Deprecated
   public void setHandshake(Future<Integer> future, Handler<AsyncResult<Integer>> handler) {
     delegate.setHandshake(future, handler);
   }
@@ -302,6 +312,7 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
+  @Deprecated
   public void close(Handler<AsyncResult<Void>> handler) {
     delegate.close(handler);
   }
@@ -312,6 +323,7 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
+  @Deprecated
   public void close(short statusCode, Handler<AsyncResult<Void>> handler) {
     delegate.close(statusCode, handler);
   }
@@ -322,6 +334,7 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
+  @Deprecated
   public void close(short statusCode, @Nullable String reason, Handler<AsyncResult<Void>> handler) {
     delegate.close(statusCode, reason, handler);
   }

@@ -15,9 +15,7 @@
  */
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
@@ -95,16 +93,15 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
   }
 
   @Override
-  public void authenticate(RoutingContext ctx, Handler<AsyncResult<User>> handler) {
+  public Future<User> authenticate(RoutingContext ctx) {
     if (response == null) {
-      handler.handle(Future.failedFuture(new HttpException(500, new IllegalStateException("No callback mounted!"))));
-      return;
+      return Future.failedFuture(new HttpException(500, new IllegalStateException("No callback mounted!")));
     }
 
     if (ctx.user() == null) {
-      handler.handle(Future.failedFuture(new HttpException(401)));
+      return Future.failedFuture(new HttpException(401));
     } else {
-      handler.handle(Future.succeededFuture(ctx.user()));
+      return Future.succeededFuture(ctx.user());
     }
   }
 
