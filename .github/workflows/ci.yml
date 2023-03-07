@@ -11,8 +11,6 @@ on:
       os:
         default: ubuntu-latest
         type: string
-      deploy:
-        type: boolean
 jobs:
   Test:
     name: Run tests
@@ -131,26 +129,3 @@ jobs:
       - run: sh stop-sockjs-write-handler-tests-server.sh
         working-directory: vertx-web
         if: ${{ always() }}
-  Deploy:
-    name: Deploy to OSSRH
-    if: ${{ inputs.deploy && github.repository_owner == 'vert-x3' && (github.event_name == 'push' || github.event_name == 'schedule') }}
-    needs: [Test, Apollo-Link-Tests, SockJS-WriteHandler-Tests]
-    runs-on: ubuntu-latest
-    env:
-      VERTX_NEXUS_USERNAME: ${{ secrets.VERTX_NEXUS_USERNAME }}
-      VERTX_NEXUS_PASSWORD: ${{ secrets.VERTX_NEXUS_PASSWORD }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ inputs.branch }}
-      - name: Install JDK
-        uses: actions/setup-java@v2
-        with:
-          java-version: ${{ inputs.jdk }}
-          distribution: temurin
-      - name: Get project version
-        run: echo "PROJECT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version -B | grep -v '\[')" >> $GITHUB_ENV
-      - name: Maven deploy
-        if: ${{ endsWith(env.PROJECT_VERSION, '-SNAPSHOT') }}
-        run: mvn deploy -s .github/maven-cd-settings.xml -DskipTests -B

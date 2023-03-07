@@ -24,5 +24,12 @@ jobs:
       branch: ${{ github.head_ref || github.ref_name }}
       jdk: ${{ matrix.jdk }}
       os: ${{ matrix.os }}
-      deploy: ${{ matrix.jdk == '8' && matrix.os == 'ubuntu-latest' }}
+    secrets: inherit
+  Deploy:
+    if: ${{ github.repository_owner == 'eclipse-vertx' && (github.event_name == 'push' || github.event_name == 'schedule') }}
+    needs: CI
+    uses: ./.github/workflows/deploy.yml
+    with:
+      branch: ${{ github.head_ref || github.ref_name }}
+      jdk: 8
     secrets: inherit
