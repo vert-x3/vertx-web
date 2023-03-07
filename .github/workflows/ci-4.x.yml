@@ -19,9 +19,15 @@ jobs:
       jdk: ${{ matrix.jdk }}
       os: ${{ matrix.os }}
     secrets: inherit
+  IT:
+    uses: ./.github/workflows/it.yml
+    with:
+      branch: 4.x
+      jdk: 8
+    secrets: inherit
   Deploy:
     if: ${{ github.repository_owner == 'eclipse-vertx' && (github.event_name == 'push' || github.event_name == 'schedule') }}
-    needs: CI
+    needs: [CI, IT]
     uses: ./.github/workflows/deploy.yml
     with:
       branch: 4.x

@@ -1,0 +1,110 @@
+name: CI
+on:
+  workflow_call:
+    inputs:
+      branch:
+        required: true
+        type: string
+      jdk:
+        default: 8
+        type: string
+jobs:
+  Apollo-Link-Tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18.13.0]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.branch }}
+      - name: Install JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: ${{ inputs.jdk }}
+          distribution: temurin
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: sh vertx-web-graphql/start-apollo-tests-server.sh
+      - run: npm install
+        working-directory: vertx-web-graphql/tests/apollo
+      - run: npm run test
+        working-directory: vertx-web-graphql/tests/apollo
+      - uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: ApolloTestsServer.log
+          path: ~/ApolloTestsServer.log
+      - run: sh stop-apollo-tests-server.sh
+        working-directory: vertx-web-graphql
+        if: ${{ always() }}
+  GraphQLWS-Tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18.13.0]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.branch }}
+      - name: Install JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: ${{ inputs.jdk }}
+          distribution: temurin
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: sh vertx-web-graphql/start-graphql-ws-tests-server.sh
+      - run: npm install
+        working-directory: vertx-web-graphql/tests/graphql-ws
+      - run: npm run test
+        working-directory: vertx-web-graphql/tests/graphql-ws
+      - uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: GraphQLWSTestsServer.log
+          path: ~/GraphQLWSTestsServer.log
+      - run: sh stop-graphql-ws-tests-server.sh
+        working-directory: vertx-web-graphql
+        if: ${{ always() }}
+  SockJS-WriteHandler-Tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [16.13.1]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.branch }}
+      - name: Install JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: ${{ inputs.jdk }}
+          distribution: temurin
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: sh vertx-web/start-sockjs-write-handler-tests-server.sh
+      - run: npm install
+        working-directory: vertx-web/tests/sockjs
+      - run: npm run test
+        working-directory: vertx-web/tests/sockjs
+      - uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: SockJSWriteHandlerTestServer.log
+          path: ~/SockJSWriteHandlerTestServer.log
+      - run: sh stop-sockjs-write-handler-tests-server.sh
+        working-directory: vertx-web
+        if: ${{ always() }}
