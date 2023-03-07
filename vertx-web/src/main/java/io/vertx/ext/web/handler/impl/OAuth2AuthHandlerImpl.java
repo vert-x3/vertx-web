@@ -471,11 +471,11 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       // This must exactly match the redirect_uri passed to the authorization URL in the previous step.
       credentials.setRedirectUri(callbackURL.href());
 
-      authProvider.authenticate(credentials, res -> {
-        if (res.failed()) {
-          ctx.fail(res.cause());
-        } else {
-          ctx.setUser(res.result());
+      authProvider
+        .authenticate(credentials)
+        .onFailure(ctx::fail)
+        .onSuccess(user -> {
+          ctx.setUser(user);
           String location = resource != null ? resource : "/";
           if (session != null) {
             // the user has upgraded from unauthenticated to authenticated
@@ -501,7 +501,6 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
             .putHeader(HttpHeaders.LOCATION, location)
             .setStatusCode(302)
             .end("Redirecting to " + location + ".");
-        }
       });
     });
   }

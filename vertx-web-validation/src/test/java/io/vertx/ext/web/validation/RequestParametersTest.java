@@ -3,6 +3,7 @@ package io.vertx.ext.web.validation;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.validation.impl.RequestParameterImpl;
 import io.vertx.ext.web.validation.impl.RequestParametersImpl;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -16,24 +17,24 @@ public class RequestParametersTest {
   @Test
   public void testRequestParameterToJsonNumber() {
     RequestParameter param = new RequestParameterImpl(1);
-    assertEquals(1, param.get());
+    Assertions.assertEquals(1, param.get());
   }
 
   @Test
   public void testRequestParameterToJsonString() {
     RequestParameter param = new RequestParameterImpl("string");
-    assertEquals("string", param.get());
+    Assertions.assertEquals("string", param.get());
   }
 
   @Test
   public void testToJsonObjectEmpty() {
     RequestParameters params = new RequestParametersImpl();
     JsonObject obj = params.toJson();
-    assertEquals(0, obj.getJsonObject("path").size());
-    assertEquals(0, obj.getJsonObject("cookie").size());
-    assertEquals(0, obj.getJsonObject("query").size());
-    assertEquals(0, obj.getJsonObject("header").size());
-    assertNull(obj.getValue("body"));
+    Assertions.assertEquals(0, obj.getJsonObject("path").size());
+    Assertions.assertEquals(0, obj.getJsonObject("cookie").size());
+    Assertions.assertEquals(0, obj.getJsonObject("query").size());
+    Assertions.assertEquals(0, obj.getJsonObject("header").size());
+    Assertions.assertNull(obj.getValue("body"));
   }
 
   @Test
@@ -48,9 +49,9 @@ public class RequestParametersTest {
     );
 
     JsonObject obj = params.toJson();
-    assertEquals(2, obj.getJsonObject("path").size());
-    assertEquals(1, obj.getJsonObject("path").getValue("aaa"));
-    assertNull(obj.getJsonObject("path").getValue("bbb"));
+    Assertions.assertEquals(2, obj.getJsonObject("path").size());
+    Assertions.assertEquals(1, obj.getJsonObject("path").getValue("aaa"));
+    Assertions.assertNull(obj.getJsonObject("path").getValue("bbb"));
   }
 
 }
