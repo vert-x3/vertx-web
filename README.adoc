@@ -1,6 +1,7 @@
 = Vert.x-Web
 
-image:https://github.com/vert-x3/vertx-web/workflows/CI/badge.svg?branch=master["Build Status",link="https://github.com/vert-x3/vertx-web/actions?query=workflow%3ACI"]
+image:https://github.com/vert-x3/vertx-web/actions/workflows/ci-5.x.yml/badge.svg["Build Status (5.x)",link="https://github.com/vert-x3/vertx-web/actions/workflows/ci-5.x.yml"]
+image:https://github.com/vert-x3/vertx-web/actions/workflows/ci-4.x.yml/badge.svg["Build Status (4.x)",link="https://github.com/vert-x3/vertx-web/actions/workflows/ci-4.x.yml"]
 image:https://img.shields.io/maven-central/v/io.vertx/vertx-web.svg["Maven Central"]
 image:https://bestpractices.coreinfrastructure.org/projects/540/badge["CII Best Practices",link="https://bestpractices.coreinfrastructure.org/projects/540"]
 
