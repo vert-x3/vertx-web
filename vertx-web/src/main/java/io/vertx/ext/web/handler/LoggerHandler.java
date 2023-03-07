@@ -69,7 +69,7 @@ public interface LoggerHandler extends PlatformHandler {
    *
    * @deprecated Superseded by {@link #customFormatter(LoggerFormatter)}
    * @param formatter the formatting function
-   * @return the formatted log string
+   * @return self
    * @throws IllegalStateException if current format is not {@link LoggerFormat#CUSTOM}
    */
   @Deprecated
@@ -80,9 +80,19 @@ public interface LoggerHandler extends PlatformHandler {
    * Set the custom formatter to be used by the handler.
    *
    * @param formatter the formatter
-   * @return the formatted log string
+   * @return self
    * @throws IllegalStateException if current format is not {@link LoggerFormat#CUSTOM}
    */
   @Fluent
   LoggerHandler customFormatter(LoggerFormatter formatter);
+
+  /**
+   * Set the custom formatter to be used by the handler.
+   *
+   * @param formatter the formatter
+   * @return self
+   * @throws IllegalStateException if current format is not {@link LoggerFormat#CUSTOM}
+   */
+  @Fluent
+  LoggerHandler customFormatter(LoggerFormatterAdvanced formatter);
 }
