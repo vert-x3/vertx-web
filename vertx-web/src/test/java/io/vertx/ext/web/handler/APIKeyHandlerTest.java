@@ -34,11 +34,11 @@ public class APIKeyHandlerTest extends WebTestBase {
 
   @Before
   public void setup() throws Exception {
-    authProvider = (credentials, resultHandler) -> {
-      if ("APIKEY".equals(credentials.getString("token"))) {
-        resultHandler.handle(Future.succeededFuture(User.create(new JsonObject())));
+    authProvider = credentials -> {
+      if ("APIKEY".equals(credentials.toJson().getString("token"))) {
+        return Future.succeededFuture(User.create(new JsonObject()));
       } else {
-        resultHandler.handle(Future.failedFuture("Uknown APIKEY"));
+        return Future.failedFuture("Uknown APIKEY");
       }
     };
   }

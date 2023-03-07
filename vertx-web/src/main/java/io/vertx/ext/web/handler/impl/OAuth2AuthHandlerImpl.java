@@ -30,6 +30,7 @@ import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
+import io.vertx.ext.auth.oauth2.OAuth2AuthorizationURL;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.Oauth2Credentials;
 import io.vertx.ext.web.Route;
@@ -230,7 +231,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       }
     }
 
-    return authProvider.authorizeURL(config);
+    return authProvider.authorizeURL(new OAuth2AuthorizationURL(config));
   }
 
   @Override
