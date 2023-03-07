@@ -9,6 +9,8 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -47,11 +49,14 @@ public class OpenAPIHolderTest {
     else
       rc.next();
   };
-  private static final Handler<RoutingContext> headerAuthMock = BasicAuthHandler.create((jsonObject, handler) -> {
-    if ("francesco".equals(jsonObject.getString("username")) && "slinky".equals(jsonObject.getString("password")))
-      handler.handle(Future.succeededFuture(User.create(jsonObject)));
-    else
-      handler.handle(Future.failedFuture("Not match"));
+  private static final Handler<RoutingContext> headerAuthMock = BasicAuthHandler.create(new AuthenticationProvider() {
+    @Override
+    public Future<User> authenticate(Credentials credentials) {
+      if ("francesco".equals(credentials.toJson().getString("username")) && "slinky".equals(credentials.toJson().getString("password")))
+        return Future.succeededFuture(User.create(credentials.toJson()));
+      else
+        return Future.failedFuture("Not match");
+    }
   });
 
   @AfterEach
