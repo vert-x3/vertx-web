@@ -55,7 +55,7 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
 
-    engine.render(context, "somedir/test-freemarker-template2.ftl", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-freemarker-template2.ftl").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template2.ftl\n", normalizeCRLF(render.toString()));
     }));
   }
@@ -73,7 +73,7 @@ public class FreeMarkerTemplateTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getName(), should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject(), temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("before", normalizeCRLF(render.toString()));
       // cache is enabled so if we change the content that should not affect the result
 
@@ -84,7 +84,7 @@ public class FreeMarkerTemplateTest {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getName(), should.asyncAssertSuccess(render2 -> {
+      engine.render(new JsonObject(), temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
         should.assertEquals("before", normalizeCRLF(render2.toString()));
       }));
     }));
@@ -100,7 +100,7 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template3.ftl"));
 
-    engine.render(context, "src/test/filesystemtemplates/test-freemarker-template3.ftl", should.asyncAssertSuccess(render -> {
+    engine.render(context, "src/test/filesystemtemplates/test-freemarker-template3.ftl").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template3.ftl\n", normalizeCRLF(render.toString()));
     }));
   }
@@ -121,7 +121,7 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
 
-    engine.render(context, "somedir/test-freemarker-template2", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-freemarker-template2").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template2.ftl\n", normalizeCRLF(render.toString()));
     }));
   }
@@ -136,7 +136,7 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
 
-    engine.render(context, "somedir/test-freemarker-template2", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-freemarker-template2").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Cheerio badger and fox\nRequest path is /test-freemarker-template2.ftl\n",  normalizeCRLF(render.toString()));
     }));
   }
@@ -151,7 +151,7 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
 
-    engine.render(context, "somedir/base", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/base").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Vert.x rules", normalizeCRLF(render.toString()));
     }));
   }
@@ -166,11 +166,11 @@ public class FreeMarkerTemplateTest {
   @Test
   public void testLang(TestContext should) {
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
-    engine.render(new JsonObject(), "somedir/lang.ftl", should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject(), "somedir/lang.ftl").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Hello world\n", normalizeCRLF(render.toString()));
     }));
 
-    engine.render(new JsonObject().put("lang", "el"), "somedir/lang.ftl", should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject().put("lang", "el"), "somedir/lang.ftl").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Γειά σου Κόσμε\n", normalizeCRLF(render.toString()));
     }));
   }

@@ -3,6 +3,7 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
@@ -47,12 +48,14 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   }
 
   @Override
-  public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
+  public Future<User> authenticate(RoutingContext context) {
     if (handlers.size() == 0) {
-      handler.handle(Future.failedFuture("No providers in the auth chain."));
+      return Future.failedFuture("No providers in the auth chain.");
     } else {
       // iterate all possible authN
-      iterate(0, context, null, null, handler);
+      Promise<User> promise = Promise.promise();
+      iterate(0, context, null, null, promise);
+      return promise.future();
     }
   }
 
@@ -76,16 +79,17 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
     // parse the request in order to extract the credentials object
     final AuthenticationHandlerInternal authHandler = handlers.get(idx);
 
-    authHandler.authenticate(ctx, res -> {
-      if (res.failed()) {
+    authHandler
+      .authenticate(ctx)
+      .onFailure(err -> {
         if (all) {
           // all handlers need to be valid, a single failure is enough to
           // abort the execution of the chain
         } else {
           // any handler can be valid, if the response is within a validation error
           // the chain is allowed to proceed, otherwise we must abort.
-          if (res.cause() instanceof HttpException) {
-            final HttpException ex = (HttpException) res.cause();
+          if (err instanceof HttpException) {
+            final HttpException ex = (HttpException) err;
             switch (ex.getStatusCode()) {
               case 302:
               case 400:
@@ -98,17 +102,17 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
           }
           // the error is not a validation exception, so we abort regardless
         }
-        handler.handle(Future.failedFuture(res.cause()));
+        handler.handle(Future.failedFuture(err));
         return;
-      }
-
+      })
+      .onSuccess(user -> {
       if (all) {
         // this handler is succeeded, but as we need all, we must continue with
         // the iteration of the remaining handlers.
-        iterate(idx + 1, ctx, res.result(), null, handler);
+        iterate(idx + 1, ctx, user, null, handler);
       } else {
         // a single success is enough to signal the end of the validation
-        handler.handle(Future.succeededFuture(res.result()));
+        handler.handle(Future.succeededFuture(user));
       }
     });
   }

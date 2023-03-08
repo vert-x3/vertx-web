@@ -81,9 +81,8 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
       }
     }
     // perform the authentication
-    authenticate(ctx, authN -> {
-      if (authN.succeeded()) {
-        User authenticated = authN.result();
+    authenticate(ctx)
+      .onSuccess(authenticated -> {
         ctx.setUser(authenticated);
         Session session = ctx.session();
         if (session != null) {
@@ -96,14 +95,13 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
           ctx.request().resume();
         }
         postAuthentication(ctx);
-      } else {
+      })
+      .onFailure(cause -> {
         // to allow further processing if needed
-        Throwable cause = authN.cause();
         if (!ctx.request().isEnded()) {
           ctx.request().resume();
         }
         processException(ctx, cause);
-      }
     });
   }
 

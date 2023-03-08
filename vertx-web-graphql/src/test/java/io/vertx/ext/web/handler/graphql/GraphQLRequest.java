@@ -169,9 +169,9 @@ public class GraphQLRequest {
           buffer = getJsonBody();
         }
         if (buffer != null) {
-          request.send(buffer, h);
+          request.send(buffer).onComplete(h);
         } else {
-          request.send(h);
+          request.send().onComplete(h);
         }
       } else {
         promise.fail(ar1.cause());

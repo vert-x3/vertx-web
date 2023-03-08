@@ -16,11 +16,9 @@
 
 package io.vertx.ext.web.templ.pebble.impl;
 
-import com.mitchellbosecke.pebble.PebbleEngine;
-import com.mitchellbosecke.pebble.template.PebbleTemplate;
-import io.vertx.core.AsyncResult;
+import io.pebbletemplates.pebble.PebbleEngine;
+import io.pebbletemplates.pebble.template.PebbleTemplate;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
@@ -59,7 +57,7 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
   }
 
   @Override
-  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public Future<Buffer> render(Map<String, Object> context, String templateFile) {
     try {
       String src = adjustLocation(templateFile);
       TemplateHolder<PebbleTemplate> template = getTemplate(src);
@@ -76,9 +74,9 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
       // rendering
       final StringWriter stringWriter = new StringWriter();
       template.template().evaluate(stringWriter, context, lang == null ? Locale.getDefault() : Locale.forLanguageTag(lang));
-      handler.handle(Future.succeededFuture(Buffer.buffer(stringWriter.toString())));
+      return Future.succeededFuture(Buffer.buffer(stringWriter.toString()));
     } catch (final Exception ex) {
-      handler.handle(Future.failedFuture(ex));
+      return Future.failedFuture(ex);
     }
   }
 

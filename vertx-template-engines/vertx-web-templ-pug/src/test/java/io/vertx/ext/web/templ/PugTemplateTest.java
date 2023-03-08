@@ -67,7 +67,7 @@ public class PugTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-pug-template2.pug"));
 
-    engine.render(context, "somedir/test-pug-template2.pug", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-pug-template2.pug").onComplete(should.asyncAssertSuccess(render -> {
       assertContains(render, "<title>badger/test-pug-template2.pug</title>");
     }));
   }
@@ -82,7 +82,7 @@ public class PugTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-pug-template3.pug"));
 
-    engine.render(context, "src/test/filesystemtemplates/test-pug-template3.pug", should.asyncAssertSuccess(render -> {
+    engine.render(context, "src/test/filesystemtemplates/test-pug-template3.pug").onComplete(should.asyncAssertSuccess(render -> {
       assertContains(render, "<title>badger/test-pug-template3.pug</title>");
     }));
   }
@@ -103,7 +103,7 @@ public class PugTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-pug-template2.pug"));
 
-    engine.render(context, "somedir/test-pug-template2", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-pug-template2").onComplete(should.asyncAssertSuccess(render -> {
       assertContains(render, "<title>badger/test-pug-template2.pug</title>");
     }));
   }
@@ -118,7 +118,7 @@ public class PugTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-pug-template2.pug"));
 
-    engine.render(context, "somedir/test-pug-template2", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-pug-template2").onComplete(should.asyncAssertSuccess(render -> {
       assertContains(render, "<title>aardvark/test-pug-template2.pug</title>");
     }));
   }
@@ -127,7 +127,7 @@ public class PugTemplateTest {
   public void testDefaultEncoding(TestContext should) {
     TemplateEngine engine = PugTemplateEngine.create(vertx);
 
-    engine.render(new JsonObject(), "somedir/test-pug-template-umlaut", should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject(), "somedir/test-pug-template-umlaut").onComplete(should.asyncAssertSuccess(render -> {
       assertContains(render, "<title>&auml;</title>");
     }));
   }
@@ -136,7 +136,7 @@ public class PugTemplateTest {
   public void testIsoEncoding(TestContext should) {
     TemplateEngine engine = PugTemplateEngine.create(vertx, "pug", StandardCharsets.ISO_8859_1.name());
 
-    engine.render(new JsonObject(), "somedir/test-pug-template-umlaut", should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject(), "somedir/test-pug-template-umlaut").onComplete(should.asyncAssertSuccess(render -> {
       assertContains(render, "<title>&Atilde;&curren;</title>");
     }));
   }
@@ -147,7 +147,7 @@ public class PugTemplateTest {
 
     final JsonObject context = new JsonObject();
 
-    engine.render(context, "somedir/foo", should.asyncAssertFailure());
+    engine.render(context, "somedir/foo").onComplete(should.asyncAssertFailure());
   }
 
   @Test
@@ -169,7 +169,7 @@ public class PugTemplateTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("<before></before>", render.toString());
       // cache is enabled so if we change the content that should not affect the result
 
@@ -180,7 +180,7 @@ public class PugTemplateTest {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render2 -> {
+      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
         should.assertEquals("<before></before>", render2.toString());
       }));
     }));

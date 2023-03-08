@@ -134,7 +134,7 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 
   private boolean testSessionBlocking(String sessionId, Function<Session, Boolean> test) {
     CompletableFuture<Boolean> cf = new CompletableFuture<>();
-    store.get(sessionId, ar -> {
+    store.get(sessionId).onComplete(ar -> {
       if (ar.succeeded()) {
         cf.complete(test.apply(ar.result()));
       } else {
@@ -181,7 +181,7 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 		testRequest(HttpMethod.GET, "/", 200, "OK");
 		Thread.sleep(500); // Needed because session.destroy is async
 		CountDownLatch latch1 = new CountDownLatch(1);
-		store.get(rid.get(), onSuccess(res -> {
+		store.get(rid.get()).onComplete(onSuccess(res -> {
 			assertNull(res);
 			latch1.countDown();
 		}));

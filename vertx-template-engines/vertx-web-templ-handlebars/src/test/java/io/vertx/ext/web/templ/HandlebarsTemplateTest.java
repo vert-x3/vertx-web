@@ -62,7 +62,7 @@ public class HandlebarsTemplateTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-handlebars-template2.hbs", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-handlebars-template2.hbs").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Hello badger and fox", normalizeCRLF(render.toString()));
     }));
   }
@@ -74,7 +74,7 @@ public class HandlebarsTemplateTest {
     JsonObject json = new JsonObject();
     json.put("bar", new JsonObject().put("one", "badger").put("two", "fox"));
 
-    engine.render(new JsonObject().put("foo", json), "src/test/filesystemtemplates/test-handlebars-template4.hbs", should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject().put("foo", json), "src/test/filesystemtemplates/test-handlebars-template4.hbs").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Goodbye badger and fox", normalizeCRLF(render.toString()));
     }));
   }
@@ -87,7 +87,7 @@ public class HandlebarsTemplateTest {
     jsonArray.add("badger").add("fox").add(new JsonObject().put("name", "joe"));
     String expected = "Iterator: badger,fox,{&quot;name&quot;:&quot;joe&quot;}, Element by index:fox - joe - Out of bounds:  - Size:3";
 
-    engine.render(new JsonObject().put("foo", jsonArray), "src/test/filesystemtemplates/test-handlebars-template5.hbs", should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject().put("foo", jsonArray), "src/test/filesystemtemplates/test-handlebars-template5.hbs").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals(expected, normalizeCRLF(render.toString()));
     }));
   }
@@ -113,7 +113,7 @@ public class HandlebarsTemplateTest {
       }
     });
 
-    engine.render(new JsonObject().put("foo", "Badger").put("bar", "Fox"), "src/test/filesystemtemplates/test-handlebars-template3.hbs", should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject().put("foo", "Badger").put("bar", "Fox"), "src/test/filesystemtemplates/test-handlebars-template3.hbs").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Goodbye custom and custom", normalizeCRLF(render.toString()));
     }));
   }
@@ -127,7 +127,7 @@ public class HandlebarsTemplateTest {
 
     final JsonObject context = new JsonObject().put("foo", jsonArray);
 
-    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template6.hbs", should.asyncAssertFailure(cause -> {
+    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template6.hbs").onComplete(should.asyncAssertFailure(cause -> {
       should.assertTrue(cause.getMessage().contains("test-handlebars-template6.hbs:1:19"));
     }));
   }
@@ -141,7 +141,7 @@ public class HandlebarsTemplateTest {
       .put("bar", "fox");
 
 
-    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template3.hbs", should.asyncAssertSuccess(render -> {
+    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template3.hbs").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Goodbye badger and fox", normalizeCRLF(render.toString()));
     }));
   }
@@ -160,7 +160,7 @@ public class HandlebarsTemplateTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7", should.asyncAssertSuccess(render -> {
+    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("\ntext from template8\n\ntext from template7\n\n\n", normalizeCRLF(render.toString()));
     }));
   }
@@ -173,7 +173,7 @@ public class HandlebarsTemplateTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "src/test/filesystemtemplates/sub/test-handlebars-template9", should.asyncAssertSuccess(render -> {
+    engine.render(context, "src/test/filesystemtemplates/sub/test-handlebars-template9").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("\ntext from template8\n\ntext from template9\n\n\n", normalizeCRLF(render.toString()));
     }));
   }
@@ -186,7 +186,7 @@ public class HandlebarsTemplateTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-handlebars-template2", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-handlebars-template2").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Hello badger and fox", normalizeCRLF(render.toString()));
     }));
   }
@@ -199,7 +199,7 @@ public class HandlebarsTemplateTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-handlebars-template2", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-handlebars-template2").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Cheerio badger and fox", normalizeCRLF(render.toString()));
     }));
   }
@@ -212,13 +212,13 @@ public class HandlebarsTemplateTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/foo.hbs", should.asyncAssertFailure());
+    engine.render(context, "somedir/foo.hbs").onComplete(should.asyncAssertFailure());
   }
 
   @Test
   public void testGetHandlebars() {
     HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
-    assertNotNull(engine.getHandlebars());
+    assertNotNull(engine.unwrap());
   }
 
   @Test
@@ -234,7 +234,7 @@ public class HandlebarsTemplateTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("before", normalizeCRLF(render.toString()));
       // cache is enabled so if we change the content that should not affect the result
 
@@ -245,7 +245,7 @@ public class HandlebarsTemplateTest {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render2 -> {
+      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
         should.assertEquals("before", normalizeCRLF(render2.toString()));
       }));
     }));
@@ -262,7 +262,7 @@ public class HandlebarsTemplateTest {
     final AtomicInteger cnt = new AtomicInteger(0);
     final long t0 = System.currentTimeMillis();
     for (int i = 0; i < 1000000; i++) {
-      engine.render(context, "somedir/test-handlebars-template2.hbs", should.asyncAssertSuccess(render -> {
+      engine.render(context, "somedir/test-handlebars-template2.hbs").onComplete(should.asyncAssertSuccess(render -> {
         should.assertEquals("Hello badger and fox", normalizeCRLF(render.toString()));
         if (cnt.incrementAndGet() == 1000000) {
           final long t1 = System.currentTimeMillis();
@@ -278,7 +278,7 @@ public class HandlebarsTemplateTest {
 
     final JsonObject context = new JsonObject();
 
-    engine.render(context, "templates/index.hbs", should.asyncAssertSuccess());
+    engine.render(context, "templates/index.hbs").onComplete(should.asyncAssertSuccess());
   }
 
 

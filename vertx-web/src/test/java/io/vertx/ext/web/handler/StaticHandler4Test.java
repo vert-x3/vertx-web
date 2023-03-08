@@ -30,7 +30,7 @@ public class StaticHandler4Test extends WebTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    stat = StaticHandler.create().setWebRoot("nasty");
+    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "nasty");
     router.route("/*").handler(stat);
   }
 

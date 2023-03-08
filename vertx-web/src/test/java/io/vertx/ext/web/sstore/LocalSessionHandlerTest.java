@@ -49,7 +49,7 @@ public class LocalSessionHandlerTest extends SessionHandlerTestBase {
     router.route().handler(ctx -> {
       ctx.session();
       ctx.response().setStatusCode(500);
-      sessionHandler.flush(ctx, asyncResult -> {
+      sessionHandler.flush(ctx).onComplete(asyncResult -> {
         // store was skipped, so we signed with a success
         assertTrue(asyncResult.succeeded());
         ctx.end();

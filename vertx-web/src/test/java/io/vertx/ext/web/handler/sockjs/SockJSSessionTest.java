@@ -54,8 +54,8 @@ public class SockJSSessionTest extends SockJSTestBase {
       };
     };
     startServers();
-    client.request(HttpMethod.GET, "/test/400/8ne8e94a/eventsource", onSuccess(req -> {
-      req.send(onSuccess(resp -> {
+    client.request(HttpMethod.GET, "/test/400/8ne8e94a/eventsource").onComplete(onSuccess(req -> {
+      req.send().onComplete(onSuccess(resp -> {
         AtomicInteger count = new AtomicInteger();
         resp.handler(msg -> {
           if (count.incrementAndGet() == 400) {
@@ -127,7 +127,7 @@ public class SockJSSessionTest extends SockJSTestBase {
       });
     };
     startServers();
-    client.webSocket("/test/400/8ne8e94a/websocket", onSuccess(ws -> {
+    client.webSocket("/test/400/8ne8e94a/websocket").onComplete(onSuccess(ws -> {
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame("[\"Hello", false));
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(Buffer.buffer(" World\"]"), true));
       ws.close();
@@ -156,7 +156,7 @@ public class SockJSSessionTest extends SockJSTestBase {
       });
     };
     startServers();
-    client.webSocket("/test/400/8ne8e94a/websocket", onSuccess(ws -> {
+    client.webSocket("/test/400/8ne8e94a/websocket").onComplete(onSuccess(ws -> {
       ws.frameHandler(wsf -> {
         switch (wsf.type()) {
           case TEXT:

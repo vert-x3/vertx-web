@@ -16,9 +16,7 @@
 
 package io.vertx.ext.web.templ.mvel.impl;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
@@ -47,7 +45,7 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
   }
 
   @Override
-  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public Future<Buffer> render(Map<String, Object> context, String templateFile) {
     try {
       String src = adjustLocation(templateFile);
       TemplateHolder<CompiledTemplate> template = getTemplate(src);
@@ -60,8 +58,7 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
         }
 
         if (!vertx.fileSystem().existsBlocking(src)) {
-          handler.handle(Future.failedFuture("Cannot find template " + src));
-          return;
+          return Future.failedFuture("Cannot find template " + src);
         }
 
         template = new TemplateHolder<>(
@@ -78,14 +75,13 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
       final CompiledTemplate mvel = template.template();
       final String baseDir = template.baseDir();
 
-      handler.handle(Future.succeededFuture(
+      return Future.succeededFuture(
         Buffer.buffer(
           (String) new TemplateRuntime(mvel.getTemplate(), null, mvel.getRoot(), baseDir)
             .execute(new StringAppender(), context, new ImmutableDefaultFactory())
-        )
-      ));
+        ));
     } catch (Exception ex) {
-      handler.handle(Future.failedFuture(ex));
+      return Future.failedFuture(ex);
     }
   }
 

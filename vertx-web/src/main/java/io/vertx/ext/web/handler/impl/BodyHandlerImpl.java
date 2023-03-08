@@ -370,11 +370,8 @@ public class BodyHandlerImpl implements BodyHandler {
           FileSystem fileSystem = context.vertx().fileSystem();
           if (!fileUpload.cancel()) {
             String uploadedFileName = fileUpload.uploadedFileName();
-            fileSystem.delete(uploadedFileName, deleteResult -> {
-              if (deleteResult.failed()) {
-                LOG.warn("Delete of uploaded file failed: " + uploadedFileName, deleteResult.cause());
-              }
-            });
+            fileSystem.delete(uploadedFileName)
+              .onFailure(err -> LOG.warn("Delete of uploaded file failed: " + uploadedFileName, err));
           }
         }
       }

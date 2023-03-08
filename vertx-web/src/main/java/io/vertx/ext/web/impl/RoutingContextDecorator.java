@@ -6,7 +6,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -57,12 +56,6 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
-  @Deprecated
-  public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
-    return decoratedContext.addCookie(cookie);
-  }
-
-  @Override
   public int addEndHandler(Handler<AsyncResult<Void>> handler) {
     return decoratedContext.addEndHandler(handler);
   }
@@ -70,18 +63,6 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   @Override
   public int addHeadersEndHandler(Handler<Void> handler) {
     return decoratedContext.addHeadersEndHandler(handler);
-  }
-
-  @Override
-  @Deprecated
-  public int cookieCount() {
-    return decoratedContext.cookieCount();
-  }
-
-  @Override
-  @Deprecated
-  public Map<String, io.vertx.core.http.Cookie> cookieMap() {
-    return decoratedContext.cookieMap();
   }
 
   @Override
@@ -162,12 +143,6 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
-  @Deprecated
-  public Cookie getCookie(String name) {
-    return decoratedContext.getCookie(name);
-  }
-
-  @Override
   public String mountPoint() {
     return decoratedContext.mountPoint();
   }
@@ -191,12 +166,6 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   @Override
   public boolean removeBodyEndHandler(int handlerID) {
     return decoratedContext.removeBodyEndHandler(handlerID);
-  }
-
-  @Override
-  @Deprecated
-  public Cookie removeCookie(String name, boolean invalidate) {
-    return decoratedContext.removeCookie(name, invalidate);
   }
 
   @Override
@@ -275,13 +244,11 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
-  @Deprecated
   public void setBody(Buffer body) {
     decoratedContext.setBody(body);
   }
 
   @Override
-  @Deprecated
   public void setSession(Session session) {
     decoratedContext.setSession(session);
   }

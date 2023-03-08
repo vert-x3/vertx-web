@@ -76,7 +76,7 @@ public class RouterBuilderBodyValidationIntegrationTest extends BaseRouterBuilde
   }
 
   private void assertRequestOk(String uri, String jsonName, Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) {
-    vertx.fileSystem().readFile(Paths.get("src", "test", "resources", "specs", "test_json", "schemas_test", jsonName).toString(), testContext.succeeding(buf -> {
+    vertx.fileSystem().readFile(Paths.get("src", "test", "resources", "specs", "test_json", "schemas_test", jsonName).toString()).onComplete(testContext.succeeding(buf -> {
       Object json = Json.decodeValue(buf);
       testRequest(client, HttpMethod.POST, uri)
         .expect(jsonBodyResponse(json), statusCode(200))
@@ -85,8 +85,8 @@ public class RouterBuilderBodyValidationIntegrationTest extends BaseRouterBuilde
   }
 
   private void assertRequestOk(String uri, String jsonNameRequest, String jsonNameResponse, Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) {
-    vertx.fileSystem().readFile(Paths.get("src", "test", "resources", "specs", "test_json", "schemas_test", jsonNameRequest).toString(), testContext.succeeding(reqBuf ->
-      vertx.fileSystem().readFile(Paths.get("src", "test", "resources", "specs", "test_json", "schemas_test", jsonNameResponse).toString(), testContext.succeeding(resBuf -> {
+    vertx.fileSystem().readFile(Paths.get("src", "test", "resources", "specs", "test_json", "schemas_test", jsonNameRequest).toString()).onComplete(testContext.succeeding(reqBuf ->
+      vertx.fileSystem().readFile(Paths.get("src", "test", "resources", "specs", "test_json", "schemas_test", jsonNameResponse).toString()).onComplete(testContext.succeeding(resBuf -> {
         Object reqJson = Json.decodeValue(reqBuf);
         Object resJson = Json.decodeValue(resBuf);
         testRequest(client, HttpMethod.POST, uri)
@@ -97,7 +97,7 @@ public class RouterBuilderBodyValidationIntegrationTest extends BaseRouterBuilde
   }
 
   private void assertRequestFail(String uri, String jsonName, Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) {
-    vertx.fileSystem().readFile(Paths.get("src", "test", "resources", "specs", "test_json", "schemas_test", jsonName).toString(), testContext.succeeding(buf -> {
+    vertx.fileSystem().readFile(Paths.get("src", "test", "resources", "specs", "test_json", "schemas_test", jsonName).toString()).onComplete(testContext.succeeding(buf -> {
       Object json = Json.decodeValue(buf);
       testRequest(client, HttpMethod.POST, uri)
         .expect(statusCode(400))

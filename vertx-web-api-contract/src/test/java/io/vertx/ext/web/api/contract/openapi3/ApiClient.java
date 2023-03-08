@@ -66,7 +66,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -93,7 +93,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -120,7 +120,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -147,7 +147,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -174,7 +174,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -201,7 +201,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -228,7 +228,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -255,7 +255,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -282,7 +282,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -309,7 +309,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -336,7 +336,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -363,7 +363,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -390,7 +390,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -417,7 +417,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -444,7 +444,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -471,7 +471,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -498,7 +498,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -525,7 +525,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -556,7 +556,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -587,7 +587,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -618,7 +618,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -643,7 +643,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -668,7 +668,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -693,7 +693,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -718,7 +718,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -743,7 +743,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -768,7 +768,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -793,7 +793,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -818,7 +818,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -843,7 +843,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -868,7 +868,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -893,7 +893,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -918,7 +918,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -943,7 +943,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -968,7 +968,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -993,7 +993,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -1018,7 +1018,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -1043,7 +1043,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -1068,7 +1068,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -1093,7 +1093,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -1118,7 +1118,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -1143,7 +1143,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -1168,7 +1168,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -1193,7 +1193,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -1218,7 +1218,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -1243,7 +1243,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -1268,7 +1268,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
     /**
@@ -1293,7 +1293,7 @@ public class ApiClient {
 
 
         this.renderAndAttachCookieHeader(request, requestCookies);
-        request.send(handler);
+        request.send().onComplete(handler);
     }
 
 

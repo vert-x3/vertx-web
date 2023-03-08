@@ -58,7 +58,7 @@ public class FreeMarkerTemplateNoCacheTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getName(), should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject(), temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("before", FreeMarkerTemplateTest.normalizeCRLF(render.toString()));
       // cache is enabled so if we change the content that should not affect the result
 
@@ -69,7 +69,7 @@ public class FreeMarkerTemplateNoCacheTest {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getName(), should.asyncAssertSuccess(render2 -> {
+      engine.render(new JsonObject(), temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
         should.assertEquals("after", FreeMarkerTemplateTest.normalizeCRLF(render2.toString()));
       }));
     }));

@@ -82,12 +82,6 @@ public class SockJSImpl implements SockJSHandler {
   }
 
   @Override
-  @Deprecated
-  public void handle(RoutingContext routingContext) {
-    throw new UnsupportedOperationException("Mount the router as a sub-router instead. This method will not properly handle errors.");
-  }
-
-  @Override
   public Router socketHandler(Handler<SockJSSocket> sockHandler) {
     final Router router = Router.router(vertx);
 

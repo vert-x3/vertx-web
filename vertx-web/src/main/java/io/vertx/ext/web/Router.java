@@ -360,18 +360,6 @@ public interface Router extends Handler<HttpServerRequest> {
   Router clear();
 
   /**
-   * @deprecated This method duplicates the sub router functionality from {@link Route#subRouter(Router)}.
-   *
-   * Mount a sub router on this router
-   *
-   * @param mountPoint  the mount point (path prefix) to mount it on
-   * @param subRouter  the router to mount as a sub router
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Deprecated
-  Route mountSubRouter(String mountPoint, Router subRouter);
-
-  /**
    * Specify an handler to handle an error for a particular status code. You can use to manage general errors too using status code 500.
    * The handler will be called when the context fails and other failure handlers didn't write the reply or when an exception is thrown inside an handler.
    * You <b>must not</b> use {@link RoutingContext#next()} inside the error handler

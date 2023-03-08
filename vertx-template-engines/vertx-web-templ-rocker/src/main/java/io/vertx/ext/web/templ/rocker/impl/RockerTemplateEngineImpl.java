@@ -17,9 +17,7 @@
 package io.vertx.ext.web.templ.rocker.impl;
 
 import com.fizzed.rocker.Rocker;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.templ.rocker.RockerTemplateEngine;
 
@@ -37,15 +35,15 @@ public class RockerTemplateEngineImpl implements RockerTemplateEngine {
   }
 
   @Override
-  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public Future<Buffer> render(Map<String, Object> context, String templateFile) {
     try {
-      handler.handle(Future.succeededFuture(
+      return Future.succeededFuture(
         Rocker.template(adjustLocation(templateFile))
           .relaxedBind(context)
           .render(VertxBufferOutput.FACTORY)
-          .getBuffer()));
+          .getBuffer());
     } catch (final RuntimeException ex) {
-      handler.handle(Future.failedFuture(ex));
+      return Future.failedFuture(ex);
     }
   }
 

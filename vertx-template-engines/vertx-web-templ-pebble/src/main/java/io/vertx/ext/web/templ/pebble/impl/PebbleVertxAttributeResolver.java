@@ -16,24 +16,23 @@
 
 package io.vertx.ext.web.templ.pebble.impl;
 
-import com.mitchellbosecke.pebble.attributes.AttributeResolver;
-import com.mitchellbosecke.pebble.attributes.ResolvedAttribute;
-import com.mitchellbosecke.pebble.error.AttributeNotFoundException;
-import com.mitchellbosecke.pebble.node.ArgumentsNode;
-import com.mitchellbosecke.pebble.template.EvaluationContextImpl;
-
+import io.pebbletemplates.pebble.attributes.AttributeResolver;
+import io.pebbletemplates.pebble.attributes.ResolvedAttribute;
+import io.pebbletemplates.pebble.error.AttributeNotFoundException;
+import io.pebbletemplates.pebble.node.ArgumentsNode;
+import io.pebbletemplates.pebble.template.EvaluationContextImpl;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
- * @author Nicola Murino <nicola dot murino at gmail.com> 
+ * @author Nicola Murino <nicola dot murino at gmail.com>
  */
 
 class PebbleVertxAttributeResolver implements AttributeResolver {
 
   @Override
   public ResolvedAttribute resolve(Object instance, Object attributeNameValue, Object[] argumentValues,
-      ArgumentsNode args, EvaluationContextImpl context, String filename, int lineNumber) {
+                                   ArgumentsNode args, EvaluationContextImpl context, String filename, int lineNumber) {
 
     if (instance instanceof JsonObject) {
       ResolvedAttribute resolvedAttribute = new ResolvedAttribute(null);

@@ -19,9 +19,7 @@ package io.vertx.ext.web.templ.jade.impl;
 import de.neuland.jade4j.JadeConfiguration;
 import de.neuland.jade4j.template.JadeTemplate;
 import de.neuland.jade4j.template.TemplateLoader;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
@@ -57,7 +55,7 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   }
 
   @Override
-  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public Future<Buffer> render(Map<String, Object> context, String templateFile) {
     try {
       String src = adjustLocation(templateFile);
       TemplateHolder<JadeTemplate> template = getTemplate(src);
@@ -69,15 +67,10 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
         }
         putTemplate(src, template);
       }
-      handler.handle(Future.succeededFuture(Buffer.buffer(config.renderTemplate(template.template(), context))));
+      return Future.succeededFuture(Buffer.buffer(config.renderTemplate(template.template(), context)));
     } catch (Exception ex) {
-      handler.handle(Future.failedFuture(ex));
+      return Future.failedFuture(ex);
     }
-  }
-
-  @Override
-  public JadeConfiguration getJadeConfiguration() {
-    return config;
   }
 
   private class JadeTemplateLoader implements TemplateLoader {

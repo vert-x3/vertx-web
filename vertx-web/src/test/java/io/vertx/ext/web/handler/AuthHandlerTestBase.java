@@ -76,7 +76,7 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
       // we need to be logged in
       if (rc.user() == null) {
         UsernamePasswordCredentials authInfo = new UsernamePasswordCredentials(username, "delicious:sausages");
-        authNProvider.authenticate(authInfo, res -> {
+        authNProvider.authenticate(authInfo).onComplete(res -> {
           if (res.succeeded()) {
             rc.setUser(res.result());
             rc.next();

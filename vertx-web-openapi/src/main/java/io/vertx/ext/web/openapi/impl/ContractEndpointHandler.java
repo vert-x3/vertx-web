@@ -10,6 +10,7 @@ import io.vertx.ext.web.impl.ParsableMIMEValue;
 import io.vertx.ext.web.openapi.ErrorType;
 import io.vertx.ext.web.openapi.OpenAPIHolder;
 import io.vertx.ext.web.openapi.RouterBuilderException;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 

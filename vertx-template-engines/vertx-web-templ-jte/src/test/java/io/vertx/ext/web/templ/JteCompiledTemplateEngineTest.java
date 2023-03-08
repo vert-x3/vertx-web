@@ -45,7 +45,7 @@ public class JteCompiledTemplateEngineTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/testTemplate2.jte"));
 
-    engine.render(context, "compiled.jte", should.asyncAssertSuccess(render ->
+    engine.render(context, "compiled.jte").onComplete(should.asyncAssertSuccess(render ->
       should.assertEquals("\nHello compiled badger and fox\nRequest path is /testTemplate2.jte\n", normalizeCRLF(render.toString()))
     ));
   }

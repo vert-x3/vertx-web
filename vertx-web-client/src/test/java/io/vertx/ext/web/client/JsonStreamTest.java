@@ -48,12 +48,12 @@ public class JsonStreamTest {
         req.response().write(separator);
       }
       req.response().end();
-    }).listen(8080, tc.asyncAssertSuccess());
+    }).listen(8080).onComplete(tc.asyncAssertSuccess());
   }
 
   @After
   public void close(TestContext tc) {
-    vertx.close(tc.asyncAssertSuccess());
+    vertx.close().onComplete(tc.asyncAssertSuccess());
   }
 
 
@@ -70,7 +70,7 @@ public class JsonStreamTest {
       })
       .endHandler(x -> async.complete());
 
-    client.get("/?separator=nl&count=10").as(BodyCodec.jsonStream(parser)).send(x -> {
+    client.get("/?separator=nl&count=10").as(BodyCodec.jsonStream(parser)).send().onComplete(x -> {
       if (x.failed()) {
         tc.fail(x.cause());
       }
@@ -90,7 +90,7 @@ public class JsonStreamTest {
       })
       .endHandler(x -> async.complete());
 
-    client.get("/?separator=bl&count=10").as(BodyCodec.jsonStream(parser)).send(x -> {
+    client.get("/?separator=bl&count=10").as(BodyCodec.jsonStream(parser)).send().onComplete(x -> {
       if (x.failed()) {
         tc.fail(x.cause());
       }

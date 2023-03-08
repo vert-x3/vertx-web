@@ -21,6 +21,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,10 +36,11 @@ public class APIKeyHandlerTest extends WebTestBase {
   @Before
   public void setup() throws Exception {
     authProvider = credentials -> {
-      if ("APIKEY".equals(credentials.toJson().getString("token"))) {
+      TokenCredentials tokenCredentials = (TokenCredentials) credentials;
+      if ("APIKEY".equals(tokenCredentials.getToken())) {
         return Future.succeededFuture(User.create(new JsonObject()));
       } else {
-        return Future.failedFuture("Uknown APIKEY");
+        return Future.failedFuture("Unknown APIKEY");
       }
     };
   }

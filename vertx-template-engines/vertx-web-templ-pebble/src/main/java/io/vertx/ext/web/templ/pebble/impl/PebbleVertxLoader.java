@@ -15,8 +15,8 @@
  */
 package io.vertx.ext.web.templ.pebble.impl;
 
-import com.mitchellbosecke.pebble.error.LoaderException;
-import com.mitchellbosecke.pebble.loader.Loader;
+import io.pebbletemplates.pebble.error.LoaderException;
+import io.pebbletemplates.pebble.loader.Loader;
 import io.vertx.core.Vertx;
 
 import java.io.File;

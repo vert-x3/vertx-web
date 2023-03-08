@@ -75,7 +75,7 @@ abstract class SockJSTestBase extends VertxTestBase {
 
         vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"))
           .requestHandler(router)
-          .listen(ar -> {
+          .listen().onComplete(ar -> {
             if (ar.succeeded()) {
               startFuture.complete();
             } else {
@@ -83,7 +83,7 @@ abstract class SockJSTestBase extends VertxTestBase {
             }
           });
       }
-    }, new DeploymentOptions().setInstances(numServers), onSuccess(id -> latch.countDown()));
+    }, new DeploymentOptions().setInstances(numServers)).onComplete(onSuccess(id -> latch.countDown()));
     awaitLatch(latch);
   }
 }

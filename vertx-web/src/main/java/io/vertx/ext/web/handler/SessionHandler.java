@@ -208,7 +208,7 @@ public interface SessionHandler extends PlatformHandler {
 	@Fluent
   @Deprecated
   default SessionHandler flush(RoutingContext ctx, Handler<AsyncResult<Void>> handler) {
-    flush(ctx, false)
+    flush(ctx)
       .onComplete(handler);
 
     return this;

@@ -24,8 +24,6 @@ import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
 import io.vertx.ext.web.impl.Utils;
@@ -181,14 +179,6 @@ public interface RoutingContext {
   @Nullable Route currentRoute();
 
   /**
-   * Use {@link #normalizedPath} instead
-   */
-  @Deprecated()
-  default String normalisedPath() {
-    return this.normalizedPath();
-  }
-
-  /**
    * Return the normalized path for the request.
    * <p>
    * The normalized path is where the URI path has been decoded, i.e. any unicode or other illegal URL characters that
@@ -204,175 +194,6 @@ public interface RoutingContext {
    * @return the normalized path
    */
   String normalizedPath();
-
-  /**
-   * @deprecated Use {@link HttpServerRequest#getCookie(String)}
-   * Get the cookie with the specified name.
-   *
-   * @param name  the cookie name
-   * @return the cookie
-   */
-  @Deprecated
-  @Nullable Cookie getCookie(String name);
-
-  /**
-   * @deprecated Use {@link HttpServerResponse#addCookie(Cookie)}
-   * Add a cookie. This will be sent back to the client in the response.
-   *
-   * @param cookie  the cookie
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Deprecated
-  @Fluent
-  RoutingContext addCookie(io.vertx.core.http.Cookie cookie);
-
-  /**
-   * @deprecated Use {@link HttpServerResponse#removeCookie(String)}
-   * Expire a cookie, notifying a User Agent to remove it from its cookie jar.
-   *
-   * @param name  the name of the cookie
-   * @return the cookie, if it existed, or null
-   */
-  @Deprecated
-  default @Nullable Cookie removeCookie(String name) {
-    return removeCookie(name, true);
-  }
-
-  /**
-   * @deprecated Use {@link HttpServerResponse#removeCookie(String, boolean)}
-   * Remove a cookie from the cookie set. If invalidate is true then it will expire a cookie, notifying a User Agent to
-   * remove it from its cookie jar.
-   *
-   * @param name  the name of the cookie
-   * @return the cookie, if it existed, or null
-   */
-  @Deprecated
-  @Nullable Cookie removeCookie(String name, boolean invalidate);
-
-  /**
-   * @deprecated Use {@link HttpServerRequest#cookieCount()}
-   * @return the number of cookies.
-   */
-  @Deprecated
-  int cookieCount();
-
-  /**
-   * @deprecated Use {@link HttpServerRequest#cookieMap()}
-   * @return a map of all the cookies.
-   */
-  @Deprecated
-  Map<String, io.vertx.core.http.Cookie> cookieMap();
-
-  /**
-   * @deprecated Use {@link #body()} instead.
-   *
-   * @return  the entire HTTP request body as a string, assuming UTF-8 encoding if the request does not provide the
-   * content type charset attribute. If a charset is provided in the request that it shall be respected. The context
-   * must have first been routed to a {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
-   */
-  @Deprecated
-  default @Nullable String getBodyAsString() {
-    return body().asString();
-  }
-
-  /**
-   * @deprecated Use {@link #body()} instead.
-   *
-   * Get the entire HTTP request body as a string, assuming the specified encoding. The context must have first been routed to a
-   * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
-   *
-   * @param encoding  the encoding, e.g. "UTF-16"
-   * @return the body
-   */
-  @Deprecated
-  default @Nullable String getBodyAsString(String encoding) {
-    return body().asString(encoding);
-  }
-
-  /**
-   * @deprecated Use {@link #body()} instead.
-   *
-   * Gets the current body buffer as a {@link JsonObject}. If a positive limit is provided the parsing will only happen
-   * if the buffer length is smaller or equal to the limit. Otherwise an {@link IllegalStateException} is thrown.
-   *
-   * When the application is only handling uploads in JSON format, it is recommended to set a limit on
-   * {@link io.vertx.ext.web.handler.BodyHandler#setBodyLimit(long)} as this will avoid the upload to be parsed and
-   * loaded into the application memory.
-   *
-   * @param maxAllowedLength if the current buffer length is greater than the limit an {@link IllegalStateException} is
-   *                         thrown. This can be used to avoid DDoS attacks on very long JSON payloads that could take
-   *                         over the CPU while attempting to parse the data.
-   *
-   * @return Get the entire HTTP request body as a {@link JsonObject}. The context must have first been routed to a
-   * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
-   * <br/>
-   * When the body is {@code null} or the {@code "null"} JSON literal then {@code null} is returned.
-   */
-  @Deprecated
-  default @Nullable JsonObject getBodyAsJson(int maxAllowedLength) {
-    return body().asJsonObject(maxAllowedLength);
-  }
-
-  /**
-   * @deprecated Use {@link #body()} instead.
-   *
-   * Gets the current body buffer as a {@link JsonArray}. If a positive limit is provided the parsing will only happen
-   * if the buffer length is smaller or equal to the limit. Otherwise an {@link IllegalStateException} is thrown.
-   *
-   * When the application is only handling uploads in JSON format, it is recommended to set a limit on
-   * {@link io.vertx.ext.web.handler.BodyHandler#setBodyLimit(long)} as this will avoid the upload to be parsed and
-   * loaded into the application memory.
-   *
-   * @param maxAllowedLength if the current buffer length is greater than the limit an {@link IllegalStateException} is
-   *                         thrown. This can be used to avoid DDoS attacks on very long JSON payloads that could take
-   *                         over the CPU while attempting to parse the data.
-   *
-   * @return Get the entire HTTP request body as a {@link JsonArray}. The context must have first been routed to a
-   * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
-   * <br/>
-   * When the body is {@code null} or the {@code "null"} JSON literal then {@code null} is returned.
-   */
-  @Deprecated
-  default @Nullable JsonArray getBodyAsJsonArray(int maxAllowedLength) {
-    return body().asJsonArray(maxAllowedLength);
-  }
-
-  /**
-   * @deprecated Use {@link #body()} instead.
-   *
-   * @return Get the entire HTTP request body as a {@link JsonObject}. The context must have first been routed to a
-   * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
-   * <br/>
-   * When the body is {@code null} or the {@code "null"} JSON literal then {@code null} is returned.
-   */
-  @Deprecated
-  default @Nullable JsonObject getBodyAsJson() {
-    return body().asJsonObject();
-  }
-
-  /**
-   * @deprecated Use {@link #body()} instead.
-   *
-   * @return Get the entire HTTP request body as a {@link JsonArray}. The context must have first been routed to a
-   * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
-   * <br/>
-   * When the body is {@code null} or the {@code "null"} JSON literal then {@code null} is returned.
-   */
-  @Deprecated
-  default @Nullable JsonArray getBodyAsJsonArray() {
-    return body().asJsonArray();
-  }
-
-  /**
-   * @deprecated Use {@link #body()} instead.
-   *
-   * @return Get the entire HTTP request body as a {@link Buffer}. The context must have first been routed to a
-   * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
-   */
-  @Deprecated
-  default @Nullable Buffer getBody() {
-    return body().buffer();
-  }
 
   RequestBody body();
 
@@ -497,21 +318,6 @@ public interface RoutingContext {
   int addEndHandler(Handler<AsyncResult<Void>> handler);
 
   /**
-   * Add an end handler for the request/response context. This will be called when the response is disposed or an
-   * exception has been encountered to allow consistent cleanup. The handler is called asynchronously of when the
-   * response has been received by the client.
-   *
-   * @see #addEndHandler(Handler)
-   *
-   * @return future that will be called with either a success or failure result.
-   */
-  default Future<Void> addEndHandler() {
-    Promise<Void> promise = Promise.promise();
-    addEndHandler(promise);
-    return promise.future();
-  }
-
-  /**
    * Remove an end handler
    *
    * @param handlerID  the id as returned from {@link io.vertx.ext.web.RoutingContext#addEndHandler(Handler)}.
@@ -523,24 +329,6 @@ public interface RoutingContext {
    * @return true if the context is being routed to failure handlers.
    */
   boolean failed();
-
-  /**
-   * @deprecated This method is internal. Users that really need to use it should refer to {@link io.vertx.ext.web.impl.RoutingContextInternal#setBody(Buffer)}
-   * Set the body. Used by the {@link io.vertx.ext.web.handler.BodyHandler}. You will not normally call this method.
-   *
-   * @param body  the body
-   */
-  @Deprecated
-  void setBody(Buffer body);
-
-  /**
-   * @deprecated This method is internal. Users that really need to use it should refer to {@link io.vertx.ext.web.impl.RoutingContextInternal#setSession(Session)}
-   * Set the session. Used by the {@link io.vertx.ext.web.handler.SessionHandler}. You will not normally call this method.
-   *
-   * @param session  the session
-   */
-  @Deprecated
-  void setSession(Session session);
 
   /**
    * Set the user. Usually used by auth handlers to inject a User. You will not normally call this method.

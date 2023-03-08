@@ -59,7 +59,7 @@ public class MVELTemplateTest {
     context.put("context", new JsonObject().put("path", "/test-mvel-template2.templ"));
 
     String tmplPath = "somedir/test-mvel-template2.templ".replace('/', File.separatorChar);
-    engine.render(context, tmplPath, should.asyncAssertSuccess(render -> {
+    engine.render(context, tmplPath).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Hello badger and fox\nRequest path is /test-mvel-template2.templ\n", normalizeCRLF(render.toString()));
     }));
   }
@@ -75,7 +75,7 @@ public class MVELTemplateTest {
     context.put("context", new JsonObject().put("path", "/test-mvel-template3.templ"));
 
     String tmplPath = "src/test/filesystemtemplates/test-mvel-template3.templ".replace('/', File.separatorChar);
-    engine.render(context, tmplPath, should.asyncAssertSuccess(render -> {
+    engine.render(context, tmplPath).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Hello badger and fox\nRequest path is /test-mvel-template3.templ\n", normalizeCRLF(render.toString()));
     }));
   }
@@ -95,7 +95,7 @@ public class MVELTemplateTest {
     context.put("context", new JsonObject().put("path", "/test-mvel-template4.templ"));
 
     String tmplPath = "src/test/filesystemtemplates/test-mvel-template4.templ".replace('/', File.separatorChar);
-    engine.render(context, tmplPath, should.asyncAssertSuccess(render -> {
+    engine.render(context, tmplPath).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Hello badger and fox\n\nRequest path is /test-mvel-template4.templ\n", normalizeCRLF(render.toString()));
     }));
   }
@@ -117,7 +117,7 @@ public class MVELTemplateTest {
     context.put("context", new JsonObject().put("path", "/test-mvel-template2.templ"));
 
     String tmplPath = "somedir/test-mvel-template2".replace('/', File.separatorChar);
-    engine.render(context, tmplPath, should.asyncAssertSuccess(render -> {
+    engine.render(context, tmplPath).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Hello badger and fox\nRequest path is /test-mvel-template2.templ\n", normalizeCRLF(render.toString()));
     }));
   }
@@ -133,7 +133,7 @@ public class MVELTemplateTest {
     context.put("context", new JsonObject().put("path", "/test-mvel-template2"));
 
     String tmplPath = "somedir/test-mvel-template2".replace('/', File.separatorChar);
-    engine.render(context, tmplPath, should.asyncAssertSuccess(render -> {
+    engine.render(context, tmplPath).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Cheerio badger and fox\nRequest path is /test-mvel-template2\n", normalizeCRLF(render.toString()));
     }));
   }
@@ -141,7 +141,7 @@ public class MVELTemplateTest {
   @Test
   public void testNoSuchTemplate(TestContext should) {
     TemplateEngine engine = MVELTemplateEngine.create(vertx);
-    engine.render(new JsonObject(), "nosuchtemplate.templ", should.asyncAssertFailure());
+    engine.render(new JsonObject(), "nosuchtemplate.templ").onComplete(should.asyncAssertFailure());
   }
 
   @Test
@@ -158,7 +158,7 @@ public class MVELTemplateTest {
     out.flush();
     out.close();
 
-    engine.render(new JsonObject(), temp.getParent() + File.separatorChar + temp.getName(), should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject(), temp.getParent() + File.separatorChar + temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("before", render.toString());
       // cache is enabled so if we change the content that should not affect the result
 
@@ -171,7 +171,7 @@ public class MVELTemplateTest {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getParent() + File.separatorChar + temp.getName(), should.asyncAssertSuccess(render2 -> {
+      engine.render(new JsonObject(), temp.getParent() + File.separatorChar + temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
         should.assertEquals("before", render2.toString());
       }));
 

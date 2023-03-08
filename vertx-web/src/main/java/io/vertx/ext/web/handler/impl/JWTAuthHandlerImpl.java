@@ -16,9 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.TokenCredentials;
@@ -43,7 +41,7 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
   public JWTAuthHandlerImpl(JWTAuth authProvider, String realm) {
     super(authProvider, Type.BEARER, realm);
     scopes = new ArrayList<>();
-    this.delimiter  = " ";
+    this.delimiter = " ";
   }
 
   private JWTAuthHandlerImpl(JWTAuthHandlerImpl base, List<String> scopes, String delimiter) {
@@ -53,41 +51,31 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
   }
 
   @Override
-  public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
+  public Future<User> authenticate(RoutingContext context) {
 
-    parseAuthorization(context, parseAuthorization -> {
-      if (parseAuthorization.failed()) {
-        handler.handle(Future.failedFuture(parseAuthorization.cause()));
-        return;
-      }
-
-      String token = parseAuthorization.result();
-      int segments = 0;
-      for (int i = 0; i < token.length(); i++) {
-        char c = token.charAt(i);
-        if (c == '.') {
-          if (++segments == 3) {
-            handler.handle(Future.failedFuture(new HttpException(400, "Too many segments in token")));
-            return;
+    return parseAuthorization(context)
+      .compose(token -> {
+        int segments = 0;
+        for (int i = 0; i < token.length(); i++) {
+          char c = token.charAt(i);
+          if (c == '.') {
+            if (++segments == 3) {
+              return Future.failedFuture(new HttpException(400, "Too many segments in token"));
+            }
+            continue;
           }
-          continue;
+          if (Character.isLetterOrDigit(c) || c == '-' || c == '_') {
+            continue;
+          }
+          // invalid character
+          return Future.failedFuture(new HttpException(400, "Invalid character in token: " + (int) c));
         }
-        if (Character.isLetterOrDigit(c) || c == '-' || c == '_') {
-          continue;
-        }
-        // invalid character
-        handler.handle(Future.failedFuture(new HttpException(400, "Invalid character in token: " + (int) c)));
-        return;
-      }
 
-      authProvider.authenticate(new TokenCredentials(token), authn -> {
-        if (authn.failed()) {
-          handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
-        } else {
-          handler.handle(authn);
-        }
+        return
+          authProvider
+            .authenticate(new TokenCredentials(token))
+            .recover(err -> Future.failedFuture(new HttpException(401, err)));
       });
-    });
   }
 
   @Override
@@ -126,7 +114,7 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
         return;
       }
 
-      if(jwt.getValue("scope") == null) {
+      if (jwt.getValue("scope") == null) {
         ctx.fail(403, new IllegalStateException("Invalid JWT: scope claim is required"));
         return;
       }
@@ -135,7 +123,7 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
       if (jwt.getValue("scope") instanceof String) {
         target =
           Stream.of(jwt.getString("scope")
-            .split(delimiter))
+              .split(delimiter))
             .collect(Collectors.toList());
       } else {
         target = jwt.getJsonArray("scope").getList();

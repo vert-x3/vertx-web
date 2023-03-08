@@ -47,7 +47,7 @@ public class SockJSEventBusTest extends SockJSTestBase {
       });
     };
     startServers();
-    client.webSocket("/test/websocket", onSuccess(ws -> {
+    client.webSocket("/test/websocket").onComplete(onSuccess(ws -> {
       ws.frameHandler(frame -> {
         if (frame.isClose()) {
           //

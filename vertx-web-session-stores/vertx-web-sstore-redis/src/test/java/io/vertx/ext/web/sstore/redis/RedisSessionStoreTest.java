@@ -36,7 +36,7 @@ public class RedisSessionStoreTest {
       rule.vertx(),
       // provide a client
       Redis.createClient(rule.vertx(), new RedisOptions()
-        .setConnectionString("redis://" + container.getContainerIpAddress() + ":" + container.getMappedPort(6379))
+        .setConnectionString("redis://" + container.getHost() + ":" + container.getMappedPort(6379))
         // how many connections are we willing to open to redis?
         .setMaxPoolSize(2)
         // how many waiting connections are we allowing to queue?
@@ -46,7 +46,7 @@ public class RedisSessionStoreTest {
   @After
   public void after(TestContext should) {
     final Async test = should.async();
-    store.clear(clear -> {
+    store.clear().onComplete(clear -> {
       should.assertTrue(clear.succeeded());
       test.complete();
     });

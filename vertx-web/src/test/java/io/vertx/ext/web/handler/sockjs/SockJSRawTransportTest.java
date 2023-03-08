@@ -50,8 +50,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         .setHost("localhost")
         .setPort(8080)
         .setURI("/test/websocket")
-        .setAllowOriginHeader(false),
-      onSuccess(ws -> {
+        .setAllowOriginHeader(false)).onComplete(onSuccess(ws -> {
         ws.frameHandler(frame -> {
           if (frame.isClose()) {
             //
@@ -80,8 +79,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         .setHost("localhost")
         .setPort(8080)
         .setURI("/test/websocket")
-        .setAllowOriginHeader(false),
-      onFailure(err -> {
+        .setAllowOriginHeader(false)).onComplete(onFailure(err -> {
         assertNotNull(err);
         assertEquals("WebSocket upgrade failure: 403", err.getMessage());
         testComplete();
@@ -99,7 +97,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
       });
     };
     startServers(new SockJSHandlerOptions().setOrigin("http://localhost:8080"));
-    client.webSocket("/test/websocket", onSuccess(ws -> {
+    client.webSocket("/test/websocket").onComplete(onSuccess(ws -> {
       ws.frameHandler(frame -> {
         if (frame.isClose()) {
           //
@@ -123,7 +121,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
       });
     };
     startServers(new SockJSHandlerOptions().setOrigin("https://www.google.com"));
-    client.webSocket("/test/websocket", onFailure(err -> {
+    client.webSocket("/test/websocket").onComplete(onFailure(err -> {
       assertNotNull(err);
       assertEquals("WebSocket upgrade failure: 403", err.getMessage());
       testComplete();
@@ -144,7 +142,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
       });
     };
     startServers(new SockJSHandlerOptions());
-    client.webSocket("/test/websocket", onSuccess(ws -> {
+    client.webSocket("/test/websocket").onComplete(onSuccess(ws -> {
       ws.frameHandler(frame -> {
         if (frame.isClose()) {
           //

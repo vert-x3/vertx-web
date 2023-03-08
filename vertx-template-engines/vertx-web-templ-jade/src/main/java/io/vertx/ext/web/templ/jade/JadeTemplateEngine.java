@@ -17,7 +17,6 @@
 package io.vertx.ext.web.templ.jade;
 
 import de.neuland.jade4j.JadeConfiguration;
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.common.template.TemplateEngine;
@@ -57,15 +56,4 @@ public interface JadeTemplateEngine extends TemplateEngine {
   static JadeTemplateEngine create(Vertx vertx, String extension) {
     return new JadeTemplateEngineImpl(vertx, extension);
   }
-
-  /**
-   * @deprecated see {@link #unwrap()}
-   * Get a reference to the internal JadeConfiguration object so it
-   * can be configured.
-   *
-   * @return a reference to the internal JadeConfiguration instance.
-   */
-  @GenIgnore
-  @Deprecated
-  JadeConfiguration getJadeConfiguration();
 }

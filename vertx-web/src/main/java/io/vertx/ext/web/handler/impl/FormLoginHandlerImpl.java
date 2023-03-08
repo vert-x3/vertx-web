@@ -16,9 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -75,27 +73,23 @@ public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   }
 
   @Override
-  public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
+  public Future<User> authenticate(RoutingContext context) {
     HttpServerRequest req = context.request();
     if (req.method() != HttpMethod.POST) {
-      handler.handle(Future.failedFuture(BAD_METHOD)); // Must be a POST
+      return Future.failedFuture(BAD_METHOD); // Must be a POST
     } else {
       if (!context.body().available()) {
-        handler.handle(Future.failedFuture("BodyHandler is required to process POST requests"));
+        return Future.failedFuture("BodyHandler is required to process POST requests");
       } else {
         MultiMap params = req.formAttributes();
         String username = params.get(usernameParam);
         String password = params.get(passwordParam);
         if (username == null || password == null) {
-          handler.handle(Future.failedFuture(BAD_REQUEST));
+          return Future.failedFuture(BAD_REQUEST);
         } else {
-          authProvider.authenticate(new UsernamePasswordCredentials(username, password), authn -> {
-            if (authn.failed()) {
-              handler.handle(Future.failedFuture(new HttpException(401, authn.cause())));
-            } else {
-              handler.handle(authn);
-            }
-          });
+          return authProvider
+            .authenticate(new UsernamePasswordCredentials(username, password))
+            .recover(err -> Future.failedFuture(new HttpException(401, err)));
         }
       }
     }

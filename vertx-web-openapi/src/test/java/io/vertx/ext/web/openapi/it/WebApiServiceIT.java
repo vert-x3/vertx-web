@@ -32,7 +32,7 @@ public class WebApiServiceIT {
   @BeforeAll
   public static void deploy(Vertx vertx, VertxTestContext testContext) {
     commonTransaction = new Transaction("my-id", "message", "from@example.com", "to@example.com", Double.MAX_VALUE);
-    vertx.deployVerticle(WebApiServiceVerticle.class.getName(), testContext.succeedingThenComplete());
+    vertx.deployVerticle(WebApiServiceVerticle.class.getName()).onComplete(testContext.succeedingThenComplete());
   }
 
   @Test

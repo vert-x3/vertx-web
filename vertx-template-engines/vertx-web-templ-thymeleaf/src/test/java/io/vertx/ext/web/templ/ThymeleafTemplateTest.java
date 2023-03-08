@@ -57,7 +57,7 @@ public class ThymeleafTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-thymeleaf-template2.html"));
 
-    engine.render(context, "somedir/test-thymeleaf-template2.html", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-thymeleaf-template2.html").onComplete(should.asyncAssertSuccess(render -> {
       final String expected =
         "<!doctype html>\n" +
           "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
@@ -84,7 +84,7 @@ public class ThymeleafTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-thymeleaf-template2.html"));
 
-    engine.render(context, "src/test/filesystemtemplates/test-thymeleaf-template3.html", should.asyncAssertSuccess(render -> {
+    engine.render(context, "src/test/filesystemtemplates/test-thymeleaf-template3.html").onComplete(should.asyncAssertSuccess(render -> {
       final String expected =
         "<!doctype html>\n" +
           "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
@@ -114,7 +114,7 @@ public class ThymeleafTemplateTest {
 
     final JsonObject context = new JsonObject();
 
-    engine.render(context, "nosuchtemplate.html", should.asyncAssertFailure());
+    engine.render(context, "nosuchtemplate.html").onComplete(should.asyncAssertFailure());
   }
 
   @Test
@@ -127,7 +127,7 @@ public class ThymeleafTemplateTest {
       .put("lang", "en-gb")
       .put("context", new JsonObject().put("path", "/test-thymeleaf-template2.html"));
 
-    engine.render(context, "somedir/test-thymeleaf-template2.html", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-thymeleaf-template2.html").onComplete(should.asyncAssertSuccess(render -> {
       final String expected =
         "<!doctype html>\n" +
           "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
@@ -148,7 +148,7 @@ public class ThymeleafTemplateTest {
   @Test
   public void testGetThymeLeafTemplateEngine() {
     ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
-    assertNotNull(engine.getThymeleafTemplateEngine());
+    assertNotNull(engine.unwrap());
   }
 
   @Test
@@ -160,7 +160,7 @@ public class ThymeleafTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-thymeleaf-template2.html"));
 
-    engine.render(context, "somedir/test-thymeleaf-fragmented.html", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-thymeleaf-fragmented.html").onComplete(should.asyncAssertSuccess(render -> {
       final String expected =
         "<!doctype html>\n" +
           "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
@@ -192,7 +192,7 @@ public class ThymeleafTemplateTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("before", normalizeCRLF(render.toString()));
       // cache is enabled so if we change the content that should not affect the result
 
@@ -203,7 +203,7 @@ public class ThymeleafTemplateTest {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render2 -> {
+      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
         should.assertEquals("before", normalizeCRLF(render2.toString()));
       }));
     }));

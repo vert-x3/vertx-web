@@ -28,7 +28,7 @@ public class RoutingContextNullCurrentRouteTest {
     public void before(TestContext context) {
         vertx = Vertx.vertx();
         Async async = context.async();
-        vertx.deployVerticle(TestVerticle.class.getName(), context.asyncAssertSuccess(event -> async.complete()));
+        vertx.deployVerticle(TestVerticle.class.getName()).onComplete(context.asyncAssertSuccess(event -> async.complete()));
     }
 
     @Test
@@ -44,7 +44,7 @@ public class RoutingContextNullCurrentRouteTest {
 
     @After
     public void after(TestContext context) {
-        vertx.close(context.asyncAssertSuccess());
+        vertx.close().onComplete(context.asyncAssertSuccess());
     }
 
     public static class TestVerticle extends AbstractVerticle {
@@ -67,7 +67,7 @@ public class RoutingContextNullCurrentRouteTest {
 
             vertx.createHttpServer()
                     .requestHandler(router)
-                    .listen(PORT, asyncResult -> {
+                    .listen(PORT).onComplete(asyncResult -> {
                         if (asyncResult.succeeded()) {
                             startFuture.complete();
                         } else {

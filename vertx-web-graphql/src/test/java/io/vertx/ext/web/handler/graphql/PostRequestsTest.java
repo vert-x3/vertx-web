@@ -217,10 +217,10 @@ public class PostRequestsTest extends GraphQLTestBase {
 
   @Test
   public void testUnsupportedMediaType() {
-    client.request(HttpMethod.POST, "/graphql", onSuccess(req -> {
+    client.request(HttpMethod.POST, "/graphql").onComplete(onSuccess(req -> {
       req
         .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
-        .send(Buffer.buffer("<h1>Hello world!</h1>"), onSuccess(response -> {
+        .send(Buffer.buffer("<h1>Hello world!</h1>")).onComplete(onSuccess(response -> {
           assertEquals(415, response.statusCode());
           testComplete();
         }));

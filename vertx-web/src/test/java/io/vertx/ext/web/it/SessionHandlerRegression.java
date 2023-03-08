@@ -49,7 +49,7 @@ public class SessionHandlerRegression {
       HttpServerOptions options = new HttpServerOptions();
       vertx.createHttpServer(options)
         .requestHandler(router)
-        .listen(8080, ar -> startPromise.complete());
+        .listen(8080).onComplete(ar -> startPromise.complete());
     }
   }
 }

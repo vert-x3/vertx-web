@@ -139,7 +139,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Create a handler, specifying web-root
    * and access option: absolute path or relative
-   * 
+   *
    * @param handlerVisibility CWD or file system root
    * @param root              the web-root
    * @return the handler
@@ -147,26 +147,6 @@ public interface StaticHandler extends Handler<RoutingContext> {
   static StaticHandler create(FileSystemAccess handlerVisibility, String root) {
     return new StaticHandlerImpl(handlerVisibility, root);
   }
-
-  /**
-   * Enable/Disable access to the root of the filesystem
-   *
-   * @param allowRootFileSystemAccess whether root access is allowed
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  @Deprecated
-  StaticHandler setAllowRootFileSystemAccess(boolean allowRootFileSystemAccess);
-
-  /**
-   * Set the web root
-   *
-   * @param webRoot the web root
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  @Deprecated
-  StaticHandler setWebRoot(String webRoot);
 
   /**
    * Set whether files are read-only and will never change

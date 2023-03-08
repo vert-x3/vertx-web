@@ -16,7 +16,7 @@
 
 package io.vertx.ext.web.templ;
 
-import com.mitchellbosecke.pebble.PebbleEngine;
+import io.pebbletemplates.pebble.PebbleEngine;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.file.FileSystemOptions;
@@ -62,7 +62,7 @@ public class PebbleTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-pebble-template2.peb"));
 
-    engine.render(context, "somedir/test-pebble-template2.peb", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-pebble-template2.peb").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Hello badger and foxRequest path is /test-pebble-template2.peb", normalizeCRLF(render.toString()));
     }));
   }
@@ -76,7 +76,7 @@ public class PebbleTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-pebble-template3.peb"));
 
-    engine.render(context, "src/test/filesystemtemplates/test-pebble-template3.peb", should.asyncAssertSuccess(render -> {
+    engine.render(context, "src/test/filesystemtemplates/test-pebble-template3.peb").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Hello badger and foxRequest path is /test-pebble-template3.peb", normalizeCRLF(render.toString()));
     }));
   }
@@ -103,7 +103,7 @@ public class PebbleTemplateTest {
     final String templateExpected = "Hello badger and foxRequest path is /test-pebble-template6.peb" +
       "Java HashMap foo foxJsonArray size 1badgerArrayList size 1bar";
 
-    engine.render(context, "src/test/filesystemtemplates/test-pebble-template6.peb", should.asyncAssertSuccess(render -> {
+    engine.render(context, "src/test/filesystemtemplates/test-pebble-template6.peb").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals(templateExpected, normalizeCRLF(render.toString()));
     }));
   }
@@ -123,7 +123,7 @@ public class PebbleTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-pebble-template2.peb"));
 
-    engine.render(context, "somedir/test-pebble-template2", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-pebble-template2").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Hello badger and foxRequest path is /test-pebble-template2.peb", normalizeCRLF(render.toString()));
     }));
   }
@@ -137,7 +137,7 @@ public class PebbleTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-pebble-template2.peb"));
 
-    engine.render(context, "somedir/test-pebble-template2", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-pebble-template2").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Cheerio badger and foxRequest path is /test-pebble-template2.peb", normalizeCRLF(render.toString()));
     }));
   }
@@ -148,7 +148,7 @@ public class PebbleTemplateTest {
 
     final JsonObject context = new JsonObject();
 
-    engine.render(context, "non-existing", should.asyncAssertFailure());
+    engine.render(context, "non-existing").onComplete(should.asyncAssertFailure());
   }
 
   @Test
@@ -161,7 +161,7 @@ public class PebbleTemplateTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "src/test/filesystemtemplates/test-pebble-complex.peb", should.asyncAssertSuccess(render -> {
+    engine.render(context, "src/test/filesystemtemplates/test-pebble-complex.peb").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals(expected, normalizeCRLF(render.toString()));
     }));
   }
@@ -418,7 +418,7 @@ public class PebbleTemplateTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "src/test/filesystemtemplates/test-pebble-template4.peb", should.asyncAssertSuccess(render -> {
+    engine.render(context, "src/test/filesystemtemplates/test-pebble-template4.peb").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals(bigTemplateExpected, normalizeCRLF(render.toString()));
     }));
   }
@@ -432,7 +432,7 @@ public class PebbleTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-pebble-template5.peb"));
 
-    engine.render(context, "src/test/filesystemtemplates/test-pebble-template5.peb", should.asyncAssertSuccess(render -> {
+    engine.render(context, "src/test/filesystemtemplates/test-pebble-template5.peb").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Hello badger and foxString is TESTRequest path is /test-pebble-template5.peb", normalizeCRLF(render.toString()));
     }));
   }
@@ -450,7 +450,7 @@ public class PebbleTemplateTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("before", normalizeCRLF(render.toString()));
       // cache is enabled so if we change the content that should not affect the result
 
@@ -472,7 +472,7 @@ public class PebbleTemplateTest {
     Locale.setDefault(Locale.US);
     final TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 
-    engine.render(new JsonObject(), "src/test/filesystemtemplates/test-pebble-template-i18n.peb", should.asyncAssertSuccess(render2 -> {
+    engine.render(new JsonObject(), "src/test/filesystemtemplates/test-pebble-template-i18n.peb").onComplete(should.asyncAssertSuccess(render2 -> {
       should.assertEquals("Hi", normalizeCRLF(render2.toString()));
     }));
   }
@@ -482,7 +482,7 @@ public class PebbleTemplateTest {
     Locale.setDefault(Locale.US);
     final TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 
-    engine.render(new JsonObject().put("lang", "de-DE"), "src/test/filesystemtemplates/test-pebble-template-i18n.peb", should.asyncAssertSuccess(render2 -> {
+    engine.render(new JsonObject().put("lang", "de-DE"), "src/test/filesystemtemplates/test-pebble-template-i18n.peb").onComplete(should.asyncAssertSuccess(render2 -> {
       should.assertEquals("Hallo", normalizeCRLF(render2.toString()));
     }));
   }

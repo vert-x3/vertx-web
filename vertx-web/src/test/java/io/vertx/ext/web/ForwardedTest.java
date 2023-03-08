@@ -345,7 +345,7 @@ public class ForwardedTest extends WebTestBase {
       HttpServerRequest request = rc.request();
       if (canUpgradeToWebsocket(request)) {
         request
-          .toWebSocket(onSuccess(socket -> {
+          .toWebSocket().onComplete(onSuccess(socket -> {
             assertTrue(socket.host().equals(host));
             assertTrue(socket.isSsl());
             assertTrue(socket.remoteAddress().host().equals(address));
@@ -356,7 +356,7 @@ public class ForwardedTest extends WebTestBase {
       }
     });
 
-    client.webSocket(new WebSocketConnectOptions().setURI("/ws").addHeader("Forwarded", "host=" + host + ";proto=https" + ";for=" + address), onSuccess(e -> {
+    client.webSocket(new WebSocketConnectOptions().setURI("/ws").addHeader("Forwarded", "host=" + host + ";proto=https" + ";for=" + address)).onComplete(onSuccess(e -> {
       latch.countDown();
     }));
     awaitLatch(latch);

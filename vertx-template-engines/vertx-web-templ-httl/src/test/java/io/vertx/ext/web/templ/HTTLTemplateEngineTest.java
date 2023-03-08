@@ -52,7 +52,7 @@ public class HTTLTemplateEngineTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-httl-template1.httl", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-httl-template1.httl").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("<!--  -->\nHello badger and fox\n", normalizeCRLF(render.toString()));
     }));
   }
@@ -70,7 +70,7 @@ public class HTTLTemplateEngineTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getName(), should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject(), temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("before", normalizeCRLF(render.toString()));
       // cache is enabled so if we change the content that should not affect the result
 
@@ -81,7 +81,7 @@ public class HTTLTemplateEngineTest {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getName(), should.asyncAssertSuccess(render2 -> {
+      engine.render(new JsonObject(), temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
         should.assertEquals("before", normalizeCRLF(render2.toString()));
       }));
     }));
@@ -101,7 +101,7 @@ public class HTTLTemplateEngineTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-httl-template1", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-httl-template1").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("<!--  -->\nHello badger and fox\n", normalizeCRLF(render.toString()));
     }));
   }
@@ -114,7 +114,7 @@ public class HTTLTemplateEngineTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-httl-template1", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-httl-template1").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("<!--  -->\nCheerio badger and fox\n", normalizeCRLF(render.toString()));
     }));
   }
@@ -123,7 +123,7 @@ public class HTTLTemplateEngineTest {
   public void testNoSuchTemplate(TestContext should) {
     TemplateEngine engine = HTTLTemplateEngine.create(vertx);
 
-    engine.render(new JsonObject(), "not-found", should.asyncAssertFailure());
+    engine.render(new JsonObject(), "not-found").onComplete(should.asyncAssertFailure());
   }
 
   // For windows testing

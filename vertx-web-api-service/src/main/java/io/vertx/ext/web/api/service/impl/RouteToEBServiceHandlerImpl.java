@@ -48,7 +48,7 @@ public class RouteToEBServiceHandlerImpl implements RouteToEBServiceHandler {
       deliveryOptions = this.deliveryOptions;
     }
 
-    eventBus.request(address, buildPayload(routingContext), deliveryOptions, (AsyncResult<Message<JsonObject>> res) -> {
+    eventBus.<JsonObject>request(address, buildPayload(routingContext), deliveryOptions).onComplete(res -> {
       if (res.succeeded()) {
         ServiceResponse op = new ServiceResponse(res.result().body());
         HttpServerResponse response = routingContext.response().setStatusCode(op.getStatusCode());

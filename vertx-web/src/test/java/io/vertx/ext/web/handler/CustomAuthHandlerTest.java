@@ -42,7 +42,7 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
       .authenticate(ctx -> {
         final Promise<User> promise = Promise.promise();
 
-        authProvider.authenticate(new UsernamePasswordCredentials("user", "pass"), authn -> {
+        authProvider.authenticate(new UsernamePasswordCredentials("user", "pass")).onComplete(authn -> {
           if (authn.failed()) {
             if (exceptionProcessor != null) {
               exceptionProcessor.handle(authn.cause());
@@ -68,11 +68,7 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
 
     Throwable rootCause = new IllegalArgumentException("validation of credentials failed");
     AuthenticationProvider authProvider = mock(AuthenticationProvider.class);
-    doAnswer(invocation -> {
-      final Handler<AsyncResult<User>> resultHandler = invocation.getArgument(1);
-      resultHandler.handle(Future.failedFuture(rootCause));
-      return null;
-    }).when(authProvider).authenticate(any(Credentials.class), any(Handler.class));
+    doAnswer(invocation -> Future.failedFuture(rootCause)).when(authProvider).authenticate(any(Credentials.class));
 
     router.route("/protected/*").handler(newAuthHandler(authProvider, exception -> {
       assertTrue(exception instanceof IllegalArgumentException);
@@ -95,11 +91,7 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
 
     Throwable rootCause = new HttpException(499, "bla");
     AuthenticationProvider authProvider = mock(AuthenticationProvider.class);
-    doAnswer(invocation -> {
-      final Handler<AsyncResult<User>> resultHandler = invocation.getArgument(1);
-      resultHandler.handle(Future.failedFuture(rootCause));
-      return null;
-    }).when(authProvider).authenticate(any(Credentials.class), any(Handler.class));
+    doAnswer(invocation -> Future.failedFuture(rootCause)).when(authProvider).authenticate(any(Credentials.class));
 
     router.route("/protected/*").handler(newAuthHandler(authProvider, exception -> {
       assertTrue(exception instanceof HttpException);

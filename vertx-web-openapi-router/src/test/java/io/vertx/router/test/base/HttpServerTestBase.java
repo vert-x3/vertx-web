@@ -59,7 +59,7 @@ public class HttpServerTestBase {
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
   void tearDown(VertxTestContext testContext) {
     if (vertx != null) {
-      vertx.close(testContext.succeedingThenComplete());
+      vertx.close().onComplete(testContext.succeedingThenComplete());
     } else {
       testContext.completeNow();
     }

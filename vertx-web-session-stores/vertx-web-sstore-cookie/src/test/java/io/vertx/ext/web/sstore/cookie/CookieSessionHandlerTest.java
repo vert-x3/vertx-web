@@ -41,7 +41,7 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
     Session session = store.createSession(30_000);
     String cookieValue = session.value();
 
-    store.get(cookieValue, get -> {
+    store.get(cookieValue).onComplete(get -> {
       if (get.failed()) {
         fail(get.cause());
       } else {
@@ -57,7 +57,7 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
     Session session = store.createSession(30_000);
     String cookieValue = session.value();
 
-    store.get(cookieValue, get -> {
+    store.get(cookieValue).onComplete(get -> {
       assertEquals(cookieValue, get.result().value());
       testComplete();
     });
