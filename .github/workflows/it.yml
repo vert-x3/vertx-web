@@ -1,4 +1,4 @@
-name: CI
+name: IT
 on:
   workflow_call:
     inputs:

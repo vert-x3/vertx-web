@@ -1,4 +1,4 @@
-name: CI (4.x)
+name: vertx-web (4.x)
 on:
   schedule:
     - cron: '0 4 * * *'

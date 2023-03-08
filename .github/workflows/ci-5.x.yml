@@ -1,4 +1,4 @@
-name: CI (5.x)
+name: vertx-web (5.x)
 on:
   push:
     branches:
