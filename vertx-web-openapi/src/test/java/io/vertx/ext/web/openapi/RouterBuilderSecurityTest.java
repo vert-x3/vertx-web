@@ -289,37 +289,37 @@ public class RouterBuilderSecurityTest extends BaseRouterBuilderTest {
   @Test
   public void mountOauth2WithScopes(Vertx vertx, VertxTestContext testContext) {
     RouterBuilder.create(vertx, SECURITY_TESTS, testContext.succeeding(routerBuilder -> {
-      routerBuilder.setOptions(FACTORY_OPTIONS);
+        routerBuilder.setOptions(FACTORY_OPTIONS);
 
-      routerBuilder.operation("listPetsOauth2").handler(routingContext -> routingContext
-        .response()
-        .setStatusCode(200)
-        .end()
-      );
+        routerBuilder.operation("listPetsOauth2").handler(routingContext -> routingContext
+                .response()
+                .setStatusCode(200)
+                .end()
+        );
 
-      // Some oauth2 configuration
-      OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
-        .setClientId("client-id")
-        .setClientSecret("client-secret")
-        .setSite("http://localhost:10000"));
+        // Some oauth2 configuration
+        OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+                .setClientId("client-id")
+                .setClientSecret("client-secret")
+                .setSite("http://localhost:10000"));
 
-      routerBuilder.securityHandler("oauth2", OAuth2AuthHandler.create(vertx, oauth2));
+        routerBuilder.securityHandler("oauth2", OAuth2AuthHandler.create(vertx, oauth2));
 
-      testContext.verify(() -> {
-        Router router = routerBuilder.createRouter();
-        Route route = router.getRoutes().get(router.getRoutes().size() - 1);
+        testContext.verify(() -> {
+            Router router = routerBuilder.createRouter();
+            Route route = router.getRoutes().get(router.getRoutes().size() - 1);
 
-        assertThat(route)
-          .extracting("state")
-          .extracting("contextHandlers")
-          .asList()
-          .filteredOn(new Condition<>(o -> o instanceof OAuth2AuthHandler, "Handler is an OAuth2Handler"))
-          .first()
-          .extracting("scopes")
-          .asList()
-          .containsExactlyInAnyOrder("write:pets", "read:pets");
-      });
-      testContext.completeNow();
+            assertThat(route)
+                    .extracting("state")
+                    .extracting("contextHandlers")
+                    .asList()
+                    .filteredOn(new Condition<>(o -> o instanceof OAuth2AuthHandler, "Handler is an OAuth2Handler"))
+                    .first()
+                    .extracting("scopes")
+                    .asList()
+                    .containsExactlyInAnyOrder("write:pets", "read:pets");
+        });
+        testContext.completeNow();
 
     }));
   }
@@ -373,63 +373,63 @@ public class RouterBuilderSecurityTest extends BaseRouterBuilderTest {
   @Test
   public void requireSecurityHandler(Vertx vertx, VertxTestContext testContext) {
     RouterBuilder.create(vertx, "src/test/resources/specs/router_builder_test.yaml",
-      testContext.succeeding(routerBuilder -> {
-      routerBuilder.setOptions(FACTORY_OPTIONS);
+            testContext.succeeding(routerBuilder -> {
+                routerBuilder.setOptions(FACTORY_OPTIONS);
 
-      routerBuilder.operation("listPets").handler(routingContext -> routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.get("message") + "OK")
-        .end()
-      );
+                routerBuilder.operation("listPets").handler(routingContext -> routingContext
+                        .response()
+                        .setStatusCode(200)
+                        .setStatusMessage(routingContext.get("message") + "OK")
+                        .end()
+                );
 
-      testContext.verify(() ->
-        assertThatCode(routerBuilder::createRouter)
-          .isInstanceOfSatisfying(RouterBuilderException.class, rfe ->
-            assertThat(rfe.type())
-              .isEqualTo(ErrorType.MISSING_SECURITY_HANDLER)
-          )
-      );
+                testContext.verify(() ->
+                        assertThatCode(routerBuilder::createRouter)
+                                .isInstanceOfSatisfying(RouterBuilderException.class, rfe ->
+                                        assertThat(rfe.type())
+                                                .isEqualTo(ErrorType.MISSING_SECURITY_HANDLER)
+                                )
+                );
 
-      routerBuilder.securityHandler("api_key", mockSuccessfulAuthHandler(context -> {
-      }));
-      routerBuilder.securityHandler("second_api_key", mockSuccessfulAuthHandler(context -> {
-      }));
-      routerBuilder.securityHandler("third_api_key", mockSuccessfulAuthHandler(context -> {
-      }));
+                routerBuilder.securityHandler("api_key", mockSuccessfulAuthHandler(context -> {
+                }));
+                routerBuilder.securityHandler("second_api_key", mockSuccessfulAuthHandler(context -> {
+                }));
+                routerBuilder.securityHandler("third_api_key", mockSuccessfulAuthHandler(context -> {
+                }));
 
-      testContext.verify(() ->
-        assertThatCode(routerBuilder::createRouter)
-          .doesNotThrowAnyException()
-      );
-      testContext.completeNow();
+                testContext.verify(() ->
+                        assertThatCode(routerBuilder::createRouter)
+                                .doesNotThrowAnyException()
+                );
+                testContext.completeNow();
 
-    }));
+            }));
 
   }
 
   @Test
   public void notRequireSecurityHandler(Vertx vertx, VertxTestContext testContext) {
     RouterBuilder.create(vertx, "src/test/resources/specs/router_builder_test.yaml",
-      routerBuilderAsyncResult -> {
-        RouterBuilder routerBuilder = routerBuilderAsyncResult.result();
+            routerBuilderAsyncResult -> {
+                RouterBuilder routerBuilder = routerBuilderAsyncResult.result();
 
-        routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false));
+                routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false));
 
-        routerBuilder.operation("listPets").handler(routingContext -> routingContext
-          .response()
-          .setStatusCode(200)
-          .setStatusMessage(routingContext.get("message") + "OK")
-          .end()
-        );
+                routerBuilder.operation("listPets").handler(routingContext -> routingContext
+                        .response()
+                        .setStatusCode(200)
+                        .setStatusMessage(routingContext.get("message") + "OK")
+                        .end()
+                );
 
-        testContext.verify(() ->
-          assertThatCode(routerBuilder::createRouter)
-            .doesNotThrowAnyException()
-        );
+                testContext.verify(() ->
+                        assertThatCode(routerBuilder::createRouter)
+                                .doesNotThrowAnyException()
+                );
 
-        testContext.completeNow();
-      });
+                testContext.completeNow();
+            });
   }
 
   private AuthenticationHandler mockSuccessfulAuthHandler(Handler<RoutingContext> mockHandler) {

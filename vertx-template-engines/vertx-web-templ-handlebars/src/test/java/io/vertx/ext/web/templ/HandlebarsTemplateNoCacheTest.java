@@ -61,7 +61,7 @@ public class HandlebarsTemplateNoCacheTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render -> {
+    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(render -> {
       should.assertTrue(render.succeeded());
       should.assertEquals("before", render.result().toString());
       // cache is enabled so if we change the content that should not affect the result
@@ -73,7 +73,7 @@ public class HandlebarsTemplateNoCacheTest {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render2 -> {
+      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
         should.assertEquals("after", normalizeCRLF(render2.toString()));
       }));
     });

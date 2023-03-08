@@ -60,7 +60,7 @@ public class HandlerParamsTest {
       .map(o -> o != null ? o : "null")
       .map(Object::toString)
       .reduce("", String::concat);
-    vertx.eventBus().request(ADDRESS, payload, new DeliveryOptions().addHeader("action", actionName), (AsyncResult<Message<JsonObject>> res) -> {
+    vertx.eventBus().<JsonObject>request(ADDRESS, payload, new DeliveryOptions().addHeader("action", actionName)).onComplete(res -> {
       if (res.succeeded()) {
         testContext.verify(() -> {
           ServiceResponse op = new ServiceResponse(res.result().body());
@@ -84,7 +84,7 @@ public class HandlerParamsTest {
 
   @AfterEach
   public void tearDown(VertxTestContext testContext) {
-    if (consumer != null) consumer.unregister(testContext.succeeding(v -> testContext.completeNow()));
+    if (consumer != null) consumer.unregister().onComplete(testContext.succeeding(v -> testContext.completeNow()));
   }
 
   @Test

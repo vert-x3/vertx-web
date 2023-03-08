@@ -47,7 +47,7 @@ public class JteTemplateEngineTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/testTemplate2.jte"));
 
-    engine.render(context, "testTemplate2.jte", should.asyncAssertSuccess(render ->
+    engine.render(context, "testTemplate2.jte").onComplete(should.asyncAssertSuccess(render ->
       should.assertEquals("\nHello badger and fox\nRequest path is /testTemplate2.jte\n", normalizeCRLF(render.toString()))
     ));
   }
@@ -59,7 +59,7 @@ public class JteTemplateEngineTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/base"));
 
-    engine.render(context, "base.jte", should.asyncAssertSuccess(render ->
+    engine.render(context, "base.jte").onComplete(should.asyncAssertSuccess(render ->
       should.assertEquals("Vert.x rules\n\n", normalizeCRLF(render.toString()))
     ));
   }
@@ -68,7 +68,7 @@ public class JteTemplateEngineTest {
   public void testNoSuchTemplate(TestContext should) {
     final JsonObject context = new JsonObject();
 
-    engine.render(context, "nosuchtemplate.jte", should.asyncAssertFailure());
+    engine.render(context, "nosuchtemplate.jte").onComplete(should.asyncAssertFailure());
   }
 
   // For windows testing

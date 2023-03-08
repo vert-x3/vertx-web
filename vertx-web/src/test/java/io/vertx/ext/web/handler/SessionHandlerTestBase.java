@@ -205,7 +205,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
   private boolean testSessionBlocking(String sessionId, Function<Session, Boolean> test) {
     CompletableFuture<Boolean> cf = new CompletableFuture<>();
-    store.get(sessionId, ar -> {
+    store.get(sessionId).onComplete(ar -> {
       if (ar.succeeded()) {
         cf.complete(test.apply(ar.result()));
       } else {
@@ -257,7 +257,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		testRequest(HttpMethod.GET, "/", null, null, 200, "OK", null);
 		Thread.sleep(500); // Needed because session.destroy is async
 		CountDownLatch latch1 = new CountDownLatch(1);
-		store.get(rid.get(), onSuccess(res -> {
+		store.get(rid.get()).onComplete(onSuccess(res -> {
 			assertNull(res);
 			latch1.countDown();
 		}));
@@ -505,11 +505,11 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		assertEquals(0, session.version());
 		session.put("k", "v");
 
-		store.put(session, res -> {
+		store.put(session).onComplete(res -> {
 			if (res.failed()) {
 				fail("failed to store");
 			}
-			store.get(session.value(), res1 -> {
+			store.get(session.value()).onComplete(res1 -> {
 				if (res1.failed()) {
 					fail("failed to store");
 				}
@@ -520,11 +520,11 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 				// confirm that the content is present
 				assertEquals("v", session1.get("k"));
 
-				store.put(session1, res2 -> {
+				store.put(session1).onComplete(res2 -> {
 					if (res2.failed()) {
 						fail("failed to store");
 					}
-					store.get(session1.value(), res3 -> {
+					store.get(session1.value()).onComplete(res3 -> {
 						if (res3.failed()) {
 							fail("failed to store");
 						}
@@ -539,11 +539,11 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 						// update content
 						session2.put("k", "w");
 
-						store.put(session2, res4 -> {
+						store.put(session2).onComplete(res4 -> {
 							if (res4.failed()) {
 								fail("failed to store");
 							}
-							store.get(session2.value(), res5 -> {
+							store.get(session2.value()).onComplete(res5 -> {
 								if (res5.failed()) {
 									fail("failed to store");
 								}

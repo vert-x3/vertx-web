@@ -221,10 +221,10 @@ public class StaticHandlerTest extends WebTestBase {
         HttpClient client = vertx.createHttpClient(options);
         client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
           .onComplete(onSuccess(req -> {
-            req.pushHandler(pushedReq -> pushedReq.response(pushedResp -> {
+            req.pushHandler(pushedReq -> pushedReq.response().onComplete(pushedResp -> {
               fail();
             }));
-            req.send(onSuccess(resp -> {
+            req.send().onComplete(onSuccess(resp -> {
               assertEquals(200, resp.statusCode());
               assertEquals(HttpVersion.HTTP_2, resp.version());
               resp.bodyHandler(this::assertNotNull);
@@ -266,12 +266,12 @@ public class StaticHandlerTest extends WebTestBase {
         HttpClient client = vertx.createHttpClient(options);
         client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
           .onComplete(onSuccess(req -> {
-            req.pushHandler(pushedReq -> pushedReq.response(onSuccess(pushedResp -> {
+            req.pushHandler(pushedReq -> pushedReq.response().onComplete(onSuccess(pushedResp -> {
                 assertNotNull(pushedResp);
                 pushedResp.bodyHandler(this::assertNotNull);
                 latch.countDown();
               })))
-              .send(onSuccess(resp -> {
+              .send().onComplete(onSuccess(resp -> {
                 assertEquals(200, resp.statusCode());
                 assertEquals(HttpVersion.HTTP_2, resp.version());
                 resp.bodyHandler(this::assertNotNull);
@@ -309,16 +309,16 @@ public class StaticHandlerTest extends WebTestBase {
     router.route().handler(staticHandler);
 
     CountDownLatch serverReady = new CountDownLatch(1);
-    server.requestHandler(router).listen(onSuccess(s -> serverReady.countDown()));
+    server.requestHandler(router).listen().onComplete(onSuccess(s -> serverReady.countDown()));
     awaitLatch(serverReady);
 
     List<String> contentEncodings = Collections.synchronizedList(new ArrayList<>());
     for (String uri : uris) {
       CountDownLatch responseReceived = new CountDownLatch(1);
-      client.request(HttpMethod.GET, server.actualPort(), getHttpClientOptions().getDefaultHost(), uri, onSuccess(req -> {
+      client.request(HttpMethod.GET, server.actualPort(), getHttpClientOptions().getDefaultHost(), uri).onComplete(onSuccess(req -> {
         req
           .putHeader(HttpHeaders.ACCEPT_ENCODING, String.join(", ", "gzip", "jpg", "jpeg", "png"))
-          .send(onSuccess(resp -> {
+          .send().onComplete(onSuccess(resp -> {
             assertEquals(200, resp.statusCode());
             contentEncodings.add(resp.getHeader(HttpHeaders.CONTENT_ENCODING));
             responseReceived.countDown();
@@ -978,7 +978,7 @@ public class StaticHandlerTest extends WebTestBase {
           .<Void>mapEmpty()
           .onComplete(startPromise);
       }
-    }, new DeploymentOptions().setClassLoader(classLoader), onSuccess(v -> {
+    }, new DeploymentOptions().setClassLoader(classLoader)).onComplete(onSuccess(v -> {
       latch.countDown();
     }));
     awaitLatch(latch);

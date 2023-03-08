@@ -90,7 +90,7 @@ public class UriTemplateTest extends WebClientTestBase {
       .setTemplateExpandOptions(new ExpandOptions()
         .setAllowVariableMiss(false)));
     HttpRequest<Buffer> request = webClient.get(template);
-    request.send(onFailure(err -> {
+    request.send().onComplete(onFailure(err -> {
       assertEquals(NoSuchElementException.class, err.getClass());
       testComplete();
     }));

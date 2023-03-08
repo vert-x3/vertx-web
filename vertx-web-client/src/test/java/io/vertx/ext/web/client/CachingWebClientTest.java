@@ -70,7 +70,7 @@ public class CachingWebClientTest {
 
   @After
   public void tearDown(TestContext context) {
-    vertx.close(context.asyncAssertSuccess());
+    vertx.close().onComplete(context.asyncAssertSuccess());
   }
 
   private void startMockServer(TestContext context, Consumer<HttpServerRequest> reqHandler) {
@@ -83,7 +83,7 @@ public class CachingWebClientTest {
           req.response().end(UUID.randomUUID().toString());
       }
     });
-    server.listen(context.asyncAssertSuccess(s -> async.complete()));
+    server.listen().onComplete(context.asyncAssertSuccess(s -> async.complete()));
     async.awaitSuccess(15000);
   }
 
@@ -100,7 +100,7 @@ public class CachingWebClientTest {
 
     reqConsumer.accept(request);
 
-    request.send(context.asyncAssertSuccess(response -> {
+    request.send().onComplete(context.asyncAssertSuccess(response -> {
       body.set(response.bodyAsString());
       waiter.complete();
     }));
@@ -136,7 +136,7 @@ public class CachingWebClientTest {
     Async request2 = context.async();
     List<HttpResponse<Buffer>> responses = new ArrayList<>(2);
 
-    client.request(method, "localhost", "/").send(context.asyncAssertSuccess(resp -> {
+    client.request(method, "localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
       responses.add(resp);
       request1.complete();
     }));
@@ -144,7 +144,7 @@ public class CachingWebClientTest {
     // Wait for request 1 to finish first to make sure the cache stored a value if necessary
     request1.await();
 
-    client.request(method, "localhost", "/").send(context.asyncAssertSuccess(resp -> {
+    client.request(method, "localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
       responses.add(resp);
       request2.complete();
     }));

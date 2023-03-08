@@ -30,7 +30,7 @@ public class RouteToEBServiceHandler implements Handler<RoutingContext> {
 
   @Override
   public void handle(RoutingContext routingContext) {
-    eventBus.request(address, buildPayload(routingContext), deliveryOptions, (AsyncResult<Message<JsonObject>> res) -> {
+    eventBus.<JsonObject>request(address, buildPayload(routingContext), deliveryOptions).onComplete(res -> {
       if (res.succeeded()) {
         OperationResponse op = new OperationResponse(res.result().body());
         HttpServerResponse response = routingContext.response().setStatusCode(op.getStatusCode());

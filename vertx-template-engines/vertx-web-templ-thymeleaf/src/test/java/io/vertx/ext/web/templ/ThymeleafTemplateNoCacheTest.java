@@ -60,7 +60,7 @@ public class ThymeleafTemplateNoCacheTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("before", ThymeleafTemplateTest.normalizeCRLF(render.toString()));
       // cache is enabled so if we change the content that should not affect the result
 
@@ -71,7 +71,7 @@ public class ThymeleafTemplateNoCacheTest {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render2 -> {
+      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
         should.assertEquals("after", ThymeleafTemplateTest.normalizeCRLF(render2.toString()));
       }));
     }));

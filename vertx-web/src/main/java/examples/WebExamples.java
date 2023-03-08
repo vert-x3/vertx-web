@@ -732,10 +732,8 @@ public class WebExamples {
   public void example32() {
 
     // a clustered Vert.x
-    Vertx.clusteredVertx(new VertxOptions(), res -> {
-
-      Vertx vertx = res.result();
-
+    Vertx.clusteredVertx(new VertxOptions())
+      .onSuccess(vertx -> {
       // Create a clustered session store using defaults
       SessionStore store1 = ClusteredSessionStore.create(vertx);
 

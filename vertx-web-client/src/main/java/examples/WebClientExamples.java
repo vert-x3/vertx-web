@@ -189,10 +189,8 @@ public class WebClientExamples {
   }
 
   public void sendStream(WebClient client, FileSystem fs) {
-    fs.open("content.txt", new OpenOptions(), fileRes -> {
-      if (fileRes.succeeded()) {
-        ReadStream<Buffer> fileStream = fileRes.result();
-
+    fs.open("content.txt", new OpenOptions())
+      .onSuccess(fileStream -> {
         String fileLen = "1024";
 
         // Send the file to the server using POST
@@ -202,9 +200,7 @@ public class WebClientExamples {
           .sendStream(fileStream)
           .onSuccess(res -> {
             // OK
-          })
-        ;
-      }
+          });
     });
   }
 

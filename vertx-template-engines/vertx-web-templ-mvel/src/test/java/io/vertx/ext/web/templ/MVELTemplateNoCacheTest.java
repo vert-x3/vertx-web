@@ -63,7 +63,7 @@ public class MVELTemplateNoCacheTest {
     out.flush();
     out.close();
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render -> {
+    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(render -> {
       should.assertTrue(render.succeeded());
       should.assertEquals("before", render.result().toString());
       // cache is enabled so if we change the content that should not affect the result
@@ -77,7 +77,7 @@ public class MVELTemplateNoCacheTest {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render2 -> {
+      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(render2 -> {
         should.assertTrue(render2.succeeded());
         should.assertEquals("after", render2.result().toString());
         test.complete();

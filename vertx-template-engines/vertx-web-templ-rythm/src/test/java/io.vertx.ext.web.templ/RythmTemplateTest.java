@@ -36,7 +36,7 @@ public class RythmTemplateTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-rythm-template2.html", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-rythm-template2.html").onComplete(should.asyncAssertSuccess(render -> {
       final String expected =
         "<!DOCTYPE html>\n" +
           "<html lang=\"en\">\n" +
@@ -62,7 +62,7 @@ public class RythmTemplateTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "src/test/filesystemtemplates/test-rythm-template.html", should.asyncAssertSuccess(render -> {
+    engine.render(context, "src/test/filesystemtemplates/test-rythm-template.html").onComplete(should.asyncAssertSuccess(render -> {
       final String expected =
         "<!DOCTYPE html>\n" +
           "<html lang=\"en\">\n" +
@@ -92,7 +92,7 @@ public class RythmTemplateTest {
 
     final JsonObject context = new JsonObject();
 
-    engine.render(context, "nosuchtemplate.html", should.asyncAssertFailure());
+    engine.render(context, "nosuchtemplate.html").onComplete(should.asyncAssertFailure());
   }
 
   @Test
@@ -104,7 +104,7 @@ public class RythmTemplateTest {
       .put("bar", "fox")
       .put("lang", "en-gb");
 
-    engine.render(context, "somedir/test-rythm-template2.html", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-rythm-template2.html").onComplete(should.asyncAssertSuccess(render -> {
       final String expected =
         "<!DOCTYPE html>\n" +
           "<html lang=\"en\">\n" +
@@ -141,7 +141,7 @@ public class RythmTemplateTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("before", normalizeCRLF(render.toString()));
       // cache is enabled so if we change the content that should not affect the result
 
@@ -152,7 +152,7 @@ public class RythmTemplateTest {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render2 -> {
+      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
         should.assertEquals("before", normalizeCRLF(render2.toString()));
       }));
     }));

@@ -83,8 +83,8 @@ public class WebClientTestBase extends HttpTestBase {
     });
     startServer();
     HttpRequest<Buffer> builder = reqFactory.apply(webClient);
-    builder.send(onSuccess(resp -> complete()));
-    builder.send(onSuccess(resp -> complete()));
+    builder.send().onComplete(onSuccess(resp -> complete()));
+    builder.send().onComplete(onSuccess(resp -> complete()));
     await();
   }
 
@@ -123,7 +123,7 @@ public class WebClientTestBase extends HttpTestBase {
       if (!chunked) {
         builder = builder.putHeader("Content-Length", "" + expected.length());
       }
-      builder.sendStream(asyncFile, onSuccess(resp -> {
+      builder.sendStream(asyncFile).onComplete(onSuccess(resp -> {
         assertEquals(200, resp.statusCode());
         complete();
       }));
@@ -135,7 +135,7 @@ public class WebClientTestBase extends HttpTestBase {
     server.requestHandler(req -> req.response().end(body));
     startServer();
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(checker);
+    get.send().onComplete(checker);
     await();
   }
 
@@ -149,11 +149,11 @@ public class WebClientTestBase extends HttpTestBase {
     startServer();
     HttpRequest<Buffer> post = webClient.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     if (body instanceof Buffer) {
-      post.sendBuffer((Buffer) body, onSuccess(resp -> complete()));
+      post.sendBuffer((Buffer) body).onComplete(onSuccess(resp -> complete()));
     } else if (body instanceof JsonObject) {
-      post.sendJsonObject((JsonObject) body, onSuccess(resp -> complete()));
+      post.sendJsonObject((JsonObject) body).onComplete(onSuccess(resp -> complete()));
     } else {
-      post.sendJson(body, onSuccess(resp -> complete()));
+      post.sendJson(body).onComplete(onSuccess(resp -> complete()));
     }
     await();
   }

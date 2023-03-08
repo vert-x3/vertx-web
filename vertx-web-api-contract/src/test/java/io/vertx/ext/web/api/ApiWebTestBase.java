@@ -61,7 +61,7 @@ public class ApiWebTestBase extends WebTestBase {
     if (contentType != null) {
       options.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
     }
-    client.request(options, onSuccess(req -> {
+    client.request(options).onComplete(onSuccess(req -> {
       Future<HttpClientResponse> fut;
       if (obj != null) {
         fut = req.send(obj);
@@ -73,7 +73,7 @@ public class ApiWebTestBase extends WebTestBase {
             assertEquals(statusCode, res.statusCode());
             assertEquals(statusMessage, res.statusMessage());
             assertEquals(expectedContentType, res.getHeader(HttpHeaders.CONTENT_TYPE));
-            res.body(onSuccess(buff -> {
+            res.body().onComplete(onSuccess(buff -> {
               buff = normalizeLineEndingsFor(buff);
               checkResult.accept(buff);
               latch.countDown();
@@ -106,7 +106,7 @@ public class ApiWebTestBase extends WebTestBase {
       .request(method, 8080, "localhost", path);
     request
       .putHeader("Content-Type", formType.headerValue)
-      .sendForm(formMap, (ar) -> {
+      .sendForm(formMap).onComplete((ar) -> {
         assertEquals(statusCode, ar.result().statusCode());
         assertEquals(statusMessage, ar.result().statusMessage());
         latch.countDown();
@@ -119,7 +119,7 @@ public class ApiWebTestBase extends WebTestBase {
     HttpRequest<Buffer> request = webClient
       .request(method, 8080, "localhost", path);
     request
-      .sendMultipartForm(formMap, (ar) -> {
+      .sendMultipartForm(formMap).onComplete((ar) -> {
         if (ar.failed()) fail(ar.cause());
         assertEquals(statusCode, ar.result().statusCode());
         assertEquals(statusMessage, ar.result().statusMessage());
@@ -130,10 +130,10 @@ public class ApiWebTestBase extends WebTestBase {
 
   public void testRequestWithResponseContentTypeCheck(HttpMethod method, String path, int statusCode, String contentType, List<String> acceptableContentTypes) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    client.request(method, 8080, "localhost", path, onSuccess(req -> {
+    client.request(method, 8080, "localhost", path).onComplete(onSuccess(req -> {
       req
         .putHeader("Accept", String.join(", ", acceptableContentTypes))
-        .send(onSuccess(res -> {
+        .send().onComplete(onSuccess(res -> {
           assertEquals(statusCode, res.statusCode());
           assertEquals(contentType, res.getHeader(HttpHeaders.CONTENT_TYPE));
           latch.countDown();

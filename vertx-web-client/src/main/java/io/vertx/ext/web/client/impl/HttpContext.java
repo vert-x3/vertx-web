@@ -449,7 +449,7 @@ public class HttpContext<T> {
               req.setChunked(true);
             }
             pipe.endOnFailure(false);
-            pipe.to(req, ar2 -> {
+            pipe.to(req).onComplete(ar2 -> {
               clientRequest = null;
               if (ar2.failed()) {
                 req.reset(0L, ar2.cause());
@@ -519,7 +519,7 @@ public class HttpContext<T> {
     request.bodyCodec().create(ar1 -> {
       if (ar1.succeeded()) {
         BodyStream<T> stream = ar1.result();
-        pipe.to(stream, ar2 -> {
+        pipe.to(stream).onComplete(ar2 -> {
           if (ar2.succeeded()) {
             stream.result().onComplete(ar3 -> {
               if (ar3.succeeded()) {

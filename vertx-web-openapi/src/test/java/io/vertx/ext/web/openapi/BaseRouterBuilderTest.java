@@ -48,7 +48,7 @@ public abstract class BaseRouterBuilderTest {
     }
     if (server != null) {
       CountDownLatch latch = new CountDownLatch(1);
-      server.close(v -> latch.countDown());
+      server.close().onComplete(v -> latch.countDown());
       latch.await();
     }
   }
@@ -80,14 +80,14 @@ public abstract class BaseRouterBuilderTest {
     Handler<RoutingContext>>... additionalErrorHandlers) {
     Promise<Void> f = Promise.promise();
     RouterBuilder.create(vertx, specUri, testContext.succeeding(rf -> {
-      try {
-        configurator.accept(rf);
-        startServer(vertx, rf, additionalErrorHandlers).
-          onComplete(testContext.succeeding(v -> f.complete()));
-      } catch (Exception e) {
-        testContext.failNow(e);
-        f.fail(e);
-      }
+        try {
+            configurator.accept(rf);
+            startServer(vertx, rf, additionalErrorHandlers).
+                    onComplete(testContext.succeeding(v -> f.complete()));
+        } catch (Exception e) {
+            testContext.failNow(e);
+            f.fail(e);
+        }
     }));
     return f.future();
   }

@@ -192,7 +192,7 @@ public class WebClientTest extends WebClientTestBase {
 
     WebClient agentFreeClient = WebClient.create(vertx, clientOptions);
     HttpRequest<Buffer> builder = agentFreeClient.post("somehost", "somepath");
-    builder.sendJson(payload, onSuccess(resp -> complete()));
+    builder.sendJson(payload).onComplete(onSuccess(resp -> complete()));
     await();
   }
 
@@ -287,7 +287,7 @@ public class WebClientTest extends WebClientTestBase {
     webClient
       .get("http://checkip.amazonaws.com/")
       .proxy(new ProxyOptions().setPort(proxy.port()))
-      .send(ar -> {
+      .send().onComplete(ar -> {
         if (ar.succeeded()) {
           // Obtain response
           HttpResponse<Buffer> response = ar.result();
@@ -336,7 +336,7 @@ public class WebClientTest extends WebClientTestBase {
   @Test
   public void testConnectError() throws Exception {
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(onFailure(err -> {
+    get.send().onComplete(onFailure(err -> {
       assertTrue(err instanceof ConnectException);
       complete();
     }));
@@ -350,14 +350,14 @@ public class WebClientTest extends WebClientTestBase {
     server.connectHandler(so -> {
     });
     CountDownLatch latch = new CountDownLatch(1);
-    server.listen(8080, "localhost", onSuccess(v -> {
+    server.listen(8080, "localhost").onComplete(onSuccess(v -> {
       latch.countDown();
     }));
     awaitLatch(latch);
     webClient
       .get(8080, "localhost", "/")
       .timeout(1)
-      .send(onFailure(err -> {
+      .send().onComplete(onFailure(err -> {
         testComplete();
       }));
     await();
@@ -533,7 +533,7 @@ public class WebClientTest extends WebClientTestBase {
     server.requestHandler(req -> req.response().end(expected));
     startServer();
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(onSuccess(resp -> {
+    get.send().onComplete(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(expected, resp.body());
       testComplete();
@@ -599,7 +599,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
       .as(BodyCodec.jsonArray())
-      .send(onSuccess(resp -> {
+      .send().onComplete(onSuccess(resp -> {
         assertEquals(200, resp.statusCode());
         assertEquals(expected, resp.body());
         testComplete();
@@ -640,7 +640,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
       .as(BodyCodec.json(List.class))
-      .send(onSuccess(resp -> {
+      .send().onComplete(onSuccess(resp -> {
         assertEquals(200, resp.statusCode());
         assertEquals(expected.getList(), resp.body());
         testComplete();
@@ -679,7 +679,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
       .as(bodyCodec)
-      .send(checker);
+      .send().onComplete(checker);
     await();
   }
 
@@ -825,7 +825,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
       .as(BodyCodec.pipe(stream, close))
-      .send(onSuccess(resp -> {
+      .send().onComplete(onSuccess(resp -> {
       assertEquals(close, ended.get());
       assertEquals(200, resp.statusCode());
       assertEquals(null, resp.body());
@@ -857,7 +857,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
       .as(BodyCodec.pipe(stream))
-      .send(onFailure(err -> testComplete()));
+      .send().onComplete(onFailure(err -> testComplete()));
     assertWaitUntil(() -> received.get() == 2048);
     fail.complete(null);
     await();
@@ -888,7 +888,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
       .as(BodyCodec.pipe(stream))
-      .send(onFailure(err -> {
+      .send().onComplete(onFailure(err -> {
       assertSame(cause, err);
       testComplete();
     }));
@@ -910,7 +910,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Void> request = get.as(BodyCodec.pipe(stream));
     assertNotNull(stream.exceptionHandler);
     stream.exceptionHandler.handle(cause);
-    request.send(onFailure(err -> {
+    request.send().onComplete(onFailure(err -> {
       assertSame(cause, err);
       testComplete();
     }));
@@ -989,7 +989,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
       .as(BodyCodec.pipe(file))
-      .send(onSuccess(v -> {
+      .send().onComplete(onSuccess(v -> {
         assertEquals(1024 * 1024, received.get());
         assertTrue(closed.get());
         testComplete();
@@ -1034,7 +1034,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
       .as(codec)
-      .send(onSuccess(resp -> {
+      .send().onComplete(onSuccess(resp -> {
       assertEquals(403, resp.statusCode());
       assertNull(resp.body());
       testComplete();
@@ -1053,7 +1053,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
       .as(BodyCodec.jsonObject())
-      .send(onFailure(err -> {
+      .send().onComplete(onFailure(err -> {
       assertTrue(err instanceof VertxException);
       testComplete();
     }));
@@ -1066,7 +1066,7 @@ public class WebClientTest extends WebClientTestBase {
     server.requestHandler(req -> count.incrementAndGet());
     startServer();
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.timeout(50).send(onFailure(err -> {
+    get.timeout(50).send().onComplete(onFailure(err -> {
       assertTrue(err instanceof TimeoutException);
       testComplete();
     }));
@@ -1131,7 +1131,7 @@ public class WebClientTest extends WebClientTestBase {
     MultiMap form = MultiMap.caseInsensitiveMultiMap();
     form.add("param1", "param1_value");
     HttpRequest<Buffer> builder = webClient.post("/somepath");
-    builder.sendForm(form, onSuccess(resp -> complete()));
+    builder.sendForm(form).onComplete(onSuccess(resp -> complete()));
     await();
   }
 
@@ -1151,7 +1151,7 @@ public class WebClientTest extends WebClientTestBase {
     MultiMap form = MultiMap.caseInsensitiveMultiMap();
     form.add("param1", str);
     HttpRequest<Buffer> builder = webClient.post("/somepath");
-    builder.sendForm(form, StandardCharsets.ISO_8859_1.name(), onSuccess(resp -> complete()));
+    builder.sendForm(form, StandardCharsets.ISO_8859_1.name()).onComplete(onSuccess(resp -> complete()));
     await();
   }
 
@@ -1170,7 +1170,7 @@ public class WebClientTest extends WebClientTestBase {
       .set("grant_type", "client_credentials")
       .set("resource", "https://management.core.windows.net/");
     HttpRequest<Buffer> builder = webClient.post("/somepath");
-    builder.sendForm(form, onSuccess(resp -> complete()));
+    builder.sendForm(form).onComplete(onSuccess(resp -> complete()));
     await();
   }
 
@@ -1188,7 +1188,7 @@ public class WebClientTest extends WebClientTestBase {
     form.add("param1", "param1_value");
     HttpRequest<Buffer> builder = webClient.post("/somepath");
     builder.putHeader("content-type", "multipart/form-data");
-    builder.sendForm(form, onSuccess(resp -> complete()));
+    builder.sendForm(form).onComplete(onSuccess(resp -> complete()));
     await();
   }
 
@@ -1206,7 +1206,7 @@ public class WebClientTest extends WebClientTestBase {
     form.add("param1", "param1_value");
     HttpRequest<Buffer> builder = webClient.post("/somepath");
     builder.putHeader("content-type", "multipart/form-data");
-    builder.sendForm(form, "ISO-8859-1", onSuccess(resp -> complete()));
+    builder.sendForm(form, "ISO-8859-1").onComplete(onSuccess(resp -> complete()));
     await();
   }
 
@@ -1361,7 +1361,7 @@ public class WebClientTest extends WebClientTestBase {
 
     HttpRequest<Buffer> builder = webClient.post("somepath");
     builder.multipartMixed(multipartMixed);
-    builder.sendMultipartForm(form, onSuccess(resp -> complete()));
+    builder.sendMultipartForm(form).onComplete(onSuccess(resp -> complete()));
     await();
   }
 
@@ -1392,7 +1392,7 @@ public class WebClientTest extends WebClientTestBase {
     MultipartForm form = MultipartForm.create()
       .textFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain");
 
-    builder.sendMultipartForm(form, onFailure(err -> {
+    builder.sendMultipartForm(form).onComplete(onFailure(err -> {
       assertEquals(err.getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
       assertEquals(err.getCause().getClass(), FileNotFoundException.class);
       complete();
@@ -1409,7 +1409,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> builder = webClient.post("somepath");
     MultipartForm form = MultipartForm.create()
       .textFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain");
-    builder.sendMultipartForm(form, onFailure(err -> {
+    builder.sendMultipartForm(form).onComplete(onFailure(err -> {
       assertEquals(err.getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
       complete();
     }));
@@ -1458,7 +1458,7 @@ public class WebClientTest extends WebClientTestBase {
     if (set != null) {
       builder = builder.followRedirects(set);
     }
-    builder.send(onSuccess(resp -> {
+    builder.send().onComplete(onSuccess(resp -> {
       if (expect) {
         assertEquals(200, resp.statusCode());
         assertEquals("/ok", resp.body().toString());
@@ -1496,7 +1496,7 @@ public class WebClientTest extends WebClientTestBase {
     webClient.get("/redirect")
       .putHeader("foo", "bar")
       .followRedirects(true)
-      .send(onSuccess(resp -> {
+      .send().onComplete(onSuccess(resp -> {
         assertEquals(200, resp.statusCode());
         assertEquals("/ok", resp.body().toString());
         assertEquals(2, resp.followedRedirects().size());
@@ -1518,7 +1518,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> builder = webClient
       .post("/redirect")
       .followRedirects(true);
-    builder.send(onSuccess(resp -> {
+    builder.send().onComplete(onSuccess(resp -> {
       assertEquals(302, resp.statusCode());
       assertEquals("http://www.google.com", resp.getHeader("Location"));
       assertNull(resp.body());
@@ -1539,7 +1539,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> builder = webClient
       .get("/redirect")
       .followRedirects(true);
-    builder.send(onSuccess(resp -> {
+    builder.send().onComplete(onSuccess(resp -> {
       assertEquals(302, resp.statusCode());
       assertEquals(location, resp.getHeader("Location"));
       assertNull(resp.body());
@@ -1556,7 +1556,7 @@ public class WebClientTest extends WebClientTestBase {
     });
     startServer();
     HttpRequest<Buffer> req = webClient.get("/test").virtualHost("another-host");
-    req.send(onSuccess(resp -> testComplete()));
+    req.send().onComplete(onSuccess(resp -> testComplete()));
     await();
   }
 
@@ -1569,7 +1569,7 @@ public class WebClientTest extends WebClientTestBase {
     startServer();
     SocketAddress addr = SocketAddress.inetSocketAddress(8080, "localhost");
     HttpRequest<Buffer> req = webClient.request(HttpMethod.GET, addr, 8080, "another-host", "/test");
-    req.send(onSuccess(resp -> testComplete()));
+    req.send().onComplete(onSuccess(resp -> testComplete()));
     await();
   }
 
@@ -1733,7 +1733,7 @@ public class WebClientTest extends WebClientTestBase {
     try {
       startServer(sslServer);
       HttpRequest<Buffer> builder = requestProvider.apply(sslClient);
-      builder.send(onSuccess(resp -> testComplete()));
+      builder.send().onComplete(onSuccess(resp -> testComplete()));
       await();
     } finally {
       sslClient.close();
@@ -1753,7 +1753,7 @@ public class WebClientTest extends WebClientTestBase {
     WebClient client = WebClient.create(vertx, options);
     client
     .get("ftp://ftp.gnu.org/gnu/")
-    .send(ar -> {
+    .send().onComplete(ar -> {
       if (ar.succeeded()) {
         // Obtain response
         HttpResponse<Buffer> response = ar.result();
@@ -1778,9 +1778,9 @@ public class WebClientTest extends WebClientTestBase {
     WebClient webClient = WebClient.create(vertx);
     try {
       server.requestHandler(req -> webClient.postAbs("http://localhost:8081/")
-        .sendStream(req, onSuccess(resp -> req.response().end("ok"))));
+        .sendStream(req).onComplete(onSuccess(resp -> req.response().end("ok"))));
       startServer();
-      webClient.post(8080, "localhost", "/").sendBuffer(expected, onSuccess(resp -> {
+      webClient.post(8080, "localhost", "/").sendBuffer(expected).onComplete(onSuccess(resp -> {
         assertEquals("ok", resp.bodyAsString());
         complete();
       }));
@@ -1995,7 +1995,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> request = webClient
       .get("/test");
     modifier.accept(request);
-    request.send(ar -> {
+    request.send().onComplete(ar -> {
       if (ar.succeeded()) {
         assertFalse("Expected response success", shouldFail);
       } else {
@@ -2106,7 +2106,7 @@ public class WebClientTest extends WebClientTestBase {
     });
     startServer();
     HttpRequest<Buffer> req = webClient.get("/test").addQueryParam("c:d", "e");
-    req.send(onSuccess(resp -> testComplete()));
+    req.send().onComplete(onSuccess(resp -> testComplete()));
     await();
   }
 
@@ -2118,7 +2118,7 @@ public class WebClientTest extends WebClientTestBase {
     });
     startServer();
     HttpRequest<Buffer> req = webClient.get("/test/?c:d=e");
-    req.send(onSuccess(resp -> testComplete()));
+    req.send().onComplete(onSuccess(resp -> testComplete()));
     await();
   }
 }

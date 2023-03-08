@@ -55,7 +55,7 @@ public class SockJSErrorTest extends VertxTestBase {
     router.route(WSS_PATH + "*").subRouter(sockJSRouter);
 
     server.requestHandler(router);
-    server.listen(PORT, context.asyncAssertSuccess());
+    server.listen(PORT).onComplete(context.asyncAssertSuccess());
 
     vertx.setPeriodic(100, id -> {
       log.info("server sending number: " + ++counter);
@@ -72,7 +72,7 @@ public class SockJSErrorTest extends VertxTestBase {
   public void testEventBusBridgeLeakingConsumers(TestContext context) throws InterruptedException {
     // initial connection - double registration and unregistration
     HttpClient client = vertx.createHttpClient();
-    client.webSocket(PORT, LOCALHOST, WEBSOCKET_PATH, onSuccess(ws -> {
+    client.webSocket(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // those actions will cause leak - a consumer still registered
@@ -91,7 +91,7 @@ public class SockJSErrorTest extends VertxTestBase {
 
     final int[] counter = {-1};
     HttpClient client2 = vertx.createHttpClient();
-    client2.webSocket(PORT, LOCALHOST, WEBSOCKET_PATH, onSuccess(ws -> {
+    client2.webSocket(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // this client will only receive every other message
       ws.handler(buff -> {
@@ -122,7 +122,7 @@ public class SockJSErrorTest extends VertxTestBase {
   public void testEventBusBridgeLeakingConsumersClean(TestContext context) throws InterruptedException {
     // initial connection - single registration and unregistration
     HttpClient client = vertx.createHttpClient();
-    client.webSocket(PORT, LOCALHOST, WEBSOCKET_PATH, onSuccess(ws -> {
+    client.webSocket(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // those actions will cause leak - a consumer still registered
       ws.handler(buff -> {
@@ -138,7 +138,7 @@ public class SockJSErrorTest extends VertxTestBase {
 
     final int[] counter = {-1};
     HttpClient client2 = vertx.createHttpClient();
-    client2.webSocket(PORT, LOCALHOST, WEBSOCKET_PATH, onSuccess(ws -> {
+    client2.webSocket(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // this client will only receive every other message
       ws.handler(buff -> {

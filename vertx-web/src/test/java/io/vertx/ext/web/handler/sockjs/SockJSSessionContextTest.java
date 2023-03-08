@@ -51,19 +51,19 @@ public class SockJSSessionContextTest extends SockJSTestBase {
 
     startServers();
 
-    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr", onSuccess(req1 -> {
-      req1.send(Buffer.buffer(), onSuccess(resp1 -> {
+    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").onComplete(onSuccess(req1 -> {
+      req1.send(Buffer.buffer()).onComplete(onSuccess(resp1 -> {
         assertEquals(200, resp1.statusCode());
-        client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr", onSuccess(req2 -> {
-          req2.send(Buffer.buffer(), onSuccess(resp2 -> {
+        client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").onComplete(onSuccess(req2 -> {
+          req2.send(Buffer.buffer()).onComplete(onSuccess(resp2 -> {
             assertEquals(200, resp2.statusCode());
-            client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr_send", onSuccess(req3 -> {
-              req3.send(Buffer.buffer('"' + msg + '"'), onSuccess(resp3 -> {
+            client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr_send").onComplete(onSuccess(req3 -> {
+              req3.send(Buffer.buffer('"' + msg + '"')).onComplete(onSuccess(resp3 -> {
                 assertEquals(204, resp3.statusCode());
-                client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr", onSuccess(req4 -> {
-                  req4.send(Buffer.buffer(), onSuccess(resp4 -> {
+                client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").onComplete(onSuccess(req4 -> {
+                  req4.send(Buffer.buffer()).onComplete(onSuccess(resp4 -> {
                     assertEquals(200, resp4.statusCode());
-                    resp4.body(onSuccess(buffer -> {
+                    resp4.body().onComplete(onSuccess(buffer -> {
                       String body = buffer.toString();
                       assertThat(body, startsWith("a"));
                       JsonArray content = new JsonArray(body.substring(1));

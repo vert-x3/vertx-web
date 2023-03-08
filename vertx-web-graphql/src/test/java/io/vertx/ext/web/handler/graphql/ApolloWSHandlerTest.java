@@ -148,7 +148,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
 
   @Test
   public void testSubscriptionWsCall() {
-    client.webSocket("/graphql", onSuccess(websocket -> {
+    client.webSocket("/graphql").onComplete(onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
       websocket.endHandler(v -> testComplete());
 
@@ -199,7 +199,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
 
   @Test
   public void testSubscriptionWsCallWithNoConnectionInit() {
-    client.webSocket("/graphql", onSuccess(websocket -> {
+    client.webSocket("/graphql").onComplete(onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
       websocket.endHandler(v -> testComplete());
 
@@ -223,7 +223,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
   public void testSubscriptionWsCallWithConnectionParams() {
     int countInConnectionParams = 2;
 
-    client.webSocket("/graphql", onSuccess(websocket -> {
+    client.webSocket("/graphql").onComplete(onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
       websocket.endHandler(v -> testComplete());
 
@@ -272,7 +272,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
   public void testSubscriptionWsCallWithFailedPromise() {
     String rejectMessage = "test";
 
-    client.webSocket("/graphql", onSuccess(websocket -> {
+    client.webSocket("/graphql").onComplete(onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
       websocket.endHandler(v -> testComplete());
 
@@ -297,7 +297,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
 
   @Test
   public void testSubscriptionWsCallWithDoubleConnectionInit() {
-    client.webSocket("/graphql", onSuccess(websocket -> {
+    client.webSocket("/graphql").onComplete(onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
       websocket.endHandler(v -> testComplete());
 
@@ -348,7 +348,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
   }
 
   private void testQueryWsCall(BiConsumer<WebSocket, JsonObject> sender) {
-    client.webSocket("/graphql", onSuccess(websocket -> {
+    client.webSocket("/graphql").onComplete(onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
       websocket.endHandler(v -> testComplete());
 
@@ -413,7 +413,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
   public void testWsKeepAlive() {
     apolloWSOptions.setKeepAlive(100L);
 
-    client.webSocket("/graphql", onSuccess(websocket -> {
+    client.webSocket("/graphql").onComplete(onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
       websocket.endHandler(v -> testComplete());
 
@@ -451,7 +451,7 @@ public class ApolloWSHandlerTest extends WebTestBase {
     client.close();
     client = vertx.createHttpClient(clientOptions.setDefaultPort(proxyPort));
 
-    client.webSocket("/graphql", onSuccess(websocket -> {
+    client.webSocket("/graphql").onComplete(onSuccess(websocket -> {
       websocket.exceptionHandler(this::fail);
 
       AtomicInteger counter = new AtomicInteger();
@@ -511,8 +511,8 @@ public class ApolloWSHandlerTest extends WebTestBase {
             .connect(clientPort, host)
             .onSuccess(client -> {
               this.client = client;
-              socket.pipeTo(client, v -> socket.close());
-              client.pipeTo(socket, v -> socket.close());
+              socket.pipeTo(client).onComplete(v -> socket.close());
+              client.pipeTo(socket).onComplete(v -> socket.close());
               socket.resume();
             });
         })

@@ -86,102 +86,102 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
   @Test
   public void loadSpecFromFile(Vertx vertx, VertxTestContext testContext) {
     RouterBuilder.create(vertx, "src/test/resources/specs/router_builder_test.yaml",
-      routerBuilderAsyncResult -> {
-        assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
-        assertThat(routerBuilderAsyncResult.result()).isNotNull();
-        testContext.completeNow();
-      });
+            routerBuilderAsyncResult -> {
+                assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
+                assertThat(routerBuilderAsyncResult.result()).isNotNull();
+                testContext.completeNow();
+            });
   }
 
   @Test
   public void loadPetStoreFromFile(Vertx vertx, VertxTestContext testContext) {
     RouterBuilder.create(vertx, "src/test/resources/specs/petstore.yaml",
-      routerBuilderAsyncResult -> {
-        assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
-        assertThat(routerBuilderAsyncResult.result()).isNotNull();
-        testContext.completeNow();
-      });
+            routerBuilderAsyncResult -> {
+                assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
+                assertThat(routerBuilderAsyncResult.result()).isNotNull();
+                testContext.completeNow();
+            });
   }
 
   @Test
   public void failLoadSpecFromFile(Vertx vertx, VertxTestContext testContext) {
     RouterBuilder.create(vertx, "src/test/resources/specs/aaa.yaml",
-      routerBuilderAsyncResult -> {
-        assertThat(routerBuilderAsyncResult.failed()).isTrue();
-        assertThat(routerBuilderAsyncResult.cause().getClass())
-          .isEqualTo(RouterBuilderException.class);
-        assertThat(((RouterBuilderException) routerBuilderAsyncResult.cause()).type())
-          .isEqualTo(ErrorType.INVALID_FILE);
-        testContext.completeNow();
-      });
+            routerBuilderAsyncResult -> {
+                assertThat(routerBuilderAsyncResult.failed()).isTrue();
+                assertThat(routerBuilderAsyncResult.cause().getClass())
+                        .isEqualTo(RouterBuilderException.class);
+                assertThat(((RouterBuilderException) routerBuilderAsyncResult.cause()).type())
+                        .isEqualTo(ErrorType.INVALID_FILE);
+                testContext.completeNow();
+            });
   }
 
   @Test
   public void loadWrongSpecFromFile(Vertx vertx, VertxTestContext testContext) {
     RouterBuilder.create(vertx, "src/test/resources/specs/bad_spec.yaml",
-      routerBuilderAsyncResult -> {
-        assertThat(routerBuilderAsyncResult.failed()).isTrue();
-        assertThat(routerBuilderAsyncResult.cause().getClass())
-          .isEqualTo(RouterBuilderException.class);
-        assertThat(((RouterBuilderException) routerBuilderAsyncResult.cause()).type())
-          .isEqualTo(ErrorType.INVALID_FILE);
-        testContext.completeNow();
-      });
+            routerBuilderAsyncResult -> {
+                assertThat(routerBuilderAsyncResult.failed()).isTrue();
+                assertThat(routerBuilderAsyncResult.cause().getClass())
+                        .isEqualTo(RouterBuilderException.class);
+                assertThat(((RouterBuilderException) routerBuilderAsyncResult.cause()).type())
+                        .isEqualTo(ErrorType.INVALID_FILE);
+                testContext.completeNow();
+            });
   }
 
   @Test
   public void loadSpecFromURL(Vertx vertx, VertxTestContext testContext) {
     startFileServer(vertx, testContext).onComplete(h -> {
       RouterBuilder.create(vertx, "http://localhost:9001/specs/router_builder_test.yaml",
-        routerBuilderAsyncResult -> {
-          testContext.verify(() -> {
-            assertThat(routerBuilderAsyncResult.cause())
-              .isNull();
-            assertThat(routerBuilderAsyncResult.succeeded())
-              .isTrue();
-            assertThat(routerBuilderAsyncResult.result())
-              .isNotNull();
-          });
-          testContext.completeNow();
-        });
+              routerBuilderAsyncResult -> {
+                  testContext.verify(() -> {
+                      assertThat(routerBuilderAsyncResult.cause())
+                              .isNull();
+                      assertThat(routerBuilderAsyncResult.succeeded())
+                              .isTrue();
+                      assertThat(routerBuilderAsyncResult.result())
+                              .isNotNull();
+                  });
+                  testContext.completeNow();
+              });
     });
   }
 
   @Test
   public void bodyHandlerNull(Vertx vertx, VertxTestContext testContext) {
     RouterBuilder.create(vertx, "src/test/resources/specs/router_builder_test.yaml",
-      routerBuilderAsyncResult -> {
-        assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
+            routerBuilderAsyncResult -> {
+                assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
 
-        RouterBuilder routerBuilder = routerBuilderAsyncResult.result();
-        routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
+                RouterBuilder routerBuilder = routerBuilderAsyncResult.result();
+                routerBuilder.setOptions(HANDLERS_TESTS_OPTIONS);
 
-        Router router = routerBuilder.createRouter();
+                Router router = routerBuilder.createRouter();
 
-        testContext.verify(() -> {
-          assertThat(router.getRoutes())
-            .extracting("state")
-            .extracting("contextHandlers")
-            .asList()
-            .doesNotHave(new Condition<>(o -> o instanceof BodyHandler, "Handler is a BodyHandler"));
-        });
-        testContext.completeNow();
-      });
+                testContext.verify(() -> {
+                    assertThat(router.getRoutes())
+                            .extracting("state")
+                            .extracting("contextHandlers")
+                            .asList()
+                            .doesNotHave(new Condition<>(o -> o instanceof BodyHandler, "Handler is a BodyHandler"));
+                });
+                testContext.completeNow();
+            });
   }
 
   @Test
   public void loadSpecFromURLWithAuthorizationValues(Vertx vertx, VertxTestContext testContext) {
     startSecuredFileServer(vertx, testContext).onComplete(h -> {
       RouterBuilder.create(
-        vertx,
-        "http://localhost:9001/specs/router_builder_test.yaml",
-        new OpenAPILoaderOptions()
-          .putAuthHeader("Authorization", "Bearer xx.yy.zz"),
-        routerBuilderAsyncResult -> {
-          assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
-          assertThat(routerBuilderAsyncResult.result()).isNotNull();
-          testContext.completeNow();
-        });
+              vertx,
+              "http://localhost:9001/specs/router_builder_test.yaml",
+              new OpenAPILoaderOptions()
+                      .putAuthHeader("Authorization", "Bearer xx.yy.zz"),
+              routerBuilderAsyncResult -> {
+                  assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
+                  assertThat(routerBuilderAsyncResult.result()).isNotNull();
+                  testContext.completeNow();
+              });
     });
   }
 
@@ -189,12 +189,12 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
   public void failLoadSpecFromURL(Vertx vertx, VertxTestContext testContext) {
     startFileServer(vertx, testContext).onComplete(h -> {
       RouterBuilder.create(vertx, "http://localhost:9001/specs/does_not_exist.yaml",
-        routerBuilderAsyncResult -> {
-          assertThat(routerBuilderAsyncResult.failed()).isTrue();
-          assertThat(routerBuilderAsyncResult.cause().getClass()).isEqualTo(RouterBuilderException.class);
-          assertThat(((RouterBuilderException) routerBuilderAsyncResult.cause()).type()).isEqualTo(ErrorType.INVALID_FILE);
-          testContext.completeNow();
-        });
+              routerBuilderAsyncResult -> {
+                  assertThat(routerBuilderAsyncResult.failed()).isTrue();
+                  assertThat(routerBuilderAsyncResult.cause().getClass()).isEqualTo(RouterBuilderException.class);
+                  assertThat(((RouterBuilderException) routerBuilderAsyncResult.cause()).type()).isEqualTo(ErrorType.INVALID_FILE);
+                  testContext.completeNow();
+              });
     });
   }
 
@@ -566,23 +566,23 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
   @Test
   public void customBodyHandlerTest(Vertx vertx, VertxTestContext testContext) {
     RouterBuilder.create(vertx, "src/test/resources/specs/upload_test.yaml", testContext.succeeding(routerBuilder -> {
-      routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false));
+        routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false));
 
-      BodyHandler bodyHandler = BodyHandler.create("my-uploads");
+        BodyHandler bodyHandler = BodyHandler.create("my-uploads");
 
-      routerBuilder.rootHandler(bodyHandler);
+        routerBuilder.rootHandler(bodyHandler);
 
-      routerBuilder.operation("upload").handler(routingContext -> routingContext.response().setStatusCode(201).end());
+        routerBuilder.operation("upload").handler(routingContext -> routingContext.response().setStatusCode(201).end());
 
-      testContext.verify(() -> {
-        assertThat(routerBuilder.createRouter().getRoutes().get(0))
-          .extracting("state")
-          .extracting("contextHandlers")
-          .asList()
-          .hasOnlyOneElementSatisfying(b -> assertThat(b).isSameAs(bodyHandler));
-      });
+        testContext.verify(() -> {
+            assertThat(routerBuilder.createRouter().getRoutes().get(0))
+                    .extracting("state")
+                    .extracting("contextHandlers")
+                    .asList()
+                    .hasOnlyOneElementSatisfying(b -> assertThat(b).isSameAs(bodyHandler));
+        });
 
-      testContext.completeNow();
+        testContext.completeNow();
 
     }));
   }
@@ -625,24 +625,24 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
   @Test
   public void pathResolverShouldNotCreateRegex(Vertx vertx, VertxTestContext testContext) {
     RouterBuilder.create(vertx, "src/test/resources/specs/produces_consumes_test.yaml",
-      testContext.succeeding(routerBuilder -> {
-        routerBuilder.setOptions(new RouterBuilderOptions().setMountNotImplementedHandler(false));
+            testContext.succeeding(routerBuilder -> {
+                routerBuilder.setOptions(new RouterBuilderOptions().setMountNotImplementedHandler(false));
 
-        routerBuilder.operation("consumesTest").handler(routingContext ->
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage("OK")
-        );
+                routerBuilder.operation("consumesTest").handler(routingContext ->
+                        routingContext
+                                .response()
+                                .setStatusCode(200)
+                                .setStatusMessage("OK")
+                );
 
-        testContext.verify(() ->
-          assertThat(routerBuilder.createRouter().getRoutes())
-            .extracting(Route::getPath)
-            .anyMatch("/consumesTest"::equals)
-        );
+                testContext.verify(() ->
+                        assertThat(routerBuilder.createRouter().getRoutes())
+                                .extracting(Route::getPath)
+                                .anyMatch("/consumesTest"::equals)
+                );
 
-        testContext.completeNow();
-      }));
+                testContext.completeNow();
+            }));
   }
 
   @Test
@@ -1602,21 +1602,21 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
   public void testIncorrectOrderOfHandlers(Vertx vertx, VertxTestContext testContext) {
 
     RouterBuilder.create(vertx, VALIDATION_SPEC, testContext.succeeding(routerBuilder -> {
-      routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(40000000).setDeleteUploadedFilesOnEnd(true).setHandleFileUploads(true));
-      routerBuilder.rootHandler(LoggerHandler.create(true, LoggerHandler.DEFAULT_FORMAT));
-      routerBuilder.rootHandler(TimeoutHandler.create(180000));
-      routerBuilder.rootHandler(CorsHandler.create().addOrigin("*"));
+        routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(40000000).setDeleteUploadedFilesOnEnd(true).setHandleFileUploads(true));
+        routerBuilder.rootHandler(LoggerHandler.create(true, LoggerHandler.DEFAULT_FORMAT));
+        routerBuilder.rootHandler(TimeoutHandler.create(180000));
+        routerBuilder.rootHandler(CorsHandler.create().addOrigin("*"));
 
-      routerBuilder
-        .operation("listPets")
-        .handler(routingContext -> routingContext.response().setStatusMessage("ok").end());
+        routerBuilder
+                .operation("listPets")
+                .handler(routingContext -> routingContext.response().setStatusMessage("ok").end());
 
-      try {
-        routerBuilder.createRouter();
-        testContext.failNow("Should not reach here");
-      } catch (IllegalStateException ise) {
-        testContext.completeNow();
-      }
+        try {
+            routerBuilder.createRouter();
+            testContext.failNow("Should not reach here");
+        } catch (IllegalStateException ise) {
+            testContext.completeNow();
+        }
     }));
   }
 }

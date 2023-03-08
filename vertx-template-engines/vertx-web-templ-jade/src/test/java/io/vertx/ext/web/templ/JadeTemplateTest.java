@@ -58,7 +58,7 @@ public class JadeTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-jade-template2.jade"));
 
-    engine.render(context, "somedir/test-jade-template2.jade", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-jade-template2.jade").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("<!DOCTYPE html><html><head><title>badger/test-jade-template2.jade</title></head><body></body></html>", normalizeCRLF(render.toString()));
     }));
   }
@@ -73,7 +73,7 @@ public class JadeTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-jade-template3.jade"));
 
-    engine.render(context, "src/test/filesystemtemplates/test-jade-template3.jade", should.asyncAssertSuccess(render -> {
+    engine.render(context, "src/test/filesystemtemplates/test-jade-template3.jade").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("<!DOCTYPE html><html><head><title>badger/test-jade-template3.jade</title></head><body></body></html>", normalizeCRLF(render.toString()));
     }));
   }
@@ -94,7 +94,7 @@ public class JadeTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-jade-template2.jade"));
 
-    engine.render(context, "somedir/test-jade-template2", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-jade-template2").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("<!DOCTYPE html><html><head><title>badger/test-jade-template2.jade</title></head><body></body></html>", normalizeCRLF(render.toString()));
     }));
   }
@@ -109,7 +109,7 @@ public class JadeTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-jade-template2.jade"));
 
-    engine.render(context, "somedir/test-jade-template2", should.asyncAssertSuccess(render -> {
+    engine.render(context, "somedir/test-jade-template2").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("<!DOCTYPE html><html><head><title>aardvark/test-jade-template2.jade</title></head><body></body></html>", normalizeCRLF(render.toString()));
     }));
   }
@@ -120,7 +120,7 @@ public class JadeTemplateTest {
 
     final JsonObject context = new JsonObject();
 
-    engine.render(context, "somedir/foo", should.asyncAssertFailure());
+    engine.render(context, "somedir/foo").onComplete(should.asyncAssertFailure());
   }
 
   @Test
@@ -142,7 +142,7 @@ public class JadeTemplateTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render -> {
+    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("<before></before>", normalizeCRLF(render.toString()));
       // cache is enabled so if we change the content that should not affect the result
 
@@ -153,7 +153,7 @@ public class JadeTemplateTest {
         should.fail(e);
       }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), should.asyncAssertSuccess(render2 -> {
+      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
         should.assertEquals("<before></before>", normalizeCRLF(render2.toString()));
       }));
     }));

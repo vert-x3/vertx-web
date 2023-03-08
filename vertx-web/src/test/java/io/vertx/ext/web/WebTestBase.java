@@ -63,7 +63,7 @@ public class WebTestBase extends VertxTestBase {
     server = vertx.createHttpServer(getHttpServerOptions());
     client = vertx.createHttpClient(getHttpClientOptions());
     CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router).listen(onSuccess(res -> latch.countDown()));
+    server.requestHandler(router).listen().onComplete(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
   }
 
@@ -79,7 +79,7 @@ public class WebTestBase extends VertxTestBase {
   public void tearDown() throws Exception {
     if (client != null) {
       CountDownLatch latch = new CountDownLatch(1);
-      client.close((asyncResult) -> {
+      client.close().onComplete((asyncResult) -> {
         assertTrue(asyncResult.succeeded());
         latch.countDown();
       });
@@ -87,7 +87,7 @@ public class WebTestBase extends VertxTestBase {
     }
     if (server != null) {
       CountDownLatch latch = new CountDownLatch(1);
-      server.close((asyncResult) -> {
+      server.close().onComplete((asyncResult) -> {
         assertTrue(asyncResult.succeeded());
         latch.countDown();
       });
@@ -224,7 +224,7 @@ public class WebTestBase extends VertxTestBase {
                                    Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     client.request(requestOptions).onComplete(onSuccess(req -> {
-      req.response(onSuccess(resp -> {
+      req.response().onComplete(onSuccess(resp -> {
         assertEquals(statusCode, resp.statusCode());
         assertEquals(statusMessage, resp.statusMessage());
         if (responseAction != null) {

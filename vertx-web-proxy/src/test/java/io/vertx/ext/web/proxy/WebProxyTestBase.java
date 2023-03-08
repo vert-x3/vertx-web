@@ -27,7 +27,7 @@ public class WebProxyTestBase extends WebTestBase {
     backendServer = vertx.createHttpServer(getBackendServerOptions());
     proxyClient = vertx.createHttpClient(getProxyClientOptions());
     CountDownLatch latch = new CountDownLatch(1);
-    backendServer.requestHandler(backendRouter).listen(onSuccess(res -> latch.countDown()));
+    backendServer.requestHandler(backendRouter).listen().onComplete(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
   }
 
@@ -43,7 +43,7 @@ public class WebProxyTestBase extends WebTestBase {
   public void tearDown() throws Exception {
     if (proxyClient != null) {
       CountDownLatch latch = new CountDownLatch(1);
-      proxyClient.close((asyncResult) -> {
+      proxyClient.close().onComplete((asyncResult) -> {
         assertTrue(asyncResult.succeeded());
         latch.countDown();
       });
@@ -51,7 +51,7 @@ public class WebProxyTestBase extends WebTestBase {
     }
     if (client != null) {
       CountDownLatch latch = new CountDownLatch(1);
-      client.close((asyncResult) -> {
+      client.close().onComplete((asyncResult) -> {
         assertTrue(asyncResult.succeeded());
         latch.countDown();
       });
@@ -59,7 +59,7 @@ public class WebProxyTestBase extends WebTestBase {
     }
     if (server != null) {
       CountDownLatch latch = new CountDownLatch(1);
-      server.close((asyncResult) -> {
+      server.close().onComplete((asyncResult) -> {
         assertTrue(asyncResult.succeeded());
         latch.countDown();
       });
@@ -67,7 +67,7 @@ public class WebProxyTestBase extends WebTestBase {
     }
     if (backendServer != null) {
       CountDownLatch latch = new CountDownLatch(1);
-      backendServer.close((asyncResult) -> {
+      backendServer.close().onComplete((asyncResult) -> {
         assertTrue(asyncResult.succeeded());
         latch.countDown();
       });

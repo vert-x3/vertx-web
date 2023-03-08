@@ -24,12 +24,12 @@ public class HandlerExceptionTest {
     vertx = Vertx.vertx();
     vertx.createHttpServer()
       .requestHandler(req -> req.response().end("OK"))
-      .listen(8080, tc.asyncAssertSuccess());
+      .listen(8080).onComplete(tc.asyncAssertSuccess());
   }
 
   @After
   public void tearDown(TestContext tc) {
-    vertx.close(tc.asyncAssertSuccess());
+    vertx.close().onComplete(tc.asyncAssertSuccess());
   }
 
   @Test(timeout = 5000)
@@ -42,7 +42,7 @@ public class HandlerExceptionTest {
 
     WebClient client = WebClient.create(vertx);
     client.get(8080, "localhost", "")
-      .send(resp -> {
+      .send().onComplete(resp -> {
         tc.assertTrue(resp.succeeded());
         tc.assertTrue(Context.isOnEventLoopThread());
         throw new RuntimeException("Expected exception");

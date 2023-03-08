@@ -35,15 +35,17 @@ public abstract class BaseValidationHandlerTest {
 
     client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(9000).setDefaultHost("localhost"));
     server = vertx
-      .createHttpServer()
+      .createHttpServer();
+
+    server
       .requestHandler(router)
-      .listen(9000, testContext.succeedingThenComplete());
+      .listen(9000).onComplete(testContext.succeedingThenComplete());
   }
 
   @AfterEach
   public void tearDown(VertxTestContext testContext) {
     if (client != null) client.close();
-    if (server != null) server.close(testContext.succeedingThenComplete());
+    if (server != null) server.close().onComplete(testContext.succeedingThenComplete());
     else testContext.completeNow();
   }
 

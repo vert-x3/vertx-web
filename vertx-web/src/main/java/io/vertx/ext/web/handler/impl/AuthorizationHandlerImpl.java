@@ -12,12 +12,7 @@
  * ******************************************************************************/
 package io.vertx.ext.web.handler.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.function.BiConsumer;
-
+import io.vertx.core.Future;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
@@ -27,6 +22,12 @@ import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.HttpException;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.function.BiConsumer;
 
 /**
  * Implementation of the {@link io.vertx.ext.web.handler.AuthorizationHandler}
@@ -87,9 +88,9 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
    * this method checks that the specified authorization match the current content.
    * It doesn't fetch all providers at once in order to do early-out, but rather tries to be smart and fetch authorizations one provider at a time
    *
-   * @param ctx the current routing context
+   * @param ctx                  the current routing context
    * @param authorizationContext the current authorization context
-   * @param providers the providers iterator
+   * @param providers            the providers iterator
    */
   private void checkOrFetchAuthorizations(RoutingContext ctx, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
     if (authorization.match(authorizationContext)) {
@@ -117,13 +118,15 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
       AuthorizationProvider provider = providers.next();
       // we haven't fetched authorization from this provider yet
       if (!user.authorizations().getProviderIds().contains(provider.getId())) {
-        provider.getAuthorizations(ctx.user(), authorizationResult -> {
-          if (authorizationResult.failed()) {
-            LOG.warn("An error occurred getting authorization - providerId: " + provider.getId(), authorizationResult.cause());
+        provider.getAuthorizations(ctx.user())
+          .onFailure(err -> {
+            LOG.warn("An error occurred getting authorization - providerId: " + provider.getId(), err);
             // note that we don't 'record' the fact that we tried to fetch the authorization provider. therefore, it will be re-fetched later-on
-          }
-          checkOrFetchAuthorizations(ctx, authorizationContext, providers);
-        });
+          })
+          .eventually(v -> {
+            checkOrFetchAuthorizations(ctx, authorizationContext, providers);
+            return Future.succeededFuture();
+          });
         // get out right now as the callback will decide what to do next
         return;
       }

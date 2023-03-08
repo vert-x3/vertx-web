@@ -290,13 +290,13 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
     options.getAuthHeaders().forEach(reqOptions::addHeader);
 
     Promise<JsonObject> resultProm = Promise.promise();
-    client.request(reqOptions, httpClientRequestAsyncResult -> {
+    client.request(reqOptions).onComplete(httpClientRequestAsyncResult -> {
       if (httpClientRequestAsyncResult.failed()) {
         resultProm.fail(httpClientRequestAsyncResult.cause());
         return;
       }
 
-      httpClientRequestAsyncResult.result().send(responseAr -> {
+      httpClientRequestAsyncResult.result().send().onComplete(responseAr -> {
         if (responseAr.failed()) {
           resultProm.fail(responseAr.cause());
           return;

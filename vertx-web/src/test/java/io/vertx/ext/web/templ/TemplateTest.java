@@ -113,7 +113,7 @@ public class TemplateTest extends WebTestBase {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
-      engine.render(context.data(), "somedir/test-template.html", res -> {
+      engine.render(context.data(), "somedir/test-template.html").onComplete(res -> {
         if (res.succeeded()) {
           context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
         } else {
@@ -144,7 +144,7 @@ public class TemplateTest extends WebTestBase {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
-      engine.render(context.data(), "somedir/test-template.html", onSuccess(res -> {
+      engine.render(context.data(), "somedir/test-template.html").onComplete(onSuccess(res -> {
         String rendered = res.toString();
         final String actual = normalizeLineEndingsFor(res).toString();
         assertEquals(expected, actual);

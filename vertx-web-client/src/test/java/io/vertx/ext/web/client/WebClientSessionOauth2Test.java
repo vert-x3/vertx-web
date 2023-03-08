@@ -83,7 +83,9 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       } else {
         req.response().setStatusCode(400).end();
       }
-    }).listen(8080, ready -> {
+    });
+
+    server.listen(8080).onComplete(ready -> {
       if (ready.failed()) {
         throw new RuntimeException(ready.cause());
       }
@@ -106,7 +108,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
+      .send().onComplete(result -> {
         if (result.failed()) {
           fail(result.cause());
         } else {
@@ -132,7 +134,9 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       } else {
         req.response().setStatusCode(400).end();
       }
-    }).listen(8080, ready -> {
+    });
+
+    server.listen(8080).onComplete(ready -> {
       if (ready.failed()) {
         throw new RuntimeException(ready.cause());
       }
@@ -155,7 +159,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
+      .send().onComplete(result -> {
         if (result.failed()) {
           fail(result.cause());
         } else {
@@ -181,7 +185,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
 
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
+      .send().onComplete(result -> {
         if (result.failed()) {
           latchClient.countDown();
         } else {
@@ -212,7 +216,9 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       } else {
         req.response().setStatusCode(400).end();
       }
-    }).listen(8080, ready -> {
+    });
+
+    server.listen(8080).onComplete(ready -> {
       if (ready.failed()) {
         throw new RuntimeException(ready.cause());
       }
@@ -237,7 +243,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
 
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
+      .send().onComplete(result -> {
         if (result.failed()) {
           fail(result.cause());
         } else {
@@ -252,7 +258,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     // again, but this time we should not get a token
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
+      .send().onComplete(result -> {
         if (result.failed()) {
           fail(result.cause());
         } else {
@@ -284,7 +290,9 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       } else {
         req.response().setStatusCode(400).end();
       }
-    }).listen(8080, ready -> {
+    });
+
+    server.listen(8080).onComplete(ready -> {
       if (ready.failed()) {
         throw new RuntimeException(ready.cause());
       }
@@ -309,7 +317,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
 
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
+      .send().onComplete(result -> {
         if (result.failed()) {
           fail(result.cause());
         } else {
@@ -327,7 +335,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     // again, but this time we should not get a token
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
+      .send().onComplete(result -> {
         if (result.failed()) {
           fail(result.cause());
         } else {
@@ -364,7 +372,9 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       } else {
         req.response().setStatusCode(400).end();
       }
-    }).listen(8080, ready -> {
+    });
+
+    server.listen(8080).onComplete(ready -> {
       if (ready.failed()) {
         throw new RuntimeException(ready.cause());
       }
@@ -389,7 +399,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
 
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
+      .send().onComplete(result -> {
         if (result.failed()) {
           fail(result.cause());
         } else {
@@ -407,7 +417,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     // again, but this time we should not get a token
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
+      .send().onComplete(result -> {
         if (result.failed()) {
           fail(result.cause());
         } else {
@@ -439,7 +449,9 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       } else {
         req.response().setStatusCode(400).end();
       }
-    }).listen(8080, ready -> {
+    });
+
+    server.listen(8080).onComplete(ready -> {
       if (ready.failed()) {
         throw new RuntimeException(ready.cause());
       }
@@ -464,7 +476,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
 
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
+      .send().onComplete(result -> {
         if (result.failed()) {
           fail(result.cause());
         } else {
@@ -482,7 +494,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     // again, but this time we should not get a token
     oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
+      .send().onComplete(result -> {
         if (result.failed()) {
           fail(result.cause());
         } else {
@@ -513,7 +525,9 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
         retry.set(true);
         req.response().setStatusCode(401).end();
       }
-    }).listen(8080, ready -> {
+    });
+
+    server.listen(8080).onComplete(ready -> {
       if (ready.failed()) {
         throw new RuntimeException(ready.cause());
       }
@@ -539,7 +553,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
+      .send().onComplete(result -> {
         if (result.failed()) {
           fail(result.cause());
         } else {
@@ -567,7 +581,9 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
         retry.set(true);
         req.response().setStatusCode(401).end();
       }
-    }).listen(8080, ready -> {
+    });
+
+    server.listen(8080).onComplete(ready -> {
       if (ready.failed()) {
         throw new RuntimeException(ready.cause());
       }
@@ -593,7 +609,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
-      .send(result -> {
+      .send().onComplete(result -> {
         if (result.failed()) {
           fail(result.cause());
         } else {
