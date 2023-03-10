@@ -12,26 +12,25 @@
 
 package io.vertx.ext.web.openapi.router.impl;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.InputTrustHandler;
 import io.vertx.ext.web.openapi.router.OpenAPIRoute;
 import io.vertx.ext.web.openapi.router.RequestExtractor;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
+import io.vertx.ext.web.openapi.router.SecurityScheme;
 import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.openapi.contract.Operation;
 import io.vertx.openapi.contract.Path;
 import io.vertx.openapi.validation.RequestValidator;
 import io.vertx.openapi.validation.impl.RequestValidatorImpl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RouterBuilderImpl implements RouterBuilder {
@@ -39,6 +38,7 @@ public class RouterBuilderImpl implements RouterBuilder {
 
   // VisibleForTesting
   final List<Handler<RoutingContext>> rootHandlers = new ArrayList<>();
+  final AuthenticationHandlers securityHandlers = new AuthenticationHandlers();
   private final Vertx vertx;
   private final OpenAPIContract contract;
 
@@ -74,10 +74,20 @@ public class RouterBuilderImpl implements RouterBuilder {
   }
 
   @Override
-  @Fluent
   public RouterBuilder rootHandler(Handler<RoutingContext> rootHandler) {
     rootHandlers.add(rootHandler);
     return this;
+  }
+
+  @Override
+  public RouterBuilder securityHandler(String securitySchemeName, AuthenticationHandler authenticationHandler) {
+    securityHandlers.addRequirement(securitySchemeName, authenticationHandler);
+    return this;
+  }
+
+  @Override
+  public SecurityScheme securityHandler(String securitySchemeName) {
+    return new SecuritySchemeImpl(this, contract, securitySchemeName);
   }
 
   @Override
@@ -94,11 +104,17 @@ public class RouterBuilderImpl implements RouterBuilder {
         route.putMetadata(KEY_META_DATA_OPERATION, operation.getOperationId());
 
         OpenAPIRoute openAPIRoute = getRoute(operation.getOperationId());
+        Objects.requireNonNull(openAPIRoute, "No route found for operation " + operation.getOperationId());
+
+        // Authentication Handler
+        // TODO: should we have a openAPIRoute.doAuthentication() ?
+        securityHandlers.solve(contract, operation, route, true);
+
         if (openAPIRoute.doValidation()) {
 
           InputTrustHandler validationHandler = rc -> extractor.extractValidatableRequest(rc, operation)
-            .compose(validatableRequest -> validator.validate(validatableRequest, operation.getOperationId())).
-            onSuccess(rp -> {
+            .compose(validatableRequest -> validator.validate(validatableRequest, operation.getOperationId()))
+            .onSuccess(rp -> {
               rc.put(KEY_META_DATA_VALIDATED_REQUEST, rp);
               rc.next();
             }).onFailure(rc::fail);
