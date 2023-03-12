@@ -2310,11 +2310,9 @@ public class RouterTest extends WebTestBase {
           e.printStackTrace();
           future.fail(e);
         }
-      }, asyncResult -> {
-        assertFalse(asyncResult.failed());
-        assertNull(asyncResult.cause());
+      }).onComplete(onSuccess(v -> {
         latch.countDown();
-      });
+      }));
     }
     awaitLatch(latch);
   }
@@ -2349,11 +2347,9 @@ public class RouterTest extends WebTestBase {
         } catch (Exception e) {
           future.fail(e);
         }
-      }, asyncResult -> {
-        assertFalse(asyncResult.failed());
-        assertNull(asyncResult.cause());
+      }).onComplete(onSuccess(v -> {
         latch.countDown();
-      });
+      }));
     }
     awaitLatch(latch);
   }
@@ -2419,10 +2415,10 @@ public class RouterTest extends WebTestBase {
 
     for (int i = 0; i < multipleConnections; i++) {
       // using executeBlocking should create multiple connections
-      vertx.executeBlocking((new Random().nextBoolean() ? execute200Request : execute400Request), false, objectAsyncResult -> {
-        assertTrue(objectAsyncResult.succeeded());
+      vertx.executeBlocking((new Random().nextBoolean() ? execute200Request : execute400Request), false)
+        .onComplete(onSuccess(v -> {
         latch.countDown();
-      });
+      }));
     }
     awaitLatch(latch);
   }
@@ -2570,11 +2566,9 @@ public class RouterTest extends WebTestBase {
         } catch (Exception e) {
           future.fail(e);
         }
-      }, asyncResult -> {
-        assertFalse(asyncResult.failed());
-        assertNull(asyncResult.cause());
+      }).onComplete(onSuccess(v -> {
         latch.countDown();
-      });
+      }));
     }
     awaitLatch(latch);
   }
@@ -2622,7 +2616,6 @@ public class RouterTest extends WebTestBase {
         vertx.executeBlocking(future -> {
           event.next();
           future.complete();
-        }, asyncResult -> {
         });
       }
     });
@@ -2652,11 +2645,9 @@ public class RouterTest extends WebTestBase {
         when(response.ended()).thenReturn(true);
         router.handle(request);
         future.complete();
-      }, false, asyncResult -> {
-        assertFalse(asyncResult.failed());
-        assertNull(asyncResult.cause());
+      }, false).onComplete(onSuccess(v -> {
         latch.countDown();
-      });
+      }));
     }
     awaitLatch(latch);
   }

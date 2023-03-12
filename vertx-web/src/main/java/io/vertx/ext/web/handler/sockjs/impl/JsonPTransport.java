@@ -196,7 +196,7 @@ class JsonPTransport extends BaseTransport {
 
       //End the response and close the HTTP connection
 
-      rc.response().write(sb, handler);
+      rc.response().write(sb).onComplete( handler);
       close();
     }
 

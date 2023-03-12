@@ -463,7 +463,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
     assertWaitUntil(() -> {
       CompletableFuture<Session> cf = new CompletableFuture<>();
-      store.get(sessionId.get(), get -> {
+      store.get(sessionId.get()).onComplete(get -> {
         if (get.succeeded()) {
           cf.complete(get.result());
         } else {

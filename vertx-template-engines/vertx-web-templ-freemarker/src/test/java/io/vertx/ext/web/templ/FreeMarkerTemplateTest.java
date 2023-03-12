@@ -160,7 +160,7 @@ public class FreeMarkerTemplateTest {
   public void testNoSuchTemplate(TestContext should) {
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
-    engine.render(new JsonObject(), "not-found", should.asyncAssertFailure());
+    engine.render(new JsonObject(), "not-found").onComplete(should.asyncAssertFailure());
   }
 
   @Test

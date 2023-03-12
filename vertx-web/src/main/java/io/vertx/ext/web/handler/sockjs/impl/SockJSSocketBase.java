@@ -97,13 +97,11 @@ public abstract class SockJSSocketBase implements SockJSSocket {
 
   @Override
   public Future<Void> end() {
-    Promise<Void> promise = ((VertxInternal) vertx).promise();
     if (registration != null) {
-      registration.unregister(promise);
+      return registration.unregister();
     } else {
-      promise.complete();
+      return ((VertxInternal) vertx).getOrCreateContext().succeededFuture();
     }
-    return promise.future();
   }
 
   @Override

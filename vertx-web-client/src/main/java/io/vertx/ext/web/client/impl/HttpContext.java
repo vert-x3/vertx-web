@@ -549,7 +549,7 @@ public class HttpContext<T> {
   }
 
   private void handleSendRequest() {
-    clientRequest.response(ar -> {
+    clientRequest.response().onComplete(ar -> {
       if (ar.succeeded()) {
         receiveResponse(ar.result().pause());
       } else {

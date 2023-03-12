@@ -280,7 +280,7 @@ public class RouterBuilderSecurityWithFactoryTest extends BaseRouterBuilderTest 
 
   @Test
   public void mountOauth2WithScopes(Vertx vertx, VertxTestContext testContext) {
-    RouterBuilder.create(vertx, SECURITY_TESTS, testContext.succeeding(routerBuilder -> {
+    RouterBuilder.create(vertx, SECURITY_TESTS).onComplete(testContext.succeeding(routerBuilder -> {
         routerBuilder.setOptions(FACTORY_OPTIONS);
 
         routerBuilder.operation("listPetsOauth2").handler(routingContext -> routingContext
@@ -364,7 +364,7 @@ public class RouterBuilderSecurityWithFactoryTest extends BaseRouterBuilderTest 
 
   @Test
   public void requireSecurityHandler(Vertx vertx, VertxTestContext testContext) {
-    RouterBuilder.create(vertx, "src/test/resources/specs/router_builder_test.yaml",
+    RouterBuilder.create(vertx, "src/test/resources/specs/router_builder_test.yaml").onComplete(
             testContext.succeeding(routerBuilder -> {
                 routerBuilder.setOptions(FACTORY_OPTIONS);
 
@@ -402,7 +402,7 @@ public class RouterBuilderSecurityWithFactoryTest extends BaseRouterBuilderTest 
 
   @Test
   public void notRequireSecurityHandler(Vertx vertx, VertxTestContext testContext) {
-    RouterBuilder.create(vertx, "src/test/resources/specs/router_builder_test.yaml",
+    RouterBuilder.create(vertx, "src/test/resources/specs/router_builder_test.yaml").onComplete(
             routerBuilderAsyncResult -> {
                 RouterBuilder routerBuilder = routerBuilderAsyncResult.result();
 

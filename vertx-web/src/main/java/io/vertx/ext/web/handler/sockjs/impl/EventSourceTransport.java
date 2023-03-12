@@ -33,6 +33,7 @@
 package io.vertx.ext.web.handler.sockjs.impl;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -106,7 +107,10 @@ class EventSourceTransport extends BaseTransport {
         body +
         "\r\n\r\n";
       Buffer buff = buffer(sb);
-      rc.response().write(buff, handler);
+      Future<Void> fut = rc.response().write(buff);
+      if (handler != null) {
+        fut.onComplete(handler);
+      }
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {
         if (LOG.isTraceEnabled()) LOG.trace("More than maxBytes sent so closing connection");

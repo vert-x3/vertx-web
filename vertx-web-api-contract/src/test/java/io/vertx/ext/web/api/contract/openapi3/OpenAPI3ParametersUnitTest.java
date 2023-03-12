@@ -2545,7 +2545,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     while (true) {
       try {
         CountDownLatch latch = new CountDownLatch(1);
-        server.requestHandler(router).listen(onSuccess(res -> latch.countDown()));
+        server.requestHandler(router).listen().onComplete(onSuccess(res -> latch.countDown()));
         awaitLatch(latch);
         return;
       } catch (AssertionError e) { }
@@ -2555,7 +2555,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   private void stopServer() throws Exception {
     if (server != null) {
       CountDownLatch latch = new CountDownLatch(1);
-      server.close(onSuccess(v -> latch.countDown()));
+      server.close().onComplete(onSuccess(v -> latch.countDown()));
       awaitLatch(latch);
     }
   }

@@ -79,7 +79,7 @@ public abstract class BaseRouterBuilderTest {
                                                    Consumer<RouterBuilder> configurator, Map.Entry<Integer,
     Handler<RoutingContext>>... additionalErrorHandlers) {
     Promise<Void> f = Promise.promise();
-    RouterBuilder.create(vertx, specUri, testContext.succeeding(rf -> {
+    RouterBuilder.create(vertx, specUri).onComplete(testContext.succeeding(rf -> {
         try {
             configurator.accept(rf);
             startServer(vertx, rf, additionalErrorHandlers).

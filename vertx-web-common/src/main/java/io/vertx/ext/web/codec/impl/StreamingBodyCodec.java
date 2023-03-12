@@ -79,7 +79,7 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
 
           @Override
           public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
-            stream.write(data, handler);
+            stream.write(data).onComplete(handler);
           }
 
           @Override
@@ -92,7 +92,7 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
           @Override
           public void end(Handler<AsyncResult<Void>> handler) {
             if (close) {
-              stream.end(ar -> {
+              stream.end().onComplete(ar -> {
                 if (ar.succeeded()) {
                   promise.tryComplete();
                 } else {

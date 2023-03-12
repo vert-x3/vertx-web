@@ -63,7 +63,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     startSchemaServer();
 
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.create(this.vertx, OAS_PATH, openAPI3RouterFactoryAsyncResult -> {
+    OpenAPI3RouterFactory.create(this.vertx, OAS_PATH).onComplete(openAPI3RouterFactoryAsyncResult -> {
       assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
       assertNull(openAPI3RouterFactoryAsyncResult.cause());
       routerFactory = openAPI3RouterFactoryAsyncResult.result();
@@ -95,7 +95,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     router = routerFactory.getRouter();
     server = this.vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
     CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router).listen(onSuccess(res -> latch.countDown()));
+    server.requestHandler(router).listen().onComplete(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
   }
 
@@ -103,7 +103,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     if (server != null) {
       CountDownLatch latch = new CountDownLatch(1);
       try {
-        server.close((asyncResult) -> latch.countDown());
+        server.close().onComplete(v -> latch.countDown());
       } catch (IllegalStateException e) { // Server is already open
         latch.countDown();
       }
@@ -116,7 +116,8 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     r.route().handler(StaticHandler.create("./src/test/resources/swaggers/schemas"));
     CountDownLatch latch = new CountDownLatch(1);
     schemaServer = vertx.createHttpServer(new HttpServerOptions().setPort(8081))
-      .requestHandler(r).listen(onSuccess(res -> latch.countDown()));
+      .requestHandler(r);
+    schemaServer.listen().onComplete(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
   }
 
@@ -124,7 +125,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     if (schemaServer != null) {
       CountDownLatch latch = new CountDownLatch(1);
       try {
-        schemaServer.close((asyncResult) -> latch.countDown());
+        schemaServer.close().onComplete((asyncResult) -> latch.countDown());
       } catch (IllegalStateException e) { // Server is already open
         latch.countDown();
       }

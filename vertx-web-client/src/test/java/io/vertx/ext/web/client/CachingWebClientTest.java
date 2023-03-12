@@ -358,13 +358,13 @@ public class CachingWebClientTest {
       req.response().headers().set("Expires", expires);
     });
 
-    defaultClient.get("localhost", "/").send(context.asyncAssertSuccess(resp -> {
+    defaultClient.get("localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
       body1.set(resp.bodyAsString());
       req1.complete();
     }));
     req1.await();
 
-    defaultClient.get("localhost", "/").send(context.asyncAssertSuccess(resp -> {
+    defaultClient.get("localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
       body2.set(resp.bodyAsString());
       req2.complete();
     }));
@@ -374,7 +374,7 @@ public class CachingWebClientTest {
     vertx.setTimer(2000, l -> waiter.complete());
     waiter.await();
 
-    defaultClient.get("localhost", "/").send(context.asyncAssertSuccess(resp -> {
+    defaultClient.get("localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
       body3.set(resp.bodyAsString());
       req3.complete();
     }));
@@ -452,7 +452,7 @@ public class CachingWebClientTest {
           break;
       }
     });
-    server.listen(context.asyncAssertSuccess(s -> listenLatch.complete()));
+    server.listen().onComplete(context.asyncAssertSuccess(s -> listenLatch.complete()));
     listenLatch.awaitSuccess(15_000);
 
     String expected = executeGetBlocking(context, "/cached");
@@ -481,7 +481,8 @@ public class CachingWebClientTest {
         resp
           .setStatusCode(200)
           .putHeader("etag", "etag_value")
-          .end(UUID.randomUUID().toString(), v -> primer.complete());
+          .end(UUID.randomUUID().toString())
+          .onComplete(v -> primer.complete());
       }
     });
 
@@ -584,7 +585,7 @@ public class CachingWebClientTest {
     vertx.setTimer(3000L, l -> waiter2.complete());
     waiter2.await();
 
-    defaultClient.get("localhost", "/").send(context.asyncAssertSuccess(resp -> {
+    defaultClient.get("localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
       response.set(resp);
       request.complete();
     }));

@@ -406,7 +406,7 @@ public class WebClientTest extends WebClientTestBase {
             endHandler.set(handler);
             return this;
           }
-        }, onFailure(err -> {
+        }).onComplete(onFailure(err -> {
           // Should be a connection reset by peer or closed
 //          assertNotNull(endHandler.get());
 //          assertNotNull(dataHandler.get());
@@ -465,7 +465,7 @@ public class WebClientTest extends WebClientTestBase {
           public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
             return this;
           }
-        }, onFailure(err -> {
+        }).onComplete(onFailure(err -> {
           if (err instanceof StreamResetException && cause == err.getCause()) {
             complete();
           } else {
@@ -519,7 +519,7 @@ public class WebClientTest extends WebClientTestBase {
       public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
         return this;
       }
-    }, onFailure(err -> {
+    }).onComplete(onFailure(err -> {
       assertEquals(StreamResetException.class, err.getClass());
       assertSame(cause, err.getCause());
       complete();
@@ -941,8 +941,8 @@ public class WebClientTest extends WebClientTestBase {
       public AsyncFile drainHandler(Handler<Void> handler) { throw new UnsupportedOperationException(); }
       public AsyncFile fetch(long l) { throw new UnsupportedOperationException(); }
       public Future<Void> end() { return close(); }
-      public void end(Handler<AsyncResult<Void>> handler) { close(handler); }
-      public Future<Void> close() { throw new UnsupportedOperationException(); }
+      public void end(Handler<AsyncResult<Void>> handler) { throw new UnsupportedOperationException(); }
+      public void close(Handler<AsyncResult<Void>> handler) { throw new UnsupportedOperationException(); }
       public void write(Buffer buffer, long l, Handler<AsyncResult<Void>> handler) { throw new UnsupportedOperationException(); }
       public AsyncFile read(Buffer buffer, int i, long l, int i1, Handler<AsyncResult<Buffer>> handler) { throw new UnsupportedOperationException(); }
       public Future<Void> flush() { throw new UnsupportedOperationException(); }
@@ -979,10 +979,12 @@ public class WebClientTest extends WebClientTestBase {
           handler.handle(Future.succeededFuture());
         }
       }
-      public void close(Handler<AsyncResult<Void>> handler) {
-        vertx.setTimer(500, id -> {
-          closed.set(true);
-          handler.handle(Future.succeededFuture());
+      public Future<Void> close() {
+        return Future.future(p -> {
+          vertx.setTimer(500, id -> {
+            closed.set(true);
+            p.complete();
+          });
         });
       }
     };

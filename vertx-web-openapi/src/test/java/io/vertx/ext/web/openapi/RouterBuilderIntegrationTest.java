@@ -85,7 +85,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
   @Test
   public void loadSpecFromFile(Vertx vertx, VertxTestContext testContext) {
-    RouterBuilder.create(vertx, "src/test/resources/specs/router_builder_test.yaml",
+    RouterBuilder.create(vertx, "src/test/resources/specs/router_builder_test.yaml").onComplete(
             routerBuilderAsyncResult -> {
                 assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
                 assertThat(routerBuilderAsyncResult.result()).isNotNull();
@@ -95,7 +95,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
   @Test
   public void loadPetStoreFromFile(Vertx vertx, VertxTestContext testContext) {
-    RouterBuilder.create(vertx, "src/test/resources/specs/petstore.yaml",
+    RouterBuilder.create(vertx, "src/test/resources/specs/petstore.yaml").onComplete(
             routerBuilderAsyncResult -> {
                 assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
                 assertThat(routerBuilderAsyncResult.result()).isNotNull();
@@ -105,7 +105,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
   @Test
   public void failLoadSpecFromFile(Vertx vertx, VertxTestContext testContext) {
-    RouterBuilder.create(vertx, "src/test/resources/specs/aaa.yaml",
+    RouterBuilder.create(vertx, "src/test/resources/specs/aaa.yaml").onComplete(
             routerBuilderAsyncResult -> {
                 assertThat(routerBuilderAsyncResult.failed()).isTrue();
                 assertThat(routerBuilderAsyncResult.cause().getClass())
@@ -118,7 +118,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
   @Test
   public void loadWrongSpecFromFile(Vertx vertx, VertxTestContext testContext) {
-    RouterBuilder.create(vertx, "src/test/resources/specs/bad_spec.yaml",
+    RouterBuilder.create(vertx, "src/test/resources/specs/bad_spec.yaml").onComplete(
             routerBuilderAsyncResult -> {
                 assertThat(routerBuilderAsyncResult.failed()).isTrue();
                 assertThat(routerBuilderAsyncResult.cause().getClass())
@@ -132,7 +132,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
   @Test
   public void loadSpecFromURL(Vertx vertx, VertxTestContext testContext) {
     startFileServer(vertx, testContext).onComplete(h -> {
-      RouterBuilder.create(vertx, "http://localhost:9001/specs/router_builder_test.yaml",
+      RouterBuilder.create(vertx, "http://localhost:9001/specs/router_builder_test.yaml").onComplete(
               routerBuilderAsyncResult -> {
                   testContext.verify(() -> {
                       assertThat(routerBuilderAsyncResult.cause())
@@ -149,7 +149,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
   @Test
   public void bodyHandlerNull(Vertx vertx, VertxTestContext testContext) {
-    RouterBuilder.create(vertx, "src/test/resources/specs/router_builder_test.yaml",
+    RouterBuilder.create(vertx, "src/test/resources/specs/router_builder_test.yaml").onComplete(
             routerBuilderAsyncResult -> {
                 assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
 
@@ -176,7 +176,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
               vertx,
               "http://localhost:9001/specs/router_builder_test.yaml",
               new OpenAPILoaderOptions()
-                      .putAuthHeader("Authorization", "Bearer xx.yy.zz"),
+                      .putAuthHeader("Authorization", "Bearer xx.yy.zz")).onComplete(
               routerBuilderAsyncResult -> {
                   assertThat(routerBuilderAsyncResult.succeeded()).isTrue();
                   assertThat(routerBuilderAsyncResult.result()).isNotNull();
@@ -188,7 +188,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
   @Test
   public void failLoadSpecFromURL(Vertx vertx, VertxTestContext testContext) {
     startFileServer(vertx, testContext).onComplete(h -> {
-      RouterBuilder.create(vertx, "http://localhost:9001/specs/does_not_exist.yaml",
+      RouterBuilder.create(vertx, "http://localhost:9001/specs/does_not_exist.yaml").onComplete(
               routerBuilderAsyncResult -> {
                   assertThat(routerBuilderAsyncResult.failed()).isTrue();
                   assertThat(routerBuilderAsyncResult.cause().getClass()).isEqualTo(RouterBuilderException.class);
@@ -565,7 +565,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
    */
   @Test
   public void customBodyHandlerTest(Vertx vertx, VertxTestContext testContext) {
-    RouterBuilder.create(vertx, "src/test/resources/specs/upload_test.yaml", testContext.succeeding(routerBuilder -> {
+    RouterBuilder.create(vertx, "src/test/resources/specs/upload_test.yaml").onComplete(testContext.succeeding(routerBuilder -> {
         routerBuilder.setOptions(new RouterBuilderOptions().setRequireSecurityHandlers(false));
 
         BodyHandler bodyHandler = BodyHandler.create("my-uploads");
@@ -624,7 +624,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
   @Test
   public void pathResolverShouldNotCreateRegex(Vertx vertx, VertxTestContext testContext) {
-    RouterBuilder.create(vertx, "src/test/resources/specs/produces_consumes_test.yaml",
+    RouterBuilder.create(vertx, "src/test/resources/specs/produces_consumes_test.yaml").onComplete(
             testContext.succeeding(routerBuilder -> {
                 routerBuilder.setOptions(new RouterBuilderOptions().setMountNotImplementedHandler(false));
 
@@ -1601,7 +1601,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
   @Test
   public void testIncorrectOrderOfHandlers(Vertx vertx, VertxTestContext testContext) {
 
-    RouterBuilder.create(vertx, VALIDATION_SPEC, testContext.succeeding(routerBuilder -> {
+    RouterBuilder.create(vertx, VALIDATION_SPEC).onComplete(testContext.succeeding(routerBuilder -> {
         routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(40000000).setDeleteUploadedFilesOnEnd(true).setHandleFileUploads(true));
         routerBuilder.rootHandler(LoggerHandler.create(true, LoggerHandler.DEFAULT_FORMAT));
         routerBuilder.rootHandler(TimeoutHandler.create(180000));

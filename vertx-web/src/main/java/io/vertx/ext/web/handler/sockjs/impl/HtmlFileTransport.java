@@ -154,7 +154,7 @@ class HtmlFileTransport extends BaseTransport {
         body +
         "\");\n</script>\r\n";
       Buffer buff = buffer(sb);
-      rc.response().write(buff, handler);
+      rc.response().write(buff).onComplete(handler);
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {
         if (LOG.isTraceEnabled()) LOG.trace("More than maxBytes sent so closing connection");

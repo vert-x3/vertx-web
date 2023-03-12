@@ -33,6 +33,7 @@
 package io.vertx.ext.web.handler.sockjs.impl;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -208,7 +209,10 @@ class XhrTransport extends BaseTransport {
     @Override
     public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
       super.beforeSend();
-      rc.response().write(body + "\n", handler);
+      Future<Void> fut = rc.response().write(body + "\n");
+      if (handler != null) {
+        fut.onComplete(handler);
+      }
       close();
     }
 
@@ -248,7 +252,7 @@ class XhrTransport extends BaseTransport {
       }
       String sbody = body + "\n";
       Buffer buff = buffer(sbody);
-      rc.response().write(buff, handler);
+      rc.response().write(buff).onComplete(handler);
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {
         close();

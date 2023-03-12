@@ -384,7 +384,7 @@ public class SockJSHandlerTest extends WebTestBase {
         Session oldSession = sock.webSession();
         Session session = handler.newSession(sock.routingContext());
         User user = User.create(principal);
-        handler.setUser(sock.routingContext(), user, (result) -> {
+        handler.setUser(sock.routingContext(), user).onComplete((result) -> {
           assertFalse(result.failed());
           assertNotSame(session, oldSession);
           assertEquals(session, sock.webSession());
