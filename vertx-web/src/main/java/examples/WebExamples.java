@@ -732,10 +732,8 @@ public class WebExamples {
   public void example32() {
 
     // a clustered Vert.x
-    Vertx.clusteredVertx(new VertxOptions(), res -> {
-
-      Vertx vertx = res.result();
-
+    Vertx.clusteredVertx(new VertxOptions())
+      .onSuccess(vertx -> {
       // Create a clustered session store using defaults
       SessionStore store1 = ClusteredSessionStore.create(vertx);
 
@@ -909,7 +907,8 @@ public class WebExamples {
     // Will only accept GET requests from origin "vertx.io"
     router.route()
       .handler(
-        CorsHandler.create("vertx\\.io")
+        CorsHandler.create()
+          .addRelativeOrigin("vertx\\.io")
           .allowedMethod(HttpMethod.GET));
 
     router.route().handler(ctx -> {

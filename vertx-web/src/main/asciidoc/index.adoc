@@ -878,9 +878,9 @@ set sensible limits on {@link io.vertx.ext.web.handler.BodyHandler#setBodyLimit}
 
 === Getting the request body
 
-If you know the request body is JSON, then you can use {@link io.vertx.ext.web.RoutingContext#getBodyAsJson},
-if you know it's a string you can use {@link io.vertx.ext.web.RoutingContext#getBodyAsString}, or to
-retrieve it as a buffer use {@link io.vertx.ext.web.RoutingContext#getBody()}.
+If you know the request body is JSON, then you can use {@link io.vertx.ext.web.RoutingContext#body()} and use the right getter (e.g.: `.asJsonObject()`).
+if you know it's a string you can use `.asString()`, or to
+retrieve it as a buffer use `.buffer()`.
 
 === Limiting body size
 
@@ -923,12 +923,12 @@ Vert.x-Web has out of the box cookies support.
 
 === Manipulating cookies
 
-You use {@link io.vertx.ext.web.RoutingContext#getCookie(String)} to retrieve
-a cookie by name, or use {@link io.vertx.ext.web.RoutingContext#cookieMap()} to retrieve the entire set.
+You use {@link io.vertx.core.http.HttpServerRequest#cookies(String)} to retrieve
+a cookie by name, or use {@link io.vertx.core.http.HttpServerRequest#cookies()} to retrieve the entire set.
 
-To remove a cookie, use {@link io.vertx.ext.web.RoutingContext#removeCookie(String)}.
+To remove a cookie, use {@link io.vertx.core.http.HttpServerResponse#removeCookie(String)}.
 
-To add a cookie use {@link io.vertx.ext.web.RoutingContext#addCookie(Cookie)}.
+To add a cookie use {@link io.vertx.core.http.HttpServerResponse#addCookie(Cookie)}.
 
 The set of cookies will be written back in the response automatically when the response headers are written so the
 browser can store them.
@@ -1439,7 +1439,7 @@ This can be configured with {@link io.vertx.ext.web.handler.StaticHandler#setInd
 === Changing the web root
 
 By default static resources will be served from the directory `webroot`. To configure this use
-{@link io.vertx.ext.web.handler.StaticHandler#setWebRoot(String)}.
+{@link io.vertx.ext.web.handler.StaticHandler#create(io.vertx.ext.web.handler.FileSystemAccess, String)}.
 
 === Serving hidden files
 
