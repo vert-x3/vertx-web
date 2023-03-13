@@ -720,13 +720,6 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     testRequestWithJSON(HttpMethod.POST, "/jsonBodyWithDate", obj.toBuffer(), 200, "OK", obj.toBuffer());
   }
 
-
-  /**
-   * Test: query_optional_form_explode_object
-   * Expected parameters sent:
-   * color: R=100&G=200&B=150&alpha=50
-   * Expected response: {"color":{"R":"100","G":"200","B":"150","alpha":"50"}}
-   */
   @Test
   public void testQueryOptionalFormExplodeObject() throws Exception {
     Operation op = testSpec.getPaths().get("/query/form/explode/object").getGet();
@@ -751,17 +744,11 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   }
 
-  /**
-   * Test: query_optional_form_explode_object
-   * Expected parameters sent:
-   * color: R=100&G=200&B=150&alpha=50
-   * Expected response: Validation failure
-   */
   @Test
-  public void testQueryOptionalFormExplodeObjectFailure() throws Exception {
+  public void testQueryRequiredParamFormRequiredExplodeObjectFailure() throws Exception {
     Operation op = testSpec.getPaths().get("/query/form/explode/object").getGet();
     OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
-    loadHandlers("/query/form/explode/object", HttpMethod.GET, true, validationHandler, routingContext -> {
+    loadHandlers("/query/form/explode/object", HttpMethod.GET, false, validationHandler, routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
 
       RequestParameter colorQueryParam = params.queryParameter("color");
@@ -775,10 +762,51 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
         .end(((JsonObject)colorQueryParam.toJson()).encode());
     });
 
-    String requestURI = "/query/form/explode/object?R=100&G=200&B=150&alpha=aaa";
+    String requestURI = "/query/form/explode/object?G=200&B=150&alpha=50";
 
-    testRequest(HttpMethod.GET, requestURI, 400, errorMessage(ValidationException.ErrorType.NO_MATCH));
+    testRequest(HttpMethod.GET, requestURI, 400, errorMessage(ValidationException.ErrorType.NOT_FOUND));
 
   }
 
+  @Test
+  public void testQueryRequiredParamFormOptionalExplodeObjectFailure() throws Exception {
+    Operation op = testSpec.getPaths().get("/query/form/optional/explode/object").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
+    loadHandlers("/query/form/optional/explode/object", HttpMethod.GET, false, validationHandler, routingContext -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+
+      RequestParameter colorQueryParam = params.queryParameter("color");
+      assertNotNull(colorQueryParam);
+      assertTrue(colorQueryParam.isObject());
+
+      routingContext.response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("content-type", "application/json")
+        .end(((JsonObject)colorQueryParam.toJson()).encode());
+    });
+
+    String requestURI = "/query/form/optional/explode/object?G=200&B=150&alpha=50";
+
+    testRequest(HttpMethod.GET, requestURI, 400, errorMessage(ValidationException.ErrorType.NOT_FOUND));
+  }
+
+  @Test
+  public void testNoParamFromOptionalExplodeObject() throws Exception {
+    Operation op = testSpec.getPaths().get("/query/form/optional/explode/object").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
+    loadHandlers("/query/form/optional/explode/object", HttpMethod.GET, false, validationHandler, routingContext -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+
+      routingContext.response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("content-type", "application/json")
+        .end("OK");
+    });
+
+    String requestURI = "/query/form/optional/explode/object";
+
+    testRequest(HttpMethod.GET, requestURI, 200, "OK");
+  }
 }
