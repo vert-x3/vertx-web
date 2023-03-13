@@ -207,13 +207,11 @@ class XhrTransport extends BaseTransport {
     }
 
     @Override
-    public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
+    public Future<Void> sendFrame(String body) {
       super.beforeSend();
       Future<Void> fut = rc.response().write(body + "\n");
-      if (handler != null) {
-        fut.onComplete(handler);
-      }
       close();
+      return fut;
     }
 
     @Override
@@ -244,7 +242,7 @@ class XhrTransport extends BaseTransport {
     }
 
     @Override
-    public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
+    public Future<Void> sendFrame(String body) {
       boolean hr = headersWritten;
       super.beforeSend();
       if (!hr) {
@@ -252,11 +250,12 @@ class XhrTransport extends BaseTransport {
       }
       String sbody = body + "\n";
       Buffer buff = buffer(sbody);
-      rc.response().write(buff).onComplete(handler);
+      Future<Void> fut = rc.response().write(buff);
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {
         close();
       }
+      return fut;
     }
 
     @Override

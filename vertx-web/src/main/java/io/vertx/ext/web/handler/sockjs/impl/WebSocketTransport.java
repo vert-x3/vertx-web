@@ -139,17 +139,12 @@ class WebSocketTransport extends BaseTransport {
     }
 
     @Override
-    public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
+    public Future<Void> sendFrame(String body) {
       if (LOG.isTraceEnabled()) LOG.trace("WS, sending frame");
       if (!closed) {
-        Future<Void> fut = ws.writeTextMessage(body);
-        if (handler != null) {
-          fut.onComplete(handler);
-        }
+        return ws.writeTextMessage(body);
       } else {
-        if (handler != null) {
-          handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION));
-        }
+        return Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION);
       }
     }
 

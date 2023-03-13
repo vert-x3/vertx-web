@@ -108,7 +108,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
     heartbeatID = vertx.setPeriodic(options.getHeartbeatInterval(), tid -> {
       if (listener != null) {
-        listener.sendFrame("h", null);
+        listener.sendFrame("h");
       }
     });
   }
@@ -327,9 +327,9 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
       }
       if (json != null) {
         if (!acks.isEmpty()) {
-          listener.sendFrame("a" + json, ar -> acks.forEach(a -> a.handle(ar)));
+          listener.sendFrame("a" + json).onComplete(ar -> acks.forEach(a -> a.handle(ar)));
         } else {
-          listener.sendFrame("a" + json, null);
+          listener.sendFrame("a" + json);
         }
       }
       if (drainHandler != null) {
@@ -465,11 +465,11 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   private void writeClosed(TransportListener lst, int code, String msg) {
     String sb = "c[" + code + ",\"" + msg + "\"]";
-    lst.sendFrame(sb, null);
+    lst.sendFrame(sb);
   }
 
   private void writeOpen(TransportListener lst) {
-    lst.sendFrame("o", null);
+    lst.sendFrame("o");
     openWritten = true;
   }
 }

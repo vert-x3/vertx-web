@@ -91,7 +91,7 @@ class EventSourceTransport extends BaseTransport {
     }
 
     @Override
-    public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
+    public Future<Void> sendFrame(String body) {
       if (LOG.isTraceEnabled()) LOG.trace("EventSource, sending frame");
       if (!headersWritten) {
         // event stream data is always UTF8
@@ -108,15 +108,13 @@ class EventSourceTransport extends BaseTransport {
         "\r\n\r\n";
       Buffer buff = buffer(sb);
       Future<Void> fut = rc.response().write(buff);
-      if (handler != null) {
-        fut.onComplete(handler);
-      }
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {
         if (LOG.isTraceEnabled()) LOG.trace("More than maxBytes sent so closing connection");
         // Reset and close the connection
         close();
       }
+      return fut;
     }
 
     @Override

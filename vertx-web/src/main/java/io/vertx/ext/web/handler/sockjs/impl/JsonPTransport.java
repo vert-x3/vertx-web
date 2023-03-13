@@ -33,6 +33,7 @@
 package io.vertx.ext.web.handler.sockjs.impl;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
@@ -173,7 +174,7 @@ class JsonPTransport extends BaseTransport {
     }
 
     @Override
-    public void sendFrame(String body, Handler<AsyncResult<Void>> handler) {
+    public Future<Void> sendFrame(String body) {
       if (LOG.isTraceEnabled()) LOG.trace("JsonP, sending frame");
 
       if (!headersWritten) {
@@ -196,8 +197,9 @@ class JsonPTransport extends BaseTransport {
 
       //End the response and close the HTTP connection
 
-      rc.response().write(sb).onComplete( handler);
+      Future<Void> fut = rc.response().write(sb);
       close();
+      return fut;
     }
 
     @Override
