@@ -5,8 +5,10 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Route;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.ChainAuthHandler;
+import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
 import io.vertx.ext.web.handler.impl.ScopedAuthentication;
 import io.vertx.openapi.contract.OpenAPIContract;
@@ -28,13 +30,22 @@ class AuthenticationHandlers {
       .authenticate(ctx -> Future.succeededFuture(User.create(EMPTY_JSON)));
 
   private final Map<String, List<AuthenticationHandler>> securityHandlers;
+  private final Map<String, OAuth2AuthHandler> callbackHandlers;
 
   AuthenticationHandlers() {
     this.securityHandlers = new HashMap<>();
+    this.callbackHandlers = new HashMap<>();
   }
 
-  protected void addRequirement(String name, AuthenticationHandler handler) {
-    securityHandlers.computeIfAbsent(name, k -> new ArrayList<>()).add(handler);
+  protected void addRequirement(String name, AuthenticationHandler handler, String callback) {
+    securityHandlers
+      .computeIfAbsent(name, k -> new ArrayList<>())
+      .add(handler);
+
+    if (callback != null) {
+      // TODO: check if callback is already present
+      callbackHandlers.put(callback, (OAuth2AuthHandler) handler);
+    }
   }
 
   /**
@@ -51,8 +62,6 @@ class AuthenticationHandlers {
     AuthenticationHandler authn = or(route, securityRequirements, failOnNotFound);
     if (authn != null) {
       route.handler(authn);
-    } else {
-      assert failOnNotFound;
     }
   }
 
@@ -118,10 +127,10 @@ class AuthenticationHandlers {
       return null;
     }
 
-    boolean hasEmptyAuth = false;
+    boolean emptyAuth = false;
     for (int i = 0; i < securityRequirements.size(); i++) {
       if (EMPTY_JSON.equals(securityRequirements.getValue(i))) {
-        hasEmptyAuth = true;
+        emptyAuth = true;
         securityRequirements.remove(i);
         break;
       }
@@ -133,7 +142,7 @@ class AuthenticationHandlers {
       case 0:
         return SUCCESS_HANDLER;
       case 1:
-        if (!hasEmptyAuth) {
+        if (!emptyAuth) {
           // If one security requirements, we don't need a ChainAuthHandler
           return and(route, securityRequirements.getJsonObject(0), failOnNotFound);
         }
@@ -146,11 +155,16 @@ class AuthenticationHandlers {
           .forEach(authHandler::add);
     }
 
-    if (hasEmptyAuth) {
+    if (emptyAuth) {
       authHandler.add(SUCCESS_HANDLER);
     }
 
     return authHandler;
   }
 
+  public void applyCallbackHandlers(Router router) {
+    callbackHandlers.forEach((path, handler) -> {
+      handler.setupCallback(router.get(path));
+    });
+  }
 }

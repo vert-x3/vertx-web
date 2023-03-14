@@ -14,9 +14,9 @@ package io.vertx.router.test.e2e;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.web.handler.APIKeyHandler;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.router.ResourceHelper;
@@ -24,7 +24,6 @@ import io.vertx.router.test.base.RouterBuilderTestBase;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -37,20 +36,13 @@ class RouterBuilderSecurityOptionalTest extends RouterBuilderTestBase {
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
   void testBuilderWithAuthn(VertxTestContext testContext) {
+
+    AuthenticationProvider authProvider = cred -> Future.succeededFuture(User.fromName(cred.toString()));
+
     createServer(pathDereferencedContract, rb -> {
       rb
-        .securityHandler("api_key")
-        .bindBlocking(config -> SimpleAuthenticationHandler.create()
-          .authenticate(ctx -> {
-            if (ctx.request().getHeader("api_key") == null) {
-              return Future.failedFuture("No api_key header");
-            }
-            ctx
-              .<JsonArray>data()
-              .computeIfAbsent("security", k -> new JsonArray())
-              .add("api_key");
-            return Future.succeededFuture(User.create(new JsonObject()));
-          }));
+        .security("api_key")
+        .apiKeyHandler(APIKeyHandler.create(authProvider));
 
       rb.getRoute("pets")
         .addHandler(ctx -> ctx.json(ctx.<JsonArray>get("security")));
@@ -68,7 +60,6 @@ class RouterBuilderSecurityOptionalTest extends RouterBuilderTestBase {
         return createRequest(GET, "/v1/pets").putHeader("api_key", "123456789").send()
           .onSuccess(response -> testContext.verify(() -> {
             assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.bodyAsJsonArray()).isEqualTo(new JsonArray().add("api_key"));
           }));
       })
       .onSuccess(v -> testContext.completeNow())

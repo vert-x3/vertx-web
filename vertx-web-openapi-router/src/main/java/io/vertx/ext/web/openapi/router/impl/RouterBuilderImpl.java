@@ -15,6 +15,8 @@ package io.vertx.ext.web.openapi.router.impl;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -34,6 +36,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class RouterBuilderImpl implements RouterBuilder {
+
+  private final static Logger LOG = LoggerFactory.getLogger(RouterBuilderImpl.class);
+
   private static final String PATH_PARAM_PLACEHOLDER_REGEX = "\\{(.*?)}";
 
   // VisibleForTesting
@@ -80,13 +85,13 @@ public class RouterBuilderImpl implements RouterBuilder {
   }
 
   @Override
-  public RouterBuilder securityHandler(String securitySchemeName, AuthenticationHandler authenticationHandler) {
-    securityHandlers.addRequirement(securitySchemeName, authenticationHandler);
+  public RouterBuilder security(String securitySchemeName, AuthenticationHandler authenticationHandler, String callback) {
+    securityHandlers.addRequirement(securitySchemeName, authenticationHandler, callback);
     return this;
   }
 
   @Override
-  public SecurityScheme securityHandler(String securitySchemeName) {
+  public SecurityScheme security(String securitySchemeName) {
     return new SecuritySchemeImpl(this, contract, securitySchemeName);
   }
 
@@ -98,6 +103,9 @@ public class RouterBuilderImpl implements RouterBuilder {
     Route globalRoute = router.route();
     rootHandlers.forEach(globalRoute::handler);
 
+    // add the callback handler
+    securityHandlers.applyCallbackHandlers(router);
+
     for (Path path : contract.getPaths()) {
       for (Operation operation : path.getOperations()) {
         Route route = router.route(operation.getHttpMethod(), toVertxWebPath(path.getName()));
@@ -106,22 +114,25 @@ public class RouterBuilderImpl implements RouterBuilder {
         OpenAPIRoute openAPIRoute = getRoute(operation.getOperationId());
         Objects.requireNonNull(openAPIRoute, "No route found for operation " + operation.getOperationId());
 
-        // Authentication Handler
-        // TODO: should we have a openAPIRoute.doAuthentication() ?
-        securityHandlers.solve(contract, operation, route, true);
+        if (openAPIRoute.getHandlers().size() > 0 || openAPIRoute.getFailureHandlers().size() > 0) {
+          securityHandlers.solve(contract, operation, route, openAPIRoute.doSecurity());
 
-        if (openAPIRoute.doValidation()) {
+          if (openAPIRoute.doValidation()) {
+            InputTrustHandler validationHandler = rc -> extractor.extractValidatableRequest(rc, operation)
+              .compose(validatableRequest -> validator.validate(validatableRequest, operation.getOperationId()))
+              .onSuccess(rp -> {
+                rc.put(KEY_META_DATA_VALIDATED_REQUEST, rp);
+                rc.next();
+              }).onFailure(rc::fail);
+            route.handler(validationHandler);
+          }
 
-          InputTrustHandler validationHandler = rc -> extractor.extractValidatableRequest(rc, operation)
-            .compose(validatableRequest -> validator.validate(validatableRequest, operation.getOperationId()))
-            .onSuccess(rp -> {
-              rc.put(KEY_META_DATA_VALIDATED_REQUEST, rp);
-              rc.next();
-            }).onFailure(rc::fail);
-          route.handler(validationHandler);
+          openAPIRoute.getHandlers().forEach(route::handler);
+          openAPIRoute.getFailureHandlers().forEach(route::failureHandler);
+        } else {
+          // TODO: warn or error?
+          LOG.warn("No handlers found for operation " + operation.getOperationId() + " - skipping route creation");
         }
-        openAPIRoute.getHandlers().forEach(route::handler);
-        openAPIRoute.getFailureHandlers().forEach(route::failureHandler);
       }
     }
     return router;

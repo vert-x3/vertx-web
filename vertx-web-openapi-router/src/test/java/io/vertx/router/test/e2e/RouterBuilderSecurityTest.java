@@ -14,10 +14,17 @@ package io.vertx.router.test.e2e;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.oauth2.OAuth2Auth;
+import io.vertx.ext.auth.oauth2.OAuth2Options;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.APIKeyHandler;
+import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
@@ -38,23 +45,12 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testBuilderMissingAuthn(VertxTestContext testContext) {
-    createServer(pathDereferencedContract, rb -> Future.succeededFuture(rb))
-      .onSuccess(v -> testContext.failNow("Should not be able to create a server without authentication"))
-      .onFailure(err -> {
-        assertThat(err.getMessage()).contains("Missing security handler for: 'api_key'");
-        testContext.completeNow();
-      });
-  }
-
-  @Test
-  @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
   void testBuilderWithAuthn(VertxTestContext testContext) {
     createServer(pathDereferencedContractGlobal, rb -> {
-      rb.securityHandler("api_key")
-        .bindBlocking(config -> APIKeyHandler.create(null).header(config.getString("name")))
-        .securityHandler("global_api_key")
-        .bindBlocking(config -> APIKeyHandler.create(null).header(config.getString("name")));
+      rb.security("api_key")
+        .apiKeyHandler(APIKeyHandler.create(null))
+        .security("global_api_key")
+        .apiKeyHandler(APIKeyHandler.create(null));
       return Future.succeededFuture(rb);
     })
       .onSuccess(v -> testContext.completeNow())
@@ -63,112 +59,140 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
 
   @Test
   public void mountSingle(Vertx vertx, VertxTestContext testContext) {
-    createServer(pathDereferencedContract, rb -> {
-      rb
-        .securityHandler("api_key")
-        .bindBlocking(config -> SimpleAuthenticationHandler.create()
-          .authenticate(ctx -> {
-            ctx
-              .<JsonArray>data()
-              .computeIfAbsent("security", k -> new JsonArray())
-              .add("api_key");
-            return Future.succeededFuture(User.create(new JsonObject()));
-          }))
-        .securityHandler("second_api_key")
-        .bindBlocking(config -> SimpleAuthenticationHandler.create()
-          .authenticate(ctx -> {
-            ctx
-              .<JsonArray>data()
-              .computeIfAbsent("security", k -> new JsonArray())
-              .add("second_api_key");
-            return Future.succeededFuture(User.create(new JsonObject()));
-          }))
-        .securityHandler("third_api_key")
-        .bindBlocking(config -> SimpleAuthenticationHandler.create()
-          .authenticate(ctx -> {
-            ctx
-              .<JsonArray>data()
-              .computeIfAbsent("security", k -> new JsonArray())
-              .add("third_api_key");
-            return Future.succeededFuture(User.create(new JsonObject()));
-          }))
-        .securityHandler("oauth2")
-        .bindBlocking(config -> SimpleAuthenticationHandler.create()
-          .authenticate(ctx -> {
-            ctx
-              .<JsonArray>data()
-              .computeIfAbsent("security", k -> new JsonArray())
-              .add("oauth2");
-            return Future.succeededFuture(User.create(new JsonObject()));
-          }))
-        .securityHandler("sibling_second_api_key")
-        .bindBlocking(config -> SimpleAuthenticationHandler.create()
-          .authenticate(ctx -> {
-            ctx
-              .<JsonArray>data()
-              .computeIfAbsent("security", k -> new JsonArray())
-              .add("sibling_second_api_key");
-            return Future.succeededFuture(User.create(new JsonObject()));
-          }));
 
-      rb
-        .getRoute("listPetsSingleSecurity")
-        .addHandler(ctx -> ctx.json(ctx.<JsonArray>get("security")));
+    AuthenticationProvider authProvider = cred -> Future.succeededFuture(User.fromName(cred.toString()));
 
-      rb
-        .getRoute("listPetsAndSecurity")
-        .addHandler(ctx -> ctx.json(ctx.<JsonArray>get("security")));
+    JsonObject fixture = new JsonObject(
+      "{" +
+        "  \"access_token\": \"4adc339e0\"," +
+        "  \"refresh_token\": \"ec1a59d298\"," +
+        "  \"token_type\": \"bearer\"," +
+        "  \"scope\": \"read write\"," +
+        "  \"expires_in\": 7200" +
+        "}");
 
-      rb
-        .getRoute("listPetsOrSecurity")
-        .addHandler(ctx -> ctx.json(ctx.<JsonArray>get("security")));
+    HttpServer server = vertx.createHttpServer()
+      .requestHandler(req -> {
+        if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
+          req.setExpectMultipart(true).bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
+        } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
+          req.setExpectMultipart(true).bodyHandler(buffer -> req.response().end());
+        } else {
+          req.response().setStatusCode(200).end();
+        }
+      });
 
-      rb
-        .getRoute("listPetsOrAndSecurity")
-        .addHandler(ctx -> ctx.json(ctx.<JsonArray>get("security")));
+    server.listen(10000).onComplete(ready -> {
+      if (ready.failed()) {
+        throw new RuntimeException(ready.cause());
+      }
 
-      rb
-        .getRoute("listPetsOauth2")
-        .addHandler(ctx -> ctx.json(ctx.<JsonArray>get("security")));
+      createServer(pathDereferencedContract, rb -> {
+        rb
+          .security("api_key")
+          .apiKeyHandler(APIKeyHandler.create(authProvider))
+          .security("second_api_key")
+          .apiKeyHandler(APIKeyHandler.create(authProvider))
+          .security("third_api_key")
+          .apiKeyHandler(APIKeyHandler.create(authProvider))
+          .security("sibling_second_api_key")
+          .apiKeyHandler(APIKeyHandler.create(authProvider))
+          .security("oauth2")
+          .oauth2Handler("/callback", config -> {
 
-      return Future.succeededFuture(rb);
-    })
-      .compose(v -> {
-        return createRequest(GET, "/v1/pets_single_security").send()
-          .onSuccess(response -> testContext.verify(() -> {
-            assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.bodyAsJsonArray()).isEqualTo(new JsonArray().add("api_key"));
-          }));
+            OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+              .setClientId("client-id")
+              .setClientSecret("client-secret")
+              .setSite("http://localhost:10000"));
+
+            return
+              // create an oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
+              OAuth2AuthHandler
+                .create(vertx, oauth2, "http://localhost:8080/callback");
+          });
+
+        rb
+          .getRoute("listPetsSingleSecurity")
+          .addHandler(RoutingContext::end);
+
+        rb
+          .getRoute("listPetsAndSecurity")
+          .addHandler(RoutingContext::end);
+
+        rb
+          .getRoute("listPetsOrSecurity")
+          .addHandler(RoutingContext::end);
+
+        rb
+          .getRoute("listPetsOrAndSecurity")
+          .addHandler(RoutingContext::end);
+
+        rb
+          .getRoute("listPetsOauth2")
+          .addHandler(RoutingContext::end);
+
+        return Future.succeededFuture(rb);
       })
-      .compose(v -> {
-        return createRequest(GET, "/v1/pets_and_security").send()
-          .onSuccess(response -> testContext.verify(() -> {
-            assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.bodyAsJsonArray()).isEqualTo(new JsonArray().add("api_key").add("second_api_key").add("third_api_key"));
-          }));
-      })
-      .compose(v -> {
-        return createRequest(GET, "/v1/pets_or_security").send()
-          .onSuccess(response -> testContext.verify(() -> {
-            assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.bodyAsJsonArray()).isEqualTo(new JsonArray().add("api_key"));
-          }));
-      })
-      .compose(v -> {
-        return createRequest(GET, "/v1/pets_or_and_security").send()
-          .onSuccess(response -> testContext.verify(() -> {
-            assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.bodyAsJsonArray()).isEqualTo(new JsonArray().add("api_key"));
-          }));
-      })
-      .compose(v -> {
-        return createRequest(GET, "/v1/pets_oauth2").send()
-          .onSuccess(response -> testContext.verify(() -> {
-            assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.bodyAsJsonArray()).isEqualTo(new JsonArray().add("oauth2"));
-          }));
-      })
-      .onSuccess(v -> testContext.completeNow())
-      .onFailure(testContext::failNow);
+        .compose(v -> {
+          return createRequest(GET, "/v1/pets_single_security")
+            .putHeader("api_key", "test")
+            .send()
+            .onSuccess(response -> testContext.verify(() -> {
+              assertThat(response.statusCode()).isEqualTo(200);
+            }));
+        })
+        .compose(v -> {
+          return createRequest(GET, "/v1/pets_and_security")
+            .putHeader("api_key", "test")
+            .putHeader("second_api_key", "test")
+            .putHeader("third_api_key", "test")
+            .send()
+            .onSuccess(response -> testContext.verify(() -> {
+              assertThat(response.statusCode()).isEqualTo(200);
+            }));
+        })
+        .compose(v -> {
+          return createRequest(GET, "/v1/pets_or_security")
+            .putHeader("api_key", "test")
+            .send()
+            .onSuccess(response -> testContext.verify(() -> {
+              assertThat(response.statusCode()).isEqualTo(200);
+            }));
+        })
+        .compose(v -> {
+          return createRequest(GET, "/v1/pets_or_security")
+            .putHeader("second_api_key", "test")
+            .send()
+            .onSuccess(response -> testContext.verify(() -> {
+              assertThat(response.statusCode()).isEqualTo(200);
+            }));
+        })
+        .compose(v -> {
+          return createRequest(GET, "/v1/pets_or_and_security")
+            .putHeader("api_key", "test")
+            .send()
+            .onSuccess(response -> testContext.verify(() -> {
+              assertThat(response.statusCode()).isEqualTo(200);
+            }));
+        })
+        .compose(v -> {
+          return createRequest(GET, "/v1/pets_or_and_security")
+            .putHeader("second_api_key", "test")
+            .putHeader("sibling_second_api_key", "test")
+            .send()
+            .onSuccess(response -> testContext.verify(() -> {
+              assertThat(response.statusCode()).isEqualTo(200);
+            }));
+        })
+        .compose(v -> {
+          return createRequest(GET, "/v1/pets_oauth2")
+            .send()
+            .onSuccess(response -> testContext.verify(() -> {
+              assertThat(response.statusCode()).isEqualTo(200);
+            }));
+        })
+        .onSuccess(v -> testContext.completeNow())
+        .onFailure(testContext::failNow);
+    });
   }
 }

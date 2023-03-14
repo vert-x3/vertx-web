@@ -57,9 +57,15 @@ class RouterBuilderTest extends RouterBuilderTestBase {
 
     Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve(version).resolve("petstore.json");
     createServer(pathDereferencedContract, rb -> {
-      rb.getRoute("listPets").addHandler(buildCheckpointHandler.apply(cpListPets));
-      rb.getRoute("createPets").addHandler(buildCheckpointHandler.apply(cpCreatePets));
-      rb.getRoute("showPetById").addHandler(buildCheckpointHandler.apply(cpShowPetById));
+      rb.getRoute("listPets")
+        .setDoSecurity(false)
+        .addHandler(buildCheckpointHandler.apply(cpListPets));
+      rb.getRoute("createPets")
+        .setDoSecurity(false)
+        .addHandler(buildCheckpointHandler.apply(cpCreatePets));
+      rb.getRoute("showPetById")
+        .setDoSecurity(false)
+        .addHandler(buildCheckpointHandler.apply(cpShowPetById));
       return Future.succeededFuture(rb);
     }).compose(v -> createRequest(GET, "/v1/pets").addQueryParam("limit", "42").send())
       .onSuccess(response -> testContext.verify(() -> {
@@ -90,7 +96,9 @@ class RouterBuilderTest extends RouterBuilderTestBase {
   void testRouterWithoutValidation(VertxTestContext testContext) {
     Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("v3.1").resolve("petstore.json");
     createServer(pathDereferencedContract, rb -> {
-      rb.rootHandler(BodyHandler.create()).getRoute("createPets").setDoValidation(false)
+      rb.rootHandler(BodyHandler.create()).getRoute("createPets")
+        .setDoValidation(false)
+        .setDoSecurity(false)
         .addHandler(rc -> rc.response().end(rc.body().buffer()));
       return Future.succeededFuture(rb);
     }).compose(v -> {
@@ -110,6 +118,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
     Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("v3.1").resolve("petstore.json");
     createServer(pathDereferencedContract, contract -> RouterBuilder.create(vertx, contract, withBodyHandler()), rb -> {
       rb.rootHandler(BodyHandler.create()).getRoute("createPets")
+        .setDoSecurity(false)
         .addHandler(rc -> {
           ValidatedRequest validatedRequest = rc.get(RouterBuilder.KEY_META_DATA_VALIDATED_REQUEST);
           rc.response().send(Json.encode(validatedRequest)).onFailure(testContext::failNow);
@@ -133,7 +142,9 @@ class RouterBuilderTest extends RouterBuilderTestBase {
   void testRouterWithInvalidRequest(VertxTestContext testContext) {
     Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("v3.1").resolve("petstore.json");
     createServer(pathDereferencedContract, rb -> {
-      rb.getRoute("createPets").addHandler(rc -> rc.response().end(rc.body().buffer()));
+      rb.getRoute("createPets")
+        .setDoSecurity(false)
+        .addHandler(rc -> rc.response().end(rc.body().buffer()));
       return Future.succeededFuture(rb);
     }).compose(v -> {
         JsonObject invalidBodyJson = new JsonObject().put("foo", "bar");

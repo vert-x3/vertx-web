@@ -71,4 +71,17 @@ public interface OpenAPIRoute {
    * @return the route
    */
   OpenAPIRoute setDoValidation(boolean doValidation);
+
+  /**
+   * @return true if security checks based on the OpenAPI contract are active for this route. By default, it is active.
+   */
+  boolean doSecurity();
+
+  /**
+   * Sets the security flag for incoming requests.
+   *
+   * @param doValidation The security flag.
+   * @return the route
+   */
+  OpenAPIRoute setDoSecurity(boolean doValidation);
 }

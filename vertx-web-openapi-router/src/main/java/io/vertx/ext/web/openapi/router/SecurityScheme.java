@@ -15,11 +15,13 @@
  */
 package io.vertx.ext.web.openapi.router;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.handler.AuthenticationHandler;
+import io.vertx.ext.web.handler.*;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -31,7 +33,23 @@ import java.util.function.Function;
 @VertxGen
 public interface SecurityScheme {
 
-  RouterBuilder bindBlocking(Function<JsonObject, AuthenticationHandler> factory);
+  RouterBuilder apiKeyHandler(APIKeyHandler handler);
 
-  Future<RouterBuilder> bind(Function<JsonObject, Future<AuthenticationHandler>> factory);
+  RouterBuilder httpHandler(BasicAuthHandler handler);
+
+  RouterBuilder httpHandler(DigestAuthHandler handler);
+
+  RouterBuilder httpHandler(JWTAuthHandler handler);
+
+  RouterBuilder oauth2Handler(String callback, Function<JsonObject, OAuth2AuthHandler> factory);
+
+  default RouterBuilder oauth2Handler(Function<JsonObject, OAuth2AuthHandler> factory) {
+    return oauth2Handler(null, factory);
+  }
+
+  Future<RouterBuilder> openIdConnectHandler(String callback, Function<String, Future<OAuth2AuthHandler>> factory);
+
+  default Future<RouterBuilder> openIdConnectHandler(Function<String, Future<OAuth2AuthHandler>> factory) {
+    return openIdConnectHandler(null, factory);
+  }
 }

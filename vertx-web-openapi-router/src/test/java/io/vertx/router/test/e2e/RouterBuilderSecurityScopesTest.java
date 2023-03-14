@@ -14,7 +14,12 @@ package io.vertx.router.test.e2e;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
-import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.JWTOptions;
+import io.vertx.ext.auth.KeyStoreOptions;
+import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
+import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.router.ResourceHelper;
@@ -35,9 +40,17 @@ class RouterBuilderSecurityScopesTest extends RouterBuilderTestBase {
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
   void testBuilderWithAuthn(VertxTestContext testContext) {
+
+    JWTAuth authProvider = JWTAuth.create(vertx, new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret")));
+
     createServer(pathDereferencedContract, rb -> {
-      rb.securityHandler("bearerAuth")
-        .bindBlocking(config -> SimpleAuthenticationHandler.create().authenticate(ctx -> Future.succeededFuture()));
+      rb
+        .security("bearerAuth")
+        .httpHandler(JWTAuthHandler.create(authProvider));
 
       rb.getRoute("twoScopesRequired")
         .addHandler(ctx -> {
@@ -55,21 +68,25 @@ class RouterBuilderSecurityScopesTest extends RouterBuilderTestBase {
       return Future.succeededFuture(rb);
     })
       .compose(v -> {
-        return createRequest(GET, "/v1/two_scopes_required").send()
+        return createRequest(GET, "/v1/two_scopes_required")
+          .putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo").put("scope", new JsonArray().add("read").add("write")), new JWTOptions()))
+          .send()
           .onSuccess(response -> testContext.verify(() -> {
             assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.bodyAsJsonArray()).isEqualTo(new JsonArray().add("read").add("write"));
           }));
       })
       .compose(v -> {
-        return createRequest(GET, "/v1/one_scope_required").send()
+        return createRequest(GET, "/v1/one_scope_required")
+          .putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo").put("scope", new JsonArray().add("read")), new JWTOptions()))
+          .send()
           .onSuccess(response -> testContext.verify(() -> {
             assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.bodyAsJsonArray()).isEqualTo(new JsonArray().add("read"));
           }));
       })
       .compose(v -> {
-        return createRequest(GET, "/v1/no_scopes").send()
+        return createRequest(GET, "/v1/no_scopes")
+          .putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions()))
+          .send()
           .onSuccess(response -> testContext.verify(() -> {
             assertThat(response.statusCode()).isEqualTo(200);
             assertThat(response.bodyAsJsonArray()).isNull();
