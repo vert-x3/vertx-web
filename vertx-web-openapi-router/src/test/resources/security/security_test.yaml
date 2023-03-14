@@ -83,7 +83,7 @@ components:
       type: apiKey
       name: third_api_key
       in: header
-    oauth:
+    oauth2:
       type: oauth2
       flows:
         implicit:

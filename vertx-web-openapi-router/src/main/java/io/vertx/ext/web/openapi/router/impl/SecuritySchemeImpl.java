@@ -2,7 +2,6 @@ package io.vertx.ext.web.openapi.router.impl;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.ext.web.openapi.router.SecurityScheme;

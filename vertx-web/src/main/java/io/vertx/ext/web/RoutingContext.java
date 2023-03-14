@@ -159,7 +159,7 @@ public interface RoutingContext {
    * @return all the context data as a map
    */
   @GenIgnore(PERMITTED_TYPE)
-  Map<String, Object> data();
+  <T> Map<String, T> data();
 
   /**
    * @return the Vert.x instance associated to the initiating {@link Router} for this context

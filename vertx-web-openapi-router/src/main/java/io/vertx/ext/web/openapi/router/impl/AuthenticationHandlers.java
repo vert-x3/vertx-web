@@ -48,7 +48,7 @@ class AuthenticationHandlers {
 
     final JsonArray securityRequirements = operationSecurity != null ? operationSecurity : globalSecurity;
 
-    AuthenticationHandler authn = or(securityRequirements, failOnNotFound);
+    AuthenticationHandler authn = or(route, securityRequirements, failOnNotFound);
     if (authn != null) {
       route.handler(authn);
     } else {
@@ -56,7 +56,7 @@ class AuthenticationHandlers {
     }
   }
 
-  private List<AuthenticationHandler> resolveHandlers(Map.Entry<String, Object> e, boolean failOnNotFound) {
+  private List<AuthenticationHandler> resolveHandlers(Route route, Map.Entry<String, Object> e, boolean failOnNotFound) {
     List<AuthenticationHandler> authenticationHandlers;
     if (failOnNotFound) {
       authenticationHandlers = Optional
@@ -75,6 +75,8 @@ class AuthenticationHandlers {
         .map(v -> (String) v)
         .collect(Collectors.toList());
 
+      route.putMetadata("scopes", scopes);
+
       // Update the returned list to have handlers with the required scopes
       authenticationHandlers = authenticationHandlers
         .stream()
@@ -91,10 +93,10 @@ class AuthenticationHandlers {
     return authenticationHandlers;
   }
 
-  private AuthenticationHandler and(JsonObject securityRequirements, boolean failOnNotFound) {
+  private AuthenticationHandler and(Route route, JsonObject securityRequirements, boolean failOnNotFound) {
     List<AuthenticationHandler> handlers = securityRequirements
       .stream()
-      .flatMap(e -> resolveHandlers(e, failOnNotFound).stream())
+      .flatMap(e -> resolveHandlers(route, e, failOnNotFound).stream())
       .collect(Collectors.toList());
 
     if (handlers.size() == 0) {
@@ -111,7 +113,7 @@ class AuthenticationHandlers {
     return authHandler;
   }
 
-  private AuthenticationHandler or(JsonArray securityRequirements, boolean failOnNotFound) {
+  private AuthenticationHandler or(Route route, JsonArray securityRequirements, boolean failOnNotFound) {
     if (securityRequirements == null || securityRequirements.size() == 0) {
       return null;
     }
@@ -133,14 +135,13 @@ class AuthenticationHandlers {
       case 1:
         if (!hasEmptyAuth) {
           // If one security requirements, we don't need a ChainAuthHandler
-          return and(securityRequirements.getJsonObject(0), failOnNotFound);
+          return and(route, securityRequirements.getJsonObject(0), failOnNotFound);
         }
       default:
         authHandler = ChainAuthHandler.any();
         securityRequirements
           .stream()
-          .map(jo -> (JsonObject) jo)
-          .map(jo -> and(jo, failOnNotFound))
+          .map(json -> and(route, (JsonObject) json, failOnNotFound))
           .filter(Objects::nonNull)
           .forEach(authHandler::add);
     }
