@@ -13,6 +13,7 @@
 package io.vertx.router.test.e2e;
 
 import io.vertx.core.Future;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
@@ -45,7 +46,7 @@ class RouterBuilderSecurityOptionalTest extends RouterBuilderTestBase {
         .apiKeyHandler(APIKeyHandler.create(authProvider));
 
       rb.getRoute("pets")
-        .addHandler(ctx -> ctx.json(ctx.<JsonArray>get("security")));
+        .addHandler(ctx -> ctx.json(ctx.user().principal()));
 
       return Future.succeededFuture(rb);
     })
@@ -53,13 +54,14 @@ class RouterBuilderSecurityOptionalTest extends RouterBuilderTestBase {
         return createRequest(GET, "/v1/pets").send()
           .onSuccess(response -> testContext.verify(() -> {
             assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.bodyAsJsonArray()).isNull();
+            assertThat(response.body()).isEqualTo(Buffer.buffer("{}"));
           }));
       })
       .compose(v -> {
         return createRequest(GET, "/v1/pets").putHeader("api_key", "123456789").send()
           .onSuccess(response -> testContext.verify(() -> {
             assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(response.body()).isEqualTo(Buffer.buffer("{\"username\":\"{\\\"token\\\":\\\"123456789\\\"}\"}"));
           }));
       })
       .onSuccess(v -> testContext.completeNow())

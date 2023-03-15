@@ -19,7 +19,7 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 
-public interface RouterBuilderInternal extends RouterBuilder {
+interface RouterBuilderInternal extends RouterBuilder {
 
   /**
    * Mount to paths that have to follow a security schema a security handler. This method will not perform any
