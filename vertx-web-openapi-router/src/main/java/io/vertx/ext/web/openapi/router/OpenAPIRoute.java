@@ -80,8 +80,8 @@ public interface OpenAPIRoute {
   /**
    * Sets the security flag for incoming requests.
    *
-   * @param doValidation The security flag.
+   * @param doSecurity The security flag.
    * @return the route
    */
-  OpenAPIRoute setDoSecurity(boolean doValidation);
+  OpenAPIRoute setDoSecurity(boolean doSecurity);
 }
