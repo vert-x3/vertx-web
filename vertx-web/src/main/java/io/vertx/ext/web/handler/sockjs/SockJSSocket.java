@@ -96,13 +96,6 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   }
 
   @Override
-  @Deprecated
-  default void write(Buffer data, Handler<AsyncResult<Void>> handler) {
-    write(data)
-      .onComplete(handler);
-  }
-
-  @Override
   SockJSSocket setWriteQueueMaxSize(int maxSize);
 
   @Override

@@ -105,12 +105,6 @@ public abstract class SockJSSocketBase implements SockJSSocket {
   }
 
   @Override
-  public void end(Handler<AsyncResult<Void>> handler) {
-    end()
-      .onComplete(handler);
-  }
-
-  @Override
   public void close() {
     end();
   }

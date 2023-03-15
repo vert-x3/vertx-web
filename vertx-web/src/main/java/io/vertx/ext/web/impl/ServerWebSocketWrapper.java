@@ -48,12 +48,6 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
-  @Deprecated
-  public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
-    delegate.write(data, handler);
-  }
-
-  @Override
   public ServerWebSocket handler(Handler<Buffer> handler) {
     delegate.handler(handler);
     return this;
@@ -247,12 +241,6 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   @Override
   public Future<Void> end() {
     return delegate.end();
-  }
-
-  @Override
-  @Deprecated
-  public void end(Handler<AsyncResult<Void>> handler) {
-    delegate.end(handler);
   }
 
   @Override
