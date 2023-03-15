@@ -35,7 +35,7 @@ import io.vertx.openapi.validation.impl.RequestValidatorImpl;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class RouterBuilderImpl implements RouterBuilder {
+public class RouterBuilderImpl implements RouterBuilderInternal {
 
   private final static Logger LOG = LoggerFactory.getLogger(RouterBuilderImpl.class);
 

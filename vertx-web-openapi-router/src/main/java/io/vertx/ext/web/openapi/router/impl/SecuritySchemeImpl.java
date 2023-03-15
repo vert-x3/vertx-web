@@ -1,3 +1,18 @@
+/*
+ * Copyright 2023 Red Hat, Inc.
+ *
+ *  All rights reserved. This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License v1.0
+ *  and Apache License v2.0 which accompanies this distribution.
+ *
+ *  The Eclipse Public License is available at
+ *  http://www.eclipse.org/legal/epl-v10.html
+ *
+ *  The Apache License v2.0 is available at
+ *  http://www.opensource.org/licenses/apache2.0.php
+ *
+ *  You may elect to redistribute this code under either of these licenses.
+ */
 package io.vertx.ext.web.openapi.router.impl;
 
 import io.vertx.core.Future;
@@ -12,14 +27,12 @@ import java.util.function.Function;
 
 public class SecuritySchemeImpl implements SecurityScheme {
 
-  private final RouterBuilder routerBuilder;
+  private final RouterBuilderInternal routerBuilder;
   private final OpenAPIContract contract;
 
   private final String securitySchemeId;
 
-  private boolean allowCallback;
-
-  SecuritySchemeImpl(RouterBuilder routerBuilder, OpenAPIContract contract, String securitySchemeId) {
+  SecuritySchemeImpl(RouterBuilderInternal routerBuilder, OpenAPIContract contract, String securitySchemeId) {
     this.routerBuilder = routerBuilder;
     this.contract = contract;
     this.securitySchemeId = securitySchemeId;
@@ -142,6 +155,11 @@ public class SecuritySchemeImpl implements SecurityScheme {
 
         if (!"oauth2".equals(config.getString("type"))) {
           throw new IllegalStateException("Invalid 'type' value for Oauth2 security scheme: " + config.getString("type"));
+        }
+
+        if (config.containsKey("authorizationCode")) {
+          // callback is required for authorizationCode flow
+          Objects.requireNonNull(callback, "'callback' cannot be null when using authorizationCode flow");
         }
 
         routerBuilder.security(securitySchemeId, factory.apply(config), callback);

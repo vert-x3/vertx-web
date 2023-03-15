@@ -14,9 +14,7 @@ package io.vertx.router.test.e2e;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
@@ -25,7 +23,6 @@ import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.APIKeyHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
-import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.router.ResourceHelper;
@@ -37,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 import static io.vertx.core.http.HttpMethod.GET;
+import static io.vertx.core.http.HttpMethod.POST;
 
 class RouterBuilderSecurityTest extends RouterBuilderTestBase {
 
@@ -67,18 +65,50 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
         "  \"access_token\": \"4adc339e0\"," +
         "  \"refresh_token\": \"ec1a59d298\"," +
         "  \"token_type\": \"bearer\"," +
-        "  \"scope\": \"read write\"," +
+        "  \"scope\": \"write:pets read:pets\"," +
         "  \"expires_in\": 7200" +
         "}");
 
     HttpServer server = vertx.createHttpServer()
       .requestHandler(req -> {
-        if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
-          req.setExpectMultipart(true).bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
-        } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
-          req.setExpectMultipart(true).bodyHandler(buffer -> req.response().end());
-        } else {
-          req.response().setStatusCode(200).end();
+        if (req.method() == POST) {
+          switch (req.path()) {
+            case "/oauth/token":
+              req
+                .setExpectMultipart(true)
+                .bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
+              break;
+            case "/oauth/revoke":
+              req
+                .setExpectMultipart(true)
+                .bodyHandler(buffer -> req.response().end());
+              break;
+            default:
+              req
+                .response()
+                .setStatusCode(404)
+                .end();
+          }
+        }
+        if (req.method() == GET) {
+          switch (req.path()) {
+            case "/oauth/authorize":
+              assertThat(req.getParam("state")).isNotNull();
+              assertThat(req.getParam("scope")).isEqualTo("write:pets read:pets");
+              assertThat(req.getParam("redirect_uri")).isNotNull();
+
+              req
+                .response()
+                .setStatusCode(302)
+                .putHeader("Location", "http://localhost:" + port + "/v1/callback?code=1234&state=" + req.getParam("state"))
+                .end();
+              break;
+            default:
+              req
+                .response()
+                .setStatusCode(404)
+                .end();
+          }
         }
       });
 
@@ -185,6 +215,17 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
             }));
         })
         .compose(v -> {
+          // This is a complicated one:
+          // 1. We make a bare request
+          // 2. We get a 302 redirect to the oauth2 authorize endpoint
+          // 3. We get a 302 redirect to the callback with a code
+          // 4. We make a request to the oauth2 token endpoint
+          // 5. We get a 200 response with a token
+          // 6. We make a request to the protected endpoint with the token
+          // 7. We get a 200 response
+
+          // steps 2-6 are managed by oauth2 handler
+
           return createRequest(GET, "/v1/pets_oauth2")
             .send()
             .onSuccess(response -> testContext.verify(() -> {

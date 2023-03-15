@@ -103,20 +103,6 @@ public interface RouterBuilder {
   SecurityScheme security(String securitySchemeName);
 
   /**
-   * Mount to paths that have to follow a security schema a security handler. This method will not perform any
-   * validation weather or not the given {@code securitySchemeName} is present in the OpenAPI document.
-   *
-   * For most use cases the method {@link #security(String)} should be used.
-   *
-   * @param securitySchemeName the components security scheme id
-   * @param handler the authentication handler
-   * @param callback the callback path to be used for the authentication handler
-   * @return self
-   */
-  @Fluent
-  RouterBuilder security(String securitySchemeName, AuthenticationHandler handler, String callback);
-
-  /**
    * Construct a new router based on the related OpenAPI contract.
    *
    * @return a Router based on the related OpenAPI contract.
