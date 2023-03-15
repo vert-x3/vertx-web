@@ -808,15 +808,16 @@ public class WebClientTest extends WebClientTestBase {
         });
       }
       @Override
-      public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
+      public Future<Void> write(Buffer data) {
         size.addAndGet(data.length());
-        super.write(data, handler);
+        return super.write(data);
       }
       @Override
-      public void end(Handler<AsyncResult<Void>> handler) {
+      public Future<Void> end() {
         ended.set(true);
-        super.end(handler);
+        return super.end();
       }
+
       @Override
       public boolean writeQueueFull() {
         return paused;
@@ -849,9 +850,9 @@ public class WebClientTest extends WebClientTestBase {
     AtomicInteger received = new AtomicInteger();
     WriteStream<Buffer> stream = new WriteStreamBase() {
       @Override
-      public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
+      public Future<Void> write(Buffer data) {
         received.addAndGet(data.length());
-        super.write(data, handler);
+        return super.write(data);
       }
     };
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
@@ -880,9 +881,9 @@ public class WebClientTest extends WebClientTestBase {
         return this;
       }
       @Override
-      public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
+      public Future<Void> write(Buffer data) {
         exceptionHandler.handle(cause);
-        handler.handle(Future.failedFuture(cause));
+        return Future.failedFuture(cause);
       }
     };
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
@@ -1015,14 +1016,14 @@ public class WebClientTest extends WebClientTestBase {
     AtomicBoolean ended = new AtomicBoolean();
     WriteStream<Buffer> stream = new WriteStreamBase() {
       @Override
-      public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
+      public Future<Void> write(Buffer data) {
         length.addAndGet(data.length());
-        super.write(data, handler);
+        return super.write(data);
       }
       @Override
-      public void end(Handler<AsyncResult<Void>> handler) {
+      public Future<Void> end() {
         ended.set(true);
-        super.end(handler);
+        return super.end();
       }
     };
     testResponseMissingBody(BodyCodec.pipe(stream));
@@ -2059,19 +2060,12 @@ public class WebClientTest extends WebClientTestBase {
 
     @Override
     public Future<Void> write(Buffer data) {
-      Promise<Void> promise = Promise.promise();
-      write(data, promise);
-      return promise.future();
+      return Future.succeededFuture();
     }
 
     @Override
-    public void write(Buffer buffer, Handler<AsyncResult<Void>> handler) {
-      handler.handle(Future.succeededFuture());
-    }
-
-    @Override
-    public void end(Handler<AsyncResult<Void>> handler) {
-      handler.handle(Future.succeededFuture());
+    public Future<Void> end() {
+      return Future.succeededFuture();
     }
 
     @Override

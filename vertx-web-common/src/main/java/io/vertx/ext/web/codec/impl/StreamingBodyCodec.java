@@ -78,35 +78,25 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
           }
 
           @Override
-          public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
-            stream.write(data).onComplete(handler);
-          }
-
-          @Override
           public Future<Void> write(Buffer data) {
-            Promise<Void> promise = Promise.promise();
-            write(data, promise);
-            return promise.future();
+            return stream.write(data);
           }
 
           @Override
-          public void end(Handler<AsyncResult<Void>> handler) {
+          public Future<Void> end() {
             if (close) {
-              stream.end().onComplete(ar -> {
-                if (ar.succeeded()) {
-                  promise.tryComplete();
-                } else {
-                  promise.tryFail(ar.cause());
-                }
-                if (handler != null) {
-                  handler.handle(ar);
-                }
-              });
+              return stream
+                .end()
+                .onComplete(ar -> {
+                  if (ar.succeeded()) {
+                    promise.tryComplete();
+                  } else {
+                    promise.tryFail(ar.cause());
+                  }
+                });
             } else {
               promise.tryComplete();
-              if (handler != null) {
-                handler.handle(Future.succeededFuture());
-              }
+              return Future.succeededFuture();
             }
           }
 

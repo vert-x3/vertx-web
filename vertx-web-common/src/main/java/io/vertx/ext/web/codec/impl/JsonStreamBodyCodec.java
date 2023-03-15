@@ -33,19 +33,9 @@ public class JsonStreamBodyCodec implements BodyCodec<Void> {
       }
 
       @Override
-      public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
-        parser.handle(data);
-        if (handler != null) {
-          handler.handle(Future.succeededFuture());
-        }
-      }
-
-      @Override
-      public void end(Handler<AsyncResult<Void>> handler) {
+      public Future<Void> end() {
         parser.end();
-        if (handler != null) {
-          handler.handle(Future.succeededFuture());
-        }
+        return Future.succeededFuture();
       }
 
       @Override
