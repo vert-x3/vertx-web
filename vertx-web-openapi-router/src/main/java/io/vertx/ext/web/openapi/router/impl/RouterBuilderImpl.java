@@ -130,8 +130,10 @@ public class RouterBuilderImpl implements RouterBuilderInternal {
           openAPIRoute.getHandlers().forEach(route::handler);
           openAPIRoute.getFailureHandlers().forEach(route::failureHandler);
         } else {
-          // TODO: warn or error?
           LOG.warn("No handlers found for operation " + operation.getOperationId() + " - skipping route creation");
+          // terminate the request with 503 (Not Implemented)
+          route
+            .handler(ctx -> ctx.response().setStatusCode(503).end());
         }
       }
     }
