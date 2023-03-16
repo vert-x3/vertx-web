@@ -18,9 +18,7 @@ package io.vertx.ext.web.common.template;
 
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
@@ -45,18 +43,7 @@ public interface TemplateEngine {
    *
    * @param context  the routing context
    * @param templateFileName  the template file name to use
-   * @param handler  the handler that will be called with a result containing the buffer or a failure.
-   */
-  @Deprecated
-  default void render(JsonObject context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
-    render(context, templateFileName)
-      .onComplete(handler);
-  }
-
-  /**
-   * @see TemplateEngine#render(JsonObject, String, Handler)
-   * @param context  the routing context
-   * @param templateFileName  the template file name to use
+   * @return a future notified with a result containing the buffer or a failure
    */
   default Future<Buffer> render(JsonObject context, String templateFileName) {
     return render(context.getMap(), templateFileName);
@@ -71,19 +58,7 @@ public interface TemplateEngine {
    *
    * @param context  the routing context
    * @param templateFileName  the template file name to use
-   * @param handler  the handler that will be called with a result containing the buffer or a failure.
-   */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  @Deprecated
-  default void render(Map<String, Object> context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
-    render(context, templateFileName)
-      .onComplete(handler);
-  }
-
-  /**
-   * @see TemplateEngine#render(Map, String, Handler)
-   * @param context  the routing context
-   * @param templateFileName  the template file name to use
+   * @return a future notified with a result containing the buffer or a failure
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   Future<Buffer> render(Map<String, Object> context, String templateFileName);

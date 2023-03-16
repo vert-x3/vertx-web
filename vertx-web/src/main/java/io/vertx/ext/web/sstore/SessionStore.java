@@ -120,20 +120,6 @@ public interface SessionStore {
    * Get the session with the specified ID.
    *
    * @param cookieValue  the unique ID of the session
-   * @param resultHandler  will be called with a result holding the session, or a failure
-   */
-  @Fluent
-  @Deprecated
-  default SessionStore get(String cookieValue, Handler<AsyncResult<@Nullable Session>> resultHandler) {
-    get(cookieValue)
-      .onComplete(resultHandler);
-
-    return this;
-  }
-
-  /**
-   * @see SessionStore#get(String, Handler)
-   * @param cookieValue  the unique ID of the session
    * @return future that will be called with a result holding the session, or a failure
    */
   Future<@Nullable Session> get(String cookieValue);
@@ -142,42 +128,14 @@ public interface SessionStore {
    * Delete the session with the specified ID.
    *
    * @param id  the session id
-   * @param resultHandler  will be called with a success or a failure
-   */
-  @Fluent
-  @Deprecated
-  default SessionStore delete(String id, Handler<AsyncResult<Void>> resultHandler) {
-    delete(id)
-      .onComplete(resultHandler);
-
-    return this;
-  }
-
-  /**
-   * @see SessionStore#delete(String, Handler)
-   * @param cookieValue  the unique ID of the session
    * @return future that will be called with a result, or a failure
    */
-  Future<Void> delete(String cookieValue);
+  Future<Void> delete(String id);
 
   /**
    * Add a session with the specified ID.
    *
    * @param session  the session
-   * @param resultHandler  will be called with a success or a failure
-   */
-  @Fluent
-  @Deprecated
-  default SessionStore put(Session session, Handler<AsyncResult<Void>> resultHandler) {
-    put(session)
-      .onComplete(resultHandler);
-
-    return this;
-  }
-
-  /**
-   * @see SessionStore#put(Session, Handler)
-   * @param session the session
    * @return future that will be called with a result, or a failure
    */
   Future<Void> put(Session session);
@@ -185,19 +143,6 @@ public interface SessionStore {
   /**
    * Remove all sessions from the store.
    *
-   * @param resultHandler  will be called with a success or a failure
-   */
-  @Fluent
-  @Deprecated
-  default SessionStore clear(Handler<AsyncResult<Void>> resultHandler) {
-    clear()
-      .onComplete(resultHandler);
-
-    return this;
-  }
-
-  /**
-   * @see SessionStore#clear(Handler)
    * @return future that will be called with a result, or a failure
    */
   Future<Void> clear();
@@ -207,19 +152,6 @@ public interface SessionStore {
    * <p>
    * Beware of the result which is just an estimate, in particular with distributed session stores.
    *
-   * @param resultHandler  will be called with the number, or a failure
-   */
-  @Fluent
-  @Deprecated
-  default SessionStore size(Handler<AsyncResult<Integer>> resultHandler) {
-    size()
-      .onComplete(resultHandler);
-
-    return this;
-  }
-
-  /**
-   * @see SessionStore#size(Handler)
    * @return future that will be called with a result, or a failure
    */
   Future<Integer> size();

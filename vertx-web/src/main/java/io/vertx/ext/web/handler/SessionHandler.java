@@ -202,16 +202,10 @@ public interface SessionHandler extends PlatformHandler {
    * a failure at the store level. Once a session is flushed no automatic save will be performed at end of request.
    *
    * @param ctx the current context
-   * @param handler the event handler to signal a asynchronous response.
-   * @return fluent self
+   * @return a future signaled with the asynchronous response.
    */
-	@Fluent
-  @Deprecated
-  default SessionHandler flush(RoutingContext ctx, Handler<AsyncResult<Void>> handler) {
-    flush(ctx)
-      .onComplete(handler);
-
-    return this;
+  default Future<Void> flush(RoutingContext ctx) {
+    return flush(ctx, false);
   }
 
   /**
@@ -220,27 +214,7 @@ public interface SessionHandler extends PlatformHandler {
    *
    * @param ctx the current context
    * @param ignoreStatus flush regardless of response status code
-   * @param handler the event handler to signal a asynchronous response.
-   * @return fluent self
-   */
-  @Fluent
-  @Deprecated
-  default SessionHandler flush(RoutingContext ctx, boolean ignoreStatus, Handler<AsyncResult<Void>> handler) {
-    flush(ctx, ignoreStatus)
-      .onComplete(handler);
-
-    return this;
-  }
-
-  /**
-   * Promisified flush. See {@link #flush(RoutingContext, Handler)}.
-   */
-	default Future<Void> flush(RoutingContext ctx) {
-    return flush(ctx, false);
-  }
-
-  /**
-   * Promisified flush. See {@link #flush(RoutingContext, boolean, Handler)}.
+   * @return a future signaled with the asynchronous response.
    */
   Future<Void> flush(RoutingContext ctx, boolean ignoreStatus);
 
@@ -272,18 +246,4 @@ public interface SessionHandler extends PlatformHandler {
    */
   Future<Void> setUser(RoutingContext context, User user);
 
-  /**
-   * Set the user for the session
-   *
-   * @param context the routing context
-   * @param user the user
-   * @param handler the event handler to signal a asynchronous response.
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  @Deprecated
-  default SessionHandler setUser(RoutingContext context, User user, Handler<AsyncResult<Void>> handler) {
-    setUser(context, user).onComplete(handler);
-    return this;
-  }
 }

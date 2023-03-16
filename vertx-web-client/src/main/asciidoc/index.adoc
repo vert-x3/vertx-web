@@ -149,7 +149,7 @@ The POST will not be chunked.
 ==== Json bodies
 
 Often you’ll want to send Json body requests, to send a {@link io.vertx.core.json.JsonObject}
-use the {@link io.vertx.ext.web.client.HttpRequest#sendJsonObject(io.vertx.core.json.JsonObject, io.vertx.core.Handler)}
+use the {@link io.vertx.ext.web.client.HttpRequest#sendJsonObject(io.vertx.core.json.JsonObject)}
 
 [source,$lang]
 ----
@@ -170,7 +170,7 @@ to Json.
 
 ==== Form submissions
 
-You can send http form submissions bodies with the {@link io.vertx.ext.web.client.HttpRequest#sendForm(io.vertx.core.MultiMap, io.vertx.core.Handler)}
+You can send http form submissions bodies with the {@link io.vertx.ext.web.client.HttpRequest#sendForm(io.vertx.core.MultiMap)}
 variant.
 
 [source,$lang]
@@ -187,7 +187,7 @@ the `content-type` header to `multipart/form-data` instead
 ----
 
 If you want to upload files and send attributes, you can create a {@link io.vertx.ext.web.multipart.MultipartForm} and
- use {@link io.vertx.ext.web.client.HttpRequest#sendMultipartForm(io.vertx.ext.web.multipart.MultipartForm, io.vertx.core.Handler)}.
+ use {@link io.vertx.ext.web.client.HttpRequest#sendMultipartForm(io.vertx.ext.web.multipart.MultipartForm)}.
 
 [source,$lang]
 ----
@@ -240,7 +240,7 @@ You can configure the request to add bearer token authentication as follows:
 
 === Reusing requests
 
-The {@link io.vertx.ext.web.client.HttpRequest#send(io.vertx.core.Handler)} method can be called multiple times
+The {@link io.vertx.ext.web.client.HttpRequest#send()} method can be called multiple times
 safely, making it very easy to configure and reuse {@link io.vertx.ext.web.client.HttpRequest} objects
 
 [source,$lang]

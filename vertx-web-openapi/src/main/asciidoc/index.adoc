@@ -41,7 +41,7 @@ dependencies {
 {@link io.vertx.ext.web.openapi.RouterBuilder} is the main element of this module: It provides the interface to mount request handlers and generates the final {@link io.vertx.ext.web.Router}
 
 To start using Vert.x Web OpenAPI, you must instantiate {@link io.vertx.ext.web.openapi.RouterBuilder} with your contract using
-{@link io.vertx.ext.web.openapi.RouterBuilder#create(Vertx,String,Handler)}
+{@link io.vertx.ext.web.openapi.RouterBuilder#create(Vertx,String)}
 
 For example to load a spec from the local filesystem:
 

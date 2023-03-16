@@ -47,10 +47,10 @@ import java.util.function.Function;
  * <p>
  * After the request has been configured, the methods
  * <ul>
- *   <li>{@link #send(Handler)}</li>
- *   <li>{@link #sendStream(ReadStream, Handler)}</li>
- *   <li>{@link #sendJson(Object, Handler)} ()}</li>
- *   <li>{@link #sendForm(MultiMap, Handler)}</li>
+ *   <li>{@link #send()}</li>
+ *   <li>{@link #sendStream(ReadStream)}</li>
+ *   <li>{@link #sendJson(Object)} ()}</li>
+ *   <li>{@link #sendForm(MultiMap)}</li>
  * </ul>
  * can be called.
  * The {@code sendXXX} methods perform the actual request, they can be called multiple times to perform the same HTTP
@@ -459,92 +459,52 @@ public interface HttpRequest<T> {
   String traceOperation();
 
   /**
-   * Like {@link #send(Handler)} but with an HTTP request {@code body} stream.
+   * Like {@link #send()} but with an HTTP request {@code body} stream.
    *
    * @param body the body
-   */
-  @Deprecated
-  default void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    sendStream(body).onComplete(handler);
-  }
-
-  /**
-   * @param body the body
-   * @see HttpRequest#sendStream(ReadStream, Handler)
+   * @see HttpRequest#sendStream(ReadStream)
    */
   Future<HttpResponse<T>> sendStream(ReadStream<Buffer> body);
 
   /**
-   * Like {@link #send(Handler)} but with an HTTP request {@code body} buffer.
+   * Like {@link #send()} but with an HTTP request {@code body} buffer.
    *
    * @param body the body
-   */
-  @Deprecated
-  default void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    sendBuffer(body).onComplete(handler);
-  }
-
-  /**
-   * @param body the body
-   * @see HttpRequest#sendBuffer(Buffer, Handler)
+   * @see HttpRequest#sendBuffer(Buffer)
    */
   Future<HttpResponse<T>> sendBuffer(Buffer body);
 
   /**
-   * Like {@link #send(Handler)} but with an HTTP request {@code body} object encoded as json and the content type
+   * Like {@link #send()} but with an HTTP request {@code body} object encoded as json and the content type
    * set to {@code application/json}.
    *
    * @param body the body
-   */
-  @Deprecated
-  default void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    sendJsonObject(body).onComplete(handler);
-  }
-
-  /**
-   * @param body the body
-   * @see HttpRequest#sendJsonObject(JsonObject, Handler)
+   * @see HttpRequest#sendJsonObject(JsonObject)
    */
   Future<HttpResponse<T>> sendJsonObject(JsonObject body);
 
   /**
-   * Like {@link #send(Handler)} but with an HTTP request {@code body} object encoded as json and the content type
+   * Like {@link #send()} but with an HTTP request {@code body} object encoded as json and the content type
    * set to {@code application/json}.
    *
    * @param body the body
-   */
-  @Deprecated
-  default void sendJson(@Nullable Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    sendJson(body).onComplete(handler);
-  }
-
-  /**
-   * @param body the body
-   * @see HttpRequest#sendJson(Object, Handler)
+   * @see HttpRequest#sendJson(Object)
    */
   Future<HttpResponse<T>> sendJson(@Nullable Object body);
 
   /**
-   * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
+   * Like {@link #send()} but with an HTTP request {@code body} multimap encoded as form and the content type
    * set to {@code application/x-www-form-urlencoded}.
    * <p>
    * When the content type header is previously set to {@code multipart/form-data} it will be used instead.
    *
    * @param body the body
-   */
-  @Deprecated
-  default void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    sendForm(body).onComplete(handler);
-  }
-
-  /**
-   * @param body the body
-   * @see HttpRequest#sendForm(MultiMap, Handler)
+   * @see HttpRequest#sendForm(MultiMap)
    */
   Future<HttpResponse<T>> sendForm(MultiMap body);
 
   /**
-   * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
+   * Like {@link #send()} but with an HTTP request {@code body} multimap encoded as form and the content type
    * set to {@code application/x-www-form-urlencoded}.
    * <p>
    * When the content type header is previously set to {@code multipart/form-data} it will be used instead.
@@ -553,46 +513,24 @@ public interface HttpRequest<T> {
    * encoded form since the charset to use must be UTF-8.
    *
    * @param body the body
-   */
-  @Deprecated
-  default void sendForm(MultiMap body, String charset, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    sendForm(body, charset).onComplete(handler);
-  }
-
-  /**
-   * @param body the body
    * @param charset the charset
-   * @see HttpRequest#sendForm(MultiMap, String, Handler)
+   * @see HttpRequest#sendForm(MultiMap, String)
    */
   Future<HttpResponse<T>> sendForm(MultiMap body, String charset);
 
   /**
-   * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
+   * Like {@link #send()} but with an HTTP request {@code body} multimap encoded as form and the content type
    * set to {@code multipart/form-data}. You may use this method to send attributes and upload files.
    *
    * @param body the body
-   */
-  @Deprecated
-  default void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    sendMultipartForm(body).onComplete(handler);
-  }
-
-  /**
-   * @param body the body
-   * @see HttpRequest#sendMultipartForm(MultipartForm, Handler)
+   * @see HttpRequest#sendMultipartForm(MultipartForm)
    */
   Future<HttpResponse<T>> sendMultipartForm(MultipartForm body);
 
   /**
    * Send a request, the {@code handler} will receive the response as an {@link HttpResponse}.
-   */
-  @Deprecated
-  default void send(Handler<AsyncResult<HttpResponse<T>>> handler) {
-    send().onComplete(handler);
-  }
-
-  /**
-   * @see HttpRequest#send(Handler)
+   *
+   * @see HttpRequest#send()
    */
   Future<HttpResponse<T>> send();
 }

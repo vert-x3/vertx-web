@@ -104,7 +104,7 @@ This class, as name says, is a router factory based on your OpenAPI 3 specificat
 * Automatic mount of security handlers
 
 === Create a new router factory
-To create a new router factory, use method {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#create(io.vertx.core.Vertx, java.lang.String, io.vertx.core.Handler)}.
+To create a new router factory, use method {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#create(io.vertx.core.Vertx, java.lang.String)}.
 As location It accepts absolute paths, local paths and local or remote URLs (HTTP or file protocol).
 
 For example to load a spec from the local filesystem:

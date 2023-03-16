@@ -175,20 +175,6 @@ class HttpServerRequestWrapper extends io.vertx.core.http.impl.HttpServerRequest
   }
 
   @Override
-  @Deprecated
-  public void toWebSocket(Handler<AsyncResult<ServerWebSocket>> handler) {
-    delegate
-      .toWebSocket(toWebSocket -> {
-        if (toWebSocket.succeeded()) {
-          handler.handle(Future.succeededFuture(
-            new ServerWebSocketWrapper(toWebSocket.result(), host(), scheme(), isSSL(), remoteAddress())));
-        } else {
-          handler.handle(toWebSocket);
-        }
-      });
-  }
-
-  @Override
   public Future<ServerWebSocket> toWebSocket() {
     return delegate
       .toWebSocket()
