@@ -173,7 +173,7 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
         else
           future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
       }
-    }, promise);
+    }).onComplete(promise);
 
     return promise.future();
   }
