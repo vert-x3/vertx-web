@@ -130,22 +130,8 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
-  @Deprecated
-  public ServerWebSocket writeFrame(WebSocketFrame frame, Handler<AsyncResult<Void>> handler) {
-    delegate.writeFrame(frame, handler);
-    return this;
-  }
-
-  @Override
   public Future<Void> writeFinalTextFrame(String text) {
     return delegate.writeFinalTextFrame(text);
-  }
-
-  @Override
-  @Deprecated
-  public ServerWebSocket writeFinalTextFrame(String text, Handler<AsyncResult<Void>> handler) {
-    delegate.writeFinalTextFrame(text, handler);
-    return this;
   }
 
   @Override
@@ -154,22 +140,8 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
-  @Deprecated
-  public ServerWebSocket writeFinalBinaryFrame(Buffer data, Handler<AsyncResult<Void>> handler) {
-    delegate.writeFinalBinaryFrame(data, handler);
-    return this;
-  }
-
-  @Override
   public Future<Void> writeBinaryMessage(Buffer data) {
     return delegate.writeBinaryMessage(data);
-  }
-
-  @Override
-  @Deprecated
-  public ServerWebSocket writeBinaryMessage(Buffer data, Handler<AsyncResult<Void>> handler) {
-    delegate.writeBinaryMessage(data, handler);
-    return this;
   }
 
   @Override
@@ -178,29 +150,8 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
-  @Deprecated
-  public ServerWebSocket writeTextMessage(String text, Handler<AsyncResult<Void>> handler) {
-    delegate.writeTextMessage(text, handler);
-    return this;
-  }
-
-  @Override
-  @Deprecated
-  public WebSocketBase writePing(Buffer data, Handler<AsyncResult<Void>> handler) {
-    delegate.writePing(data, handler);
-    return this;
-  }
-
-  @Override
   public Future<Void> writePing(Buffer data) {
     return delegate.writePing(data);
-  }
-
-  @Override
-  @Deprecated
-  public WebSocketBase writePong(Buffer data, Handler<AsyncResult<Void>> handler) {
-    delegate.writePong(data, handler);
-    return this;
   }
 
   @Override
@@ -284,12 +235,6 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
-  @Deprecated
-  public void setHandshake(Future<Integer> future, Handler<AsyncResult<Integer>> handler) {
-    delegate.setHandshake(future, handler);
-  }
-
-  @Override
   public Future<Integer> setHandshake(Future<Integer> future) {
     return delegate.setHandshake(future);
   }
@@ -300,31 +245,13 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
-  @Deprecated
-  public void close(Handler<AsyncResult<Void>> handler) {
-    delegate.close(handler);
-  }
-
-  @Override
   public Future<Void> close(short statusCode) {
     return delegate.close(statusCode);
   }
 
   @Override
-  @Deprecated
-  public void close(short statusCode, Handler<AsyncResult<Void>> handler) {
-    delegate.close(statusCode, handler);
-  }
-
-  @Override
   public Future<Void> close(short statusCode, @Nullable String reason) {
     return delegate.close(statusCode, reason);
-  }
-
-  @Override
-  @Deprecated
-  public void close(short statusCode, @Nullable String reason, Handler<AsyncResult<Void>> handler) {
-    delegate.close(statusCode, reason, handler);
   }
 
   @Override
