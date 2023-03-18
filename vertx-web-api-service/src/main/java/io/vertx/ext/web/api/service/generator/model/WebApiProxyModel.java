@@ -53,8 +53,6 @@ public class WebApiProxyModel extends ProxyModel {
       TypeInfo ret;
       if (baseInfo.getKind() == MethodKind.FUTURE && baseInfo.isUseFutures()) {
         ret = ((ParameterizedTypeInfo)returnType).getArg(0);
-      } else if (baseInfo.getKind() == MethodKind.CALLBACK && !baseInfo.isUseFutures()) {
-        ret = ((ParameterizedTypeInfo) ((ParameterizedTypeInfo) mParams.get(mParams.size() - 1).getType()).getArg(0)).getArg(0);
       } else {
         throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);
       }
@@ -63,17 +61,10 @@ public class WebApiProxyModel extends ProxyModel {
       }
 
       TypeInfo shouldBeServiceRequest;
-      if (baseInfo.getKind() == MethodKind.CALLBACK) {
-        if (mParams.size() <= 1) {
-          throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);
-        }
-        shouldBeServiceRequest = mParams.get(mParams.size() - 2).getType();
-      } else {
-        if (mParams.size() == 0) {
-          throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);
-        }
-        shouldBeServiceRequest = mParams.get(mParams.size() - 1).getType();
+      if (mParams.size() == 0) {
+        throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);
       }
+      shouldBeServiceRequest = mParams.get(mParams.size() - 1).getType();
       if (!ServiceRequest.class.getName().equals(shouldBeServiceRequest.getName())) {
         throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);
       }
