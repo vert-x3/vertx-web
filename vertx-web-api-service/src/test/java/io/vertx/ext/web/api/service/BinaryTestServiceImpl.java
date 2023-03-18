@@ -9,9 +9,9 @@ import io.vertx.core.buffer.Buffer;
 public class BinaryTestServiceImpl implements BinaryTestService {
 
   @Override
-  public void binaryTest(ServiceRequest request, Handler<AsyncResult<ServiceResponse>> response) {
+  public Future<ServiceResponse> binaryTest(ServiceRequest request) {
     final Buffer buffer = Buffer.buffer(new byte[] {(byte) 0xb0});
-    response.handle(
+    return
       Future.succeededFuture(
         new ServiceResponse(
           200,
@@ -22,7 +22,7 @@ public class BinaryTestServiceImpl implements BinaryTestService {
             .add("content-type", "application/octet-stream")
         )
       )
-    );
+    ;
   }
 
 }

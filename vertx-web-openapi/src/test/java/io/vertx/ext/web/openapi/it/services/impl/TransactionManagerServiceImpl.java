@@ -24,44 +24,44 @@ public class TransactionManagerServiceImpl implements TransactionManagerService 
     this.persistence = persistence;
   }
   @Override
-  public void getTransactionsList(List<String> from, List<String> to, List<String> message, ServiceRequest request, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public Future<ServiceResponse> getTransactionsList(List<String> from, List<String> to, List<String> message, ServiceRequest requestreturn ) {
     List<Transaction> transactionsList = persistence.getFilteredTransactions(this.constructFilterPredicate(from, to, message));
-    resultHandler.handle(Future.succeededFuture(
+    return Future.succeededFuture(
       ServiceResponse.completedWithJson(
         new JsonArray(transactionsList.stream().map(Transaction::toJson).collect(Collectors.toList()))
       )
-    ));
+    );
   }
 
   @Override
-  public void getTransaction(String transactionId, ServiceRequest request, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public Future<ServiceResponse> getTransaction(String transactionId, ServiceRequest requestreturn ) {
     Optional<Transaction> t = persistence.getTransaction(transactionId);
     if (t.isPresent())
-      resultHandler.handle(Future.succeededFuture(ServiceResponse.completedWithJson(t.get().toJson())));
+      return Future.succeededFuture(ServiceResponse.completedWithJson(t.get().toJson()));
     else
-      resultHandler.handle(Future.succeededFuture(new ServiceResponse().setStatusCode(404).setStatusMessage("Not Found")));
+      return Future.succeededFuture(new ServiceResponse().setStatusCode(404).setStatusMessage("Not Found"));
   }
 
   @Override
-  public void createTransaction(Transaction body, ServiceRequest request, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public Future<ServiceResponse> createTransaction(Transaction body, ServiceRequest requestreturn ) {
     Transaction transactionAdded = persistence.addTransaction(body);
-    resultHandler.handle(Future.succeededFuture(ServiceResponse.completedWithJson(transactionAdded.toJson())));
+    return Future.succeededFuture(ServiceResponse.completedWithJson(transactionAdded.toJson()));
   }
 
   @Override
-  public void updateTransaction(String transactionId, Transaction body, ServiceRequest request, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public Future<ServiceResponse> updateTransaction(String transactionId, Transaction body, ServiceRequest requestreturn ) {
     if (persistence.updateTransaction(transactionId, body))
-      resultHandler.handle(Future.succeededFuture(ServiceResponse.completedWithJson(body.toJson())));
+      return Future.succeededFuture(ServiceResponse.completedWithJson(body.toJson()));
     else
-      resultHandler.handle(Future.succeededFuture(new ServiceResponse().setStatusCode(404).setStatusMessage("Not Found")));
+      return Future.succeededFuture(new ServiceResponse().setStatusCode(404).setStatusMessage("Not Found"));
   }
 
   @Override
-  public void deleteTransaction(String transactionId, ServiceRequest request, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public Future<ServiceResponse> deleteTransaction(String transactionId, ServiceRequest requestreturn ) {
     if (persistence.removeTransaction(transactionId))
-      resultHandler.handle(Future.succeededFuture(new ServiceResponse().setStatusCode(200).setStatusMessage("OK")));
+      return Future.succeededFuture(new ServiceResponse().setStatusCode(200).setStatusMessage("OK"));
     else
-      resultHandler.handle(Future.succeededFuture(new ServiceResponse().setStatusCode(404).setStatusMessage("Not Found")));
+      return Future.succeededFuture(new ServiceResponse().setStatusCode(404).setStatusMessage("Not Found"));
   }
 
   private Predicate<Transaction> constructFilterPredicate(List<String> from, List<String> to, List<String> message) {

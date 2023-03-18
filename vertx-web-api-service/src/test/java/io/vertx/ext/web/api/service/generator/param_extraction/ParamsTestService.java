@@ -17,41 +17,41 @@ import java.util.Set;
 public interface ParamsTestService {
 
   @Deprecated
-  void basicTypes(String str, byte b, short s, int i, long l, float f, double d, char c, boolean bool, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> basicTypes(String str, byte b, short s, int i, long l, float f, double d, char c, boolean bool, ServiceRequest context);
 
   @Deprecated
-  void basicBoxedTypes(String str, Byte b, Short s, Integer i, Long l, Float f, Double d, Character c,
-                       Boolean bool, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> basicBoxedTypes(String str, Byte b, Short s, Integer i, Long l, Float f, Double d, Character c,
+                       Boolean bool, ServiceRequest context);
 
   @Deprecated
-  void basicBoxedTypesNull(String str, Byte b, Short s, Integer i, Long l, Float f, Double d, Character c,
-                           Boolean bool, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> basicBoxedTypesNull(String str, Byte b, Short s, Integer i, Long l, Float f, Double d, Character c,
+                           Boolean bool, ServiceRequest context);
 
   @Deprecated
-  void jsonTypes(JsonObject jsonObject, JsonArray jsonArray, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> jsonTypes(JsonObject jsonObject, JsonArray jsonArray, ServiceRequest context);
 
   @Deprecated
-  void jsonTypesNull(JsonObject jsonObject, JsonArray jsonArray, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> jsonTypesNull(JsonObject jsonObject, JsonArray jsonArray, ServiceRequest context);
 
   @Deprecated
-  void enumType(SomeEnum someEnum, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> enumType(SomeEnum someEnum, ServiceRequest context);
 
   @Deprecated
-  void enumTypeNull(SomeEnum someEnum, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> enumTypeNull(SomeEnum someEnum, ServiceRequest context);
 
   @Deprecated
-  void dataObjectType(FilterData options, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> dataObjectType(FilterData options, ServiceRequest context);
 
   @Deprecated
-  void dataObjectTypeNull(FilterData options, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> dataObjectTypeNull(FilterData options, ServiceRequest context);
 
   @Deprecated
-  void listParams(List<String> listString, List<Byte> listByte, List<Short> listShort, List<Integer> listInt, List<Long> listLong, List<JsonObject> listJsonObject, List<JsonArray> listJsonArray, List<FilterData> listDataObject, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> listParams(List<String> listString, List<Byte> listByte, List<Short> listShort, List<Integer> listInt, List<Long> listLong, List<JsonObject> listJsonObject, List<JsonArray> listJsonArray, List<FilterData> listDataObject, ServiceRequest context);
 
   @Deprecated
-  void setParams(Set<String> setString, Set<Byte> setByte, Set<Short> setShort, Set<Integer> setInt, Set<Long> setLong, Set<JsonObject> setJsonObject, Set<JsonArray> setJsonArray, Set<FilterData> setDataObject, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> setParams(Set<String> setString, Set<Byte> setByte, Set<Short> setShort, Set<Integer> setInt, Set<Long> setLong, Set<JsonObject> setJsonObject, Set<JsonArray> setJsonArray, Set<FilterData> setDataObject, ServiceRequest context);
 
   @Deprecated
-  void mapParams(Map<String, String> mapString, Map<String, Byte> mapByte, Map<String, Short> mapShort, Map<String, Integer> mapInt, Map<String, Long> mapLong, Map<String, JsonObject> mapJsonObject, Map<String, JsonArray> mapJsonArray, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> mapParams(Map<String, String> mapString, Map<String, Byte> mapByte, Map<String, Short> mapShort, Map<String, Integer> mapInt, Map<String, Long> mapLong, Map<String, JsonObject> mapJsonObject, Map<String, JsonArray> mapJsonArray, ServiceRequest context);
 
 }

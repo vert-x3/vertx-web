@@ -2,6 +2,7 @@ package io.vertx.ext.web.openapi.service;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.api.service.ServiceResponse;
@@ -10,11 +11,11 @@ import io.vertx.ext.web.api.service.WebApiServiceGen;
 @WebApiServiceGen
 @VertxGen
 public interface PathExtensionTestService {
-  void pathLevelGet(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> pathLevelGet(ServiceRequest context);
 
-  void getPathLevel(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> getPathLevel(ServiceRequest context);
 
-  void pathLevelPost(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> pathLevelPost(ServiceRequest context);
 
-  void postPathLevel(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> postPathLevel(ServiceRequest context);
 }

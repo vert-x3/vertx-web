@@ -1,8 +1,6 @@
 package io.vertx.ext.web.api.service;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
@@ -14,45 +12,45 @@ public class TestServiceImpl implements TestService {
   }
 
   @Override
-  public void testA(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public Future<ServiceResponse> testA(ServiceRequest context) {
     JsonObject body = context.getParams().getJsonObject("body");
-    resultHandler.handle(Future.succeededFuture(
+    return Future.succeededFuture(
       ServiceResponse.completedWithJson(new JsonObject().put("result", body.getString("hello") + " " + body.getString("name") + "!")))
-    );
+    ;
   }
 
   @Override
-  public void testB(JsonObject body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(
+  public Future<ServiceResponse> testB(JsonObject body, ServiceRequest context) {
+    return Future.succeededFuture(
       ServiceResponse.completedWithJson(new JsonObject().put("result", body.getString("hello") + " " + body.getString("name") + "?")))
-    );
+    ;
   }
 
   @Override
-  public void testEmptyServiceResponse(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(
+  public Future<ServiceResponse> testEmptyServiceResponse(ServiceRequest context) {
+    return Future.succeededFuture(
       new ServiceResponse()
-    ));
+    );
   }
 
   @Override
-  public void testUser(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(
+  public Future<ServiceResponse> testUser(ServiceRequest context) {
+    return Future.succeededFuture(
       ServiceResponse.completedWithJson(new JsonObject().put("result", "Hello " + context.getUser().getString("username") + "!")))
-    );
+    ;
   }
 
   @Override
-  public void extraPayload(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(
+  public Future<ServiceResponse> extraPayload(ServiceRequest context) {
+    return Future.succeededFuture(
       ServiceResponse.completedWithJson(new JsonObject().put("result", "Hello " + context.getExtra().getString("username") + "!")))
-    );
+    ;
   }
 
   @Override
-  public void testAuthorization(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(
+  public Future<ServiceResponse> testAuthorization(ServiceRequest context) {
+    return Future.succeededFuture(
       ServiceResponse.completedWithJson(new JsonObject().put("result", context.getHeaders().get("Authorization"))))
-    );
+    ;
   }
 }

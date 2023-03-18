@@ -1,5 +1,6 @@
 package io.vertx.ext.web.openapi.impl;
 
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -99,9 +100,10 @@ class OpenAPI3Utils {
 
   protected static boolean serviceProxyMethodIsCompatibleHandler(Method method) {
     java.lang.reflect.Parameter[] parameters = method.getParameters();
-    if (parameters.length < 2) return false;
-    if (!parameters[parameters.length - 1].getType().equals(Handler.class)) return false;
-    return parameters[parameters.length - 2].getType().getName().equals("io.vertx.ext.web.api.service.ServiceRequest");
+    if (parameters.length < 1) return false;
+    Class<?> returnType = method.getReturnType();
+    if (!returnType.equals(Future.class)) return false;
+    return parameters[parameters.length - 1].getType().getName().equals("io.vertx.ext.web.api.service.ServiceRequest");
   }
 
   protected static JsonObject sanitizeDeliveryOptionsExtension(JsonObject jsonObject) {

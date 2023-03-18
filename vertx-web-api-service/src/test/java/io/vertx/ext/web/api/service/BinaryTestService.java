@@ -1,14 +1,13 @@
 package io.vertx.ext.web.api.service;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 
 @WebApiServiceGen
 public interface BinaryTestService {
 
   @Deprecated
-  void binaryTest(
-    final ServiceRequest request,
-    final Handler<AsyncResult<ServiceResponse>> response);
+  Future<ServiceResponse> binaryTest(final ServiceRequest request);
 
 }

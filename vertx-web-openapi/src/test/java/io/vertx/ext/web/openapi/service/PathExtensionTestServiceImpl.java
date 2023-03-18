@@ -8,22 +8,22 @@ import io.vertx.ext.web.api.service.ServiceResponse;
 
 public class PathExtensionTestServiceImpl implements PathExtensionTestService {
   @Override
-  public void pathLevelGet(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(new ServiceResponse().setStatusMessage("pathLevelGet")));
+  public Future<ServiceResponse> pathLevelGet(ServiceRequest context) {
+    return Future.succeededFuture(new ServiceResponse().setStatusMessage("pathLevelGet"));
   }
 
   @Override
-  public void getPathLevel(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(new ServiceResponse().setStatusMessage("getPathLevel")));
+  public Future<ServiceResponse> getPathLevel(ServiceRequest context) {
+    return Future.succeededFuture(new ServiceResponse().setStatusMessage("getPathLevel"));
   }
 
   @Override
-  public void pathLevelPost(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(new ServiceResponse().setStatusMessage("pathLevelPost")));
+  public Future<ServiceResponse> pathLevelPost(ServiceRequest context) {
+    return Future.succeededFuture(new ServiceResponse().setStatusMessage("pathLevelPost"));
   }
 
   @Override
-  public void postPathLevel(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(new ServiceResponse().setStatusMessage("postPathLevel")));
+  public Future<ServiceResponse> postPathLevel(ServiceRequest context) {
+    return Future.succeededFuture(new ServiceResponse().setStatusMessage("postPathLevel"));
   }
 }

@@ -1,6 +1,7 @@
 package io.vertx.ext.web.api.service;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -8,17 +9,17 @@ import io.vertx.core.json.JsonObject;
 @WebApiServiceGen
 public interface TestService {
   @Deprecated
-  void testA(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testA(ServiceRequest context);
   @Deprecated
-  void testB(JsonObject body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testB(JsonObject body, ServiceRequest context);
   @Deprecated
-  void testEmptyServiceResponse(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testEmptyServiceResponse(ServiceRequest context);
   @Deprecated
-  void testUser(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testUser(ServiceRequest context);
   @Deprecated
-  void extraPayload(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> extraPayload(ServiceRequest context);
   @Deprecated
-  void testAuthorization(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testAuthorization(ServiceRequest context);
 
   static TestService create(Vertx vertx) {
     return new TestServiceImpl(vertx);

@@ -1,6 +1,7 @@
 package io.vertx.ext.web.api.service;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 
@@ -9,10 +10,10 @@ public
 interface FailureTestService {
 
   @Deprecated
-  void testFailure(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testFailure(ServiceRequest context);
 
   @Deprecated
-  void testException(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testException(ServiceRequest context);
 
   static FailureTestService create(Vertx vertx) {
     return new FailureTestServiceImpl(vertx);

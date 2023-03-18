@@ -19,51 +19,51 @@ public class AnotherTestServiceImpl implements AnotherTestService {
   }
 
   @Override
-  public void testC(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public Future<ServiceResponse> testC(ServiceRequest context) {
     JsonObject body = context.getParams().getJsonObject("body");
-    resultHandler.handle(Future.succeededFuture(
+    return Future.succeededFuture(
       ServiceResponse.completedWithJson(new JsonObject().put("anotherResult", body.getString("name") + " " + body.getString("hello") + "!")))
-    );
+    ;
   }
 
   @Override
-  public void testD(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public Future<ServiceResponse> testD(ServiceRequest context) {
     JsonObject body = context.getParams().getJsonObject("body");
-    resultHandler.handle(Future.succeededFuture(
+    return Future.succeededFuture(
       ServiceResponse.completedWithJson(
         new JsonObject()
           .put("content-type", context.getHeaders().get(HttpHeaders.CONTENT_TYPE))
           .put("anotherResult", body.getString("name") + " " + body.getString("hello") + "?")
       )
-    ));
-  }
-
-  @Override
-  public void testE(Integer id, JsonObject body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
-    resultHandler.handle(
-      Future.succeededFuture(
-        ServiceResponse.completedWithJson(new JsonObject().put("id", id).put("value", body.getValue("value")))
-      )
     );
   }
 
   @Override
-  public void testF(Integer id, RequestParameter body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
-    if (body.isJsonArray())
-      resultHandler.handle(
-        Future.succeededFuture(
-          ServiceResponse.completedWithJson(new JsonArray(body.getJsonArray().stream().map(i -> id + (Integer)i).collect(Collectors.toList())))
-        )
-      );
-    else
-      testE(id, body.getJsonObject(), context, resultHandler);
+  public Future<ServiceResponse> testE(Integer id, JsonObject body, ServiceRequest context) {
+    return
+      Future.succeededFuture(
+        ServiceResponse.completedWithJson(new JsonObject().put("id", id).put("value", body.getValue("value")))
+      )
+    ;
   }
 
   @Override
-  public void testDataObject(FilterData body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public Future<ServiceResponse> testF(Integer id, RequestParameter body, ServiceRequest context) {
+    if (body.isJsonArray())
+      return
+        Future.succeededFuture(
+          ServiceResponse.completedWithJson(new JsonArray(body.getJsonArray().stream().map(i -> id + (Integer)i).collect(Collectors.toList())))
+        )
+      ;
+    else
+      return testE(id, body.getJsonObject(), context);
+  }
+
+  @Override
+  public Future<ServiceResponse> testDataObject(FilterData body, ServiceRequest context) {
     JsonObject r = body.toJson();
     r.remove("message");
-    resultHandler.handle(Future.succeededFuture(ServiceResponse.completedWithJson(r)));
+    return Future.succeededFuture(ServiceResponse.completedWithJson(r));
   }
 
   @Override

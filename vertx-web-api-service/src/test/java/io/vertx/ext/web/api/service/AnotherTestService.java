@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.service;
 
 import io.vertx.codegen.annotations.ProxyClose;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -12,19 +13,19 @@ public
 interface AnotherTestService {
 
   @Deprecated
-  void testC(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testC(ServiceRequest context);
 
   @Deprecated
-  void testD(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testD(ServiceRequest context);
 
   @Deprecated
-  void testE(Integer id, JsonObject body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testE(Integer id, JsonObject body, ServiceRequest context);
 
   @Deprecated
-  void testF(Integer id, RequestParameter body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testF(Integer id, RequestParameter body, ServiceRequest context);
 
   @Deprecated
-  void testDataObject(FilterData body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testDataObject(FilterData body, ServiceRequest context);
 
   @ProxyClose
   void close();

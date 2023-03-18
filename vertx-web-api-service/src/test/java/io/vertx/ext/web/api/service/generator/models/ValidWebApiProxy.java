@@ -1,8 +1,7 @@
 package io.vertx.ext.web.api.service.generator.models;
 
 import io.vertx.codegen.annotations.ProxyClose;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
+import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.api.service.ServiceResponse;
@@ -15,11 +14,11 @@ import io.vertx.ext.web.validation.RequestParameter;
 @WebApiServiceGen
 public interface ValidWebApiProxy {
 
-  void testA(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testA(ServiceRequest context);
 
-  void testB(Integer id, JsonObject body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testB(Integer id, JsonObject body, ServiceRequest context);
 
-  void testC(Integer id, RequestParameter body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testC(Integer id, RequestParameter body, ServiceRequest context);
 
   @ProxyClose
   void closeIt();

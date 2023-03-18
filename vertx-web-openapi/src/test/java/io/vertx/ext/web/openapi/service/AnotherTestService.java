@@ -3,6 +3,7 @@ package io.vertx.ext.web.openapi.service;
 import io.vertx.codegen.annotations.ProxyClose;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -15,15 +16,15 @@ import io.vertx.ext.web.validation.RequestParameter;
 @VertxGen
 public interface AnotherTestService {
 
-  void testC(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testC(ServiceRequest context);
 
-  void testD(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testD(ServiceRequest context);
 
-  void testE(Integer id, JsonObject body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testE(Integer id, JsonObject body, ServiceRequest context);
 
-  void testF(Integer id, RequestParameter body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testF(Integer id, RequestParameter body, ServiceRequest context);
 
-  void testDataObject(FilterData body, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler);
+  Future<ServiceResponse> testDataObject(FilterData body, ServiceRequest context);
 
   @ProxyClose
   void close();

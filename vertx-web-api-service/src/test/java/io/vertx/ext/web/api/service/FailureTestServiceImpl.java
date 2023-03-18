@@ -14,13 +14,13 @@ public class FailureTestServiceImpl implements FailureTestService {
   }
 
   @Override
-  public void testFailure(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public Future<ServiceResponse> testFailure(ServiceRequest context) {
     JsonObject body = context.getParams().getJsonObject("body");
-    resultHandler.handle(Future.failedFuture(new Exception("error for " + body.getString("name"))));
+    return Future.failedFuture(new Exception("error for " + body.getString("name")));
   }
 
   @Override
-  public void testException(ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public Future<ServiceResponse> testException(ServiceRequest context) {
     JsonObject body = context.getParams().getJsonObject("body");
     throw new IllegalArgumentException();
   }

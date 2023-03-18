@@ -1,5 +1,5 @@
 @Source(translate = false)
-@ModuleGen(name = "examples", groupPackage = "examples")
+@ModuleGen(name = "examples", groupPackage = "examples", useFutures = true)
 package examples;
 
 import io.vertx.codegen.annotations.ModuleGen;
