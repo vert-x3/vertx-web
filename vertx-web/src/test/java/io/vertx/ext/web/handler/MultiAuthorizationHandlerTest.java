@@ -178,7 +178,7 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
 
       @Override
       public Future<Void> getAuthorizations(User user) {
-        user.authorizations().add(getId(), _authorizations);
+        user.authorizations().put(getId(), _authorizations);
         return Future.succeededFuture();
       }
     };

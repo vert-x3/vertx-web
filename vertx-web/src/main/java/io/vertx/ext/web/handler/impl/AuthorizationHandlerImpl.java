@@ -117,7 +117,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     do {
       AuthorizationProvider provider = providers.next();
       // we haven't fetched authorization from this provider yet
-      if (!user.authorizations().getProviderIds().contains(provider.getId())) {
+      if (!user.authorizations().contains(provider.getId())) {
         provider.getAuthorizations(ctx.user())
           .onFailure(err -> {
             LOG.warn("An error occurred getting authorization - providerId: " + provider.getId(), err);
