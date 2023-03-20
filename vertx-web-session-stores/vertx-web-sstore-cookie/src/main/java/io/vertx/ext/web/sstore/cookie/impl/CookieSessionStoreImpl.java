@@ -71,7 +71,14 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
 
     try {
       byte[] iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-      random.nextBytes(iv);
+      if (options.containsKey("iv")) {
+        byte[] tmp = options.getBinary("iv");
+        for (int i = 0; i < tmp.length && i < iv.length; i++) {
+          iv[i] = tmp[i];
+        }
+      } else {
+        random.nextBytes(iv);
+      }
       IvParameterSpec ivspec = new IvParameterSpec(iv);
 
       SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
