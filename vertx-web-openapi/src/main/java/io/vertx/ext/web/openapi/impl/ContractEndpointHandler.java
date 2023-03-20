@@ -22,6 +22,8 @@ import java.util.stream.Stream;
 
 public class ContractEndpointHandler implements Handler<RoutingContext> {
 
+  private static final LoaderOptions DEFAULT_OPTIONS = new LoaderOptions();
+
   private static final List<MIMEHeader> JSON_DATA_TYPES = Stream.of(
     new ParsableMIMEValue("application/json").forceParse()
   ).collect(Collectors.toList());
@@ -62,7 +64,7 @@ public class ContractEndpointHandler implements Handler<RoutingContext> {
   public static ContractEndpointHandler create(OpenAPIHolder holder) {
     try (StringWriter writer = new StringWriter()) {
       JsonObject openapi = holder.getOpenAPI();
-      Yaml yaml = new Yaml(new SafeConstructor());
+      Yaml yaml = new Yaml(new SafeConstructor(DEFAULT_OPTIONS));
       yaml.dump(openapi.getMap(), writer);
       return new ContractEndpointHandler(openapi.toBuffer(), Buffer.buffer(writer.toString()));
     } catch (IOException | RuntimeException e) {
