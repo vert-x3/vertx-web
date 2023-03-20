@@ -18,6 +18,7 @@ package io.vertx.ext.web.sstore.cookie.impl;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.prng.VertxContextPRNG;
@@ -25,11 +26,19 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.sstore.cookie.CookieSessionStore;
 
-import javax.crypto.Mac;
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import java.util.Objects;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
@@ -40,11 +49,14 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
     // required for the service loader
   }
 
-  public CookieSessionStoreImpl(Vertx vertx, String secret) {
-    init(vertx, new JsonObject().put("secret", secret));
+  public CookieSessionStoreImpl(Vertx vertx, String secret, Buffer salt) {
+    init(vertx, new JsonObject()
+      .put("secret", secret)
+      .put("salt", salt));
   }
 
-  private Mac mac;
+  private Cipher encrypt;
+  private Cipher decrypt;
   private VertxContextPRNG random;
   private ContextInternal ctx;
 
@@ -54,10 +66,32 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
     this.random = VertxContextPRNG.current(vertx);
     this.ctx = (ContextInternal) vertx.getOrCreateContext();
 
+    Objects.requireNonNull(options.getValue("secret"), "secret must be set");
+    Objects.requireNonNull(options.getValue("salt"), "salt must be set");
+
     try {
-      mac = Mac.getInstance("HmacSHA256");
-      mac.init(new SecretKeySpec(options.getString("secret").getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
-    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+      byte[] iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+      random.nextBytes(iv);
+      IvParameterSpec ivspec = new IvParameterSpec(iv);
+
+      SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+      KeySpec spec = new PBEKeySpec(
+        options.getString("secret").toCharArray(),
+        options.getBinary("salt"),
+        65536,
+        256);
+
+      SecretKey tmp = factory.generateSecret(spec);
+      SecretKeySpec secretKey = new SecretKeySpec(tmp.getEncoded(), "AES");
+
+      encrypt = Cipher.getInstance("AES/CBC/PKCS5Padding");
+      encrypt.init(Cipher.ENCRYPT_MODE, secretKey, ivspec);
+
+      decrypt = Cipher.getInstance("AES/CBC/PKCS5Padding");
+      decrypt.init(Cipher.DECRYPT_MODE, secretKey, ivspec);
+
+    } catch (NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException |
+             InvalidAlgorithmParameterException | NoSuchPaddingException e) {
       throw new RuntimeException(e);
     }
 
@@ -71,18 +105,18 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
 
   @Override
   public Session createSession(long timeout) {
-    return new CookieSession(mac, random, timeout, DEFAULT_SESSIONID_LENGTH);
+    return new CookieSession(encrypt, decrypt, random, timeout, DEFAULT_SESSIONID_LENGTH);
   }
 
   @Override
   public Session createSession(long timeout, int length) {
-    return new CookieSession(mac, random, timeout, length);
+    return new CookieSession(encrypt, decrypt, random, timeout, length);
   }
 
   @Override
   public Future<@Nullable Session> get(String cookieValue) {
     try {
-      Session session = new CookieSession(mac, random).setValue(cookieValue);
+      Session session = new CookieSession(encrypt, decrypt, random).setValue(cookieValue);
 
       if (session == null) {
         return ctx.succeededFuture();

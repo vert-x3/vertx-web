@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.sstore.cookie;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.SessionHandler;
@@ -33,7 +34,7 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    store = CookieSessionStore.create(vertx, "KeyboardCat!");
+    store = CookieSessionStore.create(vertx, "KeyboardCat!", Buffer.buffer("salt"));
   }
 
   @Test
