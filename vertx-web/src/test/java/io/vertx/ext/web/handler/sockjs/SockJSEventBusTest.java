@@ -39,32 +39,34 @@ public class SockJSEventBusTest extends SockJSTestBase {
   private void testWrite(boolean text) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.endHandler(v -> {
-        testComplete();
-      });
       if (text) {
         vertx.eventBus().send(socket.writeHandlerID(), expected);
       } else {
         vertx.eventBus().send(socket.writeHandlerID(), Buffer.buffer(expected));
       }
+      socket.endHandler(v -> {
+        testComplete();
+      });
     };
     startServers();
-    client.webSocket("/test/websocket").onComplete(onSuccess(ws -> {
-      ws.frameHandler(frame -> {
-        if (frame.isClose()) {
-          //
-        } else {
-          if (text) {
-            assertTrue(frame.isText());
-            assertEquals(expected, frame.textData());
+    vertx.runOnContext(v -> {
+      client.webSocket("/test/websocket").onComplete(onSuccess(ws -> {
+        ws.frameHandler(frame -> {
+          if (frame.isClose()) {
+            //
           } else {
-            assertTrue(frame.isBinary());
-            assertEquals(Buffer.buffer(expected), frame.binaryData());
+            if (text) {
+              assertTrue(frame.isText());
+              assertEquals(expected, frame.textData());
+            } else {
+              assertTrue(frame.isBinary());
+              assertEquals(Buffer.buffer(expected), frame.binaryData());
+            }
+            ws.end();
           }
-          ws.end();
-        }
-      });
-    }));
+        });
+      }));
+    });
     await();
   }
 }
