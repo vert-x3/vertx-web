@@ -16,6 +16,7 @@
 package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 
@@ -29,6 +30,7 @@ public class SockJSEventBusTest extends SockJSTestBase {
     testWrite(true);
   }
 
+  @Repeat(times = 1000)
   @Test
   public void testWriteBinary() throws Exception {
     testWrite(false);
@@ -37,14 +39,14 @@ public class SockJSEventBusTest extends SockJSTestBase {
   private void testWrite(boolean text) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
+      socket.endHandler(v -> {
+        testComplete();
+      });
       if (text) {
         vertx.eventBus().send(socket.writeHandlerID(), expected);
       } else {
         vertx.eventBus().send(socket.writeHandlerID(), Buffer.buffer(expected));
       }
-      socket.endHandler(v -> {
-        testComplete();
-      });
     };
     startServers();
     client.webSocket("/test/websocket").onComplete(onSuccess(ws -> {
