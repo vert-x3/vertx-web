@@ -16,14 +16,10 @@
 
 package io.vertx.ext.web.handler;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.KeyStoreOptions;
-import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authorization.Authorization;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
@@ -34,9 +30,7 @@ import io.vertx.ext.web.WebTestBase;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
+import java.util.Collections;
 
 /**
  *
@@ -154,20 +148,6 @@ public class SecurityAuditLoggerHandlerTest extends WebTestBase {
   }
 
   private AuthorizationProvider createProvider(String id, Authorization authorization) {
-    Set<Authorization> _authorizations = new HashSet<>();
-    _authorizations.add(authorization);
-    return new AuthorizationProvider() {
-
-      @Override
-      public String getId() {
-        return id;
-      }
-
-      @Override
-      public void getAuthorizations(User user, Handler<AsyncResult<Void>> handler) {
-        user.authorizations().add(getId(), _authorizations);
-        handler.handle(Future.succeededFuture());
-      }
-    };
+    return AuthorizationProvider.create(id, Collections.singleton(authorization));
   }
 }
