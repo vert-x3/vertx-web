@@ -1080,8 +1080,8 @@ Here are some examples of creating a clustered {@link io.vertx.ext.web.sstore.Se
 Other stores are also available, these stores can be used by importing the correct jar
 to the project. One example of such stores is the cookie store. This store has the advantage
 that it requires no backend or server side state, which can be useful it some situations
-**BUT** all session data will be sent back to the client in the Cookie, so if you need to store
-private information this should not be used.
+**BUT** all session data will be sent back to the client in the **encrypted** Cookie, so if
+you need to store private information this should not be used.
 
 This store is appropriate if you're using sticky sessions, i.e. your load balancer is
 distributing different requests from the same browser to different servers.

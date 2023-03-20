@@ -19,7 +19,9 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.sstore.AbstractSession;
 
-import javax.crypto.Mac;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -33,20 +35,23 @@ public class CookieSession extends AbstractSession {
 
   private static final Charset UTF8 = StandardCharsets.UTF_8;
 
-  private final Mac mac;
+  private final Cipher encrypt;
+  private final Cipher decrypt;
   // track the original version
   private int oldVersion = 0;
   // track the original crc
   private int oldCrc = 0;
 
-  public CookieSession(Mac mac, VertxContextPRNG prng, long timeout, int length) {
+  public CookieSession(Cipher encrypt, Cipher decrypt, VertxContextPRNG prng, long timeout, int length) {
     super(prng, timeout, length);
-    this.mac = mac;
+    this.encrypt = encrypt;
+    this.decrypt = decrypt;
   }
 
-  public CookieSession(Mac mac, VertxContextPRNG prng) {
+  public CookieSession(Cipher encrypt, Cipher decrypt, VertxContextPRNG prng) {
     super(prng);
-    this.mac = mac;
+    this.encrypt = encrypt;
+    this.decrypt = decrypt;
   }
 
   @Override
@@ -61,10 +66,11 @@ public class CookieSession extends AbstractSession {
     buff.appendInt(version());
     writeDataToBuffer(buff);
 
-    String b64 = base64UrlEncode(buff.getBytes());
-    String signature = base64UrlEncode(mac.doFinal(b64.getBytes(StandardCharsets.US_ASCII)));
-
-    return b64 + "." + signature;
+    try {
+      return base64UrlEncode(encrypt.doFinal(buff.getBytes()));
+    } catch (IllegalBlockSizeException | BadPaddingException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
@@ -84,39 +90,44 @@ public class CookieSession extends AbstractSession {
       throw new NullPointerException();
     }
 
-    String[] tokens = payload.split("\\.");
-    if (tokens.length != 2) {
-      // no signature present, force a regeneration
-      // by claiming this session as invalid
+//    String[] tokens = payload.split("\\.");
+//    if (tokens.length != 2) {
+//      // no signature present, force a regeneration
+//      // by claiming this session as invalid
+//      return null;
+//    }
+//
+//    String signature = base64UrlEncode(mac.doFinal(tokens[0].getBytes(StandardCharsets.US_ASCII)));
+//
+//    if(!signature.equals(tokens[1])) {
+//      throw new RuntimeException("Session data was Tampered!");
+//    }
+
+    try {
+      final Buffer buffer = Buffer.buffer(decrypt.doFinal(base64UrlDecode(payload)));
+
+      // reconstruct the session
+      int pos = 0;
+      int len = buffer.getInt(0);
+      pos += 4;
+      byte[] bytes = buffer.getBytes(pos, pos + len);
+      pos += len;
+      setId(new String(bytes, UTF8));
+      setTimeout(buffer.getLong(pos));
+      pos += 8;
+      setLastAccessed(buffer.getLong(pos));
+      pos += 8;
+      setVersion(buffer.getInt(pos));
+      pos += 4;
+      readDataFromBuffer(pos, buffer);
+
+      // defaults
+      oldVersion = version();
+      oldCrc = crc();
+    } catch (IllegalBlockSizeException | BadPaddingException e) {
+      // this is a bad session, force a regeneration
       return null;
     }
-
-    String signature = base64UrlEncode(mac.doFinal(tokens[0].getBytes(StandardCharsets.US_ASCII)));
-
-    if(!signature.equals(tokens[1])) {
-      throw new RuntimeException("Session data was Tampered!");
-    }
-
-    final Buffer buffer = Buffer.buffer(base64UrlDecode(tokens[0]));
-
-    // reconstruct the session
-    int pos = 0;
-    int len = buffer.getInt(0);
-    pos += 4;
-    byte[] bytes = buffer.getBytes(pos, pos + len);
-    pos += len;
-    setId(new String(bytes, UTF8));
-    setTimeout(buffer.getLong(pos));
-    pos += 8;
-    setLastAccessed(buffer.getLong(pos));
-    pos += 8;
-    setVersion(buffer.getInt(pos));
-    pos += 4;
-    readDataFromBuffer(pos, buffer);
-
-    // defaults
-    oldVersion = version();
-    oldCrc = crc();
 
     return this;
   }
