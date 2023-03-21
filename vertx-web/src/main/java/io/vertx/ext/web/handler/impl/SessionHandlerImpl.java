@@ -259,6 +259,15 @@ public class SessionHandlerImpl implements SessionHandler {
 
   @Override
   public void handle(RoutingContext context) {
+
+    // we need to keep state since we can be called again on reroute
+    if (!((RoutingContextInternal) context).seenHandler(RoutingContextInternal.SESSION_HANDLER)) {
+      ((RoutingContextInternal) context).visitHandler(RoutingContextInternal.SESSION_HANDLER);
+    } else {
+      context.next();
+      return;
+    }
+
     HttpServerRequest request = context.request();
     if (nagHttps && LOG.isDebugEnabled()) {
       String uri = request.absoluteURI();

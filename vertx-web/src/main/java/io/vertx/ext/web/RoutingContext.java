@@ -226,6 +226,12 @@ public interface RoutingContext {
   @Nullable User user();
 
   /**
+   * Control the identity associated with this request.
+   * @return the identity control
+   */
+  WebIdentity identity();
+
+  /**
    * If the context is being routed to failure handlers after a failure has been triggered by calling
    * {@link #fail(Throwable)} then this will return that throwable. It can be used by failure handlers to render a response,
    * e.g. create a failure response page.

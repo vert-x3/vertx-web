@@ -148,35 +148,11 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
           // the redirect is processed as a failure to abort the chain
           String redirectUri = context.request().uri();
-          String state = null;
-          String codeVerifier = null;
-
-          final Session session = context.session();
-
-          if (session == null) {
-            if (pkce > 0) {
-              // we can only handle PKCE with a session
-              return Future.failedFuture(new HttpException(500, new IllegalStateException("OAuth2 PKCE requires a session to be present")));
-            }
-          } else {
-            // there's a session we can make this request comply to the Oauth2 spec and add an opaque state
-            session
-              .put("redirect_uri", context.request().uri());
-
-            // create a state value to mitigate replay attacks
-            state = prng.nextString(6);
-            // store the state in the session
-            session
-              .put("state", state);
-
-            if (pkce > 0) {
-              codeVerifier = prng.nextString(pkce);
-              // store the code verifier in the session
-              session
-                .put("pkce", codeVerifier);
-            }
+          try {
+            return Future.failedFuture(new HttpException(302, authURI(context.session(), redirectUri)));
+          } catch (IllegalStateException e) {
+            return Future.failedFuture(e);
           }
-          return Future.failedFuture(new HttpException(302, authURI(redirectUri, state, codeVerifier)));
         }
       } else {
         // continue
@@ -193,7 +169,41 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     });
   }
 
-  private String authURI(String redirectURL, String state, String codeVerifier) {
+  private String authURI(Session session, String redirectURL) {
+
+    String state = null;
+    String codeVerifier = null;
+    String loginHint = null;
+
+    if (session == null) {
+      if (pkce > 0) {
+        // we can only handle PKCE with a session
+        throw new IllegalStateException("OAuth2 PKCE requires a session to be present");
+      }
+    } else {
+      // there's a session we can make this request comply to the Oauth2 spec and add an opaque state
+
+      loginHint = session.get("login_hint");
+      // hint will be considered at least once
+      session.remove("login_hint");
+
+      session
+        .put("redirect_uri", redirectURL);
+
+      // create a state value to mitigate replay attacks
+      state = prng.nextString(6);
+      // store the state in the session
+      session
+        .put("state", state);
+
+      if (pkce > 0) {
+        codeVerifier = prng.nextString(pkce);
+        // store the code verifier in the session
+        session
+          .put("pkce", codeVerifier);
+      }
+    }
+
     final OAuth2AuthorizationURL config = new OAuth2AuthorizationURL();
 
     if (extraParams != null) {
@@ -205,7 +215,9 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     }
 
     config
-      .setState(state != null ? state : redirectURL);
+      .setState(state != null ? state : redirectURL)
+      .setLoginHint(loginHint)
+      .setPrompt(prompt);
 
     if (callbackURL != null) {
       config.setRedirectUri(callbackURL.href());
@@ -215,16 +227,12 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       config.setScopes(scopes);
     }
 
-    if (prompt != null) {
-      config.putAdditionalParameter("prompt", prompt);
-    }
-
     if (codeVerifier != null) {
       synchronized (sha256) {
         sha256.update(codeVerifier.getBytes(StandardCharsets.US_ASCII));
         config
-          .putAdditionalParameter("code_challenge", Codec.base64UrlEncode(sha256.digest()))
-          .putAdditionalParameter("code_challenge_method", "S256");
+          .setCodeChallenge(Codec.base64UrlEncode(sha256.digest()))
+          .setCodeChallengeMethod("S256");
       }
     }
 

@@ -1368,6 +1368,38 @@ Complex chaining is also possible, for example, building logic sequences such as
 {@link examples.WebExamples#example78}
 ----
 
+=== Impersonation
+
+When using authentication handlers, it is possible that the identity of the user changes over time. For
+example, a user may require to become `admin` for a specific period of time. This can be achieved by calling:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example89}
+----
+
+The operation can be reversed by calling:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example90}
+----
+
+The impersonation does not require calling other router endpoints to avoid being exploited from the outside.
+
+=== Refreshing identities
+
+There are times when a critical operation may require attestation of the presence of the user. While this
+attestation is complex, we can achieve this by refreshing the identity of the user. This can be achieved by calling:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example91}
+----
+
+This will require the user to authenticate again to confirm the identity.
+
+
 == Security Auditing
 
 Vert.x-Web comes with an out of the box handler for auditing security events. This handler is useful for logging to an external system like EDR/XDR. EDR stands for Endpoint Detection and Response and XDR stands for Extended Detection and Response. These are security products that are used to detect and respond to threats on endpoints. The handler is called `SecurityAuditLoggerHandler` and it used as a top level handler as:

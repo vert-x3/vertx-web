@@ -194,6 +194,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public WebIdentity identity() {
+    return inner.identity();
+  }
+
+  @Override
   public void next() {
     if (!super.iterateNext()) {
       // We didn't route request to anything so go to parent,

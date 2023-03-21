@@ -1968,6 +1968,38 @@ public class WebExamples {
       });
   }
 
+  public void example89(Router router) {
+    router
+      .route("/high/security/route/check")
+      .handler(ctx -> {
+        // if the user isn't admin, we ask the user to login again as admin
+        ctx
+          .identity()
+          .loginHint("admin")
+          .impersonate();
+      });
+  }
+
+  public void example90(Router router) {
+    router
+      .route("/high/security/route/back/to/me")
+      .handler(ctx -> {
+        ctx
+          .identity()
+          .undo();
+      });
+  }
+
+  public void example91(Router router) {
+    router
+      .route("/high/security/route/refresh/me")
+      .handler(ctx -> {
+        ctx
+          .identity()
+          .refresh();
+      });
+  }
+
   public void example88(Router router) {
     router.route()
       .handler(SecurityAuditLoggerHandler.create());

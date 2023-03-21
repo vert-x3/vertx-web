@@ -195,6 +195,11 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  public WebIdentity identity() {
+    return decoratedContext.identity();
+  }
+
+  @Override
   public Session session() {
     return decoratedContext.session();
   }

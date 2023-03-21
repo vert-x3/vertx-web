@@ -25,10 +25,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.RequestBody;
-import io.vertx.ext.web.FileUpload;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.Session;
+import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.impl.UserHolder;
 
@@ -70,6 +67,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private List<FileUpload> fileUploads;
   private Session session;
   private User user;
+  private WebIdentity identity;
 
   private volatile boolean isSessionAccessed = false;
   private volatile boolean endHandlerCalled = false;
@@ -308,6 +306,14 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public User user() {
     return user;
+  }
+
+  @Override
+  public WebIdentity identity() {
+    if (identity == null) {
+      identity = new WebIdentityImpl(this);
+    }
+    return identity;
   }
 
   @Override
