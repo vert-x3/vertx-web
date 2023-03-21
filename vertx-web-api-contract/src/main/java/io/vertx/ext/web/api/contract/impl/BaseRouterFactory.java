@@ -17,7 +17,7 @@ import java.util.function.Function;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-abstract public class BaseRouterFactory<Specification> implements RouterFactory<Specification> {
+abstract public class BaseRouterFactory<Specification> implements RouterFactory {
 
   /**
    * Default validation failure handler. When ValidationException occurs, It sends a response

@@ -1,10 +1,5 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.parser.OpenAPIV3Parser;
-import io.swagger.v3.parser.ResolverCache;
-import io.swagger.v3.parser.core.models.AuthorizationValue;
-import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
@@ -12,15 +7,11 @@ import io.vertx.core.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.RouterFactory;
-import io.vertx.ext.web.api.contract.RouterFactoryException;
-import io.vertx.ext.web.api.contract.openapi3.impl.OpenAPI3RouterFactoryImpl;
-import io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils;
+import io.vertx.ext.web.api.contract.openapi3.impl.Utils;
 import io.vertx.ext.web.handler.BodyHandler;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Interface for OpenAPI3RouterFactory. <br/>
@@ -59,7 +50,7 @@ import java.util.stream.Collectors;
  */
 @VertxGen
 @Deprecated
-public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
+public interface OpenAPI3RouterFactory extends RouterFactory {
 
   /**
    * Add a particular scope validator. The main security schema will not be called if a specific scope validator is
@@ -161,32 +152,14 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
    * @param vertx
    * @param url location of your spec. It can be an absolute path, a local path or remote url (with HTTP protocol)
    * @param auth list of authorization values needed to access the remote url. Each item should be json representation
-   *             of an {@link AuthorizationValue}
+   *             of an {@code AuthorizationValue}
    * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
    */
   static void create(Vertx vertx,
                      String url,
                      List<JsonObject> auth,
                      Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
-    List<AuthorizationValue> authorizationValues = auth.stream()
-      .map(obj -> {
-        AuthorizationValue authorizationValue = obj.mapTo(AuthorizationValue.class);
-        authorizationValue.setUrlMatcher(u -> true);
-        return authorizationValue;
-      })
-      .collect(Collectors.toList());
-    vertx.executeBlocking((Promise<OpenAPI3RouterFactory> future) -> {
-      SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser()
-        .readLocation(url, authorizationValues, OpenApi3Utils.getParseOptions());
-      if (swaggerParseResult.getMessages().isEmpty()) {
-        future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI(), new ResolverCache(swaggerParseResult.getOpenAPI(), null, url)));
-      } else {
-        if (swaggerParseResult.getMessages().size() == 1 && swaggerParseResult.getMessages().get(0).matches("Unable to read location `?\\Q" + url + "\\E`?"))
-          future.fail(RouterFactoryException.createSpecNotExistsException(url));
-        else
-          future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
-      }
-    }, handler);
+    Utils.create(vertx, url, auth, handler);
   }
 
   /**
@@ -194,7 +167,7 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
    * @param vertx
    * @param url location of your spec. It can be an absolute path, a local path or remote url (with HTTP protocol)
    * @param auth list of authorization values needed to access the remote url. Each item should be json representation
-   *             of an {@link AuthorizationValue}
+   *             of an {@code AuthorizationValue}
    * @return future When specification is loaded, this future will be called with AsyncResult<OpenAPI3RouterFactory>
    */
   static Future<OpenAPI3RouterFactory> create(Vertx vertx, String url, List<JsonObject> auth) {

@@ -18,7 +18,7 @@ import java.util.function.Function;
  */
 @VertxGen(concrete = false)
 @Deprecated
-public interface RouterFactory<Specification> {
+public interface RouterFactory {
 
   /**
    * Mount to paths that have to follow a security schema a security handler
