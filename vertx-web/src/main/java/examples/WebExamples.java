@@ -1967,4 +1967,15 @@ public class WebExamples {
         ctx.end(value);
       });
   }
+
+  public void example88(Router router) {
+    router.route()
+      .handler(SecurityAuditLoggerHandler.create());
+
+    // By default, nothing seems to happen when the handler is called
+    // in order to get it to log, you need to set the logger:
+    // io.vertx.ext.auth.audit.SecurityAudit
+    // to level INFO
+  }
+
 }
