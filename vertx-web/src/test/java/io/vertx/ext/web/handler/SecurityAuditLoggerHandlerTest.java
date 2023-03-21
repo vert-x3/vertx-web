@@ -143,7 +143,7 @@ public class SecurityAuditLoggerHandlerTest extends WebTestBase {
 
 
     // [AUTHENTICATION epoch="1674825632005" source="127.0.0.1" destination="127.0.0.1" resource="HTTP/1.1 GET /protected/page1" token="********************************..."] OK
-    // [AUTHORIZATION epoch="1674825632007" source="127.0.0.1" destination="127.0.0.1" resource="HTTP/1.1 GET /protected/page1" subject="paulo" authorizations="{authzProvider3=[ROLE[role3]], authzProvider2=[ROLE[role2]], authzProvider1=[ROLE[role1]]}" authorization="ROLE[role3]"] OK
+    // [AUTHORIZATION epoch="1674825632007" source="127.0.0.1" destination="127.0.0.1" resource="HTTP/1.1 GET /protected/page1" subject="paulo" authorization="ROLE[role3]"] OK
     // [REQUEST epoch="1674825632010" source="127.0.0.1" destination="127.0.0.1" resource="HTTP/1.1 GET /protected/page1" status=200] OK
   }
 
