@@ -18,6 +18,7 @@ package io.vertx.ext.web.impl;
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -103,6 +104,10 @@ public interface RoutingContextInternal extends RoutingContext {
       }
       return null;
     }
+  }
 
-  };
+  /**
+   * Get or Default the security audit object.
+   */
+  SecurityAudit securityAudit();
 }

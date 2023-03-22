@@ -16,12 +16,15 @@ import io.vertx.core.Future;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.audit.Marker;
+import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.authorization.Authorization;
 import io.vertx.ext.auth.authorization.AuthorizationContext;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,7 +96,13 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
    * @param providers            the providers iterator
    */
   private void checkOrFetchAuthorizations(RoutingContext ctx, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
+    final User user = ctx.user();
+    final SecurityAudit audit = ((RoutingContextInternal) ctx).securityAudit();
+    audit.authorization(authorization);
+    audit.user(user);
+
     if (authorization.match(authorizationContext)) {
+      audit.audit(Marker.AUTHORIZATION, true);
       if (!ctx.request().isEnded()) {
         ctx.request().resume();
       }
@@ -101,12 +110,11 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
       return;
     }
 
-    final User user = ctx.user();
-
     if (user == null || !providers.hasNext()) {
       if (!ctx.request().isEnded()) {
         ctx.request().resume();
       }
+      audit.audit(Marker.AUTHORIZATION, false);
       ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
       return;
     }
@@ -135,6 +143,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
     if (!ctx.request().isEnded()) {
       ctx.request().resume();
     }
+    audit.audit(Marker.AUTHORIZATION, false);
     ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
   }
 

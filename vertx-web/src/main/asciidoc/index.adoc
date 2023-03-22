@@ -1368,6 +1368,93 @@ Complex chaining is also possible, for example, building logic sequences such as
 {@link examples.WebExamples#example78}
 ----
 
+== Security Auditing
+
+Vert.x-Web comes with an out of the box handler for auditing security events. This handler is useful for logging to an external system like EDR/XDR. EDR stands for Endpoint Detection and Response and XDR stands for Extended Detection and Response. These are security products that are used to detect and respond to threats on endpoints. The handler is called `SecurityAuditLoggerHandler` and it used as a top level handler as:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example88}
+----
+
+=== Event types
+
+The handler will log the following events:
+
+==== REQUEST
+
+When a request is received (either success or fail) you will get a log event with the following information:
+
+----
+[REQUEST epoch="1679389193762" source="127.0.0.1" destination="127.0.0.1" resource="HTTP/1.1 GET /protected/foo" status=200] OK
+----
+
+When a failure occurs you will get a log event with the following information:
+
+----
+[REQUEST epoch="1679389193924" source="127.0.0.1" destination="127.0.0.1" resource="HTTP/1.1 GET /somedir" status=500] FAIL
+----
+
+The information you will get is:
+
+* epoch - the time in milliseconds since the epoch
+* source - the source IP address
+* destination - the destination IP address
+* resource - the HTTP resource
+* status - the HTTP status code
+
+==== AUTHENTICATION
+
+When a request is authenticated you will get a log event with the following information:
+
+----
+[AUTHENTICATION epoch="1679389193762" source="127.0.0.1" destination="127.0.0.1" resource="HTTP/1.1 GET /protected/foo" token="********************************..."] OK
+----
+
+The handler is masking well known PII fields like passwords, tokens, etc. Also for failures there will be an event
+logged:
+
+----
+[AUTHENTICATION epoch="1679389193568" source="127.0.0.1" destination="127.0.0.1" resource="HTTP/1.1 GET /protected/foo" token="********************************..."] FAIL
+----
+
+==== AUTHORIZATION
+
+When a request is authorized you will get a log event with the following information:
+
+----
+[AUTHORIZATION epoch="1679389193678" source="127.0.0.1" destination="127.0.0.1" resource="HTTP/1.1 GET /protected/page1" subject="paulo" authorization="ROLE[role3]"] OK
+----
+
+When a request is not authorized you will get a log event with the following information:
+
+----
+[AUTHORIZATION epoch="1679389193678" source="127.0.0.1" destination="127.0.0.1" resource="HTTP/1.1 GET /protected/page1" subject="paulo" authorization="ROLE[role3]"] OK
+----
+
+The the event will include a couple of extra fields:
+
+* subject - the subject that was authenticated
+* authorization - the authorization that was *required* to authorize the request
+
+The logger will not include user specific authorization information to avoid leaking PII/PHI information.
+
+=== Configuration
+
+The handler will usually log using rfc5424 format (usually known as syslog) but you can configure it to use other
+formats. The configuration is global as it affects the logging format, so to change it you need to do it at a system
+property defined at startup time:
+
+----
+io.vertx.ext.auth.audit.format=rfc5424
+
+// OR
+
+io.vertx.ext.auth.audit.format=json
+----
+
+When using JSON, the same data is logged in a single line json document.
+
 == Serving static resources
 
 Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers

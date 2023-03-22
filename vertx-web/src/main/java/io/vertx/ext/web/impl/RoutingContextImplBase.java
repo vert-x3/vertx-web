@@ -21,6 +21,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -59,6 +60,8 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   boolean normalizedMatch;
   // internal runtime state
   private volatile long seen;
+  // immutable security audit
+  private final SecurityAudit securityAudit;
 
   protected Set<HttpMethod> allowedMethods = new HashSet<>();
 
@@ -66,6 +69,7 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
     this.mountPoint = mountPoint;
     this.routes = routes;
     this.iter = routes.iterator();
+    this.securityAudit = SecurityAudit.create();
 
     this.currentRouter = currentRouter;
     resetMatchFailure();
@@ -90,6 +94,11 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   @Override
   public boolean normalizedMatch() {
     return normalizedMatch;
+  }
+
+  @Override
+  public SecurityAudit securityAudit() {
+    return securityAudit;
   }
 
   @Override

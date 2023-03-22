@@ -19,11 +19,14 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.audit.Marker;
+import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.JWTAuthHandler;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,9 +74,14 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
           return Future.failedFuture(new HttpException(400, "Invalid character in token: " + (int) c));
         }
 
+        final TokenCredentials credentials = new TokenCredentials(token);
+        final SecurityAudit audit = ((RoutingContextInternal) context).securityAudit();
+        audit.credentials(credentials);
+
         return
           authProvider
             .authenticate(new TokenCredentials(token))
+            .andThen(op -> audit.audit(Marker.AUTHENTICATION, op.succeeded()))
             .recover(err -> Future.failedFuture(new HttpException(401, err)));
       });
   }

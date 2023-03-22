@@ -24,19 +24,22 @@ import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.Shareable;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.VertxContextPRNG;
+import io.vertx.ext.auth.audit.Marker;
+import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.auth.htdigest.HtdigestCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.DigestAuthHandler;
 import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.Set;
 
 import static io.vertx.ext.auth.impl.Codec.base16Encode;
 
@@ -116,7 +119,7 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
 
     return parseAuthorization(context)
       .compose(header -> {
-        final HtdigestCredentials authInfo = new HtdigestCredentials();
+        final HtdigestCredentials credentials = new HtdigestCredentials();
 
         try {
           // Split the parameters by comma.
@@ -131,37 +134,37 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
             if (m.find()) {
               switch (m.group(1)) {
                 case "algorithm":
-                  authInfo.setAlgorithm(m.group(2));
+                  credentials.setAlgorithm(m.group(2));
                   break;
                 case "cnonce":
-                  authInfo.setCnonce(m.group(2));
+                  credentials.setCnonce(m.group(2));
                   break;
                 case "method":
-                  authInfo.setMethod(m.group(2));
+                  credentials.setMethod(m.group(2));
                   break;
                 case "nc":
-                  authInfo.setNc(m.group(2));
+                  credentials.setNc(m.group(2));
                   break;
                 case "nonce":
-                  authInfo.setNonce(m.group(2));
+                  credentials.setNonce(m.group(2));
                   break;
                 case "opaque":
-                  authInfo.setOpaque(m.group(2));
+                  credentials.setOpaque(m.group(2));
                   break;
                 case "qop":
-                  authInfo.setQop(m.group(2));
+                  credentials.setQop(m.group(2));
                   break;
                 case "realm":
-                  authInfo.setRealm(m.group(2));
+                  credentials.setRealm(m.group(2));
                   break;
                 case "response":
-                  authInfo.setResponse(m.group(2));
+                  credentials.setResponse(m.group(2));
                   break;
                 case "uri":
-                  authInfo.setUri(m.group(2));
+                  credentials.setUri(m.group(2));
                   break;
                 case "username":
-                  authInfo.setUsername(m.group(2));
+                  credentials.setUsername(m.group(2));
                   break;
                 default:
                   LOG.info("Uknown parameter: " + m.group(1));
@@ -171,7 +174,7 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
             ++i;
           }
 
-          final String nonce = authInfo.getNonce();
+          final String nonce = credentials.getNonce();
 
           // check for expiration
           if (!nonces.containsKey(nonce)) {
@@ -179,8 +182,8 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
           }
 
           // check for nonce counter (prevent replay attack)
-          if (authInfo.getQop() != null) {
-            int nc = Integer.parseInt(authInfo.getNc(), 16);
+          if (credentials.getQop() != null) {
+            int nc = Integer.parseInt(credentials.getNc(), 16);
             final Nonce n = nonces.get(nonce);
             if (nc <= n.count) {
               return Future.failedFuture(UNAUTHORIZED);
@@ -197,16 +200,20 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
         final Session session = context.session();
         if (session != null) {
           String opaque = (String) session.data().get("opaque");
-          if (opaque != null && !opaque.equals(authInfo.getOpaque())) {
+          if (opaque != null && !opaque.equals(credentials.getOpaque())) {
             return Future.failedFuture(UNAUTHORIZED);
           }
         }
 
         // we now need to pass some extra info
-        authInfo.setMethod(context.request().method().name());
+        credentials.setMethod(context.request().method().name());
+
+        final SecurityAudit audit = ((RoutingContextInternal) context).securityAudit();
+        audit.credentials(credentials);
 
         return authProvider
-          .authenticate(authInfo)
+          .authenticate(credentials)
+          .andThen(op -> audit.audit(Marker.AUTHENTICATION, op.succeeded()))
           .recover(err -> Future.failedFuture(new HttpException(401, err)));
       });
   }

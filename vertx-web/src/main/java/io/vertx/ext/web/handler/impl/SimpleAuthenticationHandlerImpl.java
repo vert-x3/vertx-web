@@ -2,9 +2,12 @@ package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.Future;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.audit.Marker;
+import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.util.function.Function;
 
@@ -19,7 +22,10 @@ public class SimpleAuthenticationHandlerImpl extends AuthenticationHandlerImpl<N
   @Override
   public Future<User> authenticate(RoutingContext ctx) {
     if (authn != null) {
+      final SecurityAudit audit = ((RoutingContextInternal) ctx).securityAudit();
+
       return authn.apply(ctx)
+        .andThen(op -> audit.audit(Marker.AUTHENTICATION, op.succeeded()))
         .recover(err -> {
           if (err instanceof HttpException) {
             return Future.failedFuture(err);
