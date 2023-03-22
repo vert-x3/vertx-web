@@ -10,8 +10,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.impl.UserContextInternal;
 import io.vertx.ext.web.validation.BaseValidationHandlerTest;
-import io.vertx.ext.web.validation.ValidationHandler;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
@@ -160,7 +160,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .handler(
         ValidationHandlerBuilder.create(parser).build()
       ).handler(rc -> {
-        rc.setUser(User.fromName("slinkydeveloper")); // Put user mock into context
+        ((UserContextInternal) rc.user()).setUser(User.fromName("slinkydeveloper")); // Put user mock into context
         rc.next();
       })
       .handler(

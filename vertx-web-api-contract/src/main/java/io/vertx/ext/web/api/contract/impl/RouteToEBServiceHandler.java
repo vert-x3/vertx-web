@@ -1,10 +1,8 @@
 package io.vertx.ext.web.api.contract.impl;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -52,7 +50,7 @@ public class RouteToEBServiceHandler implements Handler<RoutingContext> {
     return new JsonObject().put("context", new OperationRequest(
       ((RequestParameters)context.get("parsedParameters")).toJson(),
       context.request().headers(),
-      (context.user() != null) ? context.user().principal() : null,
+      (context.user().get() != null) ? context.user().get().principal() : null,
       (this.extraOperationContextPayloadMapper != null) ? this.extraOperationContextPayloadMapper.apply(context) : null
     ).toJson());
   }

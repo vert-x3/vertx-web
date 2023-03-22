@@ -6,26 +6,37 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.WebIdentity;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.UserContext;
 import io.vertx.ext.web.handler.HttpException;
 
 import java.util.Objects;
 
-public class WebIdentityImpl implements WebIdentity {
+public class UserContextImpl implements UserContextInternal {
 
   private static final String USER_SWITCH_KEY = "__vertx.user-switch-ref";
-  private static final Logger LOG = LoggerFactory.getLogger(WebIdentity.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UserContext.class);
 
   private final RoutingContext ctx;
+  private User user;
 
-  public WebIdentityImpl(RoutingContext ctx) {
+  public UserContextImpl(RoutingContext ctx) {
     this.ctx = ctx;
   }
 
   @Override
-  public WebIdentity loginHint(String loginHint) {
+  public void setUser(User user) {
+    this.user = user;
+  }
+
+  @Override
+  public User get() {
+    return user;
+  }
+
+  @Override
+  public UserContext loginHint(String loginHint) {
     final Session session = ctx.session();
 
     if (session == null) {
@@ -61,8 +72,6 @@ public class WebIdentityImpl implements WebIdentity {
   public Future<Void> refresh(String redirectUri) {
     Objects.requireNonNull(redirectUri, "redirectUri cannot be null");
 
-    final User user = ctx.user();
-
     if (user == null) {
       // we need to ensure that we already had a user, otherwise we can't switch
       LOG.debug("Impersonation can only occur after a complete authn flow.");
@@ -79,8 +88,7 @@ public class WebIdentityImpl implements WebIdentity {
     }
 
     // remove user from the context
-    ctx
-      .setUser(null);
+    this.user = null;
 
     // we should redirect the UA so this link becomes invalid
     return ctx.response()
@@ -106,8 +114,6 @@ public class WebIdentityImpl implements WebIdentity {
   @Override
   public Future<Void> impersonate(String redirectUri) {
     Objects.requireNonNull(redirectUri, "redirectUri cannot be null");
-
-    final User user = ctx.user();
 
     if (user == null) {
       // we need to ensure that we already had a user, otherwise we can't switch
@@ -137,8 +143,7 @@ public class WebIdentityImpl implements WebIdentity {
       .regenerateId();
 
     // remove the current user from the context to avoid any further access
-    ctx
-      .setUser(null);
+    this.user = null;
 
     // we should redirect the UA so this link becomes invalid
     return ctx.response()
@@ -153,19 +158,17 @@ public class WebIdentityImpl implements WebIdentity {
   }
 
   @Override
-  public Future<Void> undo() {
+  public Future<Void> restore() {
     if (!ctx.request().method().equals(HttpMethod.GET)) {
       // we can't automate a redirect to a non-GET request
       return Future.failedFuture(new HttpException(405, "Method not allowed"));
     }
-    return undo(ctx.request().absoluteURI());
+    return restore(ctx.request().absoluteURI());
   }
 
   @Override
-  public Future<Void> undo(String redirectUri) {
+  public Future<Void> restore(String redirectUri) {
     Objects.requireNonNull(redirectUri, "redirectUri cannot be null");
-
-    final User user = ctx.user();
 
     if (user == null) {
       // we need to ensure that we already had a user, otherwise we can't switch
@@ -202,8 +205,7 @@ public class WebIdentityImpl implements WebIdentity {
       .regenerateId();
 
     // restore it to the context
-    ctx
-      .setUser(previousUser);
+    this.user = previousUser;
 
     // we should redirect the UA so this link becomes invalid
     return ctx.response()
@@ -215,5 +217,47 @@ public class WebIdentityImpl implements WebIdentity {
       .putHeader(HttpHeaders.LOCATION, redirectUri)
       .setStatusCode(302)
       .end("Redirecting to " + redirectUri + ".");
+  }
+
+  @Override
+  public Future<Void> logout() {
+    return logout("/");
+  }
+
+  @Override
+  public Future<Void> logout(String redirectUri) {
+    Objects.requireNonNull(redirectUri, "redirectUri cannot be null");
+
+    final Session session = ctx.session();
+    // clear the session
+    if (session != null) {
+      session.destroy();
+    }
+
+    // clear the user
+    user = null;
+
+    // we should redirect the UA so this link becomes invalid
+    return ctx.response()
+      // disable all caching
+      .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+      .putHeader("Pragma", "no-cache")
+      .putHeader(HttpHeaders.EXPIRES, "0")
+      // redirect (when there is no state, redirect to home
+      .putHeader(HttpHeaders.LOCATION, redirectUri)
+      .setStatusCode(302)
+      .end("Redirecting to " + redirectUri + ".");
+  }
+
+  @Override
+  public void clear() {
+    final Session session = ctx.session();
+    // clear the session
+    if (session != null) {
+      session.destroy();
+    }
+
+    // clear the user
+    user = null;
   }
 }

@@ -66,8 +66,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private List<FileUpload> fileUploads;
   private Session session;
-  private User user;
-  private WebIdentity identity;
+  private UserContext identity;
 
   private volatile boolean isSessionAccessed = false;
   private volatile boolean endHandlerCalled = false;
@@ -304,26 +303,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public User user() {
-    return user;
-  }
-
-  @Override
-  public WebIdentity identity() {
+  public UserContext user() {
     if (identity == null) {
-      identity = new WebIdentityImpl(this);
+      identity = new UserContextImpl(this);
     }
     return identity;
-  }
-
-  @Override
-  public void setUser(User user) {
-    this.user = user;
-  }
-
-  @Override
-  public void clearUser() {
-    this.user = null;
   }
 
   @Override

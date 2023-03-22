@@ -21,6 +21,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.shareddata.ClusterSerializable;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.impl.UserContextInternal;
 import io.vertx.ext.web.impl.Utils;
 
 import java.nio.charset.StandardCharsets;
@@ -45,12 +46,13 @@ public class UserHolder implements ClusterSerializable {
   public synchronized void refresh(RoutingContext context) {
     if (this.context != null) {
       // this is a new object instance or already refreshed
-      user = this.context.user();
+      user = this.context.user().get();
     }
     // refresh the context
     this.context = context;
     if (user != null) {
-      this.context.setUser(user);
+      ((UserContextInternal) this.context.user())
+        .setUser(user);
     }
   }
 
@@ -60,7 +62,7 @@ public class UserHolder implements ClusterSerializable {
     final User user;
 
     synchronized (this) {
-      user = context != null ? context.user() : this.user;
+      user = context != null ? context.user().get() : this.user;
       // clear the context as this holder is not in a request anymore
       context = null;
     }

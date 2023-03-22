@@ -1178,7 +1178,7 @@ public class EventbusBridgeTest extends WebTestBase {
   private AuthenticationHandler addLoginHandler(AuthenticationProvider authProvider) {
     return SimpleAuthenticationHandler.create()
       .authenticate(ctx -> {
-        if (ctx.user() == null) {
+        if (ctx.user().get() == null) {
           return authProvider.authenticate(new UsernamePasswordCredentials("tim", "delicious:sausages"));
         } else {
           return Future.failedFuture("non null user");

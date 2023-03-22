@@ -55,10 +55,11 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
 
   @Override
   public void handle(RoutingContext ctx) {
-    final User user = ctx.user();
-    if (user == null) {
+    if (!ctx.user().authenticated()) {
       ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
     } else {
+      final User user = ctx.user().get();
+
       try {
         // this handler can perform asynchronous operations
         if (!ctx.request().isEnded()) {
@@ -126,7 +127,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
       AuthorizationProvider provider = providers.next();
       // we haven't fetched authorization from this provider yet
       if (!user.authorizations().contains(provider.getId())) {
-        provider.getAuthorizations(ctx.user())
+        provider.getAuthorizations(user)
           .onFailure(err -> {
             LOG.warn("An error occurred getting authorization - providerId: " + provider.getId(), err);
             // note that we don't 'record' the fact that we tried to fetch the authorization provider. therefore, it will be re-fetched later-on

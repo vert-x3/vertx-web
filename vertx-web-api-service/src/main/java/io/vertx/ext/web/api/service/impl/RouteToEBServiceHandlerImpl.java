@@ -1,11 +1,9 @@
 package io.vertx.ext.web.api.service.impl;
 
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.MultiMap;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
@@ -75,7 +73,7 @@ public class RouteToEBServiceHandlerImpl implements RouteToEBServiceHandler {
 
   private JsonObject buildPayload(RoutingContext context) {
     JsonObject params = context.get("parsedParameters") != null ? ((RequestParameters)context.get("parsedParameters")).toJson() : null;
-    User user = context.user();
+    User user = context.user().get();
     return new JsonObject().put("context", new ServiceRequest(
       params,
       context.request().headers(),

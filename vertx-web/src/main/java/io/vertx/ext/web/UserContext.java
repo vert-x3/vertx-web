@@ -16,21 +16,35 @@
 package io.vertx.ext.web;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
+import io.vertx.ext.auth.User;
 
 /**
- * Represents a WebIdentity. A web identity is coupled to the context user and is used to perform verifications
+ * A web user is extended user coupled to the context and is used to perform verifications
  * and actions on behalf of the user. Actions can be:
  *
  * <ul>
  *   <li>{@link  #refresh()} - Require a re-authentication to confirm the user is present</li>
  *   <li>{@link  #impersonate()} - Require a re-authentication to switch user identities</li>
- *   <li>{@link  #undo()} - De-escalate a previous impersonate call</li>
+ *   <li>{@link  #restore()} - De-escalate a previous impersonate call</li>
+ *   <li>{@link  #logout()} - Logout the user from this application and redirect to a uri</li>
+ *   <li>{@link  #clear()} - Same as logout, without requirind a redirect</li>
  * </ul>
  */
 @VertxGen
-public interface WebIdentity {
+public interface UserContext {
+
+  /**
+   * Get the authenticated user (if any). This will usually be injected by an auth handler if authentication if successful.
+   * @return  the user, or null if the current user is not authenticated.
+   */
+  @Nullable User get();
+
+  default boolean authenticated() {
+    return get() != null;
+  }
 
   /**
    * When performing a web identity operation, hint if possible to the identity provider to use the given login.
@@ -38,7 +52,7 @@ public interface WebIdentity {
    * @return fluent self
    */
   @Fluent
-  WebIdentity loginHint(String loginHint);
+  UserContext loginHint(String loginHint);
 
   /**
    * Forces the current user to re-authenticate. The user will be redirected to the same origin where this call was
@@ -82,7 +96,7 @@ public interface WebIdentity {
    *
    * @return future result of the operation.
    */
-  Future<Void> undo();
+  Future<Void> restore();
 
   /**
    * Undo a previous call to an impersonation. The user will be redirected to the given uri. It is important to
@@ -92,5 +106,33 @@ public interface WebIdentity {
    *
    * @return future result of the operation.
    */
-  Future<Void> undo(String redirectUri);
+  Future<Void> restore(String redirectUri);
+
+
+  /**
+   * Logout can be called from any route handler which needs to terminate a login session. Invoking logout will remove
+   * the {@link io.vertx.ext.auth.User} and clear the {@link Session} (if any) in the current context. Followed by a
+   * redirect to the given uri.
+   *
+   * @param redirectUri the uri to redirect the user to after the logout.
+   *
+   * @return future result of the operation.
+   */
+  Future<Void> logout(String redirectUri);
+
+  /**
+   * Logout can be called from any route handler which needs to terminate a login session. Invoking logout will remove
+   * the {@link io.vertx.ext.auth.User} and clear the {@link Session} (if any) in the current context. Followed by a
+   * redirect to {@code /}.
+   *
+   * @return future result of the operation.
+   */
+  Future<Void> logout();
+
+  /**
+   * Clear can be called from any route handler which needs to terminate a login session. Invoking logout will remove
+   * the {@link io.vertx.ext.auth.User} and clear the {@link Session} (if any) in the current context. Unlike
+   * {@link #logout()} no redirect will be performed.
+   */
+  void clear();
 }

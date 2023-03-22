@@ -22,6 +22,7 @@ import io.vertx.ext.auth.otp.hotp.HotpAuth;
 import io.vertx.ext.auth.otp.totp.TotpAuth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.UserContext;
 import io.vertx.ext.web.handler.impl.HotpAuthHandlerImpl;
 import io.vertx.ext.web.handler.impl.TotpAuthHandlerImpl;
 
@@ -54,7 +55,7 @@ public interface OtpAuthHandler extends AuthenticationHandler {
   /**
    * Specify the URL where requests are to be redirected when a user is already known in the request.
    *
-   * A user is already known when the {@link RoutingContext#user()} is not {@code null}.
+   * A user is already known when the {@link UserContext#get()} is not {@code null}.
    *
    * If no redirect is provided, requests are terminated immediately with status code {@code 401}.
    *
@@ -68,7 +69,7 @@ public interface OtpAuthHandler extends AuthenticationHandler {
    * Setup the optional route where authenticators are allowed to register. Registration is only allowed on requests with
    * a valid user.
    *
-   * A user is valid when the {@link RoutingContext#user()} is not {@code null}.
+   * A user is valid when the {@link UserContext#get()} is not {@code null}.
    *
    * @param route the location where users are to register new authenticator devices/apps.
    * @return fluent self.
@@ -80,7 +81,7 @@ public interface OtpAuthHandler extends AuthenticationHandler {
    * Setup the required route where authenticators to submit the challenge response. Challenges
    * are only allowed on requests with a valid user.
    *
-   * A user is valid when the {@link RoutingContext#user()} is not {@code null}.
+   * A user is valid when the {@link UserContext#get()} is not {@code null}.
    *
    * @param route the location where users are to submit challenge responses from authenticator devices/apps.
    * @return fluent self.

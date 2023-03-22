@@ -60,7 +60,7 @@ public class TotpAuthHandlerImpl extends AuthenticationHandlerImpl<TotpAuth> imp
       return Future.failedFuture(new HttpException(500, new IllegalStateException("No callback mounted!")));
     }
 
-    final User user = ctx.user();
+    final User user = ctx.user().get();
 
     if (user == null) {
       return Future.failedFuture(new HttpException(401));
@@ -81,7 +81,7 @@ public class TotpAuthHandlerImpl extends AuthenticationHandlerImpl<TotpAuth> imp
           return Future.failedFuture(new HttpException(302, verifyUrl));
         }
       } else {
-        return Future.succeededFuture(ctx.user());
+        return Future.succeededFuture(user);
       }
     }
   }
@@ -142,7 +142,7 @@ public class TotpAuthHandlerImpl extends AuthenticationHandlerImpl<TotpAuth> imp
       .method(HttpMethod.POST)
       .order(order - 1)
       .handler(ctx -> {
-        final User user = ctx.user();
+        final User user = ctx.user().get();
         if (user == null || user.get("username") == null) {
           ctx.fail(new IllegalStateException("User object misses 'username' attribute"));
           return;
@@ -166,7 +166,8 @@ public class TotpAuthHandlerImpl extends AuthenticationHandlerImpl<TotpAuth> imp
       .method(HttpMethod.POST)
       .order(order - 1)
       .handler(ctx -> {
-        final User user = ctx.user();
+        final User user = ctx.user().get();
+
         if (user == null || user.get("username") == null) {
           ctx.fail(new IllegalStateException("User object misses 'username' attribute"));
           return;

@@ -28,6 +28,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
+import io.vertx.ext.web.impl.UserContextInternal;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.sstore.impl.SessionInternal;
 
@@ -170,7 +171,7 @@ public class SessionHandlerImpl implements SessionHandler {
         Boolean storeUser = context.get(SESSION_STOREUSER_KEY);
         if (storeUser != null && storeUser) {
           // during the request the user might have been removed
-          if (context.user() != null) {
+          if (context.user().get() != null) {
             session.put(SESSION_USER_HOLDER_KEY, new UserHolder(context));
           }
         }
@@ -346,11 +347,13 @@ public class SessionHandlerImpl implements SessionHandler {
     return session;
   }
 
+  @Override
   public Future<Void> setUser(RoutingContext context, User user) {
     if (!cookieless) {
       context.response().removeCookie(sessionCookieName, false);
     }
-    context.setUser(user);
+    ((UserContextInternal) context.user())
+      .setUser(user);
     // signal we must store the user to link it to the session
     context.put(SESSION_STOREUSER_KEY, true);
     return flush(context, true, true);

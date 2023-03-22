@@ -42,6 +42,7 @@ import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.Origin;
 import io.vertx.ext.web.impl.RoutingContextInternal;
+import io.vertx.ext.web.impl.UserContextInternal;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -329,7 +330,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   public void postAuthentication(RoutingContext ctx) {
     // the user is authenticated, however the user may not have all the required scopes
     if (scopes != null && scopes.size() > 0) {
-      final User user = ctx.user();
+      final User user = ctx.user().get();
       if (user == null) {
         // bad state
         ctx.fail(403, new IllegalStateException("no user in the context"));
@@ -494,7 +495,8 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         .andThen(op -> audit.audit(Marker.AUTHENTICATION, op.succeeded()))
         .onFailure(ctx::fail)
         .onSuccess(user -> {
-          ctx.setUser(user);
+          ((UserContextInternal) ctx.user())
+            .setUser(user);
           String location = resource != null ? resource : "/";
           if (session != null) {
             // the user has upgraded from unauthenticated to authenticated

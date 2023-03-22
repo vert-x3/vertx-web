@@ -31,6 +31,7 @@ import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.WebAuthnHandler;
 import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.Origin;
+import io.vertx.ext.web.impl.UserContextInternal;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
 public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> implements WebAuthnHandler, OrderListener {
@@ -101,10 +102,12 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
       return Future.failedFuture(new HttpException(500, new IllegalStateException("No callback mounted!")));
     }
 
-    if (ctx.user() == null) {
+    final User user = ctx.user().get();
+
+    if (user == null) {
       return Future.failedFuture(new HttpException(401));
     } else {
-      return Future.succeededFuture(ctx.user());
+      return Future.succeededFuture(user);
     }
   }
 
@@ -308,7 +311,8 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
             .onSuccess(user -> {
               audit.audit(Marker.AUTHENTICATION, true);
               // save the user into the context
-              ctx.setUser(user);
+              ((UserContextInternal) ctx.user())
+                .setUser(user);
               // the user has upgraded from unauthenticated to authenticated
               // session should be upgraded as recommended by owasp
               session.regenerateId();

@@ -100,7 +100,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      assertNotNull(rc.user().get());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -162,7 +162,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      assertNotNull(rc.user().get());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -224,7 +224,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      assertNotNull(rc.user().get());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -288,7 +288,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      assertNotNull(rc.user().get());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -371,7 +371,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      assertNotNull(rc.user().get());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -470,7 +470,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      assertNotNull(rc.user().get());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -497,7 +497,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route().handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      assertNotNull(rc.user().get());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -559,7 +559,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      assertNotNull(rc.user().get());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -584,7 +584,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      assertNotNull(rc.user().get());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -663,7 +663,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      assertNotNull(rc.user().get());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -749,7 +749,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     subRouter.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     subRouter.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      assertNotNull(rc.user().get());
       rc.response().end("Welcome to the protected resource!");
     });
 

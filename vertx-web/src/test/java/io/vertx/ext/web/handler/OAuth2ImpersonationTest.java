@@ -130,7 +130,7 @@ public class OAuth2ImpersonationTest extends WebTestBase {
     router.route("/user-switch/impersonate")
       // this is a high precedence handler
       .handler(ctx -> {
-        ctx.identity()
+        ctx.user()
           .loginHint(ctx.request().getParam("login_hint"))
           .impersonate(ctx.request().getParam("redirect_uri"))
           .onFailure(err -> {
@@ -145,9 +145,9 @@ public class OAuth2ImpersonationTest extends WebTestBase {
     router.route("/user-switch/undo")
       // this is a high precedence handler
       .handler(ctx -> {
-        ctx.identity()
+        ctx.user()
           .loginHint(ctx.request().getParam("login_hint"))
-          .undo(ctx.request().getParam("redirect_uri"))
+          .restore(ctx.request().getParam("redirect_uri"))
           .onFailure(err -> {
             if (err instanceof HttpException) {
               ctx.fail(err);
@@ -172,8 +172,8 @@ public class OAuth2ImpersonationTest extends WebTestBase {
           .create(PermissionBasedAuthorization.create("read"))
           .addAuthorizationProvider(ScopeAuthorization.create()))
       .handler(rc -> {
-        assertNotNull(rc.user());
-        userRef.set(rc.user());
+        assertNotNull(rc.user().get());
+        userRef.set(rc.user().get());
         rc.end("OK");
       });
 
@@ -186,13 +186,13 @@ public class OAuth2ImpersonationTest extends WebTestBase {
           .create(PermissionBasedAuthorization.create("write"))
           .addAuthorizationProvider(ScopeAuthorization.create()))
       .handler(rc -> {
-        assertNotNull(rc.user());
-        System.out.println(rc.user().principal().encodePrettily());
+        assertNotNull(rc.user().get());
+        System.out.println(rc.user().get().principal().encodePrettily());
 
         // assert that the old and new users are not the same
         User oldUser = userRef.get();
         assertNotNull(oldUser);
-        User newUser = rc.user();
+        User newUser = rc.user().get();
         assertFalse(oldUser.equals(newUser));
 
         // also the old user should be in the session

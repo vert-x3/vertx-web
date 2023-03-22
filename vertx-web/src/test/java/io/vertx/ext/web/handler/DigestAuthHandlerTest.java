@@ -74,8 +74,8 @@ public class DigestAuthHandlerTest extends WebTestBase {
   private void doLogin(String realm) throws Exception {
     router.clear();
     Handler<RoutingContext> handler = rc -> {
-      assertNotNull(rc.user());
-      assertEquals("Mufasa", rc.user().principal().getString("username"));
+      assertNotNull(rc.user().get());
+      assertEquals("Mufasa", rc.user().get().principal().getString("username"));
       rc.response().end("Welcome to the protected resource!");
     };
 

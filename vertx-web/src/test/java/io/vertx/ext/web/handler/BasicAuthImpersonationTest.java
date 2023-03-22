@@ -43,7 +43,7 @@ public class BasicAuthImpersonationTest extends WebTestBase {
     router.route("/user-switch/impersonate")
       // this is a high precedence handler
       .handler(ctx -> {
-        ctx.identity()
+        ctx.user()
           .loginHint(ctx.request().getParam("login_hint"))
           .impersonate(ctx.request().getParam("redirect_uri"))
           .onFailure(err -> {
@@ -58,9 +58,9 @@ public class BasicAuthImpersonationTest extends WebTestBase {
     router.route("/user-switch/undo")
       // this is a high precedence handler
       .handler(ctx -> {
-        ctx.identity()
+        ctx.user()
           .loginHint(ctx.request().getParam("login_hint"))
-          .undo(ctx.request().getParam("redirect_uri"))
+          .restore(ctx.request().getParam("redirect_uri"))
           .onFailure(err -> {
             if (err instanceof HttpException) {
               ctx.fail(err);
@@ -81,8 +81,8 @@ public class BasicAuthImpersonationTest extends WebTestBase {
       .route("/protected/base")
       .handler(AuthorizationHandler.create(RoleBasedAuthorization.create("read")).addAuthorizationProvider(authz))
       .handler(rc -> {
-        assertNotNull(rc.user());
-        userRef.set(rc.user());
+        assertNotNull(rc.user().get());
+        userRef.set(rc.user().get());
         rc.end("OK");
       });
 
@@ -92,12 +92,12 @@ public class BasicAuthImpersonationTest extends WebTestBase {
       .route("/protected/admin")
       .handler(AuthorizationHandler.create(RoleBasedAuthorization.create("write")).addAuthorizationProvider(authz))
       .handler(rc -> {
-        assertNotNull(rc.user());
+        assertNotNull(rc.user().get());
 
         // assert that the old and new users are not the same
         User oldUser = userRef.get();
         assertNotNull(oldUser);
-        User newUser = rc.user();
+        User newUser = rc.user().get();
         assertFalse(oldUser.equals(newUser));
 
         // also the old user should be in the session
