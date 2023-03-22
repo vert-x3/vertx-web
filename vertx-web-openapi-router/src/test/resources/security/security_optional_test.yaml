@@ -1,0 +1,25 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Test spec for RouterBuilderSecurityTest
+  license:
+    name: Apache 2.0 License
+paths:
+  /pets:
+    get:
+      operationId: pets
+      tags:
+        - pets
+      security:
+        - api_key: []
+        - {}
+      responses:
+        200:
+          description: Something
+
+components:
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header

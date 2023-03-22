@@ -13,13 +13,14 @@
 package io.vertx.router.test.base;
 
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.openapi.contract.OpenAPIContract;
 
 import java.nio.file.Path;
 import java.util.function.Function;
+
+import static io.vertx.openapi.impl.Utils.readYamlOrJson;
 
 public class RouterBuilderTestBase extends HttpServerTestBase {
   /**
@@ -49,9 +50,9 @@ public class RouterBuilderTestBase extends HttpServerTestBase {
   protected Future<Void> createServer(Path pathToContract,
                                       Function<OpenAPIContract, RouterBuilder> routerBuilderSupplier,
                                       Function<RouterBuilder, Future<RouterBuilder>> modifyRouterBuilder) {
-    JsonObject unresolvedContract = vertx.fileSystem().readFileBlocking(pathToContract.toString()).toJsonObject();
 
-    return OpenAPIContract.from(vertx, unresolvedContract).map(routerBuilderSupplier).compose(modifyRouterBuilder)
+    return readYamlOrJson(vertx, pathToContract.toString())
+      .compose(unresolvedContract -> OpenAPIContract.from(vertx, unresolvedContract).map(routerBuilderSupplier).compose(modifyRouterBuilder))
       .compose(rb -> {
         Router basePathRouter = Router.router(vertx);
         basePathRouter.route("/v1/*").subRouter(rb.createRouter());

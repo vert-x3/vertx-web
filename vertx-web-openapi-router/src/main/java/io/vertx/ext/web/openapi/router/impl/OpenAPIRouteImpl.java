@@ -27,6 +27,7 @@ public class OpenAPIRouteImpl implements OpenAPIRoute {
   private final Operation operation;
 
   private boolean doValidation = true;
+  private boolean doSecurity = true;
 
   public OpenAPIRouteImpl(Operation operation) {
     this.operation = operation;
@@ -67,6 +68,17 @@ public class OpenAPIRouteImpl implements OpenAPIRoute {
   @Override
   public OpenAPIRoute setDoValidation(boolean doValidation) {
     this.doValidation = doValidation;
+    return this;
+  }
+
+  @Override
+  public boolean doSecurity() {
+    return doSecurity;
+  }
+
+  @Override
+  public OpenAPIRoute setDoSecurity(boolean doSecurity) {
+    this.doSecurity = doSecurity;
     return this;
   }
 }

@@ -47,6 +47,18 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-openapi</artifactId>
     </dependency>
+    <!-- Optionals (Security) -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-jwt</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-oauth2</artifactId>
+      <optional>true</optional>
+    </dependency>
+
     <!-- For docs -->
 
     <!-- Testing dependencies -->

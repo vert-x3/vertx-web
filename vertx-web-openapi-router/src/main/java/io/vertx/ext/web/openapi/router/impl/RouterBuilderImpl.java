@@ -12,33 +12,38 @@
 
 package io.vertx.ext.web.openapi.router.impl;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.InputTrustHandler;
 import io.vertx.ext.web.openapi.router.OpenAPIRoute;
 import io.vertx.ext.web.openapi.router.RequestExtractor;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
+import io.vertx.ext.web.openapi.router.Security;
 import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.openapi.contract.Operation;
 import io.vertx.openapi.contract.Path;
 import io.vertx.openapi.validation.RequestValidator;
 import io.vertx.openapi.validation.impl.RequestValidatorImpl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class RouterBuilderImpl implements RouterBuilder {
+public class RouterBuilderImpl implements RouterBuilderInternal {
+
+  private final static Logger LOG = LoggerFactory.getLogger(RouterBuilderImpl.class);
+
   private static final String PATH_PARAM_PLACEHOLDER_REGEX = "\\{(.*?)}";
 
   // VisibleForTesting
   final List<Handler<RoutingContext>> rootHandlers = new ArrayList<>();
+  final AuthenticationHandlers securityHandlers = new AuthenticationHandlers();
   private final Vertx vertx;
   private final OpenAPIContract contract;
 
@@ -74,10 +79,21 @@ public class RouterBuilderImpl implements RouterBuilder {
   }
 
   @Override
-  @Fluent
   public RouterBuilder rootHandler(Handler<RoutingContext> rootHandler) {
     rootHandlers.add(rootHandler);
     return this;
+  }
+
+  @Override
+  public RouterBuilder security(String securitySchemeName, AuthenticationHandler authenticationHandler, String callback) {
+    securityHandlers.addRequirement(securitySchemeName, authenticationHandler, callback);
+    return this;
+  }
+
+  @Override
+  public Security security(String securitySchemeName) {
+
+    return new SecurityImpl(this, contract.findSecurityScheme(securitySchemeName), securitySchemeName);
   }
 
   @Override
@@ -88,24 +104,38 @@ public class RouterBuilderImpl implements RouterBuilder {
     Route globalRoute = router.route();
     rootHandlers.forEach(globalRoute::handler);
 
+    // add the callback handler
+    securityHandlers.applyCallbackHandlers(router);
+
     for (Path path : contract.getPaths()) {
       for (Operation operation : path.getOperations()) {
         Route route = router.route(operation.getHttpMethod(), toVertxWebPath(path.getName()));
         route.putMetadata(KEY_META_DATA_OPERATION, operation.getOperationId());
 
         OpenAPIRoute openAPIRoute = getRoute(operation.getOperationId());
-        if (openAPIRoute.doValidation()) {
+        Objects.requireNonNull(openAPIRoute, "No route found for operation " + operation.getOperationId());
 
-          InputTrustHandler validationHandler = rc -> extractor.extractValidatableRequest(rc, operation)
-            .compose(validatableRequest -> validator.validate(validatableRequest, operation.getOperationId())).
-            onSuccess(rp -> {
-              rc.put(KEY_META_DATA_VALIDATED_REQUEST, rp);
-              rc.next();
-            }).onFailure(rc::fail);
-          route.handler(validationHandler);
+        if (openAPIRoute.getHandlers().size() > 0 || openAPIRoute.getFailureHandlers().size() > 0) {
+          securityHandlers.solve(contract, operation, route, openAPIRoute.doSecurity());
+
+          if (openAPIRoute.doValidation()) {
+            InputTrustHandler validationHandler = rc -> extractor.extractValidatableRequest(rc, operation)
+              .compose(validatableRequest -> validator.validate(validatableRequest, operation.getOperationId()))
+              .onSuccess(rp -> {
+                rc.put(KEY_META_DATA_VALIDATED_REQUEST, rp);
+                rc.next();
+              }).onFailure(rc::fail);
+            route.handler(validationHandler);
+          }
+
+          openAPIRoute.getHandlers().forEach(route::handler);
+          openAPIRoute.getFailureHandlers().forEach(route::failureHandler);
+        } else {
+          LOG.warn("No handlers found for operation " + operation.getOperationId() + " - skipping route creation");
+          // terminate the request with 503 (Not Implemented)
+          route
+            .handler(ctx -> ctx.response().setStatusCode(503).end());
         }
-        openAPIRoute.getHandlers().forEach(route::handler);
-        openAPIRoute.getFailureHandlers().forEach(route::failureHandler);
       }
     }
     return router;
