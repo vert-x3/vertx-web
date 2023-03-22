@@ -100,7 +100,7 @@ public interface RouterBuilder {
    * Creates a new security scheme for the required {@link AuthenticationHandler}.
    * @return a security scheme.
    */
-  SecurityScheme security(String securitySchemeName);
+  Security security(String securitySchemeName);
 
   /**
    * Construct a new router based on the related OpenAPI contract.

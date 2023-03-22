@@ -19,6 +19,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.*;
+import io.vertx.openapi.contract.SecurityScheme;
 
 import java.util.function.Function;
 
@@ -47,7 +48,7 @@ import java.util.function.Function;
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface SecurityScheme {
+public interface Security {
 
   /**
    * Configure the {@link APIKeyHandler} to be used when creating the router.
@@ -83,7 +84,7 @@ public interface SecurityScheme {
    * @param factory the handler factory that will receive the configuration and return the handler
    * @return caller builder
    */
-  RouterBuilder oauth2Handler(String callback, Function<JsonObject, OAuth2AuthHandler> factory);
+  RouterBuilder oauth2Handler(String callback, Function<SecurityScheme, OAuth2AuthHandler> factory);
 
   /**
    * Configure the {@link OAuth2AuthHandler} to be used when creating the router. In this mode the callback is not used
@@ -91,7 +92,7 @@ public interface SecurityScheme {
    * @param factory the handler factory that will receive the configuration and return the handler
    * @return caller builder
    */
-  default RouterBuilder oauth2Handler(Function<JsonObject, OAuth2AuthHandler> factory) {
+  default RouterBuilder oauth2Handler(Function<SecurityScheme, OAuth2AuthHandler> factory) {
     return oauth2Handler(null, factory);
   }
 

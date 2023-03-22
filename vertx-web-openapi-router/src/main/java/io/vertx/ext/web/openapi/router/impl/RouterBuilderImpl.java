@@ -25,7 +25,7 @@ import io.vertx.ext.web.handler.InputTrustHandler;
 import io.vertx.ext.web.openapi.router.OpenAPIRoute;
 import io.vertx.ext.web.openapi.router.RequestExtractor;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
-import io.vertx.ext.web.openapi.router.SecurityScheme;
+import io.vertx.ext.web.openapi.router.Security;
 import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.openapi.contract.Operation;
 import io.vertx.openapi.contract.Path;
@@ -91,8 +91,9 @@ public class RouterBuilderImpl implements RouterBuilderInternal {
   }
 
   @Override
-  public SecurityScheme security(String securitySchemeName) {
-    return new SecuritySchemeImpl(this, contract, securitySchemeName);
+  public Security security(String securitySchemeName) {
+
+    return new SecurityImpl(this, contract.findSecurityScheme(securitySchemeName), securitySchemeName);
   }
 
   @Override
