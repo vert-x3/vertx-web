@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.MultiTenantHandler;
+import io.vertx.ext.web.impl.OrderListener;
 
 import java.util.Map;
 import java.util.Objects;
@@ -27,7 +28,7 @@ import java.util.function.Function;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class MultiTenantHandlerImpl implements MultiTenantHandler {
+public class MultiTenantHandlerImpl implements MultiTenantHandler, OrderListener {
 
   private final Map<String, Handler<RoutingContext>> handlerMap = new ConcurrentHashMap<>();
 
@@ -85,6 +86,15 @@ public class MultiTenantHandlerImpl implements MultiTenantHandler {
       // no handler found, this handle is not applicable
       // continue with the chain
       ctx.next();
+    }
+  }
+
+  @Override
+  public void onOrder(int order) {
+    for (Handler<RoutingContext> handler : handlerMap.values()) {
+      if (handler instanceof OrderListener) {
+        ((OrderListener) handler).onOrder(order);
+      }
     }
   }
 }
