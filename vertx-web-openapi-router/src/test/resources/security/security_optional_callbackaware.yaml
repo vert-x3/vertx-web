@@ -1,0 +1,35 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Test spec for RouterBuilderSecurityTest
+  license:
+    name: Apache 2.0 License
+paths:
+  /a:
+    get:
+      operationId: opA
+      tags:
+        - pets
+      security:
+        - oidc: ['read']
+        - {}
+      responses:
+        200:
+          description: Something
+  /b:
+    get:
+      operationId: opB
+      tags:
+        - pets
+      security:
+        - {}
+        - oidc: ['read']
+      responses:
+        200:
+          description: Something
+
+components:
+  securitySchemes:
+    oidc:
+      type: openIdConnect
+      openIdConnectUrl: https://example.com/.well-known/openid-configuration
