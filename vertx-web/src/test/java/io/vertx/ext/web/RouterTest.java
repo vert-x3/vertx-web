@@ -3595,4 +3595,54 @@ public class RouterTest extends WebTestBase {
 
     await();
   }
+
+  @Test
+  public void testPathPrefixWithPathParams() throws Exception {
+    router.route("/a/:id/b/:id2/c/*").handler(rc -> {
+      assertEquals("123", rc.pathParam("id"));
+      assertEquals("1234", rc.pathParam("id2"));
+      rc.response().end("r4");
+    });
+
+    router.route("/a/:id/b1/*").handler(rc -> {
+      assertEquals("123", rc.pathParam("id"));
+      rc.response().end("r3");
+    });
+
+    router.route("/a/:id/*").handler(rc -> {
+      assertEquals("123", rc.pathParam("id"));
+      rc.response().end("r2");
+    });
+
+    router.route("/:id/*").handler(rc -> {
+      assertEquals("123", rc.pathParam("id"));
+      rc.end("r1");
+    });
+
+    // should call "/:id/*"
+    testRequest(HttpMethod.GET, "/123/foo", 200, "OK", "r1");
+    testRequest(HttpMethod.GET, "/123/", 200, "OK", "r1");
+    // should call "/a/:id/*"
+    testRequest(HttpMethod.GET, "/a//123/", 200, "OK", "r2");
+    testRequest(HttpMethod.GET, "/a/123/foo/bar", 200, "OK", "r2");
+    // should call "/a/:id/b1/*"
+    testRequest(HttpMethod.GET, "/a//123/b1/", 200, "OK", "r3");
+    testRequest(HttpMethod.GET, "/a/123/b1/foo", 200, "OK", "r3");
+    // should call "/a/:id/b/:id2/c/*"
+    testRequest(HttpMethod.GET, "/a//123/b/1234/c/", 200, "OK", "r4");
+    testRequest(HttpMethod.GET, "/a/123/b/1234/c/foo", 200, "OK", "r4");
+
+
+    // should call "/:id/*"
+    testRequest(HttpMethod.GET, "/123", 200, "OK", "r1");
+    // should call "/a/:id/*"
+    testRequest(HttpMethod.GET, "/a/123", 200, "OK", "r2");
+    testRequest(HttpMethod.GET, "/a//123", 200, "OK", "r2");
+    // should call "/a/:id/b1/*"
+    testRequest(HttpMethod.GET, "/a/123/b1", 200, "OK", "r3");
+    testRequest(HttpMethod.GET, "/a//123//b1", 200, "OK", "r3");
+    // should call "/a/:id/b/:id2/c/*"
+    testRequest(HttpMethod.GET, "/a/123/b/1234/c", 200, "OK", "r4");
+    testRequest(HttpMethod.GET, "/a//123//b//1234//c", 200, "OK", "r4");
+  }
 }
