@@ -19,14 +19,25 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
+import io.vertx.ext.auth.audit.impl.SecurityAuditLogger;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.SecurityAuditLoggerHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
 public class SecurityAuditLoggerHandlerImpl implements SecurityAuditLoggerHandler {
+
+  public SecurityAuditLoggerHandlerImpl() {
+    if (!SecurityAuditLogger.isEnabled()) {
+      throw new IllegalStateException("Security audit logger is not enabled. Please check your logging configuration.");
+    }
+  }
+
   @Override
   public void handle(RoutingContext ctx) {
-    final SecurityAudit audit = ((RoutingContextInternal) ctx).securityAudit();
+    // the audit preserves state during the request, so it needs
+    // a new instance per request
+    final SecurityAudit audit = SecurityAudit.create();
+    ((RoutingContextInternal) ctx).setSecurityAudit(audit);
 
     final HttpServerRequest req = ctx.request();
     final HttpServerResponse res = ctx.response();

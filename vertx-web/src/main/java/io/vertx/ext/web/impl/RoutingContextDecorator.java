@@ -265,6 +265,11 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  public void setSecurityAudit(SecurityAudit securityAudit) {
+    decoratedContext.setSecurityAudit(securityAudit);
+  }
+
+  @Override
   public SecurityAudit securityAudit() {
     return decoratedContext.securityAudit();
   }

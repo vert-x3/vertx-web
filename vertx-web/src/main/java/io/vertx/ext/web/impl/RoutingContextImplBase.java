@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.audit.SecurityAudit;
+import io.vertx.ext.auth.audit.impl.SecurityAuditNOOP;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -29,6 +30,7 @@ import io.vertx.ext.web.handler.HttpException;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
@@ -61,7 +63,7 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   // internal runtime state
   private volatile long seen;
   // immutable security audit
-  private final SecurityAudit securityAudit;
+  private SecurityAudit securityAudit;
 
   protected Set<HttpMethod> allowedMethods = new HashSet<>();
 
@@ -69,7 +71,7 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
     this.mountPoint = mountPoint;
     this.routes = routes;
     this.iter = routes.iterator();
-    this.securityAudit = SecurityAudit.create();
+    this.securityAudit = SecurityAuditNOOP.INSTANCE;
 
     this.currentRouter = currentRouter;
     resetMatchFailure();
@@ -94,6 +96,12 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   @Override
   public boolean normalizedMatch() {
     return normalizedMatch;
+  }
+
+  @Override
+  public void setSecurityAudit(SecurityAudit securityAudit) {
+    Objects.requireNonNull(securityAudit, "SecurityAudit cannot be null");
+    this.securityAudit = securityAudit;
   }
 
   @Override

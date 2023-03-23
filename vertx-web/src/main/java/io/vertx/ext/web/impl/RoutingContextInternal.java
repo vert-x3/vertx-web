@@ -111,4 +111,9 @@ public interface RoutingContextInternal extends RoutingContext {
    * Get or Default the security audit object.
    */
   SecurityAudit securityAudit();
+
+  /**
+   * Get or Default the security audit object.
+   */
+  void setSecurityAudit(SecurityAudit securityAudit);
 }
