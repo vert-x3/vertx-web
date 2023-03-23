@@ -223,10 +223,12 @@ public class SessionHandlerImpl implements SessionHandler {
             });
         } else {
           // No-Op, just accept that the store skipped
+          context.put(SESSION_FLUSHED_KEY, true);
           return ctx.succeededFuture();
         }
       } else {
         // No-Op, just accept that the store skipped
+        context.put(SESSION_FLUSHED_KEY, true);
         return ctx.succeededFuture();
       }
     } else {
