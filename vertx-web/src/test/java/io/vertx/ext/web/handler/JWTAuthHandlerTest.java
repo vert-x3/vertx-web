@@ -51,8 +51,8 @@ public class JWTAuthHandlerTest extends WebTestBase {
   public void testLogin() throws Exception {
 
     Handler<RoutingContext> handler = rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user().get());
+      assertEquals("paulo", rc.user().get().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome to the protected resource!");
     };
 

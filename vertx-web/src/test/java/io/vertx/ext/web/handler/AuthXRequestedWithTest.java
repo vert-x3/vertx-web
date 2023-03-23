@@ -29,8 +29,8 @@ public class AuthXRequestedWithTest extends AuthHandlerTestBase {
   public void testNoWwwAuthenticateForAjaxCalls() throws Exception {
     String realm = BasicAuthHandler.DEFAULT_REALM;
     Handler<RoutingContext> handler = rc -> {
-      assertNotNull(rc.user());
-      assertEquals("tim", rc.user().principal().getString("username"));
+      assertNotNull(rc.user().get());
+      assertEquals("tim", rc.user().get().principal().getString("username"));
       rc.response().end("Welcome to the protected resource!");
     };
 

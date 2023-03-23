@@ -825,7 +825,7 @@ public class WebExamples {
       // This will require a login
 
       // This will have the value true
-      boolean isAuthenticated = ctx.user() != null;
+      boolean isAuthenticated = ctx.user().authenticated();
 
     });
   }
@@ -859,7 +859,7 @@ public class WebExamples {
         // This will require a login
 
         // This will have the value true
-        boolean isAuthenticated = ctx.user() != null;
+        boolean isAuthenticated = ctx.user().authenticated();
 
       });
 
@@ -1256,8 +1256,8 @@ public class WebExamples {
   public void example53(Vertx vertx) {
 
     Handler<RoutingContext> handler = ctx -> {
-      String theSubject = ctx.user().principal().getString("sub");
-      String someKey = ctx.user().principal().getString("someKey");
+      String theSubject = ctx.user().get().principal().getString("sub");
+      String someKey = ctx.user().get().principal().getString("someKey");
     };
   }
 
@@ -1483,7 +1483,7 @@ public class WebExamples {
       // at this moment your user object should contain the info
       // from the Oauth2 response, since this is a protected resource
       // as specified above in the handler config the user object is never null
-      User user = ctx.user();
+      User user = ctx.user().get();
       // just dump it to the client for demo purposes
       ctx.response().end(user.toString());
     });
@@ -1965,6 +1965,38 @@ public class WebExamples {
         String value = route.getMetadata("metadata-key"); // 123
         // will end the request with the value 123
         ctx.end(value);
+      });
+  }
+
+  public void example89(Router router) {
+    router
+      .route("/high/security/route/check")
+      .handler(ctx -> {
+        // if the user isn't admin, we ask the user to login again as admin
+        ctx
+          .user()
+          .loginHint("admin")
+          .impersonate();
+      });
+  }
+
+  public void example90(Router router) {
+    router
+      .route("/high/security/route/back/to/me")
+      .handler(ctx -> {
+        ctx
+          .user()
+          .restore();
+      });
+  }
+
+  public void example91(Router router) {
+    router
+      .route("/high/security/route/refresh/me")
+      .handler(ctx -> {
+        ctx
+          .user()
+          .refresh();
       });
   }
 

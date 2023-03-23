@@ -1199,7 +1199,7 @@ make sure your authentication handler is before your application handlers on tho
 ----
 
 If the authentication handler has successfully authenticated the user it will inject a {@link io.vertx.ext.auth.User}
-object into the {@link io.vertx.ext.web.RoutingContext} so it's available in your handlers with:
+object into the {@link io.vertx.ext.web.UserContext} so it's available in your handlers from the routing context:
 {@link io.vertx.ext.web.RoutingContext#user()}.
 
 If you want your User object to be stored in the session so it's available between requests so you don't have to
@@ -1207,8 +1207,8 @@ authenticate on each request, then you should make sure you have a session handl
 
 Once you have your user object you can also programmatically use the methods on it to authorize the user.
 
-If you want to cause the user to be logged out you can call {@link io.vertx.ext.web.RoutingContext#clearUser()}
-on the routing context.
+If you want to cause the user to be logged out you can call {@link io.vertx.ext.web.UserContext#logout()}
+on the routing context `user` getter. The logout will remove the user from the session if there is one and perform a redirect to an optional uri or `/` by default.
 
 === HTTP Basic Authentication
 
@@ -1367,6 +1367,38 @@ Complex chaining is also possible, for example, building logic sequences such as
 ----
 {@link examples.WebExamples#example78}
 ----
+
+=== Impersonation
+
+When using authentication handlers, it is possible that the identity of the user changes over time. For
+example, a user may require to become `admin` for a specific period of time. This can be achieved by calling:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example89}
+----
+
+The operation can be reversed by calling:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example90}
+----
+
+The impersonation does not require calling other router endpoints to avoid being exploited from the outside.
+
+=== Refreshing identities
+
+There are times when a critical operation may require attestation of the presence of the user. While this
+attestation is complex, we can achieve this by refreshing the identity of the user. This can be achieved by calling:
+
+[source,$lang]
+----
+{@link examples.WebExamples#example91}
+----
+
+This will require the user to authenticate again to confirm the identity.
+
 
 == Security Auditing
 

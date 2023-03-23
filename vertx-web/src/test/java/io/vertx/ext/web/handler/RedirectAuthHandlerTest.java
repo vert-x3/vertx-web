@@ -22,7 +22,6 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.LocalSessionStore;
@@ -59,7 +58,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
       Session sess = rc.session();
       assertNotNull(sess);
       assertEquals(sessionCookie.get().substring(18, 50), sess.id());
-      assertNotNull(rc.user());
+      assertNotNull(rc.user().get());
       rc.response().end("Welcome to the protected resource!");
     });
     // And request it again
@@ -67,7 +66,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     }, 200, "OK", "Welcome to the protected resource!");
     // Now logout
     router.route("/logout").handler(rc -> {
-      rc.clearUser();
+      rc.user().clear();
       rc.response().end("logged out");
     });
     testRequest(HttpMethod.GET, "/logout", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
@@ -245,7 +244,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
       Session sess = rc.session();
       assertNotNull(sess);
       assertEquals(sessionCookie.get().substring(18, 54), sess.id());
-      assertNotNull(rc.user());
+      assertNotNull(rc.user().get());
       rc.response().end("Welcome to the protected resource!");
     });
   }

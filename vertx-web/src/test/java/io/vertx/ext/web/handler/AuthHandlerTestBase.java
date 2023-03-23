@@ -25,6 +25,7 @@ import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.auth.properties.PropertyFileAuthorization;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.impl.UserContextInternal;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.AfterClass;
@@ -74,11 +75,12 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
     AuthenticationHandler authNHandler = createAuthHandler(authNProvider);
     router.route().handler(rc -> {
       // we need to be logged in
-      if (rc.user() == null) {
+      if (!rc.user().authenticated()) {
         UsernamePasswordCredentials authInfo = new UsernamePasswordCredentials(username, "delicious:sausages");
         authNProvider.authenticate(authInfo).onComplete(res -> {
           if (res.succeeded()) {
-            rc.setUser(res.result());
+            ((UserContextInternal) rc.user())
+              .setUser(res.result());
             rc.next();
           } else {
             rc.fail(res.cause());

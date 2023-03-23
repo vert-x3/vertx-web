@@ -190,7 +190,7 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
-  public User user() {
+  public UserContext user() {
     return decoratedContext.user();
   }
 
@@ -265,18 +265,13 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  public void setSecurityAudit(SecurityAudit securityAudit) {
+    decoratedContext.setSecurityAudit(securityAudit);
+  }
+
+  @Override
   public SecurityAudit securityAudit() {
     return decoratedContext.securityAudit();
-  }
-
-  @Override
-  public void setUser(User user) {
-    decoratedContext.setUser(user);
-  }
-
-  @Override
-  public void clearUser() {
-    decoratedContext.clearUser();
   }
 
   @Override

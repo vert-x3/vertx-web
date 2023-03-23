@@ -55,8 +55,8 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
   private void doLogin(String realm) throws Exception {
 
     Handler<RoutingContext> handler = rc -> {
-      assertNotNull(rc.user());
-      assertEquals("tim", rc.user().principal().getString("username"));
+      assertNotNull(rc.user().get());
+      assertEquals("tim", rc.user().get().principal().getString("username"));
       rc.response().end("Welcome to the protected resource!");
     };
 
@@ -98,10 +98,10 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       if (sessID != null) {
         assertEquals(sessID, rc.session().id());
       }
-      assertNotNull(rc.user());
-      assertEquals("tim", rc.user().principal().getString("username"));
+      assertNotNull(rc.user().get());
+      assertEquals("tim", rc.user().get().principal().getString("username"));
       if (c == 7) {
-        rc.clearUser();
+        rc.user().clear();
       }
       rc.response().end("Welcome to the protected resource!");
     };

@@ -32,6 +32,7 @@ public interface RoutingContextInternal extends RoutingContext {
 
   int BODY_HANDLER = 1 << 1;
   int CORS_HANDLER = 1 << 2;
+  int SESSION_HANDLER = 1 << 3;
 
   /**
    * flags the current routing context as having visited the handler with {@code id}.
@@ -110,4 +111,9 @@ public interface RoutingContextInternal extends RoutingContext {
    * Get or Default the security audit object.
    */
   SecurityAudit securityAudit();
+
+  /**
+   * Get or Default the security audit object.
+   */
+  void setSecurityAudit(SecurityAudit securityAudit);
 }

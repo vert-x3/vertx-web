@@ -126,6 +126,6 @@ public abstract class SockJSSocketBase implements SockJSSocket {
 
   @Override
   public User webUser() {
-    return routingContext.user();
+    return routingContext.user().get();
   }
 }

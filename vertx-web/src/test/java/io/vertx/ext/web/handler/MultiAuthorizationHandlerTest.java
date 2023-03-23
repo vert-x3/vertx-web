@@ -1,8 +1,6 @@
 package io.vertx.ext.web.handler;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.KeyStoreOptions;
@@ -46,8 +44,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
 
     router.route("/protected/page1").handler(rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user().get());
+      assertEquals("paulo", rc.user().get().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -69,8 +67,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(AuthorizationHandler.create(RoleBasedAuthorization.create("role1")));
 
     router.route("/protected/page1").handler(rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user().get());
+      assertEquals("paulo", rc.user().get().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -96,8 +94,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       );
 
     router.route("/protected/page1").handler(rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user().get());
+      assertEquals("paulo", rc.user().get().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -125,8 +123,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       );
 
     router.route("/protected/page1").handler(rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user().get());
+      assertEquals("paulo", rc.user().get().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -154,8 +152,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       );
 
     router.route("/protected/page1").handler(rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user().get());
+      assertEquals("paulo", rc.user().get().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -198,14 +196,14 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       .addAuthorizationProvider(createProvider("authzProvider1", RoleBasedAuthorization.create("role2"))));
 
     router.route("/protected1/page1").handler(rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user().get());
+      assertEquals("paulo", rc.user().get().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
     router.route("/protected/page1").handler(rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user().get());
+      assertEquals("paulo", rc.user().get().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 

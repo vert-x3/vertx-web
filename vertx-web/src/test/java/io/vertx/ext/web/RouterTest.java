@@ -3595,4 +3595,19 @@ public class RouterTest extends WebTestBase {
 
     await();
   }
+
+  @Test
+  public void testExtractCallee() throws Exception {
+
+    router.route()
+      .handler(ctx -> {
+        System.out.println(ctx.request().absoluteURI());
+        ctx.end();
+      });
+
+    testRequest(
+      HttpMethod.GET,
+      "/?x=1#4",
+      200, "OK");
+  }
 }

@@ -131,7 +131,7 @@ public class SecurityAuditLoggerHandlerTest extends WebTestBase {
 
     router.route("/protected/page1").handler(rc -> {
       assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertEquals("paulo", rc.user().get().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 

@@ -24,7 +24,6 @@ import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.Json;
-import io.vertx.ext.auth.User;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
 import io.vertx.ext.web.impl.Utils;
 
@@ -220,10 +219,11 @@ public interface RoutingContext {
   boolean isSessionAccessed();
 
   /**
-   * Get the authenticated user (if any). This will usually be injected by an auth handler if authentication if successful.
-   * @return  the user, or null if the current user is not authenticated.
+   * Control the user associated with this request. The user context allows accessing the security user object as well
+   * as perform authentication refreshes, logout and other operations.
+   * @return the user context
    */
-  @Nullable User user();
+  UserContext user();
 
   /**
    * If the context is being routed to failure handlers after a failure has been triggered by calling
@@ -329,19 +329,6 @@ public interface RoutingContext {
    * @return true if the context is being routed to failure handlers.
    */
   boolean failed();
-
-  /**
-   * Set the user. Usually used by auth handlers to inject a User. You will not normally call this method.
-   *
-   * @param user  the user
-   */
-  void setUser(User user);
-
-  /**
-   * Clear the current user object in the context. This usually is used for implementing a log out feature, since the
-   * current user is unbounded from the routing context.
-   */
-  void clearUser();
 
   /**
    * Set the acceptable content type. Used by

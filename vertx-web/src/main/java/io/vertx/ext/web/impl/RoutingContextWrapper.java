@@ -25,7 +25,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.ext.auth.User;
 import io.vertx.ext.web.*;
 
 import java.nio.charset.Charset;
@@ -179,17 +178,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public void setUser(User user) {
-    inner.setUser(user);
-  }
-
-  @Override
-  public void clearUser() {
-    inner.clearUser();
-  }
-
-  @Override
-  public User user() {
+  public UserContext user() {
     return inner.user();
   }
 

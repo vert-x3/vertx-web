@@ -24,6 +24,7 @@ import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.impl.UserContextInternal;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -59,9 +60,9 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
       ctx.request().pause();
     }
 
-    User user = ctx.user();
-    if (user != null) {
+    if (ctx.user().authenticated()) {
       if (mfa != null) {
+        User user = ctx.user().get();
         // if we're dealing with MFA, the user principal must include a matching mfa
         if (mfa.equals(user.get("mfa"))) {
           // proceed with the router
@@ -83,7 +84,8 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
     // perform the authentication
     authenticate(ctx)
       .onSuccess(authenticated -> {
-        ctx.setUser(authenticated);
+        ((UserContextInternal) ctx.user())
+          .setUser(authenticated);
         Session session = ctx.session();
         if (session != null) {
           // the user has upgraded from unauthenticated to authenticated
