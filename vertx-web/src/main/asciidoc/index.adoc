@@ -1754,9 +1754,9 @@ To use MVEL, you need to add the following _dependency_ to your project:
 When using the MVEL template engine, it will by default look for
 templates with the `.templ` extension if no extension is specified in the file name.
 
-The routing context {@link io.vertx.ext.web.RoutingContext} is available
-in the MVEL template as the `context` variable, this means you can render the template based on anything in the context
-including the request, response, session or context data.
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
+in the MVEL template as the source of variables, this means you can render the template based on anything in the context
+data. If you need data from the request, response, session then it needs to be added explicitly to the data.
 
 Here are some examples:
 
@@ -1780,9 +1780,9 @@ To use the Jade template engine, you need to add the following _dependency_ to y
 When using the Jade template engine, it will by default look for
 templates with the `.jade` extension if no extension is specified in the file name.
 
-The routing context {@link io.vertx.ext.web.RoutingContext} is available
-in the Jade template as the `context` variable, this means you can render the template based on anything in the context
-including the request, response, session or context data.
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
+in the Jade template as the source of variables, this means you can render the template based on anything in the context
+data. If you need data from the request, response, session then it needs to be added explicitly to the data.
 
 Here are some examples:
 
@@ -1831,9 +1831,9 @@ using: `io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine#create(io.vertx
 When using the Thymeleaf template engine, it will by default look for
 templates with the `.html` extension if no extension is specified in the file name.
 
-The routing context {@link io.vertx.ext.web.RoutingContext} is available
-in the Thymeleaf template as the `context` variable, this means you can render the template based on anything in the context
-including the request, response, session or context data.
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
+in the Thymeleaf template as the source of variables, this means you can render the template based on anything in the context
+data. If you need data from the request, response, session then it needs to be added explicitly to the data.
 
 Here are some examples:
 
@@ -1859,9 +1859,9 @@ using: `io.vertx.ext.web.templ.Engine#create()`.
 When using the Apache FreeMarker template engine, it will by default look for
 templates with the `.ftl` extension if no extension is specified in the file name.
 
-The routing context {@link io.vertx.ext.web.RoutingContext} is available
-in the Apache FreeMarker template as the `context` variable, this means you can render the template based on anything in the context
-including the request, response, session or context data.
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
+in the FreeMarker template as the source of variables, this means you can render the template based on anything in the context
+data. If you need data from the request, response, session then it needs to be added explicitly to the data.
 
 Here are some examples:
 
@@ -1887,9 +1887,9 @@ using: `io.vertx.ext.web.templ.pebble.PebbleTemplateEngine#create(vertx)`.
 When using the Pebble template engine, it will by default look for
 templates with the `.peb` extension if no extension is specified in the file name.
 
-The routing context `link:../../apidocs/io/vertx/ext/web/RoutingContext.html[RoutingContext]` is available
-in the Pebble template as the `context` variable, this means you can render the template based on anything in the context
-including the request, response, session or context data.
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
+in the Pebble template as the source of variables, this means you can render the template based on anything in the context
+data. If you need data from the request, response, session then it needs to be added explicitly to the data.
 
 Here are some examples:
 
