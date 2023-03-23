@@ -97,7 +97,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
    * @param providers            the providers iterator
    */
   private void checkOrFetchAuthorizations(RoutingContext ctx, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
-    final User user = ctx.user();
+    final User user = ctx.user().get();
     final SecurityAudit audit = ((RoutingContextInternal) ctx).securityAudit();
     audit.authorization(authorization);
     audit.user(user);

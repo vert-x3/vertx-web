@@ -46,7 +46,7 @@ class RouterBuilderSecurityOptionalTest extends RouterBuilderTestBase {
         .apiKeyHandler(APIKeyHandler.create(authProvider));
 
       rb.getRoute("pets")
-        .addHandler(ctx -> ctx.json(ctx.user().principal()));
+        .addHandler(ctx -> ctx.json(ctx.user().get().principal()));
 
       return Future.succeededFuture(rb);
     })
