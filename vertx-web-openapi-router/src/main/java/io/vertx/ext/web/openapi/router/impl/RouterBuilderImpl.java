@@ -32,7 +32,10 @@ import io.vertx.openapi.contract.Path;
 import io.vertx.openapi.validation.RequestValidator;
 import io.vertx.openapi.validation.impl.RequestValidatorImpl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class RouterBuilderImpl implements RouterBuilderInternal {
@@ -85,15 +88,15 @@ public class RouterBuilderImpl implements RouterBuilderInternal {
   }
 
   @Override
-  public RouterBuilder security(String securitySchemeName, AuthenticationHandler authenticationHandler, String callback) {
+  public RouterBuilder security(String securitySchemeName, AuthenticationHandler authenticationHandler,
+                                String callback) {
     securityHandlers.addRequirement(securitySchemeName, authenticationHandler, callback);
     return this;
   }
 
   @Override
   public Security security(String securitySchemeName) {
-
-    return new SecurityImpl(this, contract.findSecurityScheme(securitySchemeName), securitySchemeName);
+    return new SecurityImpl(this, contract.securityScheme(securitySchemeName), securitySchemeName);
   }
 
   @Override
@@ -116,7 +119,7 @@ public class RouterBuilderImpl implements RouterBuilderInternal {
         Objects.requireNonNull(openAPIRoute, "No route found for operation " + operation.getOperationId());
 
         if (openAPIRoute.getHandlers().size() > 0 || openAPIRoute.getFailureHandlers().size() > 0) {
-          securityHandlers.solve(contract, operation, route, openAPIRoute.doSecurity());
+          securityHandlers.solve(operation, route, openAPIRoute.doSecurity());
 
           if (openAPIRoute.doValidation()) {
             InputTrustHandler validationHandler = rc -> extractor.extractValidatableRequest(rc, operation)

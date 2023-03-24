@@ -20,8 +20,6 @@ import io.vertx.openapi.contract.OpenAPIContract;
 import java.nio.file.Path;
 import java.util.function.Function;
 
-import static io.vertx.openapi.impl.Utils.readYamlOrJson;
-
 public class RouterBuilderTestBase extends HttpServerTestBase {
   /**
    * Creates a HTTPServer based on the passed RouterBuilder.
@@ -51,8 +49,7 @@ public class RouterBuilderTestBase extends HttpServerTestBase {
                                       Function<OpenAPIContract, RouterBuilder> routerBuilderSupplier,
                                       Function<RouterBuilder, Future<RouterBuilder>> modifyRouterBuilder) {
 
-    return readYamlOrJson(vertx, pathToContract.toString())
-      .compose(unresolvedContract -> OpenAPIContract.from(vertx, unresolvedContract).map(routerBuilderSupplier).compose(modifyRouterBuilder))
+    return OpenAPIContract.from(vertx, pathToContract.toString()).map(routerBuilderSupplier).compose(modifyRouterBuilder)
       .compose(rb -> {
         Router basePathRouter = Router.router(vertx);
         basePathRouter.route("/v1/*").subRouter(rb.createRouter());
