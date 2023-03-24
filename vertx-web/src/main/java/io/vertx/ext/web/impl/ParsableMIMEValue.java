@@ -17,11 +17,13 @@ public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader
 
   @Override
   public String component() {
+    ensureHeaderProcessed();
     return component;
   }
 
   @Override
   public String subComponent() {
+    ensureHeaderProcessed();
     return subComponent;
   }
 
