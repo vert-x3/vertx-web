@@ -126,10 +126,10 @@ public class WebExamples {
       // `/some/path/subdir`
       // `/some/path/subdir/blah.html`
       //
-      // but **ALSO**:
-      // `/some/path` the final slash is always optional with a wildcard to preserve
-      //              compatibility with many client libraries.
       // but **NOT**:
+      // `/some/path` the final slash is never optional with a wildcard to
+      //              handle sub routing and composition without risking wrong
+      //              configuration like bellow:
       // `/some/patha`
       // `/some/patha/`
       // etc...
