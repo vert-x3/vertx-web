@@ -18,18 +18,13 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
-import io.vertx.ext.auth.authorization.Authorization;
-import io.vertx.ext.auth.authorization.AuthorizationContext;
-import io.vertx.ext.auth.authorization.AuthorizationProvider;
+import io.vertx.ext.auth.authorization.*;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 /**
@@ -44,12 +39,20 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
   private final static int FORBIDDEN_CODE = 403;
   private final static HttpException FORBIDDEN_EXCEPTION = new HttpException(FORBIDDEN_CODE);
 
+  private final boolean abac;
   private final Authorization authorization;
   private final Collection<AuthorizationProvider> authorizationProviders;
   private BiConsumer<RoutingContext, AuthorizationContext> variableHandler;
 
   public AuthorizationHandlerImpl(Authorization authorization) {
+    this.abac = false;
     this.authorization = Objects.requireNonNull(authorization);
+    this.authorizationProviders = new ArrayList<>();
+  }
+
+  public AuthorizationHandlerImpl() {
+    this.abac = true;
+    this.authorization = null;
     this.authorizationProviders = new ArrayList<>();
   }
 
@@ -70,8 +73,25 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
         if (variableHandler != null) {
           variableHandler.accept(ctx, authorizationContext);
         }
+
+        final Authorization authorization;
+
+        if (abac) {
+          // create the authorization from the context
+          Map<String, Object> metadata = ctx.currentRoute().metadata();
+          if (metadata == null) {
+            metadata = Collections.emptyMap();
+          }
+          String domain = (String) metadata.getOrDefault("X-ABAC-Domain", "web");
+          String operation = (String) metadata.getOrDefault("X-ABAC-Operation", ctx.request().method().name());
+          String resource = (String) metadata.getOrDefault("X-ABAC-Resource", ctx.normalizedPath());
+          authorization = WildcardPermissionBasedAuthorization.create(domain + ":" + operation).setResource(resource);
+        } else {
+          authorization = this.authorization;
+        }
+
         // check or fetch authorizations
-        checkOrFetchAuthorizations(ctx, authorizationContext, authorizationProviders.iterator());
+        checkOrFetchAuthorizations(ctx, authorization, authorizationContext, authorizationProviders.iterator());
       } catch (RuntimeException e) {
         // resume as the error handler may allow this request to become valid again
         if (!ctx.request().isEnded()) {
@@ -96,7 +116,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
    * @param authorizationContext the current authorization context
    * @param providers            the providers iterator
    */
-  private void checkOrFetchAuthorizations(RoutingContext ctx, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
+  private void checkOrFetchAuthorizations(RoutingContext ctx, Authorization authorization, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
     final User user = ctx.user().get();
     final SecurityAudit audit = ((RoutingContextInternal) ctx).securityAudit();
     audit.authorization(authorization);
@@ -133,7 +153,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
             // note that we don't 'record' the fact that we tried to fetch the authorization provider. therefore, it will be re-fetched later-on
           })
           .eventually(v -> {
-            checkOrFetchAuthorizations(ctx, authorizationContext, providers);
+            checkOrFetchAuthorizations(ctx, authorization, authorizationContext, providers);
             return Future.succeededFuture();
           });
         // get out right now as the callback will decide what to do next

@@ -47,6 +47,14 @@ public interface AuthorizationHandler extends Handler<RoutingContext> {
   }
 
   /**
+   * create the handler that will check the attribute based authorization.
+   * @return fluent self.
+   */
+  static AuthorizationHandler create() {
+    return new AuthorizationHandlerImpl();
+  }
+
+  /**
    * Adds a provider that shall be used to retrieve the required authorizations for the user to attest.
    * Multiple calls are allowed to retrieve authorizations from many sources.
    *
