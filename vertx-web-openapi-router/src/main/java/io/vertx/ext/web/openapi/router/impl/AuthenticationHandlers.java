@@ -10,11 +10,16 @@ import io.vertx.ext.web.handler.ChainAuthHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
 import io.vertx.ext.web.handler.impl.ScopedAuthentication;
-import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.openapi.contract.Operation;
 import io.vertx.openapi.contract.SecurityRequirement;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -51,23 +56,16 @@ class AuthenticationHandlers {
   /**
    * The input array is an OR of different AND security requirements
    */
-  protected void solve(OpenAPIContract contract, Operation operation, Route route, boolean failOnNotFound) {
-    final List<SecurityRequirement> securityRequirements =
-      operation.getSecurityRequirements() != null ?
-        operation.getSecurityRequirements() :
-        contract.getSecurityRequirements();
-
-    AuthenticationHandler authn = or(
-      route,
-      securityRequirements == null ? Collections.emptyList() : securityRequirements,
-      failOnNotFound);
+  protected void solve(Operation operation, Route route, boolean failOnNotFound) {
+    AuthenticationHandler authn = or(route, operation.getSecurityRequirements(), failOnNotFound);
 
     if (authn != null) {
       route.handler(authn);
     }
   }
 
-  private List<AuthenticationHandler> resolveHandlers(Route route, String name, List<String> scopes, boolean failOnNotFound) {
+  private List<AuthenticationHandler> resolveHandlers(Route route, String name, List<String> scopes,
+                                                      boolean failOnNotFound) {
     List<AuthenticationHandler> authenticationHandlers;
     if (failOnNotFound) {
       authenticationHandlers = Optional
@@ -119,7 +117,8 @@ class AuthenticationHandlers {
     return authHandler;
   }
 
-  private AuthenticationHandler or(Route route, List<SecurityRequirement> securityRequirements, boolean failOnNotFound) {
+  private AuthenticationHandler or(Route route, List<SecurityRequirement> securityRequirements,
+                                   boolean failOnNotFound) {
     if (securityRequirements == null || securityRequirements.isEmpty()) {
       return null;
     }
