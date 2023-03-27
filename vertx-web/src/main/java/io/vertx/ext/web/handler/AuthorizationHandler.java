@@ -16,6 +16,7 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.auth.authorization.Authorization;
 import io.vertx.ext.auth.authorization.AuthorizationContext;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;
@@ -47,7 +48,23 @@ public interface AuthorizationHandler extends Handler<RoutingContext> {
   }
 
   /**
-   * create the handler that will check the attribute based authorization.
+   * create the handler that will check the attribute based authorization. In this mode, the required authorization is
+   * computed from the request itself or the metadata of the route. The important keys are:
+   *
+   * <ul>
+   *   <li>{@code X-ABAC-Domain} - The domain of the permission, a domain is a the first segment of {@code domain:operation}</li>
+   *   <li>{@code X-ABAC-Operation} - The operation of the permission, the operation is a the second segment of {@code domain:operation}</li>
+   *   <li>{@code X-ABAC-Resource} - This is usually is a opaque string to mark the resource to access</li>
+   * </ul>
+   *
+   * When any of these metadata values are missing they are replaced at runtime with their default values:
+   *
+   * <ul>
+   *   <li>{@code X-ABAC-Domain} - Always {@code web}</li>
+   *   <li>{@code X-ABAC-Operation} - The request HTTP {@link io.vertx.core.http.HttpMethod} from {@link HttpServerRequest#method()}</li>
+   *   <li>{@code X-ABAC-Resource} - The normalized request path from {@link RoutingContext#normalizedPath()}</li>
+   * </ul>
+   *
    * @return fluent self.
    */
   static AuthorizationHandler create() {

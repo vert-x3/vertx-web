@@ -18,7 +18,11 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
-import io.vertx.ext.auth.authorization.*;
+import io.vertx.ext.auth.authorization.Authorization;
+import io.vertx.ext.auth.authorization.AuthorizationContext;
+import io.vertx.ext.auth.authorization.AuthorizationProvider;
+import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.HttpException;
@@ -39,21 +43,46 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
   private final static int FORBIDDEN_CODE = 403;
   private final static HttpException FORBIDDEN_EXCEPTION = new HttpException(FORBIDDEN_CODE);
 
-  private final boolean abac;
   private final Authorization authorization;
   private final Collection<AuthorizationProvider> authorizationProviders;
   private BiConsumer<RoutingContext, AuthorizationContext> variableHandler;
 
   public AuthorizationHandlerImpl(Authorization authorization) {
-    this.abac = false;
     this.authorization = Objects.requireNonNull(authorization);
     this.authorizationProviders = new ArrayList<>();
   }
 
   public AuthorizationHandlerImpl() {
-    this.abac = true;
     this.authorization = null;
     this.authorizationProviders = new ArrayList<>();
+  }
+
+  private Authorization computeAuthorizationIfNeeded(RoutingContext ctx) {
+    if (authorization != null) {
+      return authorization;
+    }
+
+    String domain = "web";
+    String operation;
+    String resource;
+
+    // create the authorization from the context
+    final Route route = ctx.currentRoute();
+    Map<String, Object> metadata = route.metadata();
+    if (metadata != null) {
+      domain = route.getMetadata("X-ABAC-Domain");
+      operation = route.getMetadata("X-ABAC-Operation");
+      resource = route.getMetadata("X-ABAC-Resource");
+      if (domain == null) {
+        domain = "web";
+      }
+      if (operation != null && resource != null) {
+        // computed from the metadata
+        return PermissionBasedAuthorization.create(domain + ":" + operation).setResource(resource);
+      }
+    }
+    // computed from the request
+    return PermissionBasedAuthorization.create(domain + ":" + ctx.request().method().name()).setResource(ctx.normalizedPath());
   }
 
   @Override
@@ -74,24 +103,8 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
           variableHandler.accept(ctx, authorizationContext);
         }
 
-        final Authorization authorization;
-
-        if (abac) {
-          // create the authorization from the context
-          Map<String, Object> metadata = ctx.currentRoute().metadata();
-          if (metadata == null) {
-            metadata = Collections.emptyMap();
-          }
-          String domain = (String) metadata.getOrDefault("X-ABAC-Domain", "web");
-          String operation = (String) metadata.getOrDefault("X-ABAC-Operation", ctx.request().method().name());
-          String resource = (String) metadata.getOrDefault("X-ABAC-Resource", ctx.normalizedPath());
-          authorization = WildcardPermissionBasedAuthorization.create(domain + ":" + operation).setResource(resource);
-        } else {
-          authorization = this.authorization;
-        }
-
         // check or fetch authorizations
-        checkOrFetchAuthorizations(ctx, authorization, authorizationContext, authorizationProviders.iterator());
+        checkOrFetchAuthorizations(ctx, computeAuthorizationIfNeeded(ctx), authorizationContext, authorizationProviders.iterator());
       } catch (RuntimeException e) {
         // resume as the error handler may allow this request to become valid again
         if (!ctx.request().isEnded()) {

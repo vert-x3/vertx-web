@@ -16,10 +16,12 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.KeyStoreOptions;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authorization.Authorization;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
@@ -29,8 +31,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Collections;
 
 /**
  *
@@ -148,6 +148,17 @@ public class SecurityAuditLoggerHandlerTest extends WebTestBase {
   }
 
   private AuthorizationProvider createProvider(String id, Authorization authorization) {
-    return AuthorizationProvider.create(id, Collections.singleton(authorization));
+    return new AuthorizationProvider() {
+      @Override
+      public String getId() {
+        return null;
+      }
+
+      @Override
+      public Future<Void> getAuthorizations(User user) {
+        user.authorizations().put(id, authorization);
+        return Future.succeededFuture();
+      }
+    };
   }
 }
