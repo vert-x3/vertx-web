@@ -3124,7 +3124,7 @@ public class RouterTest extends WebTestBase {
             ctx.request().bodyHandler(x -> ctx.response().end("Hello"));
             break;
           case "/body":
-            ctx.request().body(x -> ctx.response().end("Hello"));
+            ctx.request().body().onComplete(x -> ctx.response().end("Hello"));
             break;
           case "/body/Future":
             ctx.request().body()
