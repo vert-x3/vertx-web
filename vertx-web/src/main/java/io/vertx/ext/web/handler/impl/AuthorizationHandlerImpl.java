@@ -58,29 +58,36 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
   }
 
   private Authorization computeAuthorizationIfNeeded(RoutingContext ctx) {
+    // static (RBAC)
     if (authorization != null) {
       return authorization;
     }
 
-    String domain = "web";
-    String operation;
-    String resource;
+    // dynamic (ABAC)
+    String domain = null;
+    String operation = null;
+    String resource = null;
 
     // create the authorization from the context
     final Route route = ctx.currentRoute();
-    Map<String, Object> metadata = route.metadata();
-    if (metadata != null) {
+    if (route != null) {
+      // while it may seem that we are doing a lot of work here, by computing the permission per request
+      // we can't ignore the fact that someone may have reused the handler in several routes, and in that
+      // case the metadata is always different given the location.
       domain = route.getMetadata("X-ABAC-Domain");
       operation = route.getMetadata("X-ABAC-Operation");
       resource = route.getMetadata("X-ABAC-Resource");
-      if (domain == null) {
-        domain = "web";
-      }
-      if (operation != null && resource != null) {
-        // computed from the metadata
-        return PermissionBasedAuthorization.create(domain + ":" + operation).setResource(resource);
-      }
     }
+    // default to web
+    if (domain == null) {
+      domain = "web";
+    }
+
+    if (operation != null && resource != null) {
+      // computed from the metadata
+      return PermissionBasedAuthorization.create(domain + ":" + operation).setResource(resource);
+    }
+
     // computed from the request
     return PermissionBasedAuthorization.create(domain + ":" + ctx.request().method().name()).setResource(ctx.normalizedPath());
   }
@@ -98,8 +105,12 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
           ctx.request().pause();
         }
         // create the authorization context
-        final AuthorizationContext authorizationContext = AuthorizationContext.create(user);
-        if (variableHandler != null) {
+        final AuthorizationContext authorizationContext;
+        if (variableHandler == null) {
+          // no variable handler, use the request params as source of variables
+          authorizationContext = AuthorizationContext.create(user, ctx.request().params());
+        } else {
+          authorizationContext = AuthorizationContext.create(user);
           variableHandler.accept(ctx, authorizationContext);
         }
 
@@ -163,7 +174,8 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
         provider.getAuthorizations(user)
           .onFailure(err -> {
             LOG.warn("An error occurred getting authorization - providerId: " + provider.getId(), err);
-            // note that we don't 'record' the fact that we tried to fetch the authorization provider. therefore, it will be re-fetched later-on
+            // note that we don't 'record' the fact that we tried to fetch the authorization provider.
+            // therefore, it will be re-fetched later-on
           })
           .eventually(v -> {
             checkOrFetchAuthorizations(ctx, authorization, authorizationContext, providers);
