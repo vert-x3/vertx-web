@@ -94,11 +94,11 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
 
   @Override
   public void handle(RoutingContext ctx) {
-    if (!ctx.user().authenticated()) {
+    final User user = ctx.user().get();
+
+    if (user == null) {
       ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
     } else {
-      final User user = ctx.user().get();
-
       try {
         // this handler can perform asynchronous operations
         if (!ctx.request().isEnded()) {
