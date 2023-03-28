@@ -13,13 +13,7 @@ import io.vertx.ext.web.handler.impl.ScopedAuthentication;
 import io.vertx.openapi.contract.Operation;
 import io.vertx.openapi.contract.SecurityRequirement;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +42,12 @@ class AuthenticationHandlers {
       .add(handler);
 
     if (callback != null) {
-      // TODO: check if callback is already present
+      // the problem, when by mistake a user defines 2 different handlers with the same callback,
+      // the callback would always redirect to the 1st handler and not the 2nd as expected.
+      if (callbackHandlers.containsKey(callback)) {
+        throw new IllegalStateException("Callback already in use: " + callback +
+          " [only 1 callback per handler is allowed]");
+      }
       callbackHandlers.put(callback, (OAuth2AuthHandler) handler);
     }
   }
