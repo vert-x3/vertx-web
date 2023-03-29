@@ -1,5 +1,0 @@
-doctype html
-html
-  head
-    title= 'aardvark' + context.getString('path')
-  body
