@@ -57,7 +57,6 @@ public class LoggerHandlerImpl implements LoggerHandler {
    */
   private final LoggerFormat format;
 
-  private Function<HttpServerRequest, String> customFormatter;
   private LoggerFormatter logFormatter;
 
   public LoggerHandlerImpl(boolean immediate, LoggerFormat format) {
@@ -147,11 +146,7 @@ public class LoggerHandlerImpl implements LoggerHandler {
         break;
       case CUSTOM:
         try {
-          if (logFormatter != null) {
-            message = logFormatter.format(context, (System.currentTimeMillis() - timestamp));
-          } else {
-            message = customFormatter.apply(request);
-          }
+          message = logFormatter.format(context, (System.currentTimeMillis() - timestamp));
         } catch (RuntimeException e) {
           // if an error happens at the user side
           // log it instead
@@ -183,7 +178,7 @@ public class LoggerHandlerImpl implements LoggerHandler {
     if (immediate) {
       log(context, timestamp, remoteClient, version, method, uri);
     } else {
-      context.addBodyEndHandler(v -> log(context, timestamp, remoteClient, version, method, uri));
+      context.addEndHandler(v -> log(context, timestamp, remoteClient, version, method, uri));
     }
 
     context.next();
