@@ -46,7 +46,13 @@ class RouterBuilderSecurityOptionalTest extends RouterBuilderTestBase {
         .apiKeyHandler(APIKeyHandler.create(authProvider));
 
       rb.getRoute("pets")
-        .addHandler(ctx -> ctx.json(ctx.user().get().principal()));
+        .addHandler(ctx -> {
+          if (ctx.user().authenticated()) {
+            ctx.json(ctx.user().get().principal());
+          } else {
+            ctx.json(null);
+          }
+        });
 
       return Future.succeededFuture(rb);
     })
@@ -54,7 +60,7 @@ class RouterBuilderSecurityOptionalTest extends RouterBuilderTestBase {
         return createRequest(GET, "/v1/pets").send()
           .onSuccess(response -> testContext.verify(() -> {
             assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.body()).isEqualTo(Buffer.buffer("{}"));
+            assertThat(response.body()).isEqualTo(Buffer.buffer("null"));
           }));
       })
       .compose(v -> {

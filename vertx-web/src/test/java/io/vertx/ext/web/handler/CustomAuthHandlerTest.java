@@ -15,7 +15,6 @@
  */
 package io.vertx.ext.web.handler;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
@@ -102,11 +101,26 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
 
     router.errorHandler(499, rc -> rc
       .response()
-      .setStatusCode(((HttpException)rc.failure()).getStatusCode())
-      .setStatusMessage(((HttpException)rc.failure()).getPayload())
+      .setStatusCode(((HttpException) rc.failure()).getStatusCode())
+      .setStatusMessage(((HttpException) rc.failure()).getPayload())
       .end()
     );
 
     testRequest(HttpMethod.GET, "/protected/somepage", 499, "bla");
+  }
+
+  @Test
+  public void testAnonymousAuthentication() throws Exception {
+
+    router.route("/protected")
+      .handler(SimpleAuthenticationHandler.create().authenticate(ctx -> Future.succeededFuture()))
+      .handler(ctx -> {
+        // validation
+        assertNull(ctx.user().get());
+        ctx.next();
+      })
+      .handler(ctx -> ctx.response().end("Welcome to the protected resource!"));
+
+    testRequest(HttpMethod.GET, "/protected", 200, "OK", "Welcome to the protected resource!");
   }
 }

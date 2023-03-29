@@ -1,8 +1,6 @@
 package io.vertx.ext.web.openapi.router.impl;
 
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.AuthenticationHandler;
@@ -18,15 +16,14 @@ import java.util.stream.Collectors;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
+ * @author Paulo Lopes
  */
 class AuthenticationHandlers {
 
-  private static final JsonObject EMPTY_JSON = new JsonObject(Collections.emptyMap());
-
-  private static final AuthenticationHandler SUCCESS_HANDLER =
+  private static final AuthenticationHandler ANONYMOUS_SUCCESS_AUTH_HANDLER =
     SimpleAuthenticationHandler
       .create()
-      .authenticate(ctx -> Future.succeededFuture(User.create(EMPTY_JSON)));
+      .authenticate(ctx -> Future.succeededFuture());
 
   private final Map<String, List<AuthenticationHandler>> securityHandlers;
   private final Map<String, OAuth2AuthHandler> callbackHandlers;
@@ -137,7 +134,7 @@ class AuthenticationHandlers {
 
     switch (securityRequirements.size()) {
       case 0:
-        return SUCCESS_HANDLER;
+        return null;
       case 1:
         if (!emptyAuth) {
           // If one security requirements, we don't need a ChainAuthHandler
@@ -153,7 +150,8 @@ class AuthenticationHandlers {
     }
 
     if (emptyAuth) {
-      authHandler.add(SUCCESS_HANDLER);
+      authHandler
+        .add(ANONYMOUS_SUCCESS_AUTH_HANDLER);
     }
 
     return authHandler;
