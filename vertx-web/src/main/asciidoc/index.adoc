@@ -44,7 +44,7 @@ Some of the key features of Vert.x-Web include:
 * Favicon handling
 * Template support for server side rendering, including support for the following template engines out of the box:
 ** Handlebars
-** Jade,
+** Pug,
 ** MVEL
 ** Thymeleaf
 ** Apache FreeMarker
@@ -1771,17 +1771,17 @@ The value 'bar' from the context data is @{context.get('bar')}
 Please consult the http://mvel.documentnode.com/#mvel-2.0-templating-guide[MVEL templates documentation] for how to write
 MVEL templates.
 
-=== Jade template engine
+=== Pug template engine
 
-To use the Jade template engine, you need to add the following _dependency_ to your project:
-`${maven.groupId}:vertx-web-templ-jade:${maven.version}`. Create an instance of the Jade template engine using:
-`io.vertx.ext.web.templ.jade.JadeTemplateEngine#create(io.vertx.core.Vertx)`.
+To use the Pug template engine, you need to add the following _dependency_ to your project:
+`${maven.groupId}:vertx-web-templ-pug:${maven.version}`. Create an instance of the Pug template engine using:
+`io.vertx.ext.web.templ.pug.PugTemplateEngine#create(io.vertx.core.Vertx)`.
 
-When using the Jade template engine, it will by default look for
-templates with the `.jade` extension if no extension is specified in the file name.
+When using the Pug template engine, it will by default look for
+templates with the `.pug` extension if no extension is specified in the file name.
 
 The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
-in the Jade template as the source of variables, this means you can render the template based on anything in the context
+in the Pug template as the source of variables, this means you can render the template based on anything in the context
 data. If you need data from the request, response, session then it needs to be added explicitly to the data.
 
 Here are some examples:
@@ -1794,8 +1794,8 @@ html
   body
 ----
 
-Please consult the https://github.com/neuland/jade4j[Jade4j documentation] for how to write
-Jade templates.
+Please consult the https://github.com/neuland/pug4j[Pug4j documentation] for how to write
+Pug templates.
 
 === Handlebars template engine
 

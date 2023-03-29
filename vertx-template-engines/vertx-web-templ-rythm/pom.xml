@@ -21,7 +21,7 @@
     <dependency>
       <groupId>org.rythmengine</groupId>
       <artifactId>rythm-engine</artifactId>
-      <version>1.4.1</version>
+      <version>1.4.2</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
