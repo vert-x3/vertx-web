@@ -26,6 +26,7 @@ import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -67,22 +68,26 @@ public class SockJSProtocolTest {
   private String runPython(String cmd, Predicate<String> exitTest) throws Exception {
     StringBuilder output = new StringBuilder();
     String path = new File("./src/test/sockjs-protocol/").getCanonicalPath();
-    try (GenericContainer<?> container = new GenericContainer<>(DockerImageName.parse("python:2.7-alpine"))) {
-      container.withFileSystemBind(path, "/usr/src/myapp");
-      container.withWorkingDirectory("/usr/src/myapp");
-      container.addEnv("SOCKJS_URL", "http://host.docker.internal:8081");
-      CountDownLatch latch = new CountDownLatch(1);
-      container.withLogConsumer(frame -> {
-        String s = frame.getUtf8String();
-        output.append(frame.getUtf8String());
-        if (exitTest.test(s)) {
-          latch.countDown();
-        }
-      });
-      container.setNetworkMode("host");
-      container.withCommand(cmd);
-      container.start();
-      latch.await(50, TimeUnit.SECONDS);
+    Testcontainers.exposeHostPorts(8081);
+    try {
+      try (GenericContainer<?> container = new GenericContainer<>(DockerImageName.parse("python:2.7-alpine"))) {
+        container.withFileSystemBind(path, "/usr/src/myapp");
+        container.withWorkingDirectory("/usr/src/myapp");
+        container.addEnv("SOCKJS_URL", "host.testcontainers.internal:8081");
+        CountDownLatch latch = new CountDownLatch(1);
+        container.withLogConsumer(frame -> {
+          String s = frame.getUtf8String();
+          output.append(frame.getUtf8String());
+          if (exitTest.test(s)) {
+            latch.countDown();
+          }
+        });
+        container.withCommand(cmd);
+        container.start();
+        latch.await(50, TimeUnit.SECONDS);
+      }
+    } finally {
+      Testcontainers.exposeHostPorts();
     }
     return output.toString();
   }
