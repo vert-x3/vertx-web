@@ -29,6 +29,7 @@ import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.impl.GraphQLQuery;
 import io.vertx.ext.web.handler.graphql.ws.ConnectionInitEvent;
@@ -84,6 +85,12 @@ public class ConnectionHandler {
       return;
     }
     MessageImpl message = state.createMessage(type, json);
+
+    Handler<Message> mh = graphQLWSHandler.getMessageHandler();
+    if (mh != null) {
+      mh.handle(message);
+    }
+
     state.handleMessage(message);
   }
 
