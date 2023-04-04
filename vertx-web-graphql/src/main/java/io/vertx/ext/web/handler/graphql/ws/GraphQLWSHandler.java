@@ -22,11 +22,8 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
-import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
-import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.impl.ws.GraphQLWSHandlerImpl;
-import io.vertx.ext.web.handler.graphql.impl.ws.MessageImpl;
 
 import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
