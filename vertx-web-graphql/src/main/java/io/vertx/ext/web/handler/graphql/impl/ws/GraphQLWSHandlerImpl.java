@@ -37,6 +37,7 @@ public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
 
   private Handler<ExecutionInputBuilderWithContext<Message>> beforeExecute;
   private Handler<ConnectionInitEvent> connectionInitHandler;
+  private Handler<Message> messageHandler;
 
   public GraphQLWSHandlerImpl(GraphQL graphQL, GraphQLWSOptions options) {
     Objects.requireNonNull(graphQL, "graphQL instance is null");
@@ -72,6 +73,14 @@ public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
   synchronized Handler<ExecutionInputBuilderWithContext<Message>> getBeforeExecute() {
     return beforeExecute;
   }
+
+  @Override
+  public synchronized GraphQLWSHandler messageHandler(Handler<Message> messageHandler) {
+    this.messageHandler = messageHandler;
+    return this;
+  }
+
+  synchronized Handler<Message> getMessageHandler() { return messageHandler; }
 
   @Override
   public void handle(RoutingContext rc) {
