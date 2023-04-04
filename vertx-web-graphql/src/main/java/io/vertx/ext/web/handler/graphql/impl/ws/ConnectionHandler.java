@@ -29,7 +29,6 @@ import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.handler.graphql.ApolloWSMessage;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.impl.GraphQLQuery;
 import io.vertx.ext.web.handler.graphql.ws.ConnectionInitEvent;
