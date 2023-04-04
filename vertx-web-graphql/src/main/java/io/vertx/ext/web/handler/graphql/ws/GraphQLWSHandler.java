@@ -73,4 +73,13 @@ public interface GraphQLWSHandler extends ProtocolUpgradeHandler {
    */
   @Fluent
   GraphQLWSHandler beforeExecute(Handler<ExecutionInputBuilderWithContext<Message>> config);
+
+  /**
+   * Customize the message {@link Handler}.
+   * This handler will be called for each {@link Message} received.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  GraphQLWSHandler messageHandler(Handler<Message> messageHandler);
 }

@@ -84,6 +84,12 @@ public class ConnectionHandler {
       return;
     }
     MessageImpl message = state.createMessage(type, json);
+
+    Handler<Message> mh = graphQLWSHandler.getMessageHandler();
+    if (mh != null) {
+      mh.handle(message);
+    }
+
     state.handleMessage(message);
   }
 
