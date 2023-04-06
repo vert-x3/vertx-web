@@ -13,7 +13,7 @@
 
   <properties>
     <junit5.version>5.7.0</junit5.version>
-    <assertj.version>3.15.0</assertj.version>
+    <assertj.version>3.24.2</assertj.version>
     <doc.skip>false</doc.skip>
   </properties>
 
