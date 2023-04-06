@@ -60,9 +60,10 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
       ctx.request().pause();
     }
 
-    if (ctx.user().authenticated()) {
+    final User user = ctx.user().get();
+
+    if (user != null) {
       if (mfa != null) {
-        User user = ctx.user().get();
         // if we're dealing with MFA, the user principal must include a matching mfa
         if (mfa.equals(user.get("mfa"))) {
           // proceed with the router
