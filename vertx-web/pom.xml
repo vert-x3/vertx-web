@@ -71,6 +71,11 @@
       <artifactId>vertx-auth-otp</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-abac</artifactId>
+      <optional>true</optional>
+    </dependency>
 
     <!-- Testing -->
     <dependency>
