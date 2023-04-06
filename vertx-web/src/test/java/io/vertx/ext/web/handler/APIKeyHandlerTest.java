@@ -26,6 +26,8 @@ import io.vertx.ext.web.WebTestBase;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.function.Function;
+
 /**
  * @author Paulo Lopes
  */
@@ -112,4 +114,22 @@ public class APIKeyHandlerTest extends WebTestBase {
     // Now try again with wrong API Key
     testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Cookie", "api-key=APIKEY2"), 401, "Unauthorized", null);
   }
+
+  @Test
+  public void testHeaderCustomExtractor() throws Exception {
+
+    router.route("/protected/*").handler(APIKeyHandler.create(authProvider).tokenExtractor(token -> Future.succeededFuture(token.substring(token.indexOf(" ") + 1))));
+
+    router.route("/protected/somepage").handler(rc -> {
+      assertNotNull(rc.user().get());
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+    testRequest(HttpMethod.GET, "/protected/somepage", null, null, 401, "Unauthorized", null);
+    // Now try again with API Key
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("x-api-key", "Foo APIKEY"), 200, "OK", "Welcome to the protected resource!");
+    // Now try again with wrong API Key
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("x-api-key", "Foo APIKEY2"), 401, "Unauthorized", null);
+  }
+
 }
