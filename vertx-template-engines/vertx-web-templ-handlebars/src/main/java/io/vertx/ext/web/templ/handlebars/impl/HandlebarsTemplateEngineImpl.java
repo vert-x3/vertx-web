@@ -60,7 +60,8 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
     // default resolvers
     System.arraycopy(VALUE_RESOLVERS, 0, resolvers, 2, VALUE_RESOLVERS.length);
     // create the engine
-    handlebars = new Handlebars(loader);
+    handlebars = new Handlebars(loader)
+      .with(new JsonFormatter());
   }
 
   @Override
