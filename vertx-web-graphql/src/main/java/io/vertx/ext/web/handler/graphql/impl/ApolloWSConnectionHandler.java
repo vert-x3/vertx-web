@@ -321,7 +321,7 @@ class ApolloWSConnectionHandler {
     if (payload != null) {
       message.put("payload", payload);
     }
-    return serverWebSocket.writeTextMessage(message.toString());
+    return serverWebSocket.writeTextMessage(message.encode());
   }
 
   private void close(Void v) {

@@ -106,7 +106,7 @@ public class ConnectionHandler {
     if (payload != null) {
       message.put("payload", payload);
     }
-    socket.writeTextMessage(message.toString());
+    socket.writeTextMessage(message.encode());
   }
 
   private void close(Void unused) {
