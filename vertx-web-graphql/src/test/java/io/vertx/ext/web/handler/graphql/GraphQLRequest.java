@@ -192,7 +192,7 @@ public class GraphQLRequest {
       params.put("operationName", operationName);
     }
     if (variablesAsParam && !variables.isEmpty()) {
-      params.put("variables", variables.toString());
+      params.put("variables", variables.encode());
     }
     if (initialValueAsParam && initialValue != null) {
       params.put("initialValue", Json.encode(initialValue));
