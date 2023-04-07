@@ -29,7 +29,9 @@ import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,17 +41,19 @@ import java.util.stream.Stream;
 public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implements JWTAuthHandler, ScopedAuthentication<JWTAuthHandler> {
 
   private final List<String> scopes;
-  private final String delimiter;
+  private String delimiter;
 
   public JWTAuthHandlerImpl(JWTAuth authProvider, String realm) {
     super(authProvider, Type.BEARER, realm);
-    scopes = new ArrayList<>();
+    scopes = Collections.emptyList();
     this.delimiter = " ";
   }
 
   private JWTAuthHandlerImpl(JWTAuthHandlerImpl base, List<String> scopes, String delimiter) {
     super(base.authProvider, Type.BEARER, base.realm);
+    Objects.requireNonNull(scopes, "scopes cannot be null");
     this.scopes = scopes;
+    Objects.requireNonNull(delimiter, "delimiter cannot be null");
     this.delimiter = delimiter;
   }
 
@@ -88,6 +92,7 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
 
   @Override
   public JWTAuthHandler withScope(String scope) {
+    Objects.requireNonNull(scope, "scope cannot be null");
     List<String> updatedScopes = new ArrayList<>(this.scopes);
     updatedScopes.add(scope);
     return new JWTAuthHandlerImpl(this, updatedScopes, delimiter);
@@ -95,12 +100,15 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
 
   @Override
   public JWTAuthHandler withScopes(List<String> scopes) {
+    Objects.requireNonNull(scopes, "scopes cannot be null");
     return new JWTAuthHandlerImpl(this, scopes, delimiter);
   }
 
   @Override
-  public JWTAuthHandler scopeDelimiter(String delimeter) {
-    return new JWTAuthHandlerImpl(this, scopes, delimeter);
+  public JWTAuthHandler scopeDelimiter(String delimiter) {
+    Objects.requireNonNull(delimiter, "delimiter cannot be null");
+    this.delimiter = delimiter;
+    return this;
   }
 
   /**
@@ -115,6 +123,8 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
       return;
     }
     // the user is authenticated, however the user may not have all the required scopes
+    final List<String> scopes = getScopesOrSearchMetadata(this.scopes, ctx);
+
     if (scopes.size() > 0) {
       final JsonObject jwt = user.get("accessToken");
       if (jwt == null) {

@@ -35,11 +35,14 @@ import java.util.List;
 public interface OAuth2AuthHandler extends AuthenticationHandler {
 
   /**
-   * Create a OAuth2 auth handler with host pinning
+   * Create a OAuth2 auth handler with host pinning. When no scopes are explicit declared, the default scopes will be
+   * looked up from the route metadata under the key {@code scopes} which can either be a single {@link String} or a
+   * {@link List<String>}.
    *
    * @param vertx  the vertx instance
    * @param authProvider  the auth provider to use
-   * @param callbackURL the callback URL you entered in your provider admin console, usually it should be something like: `https://myserver:8888/callback`
+   * @param callbackURL the callback URL you entered in your provider admin console, usually it should be something
+   *                    like: {@code https://myserver:8888/callback}
    * @return the auth handler
    */
   static OAuth2AuthHandler create(Vertx vertx, OAuth2Auth authProvider, String callbackURL) {
@@ -50,9 +53,10 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
   }
 
   /**
-   * Create a OAuth2 auth handler without host pinning.
-   * Most providers will not look to the redirect url but always redirect to
-   * the preconfigured callback. So this factory does not provide a callback url.
+   * Create a OAuth2 auth handler without host pinning.Most providers will not look to the redirect url but always
+   * redirect to the preconfigured callback. So this factory does not provide a callback url. When no scopes are
+   * explicit declared, the default scopes will be looked up from the route metadata under the key {@code scopes}
+   * which can either be a single {@link String} or a {@link List<String>}.
    *
    * @param vertx  the vertx instance
    * @param authProvider  the auth provider to use
@@ -72,8 +76,9 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
   OAuth2AuthHandler extraParams(JsonObject extraParams);
 
   /**
-   * Return a new instance with the internal state copied from the caller but the scopes to be requested during a token
-   * request are unique to the instance.
+   * Return a <b>new instance</b> with the internal state copied from the caller but the scopes to be requested during
+   * a token request are unique to the instance. When scopes are applied to the handler, the default scopes from the
+   * route metadata will be ignored.
    *
    * @param scope scope.
    * @return new instance of this interface.
@@ -82,8 +87,9 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
   OAuth2AuthHandler withScope(String scope);
 
   /**
-   * Return a new instance with the internal state copied from the caller but the scopes to be requested during a token
-   * request are unique to the instance.
+   * Return a <b>new instance</b> with the internal state copied from the caller but the scopes to be requested during
+   * a token request are unique to the instance. When scopes are applied to the handler, the default scopes from the
+   * route metadata will be ignored.
    *
    * @param scopes scopes.
    * @return new instance of this interface.
@@ -98,9 +104,14 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
    *
    * <ul>
    *   <li><b>login</b> will force the user to enter their credentials on that request, negating single-sign on.</li>
-   *   <li><b>none</b> is the opposite - it will ensure that the user isn't presented with any interactive prompt whatsoever. If the request can't be completed silently via single-sign on, the Microsoft identity platform endpoint will return an interaction_required error.</li>
-   *   <li><b>consent</b> will trigger the OAuth consent dialog after the user signs in, asking the user to grant permissions to the app.</li>
-   *   <li><b>select_account</b> will interrupt single sign-on providing account selection experience listing all the accounts either in session or any remembered account or an option to choose to use a different account altogether.</li>
+   *   <li><b>none</b> is the opposite - it will ensure that the user isn't presented with any interactive prompt
+   *      whatsoever. If the request can't be completed silently via single-sign on, the Microsoft identity platform
+   *      endpoint will return an interaction_required error.</li>
+   *   <li><b>consent</b> will trigger the OAuth consent dialog after the user signs in, asking the user to grant
+   *      permissions to the app.</li>
+   *   <li><b>select_account</b> will interrupt single sign-on providing account selection experience listing all the
+   *      accounts either in session or any remembered account or an option to choose to use a different account
+   *      altogether.</li>
    *   <li><b></b></li>
    * </ul>
    *
@@ -125,7 +136,7 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
 
   /**
    * add the callback handler to a given route.
-   * @param route a given route e.g.: `/callback`
+   * @param route a given route e.g.: {@code /callback}
    * @return self
    */
   @Fluent

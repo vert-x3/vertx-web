@@ -61,7 +61,6 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   private final MessageDigest sha256;
 
   private final List<String> scopes;
-  private final boolean openId;
   private JsonObject extraParams;
   private String prompt;
   private int pkce = -1;
@@ -92,8 +91,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       this.callbackURL = null;
     }
     // scopes are empty by default
-    this.scopes = new ArrayList<>();
-    this.openId = false;
+    this.scopes = Collections.emptyList();
   }
 
   private OAuth2AuthHandlerImpl(OAuth2AuthHandlerImpl base, List<String> scopes) {
@@ -117,8 +115,8 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     this.callback = base.callback;
     this.order = base.order;
     // apply the new scopes
+    Objects.requireNonNull(scopes, "scopes cannot be null");
     this.scopes = scopes;
-    this.openId = scopes != null && scopes.contains("openid");
   }
 
   @Override
@@ -150,13 +148,15 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
           // the redirect is processed as a failure to abort the chain
           String redirectUri = context.request().uri();
           try {
-            return Future.failedFuture(new HttpException(302, authURI(context.session(), redirectUri)));
+            return Future.failedFuture(new HttpException(302, authURI(context, redirectUri)));
           } catch (IllegalStateException e) {
             return Future.failedFuture(e);
           }
         }
       } else {
         // continue
+        final List<String> scopes = getScopesOrSearchMetadata(this.scopes, context);
+
         final Credentials credentials =
           scopes.size() > 0 ? new TokenCredentials(token).setScopes(scopes) : new TokenCredentials(token);
 
@@ -170,11 +170,13 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     });
   }
 
-  private String authURI(Session session, String redirectURL) {
+  private String authURI(RoutingContext context, String redirectURL) {
 
     String state = null;
     String codeVerifier = null;
     String loginHint = null;
+
+    final Session session = context.session();
 
     if (session == null) {
       if (pkce > 0) {
@@ -224,6 +226,8 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       config.setRedirectUri(callbackURL.href());
     }
 
+    final List<String> scopes = getScopesOrSearchMetadata(this.scopes, context);
+
     if (scopes.size() > 0) {
       config.setScopes(scopes);
     }
@@ -248,6 +252,8 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
   @Override
   public OAuth2AuthHandler withScope(String scope) {
+    Objects.requireNonNull(scope, "scope cannot be null");
+
     List<String> updatedScopes = new ArrayList<>(this.scopes);
     updatedScopes.add(scope);
     return new OAuth2AuthHandlerImpl(this, updatedScopes);
@@ -255,6 +261,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
   @Override
   public OAuth2AuthHandler withScopes(List<String> scopes) {
+    Objects.requireNonNull(scopes, "scopes cannot be null");
     return new OAuth2AuthHandlerImpl(this, scopes);
   }
 
@@ -329,7 +336,9 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   @Override
   public void postAuthentication(RoutingContext ctx) {
     // the user is authenticated, however the user may not have all the required scopes
-    if (scopes != null && scopes.size() > 0) {
+    final List<String> scopes = getScopesOrSearchMetadata(this.scopes, ctx);
+
+    if (scopes.size() > 0) {
       final User user = ctx.user().get();
       if (user == null) {
         // bad state
@@ -338,22 +347,26 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       }
 
       if (user.principal().containsKey("scope")) {
-        final String scopes = user.principal().getString("scope");
-        if (scopes != null) {
+        final String userScopes = user.principal().getString("scope");
+        if (userScopes != null) {
           // user principal contains scope, a basic assertion is required to ensure that
           // the scopes present match the required ones
-          for (String scope : this.scopes) {
+
+          // check if openid is active
+          final boolean openId = userScopes.contains("openid");
+
+          for (String scope : scopes) {
             // do not assert openid scopes if openid is active
             if (openId && OPENID_SCOPES.contains(scope)) {
               continue;
             }
 
-            int idx = scopes.indexOf(scope);
+            int idx = userScopes.indexOf(scope);
             if (idx != -1) {
               // match, but is it valid?
               if (
-                (idx != 0 && scopes.charAt(idx -1) != ' ') ||
-                  (idx + scope.length() != scopes.length() && scopes.charAt(idx + scope.length()) != ' ')) {
+                (idx != 0 && userScopes.charAt(idx -1) != ' ') ||
+                  (idx + scope.length() != userScopes.length() && userScopes.charAt(idx + scope.length()) != ' ')) {
                 // invalid scope assignment
                 ctx.fail(403, new IllegalStateException("principal scope != handler scopes"));
                 return;

@@ -160,4 +160,50 @@ public class JWTAuthHandlerTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 200, "OK", null);
   }
+
+  @Test
+  public void testLoginWithScopesFromMetadata() throws Exception {
+
+    router.route()
+      .putMetadata("scopes", Arrays.asList("a", "b"))
+      .handler(JWTAuthHandler.create(authProvider))
+      .handler(RoutingContext::end);
+
+    // Payload as String list
+    final JsonObject payloadA = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", String.join(" ", Arrays.asList("a", "b")));
+
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 200, "OK", null);
+
+    // Payload as Array
+    final JsonObject payloadB = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", new JsonArray().add("a").add("b"));
+
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 200, "OK", null);
+  }
+
+  @Test
+  public void testLoginWithScopesFromMetadataSingle() throws Exception {
+
+    router.route()
+      .putMetadata("scopes", "a")
+      .handler(JWTAuthHandler.create(authProvider))
+      .handler(RoutingContext::end);
+
+    // Payload as String list
+    final JsonObject payloadA = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "a");
+
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 200, "OK", null);
+
+    // Payload as Array
+    final JsonObject payloadB = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", new JsonArray().add("a"));
+
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 200, "OK", null);
+  }
 }

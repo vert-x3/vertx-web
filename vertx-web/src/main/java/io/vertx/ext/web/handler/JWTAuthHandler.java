@@ -32,7 +32,8 @@ import java.util.List;
 public interface JWTAuthHandler extends AuthenticationHandler {
 
   /**
-   * Create a JWT auth handler
+   * Create a JWT auth handler. When no scopes are explicit declared, the default scopes will be looked up from the
+   * route metadata.
    *
    * @param authProvider  the auth provider to use
    * @return the auth handler
@@ -42,7 +43,8 @@ public interface JWTAuthHandler extends AuthenticationHandler {
   }
 
   /**
-   * Create a JWT auth handler
+   * Create a JWT auth handler. When no scopes are explicit declared, the default scopes will be looked up from the
+   * route metadata.
    *
    * @param authProvider  the auth provider to use
    * @return the auth handler
@@ -52,32 +54,31 @@ public interface JWTAuthHandler extends AuthenticationHandler {
   }
 
   /**
-   * Return a new instance with the internal state copied from the caller but the scopes delimiter set
-   * to be unique to the instance.
+   * Set the scope delimiter. By default this is a space character.
    *
    * @param delimiter scope delimiter.
-   * @return new instance of this interface.
+   * @return fluent self.
    */
   @Fluent
   JWTAuthHandler scopeDelimiter(String delimiter);
 
   /**
    * Return a new instance with the internal state copied from the caller but the scopes to be requested during a token
-   * request are unique to the instance.
+   * request are unique to the instance. When scopes are applied to the handler, the default scopes from the route
+   * metadata will be ignored.
    *
    * @param scope scope.
    * @return new instance of this interface.
    */
-  @Fluent
   JWTAuthHandler withScope(String scope);
 
   /**
    * Return a new instance with the internal state copied from the caller but the scopes to be requested during a token
-   * request are unique to the instance.
+   * request are unique to the instance. When scopes are applied to the handler, the default scopes from the route
+   * metadata will be ignored.
    *
    * @param scopes scopes.
    * @return new instance of this interface.
    */
-  @Fluent
   JWTAuthHandler withScopes(List<String> scopes);
 }
