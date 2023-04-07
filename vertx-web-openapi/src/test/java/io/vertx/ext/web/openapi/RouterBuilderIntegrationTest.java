@@ -1246,7 +1246,7 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
         .send(testContext, checkpoint);
 
       testRequest(client, HttpMethod.GET, "/queryTests/anyOfTest?parameter=a,5")
-        .expect(statusCode(200), statusMessage("[a, 5]"))
+        .expect(statusCode(200), statusMessage("{a: 5}"))
         .send(testContext, checkpoint);
 
       testRequest(client, HttpMethod.GET, "/queryTests/anyOfTest?parameter=bla")
