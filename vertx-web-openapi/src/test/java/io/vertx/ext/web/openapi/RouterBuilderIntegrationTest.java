@@ -1242,11 +1242,11 @@ public class RouterBuilderIntegrationTest extends BaseRouterBuilderTest {
 
 
       testRequest(client, HttpMethod.GET, "/queryTests/anyOfTest?parameter=5,4")
-        .expect(statusCode(200), statusMessage(new JsonArray().add(5).add(4).encode()))
+        .expect(statusCode(200), statusMessage("[5, 4]"))
         .send(testContext, checkpoint);
 
       testRequest(client, HttpMethod.GET, "/queryTests/anyOfTest?parameter=a,5")
-        .expect(statusCode(200), statusMessage(new JsonObject().put("a", 5).encode()))
+        .expect(statusCode(200), statusMessage("[a, 5]"))
         .send(testContext, checkpoint);
 
       testRequest(client, HttpMethod.GET, "/queryTests/anyOfTest?parameter=bla")
