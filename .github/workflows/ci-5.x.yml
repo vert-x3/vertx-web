@@ -14,11 +14,11 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            jdk: 8
+            jdk: 11
           - os: ubuntu-latest
             jdk: 17
           - os: windows-latest
-            jdk: 8
+            jdk: 11
     uses: ./.github/workflows/ci.yml
     with:
       branch: ${{ github.event.pull_request.head.sha || github.ref_name }}
@@ -29,7 +29,7 @@ jobs:
     uses: ./.github/workflows/it.yml
     with:
       branch: ${{ github.event.pull_request.head.sha || github.ref_name }}
-      jdk: 8
+      jdk: 11
     secrets: inherit
   Deploy:
     if: ${{ github.repository_owner == 'vert-x3' && (github.event_name == 'push' || github.event_name == 'schedule') }}
@@ -37,5 +37,5 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       branch: ${{ github.event.pull_request.head.sha || github.ref_name }}
-      jdk: 8
+      jdk: 11
     secrets: inherit
