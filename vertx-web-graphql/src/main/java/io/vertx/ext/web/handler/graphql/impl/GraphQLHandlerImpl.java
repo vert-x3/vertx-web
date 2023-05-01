@@ -276,9 +276,8 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     executeBatch(rc, batch);
   }
 
-  @SuppressWarnings("rawtypes")
   private void executeBatch(RoutingContext rc, GraphQLBatch batch) {
-    List<Future> futures = new ArrayList<>(batch.size());
+    List<Future<JsonObject>> futures = new ArrayList<>(batch.size());
     for (GraphQLQuery graphQLQuery : batch) {
       futures.add(execute(rc, graphQLQuery));
     }

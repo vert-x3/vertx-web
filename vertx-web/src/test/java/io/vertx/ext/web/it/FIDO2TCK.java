@@ -158,7 +158,7 @@ public class FIDO2TCK {
       return;
     }
 
-    List<Future> futures = new ArrayList<>();
+    List<Future<Boolean>> futures = new ArrayList<>();
 
     // do we want to load custom MDS3 servers?
     for (String el : MDS3) {
