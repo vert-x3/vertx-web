@@ -627,4 +627,65 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       assertNull(setCookie);
     }, 200, "OK", null);
   }
+
+  @Test
+  public void testSessionCookieSigning() throws Exception {
+    final AtomicReference<String> sessionId = new AtomicReference<>();
+    final AtomicReference<String> sessionHeader = new AtomicReference<>();
+    final SessionHandler handler = SessionHandler.create(store)
+      .setSigningSecret("any-string-value");
+
+    router.route().handler(handler);
+    // capture the session ID
+    router.route("/0").handler(rc -> {
+      sessionId.set(rc.session().value());
+      rc.response().end();
+    });
+
+    // Initiate a session and check it's signed
+    CountDownLatch sessionValid = new CountDownLatch(1);
+    testRequest(HttpMethod.GET, "/0", null, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+      String cookieData = setCookie.substring(setCookie.indexOf("=") + 1, setCookie.indexOf(";"));
+      String[] cookieParts = cookieData.split("\\.");
+      assertEquals(2, cookieParts.length);
+      assertEquals(sessionId.get(), cookieParts[0]);
+
+      store.get(sessionId.get())
+        .onFailure(this::fail)
+        .onSuccess(session -> {
+          session.put("test-val", "test-val");
+          sessionHeader.set(setCookie);
+          sessionValid.countDown();
+        });
+    }, 200, "OK", null);
+    awaitLatch(sessionValid);
+
+    // check the signed cookie can be used to access the session
+    CountDownLatch sessionCheck = new CountDownLatch(1);
+    testRequest(HttpMethod.GET, "/0", req -> {
+      req.putHeader("cookie", sessionHeader.get());
+    }, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      // check not issued a new session
+      assertNull(setCookie);
+      store.get(sessionId.get())
+        .onFailure(this::fail)
+        .onSuccess(session -> {
+          assertEquals( "test-val", session.get("test-val"));
+          sessionCheck.countDown();
+        });
+    }, 200, "OK", null);
+    awaitLatch(sessionCheck);
+
+    // Finally edit the cookie to show signature rejects it
+    testRequest(HttpMethod.GET, "/0", req -> {
+      req.putHeader("cookie", sessionHeader.get().replaceFirst(sessionId.get(), "random-session-id"));
+    }, resp -> {
+      // check new session created
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+    }, 200, "OK", null);
+  }
 }
