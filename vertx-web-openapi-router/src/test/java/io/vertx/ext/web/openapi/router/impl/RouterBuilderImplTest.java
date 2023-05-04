@@ -28,8 +28,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static com.google.common.truth.Truth.assertThat;
-import static io.vertx.router.ResourceHelper.TEST_RESOURCE_PATH;
 import static io.vertx.openapi.contract.OpenAPIVersion.V3_1;
+import static io.vertx.router.ResourceHelper.TEST_RESOURCE_PATH;
 
 class RouterBuilderImplTest {
 
@@ -41,6 +41,9 @@ class RouterBuilderImplTest {
 
     String openAPIPathWithoutPathParams = "/pets/friends";
     assertThat(RouterBuilderImpl.toVertxWebPath(openAPIPathWithoutPathParams)).isEqualTo(openAPIPathWithoutPathParams);
+
+    String openAPIPathRoot = "/";
+    assertThat(RouterBuilderImpl.toVertxWebPath(openAPIPathRoot)).isEqualTo(openAPIPathRoot);
   }
 
   @ParameterizedTest(name = "{index} should make operations of an OpenAPI ({0}) contract accessible")
