@@ -33,13 +33,14 @@ import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.auth.properties.PropertyFileAuthorization;
 import io.vertx.ext.bridge.BridgeEventType;
+import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.handler.sockjs.*;
+import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.impl.JsonCodec;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
-import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -119,7 +120,7 @@ public class EventbusBridgeTest extends WebTestBase {
         }
       }));
 
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
     client
       .connect(websocketURI).compose(v -> client.send(addr, "foobar"))
       .onComplete(onSuccess(v -> latch.countDown()));
@@ -142,7 +143,7 @@ public class EventbusBridgeTest extends WebTestBase {
         }
       }));
 
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
     client.connect(websocketURI).onComplete(onSuccess(v -> client.close()));
 
     await();
@@ -163,7 +164,7 @@ public class EventbusBridgeTest extends WebTestBase {
         }
       }));
 
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
     client.connect(websocketURI).onComplete(onSuccess(v -> client.transportClient.result().abruptClose()));
 
     await();
@@ -392,7 +393,7 @@ public class EventbusBridgeTest extends WebTestBase {
         be.complete(true);
       }));
 
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
 
     client.handler((address, received) -> {
       assertEquals(addr, address);
@@ -862,7 +863,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(1);
 
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
 
     client.connect(websocketURI).onComplete(onSuccess(v -> {
 
@@ -898,7 +899,7 @@ public class EventbusBridgeTest extends WebTestBase {
       sockJS.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr))));
 
     CountDownLatch latch = new CountDownLatch(1);
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
 
     client.connect(websocketURI).onComplete(onSuccess(v -> {
 
@@ -939,7 +940,7 @@ public class EventbusBridgeTest extends WebTestBase {
       sockJS.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddress(addr))));
 
     CountDownLatch latch = new CountDownLatch(1);
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
 
     client.connect(websocketURI).onComplete(onSuccess(v -> {
 
@@ -971,7 +972,7 @@ public class EventbusBridgeTest extends WebTestBase {
       sockJS.bridge(allAccessOptions.setReplyTimeout(200)));
 
     CountDownLatch latch = new CountDownLatch(1);
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
 
     client.connect(websocketURI).onComplete(onSuccess(v -> {
 
@@ -1006,7 +1007,7 @@ public class EventbusBridgeTest extends WebTestBase {
       sockJS.bridge(allAccessOptions.setReplyTimeout(200)));
 
     CountDownLatch latch = new CountDownLatch(1);
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
 
     client.connect(websocketURI).onComplete(onSuccess(v -> {
 
@@ -1073,7 +1074,7 @@ public class EventbusBridgeTest extends WebTestBase {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(new SockJSBridgeOptions(allAccessOptions).setMaxHandlersPerSocket(maxHandlers)));
 
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
 
     client.connect(websocketURI).onComplete(onSuccess(v -> {
 
@@ -1126,7 +1127,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(new SockJSBridgeOptions(allAccessOptions).setMaxAddressLength(10)));
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
 
     client.connect(websocketURI).onComplete(v -> {
 
@@ -1200,7 +1201,7 @@ public class EventbusBridgeTest extends WebTestBase {
       sockJS.bridge(allAccessOptions.setPingTimeout(1000)));
     CountDownLatch latch = new CountDownLatch(1);
     long start = System.currentTimeMillis();
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
 
     client.connect(websocketURI)
       .onComplete(v -> client.closeHandler(v2 -> latch.countDown()));
@@ -1270,7 +1271,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(1);
 
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
     client.errorHandler(received -> {
       assertEquals(expectedErr, received.getString("body"));
       latch.countDown();
@@ -1293,7 +1294,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(1);
 
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
     client.connect(websocketURI).onComplete(onSuccess(v1 -> {
       MessageConsumer<Object> consumer = vertx.eventBus().consumer(address);
       consumer.handler(msg -> {
@@ -1327,7 +1328,7 @@ public class EventbusBridgeTest extends WebTestBase {
   private void testPublish(String address, Object body, boolean headers) throws Exception {
     CountDownLatch latch = new CountDownLatch(2);
 
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
 
     client.connect(websocketURI).onComplete(onSuccess(v1 -> {
       vertx.eventBus().consumer(address, msg -> {
@@ -1360,7 +1361,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
   private void testReceive(String address, Object body) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
     client.handler((addr, received) -> {
       assertEquals(address, addr);
       assertEquals(body, received.getValue("body"));
@@ -1377,7 +1378,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
   private void testReceiveFail(String address, Object body) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
 
     client.connect(websocketURI).onComplete(onSuccess(v -> {
 
@@ -1398,7 +1399,7 @@ public class EventbusBridgeTest extends WebTestBase {
   private void testUnregister(String address) throws Exception {
 
     CountDownLatch latch = new CountDownLatch(1);
-    BridgeClient client = new BridgeClient();
+    BridgeClient client = new BridgeClient(super.client, transport);
 
     client.connect(websocketURI).onComplete(onSuccess(v -> {
 
@@ -1562,12 +1563,19 @@ public class EventbusBridgeTest extends WebTestBase {
     void abruptClose();
   }
 
-  class BridgeClient {
+  static class BridgeClient {
 
+    private final HttpClient client;
+    private final Transport transport;
     private Future<TransportClient> transportClient;
     private BiConsumer<String, JsonObject> handler;
     private Handler<JsonObject> errorHandler;
     private Handler<Void> closeHandler;
+
+    public BridgeClient(HttpClient client, Transport transport) {
+      this.client = client;
+      this.transport = transport;
+    }
 
     public Future<Void> connect(String websocketURI) {
       if (transportClient != null) {
