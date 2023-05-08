@@ -27,6 +27,7 @@ import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.impl.Utils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
@@ -206,6 +207,13 @@ public class StaticHandlerTest extends WebTestBase {
     stat = StaticHandler.create(FileSystemAccess.RELATIVE, "webroot/somedir3");
     router.route().handler(stat);
 
+    client.close();
+    client = vertx.createHttpClient(new HttpClientOptions()
+      .setSsl(true)
+      .setUseAlpn(true)
+      .setProtocolVersion(HttpVersion.HTTP_2)
+      .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem")));
+
     vertx.createHttpServer(new HttpServerOptions()
         .setUseAlpn(true)
         .setSsl(true)
@@ -213,12 +221,6 @@ public class StaticHandlerTest extends WebTestBase {
       .requestHandler(router).listen(8443)
       .onFailure(this::fail)
       .onSuccess(server -> {
-        HttpClientOptions options = new HttpClientOptions()
-          .setSsl(true)
-          .setUseAlpn(true)
-          .setProtocolVersion(HttpVersion.HTTP_2)
-          .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem"));
-        HttpClient client = vertx.createHttpClient(options);
         client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
           .onComplete(onSuccess(req -> {
             req.pushHandler(pushedReq -> pushedReq.response().onComplete(pushedResp -> {
@@ -238,6 +240,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testHttp2Push() throws Exception {
+
+    waitFor(2);
+
     List<Http2PushMapping> mappings = new ArrayList<>();
     mappings.add(new Http2PushMapping("style.css", "style", false));
     mappings.add(new Http2PushMapping("coin.png", "image", false));
@@ -249,7 +254,12 @@ public class StaticHandlerTest extends WebTestBase {
 
     stat.setHttp2PushMapping(mappings);
 
-    CountDownLatch latch = new CountDownLatch(2);
+    client.close();
+    client = vertx.createHttpClient(new HttpClientOptions()
+      .setSsl(true)
+      .setUseAlpn(true)
+      .setProtocolVersion(HttpVersion.HTTP_2)
+      .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem")));
 
     vertx.createHttpServer(new HttpServerOptions()
         .setUseAlpn(true)
@@ -258,18 +268,12 @@ public class StaticHandlerTest extends WebTestBase {
       .requestHandler(router).listen(8443)
       .onFailure(this::fail)
       .onSuccess(server -> {
-        HttpClientOptions options = new HttpClientOptions()
-          .setSsl(true)
-          .setUseAlpn(true)
-          .setProtocolVersion(HttpVersion.HTTP_2)
-          .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem"));
-        HttpClient client = vertx.createHttpClient(options);
         client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
           .onComplete(onSuccess(req -> {
             req.pushHandler(pushedReq -> pushedReq.response().onComplete(onSuccess(pushedResp -> {
                 assertNotNull(pushedResp);
                 pushedResp.bodyHandler(this::assertNotNull);
-                latch.countDown();
+                complete();
               })))
               .send().onComplete(onSuccess(resp -> {
                 assertEquals(200, resp.statusCode());
@@ -279,7 +283,7 @@ public class StaticHandlerTest extends WebTestBase {
           }));
       });
 
-    latch.await();
+    await();
   }
 
   @Test
@@ -303,30 +307,27 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   private void testSkipCompression(StaticHandler staticHandler, List<String> uris, List<String> expectedContentEncodings) throws Exception {
+    waitFor(uris.size());
     server.close();
     server = vertx.createHttpServer(getHttpServerOptions().setPort(0).setCompressionSupported(true));
     router = Router.router(vertx);
     router.route().handler(staticHandler);
-
-    CountDownLatch serverReady = new CountDownLatch(1);
-    server.requestHandler(router).listen().onComplete(onSuccess(s -> serverReady.countDown()));
-    awaitLatch(serverReady);
-
+    awaitFuture(server.requestHandler(router).listen());
     List<String> contentEncodings = Collections.synchronizedList(new ArrayList<>());
     for (String uri : uris) {
-      CountDownLatch responseReceived = new CountDownLatch(1);
-      client.request(HttpMethod.GET, server.actualPort(), getHttpClientOptions().getDefaultHost(), uri).onComplete(onSuccess(req -> {
-        req
+      client.request(HttpMethod.GET, server.actualPort(), getHttpClientOptions().getDefaultHost(), uri)
+        .compose(req -> req
           .putHeader(HttpHeaders.ACCEPT_ENCODING, String.join(", ", "gzip", "jpg", "jpeg", "png"))
-          .send().onComplete(onSuccess(resp -> {
+          .send()
+          .andThen(onSuccess(resp -> {
             assertEquals(200, resp.statusCode());
             contentEncodings.add(resp.getHeader(HttpHeaders.CONTENT_ENCODING));
-            responseReceived.countDown();
-          }));
-      }));
-      awaitLatch(responseReceived);
+          }))
+          .compose(HttpClientResponse::end))
+        .onComplete(onSuccess(v -> complete()));
     }
-    assertEquals(expectedContentEncodings, contentEncodings);
+    await();
+    Assert.assertEquals(expectedContentEncodings, contentEncodings);
   }
 
   @Test
@@ -968,20 +969,16 @@ public class StaticHandlerTest extends WebTestBase {
       }
     };
     server.close();
-    CountDownLatch latch = new CountDownLatch(1);
-    vertx.deployVerticle(new AbstractVerticle() {
+    awaitFuture(vertx.deployVerticle(new AbstractVerticle() {
       @Override
-      public void start(Promise<Void> startPromise) throws Exception {
+      public void start(Promise<Void> startPromise) {
         server = vertx.createHttpServer(getHttpServerOptions());
         server.requestHandler(router)
           .listen()
           .<Void>mapEmpty()
           .onComplete(startPromise);
       }
-    }, new DeploymentOptions().setClassLoader(classLoader)).onComplete(onSuccess(v -> {
-      latch.countDown();
-    }));
-    awaitLatch(latch);
+    }, new DeploymentOptions().setClassLoader(classLoader)));
     testRequest(HttpMethod.GET, "/index.html", 200, "OK", "hello");
     assertTrue(used.get());
   }
