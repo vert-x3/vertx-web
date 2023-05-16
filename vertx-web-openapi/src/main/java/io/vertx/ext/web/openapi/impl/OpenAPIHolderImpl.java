@@ -1,7 +1,6 @@
 package io.vertx.ext.web.openapi.impl;
 
 import io.netty.handler.codec.http.QueryStringEncoder;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -203,7 +202,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
       if (!absolutePaths.containsKey(parsedRef.getURIWithoutFragment()))
         refsToSolve.add(parsedRef.getURIWithoutFragment());
     }
-    return CompositeFuture
+    return Future
       .all(refsToSolve.stream().map(this::resolveExternalRef).collect(Collectors.toList()))
       .compose(cf -> Future.succeededFuture());
   }

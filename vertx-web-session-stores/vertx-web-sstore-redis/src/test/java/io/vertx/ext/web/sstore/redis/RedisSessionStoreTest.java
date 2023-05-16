@@ -1,5 +1,6 @@
 package io.vertx.ext.web.sstore.redis;
 
+import io.vertx.core.Future;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
@@ -8,7 +9,6 @@ import io.vertx.redis.client.Redis;
 import io.vertx.redis.client.RedisOptions;
 import org.junit.*;
 
-import io.vertx.core.CompositeFuture;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.runner.RunWith;
@@ -147,7 +147,7 @@ public class RedisSessionStoreTest {
     Session session = store.createSession(30_000);
     // even though we only allow 2 connections we configured
     // the system to queue up to 32 so this should not be a problem
-    CompositeFuture.all(
+    Future.all(
       store.put(session),
       store.put(session),
       store.put(session),

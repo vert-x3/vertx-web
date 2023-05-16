@@ -1,6 +1,5 @@
 package io.vertx.ext.web.it;
 
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -166,7 +165,7 @@ public class FIDO2TCK {
       futures.add(webAuthN.metaDataService().fetchTOC(el));
     }
 
-    CompositeFuture.all(futures)
+    Future.all(futures)
       .onFailure(should::fail)
       .onSuccess(done -> {
         final Router app = Router.router(vertx);

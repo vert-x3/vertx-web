@@ -13,7 +13,7 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
-import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -246,7 +246,7 @@ public class BasicTypesTest extends GraphQLTestBase {
       .setGraphQLQuery("query { changing }");
     request2.send(client, promise2);
 
-    CompositeFuture.all(promise1.future(), promise2.future()).onComplete(onSuccess(compositeFuture -> {
+    Future.all(promise1.future(), promise2.future()).onComplete(onSuccess(compositeFuture -> {
       List<JsonObject> values = compositeFuture.list();
       Integer value1 = values.get(0).getJsonObject("data").getInteger("changing");
       Integer value2 = values.get(1).getJsonObject("data").getInteger("changing");

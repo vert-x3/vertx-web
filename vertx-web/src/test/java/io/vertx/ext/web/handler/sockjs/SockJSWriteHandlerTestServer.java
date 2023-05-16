@@ -30,7 +30,7 @@ import io.vertx.test.fakecluster.FakeClusterManager;
 public class SockJSWriteHandlerTestServer {
 
   public static void main(String[] areags) {
-    CompositeFuture.join(createClusteredAndDeploy(new HttpServerVerticle()), createClusteredAndDeploy(new EventBusRelayVerticle()))
+    Future.join(createClusteredAndDeploy(new HttpServerVerticle()), createClusteredAndDeploy(new EventBusRelayVerticle()))
       .onSuccess(cf-> System.out.println("SockJS writeHandler tests server started"))
       .onFailure(Throwable::printStackTrace);
   }

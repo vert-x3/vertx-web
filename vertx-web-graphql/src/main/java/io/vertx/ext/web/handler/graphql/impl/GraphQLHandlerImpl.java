@@ -20,7 +20,6 @@ import graphql.ExecutionInput;
 import graphql.GraphQL;
 import graphql.execution.preparsed.persisted.PersistedQuerySupport;
 import io.vertx.core.AsyncResult;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -281,7 +280,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     for (GraphQLQuery graphQLQuery : batch) {
       futures.add(execute(rc, graphQLQuery));
     }
-    CompositeFuture.all(futures)
+    Future.all(futures)
       .map(cf -> new JsonArray(cf.list()).toBuffer())
       .onComplete(ar -> sendResponse(rc, ar));
   }
