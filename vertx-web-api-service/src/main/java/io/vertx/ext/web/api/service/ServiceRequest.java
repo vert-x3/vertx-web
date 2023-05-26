@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.service;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonObject;
@@ -49,6 +50,11 @@ public class ServiceRequest {
         headers.set(entry.getKey(), (String)entry.getValue());
       }
     }
+  }
+
+  public ServiceRequest(Message<Object> msg) {
+    JsonObject msgBody = (JsonObject) msg.body();
+    this(msgBody.getJsonObject("context"));
   }
 
   public ServiceRequest(JsonObject params, MultiMap headers, JsonObject user, JsonObject extra) {
