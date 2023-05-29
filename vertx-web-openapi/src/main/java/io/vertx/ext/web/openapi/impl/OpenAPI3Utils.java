@@ -220,7 +220,7 @@ class OpenAPI3Utils {
   protected static String openapiSchemaJson = "{\"$id\":\"https://spec.openapis.org/oas/3.0/schema/2019-04-02\"," +
     "\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"description\":\"Validation schema for OpenAPI " +
     "Specification 3.0.X.\",\"type\":\"object\",\"required\":[\"openapi\",\"info\",\"paths\"]," +
-    "\"properties\":{\"openapi\":{\"type\":\"string\",\"pattern\":\"^3\\\\.0\\\\.\\\\d(-.+)?$\"}," +
+    "\"properties\":{\"openapi\":{\"type\":\"string\",\"pattern\":\"^3\\\\.[0-1]\\\\.\\\\d(-.+)?$\"}," +
     "\"info\":{\"$ref\":\"#/definitions/Info\"},\"externalDocs\":{\"$ref\":\"#/definitions/ExternalDocumentation\"}," +
     "\"servers\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/definitions/Server\"}},\"security\":{\"type\":\"array\"," +
     "\"items\":{\"$ref\":\"#/definitions/SecurityRequirement\"}},\"tags\":{\"type\":\"array\"," +
