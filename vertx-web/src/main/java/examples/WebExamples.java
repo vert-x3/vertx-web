@@ -26,10 +26,15 @@ import io.vertx.ext.auth.otp.totp.TotpAuth;
 import io.vertx.ext.auth.webauthn.*;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
+import io.vertx.ext.healthchecks.HealthChecks;
+import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.handler.sockjs.*;
+import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.ext.web.healthchecks.HealthCheckHandler;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
@@ -43,6 +48,7 @@ import java.util.function.Function;
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
+@SuppressWarnings("unused")
 public class WebExamples {
 
   public void example1(Vertx vertx) {
@@ -2010,4 +2016,29 @@ public class WebExamples {
     // to level INFO
   }
 
+  public void exposeHealthChecks(Router router, HealthChecks healthChecks) {
+    HealthCheckHandler healthCheckHandler = HealthCheckHandler.createWithHealthChecks(healthChecks);
+    router.get("/health*").handler(healthCheckHandler);
+  }
+
+  public void registerHealthCheckProcedureDirectly(Vertx vertx, Router router) {
+    HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
+
+    // Register procedures
+    // It can be done after the route registration, or even at runtime
+    healthCheckHandler.register("my-procedure-name", promise -> {
+      // Do the check ...
+      // Upon success ...
+      promise.complete(Status.OK());
+      // Or, in case of failure ...
+      promise.complete(Status.KO());
+    });
+
+    router.get("/health*").handler(healthCheckHandler);
+  }
+
+  public void exposeHealthChecksWithAuth(Vertx vertx, Router router, AuthenticationProvider auth) {
+    HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx, auth);
+    router.get("/health*").handler(healthCheckHandler);
+  }
 }
