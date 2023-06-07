@@ -3084,3 +3084,131 @@ Although we do NOT recommend, Vert.x will not force you to anything. If it is yo
 ----
 {@link examples.WebExamples#example65}
 ----
+
+== Health Check Handler
+
+The link:/docs/vertx-health-check/java/[Vert.x Health Checks] module provides a way to determine the current state of an application.
+
+Include it to your project's dependencies:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-health-check</artifactId>
+  <version>${maven.version}</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+compile 'io.vertx:vertx-health-check:${maven.version}'
+----
+
+Then declare the {@link io.vertx.ext.web.healthchecks.HealthCheckHandler} to expose the computed application state over HTTP.
+
+[source,$lang]
+----
+{@link examples.WebExamples#exposeHealthChecks}
+----
+
+NOTE: Using an asterisk is not strictly required.
+It is only useful if you need to be able to query the state of single procedure, or of a single group.
+
+It is not required to create a {@link io.vertx.ext.healthchecks.HealthChecks} instance beforehand.
+Health check link:/docs/vertx-health-check/java/#_procedures[procedures] can be registered directly on the handler.
+
+[source,$lang]
+----
+{@link examples.WebExamples#registerHealthCheckProcedureDirectly}
+----
+
+=== HTTP responses and JSON Output
+
+When using the {@link io.vertx.ext.web.healthchecks.HealthCheckHandler}, the overall health check is retrieved using an HTTP request.
+
+If no procedure is registered, the response is `204 - NO CONTENT`, indicating that the system is _UP_ but no procedure has been executed.
+The response does not contain a payload.
+
+If there is at least one procedure registered, this procedure is executed and the outcome status is computed.
+The response would use the following status code:
+
+* `200`: Everything is fine
+* `503`: At least one procedure has reported a non-healthy state
+* `500`: One procedure has thrown an error or has not reported a status in time
+
+The content is a JSON document indicating the overall result (`outcome`).
+It's either `UP` or `DOWN`.
+A `checks` array is also given indicating the result of the different executed procedures.
+If the procedure has reported additional data, the data is also given:
+
+[source,json]
+----
+{
+ "checks" : [
+ {
+   "id" : "A",
+   "status" : "UP"
+ },
+ {
+   "id" : "B",
+   "status" : "DOWN",
+   "data" : {
+     "some-data" : "some-value"
+   }
+ }
+ ],
+ "outcome" : "DOWN"
+}
+----
+
+In case of groups/hierarchy, the `checks` array depicts this structure:
+
+[source,json]
+----
+{
+ "checks" : [
+ {
+   "id" : "my-group",
+   "status" : "UP",
+   "checks" : [
+   {
+     "id" : "check-2",
+     "status" : "UP"
+   },
+   {
+     "id" : "check-1",
+     "status" : "UP"
+   }]
+ }],
+ "outcome" : "UP"
+}
+----
+
+If a procedure throws an error or reports a failure (exception), the JSON document provides the `cause` in the `data` section.
+If a procedure does not report back before a timeout, the indicated cause is `Timeout`.
+
+=== Authentication
+
+When using the {@link io.vertx.ext.web.healthchecks.HealthCheckHandler}, you can provide a {@link io.vertx.ext.auth.authentication.AuthenticationProvider} to authenticate the request.
+
+[source,$lang]
+----
+{@link examples.WebExamples#exposeHealthChecksWithAuth}
+----
+
+Check out link:/docs/#authentication_and_authorisation[Vert.x Auth docs] for more details about available authentication providers.
+
+The handler creates a JSON object containing:
+
+* the request headers
+* the request params
+* the form params, if any
+* the content as JSON, if any, and if the request set the content type to `application/json`.
+
+The resulting object is passed to the auth provider to authenticate the request.
+If the authentication failed, it returns a `403 - FORBIDDEN` response.

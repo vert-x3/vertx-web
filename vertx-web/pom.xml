@@ -76,6 +76,11 @@
       <artifactId>vertx-auth-abac</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-health-check</artifactId>
+      <optional>true</optional>
+    </dependency>
 
     <!-- Testing -->
     <dependency>
