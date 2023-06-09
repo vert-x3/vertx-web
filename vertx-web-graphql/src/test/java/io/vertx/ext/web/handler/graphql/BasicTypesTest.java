@@ -1,14 +1,10 @@
 package io.vertx.ext.web.handler.graphql;
 
 import graphql.GraphQL;
-import graphql.schema.Coercing;
-import graphql.schema.CoercingParseLiteralException;
-import graphql.schema.CoercingParseValueException;
-import graphql.schema.CoercingSerializeException;
-import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLScalarType;
-import graphql.schema.GraphQLSchema;
+import graphql.GraphQLContext;
+import graphql.execution.CoercedVariables;
+import graphql.language.Value;
+import graphql.schema.*;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
@@ -27,10 +23,11 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static graphql.schema.idl.RuntimeWiring.*;
-import static io.vertx.core.http.HttpMethod.*;
+import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
+import static io.vertx.core.http.HttpMethod.POST;
 
 public class BasicTypesTest extends GraphQLTestBase {
 
@@ -194,7 +191,8 @@ public class BasicTypesTest extends GraphQLTestBase {
 
   @Test
   public void userDefined() throws Exception {
-    String when = new DatetimeCoercion().serialize(LocalDateTime.of(LocalDate.of(1991, 8, 25), LocalTime.of(22, 57, 8)));
+    LocalDateTime ldt = LocalDateTime.of(LocalDate.of(1991, 8, 25), LocalTime.of(22, 57, 8));
+    String when = new DatetimeCoercion().serialize(ldt, null, null);
     JsonObject result = new JsonObject().put("data", new JsonObject().put("when", when));
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
@@ -277,7 +275,7 @@ public class BasicTypesTest extends GraphQLTestBase {
   private enum Musketeer {
     ATHOS,
     PORTHOS,
-    ARAMIS;
+    ARAMIS
   }
 
   private static class Counter implements DataFetcher<Integer> {
@@ -294,7 +292,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME;
 
     @Override
-    public String serialize(Object dataFetcherResult) throws CoercingSerializeException {
+    public String serialize(Object dataFetcherResult, GraphQLContext graphQLContext, Locale locale) throws CoercingSerializeException {
       if (dataFetcherResult == null)
         return null;
       if (!(dataFetcherResult instanceof LocalDateTime))
@@ -304,7 +302,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     }
 
     @Override
-    public LocalDateTime parseValue(Object input) throws CoercingParseValueException {
+    public LocalDateTime parseValue(Object input, GraphQLContext graphQLContext, Locale locale) throws CoercingParseValueException {
       String source = input.toString();
       try {
         final TemporalAccessor temporalAccessorParsed = dateTimeFormatter.parse(source);
@@ -315,8 +313,8 @@ public class BasicTypesTest extends GraphQLTestBase {
     }
 
     @Override
-    public LocalDateTime parseLiteral(Object input) throws CoercingParseLiteralException {
-      return parseValue(input);
+    public LocalDateTime parseLiteral(Value<?> input, CoercedVariables variables, GraphQLContext graphQLContext, Locale locale) throws CoercingParseLiteralException {
+      return parseValue(input, graphQLContext, locale);
     }
   }
 

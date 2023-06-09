@@ -17,7 +17,7 @@
 package io.vertx.ext.web.handler.graphql.instrumentation.impl;
 
 import graphql.execution.instrumentation.InstrumentationState;
-import graphql.execution.instrumentation.SimpleInstrumentation;
+import graphql.execution.instrumentation.SimplePerformantInstrumentation;
 import graphql.execution.instrumentation.parameters.InstrumentationFieldFetchParameters;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -29,7 +29,7 @@ import java.util.function.Function;
 /**
  * Instrument data fetchers so that results are automatically converted to {@link java.util.concurrent.CompletionStage}.
  */
-public class ToCompletionStage<T> extends SimpleInstrumentation {
+public class ToCompletionStage<T> extends SimplePerformantInstrumentation {
 
   private final Class<T> targetType;
   private final Function<T, CompletionStage<?>> converter;

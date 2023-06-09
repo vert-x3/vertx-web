@@ -35,20 +35,12 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
-import org.dataloader.DataLoaderRegistry;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
+import java.util.*;
 import java.util.regex.Pattern;
 
-import static io.vertx.core.http.HttpMethod.*;
+import static io.vertx.core.http.HttpMethod.GET;
+import static io.vertx.core.http.HttpMethod.POST;
 
 /**
  * @author Thomas Segismont
@@ -56,16 +48,9 @@ import static io.vertx.core.http.HttpMethod.*;
 public class GraphQLHandlerImpl implements GraphQLHandler {
   private static final Pattern IS_NUMBER = Pattern.compile("\\d+");
 
-  private static final Function<RoutingContext, Object> DEFAULT_QUERY_CONTEXT_FACTORY = rc -> rc;
-  private static final Function<RoutingContext, DataLoaderRegistry> DEFAULT_DATA_LOADER_REGISTRY_FACTORY = rc -> null;
-  private static final Function<RoutingContext, Locale> DEFAULT_LOCALE_FACTORY = rc -> null;
-
   private final GraphQL graphQL;
   private final GraphQLHandlerOptions options;
 
-  private Function<RoutingContext, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
-  private Function<RoutingContext, DataLoaderRegistry> dataLoaderRegistryFactory = DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
-  private Function<RoutingContext, Locale> localeFactory = DEFAULT_LOCALE_FACTORY;
   private Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecute;
 
   public GraphQLHandlerImpl(GraphQL graphQL, GraphQLHandlerOptions options) {
@@ -73,24 +58,6 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     Objects.requireNonNull(options, "options");
     this.graphQL = graphQL;
     this.options = options;
-  }
-
-  @Override
-  public synchronized GraphQLHandler queryContext(Function<RoutingContext, Object> factory) {
-    queryContextFactory = factory != null ? factory : DEFAULT_QUERY_CONTEXT_FACTORY;
-    return this;
-  }
-
-  @Override
-  public synchronized GraphQLHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory) {
-    dataLoaderRegistryFactory = factory != null ? factory : DEFAULT_DATA_LOADER_REGISTRY_FACTORY;
-    return this;
-  }
-
-  @Override
-  public synchronized GraphQLHandler locale(Function<RoutingContext, Locale> factory) {
-    localeFactory = factory != null ? factory : DEFAULT_LOCALE_FACTORY;
-    return this;
   }
 
   @Override
@@ -439,27 +406,9 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       builder.extensions(extensions);
     }
 
-    Function<RoutingContext, Object> qc;
-    Function<RoutingContext, DataLoaderRegistry> dlr;
-    Function<RoutingContext, Locale> l;
     Handler<ExecutionInputBuilderWithContext<RoutingContext>> be;
     synchronized (this) {
-      qc = queryContextFactory;
-      dlr = dataLoaderRegistryFactory;
-      l = localeFactory;
       be = beforeExecute;
-    }
-
-    builder.context(qc.apply(rc));
-
-    DataLoaderRegistry registry = dlr.apply(rc);
-    if (registry != null) {
-      builder.dataLoaderRegistry(registry);
-    }
-
-    Locale locale = l.apply(rc);
-    if (locale != null) {
-      builder.locale(locale);
     }
 
     builder.graphQLContext(Collections.singletonMap(RoutingContext.class, rc));
