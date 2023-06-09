@@ -24,10 +24,10 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.Signature;
 import io.vertx.ext.web.handler.CSRFHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.Origin;
+import io.vertx.ext.web.impl.Signature;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -56,7 +56,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
   public CSRFHandlerImpl(final Vertx vertx, final String secret) {
     random = VertxContextPRNG.current(vertx);
-    signature = Signature.create(secret);
+    signature = new Signature(secret);
   }
 
   @Override

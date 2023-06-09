@@ -18,7 +18,6 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.ext.web.Signature;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -30,13 +29,13 @@ import java.util.Arrays;
 
 import static io.vertx.ext.auth.impl.Codec.base64UrlEncode;
 
-public class SignatureImpl implements Signature {
-  private static final Logger LOG = LoggerFactory.getLogger(SignatureImpl.class);
+public class Signature {
+  private static final Logger LOG = LoggerFactory.getLogger(Signature.class);
   private static final String algorithm = "HmacSHA256";
 
   private final Mac mac;
 
-  public SignatureImpl(final String secret) {
+  public Signature(final String secret) {
     try {
       if (secret.length() <= 8) {
         LOG.warn("Signing secret is very short (<= 8 bytes)");
@@ -48,7 +47,6 @@ public class SignatureImpl implements Signature {
     }
   }
 
-  @Override
   public String sign(String data) {
     final String signature;
     synchronized (mac) {
@@ -57,7 +55,6 @@ public class SignatureImpl implements Signature {
     return data + "." + signature;
   }
 
-  @Override
   public boolean verify(String signedData) {
     String[] parts = signedData.split("\\.");
     if (parts.length < 2) {
@@ -80,7 +77,6 @@ public class SignatureImpl implements Signature {
     );
   }
 
-  @Override
   public String parse(String signedData) {
     if (!verify(signedData)) {
       return null;

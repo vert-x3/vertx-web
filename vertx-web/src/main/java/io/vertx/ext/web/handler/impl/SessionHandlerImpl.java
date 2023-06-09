@@ -26,9 +26,9 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.Signature;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
+import io.vertx.ext.web.impl.Signature;
 import io.vertx.ext.web.impl.UserContextInternal;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.sstore.impl.SessionInternal;
@@ -134,7 +134,7 @@ public class SessionHandlerImpl implements SessionHandler {
 
   @Override
   public SessionHandler setSigningSecret(String secret) {
-    this.signature = Signature.create(secret);
+    this.signature = new Signature(secret);
     return this;
   }
 
