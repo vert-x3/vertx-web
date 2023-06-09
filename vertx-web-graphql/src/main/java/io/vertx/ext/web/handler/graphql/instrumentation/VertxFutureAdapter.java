@@ -17,7 +17,7 @@
 package io.vertx.ext.web.handler.graphql.instrumentation;
 
 import graphql.execution.instrumentation.InstrumentationState;
-import graphql.execution.instrumentation.SimpleInstrumentation;
+import graphql.execution.instrumentation.SimplePerformantInstrumentation;
 import graphql.execution.instrumentation.parameters.InstrumentationFieldFetchParameters;
 import graphql.schema.DataFetcher;
 import io.vertx.core.Future;
@@ -30,7 +30,7 @@ import java.util.function.Function;
  * Instrument data fetchers so that {@link Future} results are automatically converted to {@link java.util.concurrent.CompletionStage}.
  */
 @SuppressWarnings("rawtypes")
-public class VertxFutureAdapter extends SimpleInstrumentation {
+public class VertxFutureAdapter extends SimplePerformantInstrumentation {
 
   private final ToCompletionStage<Future> toCompletionStage;
 

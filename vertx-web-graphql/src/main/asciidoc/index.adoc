@@ -213,15 +213,6 @@ Configure GraphQL-Java with the {@link io.vertx.ext.web.handler.graphql.instrume
 {@link examples.GraphQLExamples#jsonObjectAdapter}
 ----
 
-==== GraphQL-Java 19 and before
-
-Configure GraphQL-Java to use {@link io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher} instead:
-
-[source,$lang]
-----
-{@link examples.GraphQLExamples#jsonData}
-----
-
 === Batch loading
 
 Dataloaders help you to load data efficiently by batching fetch requests and caching results.

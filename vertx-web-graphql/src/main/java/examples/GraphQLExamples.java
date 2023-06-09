@@ -21,9 +21,7 @@ import graphql.execution.preparsed.persisted.ApolloPersistedQuerySupport;
 import graphql.execution.preparsed.persisted.PersistedQueryCache;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.idl.FieldWiringEnvironment;
 import graphql.schema.idl.RuntimeWiring;
-import graphql.schema.idl.WiringFactory;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -32,21 +30,11 @@ import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
-import io.vertx.ext.web.handler.graphql.GraphQLHandler;
-import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
-import io.vertx.ext.web.handler.graphql.GraphiQLHandler;
-import io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions;
-import io.vertx.ext.web.handler.graphql.UploadScalar;
+import io.vertx.ext.web.handler.graphql.*;
 import io.vertx.ext.web.handler.graphql.instrumentation.JsonObjectAdapter;
 import io.vertx.ext.web.handler.graphql.instrumentation.VertxFutureAdapter;
-import io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher;
 import io.vertx.ext.web.handler.graphql.ws.GraphQLWSHandler;
-import org.dataloader.BatchLoaderEnvironment;
-import org.dataloader.BatchLoaderWithContext;
-import org.dataloader.DataLoader;
-import org.dataloader.DataLoaderFactory;
-import org.dataloader.DataLoaderRegistry;
+import org.dataloader.*;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
@@ -169,20 +157,6 @@ public class GraphQLExamples {
     return null;
   }
 
-  public void jsonData() {
-    RuntimeWiring.Builder builder = RuntimeWiring.newRuntimeWiring();
-
-    builder.wiringFactory(new WiringFactory() {
-
-      @Override
-      public DataFetcher<Object> getDefaultDataFetcher(FieldWiringEnvironment environment) {
-
-        return VertxPropertyDataFetcher.create(environment.getFieldDefinition().getName());
-
-      }
-    });
-  }
-
   public void jsonObjectAdapter(GraphQL.Builder graphQLBuilder) {
     graphQLBuilder.instrumentation(new JsonObjectAdapter());
   }
@@ -212,27 +186,6 @@ public class GraphQLExamples {
 
   private Future<List<String>> findComments(List<Long> ids, BatchLoaderEnvironment env) {
     return null;
-  }
-
-  public void addApolloWsHandlerToRouter(Router router) {
-    GraphQL graphQL = setupGraphQLJava();
-
-    router.route("/graphql").handler(ApolloWSHandler.create(graphQL));
-  }
-
-  public void configureServerForApolloWs(Vertx vertx, Router router) {
-    HttpServerOptions httpServerOptions = new HttpServerOptions()
-      .addWebSocketSubProtocol("graphql-ws");
-    vertx.createHttpServer(httpServerOptions)
-      .requestHandler(router)
-      .listen(8080);
-  }
-
-  public void configureWebSocketLinkAndHttpLinkSamePath(Router router) {
-    GraphQL graphQL = setupGraphQLJava();
-
-    router.route("/graphql").handler(ApolloWSHandler.create(graphQL));
-    router.route("/graphql").handler(GraphQLHandler.create(graphQL));
   }
 
   public void addGraphQLWSHandlerToRouter(Router router, GraphQL graphQL) {

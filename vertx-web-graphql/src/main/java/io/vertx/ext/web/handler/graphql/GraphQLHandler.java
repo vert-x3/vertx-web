@@ -24,10 +24,6 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.impl.GraphQLHandlerImpl;
-import org.dataloader.DataLoaderRegistry;
-
-import java.util.Locale;
-import java.util.function.Function;
 
 import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
@@ -71,41 +67,6 @@ public interface GraphQLHandler extends Handler<RoutingContext> {
   static RoutingContext getRoutingContext(GraphQLContext graphQlContext) {
     return graphQlContext.get(RoutingContext.class);
   }
-
-  /**
-   * Customize the query context object.
-   * The provided {@code factory} method will be invoked for each incoming GraphQL request.
-   *
-   * @return a reference to this, so the API can be used fluently
-   * @deprecated as of 4.2, use {@link #beforeExecute(Handler)} instead
-   */
-  @Fluent
-  @Deprecated
-  GraphQLHandler queryContext(Function<RoutingContext, Object> factory);
-
-  /**
-   * Customize the {@link DataLoaderRegistry}.
-   * The provided {@code factory} method will be invoked for each incoming GraphQL request.
-   *
-   * @return a reference to this, so the API can be used fluently
-   * @deprecated as of 4.2, use {@link #beforeExecute(Handler)} instead
-   */
-  @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  @Deprecated
-  GraphQLHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory);
-
-  /**
-   * Customize the {@link Locale} passed to the GraphQL execution engine.
-   * The provided {@code factory} method will be invoked for each incoming GraphQL request.
-   *
-   * @return a reference to this, so the API can be used fluently
-   * @deprecated as of 4.2, use {@link #beforeExecute(Handler)} instead
-   */
-  @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  @Deprecated
-  GraphQLHandler locale(Function<RoutingContext, Locale> factory);
 
   /**
    * Set a callback to invoke before executing a GraphQL query.
