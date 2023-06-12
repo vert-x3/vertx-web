@@ -27,13 +27,10 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.CSRFHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.Origin;
+import io.vertx.ext.web.impl.Signature;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 import static io.vertx.ext.auth.impl.Codec.base64UrlEncode;
 
@@ -45,7 +42,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
   private static final Logger LOG = LoggerFactory.getLogger(CSRFHandlerImpl.class);
 
   private final VertxContextPRNG random;
-  private final Mac mac;
+  private final Signature signature;
 
   private boolean nagHttps;
   private String cookieName = DEFAULT_COOKIE_NAME;
@@ -58,16 +55,8 @@ public class CSRFHandlerImpl implements CSRFHandler {
   private boolean cookieSecure;
 
   public CSRFHandlerImpl(final Vertx vertx, final String secret) {
-    try {
-      if (secret.length() <= 8) {
-        LOG.warn("CSRF secret is very short (<= 8 bytes)");
-      }
-      random = VertxContextPRNG.current(vertx);
-      mac = Mac.getInstance("HmacSHA256");
-      mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
-    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-      throw new RuntimeException(e);
-    }
+    random = VertxContextPRNG.current(vertx);
+    signature = new Signature(secret);
   }
 
   @Override
@@ -123,9 +112,8 @@ public class CSRFHandlerImpl implements CSRFHandler {
     random.nextBytes(salt);
 
     String saltPlusToken = base64UrlEncode(salt) + "." + System.currentTimeMillis();
-    String signature = base64UrlEncode(mac.doFinal(saltPlusToken.getBytes(StandardCharsets.US_ASCII)));
 
-    final String token = saltPlusToken + "." + signature;
+    final String token = signature.sign(saltPlusToken);
     // a new token was generated add it to the cookie
     ctx.response()
       .addCookie(
@@ -252,21 +240,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
       }
     }
 
-    String[] tokens = header.split("\\.");
-    if (tokens.length != 3) {
-      ctx.fail(403);
-      return false;
-    }
-
-    byte[] saltPlusToken = (tokens[0] + "." + tokens[1]).getBytes(StandardCharsets.US_ASCII);
-
-    synchronized (mac) {
-      saltPlusToken = mac.doFinal(saltPlusToken);
-    }
-
-    final byte[] signature = base64UrlEncode(saltPlusToken).getBytes(StandardCharsets.US_ASCII);
-
-    if (!MessageDigest.isEqual(signature, tokens[2].getBytes(StandardCharsets.US_ASCII))) {
+    if (!signature.verify(header)) {
       ctx.fail(403, new IllegalArgumentException("Token signature does not match"));
       return false;
     }
@@ -274,6 +248,12 @@ public class CSRFHandlerImpl implements CSRFHandler {
     // this token has been used and we discard it to avoid replay attacks
     if (session != null) {
       session.remove(headerName);
+    }
+
+    String[] tokens = header.split("\\.");
+    if (tokens.length != 3) {
+      ctx.fail(403);
+      return false;
     }
 
     final long ts = parseLong(tokens[1]);

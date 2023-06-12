@@ -18,9 +18,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.http.CookieSameSite;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
@@ -246,4 +244,14 @@ public interface SessionHandler extends PlatformHandler {
    */
   Future<Void> setUser(RoutingContext context, User user);
 
+  /**
+   * Set signing secret for the session cookie. The cookie will not be signed and
+   * verified by the SessionHandler if this is not set. But may be signed by the
+   * session implementation, for example, CookieSessionStore signs the cookie data.
+   *
+   * @param secret the secret used to sign the session cookie data
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  SessionHandler setSigningSecret(String secret);
 }

@@ -627,4 +627,56 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       assertNull(setCookie);
     }, 200, "OK", null);
   }
+
+  @Test
+  public void testSessionCookieSigning() throws Exception {
+    final AtomicReference<String> sessionId = new AtomicReference<>();
+    final AtomicReference<String> firstSessionId = new AtomicReference<>();
+    final AtomicReference<String> sessionHeader = new AtomicReference<>();
+    final SessionHandler handler = SessionHandler.create(store)
+      .setSigningSecret("any-string-value");
+
+    router.route().handler(handler);
+    // capture the session ID
+    router.route("/0").handler(rc -> {
+      sessionId.set(rc.session().value());
+      rc.response().end();
+    });
+
+    // Initiate a session and check it's signed
+    testRequest(HttpMethod.GET, "/0", null, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+      String cookieData = setCookie.substring(setCookie.indexOf("=") + 1, setCookie.indexOf(";"));
+
+      assertFalse(sessionId.get().isEmpty());
+      assertTrue(cookieData.contains(sessionId.get()));
+
+      String[] cookieParts = cookieData.split("\\.");
+      // Cookie session has an id with a signature in, so check we added another one
+      assertEquals(sessionId.get().split("\\.").length + 1, cookieParts.length);
+
+      firstSessionId.set(sessionId.get());
+      sessionHeader.set(setCookie);
+    }, 200, "OK", null);
+
+    // check the signed cookie can be used to access the session
+    testRequest(HttpMethod.GET, "/0", req -> {
+      req.putHeader("cookie", sessionHeader.get());
+    }, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      // check not issued a new session
+      assertNull(setCookie);
+      assertEquals(firstSessionId.get(), sessionId.get());
+    }, 200, "OK", null);
+
+    // Finally edit the cookie to show signature rejects it
+    testRequest(HttpMethod.GET, "/0", req -> {
+      req.putHeader("cookie", sessionHeader.get().replaceFirst(sessionId.get(), "random-session-id"));
+    }, resp -> {
+      // check new session created
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+    }, 200, "OK", null);
+  }
 }

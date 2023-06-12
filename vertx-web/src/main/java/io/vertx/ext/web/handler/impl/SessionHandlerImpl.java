@@ -28,9 +28,12 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
+import io.vertx.ext.web.impl.Signature;
 import io.vertx.ext.web.impl.UserContextInternal;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.sstore.impl.SessionInternal;
+
+import java.util.Objects;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -57,6 +60,7 @@ public class SessionHandlerImpl implements SessionHandler {
 
   private boolean cookieless;
   private CookieSameSite cookieSameSite;
+  private Signature signature;
 
   public SessionHandlerImpl(SessionStore sessionStore) {
     this.sessionStore = sessionStore;
@@ -129,6 +133,12 @@ public class SessionHandlerImpl implements SessionHandler {
   }
 
   @Override
+  public SessionHandler setSigningSecret(String secret) {
+    this.signature = new Signature(secret);
+    return this;
+  }
+
+  @Override
   public Future<Void> flush(RoutingContext context, boolean ignoreStatus) {
     return flush(context, false, ignoreStatus);
   }
@@ -192,7 +202,11 @@ public class SessionHandlerImpl implements SessionHandler {
             final Cookie cookie = sessionCookie(context, session);
             // restore defaults
             session.setAccessed();
-            cookie.setValue(session.value());
+            String cookieValue = session.value();
+            if (Objects.nonNull(signature)) {
+              cookieValue = signature.sign(cookieValue);
+            }
+            cookie.setValue(cookieValue);
             setCookieProperties(cookie, false);
           }
 
@@ -393,6 +407,10 @@ public class SessionHandlerImpl implements SessionHandler {
       Cookie cookie = context.request().getCookie(sessionCookieName);
       if (cookie != null) {
         // Look up sessionId
+        if (Objects.nonNull(signature)) {
+          // If we expect signed cookies parse the content, if it fails return null triggering a new session creation
+          return signature.parse(cookie.getValue());
+        }
         return cookie.getValue();
       }
     }
@@ -466,7 +484,11 @@ public class SessionHandlerImpl implements SessionHandler {
     if (cookie != null) {
       return cookie;
     }
-    cookie = Cookie.cookie(sessionCookieName, session.value());
+    String cookieValue = session.value();
+    if (Objects.nonNull(signature)) {
+      cookieValue = signature.sign(cookieValue);
+    }
+    cookie = Cookie.cookie(sessionCookieName, cookieValue);
     setCookieProperties(cookie, false);
     context.response().addCookie(cookie);
     return cookie;
