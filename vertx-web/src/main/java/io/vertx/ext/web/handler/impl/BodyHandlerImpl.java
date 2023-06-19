@@ -132,6 +132,10 @@ public class BodyHandlerImpl implements BodyHandler {
           .handler(handler)
           .endHandler(handler::end)
           .resume();
+      } else {
+        LOG.error("Cannot register body handler after request has ended! " +
+          "Pause the request to make sure the BodyHandler can process the request body.");
+        context.fail(new Exception("BodyHandler started too late"));
       }
     } else {
       // on reroute we need to re-merge the form params if that was desired
