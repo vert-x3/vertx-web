@@ -16,12 +16,6 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import java.io.File;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.Future;
@@ -39,6 +33,12 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.impl.FileUploadImpl;
 import io.vertx.ext.web.impl.RoutingContextInternal;
+
+import java.io.File;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -124,14 +124,16 @@ public class BodyHandlerImpl implements BodyHandler {
         }
       }
 
-      final BHandler handler = new BHandler(context, isPreallocateBodyBuffer ? parsedContentLength : -1);
-      boolean ended = request.isEnded();
-      if (!ended) {
+      if (!request.isEnded()) {
+        BHandler handler = new BHandler(context, isPreallocateBodyBuffer ? parsedContentLength : -1);
         request
           // resume the request (if paused)
           .handler(handler)
           .endHandler(handler::end)
           .resume();
+      } else {
+        String failure = "BodyHandler invoked after the request has ended. It should be the first handler invoked. Otherwise, you must pause the request after it's received.";
+        context.fail(new IllegalStateException(failure));
       }
     } else {
       // on reroute we need to re-merge the form params if that was desired
