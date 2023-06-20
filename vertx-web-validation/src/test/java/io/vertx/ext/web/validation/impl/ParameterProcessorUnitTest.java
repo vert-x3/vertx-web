@@ -1,22 +1,17 @@
 package io.vertx.ext.web.validation.impl;
 
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.ParameterProcessorException;
-import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.impl.parameter.ParameterParser;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessorImpl;
-import io.vertx.ext.web.validation.impl.validator.ValueValidator;
-import io.vertx.json.schema.SchemaParser;
-import io.vertx.json.schema.SchemaRouter;
-import io.vertx.json.schema.SchemaRouterOptions;
-import io.vertx.json.schema.ValidationException;
-import io.vertx.json.schema.draft7.Draft7SchemaParser;
+import io.vertx.json.schema.JsonSchema;
+import io.vertx.json.schema.OutputUnit;
+import io.vertx.json.schema.SchemaRepository;
+import io.vertx.json.schema.Validator;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -33,19 +28,14 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ParameterProcessorUnitTest {
 
-  SchemaRouter router;
-  SchemaParser parser;
-
   @Mock
   ParameterParser mockedParser;
   @Mock
-  ValueValidator mockedValidator;
-
-  @BeforeEach
-  public void setUp(Vertx vertx) {
-    router = SchemaRouter.create(vertx, new SchemaRouterOptions());
-    parser = Draft7SchemaParser.create(router);
-  }
+  SchemaRepository mockedSchemaRepository;
+  @Mock
+  OutputUnit mockedOutputUnit;
+  @Mock
+  Validator mockedValidator;
 
   @Test
   public void testRequiredParam() {
@@ -54,13 +44,15 @@ public class ParameterProcessorUnitTest {
       ParameterLocation.QUERY,
       false,
       mockedParser,
-      mockedValidator
+      mockedSchemaRepository,
+      new JsonObject()
     );
 
     when(mockedParser.parseParameter(any())).thenReturn(null);
     assertThatCode(() -> processor.process(new HashMap<>()))
       .isInstanceOf(ParameterProcessorException.class)
-      .hasFieldOrPropertyWithValue("errorType", ParameterProcessorException.ParameterProcessorErrorType.MISSING_PARAMETER_WHEN_REQUIRED_ERROR)
+      .hasFieldOrPropertyWithValue("errorType",
+        ParameterProcessorException.ParameterProcessorErrorType.MISSING_PARAMETER_WHEN_REQUIRED_ERROR)
       .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
       .hasFieldOrPropertyWithValue("parameterName", "myParam")
       .hasNoCause();
@@ -73,11 +65,11 @@ public class ParameterProcessorUnitTest {
       ParameterLocation.QUERY,
       true,
       mockedParser,
-      mockedValidator
+      mockedSchemaRepository,
+      new JsonObject()
     );
 
     when(mockedParser.parseParameter(any())).thenReturn(null);
-    when(mockedValidator.getDefault()).thenReturn(Future.succeededFuture());
 
     processor.process(new HashMap<>()).onComplete(testContext.succeeding(value -> {
       testContext.verify(() ->
@@ -95,11 +87,11 @@ public class ParameterProcessorUnitTest {
       ParameterLocation.QUERY,
       true,
       mockedParser,
-      mockedValidator
+      mockedSchemaRepository,
+      new JsonObject().put("default", "bla")
     );
 
     when(mockedParser.parseParameter(any())).thenReturn(null);
-    when(mockedValidator.getDefault()).thenReturn(Future.succeededFuture("bla"));
 
     processor.process(new HashMap<>()).onComplete(testContext.succeeding(value -> {
       testContext.verify(() ->
@@ -116,7 +108,8 @@ public class ParameterProcessorUnitTest {
       ParameterLocation.QUERY,
       false,
       mockedParser,
-      mockedValidator
+      mockedSchemaRepository,
+      new JsonObject()
     );
 
     when(mockedParser.parseParameter(any())).thenThrow(new MalformedValueException("bla"));
@@ -136,11 +129,15 @@ public class ParameterProcessorUnitTest {
       ParameterLocation.QUERY,
       true,
       mockedParser,
-      mockedValidator
+      mockedSchemaRepository,
+      new JsonObject()
     );
 
     when(mockedParser.parseParameter(any())).thenReturn("aaa");
-    when(mockedValidator.validate(any())).thenReturn(Future.succeededFuture(RequestParameter.create("aaa")));
+
+    when(mockedSchemaRepository.validator(any(JsonSchema.class))).thenReturn(mockedValidator);
+    when(mockedValidator.validate(any())).thenReturn(mockedOutputUnit);
+    when(mockedOutputUnit.getValid()).thenReturn(true);
 
     processor.process(new HashMap<>()).onComplete(testContext.succeeding(rp -> {
       testContext.verify(() -> {
@@ -158,20 +155,24 @@ public class ParameterProcessorUnitTest {
       ParameterLocation.QUERY,
       true,
       mockedParser,
-      mockedValidator
+      mockedSchemaRepository,
+      new JsonObject()
     );
 
     when(mockedParser.parseParameter(any())).thenReturn("aaa");
-    when(mockedValidator.validate(any())).thenReturn(Future.failedFuture(ValidationException.createException("aaa", "aaa", "aaa")));
+
+    when(mockedSchemaRepository.validator(any(JsonSchema.class))).thenReturn(mockedValidator);
+    when(mockedValidator.validate(any())).thenReturn(mockedOutputUnit);
+    when(mockedOutputUnit.getValid()).thenReturn(false);
 
     processor.process(new HashMap<>()).onComplete(testContext.failing(throwable -> {
       testContext.verify(() -> {
         assertThat(throwable)
           .isInstanceOf(ParameterProcessorException.class)
-          .hasFieldOrPropertyWithValue("errorType", ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
+          .hasFieldOrPropertyWithValue("errorType",
+            ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
           .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
-          .hasFieldOrPropertyWithValue("parameterName", "myParam")
-          .hasCauseInstanceOf(ValidationException.class);
+          .hasFieldOrPropertyWithValue("parameterName", "myParam");
       });
       testContext.completeNow();
     }));

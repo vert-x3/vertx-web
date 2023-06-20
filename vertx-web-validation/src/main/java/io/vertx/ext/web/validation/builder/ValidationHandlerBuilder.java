@@ -9,11 +9,11 @@ import io.vertx.ext.web.validation.builder.impl.ValidationHandlerBuilderImpl;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
-import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.SchemaRepository;
 
 /**
  * Builder for a {@link ValidationHandler}. <br/>
- *
+ * <p>
  * For more info look the docs
  */
 @VertxGen
@@ -66,8 +66,7 @@ public interface ValidationHandlerBuilder {
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   ValidationHandler build();
 
-  static ValidationHandlerBuilder create(SchemaParser parser) {
-    return new ValidationHandlerBuilderImpl(parser);
+  static ValidationHandlerBuilder create(SchemaRepository repo) {
+    return new ValidationHandlerBuilderImpl(repo);
   }
-
 }
