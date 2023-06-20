@@ -1,36 +1,26 @@
 package io.vertx.ext.web.validation.impl;
 
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
-import io.vertx.json.schema.Schema;
-import io.vertx.json.schema.SchemaParser;
-import io.vertx.json.schema.SchemaRouter;
-import io.vertx.json.schema.SchemaRouterOptions;
-import io.vertx.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.junit5.VertxExtension;
 import org.assertj.core.api.Condition;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.regex.Pattern;
 
-import static io.vertx.json.schema.draft7.dsl.Schemas.*;
+import static io.vertx.json.schema.common.dsl.Schemas.arraySchema;
+import static io.vertx.json.schema.common.dsl.Schemas.booleanSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.intSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.numberSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.stringSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.tupleSchema;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
 @ExtendWith(VertxExtension.class)
 public class ValueParserInferenceUtilsTest {
-
-  SchemaRouter router;
-  SchemaParser parser;
-
-  @BeforeEach
-  public void setUp(Vertx vertx) {
-    router = SchemaRouter.create(vertx, new SchemaRouterOptions());
-    parser = Draft7SchemaParser.create(router);
-  }
 
   @Test
   public void testPrimitiveInference() {
@@ -46,23 +36,22 @@ public class ValueParserInferenceUtilsTest {
 
   @Test
   public void testObjectInference() {
-    Schema s = objectSchema()
+    JsonObject schemaJson = objectSchema()
       .property("simpleProp", stringSchema())
       .patternProperty(Pattern.compile("a*"), intSchema())
-      .additionalProperties(booleanSchema())
-      .build(parser);
+      .additionalProperties(booleanSchema()).toJson();
 
-    assertThat(ValueParserInferenceUtils.infeerPropertiesParsersForObjectSchema(s.getJson()))
+    assertThat(ValueParserInferenceUtils.infeerPropertiesParsersForObjectSchema(schemaJson))
       .containsOnly(
         entry("simpleProp", ValueParser.NOOP_PARSER)
       );
     assertThat(
-      ValueParserInferenceUtils.infeerPatternPropertiesParsersForObjectSchema(s.getJson())
+      ValueParserInferenceUtils.infeerPatternPropertiesParsersForObjectSchema(schemaJson)
     ).hasEntrySatisfying(
       new Condition<>(p -> p.toString().equals("a*"), "Must have a* as key"),
       new Condition<>(vp -> vp == ValueParser.LONG_PARSER, "Must have LONG_PARSER as value")
     ).hasSize(1);
-    assertThat(ValueParserInferenceUtils.infeerAdditionalPropertiesParserForObjectSchema(s.getJson()))
+    assertThat(ValueParserInferenceUtils.infeerAdditionalPropertiesParserForObjectSchema(schemaJson))
       .isSameAs(ValueParser.BOOLEAN_PARSER);
   }
 
@@ -84,28 +73,28 @@ public class ValueParserInferenceUtilsTest {
 
   @Test
   public void testArrayInference() {
-    Schema s = arraySchema()
+    JsonObject schemaJson = arraySchema()
       .items(intSchema())
-      .build(parser);
+      .toJson();
 
-    assertThat(ValueParserInferenceUtils.infeerItemsParserForArraySchema(s.getJson()))
+    assertThat(ValueParserInferenceUtils.infeerItemsParserForArraySchema(schemaJson))
       .isSameAs(ValueParser.LONG_PARSER);
   }
 
   @Test
   public void testTupleInference() {
-    Schema s = tupleSchema()
+    JsonObject schemaJson = tupleSchema()
       .item(intSchema())
       .item(numberSchema())
       .additionalItems(booleanSchema())
-      .build(parser);
+      .toJson();
 
-    assertThat(ValueParserInferenceUtils.infeerTupleParsersForArraySchema(s.getJson()))
+    assertThat(ValueParserInferenceUtils.infeerTupleParsersForArraySchema(schemaJson))
       .containsExactly(
         ValueParser.LONG_PARSER,
         ValueParser.DOUBLE_PARSER
       );
-    assertThat(ValueParserInferenceUtils.infeerAdditionalItemsParserForArraySchema(s.getJson()))
+    assertThat(ValueParserInferenceUtils.infeerAdditionalItemsParserForArraySchema(schemaJson))
       .isSameAs(ValueParser.BOOLEAN_PARSER);
   }
 
@@ -124,5 +113,4 @@ public class ValueParserInferenceUtilsTest {
     assertThat(ValueParserInferenceUtils.infeerAdditionalItemsParserForArraySchema(schema))
       .isNull();
   }
-
 }

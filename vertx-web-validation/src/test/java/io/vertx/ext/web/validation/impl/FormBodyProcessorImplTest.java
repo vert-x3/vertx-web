@@ -1,7 +1,6 @@
 package io.vertx.ext.web.validation.impl;
 
 import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
@@ -12,11 +11,10 @@ import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.testutils.TestSchemas;
-import io.vertx.json.schema.SchemaParser;
-import io.vertx.json.schema.SchemaRouter;
-import io.vertx.json.schema.SchemaRouterOptions;
+import io.vertx.json.schema.Draft;
+import io.vertx.json.schema.JsonSchemaOptions;
+import io.vertx.json.schema.SchemaRepository;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
-import io.vertx.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,17 +29,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 class FormBodyProcessorImplTest {
+  private SchemaRepository repository;
 
-  SchemaRouter router;
-  SchemaParser parser;
-
-  @Mock RoutingContext mockedContext;
-  @Mock HttpServerRequest mockedServerRequest;
+  @Mock
+  RoutingContext mockedContext;
+  @Mock
+  HttpServerRequest mockedServerRequest;
 
   @BeforeEach
-  public void setUp(Vertx vertx) {
-    router = SchemaRouter.create(vertx, new SchemaRouterOptions());
-    parser = Draft7SchemaParser.create(router);
+  public void setUp() {
+    repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT7).setBaseUri("app://"));
   }
 
   @Test
@@ -60,7 +57,7 @@ class FormBodyProcessorImplTest {
     when(mockedServerRequest.formAttributes()).thenReturn(map);
     when(mockedContext.request()).thenReturn(mockedServerRequest);
 
-    BodyProcessor processor = Bodies.formUrlEncoded(schemaBuilder).create(parser);
+    BodyProcessor processor = Bodies.formUrlEncoded(schemaBuilder).create(repository);
 
     assertThat(processor.canProcess("application/x-www-form-urlencoded")).isTrue();
 
@@ -80,7 +77,6 @@ class FormBodyProcessorImplTest {
       });
       testContext.completeNow();
     }));
-
   }
 
   @Test
@@ -100,7 +96,7 @@ class FormBodyProcessorImplTest {
     when(mockedServerRequest.formAttributes()).thenReturn(map);
     when(mockedContext.request()).thenReturn(mockedServerRequest);
 
-    BodyProcessor processor = Bodies.formUrlEncoded(schemaBuilder).create(parser);
+    BodyProcessor processor = Bodies.formUrlEncoded(schemaBuilder).create(repository);
 
     assertThat(processor.canProcess("application/x-www-form-urlencoded")).isTrue();
 
@@ -113,7 +109,5 @@ class FormBodyProcessorImplTest {
       });
       testContext.completeNow();
     }));
-
   }
-
 }

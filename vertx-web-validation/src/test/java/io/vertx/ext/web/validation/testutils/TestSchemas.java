@@ -8,8 +8,13 @@ import io.vertx.json.schema.common.dsl.StringSchemaBuilder;
 
 import java.util.regex.Pattern;
 
-import static io.vertx.json.schema.draft7.dsl.Keywords.maxLength;
-import static io.vertx.json.schema.draft7.dsl.Schemas.*;
+import static io.vertx.json.schema.common.dsl.Keywords.maxLength;
+import static io.vertx.json.schema.common.dsl.Schemas.arraySchema;
+import static io.vertx.json.schema.common.dsl.Schemas.booleanSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.intSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.numberSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.stringSchema;
 
 public class TestSchemas {
 
@@ -57,7 +62,4 @@ public class TestSchemas {
       .with(maxLength(5));
 
   public static String VALID_STRING = "aaa";
-
-  public static String INVALID_STRING = "aaaaaa";
-
 }
