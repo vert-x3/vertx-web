@@ -16,6 +16,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.core.spi.cluster.RegistrationInfo;
@@ -35,7 +36,9 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @RunWith(Parameterized.class)
 public class SlowClusterEventbusBridgeTest extends VertxTestBase {
@@ -49,8 +52,8 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
 
   private final Transport transport;
 
-  private Vertx node1;
-  private Vertx node2;
+  private VertxInternal node1;
+  private VertxInternal node2;
   private Router router;
   private HttpServer server;
   private HttpClient client;
@@ -64,8 +67,8 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
   public void setUp() throws Exception {
     super.setUp();
     startNodes(2);
-    node1 = vertices[0];
-    node2 = vertices[1];
+    node1 = (VertxInternal) vertices[0];
+    node2 = (VertxInternal) vertices[1];
     router = Router.router(node1);
     server = node1.createHttpServer();
     CountDownLatch latch = new CountDownLatch(1);
@@ -87,9 +90,7 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
     String addr = "someaddress";
     String websocketURI = "/eventbus/websocket";
 
-    CountDownLatch registerLatch = new CountDownLatch(1);
-    CountDownLatch registeredLatch = new CountDownLatch(1);
-    CountDownLatch requestLatch = new CountDownLatch(1);
+    AtomicInteger step = new AtomicInteger();
 
     SockJSBridgeOptions allAccessOptions = new SockJSBridgeOptions()
       .addInboundPermitted(new PermittedOptions())
@@ -102,19 +103,18 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.REGISTER) {
+          assertTrue(step.compareAndSet(0, 1));
           assertNotNull(be.socket());
           JsonObject raw = be.getRawMessage();
           assertEquals(addr, raw.getString("address"));
-          registerLatch.countDown();
         } else if (be.type() == BridgeEventType.REGISTERED) {
+          assertTrue(step.compareAndSet(1, 2));
           assertNotNull(be.socket());
           JsonObject raw = be.getRawMessage();
           assertEquals(addr, raw.getString("address"));
 
           // The bridgeClient should be able to receive this message
           node2.eventBus().send(addr, payload);
-
-          registeredLatch.countDown();
         }
         be.complete(true);
       }));
@@ -122,20 +122,51 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
     BridgeClient bridgeClient = new BridgeClient(client, transport);
 
     bridgeClient.handler((address, received) -> {
+      assertTrue(step.compareAndSet(2, 3));
       assertEquals(addr, address);
       assertEquals(payload, received.getString("body"));
-      bridgeClient.close().onComplete(v2 -> requestLatch.countDown());
+      bridgeClient.close().onComplete(onSuccess(v -> complete()));
     });
+
+    waitFor(2);
 
     bridgeClient
       .connect(websocketURI)
       .compose(v -> bridgeClient.register(addr))
+      .onComplete(onSuccess(v -> complete()));
+
+    await();
+  }
+
+  @Test
+  public void testNoOrphanClusteredSubscription() throws Exception {
+    String addr = "someaddress";
+    String websocketURI = "/eventbus/websocket";
+
+    SockJSBridgeOptions allAccessOptions = new SockJSBridgeOptions()
+      .addInboundPermitted(new PermittedOptions())
+      .addOutboundPermitted(new PermittedOptions());
+
+    router.route("/eventbus/*").subRouter(sockJS.bridge(allAccessOptions));
+
+    BridgeClient bridgeClient = new BridgeClient(client, transport);
+
+    bridgeClient
+      .connect(websocketURI)
+      .compose(v -> bridgeClient.register(addr))
+      .compose(v -> bridgeClient.unregister(addr))
       .onComplete(onSuccess(v -> {
+        Promise<List<RegistrationInfo>> promise = Promise.promise();
+        node1.setTimer(1500, l -> {
+          node1.getClusterManager().getRegistrations(addr, promise);
+          promise.future().onComplete(onSuccess(registrationInfos -> {
+            assertTrue(registrationInfos == null || registrationInfos.isEmpty());
+            testComplete();
+          }));
+        });
       }));
 
-    awaitLatch(registerLatch);
-    awaitLatch(registeredLatch);
-    awaitLatch(requestLatch);
+    await();
   }
 
   private static class SlowClusterManager extends WrappedClusterManager {

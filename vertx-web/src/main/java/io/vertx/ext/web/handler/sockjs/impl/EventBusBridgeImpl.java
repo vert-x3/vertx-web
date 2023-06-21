@@ -239,10 +239,10 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
             }
           };
           MessageConsumer<?> reg = eb.consumer(address).handler(handler);
+          registrations.put(address, reg);
+          info.handlerCount++;
           reg.completion().onComplete(ar -> {
             if (ar.succeeded()) {
-              registrations.put(address, reg);
-              info.handlerCount++;
               // Notify registration completed
               checkCallHook(() -> new BridgeEventImpl(BridgeEventType.REGISTERED, rawMsg, sock));
             } else {
@@ -273,7 +273,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           MessageConsumer<?> registration = registrations.remove(address);
           if (registration != null) {
             SockInfo info = sockInfos.get(sock);
-            registration.unregister();
+            registration.completion().onSuccess(v -> registration.unregister());
             info.handlerCount--;
           }
         } else {
