@@ -30,7 +30,6 @@ import io.vertx.ext.web.handler.impl.UserHolder;
 
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.stream.Collectors;
 
 import static io.vertx.ext.web.handler.impl.SessionHandlerImpl.SESSION_USER_HOLDER_KEY;
@@ -40,14 +39,11 @@ import static io.vertx.ext.web.handler.impl.SessionHandlerImpl.SESSION_USER_HOLD
  */
 public class RoutingContextImpl extends RoutingContextImplBase {
 
-  private static final AtomicIntegerFieldUpdater<RoutingContextImpl> HANDLER_SEQ =
-    AtomicIntegerFieldUpdater.newUpdater(RoutingContextImpl.class, "handlerSeq");
-
   private final RouterImpl router;
   private final HttpServerRequest request;
   private final RequestBodyImpl body;
 
-  private volatile int handlerSeq;
+  private int handlerSeq;
 
   private Map<String, Object> data;
   private Map<String, String> pathParams;
@@ -514,10 +510,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   private int nextHandlerSeq() {
-    int seq = HANDLER_SEQ.incrementAndGet(this);
+    int seq = handlerSeq;
     if (seq == Integer.MAX_VALUE) {
       throw new IllegalStateException("Too many header/body end handlers!");
     }
+    seq++;
+    handlerSeq = seq;
     return seq;
   }
 
