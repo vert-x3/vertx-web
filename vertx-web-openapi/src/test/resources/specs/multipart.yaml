@@ -57,6 +57,32 @@ paths:
       responses:
         200:
           description: successful operation
+  /testMultipartMatchAllWildcard:
+    post:
+      operationId: testMultipartMatchAllWildcard
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - type
+                - file1
+              properties:
+                file1:
+                  type: string
+                  description: File1
+                  format: binary
+                type:
+                  type: string
+                  description: Model type
+            encoding:
+              file1:
+                contentType: '*/*'
+        required: true
+      responses:
+        200:
+          description: successful operation
   /testMultipartMultipleWildcard:
     post:
       operationId: testMultipartMultipleWildcard
