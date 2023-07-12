@@ -111,7 +111,7 @@ public class ForwardedTest extends WebTestBase {
   public void testForwardedHost() throws Exception {
     String host = "vertx.io";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertEquals(rc.request().authority().host(), host);
+      assertEquals(rc.request().authority().toString(), host);
       rc.end();
     });
 

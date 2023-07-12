@@ -144,7 +144,7 @@ class ForwardedParser {
 
       matcher = FORWARDED_HOST_PATTERN.matcher(forwardedToUse);
       if (matcher.find()) {
-        setHostAndPort(HostAndPortImpl.parseHostAndPort(matcher.group(1).trim(), port));
+        setHostAndPort(HostAndPortImpl.parseHostAndPort(matcher.group(1).trim(), -1));
       }
 
       matcher = FORWARDED_FOR_PATTERN.matcher(forwardedToUse);
