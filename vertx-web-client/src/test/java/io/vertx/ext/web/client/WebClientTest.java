@@ -60,12 +60,12 @@ public class WebClientTest extends WebClientTestBase {
 
   @Test
   public void testDefaultHostAndPort() throws Exception {
-    testRequest(client -> client.get("somepath"), req -> assertEquals("localhost:8080", req.host()));
+    testRequest(client -> client.get("somepath"), req -> assertEquals("localhost:8080", req.authority().toString()));
   }
 
   @Test
   public void testDefaultPort() throws Exception {
-    testRequest(client -> client.get("somehost", "somepath"), req -> assertEquals("somehost:8080", req.host()));
+    testRequest(client -> client.get("somehost", "somepath"), req -> assertEquals("somehost:8080", req.authority().toString()));
   }
 
   @Test
@@ -1554,7 +1554,7 @@ public class WebClientTest extends WebClientTestBase {
   @Test
   public void testVirtualHost() throws Exception {
     server.requestHandler(req -> {
-      assertEquals("another-host:8080", req.host());
+      assertEquals("another-host:8080", req.authority().toString());
       req.response().end();
     });
     startServer();
@@ -1566,7 +1566,7 @@ public class WebClientTest extends WebClientTestBase {
   @Test
   public void testSocketAddress() throws Exception {
     server.requestHandler(req -> {
-      assertEquals("another-host:8080", req.host());
+      assertEquals("another-host:8080", req.authority().toString());
       req.response().end();
     });
     startServer();
@@ -1719,7 +1719,6 @@ public class WebClientTest extends WebClientTestBase {
       .setHost(DEFAULT_HTTPS_HOST);
      testTLS(clientOptions, serverOptions, req -> req.get("/").virtualHost("host2.com").ssl(true), req -> {
        assertEquals("host2.com", req.connection().indicatedServerName());
-      System.out.println(req.host());
     });
   }
 

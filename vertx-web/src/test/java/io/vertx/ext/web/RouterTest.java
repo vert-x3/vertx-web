@@ -22,6 +22,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.HostAndPort;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.PlatformHandler;
@@ -2639,7 +2640,7 @@ public class RouterTest extends WebTestBase {
         when(request.scheme()).thenReturn("http");
         when(request.uri()).thenReturn("http://localhost/path");
         when(request.absoluteURI()).thenReturn("http://localhost/path");
-        when(request.host()).thenReturn("localhost");
+        when(request.authority()).thenReturn(HostAndPort.create("localhost", 80));
         when(request.path()).thenReturn("/path");
         when(request.response()).thenReturn(response);
         when(response.ended()).thenReturn(true);

@@ -9,6 +9,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.http.WebSocketBase;
 import io.vertx.core.http.WebSocketFrame;
+import io.vertx.core.net.HostAndPort;
 import io.vertx.core.net.SocketAddress;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
@@ -19,18 +20,18 @@ import java.util.List;
 
 public class ServerWebSocketWrapper implements ServerWebSocket {
   private final ServerWebSocket delegate;
-  private final String host;
+  private final HostAndPort authority;
   private final String scheme;
   private final boolean isSsl;
   private final SocketAddress remoteAddress;
 
   public ServerWebSocketWrapper(ServerWebSocket delegate,
-                                String host,
+                                HostAndPort authority,
                                 String scheme,
                                 boolean isSsl,
                                 SocketAddress remoteAddress) {
     this.delegate = delegate;
-    this.host = host;
+    this.authority = authority;
     this.scheme = scheme;
     this.isSsl = isSsl;
     this.remoteAddress = remoteAddress;
@@ -200,8 +201,8 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
-  public @Nullable String host() {
-    return host;
+  public @Nullable HostAndPort authority() {
+    return authority;
   }
 
   @Override

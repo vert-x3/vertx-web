@@ -1,9 +1,11 @@
 package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpServerRequestInternal;
+import io.vertx.core.net.HostAndPort;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.AllowForwardHeaders;
 
@@ -150,7 +152,7 @@ class HttpServerRequestWrapper extends io.vertx.core.http.impl.HttpServerRequest
     } else {
       if (absoluteURI == null) {
         String scheme = forwardedParser.scheme();
-        String host = forwardedParser.host();
+        HostAndPort host = forwardedParser.authority();
 
         // if both are not null we can rebuild the uri
         if (scheme != null && host != null) {
@@ -170,15 +172,15 @@ class HttpServerRequestWrapper extends io.vertx.core.http.impl.HttpServerRequest
   }
 
   @Override
-  public String host() {
-    return forwardedParser.host();
+  public @Nullable HostAndPort authority() {
+    return forwardedParser.authority();
   }
 
   @Override
   public Future<ServerWebSocket> toWebSocket() {
     return delegate
       .toWebSocket()
-      .map(ws -> new ServerWebSocketWrapper(ws, host(), scheme(), isSSL(), remoteAddress()));
+      .map(ws -> new ServerWebSocketWrapper(ws, authority(), scheme(), isSSL(), remoteAddress()));
   }
 
   @Override
