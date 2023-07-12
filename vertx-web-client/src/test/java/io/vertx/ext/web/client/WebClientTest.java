@@ -1716,7 +1716,6 @@ public class WebClientTest extends WebClientTestBase {
       .setHost(DEFAULT_HTTPS_HOST);
      testTLS(clientOptions, serverOptions, req -> req.get("/").virtualHost("host2.com").ssl(true), req -> {
        assertEquals("host2.com", req.connection().indicatedServerName());
-      System.out.println(req.host());
     });
   }
 
