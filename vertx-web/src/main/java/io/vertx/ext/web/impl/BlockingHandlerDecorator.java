@@ -44,9 +44,9 @@ public class BlockingHandlerDecorator implements Handler<RoutingContext> {
   @Override
   public void handle(RoutingContext context) {
     Route currentRoute = context.currentRoute();
-    context.vertx().executeBlocking(fut -> {
+    context.vertx().executeBlocking(() -> {
       decoratedHandler.handle(new RoutingContextDecorator(currentRoute, (RoutingContextInternal) context));
-      fut.complete();
+      return null;
     }, ordered).onComplete(res -> {
       if (res.failed()) {
         // This means an exception was thrown from the blocking handler

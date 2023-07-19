@@ -33,7 +33,7 @@ public class SockJSAsyncHandlerTest extends SockJSTestBase {
     preSockJSHandlerSetup = router -> {
       router.route().handler(BodyHandler.create());
       // simulate an async handler
-      router.route().handler(rtx -> rtx.vertx().executeBlocking(f -> f.complete(true)).onComplete(r -> rtx.next()));
+      router.route().handler(rtx -> rtx.vertx().executeBlocking(() -> true).onComplete(r -> rtx.next()));
     };
     super.setUp();
   }

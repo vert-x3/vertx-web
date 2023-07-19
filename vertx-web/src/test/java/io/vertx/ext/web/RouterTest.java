@@ -36,6 +36,7 @@ import java.net.Socket;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -2303,14 +2304,9 @@ public class RouterTest extends WebTestBase {
     CountDownLatch latch = new CountDownLatch(100);
 
     for (int i = 0; i < 100; i++) {
-      vertx.executeBlocking(future -> {
-        try {
-          testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
-          future.complete();
-        } catch (Exception e) {
-          e.printStackTrace();
-          future.fail(e);
-        }
+      vertx.executeBlocking(() -> {
+        testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
+        return null;
       }).onComplete(onSuccess(v -> {
         latch.countDown();
       }));
@@ -2340,14 +2336,10 @@ public class RouterTest extends WebTestBase {
     CountDownLatch latch = new CountDownLatch(100);
     for (int i = 0; i < 100; i++) {
       // using executeBlocking should create multiple connections
-      vertx.executeBlocking(future -> {
-        try {
-          Thread.sleep((int) (1 + Math.random() * 10));
-          testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
-          future.complete();
-        } catch (Exception e) {
-          future.fail(e);
-        }
+      vertx.executeBlocking(() -> {
+        Thread.sleep((int) (1 + Math.random() * 10));
+        testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
+        return null;
       }).onComplete(onSuccess(v -> {
         latch.countDown();
       }));
@@ -2392,26 +2384,16 @@ public class RouterTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(multipleConnections);
 
-    Handler<Promise<Object>> execute200Request = future -> {
-      try {
-        Thread.sleep((int) (1 + Math.random() * 10));
-        testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
-        future.complete();
-      } catch (InterruptedException | IOException e) {
-        e.printStackTrace();
-        future.fail(e);
-      }
+    Callable<Object> execute200Request = () -> {
+      Thread.sleep((int) (1 + Math.random() * 10));
+      testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
+      return null;
     };
 
-    Handler<Promise<Object>> execute400Request = future -> {
-      try {
-        Thread.sleep((int) (1 + Math.random() * 10));
-        testSyncRequest("GET", "/fail", 400, "ERROR", "fhandler1fhandler2fhandler3");
-        future.complete();
-      } catch (InterruptedException | IOException e) {
-        e.printStackTrace();
-        future.fail(e);
-      }
+    Callable<Object> execute400Request = () -> {
+      Thread.sleep((int) (1 + Math.random() * 10));
+      testSyncRequest("GET", "/fail", 400, "ERROR", "fhandler1fhandler2fhandler3");
+      return null;
     };
 
     for (int i = 0; i < multipleConnections; i++) {
@@ -2559,14 +2541,10 @@ public class RouterTest extends WebTestBase {
     }
     for (int i = 0; i < REQUESTS_NUMBER; i++) {
       // using executeBlocking should create multiple connections
-      vertx.executeBlocking(future -> {
-        try {
-          Thread.sleep((int) (1 + Math.random() * 10));
-          testSyncRequest("GET", "/path", 200, "OK", sum.toString());
-          future.complete();
-        } catch (Exception e) {
-          future.fail(e);
-        }
+      vertx.executeBlocking(() -> {
+        Thread.sleep((int) (1 + Math.random() * 10));
+        testSyncRequest("GET", "/path", 200, "OK", sum.toString());
+        return null;
       }).onComplete(onSuccess(v -> {
         latch.countDown();
       }));
@@ -2614,9 +2592,9 @@ public class RouterTest extends WebTestBase {
 
         event.next();
       } else {
-        vertx.executeBlocking(future -> {
+        vertx.executeBlocking(() -> {
           event.next();
-          future.complete();
+          return null;
         });
       }
     });
@@ -2633,7 +2611,7 @@ public class RouterTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(2);
     for (int i = 0; i < 2; i++) {
-      vertx.executeBlocking(future -> {
+      vertx.executeBlocking(() -> {
         HttpServerRequest request = mock(HttpServerRequestInternal.class);
         HttpServerResponse response = mock(HttpServerResponse.class);
         when(request.method()).thenReturn(HttpMethod.GET);
@@ -2645,7 +2623,7 @@ public class RouterTest extends WebTestBase {
         when(request.response()).thenReturn(response);
         when(response.ended()).thenReturn(true);
         router.handle(request);
-        future.complete();
+        return null;
       }, false).onComplete(onSuccess(v -> {
         latch.countDown();
       }));
