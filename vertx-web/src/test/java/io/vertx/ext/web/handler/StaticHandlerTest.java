@@ -16,9 +16,7 @@
 
 package io.vertx.ext.web.handler;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Promise;
+import io.vertx.core.*;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.net.PemKeyCertOptions;
@@ -27,7 +25,6 @@ import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.impl.Utils;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
@@ -39,6 +36,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
+
+import static io.vertx.core.http.HttpHeaders.ACCEPT_ENCODING;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -307,27 +308,26 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   private void testSkipCompression(StaticHandler staticHandler, List<String> uris, List<String> expectedContentEncodings) throws Exception {
-    waitFor(uris.size());
     server.close();
     server = vertx.createHttpServer(getHttpServerOptions().setPort(0).setCompressionSupported(true));
     router = Router.router(vertx);
     router.route().handler(staticHandler);
     awaitFuture(server.requestHandler(router).listen());
-    List<String> contentEncodings = Collections.synchronizedList(new ArrayList<>());
-    for (String uri : uris) {
-      client.request(HttpMethod.GET, server.actualPort(), getHttpClientOptions().getDefaultHost(), uri)
-        .compose(req -> req
-          .putHeader(HttpHeaders.ACCEPT_ENCODING, String.join(", ", "gzip", "jpg", "jpeg", "png"))
-          .send()
-          .andThen(onSuccess(resp -> {
-            assertEquals(200, resp.statusCode());
-            contentEncodings.add(resp.getHeader(HttpHeaders.CONTENT_ENCODING));
-          }))
-          .compose(HttpClientResponse::end))
-        .onComplete(onSuccess(v -> complete()));
-    }
+    CompositeFuture cf = uris.stream().map(uri -> client.request(HttpMethod.GET, server.actualPort(), getHttpClientOptions().getDefaultHost(), uri)
+        .compose(req -> {
+          return req
+            .putHeader(ACCEPT_ENCODING, String.join(", ", "gzip", "jpg", "jpeg", "png"))
+            .send()
+            .compose(resp -> {
+              if (resp.statusCode() != 200)
+                return Future.failedFuture("Request failed with status: " + resp.statusCode());
+              return resp.end().map(resp.getHeader(HttpHeaders.CONTENT_ENCODING));
+            });
+        }))
+      .collect(collectingAndThen(toList(), Future::all));
+    cf.onComplete(onSuccess(v -> testComplete()));
     await();
-    Assert.assertEquals(expectedContentEncodings, contentEncodings);
+    assertEquals(expectedContentEncodings, cf.list());
   }
 
   @Test
