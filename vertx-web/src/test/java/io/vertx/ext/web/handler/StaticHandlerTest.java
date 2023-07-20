@@ -16,9 +16,7 @@
 
 package io.vertx.ext.web.handler;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Promise;
+import io.vertx.core.*;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.net.PemKeyCertOptions;
@@ -38,6 +36,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
+
+import static io.vertx.core.http.HttpHeaders.ACCEPT_ENCODING;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -299,21 +301,21 @@ public class StaticHandlerTest extends WebTestBase {
     server.requestHandler(router).listen(onSuccess(s -> serverReady.countDown()));
     awaitLatch(serverReady);
 
-    List<String> contentEncodings = Collections.synchronizedList(new ArrayList<>());
-    for (String uri : uris) {
-      CountDownLatch responseReceived = new CountDownLatch(1);
-      client.request(HttpMethod.GET, server.actualPort(), getHttpClientOptions().getDefaultHost(), uri, onSuccess(req -> {
-        req
-          .putHeader(HttpHeaders.ACCEPT_ENCODING, String.join(", ", "gzip", "jpg", "jpeg", "png"))
-          .send(onSuccess(resp -> {
-            assertEquals(200, resp.statusCode());
-            contentEncodings.add(resp.getHeader(HttpHeaders.CONTENT_ENCODING));
-            responseReceived.countDown();
-          }));
-      }));
-      awaitLatch(responseReceived);
-    }
-    assertEquals(expectedContentEncodings, contentEncodings);
+    CompositeFuture cf = uris.stream().map(uri -> client.request(HttpMethod.GET, server.actualPort(), getHttpClientOptions().getDefaultHost(), uri)
+        .compose(req -> {
+          return req
+            .putHeader(ACCEPT_ENCODING, String.join(", ", "gzip", "jpg", "jpeg", "png"))
+            .send()
+            .compose(resp -> {
+              if (resp.statusCode() != 200)
+                return Future.failedFuture("Request failed with status: " + resp.statusCode());
+              return resp.end().map(resp.getHeader(HttpHeaders.CONTENT_ENCODING));
+            });
+        }))
+      .collect(collectingAndThen(toList(), Future::all));
+    cf.onComplete(onSuccess(v -> testComplete()));
+    await();
+    assertEquals(expectedContentEncodings, cf.list());
   }
 
   @Test
