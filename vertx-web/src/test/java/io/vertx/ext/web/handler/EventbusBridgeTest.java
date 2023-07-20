@@ -107,25 +107,14 @@ public class EventbusBridgeTest extends WebTestBase {
 
   @Test
   public void testHookCreateSocketRejected() throws Exception {
-
-    CountDownLatch latch = new CountDownLatch(2);
-
     router.route("/eventbus/*").subRouter(
-      sockJS.bridge(allAccessOptions, be -> {
-        if (be.type() == BridgeEventType.SOCKET_CREATED) {
-          be.complete(false);
-          latch.countDown();
-        } else {
-          be.complete(true);
-        }
-      }));
+      sockJS.bridge(allAccessOptions, be -> be.complete(be.type() != BridgeEventType.SOCKET_CREATED)));
 
     BridgeClient client = new BridgeClient(super.client, transport);
     client
-      .connect(websocketURI).compose(v -> client.send(addr, "foobar"))
-      .onComplete(onSuccess(v -> latch.countDown()));
-
-    awaitLatch(latch);
+      .closeHandler(v -> testComplete())
+      .connect(websocketURI);
+    await();
   }
 
   @Test
