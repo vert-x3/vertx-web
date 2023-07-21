@@ -16,6 +16,8 @@
 
 package io.vertx.ext.web.impl;
 
+import io.vertx.core.Future;
+import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpServerFileUpload;
 import io.vertx.ext.web.FileUpload;
 
@@ -24,10 +26,12 @@ import io.vertx.ext.web.FileUpload;
  */
 public class FileUploadImpl implements FileUpload {
 
+  private final FileSystem fs;
   private final String uploadedFileName;
   private final HttpServerFileUpload upload;
 
-  public FileUploadImpl(String uploadedFileName, HttpServerFileUpload upload) {
+  public FileUploadImpl(FileSystem fs, String uploadedFileName, HttpServerFileUpload upload) {
+    this.fs = fs;
     this.uploadedFileName = uploadedFileName;
     this.upload = upload;
   }
@@ -70,5 +74,12 @@ public class FileUploadImpl implements FileUpload {
   @Override
   public boolean cancel() {
     return upload.cancelStreamToFileSystem();
+  }
+
+  @Override
+  public Future<Void> delete() {
+    String uploadedFileName = uploadedFileName();
+    return fs.delete(uploadedFileName)
+      .onFailure(err -> RoutingContextImplBase.LOG.warn("Delete of uploaded file failed: " + uploadedFileName, err));
   }
 }

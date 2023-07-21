@@ -119,6 +119,11 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  public void cancelAndCleanupFileUploads() {
+    decoratedContext.cancelAndCleanupFileUploads();
+  }
+
+  @Override
   public <T> T get(String key) {
     return decoratedContext.get(key);
   }

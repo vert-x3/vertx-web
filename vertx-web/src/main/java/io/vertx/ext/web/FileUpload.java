@@ -17,6 +17,7 @@
 package io.vertx.ext.web;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Future;
 
 /**
  * Represents a file-upload from an HTTP multipart form submission.
@@ -68,5 +69,12 @@ public interface FileUpload {
    * @return {@code true} when the upload was cancelled, {@code false} when the upload is finished and the file is available
    */
   boolean cancel();
+
+  /**
+   * Delete the uploaded file on the disk.
+   *
+   * @return a future signaling when the file has been deleted
+   */
+  Future<Void> delete();
 
 }

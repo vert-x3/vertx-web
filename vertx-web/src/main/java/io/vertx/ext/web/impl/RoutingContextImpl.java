@@ -21,6 +21,7 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.impl.ContextInternal;
@@ -30,6 +31,7 @@ import io.vertx.ext.web.handler.impl.UserHolder;
 
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.stream.Collectors;
 
@@ -63,6 +65,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private String acceptableContentType;
   private ParsableHeaderValuesContainer parsedHeaders;
 
+  private final AtomicBoolean cleanup = new AtomicBoolean(false);
   private List<FileUpload> fileUploads;
   private Session session;
   private UserContext identity;
@@ -278,6 +281,19 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       fileUploads = new ArrayList<>();
     }
     return fileUploads;
+  }
+
+  /**
+   * Cancel all unfinished file upload in progress and delete all uploaded files.
+   */
+  public void cancelAndCleanupFileUploads() {
+    if (cleanup.compareAndSet(false, true)) {
+      for (FileUpload fileUpload : fileUploads()) {
+        if (!fileUpload.cancel()) {
+          fileUpload.delete();
+        }
+      }
+    }
   }
 
   @Override

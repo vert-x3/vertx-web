@@ -238,6 +238,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public void cancelAndCleanupFileUploads() {
+    inner.cancelAndCleanupFileUploads();
+  }
+
+  @Override
   public String getAcceptableContentType() {
     return inner.getAcceptableContentType();
   }
