@@ -202,7 +202,6 @@ public class BodyHandlerImpl implements BodyHandler {
     Buffer body;
     boolean failed;
     final AtomicInteger uploadCount = new AtomicInteger();
-    final AtomicBoolean cleanup = new AtomicBoolean(false);
     boolean ended;
     long uploadSize = 0L;
     final boolean isMultipart;
@@ -241,7 +240,7 @@ public class BodyHandlerImpl implements BodyHandler {
             long size = uploadSize + upload.size();
             if (size > bodyLimit) {
               failed = true;
-              cancelAndCleanupFileUploads();
+              context.cancelAndCleanupFileUploads();
               context.fail(413);
               return;
             }
@@ -250,14 +249,14 @@ public class BodyHandlerImpl implements BodyHandler {
             // we actually upload to a file with a generated filename
             uploadCount.incrementAndGet();
             String uploadedFileName = new File(uploadsDir, UUID.randomUUID().toString()).getPath();
-            FileUploadImpl fileUpload = new FileUploadImpl(uploadedFileName, upload);
+            FileUploadImpl fileUpload = new FileUploadImpl(context.vertx().fileSystem(), uploadedFileName, upload);
             fileUploads.add(fileUpload);
             Future<Void> fut = upload.streamToFileSystem(uploadedFileName);
             fut.onComplete(ar -> {
               if (fut.succeeded()) {
                 uploadEnded();
               } else {
-                cancelAndCleanupFileUploads();
+                context.cancelAndCleanupFileUploads();
                 context.fail(ar.cause());
               }
             });
@@ -266,7 +265,7 @@ public class BodyHandlerImpl implements BodyHandler {
       }
 
       context.request().exceptionHandler(t -> {
-        cancelAndCleanupFileUploads();
+        context.cancelAndCleanupFileUploads();
         if (t instanceof DecoderException) {
           // bad request
           context.fail(400, t.getCause());
@@ -307,7 +306,7 @@ public class BodyHandlerImpl implements BodyHandler {
       uploadSize += buff.length();
       if (bodyLimit != -1 && uploadSize > bodyLimit) {
         failed = true;
-        cancelAndCleanupFileUploads();
+        context.cancelAndCleanupFileUploads();
         context.fail(413);
       } else {
         // multipart requests will not end up in the request body
@@ -344,12 +343,12 @@ public class BodyHandlerImpl implements BodyHandler {
     void doEnd() {
 
       if (failed) {
-        cancelAndCleanupFileUploads();
+        context.cancelAndCleanupFileUploads();
         return;
       }
 
       if (deleteUploadedFilesOnEnd) {
-        context.addBodyEndHandler(x -> cancelAndCleanupFileUploads());
+        context.addBodyEndHandler(x -> context.cancelAndCleanupFileUploads());
       }
 
       HttpServerRequest req = context.request();
@@ -362,22 +361,5 @@ public class BodyHandlerImpl implements BodyHandler {
 
       context.next();
     }
-
-    /**
-     * Cancel all unfinished file upload in progress and delete all uploaded files.
-     */
-    private void cancelAndCleanupFileUploads() {
-      if (cleanup.compareAndSet(false, true) && handleFileUploads) {
-        for (FileUpload fileUpload : context.fileUploads()) {
-          FileSystem fileSystem = context.vertx().fileSystem();
-          if (!fileUpload.cancel()) {
-            String uploadedFileName = fileUpload.uploadedFileName();
-            fileSystem.delete(uploadedFileName)
-              .onFailure(err -> LOG.warn("Delete of uploaded file failed: " + uploadedFileName, err));
-          }
-        }
-      }
-    }
   }
-
 }

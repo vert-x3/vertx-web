@@ -265,7 +265,10 @@ public class BodyHandlerTest extends WebTestBase {
       // the data is upload as HTML form, so the body should be empty
       Buffer rawBody = rc.body().buffer();
       assertNull(rawBody);
-      rc.response().end();
+      upload.delete().onComplete(onSuccess(v -> {
+        assertFalse(vertx.fileSystem().existsBlocking(uploadedFileName));
+        rc.response().end();
+      }));
     });
     sendFileUploadRequest(fileData, 200, "OK");
   }
