@@ -1,4 +1,0 @@
-type: object
-properties:
-  fileName:
-    $ref: fileName.json
