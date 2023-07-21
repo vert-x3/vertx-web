@@ -383,6 +383,11 @@ public interface RoutingContext {
   List<FileUpload> fileUploads();
 
   /**
+   * Cancel all unfinished file upload in progress and delete all uploaded files.
+   */
+  void cancelAndCleanupFileUploads();
+
+  /**
    * Get the session. The context must have first been routed to a {@link io.vertx.ext.web.handler.SessionHandler}
    * for this to be populated.
    * Sessions live for a browser session, and are maintained by session cookies.
