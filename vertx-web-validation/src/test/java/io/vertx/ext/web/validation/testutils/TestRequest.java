@@ -344,7 +344,8 @@ public class TestRequest {
   }
 
   public static Consumer<HttpResponse<Buffer>> statusCode(int statusCode) {
-    return res -> assertEquals(statusCode, res.statusCode());
+    return res -> assertEquals(statusCode, res.statusCode(),
+      () -> "Unexpected status code " + statusCode + " != " + res.statusCode() + " (body:" + res.bodyAsString() + ")");
   }
 
   public static Consumer<HttpResponse<Buffer>> statusMessage(String statusMessage) {
