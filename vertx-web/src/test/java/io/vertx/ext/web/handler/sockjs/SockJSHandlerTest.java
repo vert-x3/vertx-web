@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.buffer.impl.BufferInternal;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.WebSocket;
@@ -235,7 +236,7 @@ public class SockJSHandlerTest extends WebTestBase {
     List<Buffer> receivedMessages = new ArrayList<>();
     WebSocket openedWebSocket = setupSockJsClient(serverPath, receivedMessages);
 
-    Buffer largeMessage = Buffer.buffer("[\"" + TestUtils.randomAlphaString(30) + "\"]");
+    BufferInternal largeMessage = BufferInternal.buffer("[\"" + TestUtils.randomAlphaString(30) + "\"]");
     WebSocketFrame frame1 = new WebSocketFrameImpl(WebSocketFrameType.TEXT, largeMessage.slice(0, 10).getByteBuf(), false);
     WebSocketFrame frame2 = WebSocketFrame.continuationFrame(largeMessage.slice(10, 20), false);
     WebSocketFrame frame3 = WebSocketFrame.continuationFrame(largeMessage.slice(20, largeMessage.length()), true);

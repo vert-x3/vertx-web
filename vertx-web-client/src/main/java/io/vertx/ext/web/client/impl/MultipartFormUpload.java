@@ -31,6 +31,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.buffer.impl.BufferInternal;
 import io.vertx.core.http.impl.headers.HeadersAdaptor;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.impl.InboundBuffer;
@@ -109,7 +110,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
             formDataPart.name(),
             formDataPart.filename(),
             contentType, transferEncoding, null, formDataPart.content().length());
-          fileUpload.setContent(formDataPart.content().getByteBuf());
+          fileUpload.setContent(((BufferInternal)formDataPart.content()).getByteBuf());
           encoder.addBodyHttpData(fileUpload);
         }
       }
@@ -143,7 +144,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
         try {
           HttpContent chunk = encoder.readChunk(ALLOC);
           ByteBuf content = chunk.content();
-          Buffer buff = Buffer.buffer(content);
+          Buffer buff = BufferInternal.buffer(content);
           boolean writable = pending.write(buff);
           if (encoder.isEndOfInput()) {
             ended = true;
@@ -162,7 +163,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
         }
       } else {
         ByteBuf content = request.content();
-        Buffer buffer = Buffer.buffer(content);
+        Buffer buffer = BufferInternal.buffer(content);
         request = null;
         encoder = null;
         pending.write(buffer);
