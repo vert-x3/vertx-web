@@ -32,6 +32,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
@@ -45,6 +47,7 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
     AtomicIntegerFieldUpdater.newUpdater(RoutingContextImplBase.class, "currentRouteNextFailureHandlerIndex");
 
   protected static final Logger LOG = LoggerFactory.getLogger(RoutingContext.class);
+  private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
   private final Set<RouteImpl> routes;
 
@@ -255,7 +258,9 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
       }
     } else {
       // if there are no user defined handlers, we will log the exception
-      LOG.error("Unhandled exception in router", failure);
+      executor.execute(() -> {
+        LOG.error("Unhandled exception in router", failure);
+      });
     }
 
     if (!response().ended() && !response().closed()) {
