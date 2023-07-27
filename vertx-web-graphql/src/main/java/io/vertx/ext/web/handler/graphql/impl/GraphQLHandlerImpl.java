@@ -37,6 +37,8 @@ import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 import static io.vertx.core.http.HttpMethod.GET;
@@ -52,6 +54,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   private final GraphQLHandlerOptions options;
 
   private Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecute;
+  private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
   public GraphQLHandlerImpl(GraphQL graphQL, GraphQLHandlerOptions options) {
     Objects.requireNonNull(graphQL, "graphQL");
@@ -380,9 +383,11 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   }
 
   private void executeOne(RoutingContext rc, GraphQLQuery query) {
-    execute(rc, query)
-      .map(JsonObject::toBuffer)
-      .onComplete(ar -> sendResponse(rc, ar));
+    executor.execute(() -> {
+      execute(rc, query)
+              .map(JsonObject::toBuffer)
+              .onComplete(ar -> sendResponse(rc, ar));
+    });
   }
 
   private Future<JsonObject> execute(RoutingContext rc, GraphQLQuery query) {
