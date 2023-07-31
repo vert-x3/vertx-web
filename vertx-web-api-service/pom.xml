@@ -31,7 +31,7 @@
     <!-- Testing dependencies -->
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-codegen</artifactId>
+      <artifactId>vertx-codegen-processor</artifactId>
       <type>test-jar</type>
       <version>${project.version}</version>
       <scope>test</scope>
