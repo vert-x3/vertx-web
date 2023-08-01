@@ -21,7 +21,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.Http2Settings;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpVersion;
-import io.vertx.core.impl.launcher.commands.VersionCommand;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.*;
 import io.vertx.core.tracing.TracingPolicy;
@@ -589,7 +589,7 @@ public class WebClientOptions extends HttpClientOptions {
 
   public static String loadUserAgent() {
     String userAgent = "Vert.x-WebClient";
-    String version = VersionCommand.getVersion();
+    String version = VertxInternal.version();
     if (version.length() > 0) {
       userAgent += "/" + version;
     }

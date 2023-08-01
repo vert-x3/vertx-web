@@ -16,7 +16,7 @@
 
 package io.vertx.ext.web.client;
 
-import io.vertx.core.impl.launcher.commands.VersionCommand;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.JsonObject;
 import org.junit.Test;
 
@@ -36,7 +36,7 @@ public class WebClientOptionsTest {
     WebClientOptions options = new WebClientOptions(json);
     assertEquals(4848, options.getDefaultPort());
     assertFalse(options.isUserAgentEnabled());
-    assertEquals("Vert.x-WebClient/" + VersionCommand.getVersion(), options.getUserAgent());
+    assertEquals("Vert.x-WebClient/" + VertxInternal.version(), options.getUserAgent());
     assertEquals(50, options.getMaxPoolSize());
   }
 
