@@ -15,6 +15,8 @@
  */
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
@@ -124,15 +126,16 @@ public class CSRFHandlerImpl implements CSRFHandler {
           // it's not an option to change the same site policy
           .setSameSite(CookieSameSite.STRICT));
 
-    Session session = ctx.session();
-
-    if (session != null) {
-      // storing will include the session id too. The reason is that if a session is upgraded
-      // we don't want to allow the token to be valid anymore
-      session.put(headerName, session.id() + "/" + token);
-    }
-
     return token;
+  }
+
+  private Handler<AsyncResult<Void>> sessionTokenEndHandler(RoutingContext ctx, String token) {
+    return ar -> {
+      if (ar.succeeded() && ctx.session() != null) {
+        Session session = ctx.session();
+        session.put(headerName, session.id() + "/" + token);
+      }
+    };
   }
 
   private String getTokenFromSession(RoutingContext ctx) {
@@ -245,13 +248,15 @@ public class CSRFHandlerImpl implements CSRFHandler {
       return false;
     }
 
-    // this token has been used and we discard it to avoid replay attacks
-    if (session != null) {
-      session.remove(headerName);
-    }
-
+    // if the token has expired remove the token from the session so that a new one can be acquired by a fresh GET
+    // provided the user is authenticated.
+    // We cannot simply remove it before these checks as this will invalidate the token even if the response is never
+    // written, requiring the user to GET another token even though the previous was valid
     String[] tokens = header.split("\\.");
     if (tokens.length != 3) {
+      if (session != null) {
+        session.remove(headerName);
+      }
       ctx.fail(403);
       return false;
     }
@@ -259,12 +264,18 @@ public class CSRFHandlerImpl implements CSRFHandler {
     final long ts = parseLong(tokens[1]);
 
     if (ts == -1) {
+      if (session != null) {
+        session.remove(headerName);
+      }
       ctx.fail(403);
       return false;
     }
 
     // validate validity
     if (System.currentTimeMillis() > ts + timeout) {
+      if (session != null) {
+        session.remove(headerName);
+      }
       ctx.fail(403, new IllegalArgumentException("CSRF validity expired"));
       return false;
     }
@@ -329,6 +340,10 @@ public class CSRFHandlerImpl implements CSRFHandler {
             }
           }
         }
+        // only add the token to the session when the request ends successfully, doing this avoids storing a token that
+        // may due to error not make it to the browser. It is assumed that the token placed onto the context directly
+        // would only be returned to the user if the request completed successfully, thus they will remain in sync
+        ctx.addEndHandler(sessionTokenEndHandler(ctx, token));
         // put the token in the context for users who prefer to render the token directly on the HTML
         ctx.put(headerName, token);
         ctx.next();
@@ -340,6 +355,10 @@ public class CSRFHandlerImpl implements CSRFHandler {
         if (isValidRequest(ctx)) {
           // it matches, so refresh the token to avoid replay attacks
           token = generateAndStoreToken(ctx);
+          // only add the token to the session when the request ends successfully, doing this avoids updating a token
+          // for a request that times out. It is assumed that the token placed onto the context directly would only
+          // be returned to the user if the request completed successfully, thus they will remain in sync
+          ctx.addEndHandler(sessionTokenEndHandler(ctx, token));
           // put the token in the context for users who prefer to
           // render the token directly on the HTML
           ctx.put(headerName, token);
