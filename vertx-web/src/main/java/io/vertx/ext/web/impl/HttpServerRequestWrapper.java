@@ -8,7 +8,8 @@ import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.AllowForwardHeaders;
-
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.WebServerRequest;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,7 @@ import java.util.Map;
  * Wraps the source {@link HttpServerRequestInternal}. It updates the method, path and query of the original request and
  * resumes the request if a caller explicitly sets a handler to any callback that processes the request body.
  */
-class HttpServerRequestWrapper extends io.vertx.core.http.impl.HttpServerRequestWrapper {
+class HttpServerRequestWrapper extends io.vertx.core.http.impl.HttpServerRequestWrapper implements WebServerRequest {
 
   private final ForwardedParser forwardedParser;
 
@@ -29,10 +30,16 @@ class HttpServerRequestWrapper extends io.vertx.core.http.impl.HttpServerRequest
   private String uri;
   private String absoluteURI;
   private MultiMap params;
+  private RoutingContext ctx;
 
   HttpServerRequestWrapper(HttpServerRequest request, AllowForwardHeaders allowForward) {
+    this(request, allowForward, null);
+  }
+
+  HttpServerRequestWrapper(HttpServerRequest request, AllowForwardHeaders allowForward, RoutingContext ctx) {
     super((HttpServerRequestInternal) request);
     forwardedParser = new ForwardedParser(request, allowForward);
+    this.ctx = ctx;
   }
 
   void changeTo(HttpMethod method, String uri) {
@@ -186,6 +193,11 @@ class HttpServerRequestWrapper extends io.vertx.core.http.impl.HttpServerRequest
   @Override
   public boolean isSSL() {
     return forwardedParser.isSSL();
+  }
+
+  @Override
+  public RoutingContext routingContext() {
+    return ctx;
   }
 
 }
