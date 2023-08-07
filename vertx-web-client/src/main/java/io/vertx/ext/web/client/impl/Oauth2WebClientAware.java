@@ -38,7 +38,7 @@ public class Oauth2WebClientAware extends WebClientBase implements OAuth2WebClie
     }
     this.option = options;
 
-    addInterceptor(new OAuth2AwareInterceptor(this));
+    addInterceptor(new OAuth2AwareInterceptor(this, options.getFailFast()));
   }
 
   @Override

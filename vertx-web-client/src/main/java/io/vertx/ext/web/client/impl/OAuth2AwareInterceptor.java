@@ -13,9 +13,11 @@ package io.vertx.ext.web.client.impl;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
+import io.vertx.ext.auth.User;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static io.vertx.core.http.HttpHeaders.AUTHORIZATION;
 
@@ -26,9 +28,12 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
 
   private final Set<HttpContext<?>> dejaVu = new HashSet<>();
   private final Oauth2WebClientAware parentClient;
+  private final AtomicReference<Future<User>> pendingAuth = new AtomicReference<>();
+  private final boolean failFast;
 
-  public OAuth2AwareInterceptor(Oauth2WebClientAware webClientOauth2Aware) {
+  public OAuth2AwareInterceptor(Oauth2WebClientAware webClientOauth2Aware, boolean failFast) {
     this.parentClient = webClientOauth2Aware;
+    this.failFast = failFast;
   }
 
   @Override
@@ -58,9 +63,7 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
         } else {
           // we need some stop condition so we don't go into an infinite loop
           dejaVu.add(context);
-          parentClient
-            .oauth2Auth()
-            .authenticate(parentClient.getCredentials())
+          authenticate()
             .onSuccess(userResult -> {
               // update the user
               parentClient.setUser(userResult);
@@ -87,9 +90,7 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
       if (parentClient.getUser() != null) {
         if (parentClient.getUser().expired(parentClient.getLeeway())) {
           //Token has expired we need to invalidate the session
-          parentClient
-            .oauth2Auth()
-            .refresh(parentClient.getUser())
+          refreshToken()
             .onSuccess(userResult -> {
               parentClient.setUser(userResult);
               context.requestOptions().putHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
@@ -97,9 +98,7 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
             })
             .onFailure(error -> {
               // Refresh token failed, we can try standard authentication
-              parentClient
-                .oauth2Auth()
-                .authenticate(parentClient.getCredentials())
+              authenticate()
                 .onSuccess(userResult -> {
                   parentClient.setUser(userResult);
                   context.requestOptions().putHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
@@ -117,9 +116,7 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
           promise.complete();
         }
       } else {
-        parentClient
-          .oauth2Auth()
-          .authenticate(parentClient.getCredentials())
+        authenticate()
           .onSuccess(userResult -> {
             parentClient.setUser(userResult);
             context.requestOptions().putHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
@@ -132,5 +129,39 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
     }
 
     return promise.future();
+  }
+
+  private Future<User> authenticate() {
+    final Future<User> pendingAuthFuture = pendingAuth.get();
+    if (pendingAuthFuture != null) {
+      if (failFast) {
+        return Future.failedFuture("OAuth2 web client authentication in progress and client is configured to fail fast");
+      } else {
+        return pendingAuthFuture;
+      }
+    }
+    final Future<User> newAuthFuture = parentClient
+      .oauth2Auth()
+      .authenticate(parentClient.getCredentials());
+    pendingAuth.set(newAuthFuture);
+    newAuthFuture.onComplete(userAsyncResult -> pendingAuth.set(null));
+    return newAuthFuture;
+  }
+
+  private Future<User> refreshToken() {
+    final Future<User> pendingAuthFuture = pendingAuth.get();
+    if (pendingAuthFuture != null) {
+      if (failFast) {
+        return Future.failedFuture("OAuth2 web client token refresh in progress and client is configured to fail fast");
+      } else {
+        return pendingAuthFuture;
+      }
+    }
+    final Future<User> newRefreshTokenFuture = parentClient
+      .oauth2Auth()
+      .refresh(parentClient.getUser());
+    pendingAuth.set(newRefreshTokenFuture);
+    newRefreshTokenFuture.onComplete(userAsyncResult -> pendingAuth.set(null));
+    return newRefreshTokenFuture;
   }
 }

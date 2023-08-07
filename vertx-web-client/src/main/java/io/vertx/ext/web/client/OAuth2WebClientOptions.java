@@ -35,8 +35,14 @@ public class OAuth2WebClientOptions {
    */
   public static final int DEFAULT_LEEWAY = 0;
 
+  /**
+   * The default fail fast of requests they happen while refreshing/loading token.
+   */
+  public static final boolean DEFAULT_FAIL_FAST = true;
+
   private boolean renewTokenOnForbidden = DEFAULT_RENEW_TOKEN_ON_FORBIDDEN;
   private int leeway = DEFAULT_LEEWAY;
+  private boolean failFast = DEFAULT_FAIL_FAST;
 
   public OAuth2WebClientOptions() {
   }
@@ -109,6 +115,27 @@ public class OAuth2WebClientOptions {
    */
   public OAuth2WebClientOptions setLeeway(int leeway) {
     this.leeway = leeway;
+    return this;
+  }
+
+  /**
+   * Should all requests that happen while this object is refreshing/loading token fail as soon as possible, or queue
+   * the incoming requests until the in flight operation completes.
+   *
+   * @return default value is {@link #DEFAULT_FAIL_FAST}
+   */
+  public boolean getFailFast() {
+    return failFast;
+  }
+
+  /**
+   * Set if all requests that happen while this object is refreshing/loading token should fail as soon as possible.
+   *
+   * @param failFast requests while refreshing/loading token
+   * @return fluent self
+   */
+  public OAuth2WebClientOptions setFailFast(boolean failFast) {
+    this.failFast = failFast;
     return this;
   }
 }
