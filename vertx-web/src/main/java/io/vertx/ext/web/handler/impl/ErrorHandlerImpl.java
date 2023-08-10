@@ -74,7 +74,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
       try {
         // force a close of the socket to
         // avoid dangling connections
-        response.close();
+        context.request().connection().close();
       } catch (RuntimeException e) {
         // ignore
       }

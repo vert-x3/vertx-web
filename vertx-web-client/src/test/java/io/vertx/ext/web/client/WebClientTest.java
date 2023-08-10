@@ -844,7 +844,7 @@ public class WebClientTest extends WebClientTestBase {
       HttpServerResponse resp = req.response();
       resp.setChunked(true);
       resp.write(TestUtils.randomBuffer(2048));
-      fail.thenAccept(v -> resp.close());
+      fail.thenAccept(v -> req.connection().close());
     });
     startServer();
     AtomicInteger received = new AtomicInteger();
@@ -1050,7 +1050,7 @@ public class WebClientTest extends WebClientTestBase {
     server.requestHandler(req -> {
       HttpServerResponse resp = req.response();
       resp.setChunked(true).write(Buffer.buffer("some-data"));
-      resp.close();
+      req.connection().close();
     });
     startServer();
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");

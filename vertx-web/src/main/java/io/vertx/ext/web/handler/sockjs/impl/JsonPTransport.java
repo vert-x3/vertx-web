@@ -208,7 +208,7 @@ class JsonPTransport extends BaseTransport {
         try {
           session.resetListener();
           rc.response().end();
-          rc.response().close();
+          rc.request().connection().close();
           closed = true;
         } catch (IllegalStateException e) {
           // Underlying connection might already be closed - that's fine
