@@ -62,6 +62,45 @@ public class ForwardedTest extends WebTestBase {
   }
 
   @Test
+  public void testXForwardedForIpv6() throws Exception {
+    String host = "[2001:db8:cafe::17]";
+    int port = 4711;
+
+    router.allowForward(ALL).route("/").handler(rc -> {
+      assertTrue(rc.request().remoteAddress().host().equals(host));
+      assertTrue(rc.request().remoteAddress().port() == port);
+      rc.end();
+    });
+
+    testRequest("X-Forwarded-For", host + ":" + port);
+  }
+
+  @Test
+  public void testXForwardedForIpv6NoPort() throws Exception {
+    String host = "[2001:db8:cafe::17]";
+
+    router.allowForward(ALL).route("/").handler(rc -> {
+      assertTrue(rc.request().remoteAddress().host().equals(host));
+      rc.end();
+    });
+
+    testRequest("X-Forwarded-For", host);
+  }
+
+  @Test
+  public void testXForwardedForRawIpv6NoPort() throws Exception {
+    // Make sure this is not seen as a host:port
+    String host = "2001:db8:85a3:8d3:1319:8a2e:370:9c82";
+
+    router.allowForward(ALL).route("/").handler(rc -> {
+      assertTrue(rc.request().remoteAddress().host().equals(host));
+      rc.end();
+    });
+
+    testRequest("X-Forwarded-For", host);
+  }
+
+  @Test
   public void testForwardedProto() throws Exception {
     router.allowForward(ALL).route("/").handler(rc -> {
       assertTrue(rc.request().isSSL());

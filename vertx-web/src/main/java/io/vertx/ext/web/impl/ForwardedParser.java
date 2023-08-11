@@ -20,6 +20,7 @@
 package io.vertx.ext.web.impl;
 
 import io.netty.util.AsciiString;
+import io.netty.util.NetUtil;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -204,12 +205,24 @@ class ForwardedParser {
   private SocketAddress parseFor(String forToParse, int defaultPort) {
     String host = forToParse;
     int port = defaultPort;
-    int portSeparatorIdx = forToParse.lastIndexOf(':');
-    if (portSeparatorIdx > forToParse.lastIndexOf(']')) {
-      host = forToParse.substring(0, portSeparatorIdx);
-      port = parsePort(forToParse.substring(portSeparatorIdx + 1), defaultPort);
+    if (forToParse.length() > 0 && forToParse.charAt(0) == '[') {
+      int idx = forToParse.lastIndexOf("]");
+      if (idx > 0) {
+        int portSeparatorIdx = forToParse.indexOf(':', idx + 1);
+        if (portSeparatorIdx > 0) {
+          host = forToParse.substring(0, idx + 1);
+          port = parsePort(forToParse.substring(idx + 2), defaultPort);
+        }
+      }
+    } else {
+      if (!NetUtil.isValidIpV6Address(forToParse)) {
+        int portSeparatorIdx = forToParse.lastIndexOf(':');
+        if (portSeparatorIdx > 0) {
+          host = forToParse.substring(0, portSeparatorIdx);
+          port = parsePort(forToParse.substring(portSeparatorIdx + 1), defaultPort);
+        }
+      }
     }
-
     return new SocketAddressImpl(port, host);
   }
 
