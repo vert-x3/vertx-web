@@ -109,7 +109,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     return this;
   }
 
-  private String generateAndStoreToken(RoutingContext ctx) {
+  private String generateToken(RoutingContext ctx) {
     byte[] salt = new byte[32];
     random.nextBytes(salt);
 
@@ -309,7 +309,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
         if (session == null) {
           // if there's no session to store values, tokens are issued on every request
-          token = generateAndStoreToken(ctx);
+          token = generateToken(ctx);
         } else {
           // get the token from the session, this also considers the fact
           // that the token might be invalid as it was issued for a previous session id
@@ -318,14 +318,14 @@ public class CSRFHandlerImpl implements CSRFHandler {
           // when there's no token in the session, then we behave just like when there is no session
           // create a new token, but we also store it in the session for the next runs
           if (sessionToken == null) {
-            token = generateAndStoreToken(ctx);
+            token = generateToken(ctx);
           } else {
             String[] parts = sessionToken.split("\\.");
             final long ts = parseLong(parts[1]);
 
             if (ts == -1) {
               // fallback as the token is expired
-              token = generateAndStoreToken(ctx);
+              token = generateToken(ctx);
             } else {
               if (!(System.currentTimeMillis() > ts + timeout)) {
                 // we're still on the same session, no need to regenerate the token
@@ -335,7 +335,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
                 // the user agent still has it from the previous interaction.
               } else {
                 // fallback as the token is expired
-                token = generateAndStoreToken(ctx);
+                token = generateToken(ctx);
               }
             }
           }
@@ -354,7 +354,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
       case "PATCH":
         if (isValidRequest(ctx)) {
           // it matches, so refresh the token to avoid replay attacks
-          token = generateAndStoreToken(ctx);
+          token = generateToken(ctx);
           // only add the token to the session when the request ends successfully, doing this avoids updating a token
           // for a request that times out. It is assumed that the token placed onto the context directly would only
           // be returned to the user if the request completed successfully, thus they will remain in sync
