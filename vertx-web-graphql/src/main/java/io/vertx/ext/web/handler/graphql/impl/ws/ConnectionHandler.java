@@ -16,6 +16,22 @@
 
 package io.vertx.ext.web.handler.graphql.impl.ws;
 
+import static io.vertx.ext.web.handler.graphql.impl.ErrorUtil.toJsonObject;
+import static io.vertx.ext.web.handler.graphql.ws.MessageType.COMPLETE;
+import static io.vertx.ext.web.handler.graphql.ws.MessageType.CONNECTION_ACK;
+import static io.vertx.ext.web.handler.graphql.ws.MessageType.ERROR;
+import static io.vertx.ext.web.handler.graphql.ws.MessageType.NEXT;
+import static io.vertx.ext.web.handler.graphql.ws.MessageType.PONG;
+import static io.vertx.ext.web.handler.graphql.ws.MessageType.from;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
+
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscription;
+
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.execution.preparsed.persisted.PersistedQuerySupport;
@@ -29,21 +45,12 @@ import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.impl.GraphQLQuery;
 import io.vertx.ext.web.handler.graphql.ws.ConnectionInitEvent;
 import io.vertx.ext.web.handler.graphql.ws.Message;
 import io.vertx.ext.web.handler.graphql.ws.MessageType;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscription;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executor;
-
-import static io.vertx.ext.web.handler.graphql.impl.ErrorUtil.*;
-import static io.vertx.ext.web.handler.graphql.ws.MessageType.*;
 
 public class ConnectionHandler {
 
@@ -52,13 +59,15 @@ public class ConnectionHandler {
   private final GraphQLWSHandlerImpl graphQLWSHandler;
   private final ContextInternal context;
   private final ServerWebSocket socket;
+  private final User webUser;
 
   private ConnectionState state;
 
-  public ConnectionHandler(GraphQLWSHandlerImpl graphQLWSHandler, ContextInternal context, ServerWebSocket socket) {
+  public ConnectionHandler(GraphQLWSHandlerImpl graphQLWSHandler, ContextInternal context, ServerWebSocket socket, User webUser) {
     this.graphQLWSHandler = graphQLWSHandler;
     this.context = context;
     this.socket = socket;
+    this.webUser = webUser;
     state = new InitialState();
   }
 
@@ -137,7 +146,7 @@ public class ConnectionHandler {
 
     @Override
     public MessageImpl createMessage(MessageType type, JsonObject message) {
-      return new MessageImpl(socket, type, message);
+      return new MessageImpl(socket, webUser, type, message);
     }
 
     @Override
@@ -200,7 +209,7 @@ public class ConnectionHandler {
 
     @Override
     public MessageImpl createMessage(MessageType type, JsonObject message) {
-      return new MessageImpl(socket, type, message);
+      return new MessageImpl(socket, webUser, type, message);
     }
 
     @Override
@@ -289,7 +298,7 @@ public class ConnectionHandler {
 
     @Override
     public MessageImpl createMessage(MessageType type, JsonObject message) {
-      return new MessageImpl(socket, type, message, connectionParams);
+      return new MessageImpl(socket, webUser, type, message, connectionParams);
     }
 
     @Override

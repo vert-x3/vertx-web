@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler.graphql.ws;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
 
 /**
  * A <a href="https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md">GraphQL over WebSocket Protocol</a> message.
@@ -45,4 +46,9 @@ public interface Message {
    * @return the connection params
    */
   Object connectionParams();
+  
+  /**
+   * @return the web user
+   */
+  User webUser();
 }

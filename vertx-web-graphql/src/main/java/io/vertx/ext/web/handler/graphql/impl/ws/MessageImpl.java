@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler.graphql.impl.ws;
 
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.handler.graphql.ws.Message;
 import io.vertx.ext.web.handler.graphql.ws.MessageType;
 
@@ -27,13 +28,15 @@ public class MessageImpl implements Message {
   private final MessageType type;
   private final JsonObject message;
   private final Object connectionParams;
+  private final User webUser;
 
-  public MessageImpl(ServerWebSocket socket, MessageType type, JsonObject message) {
-    this(socket, type, message, null);
+  public MessageImpl(ServerWebSocket socket, User webUser, MessageType type, JsonObject message) {
+    this(socket, webUser, type, message, null);
   }
 
-  public MessageImpl(ServerWebSocket socket, MessageType type, JsonObject message, Object connectionParams) {
+  public MessageImpl(ServerWebSocket socket, User webUser, MessageType type, JsonObject message, Object connectionParams) {
     this.socket = socket;
+    this.webUser = webUser;
     this.type = type;
     this.message = message;
     this.connectionParams = connectionParams;
@@ -62,4 +65,9 @@ public class MessageImpl implements Message {
   public String id() {
     return message.getString("id");
   }
+
+@Override
+public User webUser() {
+	return webUser;
+}
 }

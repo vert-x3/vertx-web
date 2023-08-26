@@ -16,6 +16,14 @@
 
 package io.vertx.ext.web.handler.graphql;
 
+import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
+import static io.vertx.core.http.HttpMethod.GET;
+import static io.vertx.core.http.HttpMethod.POST;
+
+import java.util.stream.Stream;
+
+import org.reactivestreams.Publisher;
+
 import graphql.GraphQL;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLSchema;
@@ -24,6 +32,7 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
@@ -31,13 +40,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
 import io.vertx.ext.web.handler.graphql.ws.GraphQLWSHandler;
-import org.reactivestreams.Publisher;
-
-import java.util.stream.Stream;
-
-import static graphql.schema.idl.RuntimeWiring.*;
-import static io.vertx.core.http.HttpMethod.*;
 
 /**
  * Backend for the GraphQLWS compatibility tests.
@@ -57,10 +61,15 @@ public class GraphQLWSTestsServer extends AbstractVerticle {
 
     GraphQL graphQL = setupGraphQL();
 
+    router.route("/*").handler(SimpleAuthenticationHandler.create().authenticate(ctx -> Future.succeededFuture(io.vertx.ext.auth.User.create(new JsonObject().put("name", "anon")))));
     router.route("/graphql").handler(GraphQLWSHandler.create(graphQL));
 
     router.route("/graphqlWithInitHandler").handler(GraphQLWSHandler.create(graphQL)
       .connectionInitHandler(connectionInitEvent -> {
+        if (connectionInitEvent.message().webUser() == null) {
+            connectionInitEvent.fail("noUser");
+            return;
+    	}
         JsonObject payload = connectionInitEvent.message().message().getJsonObject("payload");
         if (payload != null && payload.containsKey("rejectMessage")) {
           connectionInitEvent.fail(payload.getString("rejectMessage"));
