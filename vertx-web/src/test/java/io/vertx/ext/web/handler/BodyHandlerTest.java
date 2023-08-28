@@ -21,6 +21,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Route;
@@ -28,17 +29,16 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.test.core.TestUtils;
 import org.junit.AfterClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 /**
@@ -430,6 +430,64 @@ public class BodyHandlerTest extends WebTestBase {
       req.setChunked(true);
       req.write(buffer);
     }, statusCode, statusMessage, null);
+  }
+
+  @Test
+  public void testRoutingContextFailedBeforeFileIsFullyUploaded() throws Exception {
+    String uploadsDirectory = tempUploads.newFolder().getPath();
+    router.clear();
+    AtomicBoolean stop = new AtomicBoolean();
+
+    router.post("/upload")
+      .handler((PlatformHandler) rc -> {
+        vertx.setPeriodic(5, id -> {
+          if (!stop.get()) {
+            List<String> files = vertx.fileSystem().readDirBlocking(uploadsDirectory);
+            if (!files.isEmpty() && vertx.fileSystem().propsBlocking(files.get(0)).size() > 0) {
+              vertx.cancelTimer(id);
+              rc.fail(503);
+              stop.set(true);
+            }
+          }
+        });
+        rc.next();
+      })
+      .handler(BodyHandler.create().setUploadsDirectory(uploadsDirectory).setDeleteUploadedFilesOnEnd(true))
+      .handler(rc -> rc.end("foo"));
+
+    RequestOptions requestOptions = new RequestOptions()
+      .setMethod(HttpMethod.POST)
+      .setHost("localhost")
+      .setPort(8080)
+      .setURI("/upload");
+    client.request(requestOptions).onComplete(onSuccess(req -> {
+      req.response().onComplete(onSuccess(resp -> {
+        assertEquals(503, resp.statusCode());
+        testComplete();
+      }));
+      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+      Buffer buffer = TestUtils.randomBuffer(2048);
+      req.headers().set(HttpHeaders.CONTENT_TYPE, "multipart/form-data; boundary=" + boundary);
+      req.headers().set(HttpHeaders.CONTENT_LENGTH, String.valueOf(buffer.length()));
+      req.setChunked(true);
+      req.write("--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"somename\"; filename=\"somefile.dat\"\r\n" +
+        "Content-Type: application/octet-stream\r\n" +
+        "Content-Transfer-Encoding: binary\r\n" +
+        "\r\n");
+      req.write(buffer.getBuffer(0, 1024));
+      vertx.setPeriodic(50, id -> {
+        if (stop.get()) {
+          vertx.cancelTimer(id);
+          req.write(buffer.getBuffer(0, 1024));
+          String footer = "\r\n--" + boundary + "--\r\n";
+          req.end(footer);
+        }
+      });
+    }));
+    await();
+
+    assertWaitUntil(() -> 0 == vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
   }
 
   @Test
