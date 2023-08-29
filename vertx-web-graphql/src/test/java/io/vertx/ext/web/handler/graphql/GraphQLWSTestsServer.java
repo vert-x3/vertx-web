@@ -36,8 +36,9 @@ import org.reactivestreams.Publisher;
 
 import java.util.stream.Stream;
 
-import static graphql.schema.idl.RuntimeWiring.*;
-import static io.vertx.core.http.HttpMethod.*;
+import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
+import static io.vertx.core.http.HttpMethod.GET;
+import static io.vertx.core.http.HttpMethod.POST;
 
 /**
  * Backend for the GraphQLWS compatibility tests.
@@ -91,7 +92,9 @@ public class GraphQLWSTestsServer extends AbstractVerticle {
 
     RuntimeWiring runtimeWiring = newRuntimeWiring()
       .type("Query", builder -> builder.dataFetcher("hello", this::hello))
-      .type("Subscription", builder -> builder.dataFetcher("greetings", this::greetings))
+      .type("Subscription", builder -> builder
+        .dataFetcher("greetings", this::greetings)
+        .dataFetcher("greetAndFail", this::greetAndFail))
       .build();
 
     SchemaGenerator schemaGenerator = new SchemaGenerator();
@@ -109,6 +112,13 @@ public class GraphQLWSTestsServer extends AbstractVerticle {
     return subscriber -> {
       Stream.of("Hi", "Bonjour", "Hola", "Ciao", "Zdravo").forEach(subscriber::onNext);
       subscriber.onComplete();
+    };
+  }
+
+  private Publisher<String> greetAndFail(DataFetchingEnvironment env) {
+    return subscriber -> {
+      Stream.of("Hi").forEach(subscriber::onNext);
+      subscriber.onError(new Exception("boom"));
     };
   }
 }
