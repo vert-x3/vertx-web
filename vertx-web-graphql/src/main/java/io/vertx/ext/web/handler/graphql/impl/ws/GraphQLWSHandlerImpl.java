@@ -91,7 +91,7 @@ public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
         .toWebSocket()
         .onFailure(rc::fail)
         .onSuccess(socket -> {
-          ConnectionHandler handler = new ConnectionHandler(this, context, socket);
+          ConnectionHandler handler = new ConnectionHandler(this, context, socket, rc);
           handler.handleConnection();
         });
     } else {
