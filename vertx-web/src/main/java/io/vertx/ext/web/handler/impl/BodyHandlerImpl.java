@@ -37,7 +37,6 @@ import io.vertx.ext.web.impl.RoutingContextInternal;
 import java.io.File;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -342,7 +341,7 @@ public class BodyHandlerImpl implements BodyHandler {
 
     void doEnd() {
 
-      if (failed) {
+      if (failed || context.failed()) {
         context.cancelAndCleanupFileUploads();
         return;
       }
