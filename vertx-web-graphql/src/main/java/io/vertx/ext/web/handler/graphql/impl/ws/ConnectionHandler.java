@@ -30,6 +30,7 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.impl.GraphQLQuery;
 import io.vertx.ext.web.handler.graphql.ws.ConnectionInitEvent;
@@ -38,12 +39,13 @@ import io.vertx.ext.web.handler.graphql.ws.MessageType;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 
-import static io.vertx.ext.web.handler.graphql.impl.ErrorUtil.*;
+import static io.vertx.ext.web.handler.graphql.impl.ErrorUtil.toJsonObject;
 import static io.vertx.ext.web.handler.graphql.ws.MessageType.*;
 
 public class ConnectionHandler {
@@ -53,13 +55,15 @@ public class ConnectionHandler {
   private final GraphQLWSHandlerImpl graphQLWSHandler;
   private final ContextInternal context;
   private final ServerWebSocket socket;
+  private final RoutingContext routingContext;
 
   private ConnectionState state;
 
-  public ConnectionHandler(GraphQLWSHandlerImpl graphQLWSHandler, ContextInternal context, ServerWebSocket socket) {
+  public ConnectionHandler(GraphQLWSHandlerImpl graphQLWSHandler, ContextInternal context, ServerWebSocket socket, RoutingContext routingContext) {
     this.graphQLWSHandler = graphQLWSHandler;
     this.context = context;
     this.socket = socket;
+    this.routingContext = routingContext;
     state = new InitialState();
   }
 
@@ -350,6 +354,8 @@ public class ConnectionHandler {
       } else if (extensions != null && extensions.containsKey("persistedQuery")) {
         builder.query(PersistedQuerySupport.PERSISTED_QUERY_MARKER);
       }
+
+      builder.graphQLContext(Collections.singletonMap(RoutingContext.class, routingContext));
 
       Handler<ExecutionInputBuilderWithContext<Message>> beforeExecute = graphQLWSHandler.getBeforeExecute();
       if (beforeExecute != null) {
