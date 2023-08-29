@@ -28,6 +28,7 @@ import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.impl.GraphQLQuery;
@@ -270,7 +271,7 @@ public class ConnectionHandler {
 
       @Override
       public void onError(Throwable t) {
-        sendMessage(id, ERROR, toJsonObject(t));
+        sendMessage(id, ERROR, new JsonArray().add(toJsonObject(t)));
         subscriptions.remove(id);
       }
 
@@ -378,7 +379,7 @@ public class ConnectionHandler {
           }
         } else {
           subscriptions.remove(id);
-          sendMessage(id, ERROR, toJsonObject(throwable));
+          sendMessage(id, ERROR, new JsonArray().add(toJsonObject(throwable)));
         }
       }, executor);
     }
