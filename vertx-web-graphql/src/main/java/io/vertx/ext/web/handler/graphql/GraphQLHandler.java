@@ -17,15 +17,12 @@
 package io.vertx.ext.web.handler.graphql;
 
 import graphql.GraphQL;
-import graphql.GraphQLContext;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.impl.GraphQLHandlerImpl;
-
-import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
 /**
  * A {@link io.vertx.ext.web.Route} handler for GraphQL requests.
@@ -55,17 +52,6 @@ public interface GraphQLHandler extends Handler<RoutingContext> {
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static GraphQLHandler create(GraphQL graphQL, GraphQLHandlerOptions options) {
     return new GraphQLHandlerImpl(graphQL, options);
-  }
-
-  /**
-   * Retrieves the {@link RoutingContext} from the {@link GraphQLContext}.
-   *
-   * @param graphQlContext the GraphQL context object
-   * @return the {@link RoutingContext}
-   */
-  @GenIgnore(PERMITTED_TYPE)
-  static RoutingContext getRoutingContext(GraphQLContext graphQlContext) {
-    return graphQlContext.get(RoutingContext.class);
   }
 
   /**
