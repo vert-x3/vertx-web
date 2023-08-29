@@ -179,13 +179,12 @@ Then you can return Vert.x futures directly.
 
 === Providing data fetchers with some context
 
-Very often, the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} will be declared after other route handlers.
+Very often, the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler}, or the {@link io.vertx.ext.web.handler.graphql.ws.GraphQLWSHandler}, will be declared after other route handlers.
 For example, you could protect your application with authentication.
 
-In this case, it is likely that your data fetchers will need to know which user is logged-in to narrow down the results.
-Let's say your authentication layer stores a `User` object in the {@link io.vertx.ext.web.RoutingContext}.
+In this case, it is likely that your data fetchers will need to know which user is logged-in, to narrow down the results.
 
-You may retrieve this object by inspecting the `DataFetchingEnvironment`:
+For this, you may retrieve the {@link io.vertx.ext.web.RoutingContext} object by inspecting the `DataFetchingEnvironment`:
 
 [source,$lang]
 ----

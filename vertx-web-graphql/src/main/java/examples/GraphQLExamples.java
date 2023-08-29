@@ -29,6 +29,7 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.UserContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.graphql.*;
 import io.vertx.ext.web.handler.graphql.instrumentation.JsonObjectAdapter;
@@ -143,9 +144,9 @@ public class GraphQLExamples {
   public void routingContextInDataFetchingEnvironment() {
     DataFetcher<CompletionStage<List<Link>>> dataFetcher = environment -> {
 
-      RoutingContext routingContext = GraphQLHandler.getRoutingContext(environment.getGraphQlContext());
+      RoutingContext routingContext = environment.getGraphQlContext().get(RoutingContext.class);
 
-      User user = routingContext.get("user");
+      UserContext user = routingContext.user();
 
       Future<List<Link>> future = retrieveLinksPostedBy(user);
       return future.toCompletionStage();
@@ -153,7 +154,7 @@ public class GraphQLExamples {
     };
   }
 
-  private Future<List<Link>> retrieveLinksPostedBy(User user) {
+  private Future<List<Link>> retrieveLinksPostedBy(UserContext user) {
     return null;
   }
 
