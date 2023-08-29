@@ -16,12 +16,6 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import java.io.File;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.Future;
@@ -39,6 +33,11 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.impl.FileUploadImpl;
 import io.vertx.ext.web.impl.RoutingContextInternal;
+
+import java.io.File;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -340,7 +339,7 @@ public class BodyHandlerImpl implements BodyHandler {
 
     void doEnd() {
 
-      if (failed) {
+      if (failed || context.failed()) {
         context.cancelAndCleanupFileUploads();
         return;
       }
