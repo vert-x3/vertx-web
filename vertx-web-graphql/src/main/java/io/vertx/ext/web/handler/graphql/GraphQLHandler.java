@@ -66,8 +66,10 @@ public interface GraphQLHandler extends Handler<RoutingContext> {
    *
    * @param graphQlContext the GraphQL context object
    * @return the {@link RoutingContext}
+   * @deprecated invoke {@link GraphQLContext#get(Object)} with {@link RoutingContext} class object instead.
    */
   @GenIgnore(PERMITTED_TYPE)
+  @Deprecated
   static RoutingContext getRoutingContext(GraphQLContext graphQlContext) {
     return graphQlContext.get(RoutingContext.class);
   }
