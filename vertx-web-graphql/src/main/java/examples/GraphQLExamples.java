@@ -28,26 +28,17 @@ import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.UserContext;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.graphql.ApolloWSHandler;
-import io.vertx.ext.web.handler.graphql.GraphQLHandler;
-import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
-import io.vertx.ext.web.handler.graphql.GraphiQLHandler;
-import io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions;
-import io.vertx.ext.web.handler.graphql.UploadScalar;
+import io.vertx.ext.web.handler.graphql.*;
 import io.vertx.ext.web.handler.graphql.instrumentation.JsonObjectAdapter;
 import io.vertx.ext.web.handler.graphql.instrumentation.VertxFutureAdapter;
 import io.vertx.ext.web.handler.graphql.schema.VertxPropertyDataFetcher;
 import io.vertx.ext.web.handler.graphql.ws.GraphQLWSHandler;
-import org.dataloader.BatchLoaderEnvironment;
-import org.dataloader.BatchLoaderWithContext;
-import org.dataloader.DataLoader;
-import org.dataloader.DataLoaderFactory;
-import org.dataloader.DataLoaderRegistry;
+import org.dataloader.*;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
@@ -150,15 +141,12 @@ public class GraphQLExamples {
     };
   }
 
-  static class User {
-  }
-
   public void routingContextInDataFetchingEnvironment() {
     DataFetcher<CompletionStage<List<Link>>> dataFetcher = environment -> {
 
       RoutingContext routingContext = environment.getGraphQlContext().get(RoutingContext.class);
 
-      UserContext user = routingContext.user();
+      User user = routingContext.user();
 
       Future<List<Link>> future = retrieveLinksPostedBy(user);
       return future.toCompletionStage();
@@ -166,7 +154,7 @@ public class GraphQLExamples {
     };
   }
 
-  private Future<List<Link>> retrieveLinksPostedBy(UserContext user) {
+  private Future<List<Link>> retrieveLinksPostedBy(User user) {
     return null;
   }
 
