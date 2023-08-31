@@ -177,7 +177,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
             // note that we don't 'record' the fact that we tried to fetch the authorization provider.
             // therefore, it will be re-fetched later-on
           })
-          .eventually(v -> {
+          .eventually(() -> {
             checkOrFetchAuthorizations(ctx, authorization, authorizationContext, providers);
             return Future.succeededFuture();
           });
