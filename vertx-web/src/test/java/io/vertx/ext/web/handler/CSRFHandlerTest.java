@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
@@ -491,5 +492,77 @@ public class CSRFHandlerTest extends WebTestBase {
           assertEquals(0, cookies.size());
         }, 200, "OK", null);
     }
+  }
+
+  @Test
+  public void testPostWithNoResponse() throws Exception {
+    final AtomicReference<String> cookieJar = new AtomicReference<>();
+
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+    router.route().handler(CSRFHandler.create(vertx, "Abracadabra"));
+    router.route("/working").handler(rc -> rc.response().end());
+    router.route("/broken").handler(rc -> {/*do nothing (no response)*/});
+
+    testRequest(HttpMethod.GET, "/working", null, resp -> {
+      List<String> cookies = resp.headers().getAll("set-cookie");
+      assertEquals(2, cookies.size());
+      StringBuilder encodedCookie = new StringBuilder();
+      // save the cookies
+      for (String cookie : cookies) {
+        encodedCookie.append(cookie, 0, cookie.indexOf(';'));
+        encodedCookie.append("; ");
+        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+          tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
+        }
+      }
+      cookieJar.set(encodedCookie.toString());
+    }, 200, "OK", null);
+
+    // POST shall be OK as the token is on the session
+    testRequest(HttpMethod.POST, "/working", req -> {
+      req.putHeader("cookie", cookieJar.get());
+      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+    }, resp -> {
+      // re-extract the new cookie
+      List<String> cookies = resp.headers().getAll("set-cookie");
+      StringBuilder encodedCookie = new StringBuilder();
+      // save the cookie
+      for (String cookie : cookieJar.get().split(";")) {
+        cookie = cookie.trim();
+        if ("".equals(cookie)) {
+          continue;
+        }
+        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+          // replace with new one
+          tmpCookie = cookies.get(0).substring(cookies.get(0).indexOf('=') + 1, cookies.get(0).indexOf(';'));
+          encodedCookie.append(CSRFHandler.DEFAULT_COOKIE_NAME + "=").append(tmpCookie);
+        } else {
+          encodedCookie.append(cookie);
+        }
+        encodedCookie.append("; ");
+      }
+      cookieJar.set(encodedCookie.toString());
+    }, 200, "OK", null);
+
+    CountDownLatch latch = new CountDownLatch(1);
+    // this request will never return but may incorrectly consume a valid token
+    client.request(
+      new RequestOptions().setMethod(HttpMethod.POST)
+        .setHost("localhost").setPort(8080).setURI("/broken")
+        .putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie)
+        .putHeader("Cookie", cookieJar.get())
+    ).onComplete(onSuccess(req -> {
+      req.end();
+      // delay to ensure token is potentially consumed
+      vertx.setTimer(500, v -> latch.countDown());
+    }));
+
+    awaitLatch(latch);
+
+    // ensure valid token still works
+    testRequest(HttpMethod.POST, "/working", req -> {
+      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader("Cookie", cookieJar.get());
+    }, null, 200, "OK", null);
   }
 }
