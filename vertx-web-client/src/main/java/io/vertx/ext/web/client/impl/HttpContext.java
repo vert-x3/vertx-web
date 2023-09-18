@@ -23,6 +23,8 @@ import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientInternal;
+import io.vertx.core.impl.ContextInternal;
+import io.vertx.core.impl.future.PromiseInternal;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pipe;
@@ -41,11 +43,11 @@ import java.util.*;
  */
 public class HttpContext<T> {
 
-  private final Handler<AsyncResult<HttpResponse<T>>> handler;
   private final HttpClientInternal client;
   private final WebClientOptions options;
   private final List<Handler<HttpContext<?>>> interceptors;
-  private Context context;
+  private final ContextInternal context;
+  private final PromiseInternal<HttpResponse<T>> promise;
   private HttpRequestImpl<T> request;
   private Object body;
   private String contentType;
@@ -64,18 +66,23 @@ public class HttpContext<T> {
   private List<String> redirectedLocations = Collections.emptyList();
   private CacheStore privateCacheStore;
 
-  HttpContext(HttpClientInternal client, WebClientOptions options, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    this.handler = handler;
+  HttpContext(ContextInternal context, HttpClientInternal client, WebClientOptions options, List<Handler<HttpContext<?>>> interceptors, PromiseInternal<HttpResponse<T>> promise) {
+    this.context = context;
     this.client = client;
     this.options = options;
     this.interceptors = interceptors;
+    this.promise = promise;
   }
 
   /**
    * @return a duplicate of this context
    */
   public HttpContext<T> duplicate() {
-    return new HttpContext<>(client, options, interceptors, handler);
+    return new HttpContext<>(context, client, options, interceptors, promise);
+  }
+
+  public Future<HttpResponse<T>> future() {
+    return promise.future();
   }
 
   /**
@@ -390,15 +397,14 @@ public class HttpContext<T> {
   }
 
   private void handleFailure() {
-    handler.handle(Future.failedFuture(failure));
+    promise.tryFail(failure);
   }
 
   private void handleDispatchResponse() {
-    handler.handle(Future.succeededFuture(response));
+    promise.tryComplete(response);
   }
 
   private void handlePrepareRequest() {
-    context = client.vertx().getOrCreateContext();
     redirects = 0;
     RequestOptions requestOptions;
     try {

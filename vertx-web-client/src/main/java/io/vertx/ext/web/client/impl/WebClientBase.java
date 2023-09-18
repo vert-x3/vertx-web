@@ -15,7 +15,6 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.VertxException;
@@ -25,10 +24,10 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientInternal;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.HttpRequest;
-import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.impl.predicate.PredicateInterceptor;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
@@ -154,9 +153,9 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public <T> HttpContext<T> createContext(Handler<AsyncResult<HttpResponse<T>>> handler) {
+  public <T> HttpContext<T> createContext(ContextInternal context) {
     HttpClientInternal client = (HttpClientInternal) this.client;
-    return new HttpContext<>(client, options, interceptors, handler);
+    return new HttpContext<>(context, client, options, interceptors, context.promise());
   }
 
   @Override

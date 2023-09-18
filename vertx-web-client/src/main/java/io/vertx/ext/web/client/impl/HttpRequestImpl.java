@@ -22,6 +22,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.core.http.impl.HttpClientInternal;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.SocketAddress;
@@ -498,10 +500,10 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   Future<HttpResponse<T>> send(String contentType, Object body) {
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    HttpContext<T> ctx = client.createContext(promise);
+    ContextInternal context = ((HttpClientInternal) client.client).vertx().getOrCreateContext();
+    HttpContext<T> ctx = client.createContext(context);
     ctx.prepareRequest(this, contentType, body);
-    return promise.future();
+    return ctx.future();
   }
 
   void mergeHeaders(RequestOptions options) {
