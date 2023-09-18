@@ -22,7 +22,7 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.http.impl.HttpClientInternal;
+import io.vertx.core.http.impl.HttpClientPoolInternal;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pipe;
@@ -42,7 +42,7 @@ import java.util.*;
 public class HttpContext<T> {
 
   private final Handler<AsyncResult<HttpResponse<T>>> handler;
-  private final HttpClientInternal client;
+  private final HttpClientPoolInternal client;
   private final WebClientOptions options;
   private final List<Handler<HttpContext<?>>> interceptors;
   private Context context;
@@ -64,7 +64,7 @@ public class HttpContext<T> {
   private List<String> redirectedLocations = Collections.emptyList();
   private CacheStore privateCacheStore;
 
-  HttpContext(HttpClientInternal client, WebClientOptions options, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
+  HttpContext(HttpClientPoolInternal client, WebClientOptions options, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.handler = handler;
     this.client = client;
     this.options = options;

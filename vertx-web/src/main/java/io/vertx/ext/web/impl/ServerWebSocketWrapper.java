@@ -189,7 +189,7 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
-  public WebSocketBase writePing(Buffer data, Handler<AsyncResult<Void>> handler) {
+  public ServerWebSocket writePing(Buffer data, Handler<AsyncResult<Void>> handler) {
     delegate.writePing(data, handler);
     return this;
   }
@@ -200,7 +200,7 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
-  public WebSocketBase writePong(Buffer data, Handler<AsyncResult<Void>> handler) {
+  public ServerWebSocket writePong(Buffer data, Handler<AsyncResult<Void>> handler) {
     delegate.writePong(data, handler);
     return this;
   }
