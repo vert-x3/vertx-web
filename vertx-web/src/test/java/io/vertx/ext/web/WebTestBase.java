@@ -18,14 +18,7 @@ package io.vertx.ext.web;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.http.RequestOptions;
+import io.vertx.core.http.*;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.test.core.VertxTestBase;
 
@@ -54,6 +47,7 @@ public class WebTestBase extends VertxTestBase {
 
   protected HttpServer server;
   protected HttpClient client;
+  protected WebSocketClient wsClient;
   protected Router router;
 
   @Override
@@ -62,6 +56,7 @@ public class WebTestBase extends VertxTestBase {
     router = Router.router(vertx);
     server = vertx.createHttpServer(getHttpServerOptions());
     client = vertx.createHttpClient(getHttpClientOptions());
+    wsClient = vertx.createWebSocketClient(getWebSocketClientOptions());
     CountDownLatch latch = new CountDownLatch(1);
     server.requestHandler(router).listen().onComplete(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
@@ -73,6 +68,10 @@ public class WebTestBase extends VertxTestBase {
 
   protected HttpClientOptions getHttpClientOptions() {
     return new HttpClientOptions().setDefaultPort(8080);
+  }
+
+  protected WebSocketClientOptions getWebSocketClientOptions() {
+    return new WebSocketClientOptions().setDefaultPort(8080);
   }
 
   @Override

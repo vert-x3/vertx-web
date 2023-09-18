@@ -107,7 +107,7 @@ public class SockJSHandlerTest extends WebTestBase {
   @Test
   public void testSendWebsocketContinuationFrames() {
     // Use raw websocket transport
-    client.webSocket("/echo/websocket").onComplete(onSuccess(ws -> {
+    wsClient.connect("/echo/websocket").onComplete(onSuccess(ws -> {
 
       int size = 65535;
 
@@ -323,7 +323,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
     AtomicReference<WebSocket> openedWebSocketReference = new AtomicReference<>();
     CountDownLatch openSocketCountDown = new CountDownLatch(1);
-    client.webSocket(requestURI).onComplete(onSuccess(ws -> {
+    wsClient.connect(requestURI).onComplete(onSuccess(ws -> {
       openedWebSocketReference.set(ws);
       ws.handler(replyBuffer -> {
         log.debug("Client received " + replyBuffer);
@@ -351,7 +351,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
     AtomicReference<WebSocket> openedWebSocketReference = new AtomicReference<>();
     CountDownLatch openSocketCountDown = new CountDownLatch(1);
-    client.webSocket(requestURI).onComplete(onSuccess(ws -> {
+    wsClient.connect(requestURI).onComplete(onSuccess(ws -> {
       openedWebSocketReference.set(ws);
       openSocketCountDown.countDown();
       ws.endHandler(v -> testComplete());
@@ -418,11 +418,11 @@ public class SockJSHandlerTest extends WebTestBase {
         complete();
       }));
 
-    client.webSocket(new WebSocketConnectOptions()
+    wsClient.connect(new WebSocketConnectOptions()
       .setPort(8080)
       .setURI("/webcontext/websocket")).onComplete(onSuccess(
         ws -> {
-          client.webSocket(new WebSocketConnectOptions()
+          wsClient.connect(new WebSocketConnectOptions()
               .setPort(8080)
               .setURI("/webcontextuser/websocket")).onComplete(onSuccess(wsuser -> complete())
           );
@@ -447,7 +447,7 @@ public class SockJSHandlerTest extends WebTestBase {
     headers.add("cookie", "JSESSIONID=wibble");
     headers.add("cookie", "flibble=floob");
 
-    client.webSocket(new WebSocketConnectOptions()
+    wsClient.connect(new WebSocketConnectOptions()
       .setPort(8080)
       .setURI("/cookiesremoved/websocket")
       .setHeaders(headers)).onComplete(onSuccess(ws -> {
@@ -464,7 +464,7 @@ public class SockJSHandlerTest extends WebTestBase {
       .bridge(new SockJSBridgeOptions().setPingTimeout(1))
     );
 
-    client.webSocket("/ws-timeout/websocket").onComplete(onSuccess(ws -> ws.frameHandler(frame -> {
+    wsClient.connect("/ws-timeout/websocket").onComplete(onSuccess(ws -> ws.frameHandler(frame -> {
       if (frame.isClose()) {
         assertEquals(1001, frame.closeStatusCode());
         assertEquals("Session expired", frame.closeReason());
@@ -483,7 +483,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
     vertx.eventBus().consumer("SockJSHandlerTest.testInvalidMessageCode", msg -> msg.reply(new JsonObject()));
 
-    client.webSocket("/ws-timeout/websocket").onComplete(onSuccess(ws -> {
+    wsClient.connect("/ws-timeout/websocket").onComplete(onSuccess(ws -> {
       ws.writeFinalBinaryFrame(Buffer.buffer("durp!"));
 
       ws.frameHandler(frame -> {

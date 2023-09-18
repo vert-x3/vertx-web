@@ -25,6 +25,11 @@ public class GraphiQLHandlerOptionsConverter {
             obj.setEnabled((Boolean)member.getValue());
           }
           break;
+        case "httpEnabled":
+          if (member.getValue() instanceof Boolean) {
+            obj.setHttpEnabled((Boolean)member.getValue());
+          }
+          break;
         case "graphQLUri":
           if (member.getValue() instanceof String) {
             obj.setGraphQLUri((String)member.getValue());
@@ -52,9 +57,9 @@ public class GraphiQLHandlerOptionsConverter {
             obj.setHeaders(map);
           }
           break;
-        case "httpEnabled":
-          if (member.getValue() instanceof Boolean) {
-            obj.setHttpEnabled((Boolean)member.getValue());
+        case "wsConnectionParams":
+          if (member.getValue() instanceof JsonObject) {
+            obj.setWsConnectionParams(((JsonObject)member.getValue()).copy());
           }
           break;
         case "query":
@@ -67,11 +72,6 @@ public class GraphiQLHandlerOptionsConverter {
             obj.setVariables(((JsonObject)member.getValue()).copy());
           }
           break;
-        case "wsConnectionParams":
-          if (member.getValue() instanceof JsonObject) {
-            obj.setWsConnectionParams(((JsonObject)member.getValue()).copy());
-          }
-          break;
       }
     }
   }
@@ -82,6 +82,7 @@ public class GraphiQLHandlerOptionsConverter {
 
   public static void toJson(GraphiQLHandlerOptions obj, java.util.Map<String, Object> json) {
     json.put("enabled", obj.isEnabled());
+    json.put("httpEnabled", obj.isHttpEnabled());
     if (obj.getGraphQLUri() != null) {
       json.put("graphQLUri", obj.getGraphQLUri());
     }
@@ -94,15 +95,14 @@ public class GraphiQLHandlerOptionsConverter {
       obj.getHeaders().forEach((key, value) -> map.put(key, value));
       json.put("headers", map);
     }
-    json.put("httpEnabled", obj.isHttpEnabled());
+    if (obj.getWsConnectionParams() != null) {
+      json.put("wsConnectionParams", obj.getWsConnectionParams());
+    }
     if (obj.getQuery() != null) {
       json.put("query", obj.getQuery());
     }
     if (obj.getVariables() != null) {
       json.put("variables", obj.getVariables());
-    }
-    if (obj.getWsConnectionParams() != null) {
-      json.put("wsConnectionParams", obj.getWsConnectionParams());
     }
   }
 }

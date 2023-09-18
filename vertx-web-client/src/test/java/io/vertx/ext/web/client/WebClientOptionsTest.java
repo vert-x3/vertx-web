@@ -37,18 +37,15 @@ public class WebClientOptionsTest {
     assertEquals(4848, options.getDefaultPort());
     assertFalse(options.isUserAgentEnabled());
     assertEquals("Vert.x-WebClient/" + VertxInternal.version(), options.getUserAgent());
-    assertEquals(50, options.getMaxPoolSize());
   }
 
   @Test
   public void testToJson() {
     WebClientOptions options = new WebClientOptions()
       .setDefaultPort(4848)
-      .setMaxPoolSize(50)
       .setUserAgentEnabled(false);
     JsonObject json = options.toJson();
     assertEquals(4848, (int) json.getInteger("defaultPort"));
-    assertEquals(50, (int) json.getInteger("maxPoolSize"));
     assertEquals(false, json.getBoolean("userAgentEnabled"));
   }
 }

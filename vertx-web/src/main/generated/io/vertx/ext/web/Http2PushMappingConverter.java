@@ -20,14 +20,14 @@ public class Http2PushMappingConverter {
   public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, Http2PushMapping obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
-        case "extensionTarget":
-          if (member.getValue() instanceof String) {
-            obj.setExtensionTarget((String)member.getValue());
-          }
-          break;
         case "filePath":
           if (member.getValue() instanceof String) {
             obj.setFilePath((String)member.getValue());
+          }
+          break;
+        case "extensionTarget":
+          if (member.getValue() instanceof String) {
+            obj.setExtensionTarget((String)member.getValue());
           }
           break;
         case "noPush":
@@ -44,11 +44,11 @@ public class Http2PushMappingConverter {
   }
 
   public static void toJson(Http2PushMapping obj, java.util.Map<String, Object> json) {
-    if (obj.getExtensionTarget() != null) {
-      json.put("extensionTarget", obj.getExtensionTarget());
-    }
     if (obj.getFilePath() != null) {
       json.put("filePath", obj.getFilePath());
+    }
+    if (obj.getExtensionTarget() != null) {
+      json.put("extensionTarget", obj.getExtensionTarget());
     }
     json.put("noPush", obj.isNoPush());
   }

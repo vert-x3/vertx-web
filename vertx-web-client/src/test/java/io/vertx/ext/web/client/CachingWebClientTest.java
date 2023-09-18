@@ -4,13 +4,7 @@ import io.netty.handler.codec.DateFormatter;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.*;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -456,7 +450,7 @@ public class CachingWebClientTest {
     listenLatch.awaitSuccess(15_000);
 
     String expected = executeGetBlocking(context, "/cached");
-    for (int i = 0;i < HttpClientOptions.DEFAULT_MAX_POOL_SIZE;i++) {
+    for (int i = 0; i < PoolOptions.DEFAULT_MAX_POOL_SIZE; i++) {
       HttpRequest<Buffer> request = defaultClient.get("localhost", "/blocked");
       request.send();
     }

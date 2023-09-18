@@ -20,6 +20,16 @@ public class WebClientOptionsConverter {
   public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, WebClientOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
+        case "userAgentEnabled":
+          if (member.getValue() instanceof Boolean) {
+            obj.setUserAgentEnabled((Boolean)member.getValue());
+          }
+          break;
+        case "userAgent":
+          if (member.getValue() instanceof String) {
+            obj.setUserAgent((String)member.getValue());
+          }
+          break;
         case "followRedirects":
           if (member.getValue() instanceof Boolean) {
             obj.setFollowRedirects((Boolean)member.getValue());
@@ -28,16 +38,6 @@ public class WebClientOptionsConverter {
         case "templateExpandOptions":
           if (member.getValue() instanceof JsonObject) {
             obj.setTemplateExpandOptions(new io.vertx.uritemplate.ExpandOptions((io.vertx.core.json.JsonObject)member.getValue()));
-          }
-          break;
-        case "userAgent":
-          if (member.getValue() instanceof String) {
-            obj.setUserAgent((String)member.getValue());
-          }
-          break;
-        case "userAgentEnabled":
-          if (member.getValue() instanceof Boolean) {
-            obj.setUserAgentEnabled((Boolean)member.getValue());
           }
           break;
       }
@@ -49,13 +49,13 @@ public class WebClientOptionsConverter {
   }
 
   public static void toJson(WebClientOptions obj, java.util.Map<String, Object> json) {
+    json.put("userAgentEnabled", obj.isUserAgentEnabled());
+    if (obj.getUserAgent() != null) {
+      json.put("userAgent", obj.getUserAgent());
+    }
     json.put("followRedirects", obj.isFollowRedirects());
     if (obj.getTemplateExpandOptions() != null) {
       json.put("templateExpandOptions", obj.getTemplateExpandOptions().toJson());
     }
-    if (obj.getUserAgent() != null) {
-      json.put("userAgent", obj.getUserAgent());
-    }
-    json.put("userAgentEnabled", obj.isUserAgentEnabled());
   }
 }

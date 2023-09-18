@@ -20,9 +20,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.*;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
@@ -39,6 +37,7 @@ abstract class SockJSTestBase extends VertxTestBase {
 
   int numServers = 1;
   HttpClient client;
+  WebSocketClient wsClient;
   Consumer<Router> preSockJSHandlerSetup;
   Supplier<Handler<SockJSSocket>> socketHandler;
 
@@ -46,6 +45,7 @@ abstract class SockJSTestBase extends VertxTestBase {
   public void setUp() throws Exception {
     super.setUp();
     client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080).setKeepAlive(false));
+    wsClient = vertx.createWebSocketClient(new WebSocketClientOptions().setDefaultPort(8080));
   }
 
   void startServers() throws Exception {

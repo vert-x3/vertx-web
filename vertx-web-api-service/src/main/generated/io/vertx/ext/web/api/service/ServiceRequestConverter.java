@@ -20,11 +20,6 @@ public class ServiceRequestConverter {
    static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, ServiceRequest obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
-        case "extra":
-          if (member.getValue() instanceof JsonObject) {
-            obj.setExtra(((JsonObject)member.getValue()).copy());
-          }
-          break;
         case "params":
           if (member.getValue() instanceof JsonObject) {
             obj.setParams(((JsonObject)member.getValue()).copy());
@@ -33,6 +28,11 @@ public class ServiceRequestConverter {
         case "user":
           if (member.getValue() instanceof JsonObject) {
             obj.setUser(((JsonObject)member.getValue()).copy());
+          }
+          break;
+        case "extra":
+          if (member.getValue() instanceof JsonObject) {
+            obj.setExtra(((JsonObject)member.getValue()).copy());
           }
           break;
       }
@@ -44,14 +44,14 @@ public class ServiceRequestConverter {
   }
 
    static void toJson(ServiceRequest obj, java.util.Map<String, Object> json) {
-    if (obj.getExtra() != null) {
-      json.put("extra", obj.getExtra());
-    }
     if (obj.getParams() != null) {
       json.put("params", obj.getParams());
     }
     if (obj.getUser() != null) {
       json.put("user", obj.getUser());
+    }
+    if (obj.getExtra() != null) {
+      json.put("extra", obj.getExtra());
     }
   }
 }

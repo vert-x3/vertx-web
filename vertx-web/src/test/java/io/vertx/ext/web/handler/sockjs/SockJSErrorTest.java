@@ -4,6 +4,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.WebSocketClient;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
@@ -71,8 +72,8 @@ public class SockJSErrorTest extends VertxTestBase {
   @Test
   public void testEventBusBridgeLeakingConsumers(TestContext context) throws InterruptedException {
     // initial connection - double registration and unregistration
-    HttpClient client = vertx.createHttpClient();
-    client.webSocket(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
+    WebSocketClient client = vertx.createWebSocketClient();
+    client.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // those actions will cause leak - a consumer still registered
@@ -90,8 +91,8 @@ public class SockJSErrorTest extends VertxTestBase {
     countDownLatch.await();
 
     final int[] counter = {-1};
-    HttpClient client2 = vertx.createHttpClient();
-    client2.webSocket(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
+    WebSocketClient client2 = vertx.createWebSocketClient();
+    client2.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // this client will only receive every other message
       ws.handler(buff -> {
@@ -121,8 +122,8 @@ public class SockJSErrorTest extends VertxTestBase {
   @Test
   public void testEventBusBridgeLeakingConsumersClean(TestContext context) throws InterruptedException {
     // initial connection - single registration and unregistration
-    HttpClient client = vertx.createHttpClient();
-    client.webSocket(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
+    WebSocketClient client = vertx.createWebSocketClient();
+    client.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // those actions will cause leak - a consumer still registered
       ws.handler(buff -> {
@@ -137,8 +138,8 @@ public class SockJSErrorTest extends VertxTestBase {
     countDownLatch.await();
 
     final int[] counter = {-1};
-    HttpClient client2 = vertx.createHttpClient();
-    client2.webSocket(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
+    WebSocketClient client2 = vertx.createWebSocketClient();
+    client2.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // this client will only receive every other message
       ws.handler(buff -> {

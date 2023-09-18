@@ -395,7 +395,7 @@ public class ForwardedTest extends WebTestBase {
       }
     });
 
-    client.webSocket(new WebSocketConnectOptions().setURI("/ws").addHeader("Forwarded", "host=" + host + ";proto=https" + ";for=" + address)).onComplete(onSuccess(e -> {
+    wsClient.connect(new WebSocketConnectOptions().setURI("/ws").addHeader("Forwarded", "host=" + host + ";proto=https" + ";for=" + address)).onComplete(onSuccess(e -> {
       latch.countDown();
     }));
     awaitLatch(latch);

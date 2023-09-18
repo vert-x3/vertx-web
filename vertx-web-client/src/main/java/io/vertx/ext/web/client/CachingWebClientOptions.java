@@ -318,18 +318,8 @@ public class CachingWebClientOptions extends WebClientOptions {
   }
 
   @Override
-  public CachingWebClientOptions setMaxPoolSize(int maxPoolSize) {
-    return (CachingWebClientOptions) super.setMaxPoolSize(maxPoolSize);
-  }
-
-  @Override
   public CachingWebClientOptions setHttp2MultiplexingLimit(int limit) {
     return (CachingWebClientOptions) super.setHttp2MultiplexingLimit(limit);
-  }
-
-  @Override
-  public CachingWebClientOptions setHttp2MaxPoolSize(int max) {
-    return (CachingWebClientOptions) super.setHttp2MaxPoolSize(max);
   }
 
   @Override
@@ -363,16 +353,6 @@ public class CachingWebClientOptions extends WebClientOptions {
   }
 
   @Override
-  public CachingWebClientOptions setSendUnmaskedFrames(boolean sendUnmaskedFrames) {
-    return (CachingWebClientOptions) super.setSendUnmaskedFrames(sendUnmaskedFrames);
-  }
-
-  @Override
-  public CachingWebClientOptions setMaxWebSocketFrameSize(int maxWebsocketFrameSize) {
-    return (CachingWebClientOptions) super.setMaxWebSocketFrameSize(maxWebsocketFrameSize);
-  }
-
-  @Override
   public CachingWebClientOptions setDefaultHost(String defaultHost) {
     return (CachingWebClientOptions) super.setDefaultHost(defaultHost);
   }
@@ -395,11 +375,6 @@ public class CachingWebClientOptions extends WebClientOptions {
   @Override
   public CachingWebClientOptions setMaxHeaderSize(int maxHeaderSize) {
     return (CachingWebClientOptions) super.setMaxHeaderSize(maxHeaderSize);
-  }
-
-  @Override
-  public CachingWebClientOptions setMaxWaitQueueSize(int maxWaitQueueSize) {
-    return (CachingWebClientOptions) super.setMaxWaitQueueSize(maxWaitQueueSize);
   }
 
   @Override
@@ -503,18 +478,8 @@ public class CachingWebClientOptions extends WebClientOptions {
   }
 
   @Override
-  public CachingWebClientOptions setPoolCleanerPeriod(int poolCleanerPeriod) {
-    return (CachingWebClientOptions) super.setPoolCleanerPeriod(poolCleanerPeriod);
-  }
-
-  @Override
   public CachingWebClientOptions setKeepAliveTimeout(int keepAliveTimeout) {
     return (CachingWebClientOptions) super.setKeepAliveTimeout(keepAliveTimeout);
-  }
-
-  @Override
-  public CachingWebClientOptions setMaxWebSocketMessageSize(int maxWebsocketMessageSize) {
-    return (CachingWebClientOptions) super.setMaxWebSocketMessageSize(maxWebsocketMessageSize);
   }
 
   @Override
@@ -535,31 +500,6 @@ public class CachingWebClientOptions extends WebClientOptions {
   @Override
   public CachingWebClientOptions setSslHandshakeTimeoutUnit(TimeUnit sslHandshakeTimeoutUnit) {
     return (CachingWebClientOptions) super.setSslHandshakeTimeoutUnit(sslHandshakeTimeoutUnit);
-  }
-
-  @Override
-  public CachingWebClientOptions setTryUsePerFrameWebSocketCompression(boolean offer) {
-    return (CachingWebClientOptions) super.setTryUsePerFrameWebSocketCompression(offer);
-  }
-
-  @Override
-  public CachingWebClientOptions setTryUsePerMessageWebSocketCompression(boolean offer) {
-    return (CachingWebClientOptions) super.setTryUsePerMessageWebSocketCompression(offer);
-  }
-
-  @Override
-  public CachingWebClientOptions setWebSocketCompressionLevel(int compressionLevel) {
-    return (CachingWebClientOptions) super.setWebSocketCompressionLevel(compressionLevel);
-  }
-
-  @Override
-  public CachingWebClientOptions setWebSocketCompressionAllowClientNoContext(boolean offer) {
-    return (CachingWebClientOptions) super.setWebSocketCompressionAllowClientNoContext(offer);
-  }
-
-  @Override
-  public CachingWebClientOptions setWebSocketCompressionRequestServerNoContext(boolean offer) {
-    return (CachingWebClientOptions) super.setWebSocketCompressionRequestServerNoContext(offer);
   }
 
   private static Set<Integer> buildDefaultStatusCodes() {

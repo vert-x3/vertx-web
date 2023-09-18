@@ -37,7 +37,7 @@ public class SockJSWriteTest extends SockJSTestBase {
     };
     startServers();
     vertx.runOnContext(v -> {
-      client.webSocket("/test/websocket").onComplete(onSuccess(ws -> {
+      wsClient.connect("/test/websocket").onComplete(onSuccess(ws -> {
         ws.handler(buffer -> {
           if (buffer.toString().equals(expected)) {
             complete();
@@ -60,7 +60,7 @@ public class SockJSWriteTest extends SockJSTestBase {
     };
     startServers();
     vertx.runOnContext(v -> {
-      client.webSocket("/test/websocket").onComplete(onSuccess(WebSocketBase::close));
+      wsClient.connect("/test/websocket").onComplete(onSuccess(WebSocketBase::close));
     });
     await();
   }
@@ -76,7 +76,7 @@ public class SockJSWriteTest extends SockJSTestBase {
     };
     startServers();
     vertx.runOnContext(v -> {
-      client.webSocket("/test/400/8ne8e94a/websocket").onComplete(onSuccess(ws -> {
+      wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(onSuccess(ws -> {
         ws.handler(buffer -> {
           if (buffer.toString().equals("a[\"" + expected + "\"]")) {
             complete();
@@ -99,7 +99,7 @@ public class SockJSWriteTest extends SockJSTestBase {
     };
     startServers();
     vertx.runOnContext(v -> {
-      client.webSocket("/test/400/8ne8e94a/websocket").onComplete(onSuccess(WebSocketBase::close));
+      wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(onSuccess(WebSocketBase::close));
     });
     await();
   }

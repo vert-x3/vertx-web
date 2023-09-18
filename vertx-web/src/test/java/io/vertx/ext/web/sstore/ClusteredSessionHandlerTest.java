@@ -279,7 +279,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       .setHost("localhost")
       .addHeader("cookie", sessionCookieName + "=" + TestUtils.randomAlphaString(32));
 
-    client.webSocket(options1).onComplete(onSuccess(ws -> {
+    wsClient.connect(options1).onComplete(onSuccess(ws -> {
       System.out.println("WS connection successful");
       ws.writeTextMessage("foo").onComplete(onSuccess(v -> {
         System.out.println("WS txt message write successful");
@@ -292,7 +292,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       .setHost("localhost")
       .addHeader("cookie", sessionCookieName + "=" + TestUtils.randomAlphaString(32));
 
-    client.webSocket(options2).onComplete(onSuccess(ws -> {
+    wsClient.connect(options2).onComplete(onSuccess(ws -> {
       System.out.println("WS connection successful");
       ws.writeTextMessage("foo").onComplete(onSuccess(v -> {
         System.out.println("WS txt message write successful");
@@ -305,7 +305,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       .setHost("localhost")
       .addHeader("cookie", sessionCookieName + "=" + TestUtils.randomAlphaString(32));
 
-    client.webSocket(options3).onComplete(onSuccess(ws -> {
+    wsClient.connect(options3).onComplete(onSuccess(ws -> {
       System.out.println("WS connection successful");
       ws.writeTextMessage("foo").onComplete(onSuccess(v -> {
         System.out.println("WS txt message write successful");

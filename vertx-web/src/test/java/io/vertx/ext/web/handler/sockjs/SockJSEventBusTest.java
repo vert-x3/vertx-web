@@ -50,7 +50,7 @@ public class SockJSEventBusTest extends SockJSTestBase {
     };
     startServers();
     vertx.runOnContext(v -> {
-      client.webSocket("/test/websocket").onComplete(onSuccess(ws -> {
+      wsClient.connect("/test/websocket").onComplete(onSuccess(ws -> {
         ws.frameHandler(frame -> {
           if (frame.isClose()) {
             //

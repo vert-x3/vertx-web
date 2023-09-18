@@ -13,9 +13,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.*;
 import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.cluster.ClusterManager;
@@ -56,7 +54,7 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
   private VertxInternal node2;
   private Router router;
   private HttpServer server;
-  private HttpClient client;
+  private WebSocketClient wsClient;
   protected SockJSHandler sockJS;
 
   public SlowClusterEventbusBridgeTest(Transport transport) {
@@ -74,7 +72,7 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
     CountDownLatch latch = new CountDownLatch(1);
     server.requestHandler(router).listen(0).onComplete(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
-    client = node1.createHttpClient(new HttpClientOptions().setDefaultPort(server.actualPort()));
+    wsClient = node1.createWebSocketClient(new WebSocketClientOptions().setDefaultPort(server.actualPort()));
     sockJS = SockJSHandler.create(node1);
   }
 
@@ -119,7 +117,7 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
         be.complete(true);
       }));
 
-    BridgeClient bridgeClient = new BridgeClient(client, transport);
+    BridgeClient bridgeClient = new BridgeClient(wsClient, transport);
 
     bridgeClient.handler((address, received) -> {
       assertTrue(step.compareAndSet(2, 3));
@@ -149,7 +147,7 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
 
     router.route("/eventbus/*").subRouter(sockJS.bridge(allAccessOptions));
 
-    BridgeClient bridgeClient = new BridgeClient(client, transport);
+    BridgeClient bridgeClient = new BridgeClient(wsClient, transport);
 
     bridgeClient
       .connect(websocketURI)

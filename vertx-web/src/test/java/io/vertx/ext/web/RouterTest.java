@@ -3460,7 +3460,7 @@ public class RouterTest extends WebTestBase {
 
     waitFor(numRequests);
 
-    HttpClient client = vertx.createHttpClient(new HttpClientOptions().setMaxPoolSize(1));
+    HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0;i < numRequests;i++) {
       client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
         // 8192 * 8 fills the HTTP server request pending queue
@@ -3495,7 +3495,7 @@ public class RouterTest extends WebTestBase {
 
     waitFor(numRequests);
 
-    HttpClient client = vertx.createHttpClient(new HttpClientOptions().setMaxPoolSize(1));
+    HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0;i < numRequests;i++) {
       client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
         // 8192 * 8 fills the HTTP server request pending queue
@@ -3533,7 +3533,7 @@ public class RouterTest extends WebTestBase {
 
     waitFor(numRequests);
 
-    HttpClient client = vertx.createHttpClient(new HttpClientOptions().setMaxPoolSize(1));
+    HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0;i < numRequests;i++) {
       client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
         // 8192 * 8 fills the HTTP server request pending queue
@@ -3561,7 +3561,7 @@ public class RouterTest extends WebTestBase {
 
     waitFor(numRequests);
 
-    HttpClient client = vertx.createHttpClient(new HttpClientOptions().setMaxPoolSize(1));
+    HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0;i < numRequests;i++) {
       client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
         // 8192 * 8 fills the HTTP server request pending queue

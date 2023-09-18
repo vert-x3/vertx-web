@@ -23,6 +23,7 @@ public class UpgradeTest {
 
   HttpServer server;
   HttpClient client;
+  WebSocketClient wsClient;
 
   @Before
   public void setup(TestContext should) {
@@ -35,6 +36,7 @@ public class UpgradeTest {
         this.server = server;
         this.client = rule.vertx()
           .createHttpClient(new HttpClientOptions().setDefaultPort(server.actualPort()).setDefaultHost("localhost"));
+        this.wsClient = rule.vertx().createWebSocketClient(new WebSocketClientOptions().setDefaultPort(server.actualPort()).setDefaultHost("localhost"));
         setup.complete();
       })
       .onFailure(should::fail);
@@ -71,7 +73,7 @@ public class UpgradeTest {
           });
       });
 
-    client.webSocket("/")
+    wsClient.connect("/")
       .onFailure(should::fail)
       .onSuccess(webSocket -> {
         webSocket.frameHandler(System.out::println);
@@ -108,7 +110,7 @@ public class UpgradeTest {
       .setURI("/")
       .addHeader("cookie", "session=" + TestUtils.randomAlphaString(32));
 
-    client.webSocket(options)
+    wsClient.connect(options)
       .onFailure(should::fail)
       .onSuccess(webSocket -> {
         webSocket.frameHandler(System.out::println);

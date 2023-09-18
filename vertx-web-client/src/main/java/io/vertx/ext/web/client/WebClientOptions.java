@@ -293,18 +293,8 @@ public class WebClientOptions extends HttpClientOptions {
   }
 
   @Override
-  public WebClientOptions setMaxPoolSize(int maxPoolSize) {
-    return (WebClientOptions) super.setMaxPoolSize(maxPoolSize);
-  }
-
-  @Override
   public WebClientOptions setHttp2MultiplexingLimit(int limit) {
     return (WebClientOptions) super.setHttp2MultiplexingLimit(limit);
-  }
-
-  @Override
-  public WebClientOptions setHttp2MaxPoolSize(int max) {
-    return (WebClientOptions) super.setHttp2MaxPoolSize(max);
   }
 
   @Override
@@ -338,16 +328,6 @@ public class WebClientOptions extends HttpClientOptions {
   }
 
   @Override
-  public WebClientOptions setSendUnmaskedFrames(boolean sendUnmaskedFrames) {
-    return (WebClientOptions) super.setSendUnmaskedFrames(sendUnmaskedFrames);
-  }
-
-  @Override
-  public WebClientOptions setMaxWebSocketFrameSize(int maxWebsocketFrameSize) {
-    return (WebClientOptions) super.setMaxWebSocketFrameSize(maxWebsocketFrameSize);
-  }
-
-  @Override
   public WebClientOptions setDefaultHost(String defaultHost) {
     return (WebClientOptions) super.setDefaultHost(defaultHost);
   }
@@ -370,11 +350,6 @@ public class WebClientOptions extends HttpClientOptions {
   @Override
   public WebClientOptions setMaxHeaderSize(int maxHeaderSize) {
     return (WebClientOptions) super.setMaxHeaderSize(maxHeaderSize);
-  }
-
-  @Override
-  public WebClientOptions setMaxWaitQueueSize(int maxWaitQueueSize) {
-    return (WebClientOptions) super.setMaxWaitQueueSize(maxWaitQueueSize);
   }
 
   @Override
@@ -478,18 +453,8 @@ public class WebClientOptions extends HttpClientOptions {
   }
 
   @Override
-  public WebClientOptions setPoolCleanerPeriod(int poolCleanerPeriod) {
-    return (WebClientOptions) super.setPoolCleanerPeriod(poolCleanerPeriod);
-  }
-
-  @Override
   public WebClientOptions setKeepAliveTimeout(int keepAliveTimeout) {
     return (WebClientOptions) super.setKeepAliveTimeout(keepAliveTimeout);
-  }
-
-  @Override
-  public WebClientOptions setMaxWebSocketMessageSize(int maxWebsocketMessageSize) {
-    return (WebClientOptions) super.setMaxWebSocketMessageSize(maxWebsocketMessageSize);
   }
 
   @Override
@@ -513,31 +478,6 @@ public class WebClientOptions extends HttpClientOptions {
   }
 
   @Override
-  public WebClientOptions setTryUsePerFrameWebSocketCompression(boolean offer) {
-    return (WebClientOptions) super.setTryUsePerFrameWebSocketCompression(offer);
-  }
-
-  @Override
-  public WebClientOptions setTryUsePerMessageWebSocketCompression(boolean offer) {
-    return (WebClientOptions) super.setTryUsePerMessageWebSocketCompression(offer);
-  }
-
-  @Override
-  public WebClientOptions setWebSocketCompressionLevel(int compressionLevel) {
-    return (WebClientOptions) super.setWebSocketCompressionLevel(compressionLevel);
-  }
-
-  @Override
-  public WebClientOptions setWebSocketCompressionAllowClientNoContext(boolean offer) {
-    return (WebClientOptions) super.setWebSocketCompressionAllowClientNoContext(offer);
-  }
-
-  @Override
-  public WebClientOptions setWebSocketCompressionRequestServerNoContext(boolean offer) {
-    return (WebClientOptions) super.setWebSocketCompressionRequestServerNoContext(offer);
-  }
-
-  @Override
   public WebClientOptions setReadIdleTimeout(int idleTimeout) {
     return (WebClientOptions) super.setReadIdleTimeout(idleTimeout);
   }
@@ -545,11 +485,6 @@ public class WebClientOptions extends HttpClientOptions {
   @Override
   public WebClientOptions setWriteIdleTimeout(int idleTimeout) {
     return (WebClientOptions) super.setWriteIdleTimeout(idleTimeout);
-  }
-
-  @Override
-  public WebClientOptions setMaxWebSockets(int maxWebSockets) {
-    return (WebClientOptions) super.setMaxWebSockets(maxWebSockets);
   }
 
   @Override
@@ -563,18 +498,8 @@ public class WebClientOptions extends HttpClientOptions {
   }
 
   @Override
-  public WebClientOptions setWebSocketClosingTimeout(int webSocketClosingTimeout) {
-    return (WebClientOptions) super.setWebSocketClosingTimeout(webSocketClosingTimeout);
-  }
-
-  @Override
   public WebClientOptions setTracingPolicy(TracingPolicy tracingPolicy) {
     return (WebClientOptions) super.setTracingPolicy(tracingPolicy);
-  }
-
-  @Override
-  public WebClientOptions setPoolEventLoopSize(int poolEventLoopSize) {
-    return (WebClientOptions) super.setPoolEventLoopSize(poolEventLoopSize);
   }
 
   @Override

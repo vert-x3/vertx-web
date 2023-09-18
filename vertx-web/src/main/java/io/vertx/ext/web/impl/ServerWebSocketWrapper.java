@@ -173,19 +173,19 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
-  public WebSocketBase textMessageHandler(@Nullable Handler<String> handler) {
+  public ServerWebSocket textMessageHandler(@Nullable Handler<String> handler) {
     delegate.textMessageHandler(handler);
     return this;
   }
 
   @Override
-  public WebSocketBase binaryMessageHandler(@Nullable Handler<Buffer> handler) {
+  public ServerWebSocket binaryMessageHandler(@Nullable Handler<Buffer> handler) {
     delegate.binaryMessageHandler(handler);
     return this;
   }
 
   @Override
-  public WebSocketBase pongHandler(@Nullable Handler<Buffer> handler) {
+  public ServerWebSocket pongHandler(@Nullable Handler<Buffer> handler) {
     delegate.pongHandler(handler);
     return this;
   }

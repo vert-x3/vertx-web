@@ -95,7 +95,7 @@ public class SockJSSessionTest extends SockJSTestBase {
       };
     };
     startServers();
-    client.webSocket("/test/400/8ne8e94a/websocket")
+    wsClient.connect("/test/400/8ne8e94a/websocket")
       .onFailure(this::fail)
       .onSuccess(ws -> ws.handler(msg -> {
         clientReceived.addAndGet(msg.length());
@@ -127,7 +127,7 @@ public class SockJSSessionTest extends SockJSTestBase {
       });
     };
     startServers();
-    client.webSocket("/test/400/8ne8e94a/websocket").onComplete(onSuccess(ws -> {
+    wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(onSuccess(ws -> {
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame("[\"Hello", false));
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(Buffer.buffer(" World\"]"), true));
       ws.close();
@@ -156,7 +156,7 @@ public class SockJSSessionTest extends SockJSTestBase {
       });
     };
     startServers();
-    client.webSocket("/test/400/8ne8e94a/websocket").onComplete(onSuccess(ws -> {
+    wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(onSuccess(ws -> {
       ws.frameHandler(wsf -> {
         switch (wsf.type()) {
           case TEXT:
