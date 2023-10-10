@@ -16,7 +16,9 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.web.WebTestBase;
@@ -29,6 +31,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.startsWith;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
@@ -561,6 +566,90 @@ public class CSRFHandlerTest extends WebTestBase {
 
     // ensure valid token still works
     testRequest(HttpMethod.POST, "/working", req -> {
+      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader("Cookie", cookieJar.get());
+    }, null, 200, "OK", null);
+  }
+
+  /**
+   * When a POST happens during a GET, if the POST returned first (with a new CRSF token), when the GET completed it would
+   * override the csrf token in the session. This meant a subsequent POST would fail as the CSRF token did not match the server value.
+   */
+  @Test
+  public void simultaneousGetAndPostDoesNotOverrideTokenInSession() throws Exception {
+
+    final AtomicReference<String> cookieJar = new AtomicReference<>();
+    final SessionStore store = LocalSessionStore.create(vertx);
+    final Promise<Void> delayedResponse = Promise.promise();
+
+    router.route().handler(BodyHandler.create());
+    router.route().handler(SessionHandler.create(store));
+    router.route("/csrf/*").handler(CSRFHandler.create(vertx, "Abracadabra"));
+    router.route("/csrf/basic").handler(rc -> rc.response().end());
+    router.route("/csrf/first").handler(rc -> {
+      delayedResponse.future().onComplete(v -> rc.response().end());
+    });
+    router.route("/csrf/second").handler(rc -> {
+      rc.response().end();
+      delayedResponse.complete();
+    });
+
+    // get a session
+    testRequest(HttpMethod.GET, "/csrf/basic", null, resp -> {
+      List<String> cookies = resp.headers().getAll("set-cookie");
+      //Session + CSRF
+      assertEquals(2, cookies.size());
+      StringBuilder encodedCookie = new StringBuilder();
+      // save the cookies
+      for (String cookie : cookies) {
+        encodedCookie.append(cookie, 0, cookie.indexOf(';'));
+        encodedCookie.append("; ");
+        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+          tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
+        }
+      }
+      cookieJar.set(encodedCookie.toString());
+    }, 200, "OK", null);
+
+
+    final CountDownLatch latch = new CountDownLatch(2);
+    //Send the GET that will only resolve after a subsequent POST to /csrf/second
+    client.request(
+      new RequestOptions().setMethod(HttpMethod.GET)
+        .putHeader("Cookie", cookieJar.get())
+        .setHost("localhost").setPort(8080).setURI("/csrf/first")
+    ).compose(HttpClientRequest::send).onComplete(onSuccess(res -> {
+      assertThat("Should not send set-cookie header", res.headers().get("set-cookie"), nullValue());
+      latch.countDown();
+    }));
+
+    client.request(
+      new RequestOptions().setMethod(HttpMethod.POST)
+        .putHeader("Cookie", cookieJar.get())
+        .putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie)
+        .setHost("localhost").setPort(8080).setURI("/csrf/second")
+    ).compose(HttpClientRequest::send).onComplete(onSuccess(res -> {
+      assertEquals("Should only have one set-cookie", 1, res.headers().getAll("set-cookie").size());
+      final String cookie = res.headers().get("set-cookie");
+      assertThat("Should be token cookie", cookie, startsWith(CSRFHandler.DEFAULT_COOKIE_NAME));
+
+      //Store the new token in the cookie jar + header value
+      final String cookieValue = cookie.substring(0, cookie.indexOf(';'));
+      tmpCookie = cookieValue.substring(cookie.indexOf('=') + 1);
+      final String currentCookie = cookieJar.get();
+      final int start = currentCookie.indexOf(CSRFHandler.DEFAULT_COOKIE_NAME);
+      final int end = currentCookie.indexOf(";", start);
+      final String newCookie = currentCookie.replace(currentCookie.substring(start, end + 1), "") + cookieValue + ";";
+      cookieJar.set(newCookie);
+
+      latch.countDown();
+    }));
+
+    awaitLatch(latch);
+
+    // The above has confirmed that the GET did not send back a new cookie
+    // Now to confirm the new token from the POST works
+    testRequest(HttpMethod.POST, "/csrf/basic", req -> {
       req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
       req.putHeader("Cookie", cookieJar.get());
     }, null, 200, "OK", null);
