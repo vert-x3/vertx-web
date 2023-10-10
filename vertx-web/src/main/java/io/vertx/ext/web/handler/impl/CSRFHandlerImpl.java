@@ -126,6 +126,11 @@ public class CSRFHandlerImpl implements CSRFHandler {
           // it's not an option to change the same site policy
           .setSameSite(CookieSameSite.STRICT));
 
+    // only add the token to the session when the request ends successfully, doing this avoids storing a token that
+    // may due to error not make it to the browser. It is assumed that the token placed onto the context directly
+    // would only be returned to the user if the request completed successfully, thus they will remain in sync
+    ctx.addEndHandler(sessionTokenEndHandler(ctx, token));
+
     return token;
   }
 
@@ -340,10 +345,6 @@ public class CSRFHandlerImpl implements CSRFHandler {
             }
           }
         }
-        // only add the token to the session when the request ends successfully, doing this avoids storing a token that
-        // may due to error not make it to the browser. It is assumed that the token placed onto the context directly
-        // would only be returned to the user if the request completed successfully, thus they will remain in sync
-        ctx.addEndHandler(sessionTokenEndHandler(ctx, token));
         // put the token in the context for users who prefer to render the token directly on the HTML
         ctx.put(headerName, token);
         ctx.next();
@@ -355,10 +356,6 @@ public class CSRFHandlerImpl implements CSRFHandler {
         if (isValidRequest(ctx)) {
           // it matches, so refresh the token to avoid replay attacks
           token = generateToken(ctx);
-          // only add the token to the session when the request ends successfully, doing this avoids updating a token
-          // for a request that times out. It is assumed that the token placed onto the context directly would only
-          // be returned to the user if the request completed successfully, thus they will remain in sync
-          ctx.addEndHandler(sessionTokenEndHandler(ctx, token));
           // put the token in the context for users who prefer to
           // render the token directly on the HTML
           ctx.put(headerName, token);
