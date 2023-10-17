@@ -75,11 +75,11 @@ public abstract class HTTPAuthorizationHandler<C extends AuthenticationContext, 
     }
   }
 
-  protected final Future<String> parseAuthorization(AuthenticationContext ctx) {
+  protected final Future<String> parseAuthorization(C ctx) {
     return parseAuthorization(ctx, false);
   }
 
-  protected final Future<String> parseAuthorization(AuthenticationContext ctx, boolean optional) {
+  protected final Future<String> parseAuthorization(C ctx, boolean optional) {
 
     final HttpServerRequest request = ctx.request();
     final String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
@@ -111,7 +111,7 @@ public abstract class HTTPAuthorizationHandler<C extends AuthenticationContext, 
   }
 
   @Override
-  public boolean setAuthenticateHeader(AuthenticationContext context) {
+  public boolean setAuthenticateHeader(C context) {
     if (realm != null && realm.length() > 0) {
       context.response()
         .headers()
