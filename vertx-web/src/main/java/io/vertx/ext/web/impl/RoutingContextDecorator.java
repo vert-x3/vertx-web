@@ -1,6 +1,7 @@
 package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
+
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -11,6 +12,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.audit.SecurityAudit;
+import io.vertx.ext.auth.common.UserContext;
 import io.vertx.ext.web.*;
 
 import java.nio.charset.Charset;

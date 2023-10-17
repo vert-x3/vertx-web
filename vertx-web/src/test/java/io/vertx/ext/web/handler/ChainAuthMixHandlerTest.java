@@ -8,6 +8,7 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.common.HttpException;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import org.junit.Test;
 
@@ -17,11 +18,11 @@ public class ChainAuthMixHandlerTest extends WebTestBase {
 
   private static final User USER = User.create(new JsonObject().put("id", "paulo"));
 
-  private final AuthenticationHandler success = SimpleAuthenticationHandler.create()
+  private final WebAuthenticationHandler success = SimpleAuthenticationHandler.create()
     .authenticate(ctx -> Future.succeededFuture(USER));
 
 
-  private final AuthenticationHandler failure = SimpleAuthenticationHandler.create()
+  private final WebAuthenticationHandler failure = SimpleAuthenticationHandler.create()
     .authenticate(ctx -> Future.failedFuture(new HttpException(401)));
 
   @Test

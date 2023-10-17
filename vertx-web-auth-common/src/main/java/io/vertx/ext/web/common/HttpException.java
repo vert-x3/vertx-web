@@ -13,7 +13,7 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.ext.web.handler;
+package io.vertx.ext.web.common;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 
@@ -30,6 +30,10 @@ import io.netty.handler.codec.http.HttpResponseStatus;
  */
 public final class HttpException extends RuntimeException {
 
+  public static final HttpException UNAUTHORIZED = new HttpException(401);
+  public static final HttpException BAD_REQUEST = new HttpException(400);
+  public static final HttpException BAD_METHOD = new HttpException(405);
+  
   private final int statusCode;
   private final String payload;
 

@@ -24,7 +24,7 @@ import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BasicAuthHandler;
-import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.common.HttpException;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.nio.charset.StandardCharsets;
@@ -35,7 +35,7 @@ import static io.vertx.ext.auth.impl.Codec.base64Decode;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler<AuthenticationProvider> implements BasicAuthHandler {
+public class BasicAuthHandlerImpl extends WebHTTPAuthorizationHandler<AuthenticationProvider> implements BasicAuthHandler {
 
   public BasicAuthHandlerImpl(AuthenticationProvider authProvider, String realm) {
     super(authProvider, Type.BASIC, realm);

@@ -29,7 +29,7 @@ import java.util.List;
  * @author Paulo Lopes
  */
 @VertxGen
-public interface JWTAuthHandler extends AuthenticationHandler {
+public interface JWTAuthHandler extends WebAuthenticationHandler {
 
   /**
    * Create a JWT auth handler. When no scopes are explicit declared, the default scopes will be looked up from the

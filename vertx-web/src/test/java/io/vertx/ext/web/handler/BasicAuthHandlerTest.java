@@ -25,6 +25,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.ClusterSerializable;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.common.AuthenticationHandler;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -214,7 +215,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
   }
 
   @Override
-  protected AuthenticationHandler createAuthHandler(AuthenticationProvider authProvider) {
+  protected WebAuthenticationHandler createAuthHandler(AuthenticationProvider authProvider) {
     return BasicAuthHandler.create(authProvider);
   }
 

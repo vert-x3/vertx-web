@@ -37,12 +37,12 @@ import io.vertx.ext.auth.oauth2.Oauth2Credentials;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.common.HttpException;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.Origin;
 import io.vertx.ext.web.impl.RoutingContextInternal;
-import io.vertx.ext.web.impl.UserContextInternal;
+import io.vertx.ext.auth.common.UserContextInternal;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -52,7 +52,7 @@ import java.util.*;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> implements OAuth2AuthHandler, ScopedAuthentication<OAuth2AuthHandler>, OrderListener {
+public class OAuth2AuthHandlerImpl extends WebHTTPAuthorizationHandler<OAuth2Auth> implements OAuth2AuthHandler, ScopedAuthentication<RoutingContext, OAuth2AuthHandler>, OrderListener {
 
   private static final Logger LOG = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
 
@@ -334,7 +334,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
    * The default behavior for post-authentication
    */
   @Override
-  public void postAuthentication(RoutingContext ctx) {
+  public void postAuthentication(RoutingContext ctx, User authenticatedUser) {
     // the user is authenticated, however the user may not have all the required scopes
     final List<String> scopes = getScopesOrSearchMetadata(this.scopes, ctx);
 

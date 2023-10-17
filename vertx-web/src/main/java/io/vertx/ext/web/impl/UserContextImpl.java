@@ -1,38 +1,26 @@
 package io.vertx.ext.web.impl;
 
+import java.util.Objects;
+
 import io.vertx.core.Future;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.common.AbstractUserContext;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.UserContext;
-import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.auth.common.UserContext;
+import io.vertx.ext.web.common.HttpException;
 
-import java.util.Objects;
-
-public class UserContextImpl implements UserContextInternal {
+public class UserContextImpl extends AbstractUserContext {
 
   private static final String USER_SWITCH_KEY = "__vertx.user-switch-ref";
   private static final Logger LOG = LoggerFactory.getLogger(UserContext.class);
 
   private final RoutingContext ctx;
-  private User user;
 
   public UserContextImpl(RoutingContext ctx) {
     this.ctx = ctx;
-  }
-
-  @Override
-  public void setUser(User user) {
-    this.user = user;
-  }
-
-  @Override
-  public User get() {
-    return user;
   }
 
   @Override
@@ -60,15 +48,6 @@ public class UserContextImpl implements UserContextInternal {
   }
 
   @Override
-  public Future<Void> refresh() {
-    if (!ctx.request().method().equals(HttpMethod.GET)) {
-      // we can't automate a redirect to a non-GET request
-      return Future.failedFuture(new HttpException(405, "Method not allowed"));
-    }
-    return refresh(ctx.request().absoluteURI());
-  }
-
-  @Override
   public Future<Void> refresh(String redirectUri) {
     Objects.requireNonNull(redirectUri, "redirectUri cannot be null");
 
@@ -87,28 +66,7 @@ public class UserContextImpl implements UserContextInternal {
         .regenerateId();
     }
 
-    // remove user from the context
-    this.user = null;
-
-    // we should redirect the UA so this link becomes invalid
-    return ctx.response()
-      // disable all caching
-      .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-      .putHeader("Pragma", "no-cache")
-      .putHeader(HttpHeaders.EXPIRES, "0")
-      // redirect (when there is no state, redirect to home
-      .putHeader(HttpHeaders.LOCATION, redirectUri)
-      .setStatusCode(302)
-      .end("Redirecting to " + redirectUri + ".");
-  }
-
-  @Override
-  public Future<Void> impersonate() {
-    if (!ctx.request().method().equals(HttpMethod.GET)) {
-      // we can't automate a redirect to a non-GET request
-      return Future.failedFuture(new HttpException(405, "Method not allowed"));
-    }
-    return impersonate(ctx.request().absoluteURI());
+    return super.refresh(redirectUri);
   }
 
   @Override
@@ -142,28 +100,7 @@ public class UserContextImpl implements UserContextInternal {
       // force a session id regeneration to protect against replay attacks
       .regenerateId();
 
-    // remove the current user from the context to avoid any further access
-    this.user = null;
-
-    // we should redirect the UA so this link becomes invalid
-    return ctx.response()
-      // disable all caching
-      .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-      .putHeader("Pragma", "no-cache")
-      .putHeader(HttpHeaders.EXPIRES, "0")
-      // redirect (when there is no state, redirect to home
-      .putHeader(HttpHeaders.LOCATION, redirectUri)
-      .setStatusCode(302)
-      .end("Redirecting to " + redirectUri + ".");
-  }
-
-  @Override
-  public Future<Void> restore() {
-    if (!ctx.request().method().equals(HttpMethod.GET)) {
-      // we can't automate a redirect to a non-GET request
-      return Future.failedFuture(new HttpException(405, "Method not allowed"));
-    }
-    return restore(ctx.request().absoluteURI());
+    return super.impersonate(redirectUri);
   }
 
   @Override
@@ -207,21 +144,7 @@ public class UserContextImpl implements UserContextInternal {
     // restore it to the context
     this.user = previousUser;
 
-    // we should redirect the UA so this link becomes invalid
-    return ctx.response()
-      // disable all caching
-      .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-      .putHeader("Pragma", "no-cache")
-      .putHeader(HttpHeaders.EXPIRES, "0")
-      // redirect (when there is no state, redirect to home
-      .putHeader(HttpHeaders.LOCATION, redirectUri)
-      .setStatusCode(302)
-      .end("Redirecting to " + redirectUri + ".");
-  }
-
-  @Override
-  public Future<Void> logout() {
-    return logout("/");
+    return super.restore(redirectUri);
   }
 
   @Override
@@ -234,19 +157,7 @@ public class UserContextImpl implements UserContextInternal {
       session.destroy();
     }
 
-    // clear the user
-    user = null;
-
-    // we should redirect the UA so this link becomes invalid
-    return ctx.response()
-      // disable all caching
-      .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-      .putHeader("Pragma", "no-cache")
-      .putHeader(HttpHeaders.EXPIRES, "0")
-      // redirect (when there is no state, redirect to home
-      .putHeader(HttpHeaders.LOCATION, redirectUri)
-      .setStatusCode(302)
-      .end("Redirecting to " + redirectUri + ".");
+    return super.logout(redirectUri);
   }
 
   @Override
@@ -257,7 +168,6 @@ public class UserContextImpl implements UserContextInternal {
       session.destroy();
     }
 
-    // clear the user
-    user = null;
+    super.clear();
   }
 }

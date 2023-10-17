@@ -13,7 +13,7 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.ext.web;
+package io.vertx.ext.auth.common;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.Nullable;
@@ -52,7 +52,9 @@ public interface UserContext {
    * @return fluent self
    */
   @Fluent
-  UserContext loginHint(String loginHint);
+  default UserContext loginHint(String loginHint) {
+    return this;
+  }
 
   /**
    * Forces the current user to re-authenticate. The user will be redirected to the same origin where this call was

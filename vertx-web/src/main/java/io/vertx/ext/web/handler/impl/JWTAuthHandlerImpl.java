@@ -22,9 +22,11 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.authentication.TokenCredentials;
+import io.vertx.ext.auth.common.UserContextInternal;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.Session;
+import io.vertx.ext.web.common.HttpException;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
@@ -38,7 +40,7 @@ import java.util.stream.Stream;
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implements JWTAuthHandler, ScopedAuthentication<JWTAuthHandler> {
+public class JWTAuthHandlerImpl extends WebHTTPAuthorizationHandler<JWTAuth> implements JWTAuthHandler, ScopedAuthentication<RoutingContext, JWTAuthHandler> {
 
   private final List<String> scopes;
   private String delimiter;
@@ -115,7 +117,19 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
    * The default behavior for post-authentication
    */
   @Override
-  public void postAuthentication(RoutingContext ctx) {
+  public void postAuthentication(RoutingContext ctx, User authenticated) {
+      ((UserContextInternal) ctx.user())
+      .setUser(authenticated);
+    Session session = ctx.session();
+    if (session != null) {
+      // the user has upgraded from unauthenticated to authenticated
+      // session should be upgraded as recommended by owasp
+      session.regenerateId();
+    }
+    // proceed with the router
+    if (!ctx.request().isEnded()) {
+      ctx.request().resume();
+    }
     final User user = ctx.user().get();
     if (user == null) {
       // bad state

@@ -2,11 +2,11 @@ package io.vertx.ext.web.handler.impl;
 
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.AuthenticationHandler;
+import io.vertx.ext.auth.common.AuthenticationContext;
+import io.vertx.ext.auth.common.AuthenticationHandler;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Internal interface for scope aware Authentication handlers.
@@ -14,7 +14,7 @@ import java.util.Map;
  * @param <SELF>
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
-public interface ScopedAuthentication<SELF extends AuthenticationHandler> {
+public interface ScopedAuthentication<C extends AuthenticationContext, SELF extends AuthenticationHandler<C>> {
 
   /**
    * Return a new instance with the internal state copied from the caller but the scopes to be requested during a token

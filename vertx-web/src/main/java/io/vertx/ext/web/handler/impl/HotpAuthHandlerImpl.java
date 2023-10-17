@@ -28,7 +28,7 @@ import io.vertx.ext.auth.otp.hotp.HotpAuth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.common.HttpException;
 import io.vertx.ext.web.handler.OtpAuthHandler;
 import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.RoutingContextInternal;
@@ -36,7 +36,7 @@ import io.vertx.ext.web.impl.RoutingContextInternal;
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> implements OtpAuthHandler, OrderListener {
+public class HotpAuthHandlerImpl extends WebAuthenticationHandlerImpl<HotpAuth> implements OtpAuthHandler, OrderListener {
 
   private final OtpKeyGenerator otpKeyGen;
 

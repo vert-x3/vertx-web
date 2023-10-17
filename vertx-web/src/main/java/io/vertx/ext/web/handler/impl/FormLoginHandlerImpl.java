@@ -29,13 +29,16 @@ import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.FormLoginHandler;
-import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.common.HttpException;
 import io.vertx.ext.web.impl.RoutingContextInternal;
+
+import static io.vertx.ext.web.common.HttpException.BAD_METHOD;
+import static io.vertx.ext.web.common.HttpException.BAD_REQUEST;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements FormLoginHandler {
+public class FormLoginHandlerImpl extends WebAuthenticationHandlerImpl<AuthenticationProvider> implements FormLoginHandler {
 
   private String usernameParam;
   private String passwordParam;
@@ -104,7 +107,7 @@ public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   }
 
   @Override
-  public void postAuthentication(RoutingContext ctx) {
+  public void postAuthentication(RoutingContext ctx, User user) {
     HttpServerRequest req = ctx.request();
     Session session = ctx.session();
     if (session != null) {

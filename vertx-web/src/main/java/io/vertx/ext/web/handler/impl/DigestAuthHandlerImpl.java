@@ -26,12 +26,13 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.VertxContextPRNG;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
+import io.vertx.ext.auth.common.handler.impl.HTTPAuthorizationHandler;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.auth.htdigest.HtdigestCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.DigestAuthHandler;
-import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.common.HttpException;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.security.MessageDigest;
@@ -42,11 +43,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.vertx.ext.auth.impl.Codec.base16Encode;
+import static io.vertx.ext.web.common.HttpException.UNAUTHORIZED;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth> implements DigestAuthHandler {
+public class DigestAuthHandlerImpl extends WebHTTPAuthorizationHandler<HtdigestAuth> implements DigestAuthHandler {
 
   private final static Logger LOG = LoggerFactory.getLogger(HTTPAuthorizationHandler.class);
 

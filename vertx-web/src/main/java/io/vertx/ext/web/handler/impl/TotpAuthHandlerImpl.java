@@ -28,15 +28,17 @@ import io.vertx.ext.auth.otp.totp.TotpAuth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.common.HttpException;
 import io.vertx.ext.web.handler.OtpAuthHandler;
 import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
+import static io.vertx.ext.web.common.HttpException.UNAUTHORIZED;
+
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class TotpAuthHandlerImpl extends AuthenticationHandlerImpl<TotpAuth> implements OtpAuthHandler, OrderListener {
+public class TotpAuthHandlerImpl extends WebAuthenticationHandlerImpl<TotpAuth> implements OtpAuthHandler, OrderListener {
 
   private final OtpKeyGenerator otpKeyGen;
 
@@ -63,7 +65,7 @@ public class TotpAuthHandlerImpl extends AuthenticationHandlerImpl<TotpAuth> imp
     final User user = ctx.user().get();
 
     if (user == null) {
-      return Future.failedFuture(new HttpException(401));
+      return Future.failedFuture(UNAUTHORIZED);
     } else {
       Boolean userOtp = user.get("mfa");
       // user hasn't 2fa yet?
