@@ -39,7 +39,9 @@ public interface AuthenticationHandlerInternal<C extends AuthenticationContext> 
    * @param ctx the authentication context
    * @param authenticated the authenticated user
    */
-  void postAuthentication(C ctx, User authenticated);
+  default void postAuthentication(C ctx, User authenticated) {
+    ctx.onContinue();
+  }
 
   /**
    * Signal that this handler can perform an HTTP redirect during the authentication mechanism. In this case

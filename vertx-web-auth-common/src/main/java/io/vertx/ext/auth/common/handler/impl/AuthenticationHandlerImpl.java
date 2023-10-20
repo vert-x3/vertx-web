@@ -22,6 +22,8 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.common.AuthenticationContext;
+import io.vertx.ext.auth.common.Session;
+import io.vertx.ext.auth.common.UserContextInternal;
 import io.vertx.ext.auth.common.handler.AuthenticationHandlerInternal;
 
 /**
@@ -78,6 +80,14 @@ public abstract class AuthenticationHandlerImpl<C extends AuthenticationContext,
     // perform the authentication
     authenticate(ctx)
       .onSuccess(authenticated -> {
+        ((UserContextInternal) ctx.user())
+        .setUser(authenticated);
+        Session session = ctx.session();
+        if (session != null) {
+          // the user has upgraded from unauthenticated to authenticated
+          // session should be upgraded as recommended by owasp
+          session.regenerateId();
+        }
         // to allow further processing if needed
         if (!ctx.request().isEnded()) {
           ctx.request().resume();

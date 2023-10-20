@@ -35,4 +35,6 @@ public interface AuthenticationContext {
     // NOOP
   }
 
+  Session session();
+
 }

@@ -118,18 +118,6 @@ public class JWTAuthHandlerImpl extends WebHTTPAuthorizationHandler<JWTAuth> imp
    */
   @Override
   public void postAuthentication(RoutingContext ctx, User authenticated) {
-      ((UserContextInternal) ctx.user())
-      .setUser(authenticated);
-    Session session = ctx.session();
-    if (session != null) {
-      // the user has upgraded from unauthenticated to authenticated
-      // session should be upgraded as recommended by owasp
-      session.regenerateId();
-    }
-    // proceed with the router
-    if (!ctx.request().isEnded()) {
-      ctx.request().resume();
-    }
     final User user = ctx.user().get();
     if (user == null) {
       // bad state
