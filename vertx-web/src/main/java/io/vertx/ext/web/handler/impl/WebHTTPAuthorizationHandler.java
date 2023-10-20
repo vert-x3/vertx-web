@@ -3,8 +3,10 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.common.UserContextInternal;
 import io.vertx.ext.auth.common.handler.impl.HTTPAuthorizationHandler;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 import io.vertx.ext.web.common.HttpException;
 
 public abstract class WebHTTPAuthorizationHandler<T extends AuthenticationProvider> extends HTTPAuthorizationHandler<RoutingContext, T> {
@@ -14,10 +16,17 @@ public abstract class WebHTTPAuthorizationHandler<T extends AuthenticationProvid
   }
 
   public void postAuthentication(RoutingContext ctx, User authenticatedUser) {
+    ((UserContextInternal) ctx.user())
+      .setUser(authenticatedUser);
+    Session session = ctx.session();
+    if (session != null) {
+      // the user has upgraded from unauthenticated to authenticated
+      // session should be upgraded as recommended by owasp
+      session.regenerateId();
+    }
     ctx.next();
   }
-  
-  
+
   // TODO remove duplicated code from WebAuthenticationHandlerImpl
   /**
    * This method is protected so custom auth handlers can override the default error handling

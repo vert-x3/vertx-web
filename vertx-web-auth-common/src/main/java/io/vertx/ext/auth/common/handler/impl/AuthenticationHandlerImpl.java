@@ -78,6 +78,10 @@ public abstract class AuthenticationHandlerImpl<C extends AuthenticationContext,
     // perform the authentication
     authenticate(ctx)
       .onSuccess(authenticated -> {
+        // to allow further processing if needed
+        if (!ctx.request().isEnded()) {
+          ctx.request().resume();
+        }
         postAuthentication(ctx, authenticated);
       })
       .onFailure(cause -> {

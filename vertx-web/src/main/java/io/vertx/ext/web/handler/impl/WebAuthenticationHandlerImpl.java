@@ -3,8 +3,10 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.common.UserContextInternal;
 import io.vertx.ext.auth.common.handler.impl.AuthenticationHandlerImpl;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 import io.vertx.ext.web.common.HttpException;
 
 public abstract class WebAuthenticationHandlerImpl<T extends AuthenticationProvider> extends AuthenticationHandlerImpl<RoutingContext, T> {
@@ -17,7 +19,15 @@ public abstract class WebAuthenticationHandlerImpl<T extends AuthenticationProvi
     super(authProvider, mfa);
   }
 
-  public void postAuthentication(RoutingContext ctx, User user) {
+  public void postAuthentication(RoutingContext ctx, User authenticatedUser) {
+    ((UserContextInternal) ctx.user())
+      .setUser(authenticatedUser);
+    Session session = ctx.session();
+    if (session != null) {
+      // the user has upgraded from unauthenticated to authenticated
+      // session should be upgraded as recommended by owasp
+      session.regenerateId();
+    }
     ctx.next();
   }
 
