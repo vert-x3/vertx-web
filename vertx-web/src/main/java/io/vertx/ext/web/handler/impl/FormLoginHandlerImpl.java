@@ -32,8 +32,8 @@ import io.vertx.ext.web.handler.FormLoginHandler;
 import io.vertx.ext.web.common.HttpException;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
-import static io.vertx.ext.web.common.HttpException.BAD_METHOD;
-import static io.vertx.ext.web.common.HttpException.BAD_REQUEST;
+import static io.vertx.ext.web.handler.HttpException.BAD_METHOD;
+import static io.vertx.ext.web.handler.HttpException.BAD_REQUEST;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>

@@ -39,6 +39,12 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-common</artifactId>
     </dependency>
+    <!-- Remove this dependency once code got moved to vertx-auth-common -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web-auth-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web-auth-common</artifactId>

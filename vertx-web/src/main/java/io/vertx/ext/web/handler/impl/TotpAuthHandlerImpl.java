@@ -28,12 +28,12 @@ import io.vertx.ext.auth.otp.totp.TotpAuth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.common.HttpException;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OtpAuthHandler;
 import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
-import static io.vertx.ext.web.common.HttpException.UNAUTHORIZED;
+import static io.vertx.ext.web.handler.HttpException.UNAUTHORIZED;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>

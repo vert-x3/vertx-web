@@ -26,7 +26,7 @@ import io.vertx.ext.auth.common.UserContextInternal;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.common.HttpException;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 

@@ -28,12 +28,12 @@ import io.netty.handler.codec.http.HttpResponseStatus;
  *
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public final class HttpException extends RuntimeException {
+public class HttpException extends RuntimeException {
 
   public static final HttpException UNAUTHORIZED = new HttpException(401);
   public static final HttpException BAD_REQUEST = new HttpException(400);
   public static final HttpException BAD_METHOD = new HttpException(405);
-  
+
   private final int statusCode;
   private final String payload;
 

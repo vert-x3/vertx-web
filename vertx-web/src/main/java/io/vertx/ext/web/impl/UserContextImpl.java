@@ -10,7 +10,7 @@ import io.vertx.ext.auth.common.AbstractUserContext;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.auth.common.UserContext;
-import io.vertx.ext.web.common.HttpException;
+import io.vertx.ext.web.handler.HttpException;
 
 public class UserContextImpl extends AbstractUserContext {
 

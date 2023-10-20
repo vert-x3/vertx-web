@@ -10,7 +10,7 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.common.handler.AuthenticationHandlerInternal;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.common.HttpException;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.*;
 
 import java.util.ArrayList;

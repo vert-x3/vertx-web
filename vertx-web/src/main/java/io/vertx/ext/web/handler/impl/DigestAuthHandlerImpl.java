@@ -43,7 +43,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.vertx.ext.auth.impl.Codec.base16Encode;
-import static io.vertx.ext.web.common.HttpException.UNAUTHORIZED;
+import static io.vertx.ext.web.handler.HttpException.UNAUTHORIZED;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>

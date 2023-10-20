@@ -25,12 +25,12 @@ import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.APIKeyHandler;
-import io.vertx.ext.web.common.HttpException;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.util.function.Function;
 
-import static io.vertx.ext.web.common.HttpException.UNAUTHORIZED;
+import static io.vertx.ext.web.handler.HttpException.UNAUTHORIZED;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
