@@ -21,7 +21,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.common.AuthenticationContext;
 
-import static io.vertx.ext.web.common.HttpException.*;
+import static io.vertx.ext.web.handler.HttpException.*;
 
 /**
  * This a common handler for auth handler that use the `Authorization` HTTP header.

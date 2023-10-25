@@ -32,7 +32,7 @@ import io.vertx.ext.auth.htdigest.HtdigestCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.DigestAuthHandler;
-import io.vertx.ext.web.common.HttpException;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.security.MessageDigest;

@@ -29,7 +29,7 @@ import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.FormLoginHandler;
-import io.vertx.ext.web.common.HttpException;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import static io.vertx.ext.web.handler.HttpException.BAD_METHOD;

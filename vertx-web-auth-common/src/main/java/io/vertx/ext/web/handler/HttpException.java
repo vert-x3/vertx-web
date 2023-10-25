@@ -16,9 +16,13 @@
 package io.vertx.ext.web.handler;
 
 /**
- * @see io.vertx.ext.web.common.HttpException2
+ * @see io.vertx.ext.web.common.HttpException
  */
 public final class HttpException extends io.vertx.ext.web.common.HttpException {
+
+  public static final HttpException UNAUTHORIZED = new HttpException(401);
+  public static final HttpException BAD_REQUEST = new HttpException(400);
+  public static final HttpException BAD_METHOD = new HttpException(405);
 
   public HttpException() {
     super();

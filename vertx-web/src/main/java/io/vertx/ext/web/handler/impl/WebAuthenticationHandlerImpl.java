@@ -4,7 +4,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.common.handler.impl.AuthenticationHandlerImpl;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.common.HttpException;
+import io.vertx.ext.web.handler.HttpException;
 
 public abstract class WebAuthenticationHandlerImpl<T extends AuthenticationProvider> extends AuthenticationHandlerImpl<RoutingContext, T> {
 

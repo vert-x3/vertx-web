@@ -8,7 +8,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.common.HttpException;
+import io.vertx.ext.web.handler.HttpException;
 
 public abstract class AbstractUserContext implements UserContextInternal {
 
