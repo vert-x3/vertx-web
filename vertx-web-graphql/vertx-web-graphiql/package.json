@@ -10,11 +10,11 @@
     "graphql-ws": "5.11.2",
     "lodash": "4.17.21",
     "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "react-scripts": "5.0.1"
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
-    "recursive-copy": "2.0.14"
+    "recursive-copy": "2.0.14",
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
