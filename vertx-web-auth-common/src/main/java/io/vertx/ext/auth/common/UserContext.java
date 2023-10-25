@@ -52,9 +52,7 @@ public interface UserContext {
    * @return fluent self
    */
   @Fluent
-  default UserContext loginHint(String loginHint) {
-    return this;
-  }
+  UserContext loginHint(String loginHint);
 
   /**
    * Forces the current user to re-authenticate. The user will be redirected to the same origin where this call was

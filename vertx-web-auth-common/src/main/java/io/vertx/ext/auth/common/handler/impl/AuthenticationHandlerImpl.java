@@ -81,14 +81,14 @@ public abstract class AuthenticationHandlerImpl<C extends AuthenticationContext,
     authenticate(ctx)
       .onSuccess(authenticated -> {
         ((UserContextInternal) ctx.user())
-        .setUser(authenticated);
+          .setUser(authenticated);
         Session session = ctx.session();
         if (session != null) {
           // the user has upgraded from unauthenticated to authenticated
           // session should be upgraded as recommended by owasp
           session.regenerateId();
         }
-        // to allow further processing if needed
+        // proceed with the router
         if (!ctx.request().isEnded()) {
           ctx.request().resume();
         }
