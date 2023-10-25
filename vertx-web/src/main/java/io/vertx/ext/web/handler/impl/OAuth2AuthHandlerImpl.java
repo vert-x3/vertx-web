@@ -37,7 +37,7 @@ import io.vertx.ext.auth.oauth2.Oauth2Credentials;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.common.HttpException;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.Origin;

@@ -5,7 +5,7 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.common.HttpException;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
