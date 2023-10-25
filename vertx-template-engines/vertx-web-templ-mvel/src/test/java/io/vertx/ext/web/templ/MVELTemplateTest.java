@@ -24,11 +24,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
+import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -95,8 +94,8 @@ public class MVELTemplateTest {
     context.put("context", new JsonObject().put("path", "/test-mvel-template4.templ"));
 
     String tmplPath = "src/test/filesystemtemplates/test-mvel-template4.templ".replace('/', File.separatorChar);
-    engine.render(context, tmplPath, should.asyncAssertSuccess(render -> {
-      should.assertEquals("Hello badger and fox\n\nRequest path is /test-mvel-template4.templ\n", normalizeCRLF(render.toString()));
+    engine.render(context, tmplPath).onComplete(should.asyncAssertSuccess(render -> {
+      should.assertEquals("Hello badger and fox\nRequest path is /test-mvel-template4.templ", normalizeCRLF(render.toString()));
     }));
   }
 
