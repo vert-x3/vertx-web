@@ -83,7 +83,7 @@ class AuthenticationHandlers {
         .stream()
         .map(authHandler -> {
           if (authHandler instanceof ScopedAuthentication) {
-            AuthenticationHandler<?> scopedHandler = ((ScopedAuthentication<?, ?>) authHandler).withScopes(scopes);
+            AuthenticationHandler<?> scopedHandler = ((ScopedAuthentication<?>) authHandler).withScopes(scopes);
             WebAuthenticationHandler webAuthHandler = (WebAuthenticationHandler)scopedHandler;
             return webAuthHandler;
           } else {
