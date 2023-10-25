@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.Future;
+import io.vertx.core.VertxException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.audit.Marker;
@@ -119,7 +120,7 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
     final User user = ctx.user().get();
     if (user == null) {
       // bad state
-      ctx.fail(403, new IllegalStateException("no user in the context"));
+      ctx.fail(403, new VertxException("no user in the context", true));
       return;
     }
     // the user is authenticated, however the user may not have all the required scopes
@@ -128,12 +129,12 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
     if (scopes.size() > 0) {
       final JsonObject jwt = user.get("accessToken");
       if (jwt == null) {
-        ctx.fail(403, new IllegalStateException("Invalid JWT: null"));
+        ctx.fail(403, new VertxException("Invalid JWT: null", true));
         return;
       }
 
       if (jwt.getValue("scope") == null) {
-        ctx.fail(403, new IllegalStateException("Invalid JWT: scope claim is required"));
+        ctx.fail(403, new VertxException("Invalid JWT: scope claim is required", true));
         return;
       }
 
@@ -150,7 +151,7 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
       if (target != null) {
         for (String scope : scopes) {
           if (!target.contains(scope)) {
-            ctx.fail(403, new IllegalStateException("JWT scopes != handler scopes"));
+            ctx.fail(403, new VertxException("JWT scopes != handler scopes", true));
             return;
           }
         }

@@ -20,6 +20,7 @@ import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpHeaders;
@@ -132,7 +133,7 @@ public class BodyHandlerImpl implements BodyHandler {
           .resume();
       } else {
         String failure = "BodyHandler invoked after the request has ended. It should be the first handler invoked. Otherwise, you must pause the request after it's received.";
-        context.fail(new IllegalStateException(failure));
+        context.fail(new VertxException(failure, true));
       }
     } else {
       // on reroute we need to re-merge the form params if that was desired
