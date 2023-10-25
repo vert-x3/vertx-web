@@ -79,7 +79,6 @@ public class FileUploadImpl implements FileUpload {
   @Override
   public Future<Void> delete() {
     String uploadedFileName = uploadedFileName();
-    return fs.delete(uploadedFileName)
-      .onFailure(err -> RoutingContextImplBase.LOG.warn("Delete of uploaded file failed: " + uploadedFileName, err));
+    return fs.delete(uploadedFileName);
   }
 }

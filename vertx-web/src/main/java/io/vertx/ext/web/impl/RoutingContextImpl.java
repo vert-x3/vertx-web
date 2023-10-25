@@ -21,8 +21,10 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.file.FileSystem;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.web.*;
@@ -290,7 +292,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     if (cleanup.compareAndSet(false, true)) {
       for (FileUpload fileUpload : fileUploads()) {
         if (!fileUpload.cancel()) {
-          fileUpload.delete();
+          Future<Void> future = fileUpload.delete();
+          if (LOG.isTraceEnabled()) {
+            future.onFailure(err -> LOG.trace("Delete of uploaded file failed", err));
+          }
         }
       }
     }
