@@ -16,6 +16,7 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.Future;
+import io.vertx.core.VertxException;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
@@ -146,7 +147,7 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
       .handler(ctx -> {
         final User user = ctx.user().get();
         if (user == null || user.get("username") == null) {
-          ctx.fail(new IllegalStateException("User object misses 'username' attribute"));
+          ctx.fail(new VertxException("User object misses 'username' attribute", true));
           return;
         }
 
@@ -170,7 +171,7 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
       .handler(ctx -> {
         final User user = ctx.user().get();
         if (user == null || user.get("username") == null) {
-          ctx.fail(new IllegalStateException("User object misses 'username' attribute"));
+          ctx.fail(new VertxException("User object misses 'username' attribute", true));
           return;
         }
 

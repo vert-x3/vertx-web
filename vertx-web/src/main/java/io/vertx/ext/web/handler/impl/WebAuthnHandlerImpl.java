@@ -16,6 +16,7 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.Future;
+import io.vertx.core.VertxException;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
@@ -31,8 +32,8 @@ import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.WebAuthnHandler;
 import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.Origin;
-import io.vertx.ext.web.impl.UserContextInternal;
 import io.vertx.ext.web.impl.RoutingContextInternal;
+import io.vertx.ext.web.impl.UserContextInternal;
 
 public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> implements WebAuthnHandler, OrderListener {
 
@@ -204,7 +205,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
             // input basic validation is OK
 
             if (session == null) {
-              ctx.fail(500, new IllegalStateException("No session or session handler is missing."));
+              ctx.fail(500, new VertxException("No session or session handler is missing.", true));
               return;
             }
 
@@ -243,7 +244,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
           // input basic validation is OK
 
           if (session == null) {
-            ctx.fail(500, new IllegalStateException("No session or session handler is missing."));
+            ctx.fail(500, new VertxException("No session or session handler is missing.", true));
             return;
           }
 
@@ -293,7 +294,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
           final Session session = ctx.session();
 
           if (session == null) {
-            ctx.fail(500, new IllegalStateException("No session or session handler is missing."));
+            ctx.fail(500, new VertxException("No session or session handler is missing.", true));
             return;
           }
 

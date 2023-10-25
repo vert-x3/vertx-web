@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxException;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.http.HttpMethod;
@@ -196,7 +197,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
       if (ctx.body().available()) {
         header = ctx.request().getFormAttribute(headerName);
       } else {
-        ctx.fail(new IllegalStateException("BodyHandler is required to process POST requests"));
+        ctx.fail(new VertxException("BodyHandler is required to process POST requests", true));
         return false;
       }
     }
@@ -304,7 +305,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     // if we're being strict with the origin
     // ensure that they are always valid
     if (!Origin.check(origin, ctx)) {
-      ctx.fail(403, new IllegalStateException("Invalid Origin"));
+      ctx.fail(403, new VertxException("Invalid Origin", true));
       return;
     }
 

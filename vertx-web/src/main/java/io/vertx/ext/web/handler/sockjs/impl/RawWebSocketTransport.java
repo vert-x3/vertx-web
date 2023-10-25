@@ -47,7 +47,7 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.impl.Origin;
 
-import static io.vertx.core.http.HttpHeaders.*;
+import static io.vertx.core.http.HttpHeaders.ALLOW;
 import static io.vertx.ext.web.impl.Utils.canUpgradeToWebsocket;
 
 /**
@@ -83,7 +83,7 @@ class RawWebSocketTransport {
     }
 
     if (!Origin.check(origin, ctx)) {
-      ctx.fail(403, new IllegalStateException("Invalid Origin"));
+      ctx.fail(403, new VertxException("Invalid Origin", true));
       return;
     }
 
