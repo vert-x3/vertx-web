@@ -26,7 +26,6 @@ import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.authorization.ScopeAuthorization;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.common.HttpException;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.Test;
 

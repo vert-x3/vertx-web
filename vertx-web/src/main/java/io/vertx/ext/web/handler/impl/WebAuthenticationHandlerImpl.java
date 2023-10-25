@@ -1,7 +1,6 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.common.handler.impl.AuthenticationHandlerImpl;
 import io.vertx.ext.web.RoutingContext;
@@ -15,10 +14,6 @@ public abstract class WebAuthenticationHandlerImpl<T extends AuthenticationProvi
 
   public WebAuthenticationHandlerImpl(T authProvider, String mfa) {
     super(authProvider, mfa);
-  }
-
-  public void postAuthentication(RoutingContext ctx, User authenticatedUser) {
-    ctx.next();
   }
 
   // TODO remove duplicated code from WebAuthenticationHandlerImpl

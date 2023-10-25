@@ -26,7 +26,7 @@ import io.vertx.ext.auth.audit.impl.SecurityAuditNOOP;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.common.HttpException;
+import io.vertx.ext.web.handler.HttpException;
 
 import java.util.HashSet;
 import java.util.Iterator;

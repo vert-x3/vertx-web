@@ -2,7 +2,7 @@ package io.vertx.ext.web.handler.impl;
 
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.CSPHandler;
-import io.vertx.ext.web.common.HttpException;
+import io.vertx.ext.web.handler.HttpException;
 
 import java.util.*;
 

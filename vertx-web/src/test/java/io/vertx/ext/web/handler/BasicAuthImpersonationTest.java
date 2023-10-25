@@ -9,7 +9,6 @@ import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.auth.properties.PropertyFileAuthorization;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.Test;
 
