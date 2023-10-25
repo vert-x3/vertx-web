@@ -21,6 +21,7 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.http.ServerWebSocket;
 import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.impl.ws.GraphQLWSHandlerImpl;
@@ -82,4 +83,13 @@ public interface GraphQLWSHandler extends ProtocolUpgradeHandler {
    */
   @Fluent
   GraphQLWSHandler messageHandler(Handler<Message> messageHandler);
+
+  /**
+   * Customize the end {@link Handler}.
+   * This handler will be called at the end of each websocket connection.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  GraphQLWSHandler endHandler(Handler<ServerWebSocket> endHandler);
 }

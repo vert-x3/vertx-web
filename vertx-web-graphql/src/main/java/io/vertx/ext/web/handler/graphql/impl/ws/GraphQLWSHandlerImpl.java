@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler.graphql.impl.ws;
 
 import graphql.GraphQL;
 import io.vertx.core.Handler;
+import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
@@ -38,6 +39,7 @@ public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
   private Handler<ExecutionInputBuilderWithContext<Message>> beforeExecute;
   private Handler<ConnectionInitEvent> connectionInitHandler;
   private Handler<Message> messageHandler;
+  private Handler<ServerWebSocket> endHandler;
 
   public GraphQLWSHandlerImpl(GraphQL graphQL, GraphQLWSOptions options) {
     Objects.requireNonNull(graphQL, "graphQL instance is null");
@@ -81,6 +83,16 @@ public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
   }
 
   synchronized Handler<Message> getMessageHandler() { return messageHandler; }
+
+  @Override
+  public synchronized GraphQLWSHandler endHandler(Handler<ServerWebSocket> endHandler) {
+    this.endHandler = endHandler;
+    return this;
+  }
+
+  synchronized Handler<ServerWebSocket> getEndHandler() {
+    return endHandler;
+  }
 
   @Override
   public void handle(RoutingContext rc) {
