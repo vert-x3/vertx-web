@@ -16,10 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
@@ -43,7 +40,10 @@ import io.vertx.ext.web.impl.Origin;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -326,7 +326,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       final User user = ctx.user();
       if (user == null) {
         // bad state
-        ctx.fail(403, new IllegalStateException("no user in the context"));
+        ctx.fail(403, new VertxException("no user in the context", true));
         return;
       }
 
@@ -348,12 +348,12 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
                 (idx != 0 && scopes.charAt(idx -1) != ' ') ||
                   (idx + scope.length() != scopes.length() && scopes.charAt(idx + scope.length()) != ' ')) {
                 // invalid scope assignment
-                ctx.fail(403, new IllegalStateException("principal scope != handler scopes"));
+                ctx.fail(403, new VertxException("principal scope != handler scopes", true));
                 return;
               }
             } else {
               // invalid scope assignment
-              ctx.fail(403, new IllegalStateException("principal scope != handler scopes"));
+              ctx.fail(403, new VertxException("principal scope != handler scopes", true));
               return;
             }
           }
@@ -420,9 +420,9 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
         String errorDescription = ctx.request().getParam("error_description");
         if (errorDescription != null) {
-          ctx.fail(errorCode, new IllegalStateException(error + ": " + errorDescription));
+          ctx.fail(errorCode, new VertxException(error + ": " + errorDescription, true));
         } else {
-          ctx.fail(errorCode, new IllegalStateException(error));
+          ctx.fail(errorCode, new VertxException(error, true));
         }
         return;
       }
@@ -432,7 +432,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
       // code is a require value
       if (code == null) {
-        ctx.fail(400, new IllegalStateException("Missing code parameter"));
+        ctx.fail(400, new VertxException("Missing code parameter", true));
         return;
       }
 
@@ -448,7 +448,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
       // state is a required field
       if (state == null) {
-        ctx.fail(400, new IllegalStateException("Missing IdP state parameter to the callback endpoint"));
+        ctx.fail(400, new VertxException("Missing IdP state parameter to the callback endpoint", true));
         return;
       }
 
@@ -462,7 +462,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         // if there's a state in the context they must match
         if (!state.equals(ctxState)) {
           // forbidden, the state is not valid (this is a replay attack)
-          ctx.fail(401, new IllegalStateException("Invalid oauth2 state"));
+          ctx.fail(401, new VertxException("Invalid oauth2 state", true));
           return;
         }
 

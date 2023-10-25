@@ -32,10 +32,7 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.impl.logging.Logger;
@@ -50,7 +47,7 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.impl.Origin;
 
-import static io.vertx.core.http.HttpHeaders.*;
+import static io.vertx.core.http.HttpHeaders.ALLOW;
 import static io.vertx.ext.web.impl.Utils.canUpgradeToWebsocket;
 
 /**
@@ -88,7 +85,7 @@ class WebSocketTransport extends BaseTransport {
     }
 
     if (!Origin.check(origin, ctx)) {
-      ctx.fail(403, new IllegalStateException("Invalid Origin"));
+      ctx.fail(403, new VertxException("Invalid Origin", true));
       return;
     }
 

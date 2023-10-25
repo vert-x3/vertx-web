@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.VertxException;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
@@ -144,7 +145,7 @@ public class TotpAuthHandlerImpl extends AuthenticationHandlerImpl<TotpAuth> imp
       .handler(ctx -> {
         final User user = ctx.user();
         if (user == null || user.get("username") == null) {
-          ctx.fail(new IllegalStateException("User object misses 'username' attribute"));
+          ctx.fail(new VertxException("User object misses 'username' attribute", true));
           return;
         }
         final OtpKey key = otpKeyGen.generate();
@@ -168,7 +169,7 @@ public class TotpAuthHandlerImpl extends AuthenticationHandlerImpl<TotpAuth> imp
       .handler(ctx -> {
         final User user = ctx.user();
         if (user == null || user.get("username") == null) {
-          ctx.fail(new IllegalStateException("User object misses 'username' attribute"));
+          ctx.fail(new VertxException("User object misses 'username' attribute", true));
           return;
         }
 

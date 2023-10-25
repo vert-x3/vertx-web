@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.VertxException;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -250,7 +251,7 @@ public class CorsHandlerImpl implements CorsHandler {
         .response()
         .setStatusMessage("CORS Rejected - Invalid origin");
       context
-        .fail(403, new IllegalStateException("CORS Rejected - Invalid origin"));
+        .fail(403, new VertxException("CORS Rejected - Invalid origin", true));
     }
   }
 
