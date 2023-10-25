@@ -116,6 +116,10 @@ public class ConnectionHandler {
 
   private void close(Void unused) {
     state.close();
+    Handler<ServerWebSocket> eh = graphQLWSHandler.getEndHandler();
+    if (eh != null) {
+      eh.handle(socket);
+    }
   }
 
   private interface ConnectionState {
