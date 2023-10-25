@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler;
 
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
@@ -35,6 +36,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -422,7 +425,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     server.close();
   }
 
-  @Ignore("does not pass for now")
   @Test
   public void testAuthPKCECodeFlow() throws Exception {
 
@@ -506,27 +508,15 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       // in this case we should get a redirect
       redirectURL = resp.getHeader("Location");
       assertNotNull(redirectURL);
-      assertTrue(redirectURL.contains("&code_challenge="));
-      assertTrue(redirectURL.contains("&code_challenge_method="));
+      QueryStringDecoder decoder = new QueryStringDecoder(redirectURL);
+      Map<String, List<String>> params = decoder.parameters();
+      assertNotNull(params.get("code_challenge"));
+      assertNotNull(params.get("code_challenge_method"));
+      assertNotNull(params.get("state"));
       // save the params
-      String[] parts = redirectURL.substring(redirectURL.indexOf('?') + 1).split("&");
-      String codeChallenge = null;
-      String codeChallengeMethod = null;
-      String nonce = null;
-      for (String part : parts) {
-        if (part.startsWith("code_challenge=")) {
-          codeChallenge = part.substring(15);
-        }
-        if (part.startsWith("code_challenge_method=")) {
-          codeChallengeMethod = part.substring(22);
-        }
-        if (part.startsWith("state=")) {
-          nonce = part.substring(6);
-        }
-      }
-      assertNotNull(nonce);
-      assertNotNull(codeChallenge);
-      assertNotNull(codeChallengeMethod);
+      String codeChallenge = params.get("code_challenge").get(0);
+      String codeChallengeMethod = params.get("code_challenge_method").get(0);
+      String nonce = params.get("state").get(0);
       assertTrue(codeChallenge.length() >= 43 && codeChallenge.length() <= 128);
       assertEquals("S256", codeChallengeMethod);
 
