@@ -194,6 +194,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public void onContinue() {
+    next();
+  }
+
+  @Override
   public boolean failed() {
     return inner.failed();
   }
