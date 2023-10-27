@@ -28,7 +28,7 @@ import io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl;
  */
 @VertxGen
 // TODO this will alter the signature of the interface. Originally only the impl did implement ScopedAuthentication - now we also expose it via the interface.
-public interface JWTAuthHandler extends WebAuthenticationHandler, io.vertx.ext.auth.jwt.JWTAuthHandler<RoutingContext>, io.vertx.ext.web.handler.impl.ScopedAuthentication<JWTAuthHandler> {
+public interface JWTAuthHandler extends WebAuthenticationHandler, io.vertx.ext.auth.jwt.JWTAuthHandler<RoutingContext>, io.vertx.ext.web.handler.impl.ScopedAuthentication<io.vertx.ext.auth.jwt.JWTAuthHandler<RoutingContext>> {
 
   /**
    * Create a JWT auth handler. When no scopes are explicit declared, the default scopes will be looked up from the route metadata.
