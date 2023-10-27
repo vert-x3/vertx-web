@@ -19,7 +19,7 @@ import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.auth.common.AuthenticationContext;
 
 /**
  * An origin follows rfc6454#section-7
@@ -422,7 +422,7 @@ public final class Origin {
     return s == null || s.trim().isEmpty();
   }
 
-  public static boolean check(Origin origin, RoutingContext ctx) {
+  public static boolean check(Origin origin, AuthenticationContext ctx) {
     /* Verifying Same Origin with Standard Headers */
     if (origin != null) {
       //Try to get the source from the "Origin" header

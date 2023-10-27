@@ -30,6 +30,7 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.authentication.TokenCredentials;
+import io.vertx.ext.auth.common.AuthenticationContextInternal;
 import io.vertx.ext.auth.jwt.AbstractJWTHandler;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
@@ -81,7 +82,7 @@ public class JWTAuthHandlerImpl extends AbstractJWTHandler<RoutingContext> imple
         }
 
         final TokenCredentials credentials = new TokenCredentials(token);
-        final SecurityAudit audit = ((RoutingContextInternal) context).securityAudit();
+        final SecurityAudit audit = ((AuthenticationContextInternal) context).securityAudit();
         audit.credentials(credentials);
 
         return
@@ -195,7 +196,7 @@ public class JWTAuthHandlerImpl extends AbstractJWTHandler<RoutingContext> imple
     ctx.fail(exception);
   }
 
-  private void fail(RoutingContext ctx, int code, String msg) {
+  protected void fail(RoutingContext ctx, int code, String msg) {
     ctx.fail(code, new IllegalStateException(msg));
   }
 }

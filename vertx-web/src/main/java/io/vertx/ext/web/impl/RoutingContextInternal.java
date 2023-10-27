@@ -18,7 +18,7 @@ package io.vertx.ext.web.impl;
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.auth.audit.SecurityAudit;
+import io.vertx.ext.auth.common.AuthenticationContextInternal;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -28,7 +28,7 @@ import io.vertx.ext.web.Session;
  *
  * @author Paulo Lopes
  */
-public interface RoutingContextInternal extends RoutingContext {
+public interface RoutingContextInternal extends RoutingContext, AuthenticationContextInternal {
 
   int BODY_HANDLER = 1 << 1;
   int CORS_HANDLER = 1 << 2;
@@ -107,13 +107,4 @@ public interface RoutingContextInternal extends RoutingContext {
     }
   }
 
-  /**
-   * Get or Default the security audit object.
-   */
-  SecurityAudit securityAudit();
-
-  /**
-   * Get or Default the security audit object.
-   */
-  void setSecurityAudit(SecurityAudit securityAudit);
 }

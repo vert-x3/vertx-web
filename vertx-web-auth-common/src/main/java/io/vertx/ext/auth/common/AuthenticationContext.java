@@ -31,6 +31,8 @@ public interface AuthenticationContext {
    */
   UserContext user();
 
+  String normalizedPath();
+
   default void onContinue() {
     // NOOP
   }
