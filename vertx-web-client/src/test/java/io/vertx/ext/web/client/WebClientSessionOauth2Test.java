@@ -113,6 +113,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
           fail(result.cause());
         } else {
           assertEquals(200, result.result().statusCode());
+          assertEquals(fixture.getString("access_token"), oauth2WebClient.getUser().principal().getString("access_token"));
           latchClient.countDown();
         }
       });
