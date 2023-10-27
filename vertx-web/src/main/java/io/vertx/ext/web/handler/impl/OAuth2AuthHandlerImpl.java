@@ -127,14 +127,7 @@ public class OAuth2AuthHandlerImpl extends AbstractOAuth2Handler<RoutingContext>
     }
   }
 
-  private void mountCallback() {
-
-    callback
-      .method(HttpMethod.GET)
-      // we want the callback before this handler
-      .order(order - 1);
-
-    callback.handler(ctx -> {
+  private void callbackHandler(RoutingContext ctx) {
       // Some IdP's (e.g.: AWS Cognito) returns errors as query arguments
       String error = ctx.request().getParam("error");
 
@@ -156,9 +149,9 @@ public class OAuth2AuthHandlerImpl extends AbstractOAuth2Handler<RoutingContext>
 
         String errorDescription = ctx.request().getParam("error_description");
         if (errorDescription != null) {
-          ctx.fail(errorCode, new IllegalStateException(error + ": " + errorDescription));
+          fail(ctx, errorCode, error + ": " + errorDescription);
         } else {
-          ctx.fail(errorCode, new IllegalStateException(error));
+          fail(ctx, errorCode, error);
         }
         return;
       }
@@ -168,7 +161,7 @@ public class OAuth2AuthHandlerImpl extends AbstractOAuth2Handler<RoutingContext>
 
       // code is a require value
       if (code == null) {
-        ctx.fail(400, new IllegalStateException("Missing code parameter"));
+        fail(ctx, 400, "Missing code parameter");
         return;
       }
 
@@ -184,7 +177,7 @@ public class OAuth2AuthHandlerImpl extends AbstractOAuth2Handler<RoutingContext>
 
       // state is a required field
       if (state == null) {
-        ctx.fail(400, new IllegalStateException("Missing IdP state parameter to the callback endpoint"));
+        fail(ctx, 400, "Missing IdP state parameter to the callback endpoint");
         return;
       }
 
@@ -198,7 +191,7 @@ public class OAuth2AuthHandlerImpl extends AbstractOAuth2Handler<RoutingContext>
         // if there's a state in the context they must match
         if (!state.equals(ctxState)) {
           // forbidden, the state is not valid (this is a replay attack)
-          ctx.fail(401, new IllegalStateException("Invalid oauth2 state"));
+          fail(ctx, 401, "Invalid oauth2 state");
           return;
         }
 
@@ -252,7 +245,16 @@ public class OAuth2AuthHandlerImpl extends AbstractOAuth2Handler<RoutingContext>
             .setStatusCode(302)
             .end("Redirecting to " + location + ".");
       });
-    });
+  }
+
+  private void mountCallback() {
+
+    callback
+      .method(HttpMethod.GET)
+      // we want the callback before this handler
+      .order(order - 1);
+
+    callback.handler(this::callbackHandler);
   }
 
 
