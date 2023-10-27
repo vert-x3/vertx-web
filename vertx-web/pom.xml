@@ -47,11 +47,6 @@
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web-auth-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
       <artifactId>vertx-bridge-common</artifactId>
     </dependency>
     <!--
@@ -73,6 +68,12 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-oauth2</artifactId>
       <optional>true</optional>
+    </dependency>
+    <!-- Remove this dependency once code got moved to vertx-auth-common -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web-auth-oauth2</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
@@ -126,6 +127,11 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+    	<groupId>io.vertx</groupId>
+    	<artifactId>vertx-auth-jwt-grpc</artifactId>
+    	<version>5.0.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
 

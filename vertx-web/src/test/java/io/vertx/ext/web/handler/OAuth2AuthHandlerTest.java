@@ -16,6 +16,16 @@
 
 package io.vertx.ext.web.handler;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.junit.Ignore;
+import org.junit.Test;
+
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
@@ -26,17 +36,10 @@ import io.vertx.ext.auth.impl.jose.JWT;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.handler.impl.OAuth2AuthHandlerImpl;
 import io.vertx.ext.web.sstore.SessionStore;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Paulo Lopes
@@ -151,9 +154,11 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
-      .create(vertx, oauth2, "http://localhost:8080/callback")
-      // require "read" scope
-      .withScope("read");
+      .create(vertx, oauth2, "http://localhost:8080/callback");
+
+    //TODO fix issue with fluent API
+    // require "read" scope
+    oauth2Handler = (OAuth2AuthHandlerImpl)oauth2Handler.withScope("read");
 
     // setup the callback handler for receiving the callback
     oauth2Handler.setupCallback(router.route("/callback"));
@@ -213,9 +218,12 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
-      .create(vertx, oauth2, "http://localhost:8080/callback")
-      // require "rea" scope (will fail)
-      .withScope("rea");
+      .create(vertx, oauth2, "http://localhost:8080/callback");
+
+
+    //TODO fix issue with fluent API
+    // require "rea" scope (will fail)
+    oauth2Handler = (OAuth2AuthHandlerImpl)oauth2Handler.withScope("rea");
 
     // setup the callback handler for receiving the callback
     oauth2Handler.setupCallback(router.route("/callback"));
@@ -487,8 +495,11 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
-      .create(vertx, oauth2, "http://localhost:8080/callback")
-      .pkceVerifierLength(64);
+      .create(vertx, oauth2, "http://localhost:8080/callback");
+
+    //TODO fix issue with fluent API
+    oauth2Handler = (OAuth2AuthHandlerImpl)oauth2Handler.pkceVerifierLength(64);
+
     // setup the callback handler for receiving the callback
     oauth2Handler.setupCallback(router.route("/callback"));
     // protect everything under /protected

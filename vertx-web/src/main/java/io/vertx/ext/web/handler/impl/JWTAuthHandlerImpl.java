@@ -30,7 +30,6 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.authentication.TokenCredentials;
-import io.vertx.ext.auth.common.handler.impl.HTTPAuthorizationHandler;
 import io.vertx.ext.auth.jwt.AbstractJWTHandler;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;

@@ -30,6 +30,7 @@ import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.impl.Codec;
+import io.vertx.ext.auth.oauth2.AbstractOAuth2Handler;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2AuthorizationURL;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
@@ -39,7 +40,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
-import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.Origin;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.auth.common.UserContextInternal;
@@ -52,7 +52,7 @@ import java.util.*;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class OAuth2AuthHandlerImpl extends WebHTTPAuthorizationHandler<OAuth2Auth> implements OAuth2AuthHandler, ScopedAuthentication<OAuth2AuthHandler>, OrderListener {
+public class OAuth2AuthHandlerImpl extends AbstractOAuth2Handler<RoutingContext> implements OAuth2AuthHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
 
@@ -538,4 +538,39 @@ public class OAuth2AuthHandlerImpl extends WebHTTPAuthorizationHandler<OAuth2Aut
       });
     });
   }
+
+//TODO remove duplicated code from WebAuthenticationHandlerImpl
+ /**
+  * This method is protected so custom auth handlers can override the default error handling
+  */
+ protected void processException(RoutingContext ctx, Throwable exception) {
+   if (exception != null) {
+     if (exception instanceof HttpException) {
+       final int statusCode = ((HttpException) exception).getStatusCode();
+       final String payload = ((HttpException) exception).getPayload();
+
+       switch (statusCode) {
+       case 302:
+         ctx.response()
+           .putHeader(HttpHeaders.LOCATION, payload)
+           .setStatusCode(302)
+           .end("Redirecting to " + payload + ".");
+         return;
+       case 401:
+         if (!"XMLHttpRequest".equals(ctx.request().getHeader("X-Requested-With"))) {
+           setAuthenticateHeader(ctx);
+         }
+         ctx.fail(401, exception);
+         return;
+       default:
+         ctx.fail(statusCode, exception);
+         return;
+       }
+     }
+   }
+
+   // fallback 500
+   ctx.fail(exception);
+ }
+  
 }
