@@ -63,19 +63,17 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     startSchemaServer();
 
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.create(this.vertx, OAS_PATH, openAPI3RouterFactoryAsyncResult -> {
-      assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
-      assertNull(openAPI3RouterFactoryAsyncResult.cause());
-      routerFactory = openAPI3RouterFactoryAsyncResult.result();
+    OpenAPI3RouterFactory.create(this.vertx, OAS_PATH, onSuccess(fact -> {
+      routerFactory = fact;
       routerFactory.setOptions(
         new RouterFactoryOptions()
-        .setRequireSecurityHandlers(false)
-        .setMountValidationFailureHandler(true)
-        .setMountNotImplementedHandler(false)
+          .setRequireSecurityHandlers(false)
+          .setMountValidationFailureHandler(true)
+          .setMountNotImplementedHandler(false)
       );
       routerFactory.setValidationFailureHandler(FAILURE_HANDLER);
       latch.countDown();
-    });
+    }));
     awaitLatch(latch);
 
     client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080));

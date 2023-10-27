@@ -43,12 +43,11 @@
     <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
-      <version>1.33</version>
     </dependency>
     <dependency>
       <groupId>io.swagger.parser.v3</groupId>
       <artifactId>swagger-parser-v3</artifactId>
-      <version>2.1.1</version>
+      <version>2.1.16</version>
       <exclusions>
         <exclusion>
           <groupId>com.fasterxml.jackson.dataformat</groupId>
