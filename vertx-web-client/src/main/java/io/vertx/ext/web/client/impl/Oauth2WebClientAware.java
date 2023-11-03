@@ -60,7 +60,8 @@ public class Oauth2WebClientAware extends WebClientBase implements OAuth2WebClie
     return credentials;
   }
 
-  User getUser() {
+  @Override
+  public User getUser() {
     return user;
   }
 
