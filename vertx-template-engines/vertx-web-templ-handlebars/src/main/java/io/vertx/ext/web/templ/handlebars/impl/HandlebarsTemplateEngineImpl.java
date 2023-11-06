@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.templ.handlebars.impl;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -72,7 +73,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
 
       if (template == null) {
         // either it's not cache or cache is disabled
-        int idx = src.lastIndexOf('/');
+        int idx = src.lastIndexOf(File.separator);
         String prefix = "";
         String basename = src;
         if (idx != -1) {
