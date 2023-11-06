@@ -58,7 +58,7 @@ public interface BodyHandler extends Handler<RoutingContext> {
   boolean DEFAULT_PREALLOCATE_BODY_BUFFER = false;
 
   /**
-   * Create a body handler with defaults
+   * Create a body handler with defaults.
    *
    * @return the body handler
    */
@@ -67,7 +67,7 @@ public interface BodyHandler extends Handler<RoutingContext> {
   }
 
   /**
-   * Create a body handler setting if it should handle file uploads
+   * Create a body handler setting if it should handle file uploads.
    *
    * @param handleFileUploads true if files upload should be handled
    * @return the body handler
@@ -87,7 +87,7 @@ public interface BodyHandler extends Handler<RoutingContext> {
   }
 
   /**
-   * Set whether file uploads will be handled
+   * Set whether file uploads will be handled.
    *
    * @param handleFileUploads  true if they should be handled
    * @return reference to this for fluency
@@ -96,7 +96,7 @@ public interface BodyHandler extends Handler<RoutingContext> {
   BodyHandler setHandleFileUploads(boolean handleFileUploads);
 
   /**
-   * Set the maximum body size in bytes, {@code -1} means no limit
+   * Set the maximum body size in bytes, {@code -1} means no limit.
    *
    * @param bodyLimit  the max size in bytes
    * @return reference to this for fluency
@@ -105,7 +105,7 @@ public interface BodyHandler extends Handler<RoutingContext> {
   BodyHandler setBodyLimit(long bodyLimit);
 
   /**
-   * Set the uploads directory to use
+   * Set the uploads directory to use.
    *
    * @param uploadsDirectory  the uploads directory
    * @return reference to this for fluency
@@ -114,7 +114,7 @@ public interface BodyHandler extends Handler<RoutingContext> {
   BodyHandler setUploadsDirectory(String uploadsDirectory);
 
   /**
-   * Set whether form attributes will be added to the request parameters
+   * Set whether form attributes will be added to the request parameters.
    *
    * @param mergeFormAttributes  true if they should be merged
    * @return reference to this for fluency
@@ -123,7 +123,7 @@ public interface BodyHandler extends Handler<RoutingContext> {
   BodyHandler setMergeFormAttributes(boolean mergeFormAttributes);
 
   /**
-   * Set whether uploaded files should be removed after handling the request
+   * Set whether uploaded files should be removed after handling the request.
    *
    * @param deleteUploadedFilesOnEnd  true if uploaded files should be removed after handling the request
    * @return reference to this for fluency

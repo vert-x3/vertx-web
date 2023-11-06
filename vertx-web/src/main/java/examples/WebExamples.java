@@ -697,6 +697,10 @@ public class WebExamples {
     });
   }
 
+  public void housekeepingUploadDir(Router router) {
+    router.route().handler(BodyHandler.create().setDeleteUploadedFilesOnEnd(true));
+  }
+
   public void example30(RoutingContext ctx) {
 
     Cookie someCookie = ctx.request().getCookie("mycookie");
