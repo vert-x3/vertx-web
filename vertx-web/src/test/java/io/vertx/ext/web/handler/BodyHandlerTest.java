@@ -549,6 +549,8 @@ public class BodyHandlerTest extends WebTestBase {
 
   @Test
   public void testMultiFileUpload() throws Exception {
+    router.clear();
+    router.route().handler(BodyHandler.create().setBodyLimit(-1));
 
     int uploads = 1000;
 
