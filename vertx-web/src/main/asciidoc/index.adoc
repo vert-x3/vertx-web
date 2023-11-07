@@ -917,6 +917,17 @@ Here's an example:
 Each file upload is described by a {@link io.vertx.ext.web.FileUpload} instance, which allows various properties
 such as the name, file-name and size to be accessed.
 
+=== Housekeeping the uploaded files directory
+
+The {@link io.vertx.ext.web.handler.BodyHandler} can be configured to clean the uploaded files directory:
+
+[source,$lang]
+----
+{@link examples.WebExamples#housekeepingUploadDir}
+----
+
+This will delete any file uploaded as part of a request when the corresponding response has been sent.
+
 == Handling cookies
 
 Vert.x-Web has out of the box cookies support.
