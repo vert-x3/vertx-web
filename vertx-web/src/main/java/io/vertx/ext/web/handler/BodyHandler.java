@@ -33,9 +33,9 @@ import io.vertx.ext.web.handler.impl.BodyHandlerImpl;
 public interface BodyHandler extends Handler<RoutingContext> {
 
   /**
-   * Default max size for a request body = {@code -1} means unlimited
+   * Default max size for a request body in bytes = {@code 10485760}, i.e. 10 megabytes
    */
-  long DEFAULT_BODY_LIMIT = -1;
+  long DEFAULT_BODY_LIMIT = 10 * 1024 * 1024;
 
   /**
    * Default uploads directory on server for file uploads
