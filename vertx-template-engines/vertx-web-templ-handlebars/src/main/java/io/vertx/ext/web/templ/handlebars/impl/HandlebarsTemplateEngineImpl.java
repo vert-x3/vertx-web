@@ -16,25 +16,26 @@
 
 package io.vertx.ext.web.templ.handlebars.impl;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.List;
-import java.util.Map;
-
-import io.vertx.ext.web.common.template.CachingTemplateEngine;
-
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.ValueResolver;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.github.jknack.handlebars.io.TemplateSource;
-import io.vertx.core.*;
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.impl.TemplateHolder;
 import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Map;
+
+import static io.vertx.core.impl.Utils.isWindows;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -72,7 +73,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
 
       if (template == null) {
         // either it's not cache or cache is disabled
-        int idx = src.lastIndexOf(File.separator);
+        int idx = findLastFileSeparator(src);
         String prefix = "";
         String basename = src;
         if (idx != -1) {
@@ -91,6 +92,13 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }
+  }
+
+  private static int findLastFileSeparator(String src) {
+    if (isWindows()) {
+      return Math.max(src.lastIndexOf('/'), src.lastIndexOf('\\'));
+    }
+    return src.lastIndexOf('/');
   }
 
   @Override

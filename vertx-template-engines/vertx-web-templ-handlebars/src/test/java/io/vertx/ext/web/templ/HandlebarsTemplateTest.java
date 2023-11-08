@@ -16,17 +16,16 @@
 
 package io.vertx.ext.web.templ;
 
+import com.github.jknack.handlebars.ValueResolver;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.file.FileSystemOptions;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
-
-import com.github.jknack.handlebars.ValueResolver;
-import io.vertx.core.VertxOptions;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,7 +38,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static io.vertx.core.impl.Utils.isWindows;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -142,6 +143,22 @@ public class HandlebarsTemplateTest {
 
 
     engine.render(context, "src/test/filesystemtemplates/test-handlebars-template3.hbs", should.asyncAssertSuccess(render -> {
+      should.assertEquals("Goodbye badger and fox", normalizeCRLF(render.toString()));
+    }));
+  }
+
+  @Test
+  public void testTemplateOnWindowsFileSystem(TestContext should) {
+    assumeTrue(isWindows());
+
+    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
+
+    final JsonObject context = new JsonObject()
+      .put("foo", "badger")
+      .put("bar", "fox");
+
+
+    engine.render(context, "src/test/filesystemtemplates\\test-handlebars-template3.hbs").onComplete(should.asyncAssertSuccess(render -> {
       should.assertEquals("Goodbye badger and fox", normalizeCRLF(render.toString()));
     }));
   }
