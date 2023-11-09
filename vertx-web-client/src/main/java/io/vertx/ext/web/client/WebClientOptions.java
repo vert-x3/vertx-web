@@ -323,8 +323,8 @@ public class WebClientOptions extends HttpClientOptions {
   }
 
   @Override
-  public WebClientOptions setTryUseCompression(boolean tryUseCompression) {
-    return (WebClientOptions) super.setTryUseCompression(tryUseCompression);
+  public WebClientOptions setDecompressionSupported(boolean tryUseCompression) {
+    return (WebClientOptions) super.setDecompressionSupported(tryUseCompression);
   }
 
   @Override
