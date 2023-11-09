@@ -62,7 +62,6 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   private String host;
   private String virtualHost;
   private Object uri;
-  private long timeout = -1;
   private long idleTimeout = -1;
   private long connectTimeout = -1;
   private boolean followRedirects;
@@ -135,7 +134,6 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.headers = other.headers != null ? HttpHeaders.headers().addAll(other.headers) : HttpHeaders.headers();
     this.followRedirects = other.followRedirects;
     this.proxyOptions = other.proxyOptions != null ? new ProxyOptions(other.proxyOptions) : null;
-    this.timeout = other.timeout;
     this.idleTimeout = other.idleTimeout;
     this.connectTimeout = other.connectTimeout;
     this.queryParams = other.queryParams != null ? MultiMap.caseInsensitiveMultiMap().addAll(other.queryParams) : null;
@@ -256,18 +254,6 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
     return this;
   }
-
-  @Override
-  public HttpRequest<T> timeout(long value) {
-    timeout = value;
-    return this;
-  }
-
-  @Override
-  public long timeout() {
-      return timeout;
-  }
-
   @Override
   public HttpRequest<T> idleTimeout(long timeout) {
     idleTimeout = timeout;
@@ -282,7 +268,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public HttpRequest<T> connectTimeout(long timeout) {
     connectTimeout = timeout;
-    return null;
+    return this;
   }
 
   @Override
@@ -519,9 +505,6 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
       requestOptions.setHost(this.virtualHost);
     }
     this.mergeHeaders(requestOptions);
-    if (timeout >= 0) {
-      requestOptions.setTimeout(timeout);
-    }
     if (idleTimeout >= 0) {
       requestOptions.setIdleTimeout(idleTimeout);
     }

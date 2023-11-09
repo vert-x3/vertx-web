@@ -281,21 +281,6 @@ public interface HttpRequest<T> {
   Boolean ssl();
 
   /**
-   * Equivalent to setting the same timeout value with {@link #connectTimeout(long)} and {@link #idleTimeout(long)}.
-   *
-   * @deprecated instead use {@link #connectTimeout(long)} or/and {@link #idleTimeout(long)}
-   */
-  @Deprecated
-  @Fluent
-  HttpRequest<T> timeout(long value);
-
-  /**
-   * @return the current timeout in milliseconds
-   */
-  @Deprecated
-  long timeout();
-
-  /**
    * Sets the amount of time after which, if the request does not return any data within the timeout period,
    * the request/response is closed and the related futures are failed with a {@link java.util.concurrent.TimeoutException}.
    *
