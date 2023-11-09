@@ -356,7 +356,7 @@ public class WebClientTest extends WebClientTestBase {
     awaitLatch(latch);
     webClient
       .get(8080, "localhost", "/")
-      .idleTimeout(1)
+      .timeout(1)
       .send().onComplete(onFailure(err -> {
         testComplete();
       }));
@@ -1069,7 +1069,7 @@ public class WebClientTest extends WebClientTestBase {
     server.requestHandler(req -> count.incrementAndGet());
     startServer();
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.idleTimeout(50).send().onComplete(onFailure(err -> {
+    get.timeout(50).send().onComplete(onFailure(err -> {
       assertTrue(err instanceof TimeoutException);
       testComplete();
     }));
@@ -1595,15 +1595,14 @@ public class WebClientTest extends WebClientTestBase {
   public void testRequestOptions() throws Exception {
     ProxyOptions proxyOptions = new ProxyOptions().setHost("proxy-host");
     RequestOptions options = new RequestOptions().setHost("another-host").setPort(8080).setSsl(true)
-      .setURI("/test").setIdleTimeout(500).setConnectTimeout(600).setProxyOptions(proxyOptions).setFollowRedirects(true);
+      .setURI("/test").setTimeout(500).setProxyOptions(proxyOptions).setFollowRedirects(true);
     HttpRequest<Buffer> request = webClient.request(HttpMethod.GET, options);
 
     assertThat(request.host(), equalTo("another-host"));
     assertThat(request.port(), equalTo(8080));
     assertThat(request.ssl(), equalTo(true));
     assertThat(request.uri(), equalTo("/test"));
-    assertThat(request.idleTimeout(), equalTo(500L));
-    assertThat(request.connectTimeout(), equalTo(600L));
+    assertThat(request.timeout(), equalTo(500l));
     assertThat(request.followRedirects(), equalTo(true));
     assertThat(request.proxy(), is(not(equalTo(proxyOptions))));
     assertThat(request.proxy().getHost(), equalTo("proxy-host"));

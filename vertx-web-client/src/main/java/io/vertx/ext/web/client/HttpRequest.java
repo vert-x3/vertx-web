@@ -281,6 +281,23 @@ public interface HttpRequest<T> {
   Boolean ssl();
 
   /**
+   * Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
+   * period an {@link java.util.concurrent.TimeoutException} fails the request.
+   * <p>
+   * Setting zero or a negative {@code value} disables the timeout.
+   *
+   * @param value The quantity of time in milliseconds.
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> timeout(long value);
+
+  /**
+   * @return the current timeout in milliseconds
+   */
+  long timeout();
+
+  /**
    * Sets the amount of time after which, if the request does not return any data within the timeout period,
    * the request/response is closed and the related futures are failed with a {@link java.util.concurrent.TimeoutException}.
    *

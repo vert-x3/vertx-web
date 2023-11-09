@@ -92,8 +92,15 @@ public class WebClientBase implements WebClientInternal {
     }
     HttpRequestImpl<Buffer> request = request(method, serverAddress, port, host, requestOptions.getURI());
     request.ssl(requestOptions.isSsl());
-    request.connectTimeout(requestOptions.getConnectTimeout());
-    request.idleTimeout(requestOptions.getIdleTimeout());
+    if (requestOptions.getTimeout() >= 0L) {
+      request.timeout(requestOptions.getTimeout());
+    }
+    if (requestOptions.getConnectTimeout() >= 0L) {
+      request.connectTimeout(requestOptions.getConnectTimeout());
+    }
+    if (requestOptions.getIdleTimeout() >= 0L) {
+      request.idleTimeout(requestOptions.getIdleTimeout());
+    }
     request.followRedirects(requestOptions.getFollowRedirects());
     ProxyOptions proxyOptions = requestOptions.getProxyOptions();
     if (proxyOptions != null) {
