@@ -73,7 +73,7 @@ public class MultipartRequestTest extends WebTestBase {
     client.request(new RequestOptions()
       .setMethod(HttpMethod.POST)
       .setURI("/graphql")
-      .setTimeout(10000)
+      .setIdleTimeout(10000)
       .addHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryBpwmk50wSJmsTPAH")
       .addHeader("accept", "application/json"))
       .compose(req -> req.send(bodyBuffer)
@@ -97,7 +97,7 @@ public class MultipartRequestTest extends WebTestBase {
       .setURI("/graphql")
       .addHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryhvb6BzAACEqQKt0Z")
       .addHeader("accept", "application/json")
-      .setTimeout(10000))
+      .setIdleTimeout(10000))
       .compose(req -> req.send(bodyBuffer).compose(HttpClientResponse::body))
       .onComplete(onSuccess(buffer -> {
         final JsonObject json = ((JsonObject) buffer.toJson()).getJsonObject("data").getJsonObject("multipleUpload");
@@ -118,7 +118,7 @@ public class MultipartRequestTest extends WebTestBase {
         .setURI("/graphql")
         .addHeader("Content-Type", "multipart/form-data; boundary=------------------------560b6209af099a26")
         .addHeader("accept", "application/json")
-        .setTimeout(10000))
+        .setIdleTimeout(10000))
       .compose(req -> req.send(bodyBuffer).compose(HttpClientResponse::body))
       .onComplete(onSuccess(buffer -> {
       final JsonObject result = new JsonObject("{ \"array\":" + buffer.toString() + "}");
