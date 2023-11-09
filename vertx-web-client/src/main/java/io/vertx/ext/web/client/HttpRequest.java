@@ -18,6 +18,8 @@ package io.vertx.ext.web.client;
 import io.vertx.codegen.annotations.*;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.ProxyOptions;
@@ -279,21 +281,55 @@ public interface HttpRequest<T> {
   Boolean ssl();
 
   /**
-   * Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
-   * period an {@link java.util.concurrent.TimeoutException} fails the request.
-   * <p>
-   * Setting zero or a negative {@code value} disables the timeout.
+   * Equivalent to setting the same timeout value with {@link #connectTimeout(long)} and {@link #idleTimeout(long)}.
    *
-   * @param value The quantity of time in milliseconds.
-   * @return a reference to this, so the API can be used fluently
+   * @deprecated instead use {@link #connectTimeout(long)} or/and {@link #idleTimeout(long)}
    */
+  @Deprecated
   @Fluent
   HttpRequest<T> timeout(long value);
 
   /**
    * @return the current timeout in milliseconds
    */
+  @Deprecated
   long timeout();
+
+  /**
+   * Sets the amount of time after which, if the request does not return any data within the timeout period,
+   * the request/response is closed and the related futures are failed with a {@link java.util.concurrent.TimeoutException}.
+   *
+   * <p/>The timeout starts after a connection is obtained from the client.
+   *
+   * @param timeout the amount of time in milliseconds.
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> idleTimeout(long timeout);
+
+  /**
+   * @return the idle timeout
+   */
+  long idleTimeout();
+
+  /**
+   * Sets the amount of time after which, if the request is not obtained from the client within the timeout period,
+   * the response is failed with a {@link java.util.concurrent.TimeoutException}.
+   *
+   * Note this is not related to the TCP {@link HttpClientOptions#setConnectTimeout(int)} option, when a request is made against
+   * a pooled HTTP client, the timeout applies to the duration to obtain a connection from the pool to serve the request, the timeout
+   * might fire because the server does not respond in time or the pool is too busy to serve a request.
+   *
+   * @param timeout the amount of time in milliseconds.
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> connectTimeout(long timeout);
+
+  /**
+   * @return the connect timeout
+   */
+  long connectTimeout();
 
   /**
    * Add a query parameter to the request.

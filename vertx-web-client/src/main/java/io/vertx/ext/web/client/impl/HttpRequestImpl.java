@@ -63,6 +63,8 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   private String virtualHost;
   private Object uri;
   private long timeout = -1;
+  private long idleTimeout = -1;
+  private long connectTimeout = -1;
   private boolean followRedirects;
   private Boolean ssl;
   private boolean multipartMixed = true;
@@ -134,6 +136,8 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.followRedirects = other.followRedirects;
     this.proxyOptions = other.proxyOptions != null ? new ProxyOptions(other.proxyOptions) : null;
     this.timeout = other.timeout;
+    this.idleTimeout = other.idleTimeout;
+    this.connectTimeout = other.connectTimeout;
     this.queryParams = other.queryParams != null ? MultiMap.caseInsensitiveMultiMap().addAll(other.queryParams) : null;
     this.multipartMixed = other.multipartMixed;
     this.virtualHost = other.virtualHost;
@@ -262,6 +266,28 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public long timeout() {
       return timeout;
+  }
+
+  @Override
+  public HttpRequest<T> idleTimeout(long timeout) {
+    idleTimeout = timeout;
+    return this;
+  }
+
+  @Override
+  public long idleTimeout() {
+    return idleTimeout;
+  }
+
+  @Override
+  public HttpRequest<T> connectTimeout(long timeout) {
+    connectTimeout = timeout;
+    return null;
+  }
+
+  @Override
+  public long connectTimeout() {
+    return connectTimeout;
   }
 
   @Override
@@ -493,7 +519,15 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
       requestOptions.setHost(this.virtualHost);
     }
     this.mergeHeaders(requestOptions);
-    requestOptions.setTimeout(this.timeout);
+    if (timeout >= 0) {
+      requestOptions.setTimeout(timeout);
+    }
+    if (idleTimeout >= 0) {
+      requestOptions.setIdleTimeout(idleTimeout);
+    }
+    if (connectTimeout >= 0) {
+      requestOptions.setConnectTimeout(connectTimeout);
+    }
     requestOptions.setProxyOptions(this.proxyOptions);
     requestOptions.setTraceOperation(this.traceOperation);
     return requestOptions;

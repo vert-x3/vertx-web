@@ -258,11 +258,21 @@ Therefore you should call the {@link io.vertx.ext.web.client.HttpRequest#copy()}
 
 === Timeouts
 
-You can set a timeout for a specific http request using {@link io.vertx.ext.web.client.HttpRequest#timeout(long)}.
+You can set a connect timeout  for a specific http request using {@link io.vertx.ext.web.client.HttpRequest#connectTimeout(long)}.
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#timeout(io.vertx.ext.web.client.WebClient)}
+{@link examples.WebClientExamples#connectTimeout(io.vertx.ext.web.client.WebClient)}
+----
+
+If the client cannot obtain a connection to the server within the timeout period an exception will be passed to the response
+handler.
+
+You can set an idle timeout  for a specific http request using {@link io.vertx.ext.web.client.HttpRequest#idleTimeout(long)}.
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#idleTimeout(io.vertx.ext.web.client.WebClient)}
 ----
 
 If the request does not return any data within the timeout period an exception will be passed to the response
