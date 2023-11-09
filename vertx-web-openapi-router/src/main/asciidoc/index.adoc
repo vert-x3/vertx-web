@@ -58,11 +58,15 @@ After a successful validation of the incoming request, the validated parameters 
 
 === Define security handlers
 
-Security is an important aspect of the OpenAPI specification. The {@link io.vertx.ext.web.openapi.router.RouterBuilder#security} allows you to define security handlers.
+Security is an important aspect of the OpenAPI specification.
+The {@link io.vertx.ext.web.openapi.router.RouterBuilder#security} allows you to define security handlers.
 
-Users are expected to call this method for each security scheme defined in the OpenAPI contract. Not doing so will result in a failure when generating the router. Also providing other handlers that the ones defined in the contract will result in a failure.
+Users are expected to call this method for each security scheme defined in the OpenAPI contract.
+Not doing so will result in a failure when generating the router.
+Also providing other handlers that the ones defined in the contract will result in a failure.
 
-A security handler can be automatically configured for the cases of `apiKey` and `http` security schemes. For other cases, you need to provide a custom handler factory that receives as input the specified configuration from the OpenAPI contract.
+A security handler can be automatically configured for the cases of `apiKey` and `http` security schemes.
+For other cases, you need to provide a custom handler factory that receives as input the specified configuration from the OpenAPI contract.
 
 For example:
 
@@ -71,18 +75,15 @@ For example:
 {@link examples.RouterExamples#securityConfiguration}
 ----
 
-Of course Oauth2/openIdConnect are also supported, given that these modes are more complex to
-configure, instead of providing a simple configuration object, you need to provide a factory that
-can creates the handler as you need. The factory will receive the configuration from the contract,
-or in case of `openIdConnect` the configuration discovery URL.
+Of course Oauth2/openIdConnect are also supported, given that these modes are more complex to configure, instead of providing a simple configuration object, you need to provide a factory that can creates the handler as you need.
+The factory will receive the configuration from the contract, or in case of `openIdConnect` the configuration discovery URL.
 
 [source,$lang]
 ----
 {@link examples.RouterExamples#securityConfigurationOauth2}
 ----
 
-Discovery may sound simpler and if you are working with a openId compliant server you can use the
-the `openIdConnect` security scheme.
+Discovery may sound simpler and if you are working with a openId compliant server you can use the the `openIdConnect` security scheme.
 
 [source,$lang]
 ----
