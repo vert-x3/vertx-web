@@ -20,8 +20,8 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
-import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.ext.web.openapi.router.impl.RouterBuilderImpl;
+import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.openapi.validation.RequestUtils;
 
 import java.util.List;
@@ -43,12 +43,13 @@ import java.util.List;
  */
 @VertxGen
 public interface RouterBuilder {
-  String KEY_META_DATA_OPERATION = "openApiOperationId";
+  String KEY_META_DATA_OPERATION = "openApiOperation";
 
   String KEY_META_DATA_VALIDATED_REQUEST = "openApiValidatedRequest";
 
   /**
-   * Create a new {@link RouterBuilder}. Like {@link #create(Vertx, OpenAPIContract, RequestExtractor)} but uses a default
+   * Create a new {@link RouterBuilder}. Like {@link #create(Vertx, OpenAPIContract, RequestExtractor)} but uses a
+   * default
    * implementation for the <i>extractor</i>.
    *
    * @param vertx    the related Vert.x instance
@@ -98,6 +99,7 @@ public interface RouterBuilder {
 
   /**
    * Creates a new security scheme for the required {@link AuthenticationHandler}.
+   *
    * @return a security scheme.
    */
   Security security(String securitySchemeName);

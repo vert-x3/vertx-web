@@ -76,7 +76,8 @@ You can also define the {@link io.vertx.core.eventbus.DeliveryOptions} that will
 ----
 
 IMPORTANT: Before mounting the {@link io.vertx.ext.web.api.service.RouteToEBServiceHandler}, you *must* mount a
-{@link io.vertx.ext.web.validation.ValidationHandler} that extracts the request parameters. Otherwise, no request parameters will be sent.
+{@link io.vertx.ext.web.validation.ValidationHandler} that extracts the request parameters.
+Otherwise, no request parameters will be sent.
 
 == Define your Web API Service interface
 
@@ -131,11 +132,13 @@ void putTransaction(RequestParameter body, ServiceRequest context, Handler<Async
 
 We encourage to extract with {@link io.vertx.ext.web.validation.RequestParameter} type the parameters that uses json schema allOf/anyOf/oneOf/not keywords because the extraction can produce undefined behaviours.
 
-NOTE: When working with `DataObjects` by default `base64` strings are handled with the `base64url` alphabet, while OpenAPI does not mandate this alphabet so it assumes `basic`. To force a `DataObject` to use a specific alphabet this can be configured in the `@DataObject` annotation.
+NOTE: When working with `DataObjects` by default `base64` strings are handled with the `base64url` alphabet, while OpenAPI does not mandate this alphabet so it assumes `basic`.
+To force a `DataObject` to use a specific alphabet this can be configured in the `@DataObject` annotation.
 
 == Implement your Web API Service
 
-Now you can implement your service. Remember that {@link io.vertx.ext.web.api.service.ServiceRequest} object contains headers and parameters maps.
+Now you can implement your service.
+Remember that {@link io.vertx.ext.web.api.service.ServiceRequest} object contains headers and parameters maps.
 
 To write the request you must call the `resultHandler` with an {@link io.vertx.ext.web.api.service.ServiceResponse}.
 To create an instance of {@link io.vertx.ext.web.api.service.ServiceResponse} you can use some handy methods like {@link io.vertx.ext.web.api.service.ServiceResponse#completedWithJson(io.vertx.core.buffer.Buffer)} or {@link io.vertx.ext.web.api.service.ServiceResponse#completedWithPlainText(io.vertx.core.buffer.Buffer)}
@@ -156,7 +159,8 @@ Or when it fails:
 
 === The `ServiceRequest` data object
 
-`ServiceRequest` it's a _serializable_ version of `RoutingContext`, but It doesn't contain all data of `RoutingContext`. It transports to your service:
+`ServiceRequest` it's a _serializable_ version of `RoutingContext`, but It doesn't contain all data of `RoutingContext`.
+It transports to your service:
 
 * {@link io.vertx.ext.web.api.service.ServiceRequest#getHeaders()}: Headers of the request
 * {@link io.vertx.ext.web.api.service.ServiceRequest#getParams()}: Contains `routingContext.get("parsedParameters")`
@@ -171,7 +175,8 @@ You can configure a lambda that builds the extra payload with {@link io.vertx.ex
 
 * Headers of the response
 * Status code/Status message
-* Body as a payload. If you don't set the payload/set as null no body will be sent
+* Body as a payload.
+If you don't set the payload/set as null no body will be sent
 
 == Expose your Web API Service
 
@@ -183,3 +188,47 @@ Now you can register your service to event bus:
 ----
 
 For more info on how to expose your service look at https://vertx.io/docs/vertx-service-proxy/java/#_exposing_your_service[Vert.x service proxy documentation]
+
+== OpenAPI Integration
+
+Vert.x Web API Service offers an {@link io.vertx.ext.web.api.service.OpenAPIRouterHandler} which can be added to an {@link io.vertx.ext.web.openapi.router.OpenAPIRoute} and will forward incoming HTTP requests to the related Web API Service Proxy.
+The validation of this {@link io.vertx.ext.web.openapi.router.OpenAPIRoute} *MUST* be enabled.
+
+[source,$lang]
+----
+{@link examples.OpenAPIExamples#addHandler}
+----
+
+=== OpenAPI contract extension
+
+Adding an {@link io.vertx.ext.web.api.service.OpenAPIRouterHandler} to an {@link io.vertx.ext.web.openapi.router.OpenAPIRoute} requires to extend the related `OpenAPI Operation` with a `x-vertx-event-bus` extension.
+The `x-vertx-event-bus` extension must be filled with the address and method name of the related Web API Service Proxy.
+If no method name is defined, the operationId will be used.
+
+[source,yaml]
+----
+# without method name
+paths:
+  /pets:
+    get:
+      operationId: listPets
+      x-vertx-event-bus: myEventbusAddress
+
+# with method name
+paths:
+  /pets:
+    get:
+      operationId: listPets
+      x-vertx-event-bus:
+        address: myEventbusAddress
+        method: getPetById
+
+# defined on Path level for all operations
+paths:
+  /pets:
+    x-vertx-event-bus: myEventbusAddress
+    get:
+      operationId: listPets
+    post:
+      operationId: createPet
+----

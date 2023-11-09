@@ -39,8 +39,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class RouterBuilderImpl implements RouterBuilderInternal {
-
-  private final static Logger LOG = LoggerFactory.getLogger(RouterBuilderImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RouterBuilderImpl.class);
 
   private static final String PATH_PARAM_PLACEHOLDER_REGEX = "\\{(.*?)}";
 
@@ -113,7 +112,7 @@ public class RouterBuilderImpl implements RouterBuilderInternal {
     for (Path path : contract.getPaths()) {
       for (Operation operation : path.getOperations()) {
         Route route = router.route(operation.getHttpMethod(), toVertxWebPath(path.getName()));
-        route.putMetadata(KEY_META_DATA_OPERATION, operation.getOperationId());
+        route.putMetadata(KEY_META_DATA_OPERATION, operation);
 
         OpenAPIRoute openAPIRoute = getRoute(operation.getOperationId());
         Objects.requireNonNull(openAPIRoute, "No route found for operation " + operation.getOperationId());
