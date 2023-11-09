@@ -281,18 +281,24 @@ public interface HttpRequest<T> {
   Boolean ssl();
 
   /**
-   * Equivalent to setting the same timeout value with {@link #connectTimeout(long)} and {@link #idleTimeout(long)}.
+   * Sets both connect and idle timeouts for the request
    *
-   * @deprecated instead use {@link #connectTimeout(long)} or/and {@link #idleTimeout(long)}
+   * <ul>
+   *   <li><i>connect timeout</i>: if the request is not obtained from the client within the timeout period, the {@code Future<HttpClientRequest>}
+   *   obtained from the client is failed with a {@link java.util.concurrent.TimeoutException}.</li>
+   *   <li><i>idle timeout</i>: if the request does not return any data within the timeout period, the request/response is closed and the
+   *   related futures are failed with a {@link java.util.concurrent.TimeoutException}, e.g. {@code Future<HttpClientResponse>}
+   *   or {@code Future<Buffer>} response body.</li>
+   * </ul>
+   *
+   * The connect and idle timeouts can be set separately using {@link #connectTimeout(long)} and {@link #idleTimeout(long)}
    */
-  @Deprecated
   @Fluent
   HttpRequest<T> timeout(long value);
 
   /**
    * @return the current timeout in milliseconds
    */
-  @Deprecated
   long timeout();
 
   /**
@@ -308,7 +314,7 @@ public interface HttpRequest<T> {
   HttpRequest<T> idleTimeout(long timeout);
 
   /**
-   * @return the idle timeout
+   * @return the idle timeout in milliseconds
    */
   long idleTimeout();
 
@@ -327,7 +333,7 @@ public interface HttpRequest<T> {
   HttpRequest<T> connectTimeout(long timeout);
 
   /**
-   * @return the connect timeout
+   * @return the connect timeout in milliseconds
    */
   long connectTimeout();
 
