@@ -21,16 +21,8 @@ import io.vertx.core.http.Http2Settings;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.JdkSSLEngineOptions;
-import io.vertx.core.net.JksOptions;
-import io.vertx.core.net.KeyCertOptions;
-import io.vertx.core.net.OpenSSLEngineOptions;
-import io.vertx.core.net.PemKeyCertOptions;
-import io.vertx.core.net.PemTrustOptions;
-import io.vertx.core.net.PfxOptions;
-import io.vertx.core.net.ProxyOptions;
-import io.vertx.core.net.SSLEngineOptions;
-import io.vertx.core.net.TrustOptions;
+import io.vertx.core.net.*;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -358,8 +350,14 @@ public class CachingWebClientOptions extends WebClientOptions {
   }
 
   @Override
+  @Deprecated
   public CachingWebClientOptions setTryUseCompression(boolean tryUseCompression) {
     return (CachingWebClientOptions) super.setTryUseCompression(tryUseCompression);
+  }
+
+  @Override
+  public CachingWebClientOptions setDecompressionSupported(boolean tryUseCompression) {
+    return (CachingWebClientOptions) super.setDecompressionSupported(tryUseCompression);
   }
 
   @Override
