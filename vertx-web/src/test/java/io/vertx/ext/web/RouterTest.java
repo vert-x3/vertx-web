@@ -1439,6 +1439,34 @@ public class RouterTest extends WebTestBase {
     assertEquals(3, routes.size());
   }
 
+  @Test
+  public void testGetRoutesRecursive() throws Exception {
+    router.route("/a").handler(rc -> {
+    });
+    Router subRouter = Router.router(vertx);
+    subRouter.route("/b").handler(rc -> {
+    });
+    subRouter.route("/c").handler(rc -> {
+    });
+    router.route("/sub/*").subRouter(subRouter);
+    List<Route> routes = router.getRoutes();
+    assertEquals(2, routes.size());
+    for(Route route: routes) {
+      Router theSubRouter = route.getSubRouter();
+      if (route.getPath().equals("/sub/")) {
+        assertNotNull(theSubRouter);
+        assertEquals(2, theSubRouter.getRoutes().size());
+        Set<String> paths = new HashSet<>();
+        paths.add("/b");
+        paths.add("/c");
+        assertEquals(paths, theSubRouter.getRoutes().stream().map(Route::getPath).collect(Collectors.toSet()));
+      } else {
+        assertNull(theSubRouter);
+        assertEquals("/a", route.getPath());
+      }
+    }
+  }
+
   // Test that adding headersEndhandlers doesn't overwrite other ones
   @Test
   public void testHeadersEndHandler() throws Exception {
