@@ -178,7 +178,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { text(type: \"valid\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -193,7 +193,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { text(type: \"null\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasError());
       assertFalse(result.hasData());
@@ -207,7 +207,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { text(type: \"eol\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -224,7 +224,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { text(type: \"empty\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertFalse(result.hasError());
       assertTrue(result.hasData());
@@ -239,7 +239,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { text(type: \"brokenjson\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -254,7 +254,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { text(type: \"non-ascii\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -269,7 +269,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { text(type: \"long\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -284,7 +284,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"positive\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -299,7 +299,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"negative\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -314,7 +314,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"max\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -329,7 +329,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"min\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -344,7 +344,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"zero\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -359,7 +359,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"huge\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertFalse(result.hasData());
       assertTrue(result.hasError());
@@ -373,7 +373,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"tiny\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertFalse(result.hasData());
       assertTrue(result.hasError());
@@ -387,7 +387,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"overwhelming\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertFalse(result.hasData());
       assertTrue(result.hasError());
@@ -401,7 +401,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"null\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertFalse(result.hasData());
       assertTrue(result.hasError());
@@ -415,7 +415,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"float\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertFalse(result.hasData());
       assertTrue(result.hasError());
@@ -429,7 +429,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"string\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertFalse(result.hasData());
       assertTrue(result.hasError());
@@ -443,7 +443,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { floating(type: \"valid\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -458,7 +458,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { floating(type: \"null\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertFalse(result.hasData());
       assertTrue(result.hasError());
@@ -472,7 +472,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { bool(type: \"yes\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -487,7 +487,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { bool(type: \"no\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -502,7 +502,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { bool(type: \"null\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertFalse(result.hasData());
       assertTrue(result.hasError());
@@ -516,7 +516,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { list(type: \"valid\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       JsonArray list = result.data().getJsonArray("list");
@@ -531,7 +531,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { array(type: \"valid\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       JsonArray list = result.data().getJsonArray("array");
@@ -546,7 +546,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { list(type: \"object\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       JsonArray list = result.data().getJsonArray("list");
@@ -561,7 +561,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { array(type: \"object\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       JsonArray list = result.data().getJsonArray("array");
@@ -576,7 +576,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { list(type: \"empty\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       JsonArray list = result.data().getJsonArray("list");
@@ -591,7 +591,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { array(type: \"empty\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       JsonArray list = result.data().getJsonArray("array");
@@ -606,7 +606,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { list(type: \"null\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasError());
       assertFalse(result.hasData());
@@ -620,7 +620,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { array(type: \"null\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -635,7 +635,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { list(type: \"nullvalues\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasData());
       assertFalse(result.hasError());
@@ -654,7 +654,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { array(type: \"nullvalues\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasError());
       testComplete();
@@ -667,7 +667,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { list(type: \"scalar\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasError());
       assertFalse(result.hasData());
@@ -681,7 +681,7 @@ public class ValidationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { array(type: \"scalar\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       ValidationResult result = new ValidationResult(body);
       assertTrue(result.hasError());
       assertNull(result.data().getValue("array"));

@@ -458,7 +458,7 @@ public class BodyHandlerTest extends WebTestBase {
     RequestOptions requestOptions = new RequestOptions()
       .setMethod(HttpMethod.POST)
       .setHost("localhost")
-      .setPort(8080)
+      .setPort(getServerPort())
       .setURI("/upload");
     client.request(requestOptions).onComplete(onSuccess(req -> {
       req.response().onComplete(onSuccess(resp -> {

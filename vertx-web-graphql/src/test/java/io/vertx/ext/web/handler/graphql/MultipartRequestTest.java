@@ -66,7 +66,7 @@ public class MultipartRequestTest extends WebTestBase {
 
   @Test
   public void testSingleUploadMutation() {
-    final HttpClient client = vertx.createHttpClient(getHttpClientOptions());
+    final HttpClient client = vertx.createHttpClient(getHttpClientOptions(getServerPort()));
 
     final Buffer bodyBuffer = vertx.fileSystem().readFileBlocking("singleUpload.txt");
 
@@ -89,7 +89,7 @@ public class MultipartRequestTest extends WebTestBase {
 
   @Test
   public void testMultipleUploadMutation() {
-    final HttpClient client = vertx.createHttpClient(getHttpClientOptions());
+    final HttpClient client = vertx.createHttpClient(getHttpClientOptions(getServerPort()));
 
     final Buffer bodyBuffer = vertx.fileSystem().readFileBlocking("multipleUpload.txt");
     client.request(new RequestOptions()
@@ -110,7 +110,7 @@ public class MultipartRequestTest extends WebTestBase {
 
   @Test
   public void testBatchUploadMutation() {
-    final HttpClient client = vertx.createHttpClient(getHttpClientOptions());
+    final HttpClient client = vertx.createHttpClient(getHttpClientOptions(getServerPort()));
 
     final Buffer bodyBuffer = vertx.fileSystem().readFileBlocking("batchUpload.txt");
     client.request(new RequestOptions()

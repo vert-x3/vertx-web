@@ -160,7 +160,7 @@ public class OAuth2ImpersonationTest extends WebTestBase {
     // create an oauth2 handler on our domain to the callback: "http://localhost:8080/callback" and
     // protect everything under /protected
     router.route("/protected/*")
-      .handler(OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/callback").setupCallback(router.route("/callback")));
+      .handler(OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:"+getServerPort()+"/callback").setupCallback(router.route("/callback")));
 
     final AtomicReference<User> userRef = new AtomicReference<>();
 

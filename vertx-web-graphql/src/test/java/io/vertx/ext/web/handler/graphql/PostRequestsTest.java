@@ -38,7 +38,7 @@ public class PostRequestsTest extends GraphQLTestBase {
   public void testSimplePost() throws Exception {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { url } }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
@@ -53,7 +53,7 @@ public class PostRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { url } }")
       .setContentType(null);
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
@@ -68,7 +68,7 @@ public class PostRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { url } }")
       .setGraphQLQueryAsParam(true);
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
@@ -83,7 +83,7 @@ public class PostRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { url } }")
       .setContentType(GRAPHQL);
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
@@ -102,7 +102,7 @@ public class PostRequestsTest extends GraphQLTestBase {
       .setGraphQLQuery(query)
       .setOperationName("bar")
       .addVariable("secure", true);
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       List<String> expected = testData.urls().stream()
         .filter(url -> url.startsWith("https://"))
         .collect(toList());
@@ -120,7 +120,7 @@ public class PostRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query($secure: Boolean) { allLinks(secureOnly: $secure) { url } }")
       .addVariable("secure", true);
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       List<String> expected = testData.urls().stream()
         .filter(url -> url.startsWith("https://"))
         .collect(toList());
@@ -139,7 +139,7 @@ public class PostRequestsTest extends GraphQLTestBase {
       .setGraphQLQuery("query { allLinks { description } }")
       .setInitialValue(12345)
       .setInitialValueAsParam(true);
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       String[] values = new String[testData.links.size()];
       Arrays.fill(values, "12345");
       List<String> expected = Arrays.asList(values);
@@ -157,7 +157,7 @@ public class PostRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { description } }")
       .setInitialValue(12345);
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       String[] values = new String[testData.links.size()];
       Arrays.fill(values, "12345");
       List<String> expected = Arrays.asList(values);
@@ -174,7 +174,7 @@ public class PostRequestsTest extends GraphQLTestBase {
   public void testSimplePostWithNoInitialValue() throws Exception {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { description } }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       if (testData.checkLinkDescriptions(testData.descriptions(), body)) {
         testComplete();
       } else {
@@ -188,7 +188,7 @@ public class PostRequestsTest extends GraphQLTestBase {
   public void testPostNoQuery() throws Exception {
     GraphQLRequest request = new GraphQLRequest()
       .setRequestBody(new JsonObject().put("foo", "bar").toBuffer());
-    request.send(client, 400, onSuccess(v -> {
+    request.send(client,  400, getServerPort(), onSuccess(v -> {
       testComplete();
     }));
     await();
@@ -198,7 +198,7 @@ public class PostRequestsTest extends GraphQLTestBase {
   public void testPostInvalidJson() throws Exception {
     GraphQLRequest request = new GraphQLRequest()
       .setRequestBody(new JsonArray().add("foo").add("bar").toBuffer());
-    request.send(client, 400, onSuccess(v -> {
+    request.send(client, 400, getServerPort(), onSuccess(v -> {
       testComplete();
     }));
     await();
@@ -209,7 +209,7 @@ public class PostRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setHttpQueryString("query=" + encode("query { allLinks { url } }") + "&variables=" + encode("[1,2,3]"))
       .setRequestBody(null);
-    request.send(client, 400, onSuccess(body -> {
+    request.send(client, 400, getServerPort(), onSuccess(body -> {
       testComplete();
     }));
     await();
@@ -233,7 +233,7 @@ public class PostRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { url } }")
       .setContentType("application/json; charset=UTF-8");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {

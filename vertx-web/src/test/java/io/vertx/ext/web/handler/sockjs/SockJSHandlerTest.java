@@ -419,11 +419,11 @@ public class SockJSHandlerTest extends WebTestBase {
       }));
 
     wsClient.connect(new WebSocketConnectOptions()
-      .setPort(8080)
+      .setPort(getServerPort())
       .setURI("/webcontext/websocket")).onComplete(onSuccess(
         ws -> {
           wsClient.connect(new WebSocketConnectOptions()
-              .setPort(8080)
+              .setPort(getServerPort())
               .setURI("/webcontextuser/websocket")).onComplete(onSuccess(wsuser -> complete())
           );
         }
@@ -448,7 +448,7 @@ public class SockJSHandlerTest extends WebTestBase {
     headers.add("cookie", "flibble=floob");
 
     wsClient.connect(new WebSocketConnectOptions()
-      .setPort(8080)
+      .setPort(getServerPort())
       .setURI("/cookiesremoved/websocket")
       .setHeaders(headers)).onComplete(onSuccess(ws -> {
         complete();

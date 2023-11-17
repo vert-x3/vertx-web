@@ -2794,7 +2794,7 @@ public class RouterTest extends WebTestBase {
     router.route().handler(ctx -> ctx.fail(500));
 
     testRequest(new RequestOptions()
-      .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setServer(SocketAddress.inetSocketAddress(getServerPort(), "localhost"))
       .setPort(80)
       .setHost("www.mysite.com"), req -> {
     }, 200, "OK", null);
@@ -2807,7 +2807,7 @@ public class RouterTest extends WebTestBase {
     router.route().handler(ctx -> ctx.fail(500));
 
     testRequest(new RequestOptions()
-      .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setServer(SocketAddress.inetSocketAddress(getServerPort(), "localhost"))
       .setPort(80)
       .setHost("www.mysite.net"), req -> {
     }, 500, "Internal Server Error", null);
@@ -3228,7 +3228,7 @@ public class RouterTest extends WebTestBase {
       });
 
     Function<List<String>, String> test = reqs -> {
-      try (Socket socket = new Socket("localhost", 8080)) {
+      try (Socket socket = new Socket("localhost", getServerPort())) {
         OutputStream output = socket.getOutputStream();
         PrintWriter writer = new PrintWriter(output, true);
 
@@ -3490,7 +3490,7 @@ public class RouterTest extends WebTestBase {
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0;i < numRequests;i++) {
-      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
+      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(getServerPort())).onComplete(onSuccess(req -> {
         // 8192 * 8 fills the HTTP server request pending queue
         // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
         req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
@@ -3525,7 +3525,7 @@ public class RouterTest extends WebTestBase {
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0;i < numRequests;i++) {
-      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
+      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(getServerPort())).onComplete(onSuccess(req -> {
         // 8192 * 8 fills the HTTP server request pending queue
         // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
         req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
@@ -3563,7 +3563,7 @@ public class RouterTest extends WebTestBase {
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0;i < numRequests;i++) {
-      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
+      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(getServerPort())).onComplete(onSuccess(req -> {
         // 8192 * 8 fills the HTTP server request pending queue
         // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
         req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
@@ -3591,7 +3591,7 @@ public class RouterTest extends WebTestBase {
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0;i < numRequests;i++) {
-      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
+      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(getServerPort())).onComplete(onSuccess(req -> {
         // 8192 * 8 fills the HTTP server request pending queue
         // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
         req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
