@@ -213,12 +213,12 @@ public class StaticHandlerTest extends WebTestBase {
       .setSsl(true)
       .setUseAlpn(true)
       .setProtocolVersion(HttpVersion.HTTP_2)
-      .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem")));
+      .setTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem")));
 
     vertx.createHttpServer(new HttpServerOptions()
         .setUseAlpn(true)
         .setSsl(true)
-        .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")))
+        .setKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")))
       .requestHandler(router).listen(8443)
       .onFailure(this::fail)
       .onSuccess(server -> {
@@ -260,12 +260,12 @@ public class StaticHandlerTest extends WebTestBase {
       .setSsl(true)
       .setUseAlpn(true)
       .setProtocolVersion(HttpVersion.HTTP_2)
-      .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem")));
+      .setTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem")));
 
     vertx.createHttpServer(new HttpServerOptions()
         .setUseAlpn(true)
         .setSsl(true)
-        .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")))
+        .setKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")))
       .requestHandler(router).listen(8443)
       .onFailure(this::fail)
       .onSuccess(server -> {

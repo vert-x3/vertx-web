@@ -1699,7 +1699,7 @@ public class WebClientTest extends WebClientTestBase {
       .setDefaultPort(DEFAULT_HTTPS_PORT);
     HttpServerOptions serverOptions = new HttpServerOptions()
       .setSsl(serverSSL)
-      .setKeyStoreOptions(Cert.SERVER_JKS.get())
+      .setKeyCertOptions(Cert.SERVER_JKS.get())
       .setPort(DEFAULT_HTTPS_PORT)
       .setHost(DEFAULT_HTTPS_HOST);
     testTLS(clientOptions, serverOptions, requestProvider, serverAssertions);
@@ -1714,7 +1714,7 @@ public class WebClientTest extends WebClientTestBase {
     HttpServerOptions serverOptions = new HttpServerOptions()
       .setSsl(true)
       .setSni(true)
-      .setKeyStoreOptions(Cert.SNI_JKS.get())
+      .setKeyCertOptions(Cert.SNI_JKS.get())
       .setPort(DEFAULT_HTTPS_PORT)
       .setHost(DEFAULT_HTTPS_HOST);
      testTLS(clientOptions, serverOptions, req -> req.get("/").virtualHost("host2.com").ssl(true), req -> {
