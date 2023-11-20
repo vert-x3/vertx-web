@@ -4,6 +4,7 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.http.*;
 import io.vertx.core.metrics.MetricsOptions;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.core.spi.VertxMetricsFactory;
 import io.vertx.core.spi.metrics.HttpServerMetrics;
 import io.vertx.core.spi.metrics.VertxMetrics;
 import io.vertx.core.spi.observability.HttpRequest;
@@ -20,16 +21,17 @@ public class MetricsTest extends WebTestBase {
   final FakeHttpServerMetrics fakeHttpServerMetrics = new FakeHttpServerMetrics();
 
   @Override
+  protected VertxMetricsFactory getMetrics() {
+    return options -> new VertxMetrics() {
+      public HttpServerMetrics<?, ?, ?> createHttpServerMetrics(HttpServerOptions options, SocketAddress localAddress) {
+        return fakeHttpServerMetrics;
+      }
+    };
+  }
+
+  @Override
   public VertxOptions getOptions() {
-    return new VertxOptions()
-      .setMetricsOptions(
-        new MetricsOptions()
-          .setEnabled(true)
-          .setFactory(options -> new VertxMetrics() {
-            public HttpServerMetrics<?, ?, ?> createHttpServerMetrics(HttpServerOptions options, SocketAddress localAddress) {
-              return fakeHttpServerMetrics;
-            }
-          }));
+    return new VertxOptions().setMetricsOptions(new MetricsOptions().setEnabled(true));
   }
 
   @Test

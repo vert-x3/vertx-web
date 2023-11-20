@@ -36,9 +36,7 @@ public class SockJSWriteHandlerTestServer {
   }
 
   private static Future<String> createClusteredAndDeploy(Verticle verticle) {
-    VertxOptions options = new VertxOptions()
-      .setClusterManager(new FakeClusterManager());
-    return Vertx.clusteredVertx(options).flatMap(vertx -> vertx.deployVerticle(verticle));
+    return Vertx.builder().withClusterManager(new FakeClusterManager()).buildClustered().flatMap(vertx -> vertx.deployVerticle(verticle));
   }
 
   private static class HttpServerVerticle extends AbstractVerticle {
