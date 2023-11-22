@@ -21,16 +21,17 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.impl.TemplateHolder;
+import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
 import org.mvel2.integration.impl.ImmutableDefaultFactory;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
 import org.mvel2.util.StringAppender;
 
-import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
-
 import java.nio.charset.Charset;
 import java.util.Map;
+
+import static io.vertx.core.impl.Utils.isWindows;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -51,7 +52,7 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
       TemplateHolder<CompiledTemplate> template = getTemplate(src);
 
       if (template == null) {
-        int idx = src.lastIndexOf('/');
+        int idx = findLastFileSeparator(src);
         String baseDir = "";
         if (idx != -1) {
           baseDir = src.substring(0, idx);
@@ -85,4 +86,10 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
     }
   }
 
+  private static int findLastFileSeparator(String src) {
+    if (isWindows()) {
+      return Math.max(src.lastIndexOf('/'), src.lastIndexOf('\\'));
+    }
+    return src.lastIndexOf('/');
+  }
 }

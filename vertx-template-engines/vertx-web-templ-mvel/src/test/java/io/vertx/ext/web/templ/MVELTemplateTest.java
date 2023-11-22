@@ -19,13 +19,11 @@ package io.vertx.ext.web.templ;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.file.FileSystemOptions;
-import io.vertx.core.impl.Utils;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
-import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,10 +79,6 @@ public class MVELTemplateTest {
 
   @Test
   public void testTemplateHandlerWithInclude(TestContext should) {
-    // Cannot pass on windows due to
-    // File file = new File(runtime.getRelPath().peek() + "/" + fileName);
-    // in org.mvel2.templates.res.CompiledIncludeNode
-    Assume.assumeFalse(Utils.isWindows());
     TemplateEngine engine = MVELTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
