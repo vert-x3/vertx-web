@@ -14,12 +14,12 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.web.templ.mvel;
+package io.vertx.ext.web.templ.groovy;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.common.template.TemplateEngine;
-import io.vertx.ext.web.templ.mvel.impl.MVELTemplateEngineImpl;
+import io.vertx.ext.web.templ.groovy.impl.GroovyTemplateEngineImpl;
 
 /**
  * A template engine that uses the Handlebars library.
@@ -27,7 +27,7 @@ import io.vertx.ext.web.templ.mvel.impl.MVELTemplateEngineImpl;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface MVELTemplateEngine extends TemplateEngine {
+public interface GroovyTemplateEngine extends TemplateEngine {
 
   /**
    * Default template extension
@@ -39,8 +39,8 @@ public interface MVELTemplateEngine extends TemplateEngine {
    *
    * @return  the engine
    */
-  static MVELTemplateEngine create(Vertx vertx) {
-    return new MVELTemplateEngineImpl(vertx, DEFAULT_TEMPLATE_EXTENSION);
+  static GroovyTemplateEngine create(Vertx vertx) {
+    return new GroovyTemplateEngineImpl(vertx, DEFAULT_TEMPLATE_EXTENSION);
   }
 
   /**
@@ -48,7 +48,7 @@ public interface MVELTemplateEngine extends TemplateEngine {
    *
    * @return  the engine
    */
-  static MVELTemplateEngine create(Vertx vertx, String extension) {
-    return new MVELTemplateEngineImpl(vertx, extension);
+  static GroovyTemplateEngine create(Vertx vertx, String extension) {
+    return new GroovyTemplateEngineImpl(vertx, extension);
   }
 }

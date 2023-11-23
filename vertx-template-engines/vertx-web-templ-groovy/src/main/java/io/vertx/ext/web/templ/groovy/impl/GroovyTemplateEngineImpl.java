@@ -14,14 +14,14 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.web.templ.mvel.impl;
+package io.vertx.ext.web.templ.groovy.impl;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.impl.TemplateHolder;
-import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
+import io.vertx.ext.web.templ.groovy.GroovyTemplateEngine;
 import org.mvel2.integration.impl.ImmutableDefaultFactory;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
@@ -36,11 +36,11 @@ import static io.vertx.core.impl.Utils.isWindows;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTemplate> implements MVELTemplateEngine {
+public class GroovyTemplateEngineImpl extends CachingTemplateEngine<CompiledTemplate> implements GroovyTemplateEngine {
 
   private final Vertx vertx;
 
-  public MVELTemplateEngineImpl(Vertx vertx, String extension) {
+  public GroovyTemplateEngineImpl (Vertx vertx, String extension) {
     super(vertx, extension);
     this.vertx = vertx;
   }

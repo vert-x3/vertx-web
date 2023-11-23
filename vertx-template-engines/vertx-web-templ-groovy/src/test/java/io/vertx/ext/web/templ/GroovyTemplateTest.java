@@ -23,7 +23,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
-import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
+import io.vertx.ext.web.templ.groovy.GroovyTemplateEngine;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +36,7 @@ import java.io.PrintWriter;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @RunWith(VertxUnitRunner.class)
-public class MVELTemplateTest {
+public class GroovyTemplateTest {
 
   private static Vertx vertx;
 
@@ -47,7 +47,7 @@ public class MVELTemplateTest {
 
   @Test
   public void testTemplateHandlerOnClasspath(TestContext should) {
-    TemplateEngine engine = MVELTemplateEngine.create(vertx);
+    TemplateEngine engine = GroovyTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
@@ -63,7 +63,7 @@ public class MVELTemplateTest {
 
   @Test
   public void MVELTemplateTestMVELTemplateTestMVELTemplateTest(TestContext should) {
-    TemplateEngine engine = MVELTemplateEngine.create(vertx);
+    TemplateEngine engine = GroovyTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
@@ -79,7 +79,7 @@ public class MVELTemplateTest {
 
   @Test
   public void testTemplateHandlerWithInclude(TestContext should) {
-    TemplateEngine engine = MVELTemplateEngine.create(vertx);
+    TemplateEngine engine = GroovyTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
@@ -101,7 +101,7 @@ public class MVELTemplateTest {
 
   @Test
   public void testTemplateHandlerNoExtension(TestContext should) {
-    TemplateEngine engine = MVELTemplateEngine.create(vertx);
+    TemplateEngine engine = GroovyTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
@@ -117,7 +117,7 @@ public class MVELTemplateTest {
 
   @Test
   public void testTemplateHandlerChangeExtension(TestContext should) {
-    TemplateEngine engine = MVELTemplateEngine.create(vertx, "bempl");
+    TemplateEngine engine = GroovyTemplateEngine.create(vertx, "bempl");
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
@@ -133,14 +133,14 @@ public class MVELTemplateTest {
 
   @Test
   public void testNoSuchTemplate(TestContext should) {
-    TemplateEngine engine = MVELTemplateEngine.create(vertx);
+    TemplateEngine engine = GroovyTemplateEngine.create(vertx);
     engine.render(new JsonObject(), "nosuchtemplate.templ").onComplete(should.asyncAssertFailure());
   }
 
   @Test
   public void testCachingEnabled(TestContext should) throws IOException {
     System.setProperty("vertxweb.environment", "production");
-    TemplateEngine engine = MVELTemplateEngine.create(vertx);
+    TemplateEngine engine = GroovyTemplateEngine.create(vertx);
 
     PrintWriter out;
     File temp = File.createTempFile("template", ".templ", new File("target/classes"));

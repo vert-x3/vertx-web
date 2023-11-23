@@ -1,2 +1,1 @@
-Automatic-Module-Name: io.vertx.web.template.mvel
-
+Automatic-Module-Name: io.vertx.web.template.groovy

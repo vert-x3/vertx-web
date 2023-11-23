@@ -24,10 +24,9 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
+import io.vertx.ext.web.templ.groovy.GroovyTemplateEngine;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -38,7 +37,7 @@ import java.io.PrintWriter;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @RunWith(VertxUnitRunner.class)
-public class MVELTemplateNoCacheTest {
+public class GroovyTemplateNoCacheTest {
 
   private static Vertx vertx;
 
@@ -52,7 +51,7 @@ public class MVELTemplateNoCacheTest {
     final Async test = should.async();
 
     System.setProperty("vertxweb.environment", "development");
-    TemplateEngine engine = MVELTemplateEngine.create(vertx);
+    TemplateEngine engine = GroovyTemplateEngine.create(vertx);
 
     PrintWriter out;
     File temp = File.createTempFile("template", ".templ", new File("target/classes"));

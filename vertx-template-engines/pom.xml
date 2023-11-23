@@ -20,6 +20,7 @@
   <modules>
     <module>vertx-web-templ-pug</module>
     <module>vertx-web-templ-mvel</module>
+    <module>vertx-web-templ-groovy</module>
     <module>vertx-web-templ-handlebars</module>
     <module>vertx-web-templ-thymeleaf</module>
     <module>vertx-web-templ-freemarker</module>
