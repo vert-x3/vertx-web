@@ -24,6 +24,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.groovy.GroovyTemplateEngine;
+import io.vertx.ext.web.templ.groovy.impl.GroovyTemplateEngineImpl;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +32,8 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -175,4 +178,22 @@ public class GroovyTemplateTest {
   private static String normalizeCRLF(String s) {
     return s.replace("\r\n", "\n");
   }
+
+  @Test
+  public void trimEol() {
+    assertEquals("\r foo ", GroovyTemplateEngineImpl.trimRightEol("\r foo \n"));
+    assertEquals("\r foo ", GroovyTemplateEngineImpl.trimRightEol("\r foo \r"));
+    assertEquals("\r foo ", GroovyTemplateEngineImpl.trimRightEol("\r foo \r\n"));
+    assertEquals("\r foo ", GroovyTemplateEngineImpl.trimRightEol("\r foo \n\r"));
+    assertEquals("\r foo \r", GroovyTemplateEngineImpl.trimRightEol("\r foo \r\r\n"));
+  }
+
+  @Test
+  public void testTemplateFailure(TestContext should) {
+    TemplateEngine engine = GroovyTemplateEngine.create(vertx);
+    engine.render(new JsonObject(), "somedir/bad.templ").onComplete(should.asyncAssertFailure(e->{
+      should.assertEquals("java.lang.ArithmeticException: Division by zero", e.toString());
+    }));
+  }
+
 }
