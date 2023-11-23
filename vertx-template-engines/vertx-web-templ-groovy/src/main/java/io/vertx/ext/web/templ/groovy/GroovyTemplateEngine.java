@@ -22,7 +22,7 @@ import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.groovy.impl.GroovyTemplateEngineImpl;
 
 /**
- * A template engine that uses the Handlebars library.
+ * A template engine that uses the <a href="https://docs.groovy-lang.org/docs/next/html/documentation/template-engines.html">Groovy-Templates library</a>.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */

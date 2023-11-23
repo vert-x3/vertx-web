@@ -16,80 +16,132 @@
 
 package io.vertx.ext.web.templ.groovy.impl;
 
+import groovy.text.GStringTemplateEngine;
+import groovy.text.Template;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.impl.Utils;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.impl.TemplateHolder;
 import io.vertx.ext.web.templ.groovy.GroovyTemplateEngine;
-import org.mvel2.integration.impl.ImmutableDefaultFactory;
-import org.mvel2.templates.CompiledTemplate;
-import org.mvel2.templates.TemplateCompiler;
-import org.mvel2.templates.TemplateRuntime;
-import org.mvel2.util.StringAppender;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.function.Function;
 
-import static io.vertx.core.impl.Utils.isWindows;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class GroovyTemplateEngineImpl extends CachingTemplateEngine<CompiledTemplate> implements GroovyTemplateEngine {
+public class GroovyTemplateEngineImpl extends CachingTemplateEngine<Template> implements GroovyTemplateEngine {
 
   private final Vertx vertx;
+  private final GStringTemplateEngine engine = new GStringTemplateEngine();
 
   public GroovyTemplateEngineImpl (Vertx vertx, String extension) {
     super(vertx, extension);
     this.vertx = vertx;
   }
 
+  private static final ThreadLocal<Map<String,Object>> BINDING = new ThreadLocal<>();
+  private final Function<String,String> include = this::include;
+
   @Override
   public Future<Buffer> render(Map<String, Object> context, String templateFile) {
     try {
-      String src = adjustLocation(templateFile);
-      TemplateHolder<CompiledTemplate> template = getTemplate(src);
+      String src = adjustLocation(templateFile).replace('\\','/');// windows works with linux / path separator
+      TemplateHolder<Template> template = getTemplate(src);
 
       if (template == null) {
-        int idx = findLastFileSeparator(src);
+        int idx = src.lastIndexOf('/');
         String baseDir = "";
         if (idx != -1) {
           baseDir = src.substring(0, idx);
         }
 
         if (!vertx.fileSystem().existsBlocking(src)) {
-          return Future.failedFuture("Cannot find template " + src);
+          return Future.failedFuture("Cannot find groovy template " + src);
         }
 
         template = new TemplateHolder<>(
-          TemplateCompiler
-          .compileTemplate(
-            vertx.fileSystem()
-              .readFileBlocking(src)
-              .toString(Charset.defaultCharset())),
+          engine.createTemplate(readFile(src)),
           baseDir);
 
         putTemplate(src, template);
-      }
+      }//else use from cache
 
-      final CompiledTemplate mvel = template.template();
+      final Template gt = template.template();
       final String baseDir = template.baseDir();
+      Map<String,Object> binding = JsonObject.of(
+        "vertx", vertx,
+        "baseDir", baseDir,
+        "include", include
+      ).getMap();
+      binding.putAll(context);
+      BINDING.set(binding);
 
       return Future.succeededFuture(
         Buffer.buffer(
-          (String) new TemplateRuntime(mvel.getTemplate(), null, mvel.getRoot(), baseDir)
-            .execute(new StringAppender(), context, new ImmutableDefaultFactory())
-        ));
+          gt.make(binding).toString())
+        );
     } catch (Exception ex) {
       return Future.failedFuture(ex);
+    } finally {
+      BINDING.remove();
     }
   }
 
-  private static int findLastFileSeparator(String src) {
-    if (isWindows()) {
-      return Math.max(src.lastIndexOf('/'), src.lastIndexOf('\\'));
+  String include (String templateFile){
+    try {
+      String src = templateFile.trim().replace('\\', '/');
+
+      Map<String,Object> binding = BINDING.get();
+      String baseDir = "";
+      if (binding != null && binding.get("baseDir") != null && binding.get("baseDir").toString().length() > 0){
+        baseDir = binding.get("baseDir").toString();
+        src = baseDir + '/' + src;
+      }
+
+      TemplateHolder<Template> template = getTemplate(src);
+
+      if (template == null){
+        if (!vertx.fileSystem().existsBlocking(src)){
+          throw new IllegalStateException("Cannot find groovy sub-template " + src);
+        }
+
+        template = new TemplateHolder<>(
+          engine.createTemplate(readFile(src)),
+          baseDir);
+
+        putTemplate(src, template);
+      }//else use from cache
+
+      final Template gt = template.template();
+
+      return trimRightEol(gt.make(binding).toString());
+    } catch (Exception ex){
+      Utils.throwAsUnchecked(ex);
+      return null;
     }
-    return src.lastIndexOf('/');
+  }
+
+  private String readFile (String src){
+    return vertx.fileSystem()
+      .readFileBlocking(src)
+      .toString(StandardCharsets.UTF_8);
+  }
+
+  public static String trimRightEol (String s){
+    if (s.endsWith("\r\n") || s.endsWith("\n\r")){
+      return s.substring(0, s.length() - 2);
+
+    } else if (s.endsWith("\n") || s.endsWith("\r")){
+      return s.substring(0, s.length() - 1);
+
+    } else {
+      return s;
+    }
   }
 }

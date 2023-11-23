@@ -1,1 +1,1 @@
-Request path is @{context.getString("path")}
+Request path is ${context.getString("path")}
