@@ -22,18 +22,20 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.impl.Utils;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.impl.TemplateHolder;
 import io.vertx.ext.web.templ.groovy.GroovyTemplateEngine;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author Andrej Fink
  */
 public class GroovyTemplateEngineImpl extends CachingTemplateEngine<Template> implements GroovyTemplateEngine {
 
@@ -65,28 +67,23 @@ public class GroovyTemplateEngineImpl extends CachingTemplateEngine<Template> im
           return Future.failedFuture("Cannot find groovy template " + src);
         }
 
-        template = new TemplateHolder<>(
-          engine.createTemplate(readFile(src)),
-          baseDir);
-
-        putTemplate(src, template);
+        template = createTemplate(src, baseDir);
       }//else use from cache
 
       final Template gt = template.template();
-      final String baseDir = template.baseDir();
-      Map<String,Object> binding = JsonObject.of(
-        "vertx", vertx,
-        "baseDir", baseDir,
-        "include", include
-      ).getMap();
-      binding.putAll(context);
-      BINDING.set(binding);
+
+      Map<String,Object> binding = new HashMap<>();
+      binding.put("vertx", vertx);
+      binding.put("baseDir", template.baseDir());
+      binding.put("include", include);
+      binding.putAll(context);// user can replace ^ these
+      BINDING.set(binding);// no other way to pass it to a sub-template (if any)
 
       return Future.succeededFuture(
         Buffer.buffer(
           gt.make(binding).toString())
         );
-    } catch (Exception ex) {
+    } catch (Exception ex){
       return Future.failedFuture(ex);
     } finally {
       BINDING.remove();
@@ -111,28 +108,34 @@ public class GroovyTemplateEngineImpl extends CachingTemplateEngine<Template> im
           throw new IllegalStateException("Cannot find groovy sub-template " + src);
         }
 
-        template = new TemplateHolder<>(
-          engine.createTemplate(readFile(src)),
-          baseDir);
-
-        putTemplate(src, template);
+        template = createTemplate(src, baseDir);
       }//else use from cache
 
       final Template gt = template.template();
 
-      return trimRightEol(gt.make(binding).toString());
+      return trimRightEol(
+        gt.make(binding).toString());
     } catch (Exception ex){
       Utils.throwAsUnchecked(ex);
       return null;
     }
   }
 
-  private String readFile (String src){
-    return vertx.fileSystem()
-      .readFileBlocking(src)
+  private TemplateHolder<Template> createTemplate (String srcFile, String baseDir) throws IOException, ClassNotFoundException {
+    String srcFileContent = vertx.fileSystem()
+      .readFileBlocking(srcFile)
       .toString(StandardCharsets.UTF_8);
+
+    TemplateHolder<Template> template = new TemplateHolder<>(
+      engine.createTemplate(srcFileContent),
+      baseDir);
+
+    putTemplate(srcFile, template);// cache it
+
+    return template;
   }
 
+  /** .editorconfig adds an extra (CR) LF to all templates and sub-templates: remove it */
   public static String trimRightEol (String s){
     if (s.endsWith("\r\n") || s.endsWith("\n\r")){
       return s.substring(0, s.length() - 2);
