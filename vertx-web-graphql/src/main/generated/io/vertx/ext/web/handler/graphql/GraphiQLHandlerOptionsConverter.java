@@ -17,7 +17,7 @@ public class GraphiQLHandlerOptionsConverter {
   private static final Base64.Decoder BASE64_DECODER = JsonUtil.BASE64_DECODER;
   private static final Base64.Encoder BASE64_ENCODER = JsonUtil.BASE64_ENCODER;
 
-  public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, GraphiQLHandlerOptions obj) {
+   static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, GraphiQLHandlerOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
         case "enabled":
@@ -76,11 +76,11 @@ public class GraphiQLHandlerOptionsConverter {
     }
   }
 
-  public static void toJson(GraphiQLHandlerOptions obj, JsonObject json) {
+   static void toJson(GraphiQLHandlerOptions obj, JsonObject json) {
     toJson(obj, json.getMap());
   }
 
-  public static void toJson(GraphiQLHandlerOptions obj, java.util.Map<String, Object> json) {
+   static void toJson(GraphiQLHandlerOptions obj, java.util.Map<String, Object> json) {
     json.put("enabled", obj.isEnabled());
     json.put("httpEnabled", obj.isHttpEnabled());
     if (obj.getGraphQLUri() != null) {

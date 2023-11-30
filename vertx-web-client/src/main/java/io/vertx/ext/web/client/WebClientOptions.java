@@ -17,6 +17,7 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.Http2Settings;
 import io.vertx.core.http.HttpClientOptions;
@@ -34,7 +35,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Thomas Segismont
  */
-@DataObject(generateConverter = true)
+@DataObject
+@JsonGen(publicConverter = false)
 public class WebClientOptions extends HttpClientOptions {
 
   /**

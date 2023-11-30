@@ -17,7 +17,7 @@ public class SockJSBridgeOptionsConverter {
   private static final Base64.Decoder BASE64_DECODER = JsonUtil.BASE64_DECODER;
   private static final Base64.Encoder BASE64_ENCODER = JsonUtil.BASE64_ENCODER;
 
-  public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, SockJSBridgeOptions obj) {
+   static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, SockJSBridgeOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
         case "maxAddressLength":
@@ -44,11 +44,11 @@ public class SockJSBridgeOptionsConverter {
     }
   }
 
-  public static void toJson(SockJSBridgeOptions obj, JsonObject json) {
+   static void toJson(SockJSBridgeOptions obj, JsonObject json) {
     toJson(obj, json.getMap());
   }
 
-  public static void toJson(SockJSBridgeOptions obj, java.util.Map<String, Object> json) {
+   static void toJson(SockJSBridgeOptions obj, java.util.Map<String, Object> json) {
     json.put("maxAddressLength", obj.getMaxAddressLength());
     json.put("maxHandlersPerSocket", obj.getMaxHandlersPerSocket());
     json.put("pingTimeout", obj.getPingTimeout());
