@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.contract;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.JsonGen;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 
@@ -9,7 +10,8 @@ import io.vertx.core.json.JsonObject;
  * @author Francesco Guardiani @slinkydeveloper
  * @deprecated You should use the new module vertx-web-openapi
  */
-@DataObject(generateConverter = true, publicConverter = false)
+@DataObject
+@JsonGen(publicConverter = false)
 @Deprecated
 public class RouterFactoryOptions {
 

@@ -2,13 +2,15 @@ package io.vertx.ext.web.openapi;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.JsonGen;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-@DataObject(generateConverter = true, publicConverter = false)
+@DataObject
+@JsonGen(publicConverter = false)
 public class RouterBuilderOptions {
 
   /**

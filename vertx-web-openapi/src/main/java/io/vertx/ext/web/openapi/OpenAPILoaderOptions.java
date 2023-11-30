@@ -3,13 +3,15 @@ package io.vertx.ext.web.openapi;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.SchemaRouterOptions;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@DataObject(generateConverter = true)
+@DataObject
+@JsonGen(publicConverter = false)
 public class OpenAPILoaderOptions {
 
   private Map<String, String> authQueryParams;

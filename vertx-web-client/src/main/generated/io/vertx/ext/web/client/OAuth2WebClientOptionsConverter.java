@@ -17,7 +17,7 @@ public class OAuth2WebClientOptionsConverter {
   private static final Base64.Decoder BASE64_DECODER = JsonUtil.BASE64_DECODER;
   private static final Base64.Encoder BASE64_ENCODER = JsonUtil.BASE64_ENCODER;
 
-  public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, OAuth2WebClientOptions obj) {
+   static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, OAuth2WebClientOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
         case "leeway":
@@ -34,11 +34,11 @@ public class OAuth2WebClientOptionsConverter {
     }
   }
 
-  public static void toJson(OAuth2WebClientOptions obj, JsonObject json) {
+   static void toJson(OAuth2WebClientOptions obj, JsonObject json) {
     toJson(obj, json.getMap());
   }
 
-  public static void toJson(OAuth2WebClientOptions obj, java.util.Map<String, Object> json) {
+   static void toJson(OAuth2WebClientOptions obj, java.util.Map<String, Object> json) {
     json.put("leeway", obj.getLeeway());
     json.put("renewTokenOnForbidden", obj.isRenewTokenOnForbidden());
   }

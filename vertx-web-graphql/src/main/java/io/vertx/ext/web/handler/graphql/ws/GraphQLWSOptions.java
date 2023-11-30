@@ -17,12 +17,14 @@
 package io.vertx.ext.web.handler.graphql.ws;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
 
 /**
  * Options for configuring the {@link GraphQLWSHandler}.
  */
-@DataObject(generateConverter = true)
+@DataObject
+@JsonGen(publicConverter = false)
 public class GraphQLWSOptions {
 
   /**

@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler.graphql;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -25,7 +26,8 @@ import io.vertx.core.json.JsonObject;
  * @author Rogelio Orts
  * @deprecated the subscriptions-transport-ws protocol is no longer maintained
  */
-@DataObject(generateConverter = true)
+@DataObject
+@JsonGen(publicConverter = false)
 @Deprecated
 public class ApolloWSOptions {
 

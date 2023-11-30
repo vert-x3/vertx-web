@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler.graphql;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.common.WebEnvironment;
 
@@ -28,7 +29,8 @@ import java.util.Map;
  *
  * @author Thomas Segismont
  */
-@DataObject(generateConverter = true)
+@DataObject
+@JsonGen(publicConverter = false)
 public class GraphiQLHandlerOptions {
 
   /**

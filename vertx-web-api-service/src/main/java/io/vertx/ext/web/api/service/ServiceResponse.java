@@ -3,6 +3,7 @@ package io.vertx.ext.web.api.service;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.JsonGen;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
@@ -14,7 +15,8 @@ import java.util.Map;
 /**
  * Data object that encapsulates all informations about an HTTP Response
  */
-@DataObject(generateConverter = true, publicConverter = false)
+@DataObject
+@JsonGen(publicConverter = false)
 public class ServiceResponse {
 
   private final static Integer DEFAULT_STATUS_CODE = 200;

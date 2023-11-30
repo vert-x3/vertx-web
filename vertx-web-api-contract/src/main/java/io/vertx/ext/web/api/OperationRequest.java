@@ -2,6 +2,7 @@ package io.vertx.ext.web.api;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.JsonGen;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonObject;
@@ -12,7 +13,8 @@ import java.util.function.Function;
 /**
  * @deprecated You should use the new module vertx-web-openapi
  */
-@DataObject(generateConverter = true, publicConverter = false)
+@DataObject
+@JsonGen(publicConverter = false)
 @Deprecated
 public class OperationRequest {
 
