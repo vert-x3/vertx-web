@@ -395,7 +395,13 @@ public class ConnectionHandler {
     }
 
     void unsubscribe(MessageImpl msg) {
-      Subscription s = subscriptions.remove(msg.id());
+      String id = msg.id();
+      if (id == null) {
+        socket.close((short) 4400, "Complete message must have an ID");
+        return;
+      }
+
+      Subscription s = subscriptions.remove(id);
       if (s != null) {
         s.cancel();
       }
