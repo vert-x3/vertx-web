@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -17,10 +17,10 @@
 package io.vertx.ext.web.handler.graphql.impl;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.graphql.GraphiQLHandler;
@@ -31,28 +31,26 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static java.nio.charset.StandardCharsets.*;
-import static java.util.concurrent.TimeUnit.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.concurrent.TimeUnit.DAYS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * @author Thomas Segismont
  */
 public class GraphiQLHandlerImpl implements GraphiQLHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(GraphiQLHandlerImpl.class);
-
   private static final String WEBROOT = "io/vertx/ext/web/handler/graphiql";
   private static final Function<RoutingContext, MultiMap> DEFAULT_GRAPHIQL_REQUEST_HEADERS_FACTORY = rc -> null;
 
+  private final Vertx vertx;
   private final GraphiQLHandlerOptions options;
-  private final StaticHandler staticHandler;
 
   private Function<RoutingContext, MultiMap> graphiQLRequestHeadersFactory = DEFAULT_GRAPHIQL_REQUEST_HEADERS_FACTORY;
 
-  public GraphiQLHandlerImpl(GraphiQLHandlerOptions options) {
-    Objects.requireNonNull(options, "options");
-    this.options = options;
-    staticHandler = options.isEnabled() ? StaticHandler.create(WEBROOT).setCachingEnabled(true).setMaxAgeSeconds(SECONDS.convert(365, DAYS)) : null;
+  public GraphiQLHandlerImpl(Vertx vertx, GraphiQLHandlerOptions options) {
+    this.vertx = Objects.requireNonNull(vertx, "vertx is null");
+    this.options = Objects.requireNonNull(options, "options");
   }
 
   @Override
@@ -62,28 +60,35 @@ public class GraphiQLHandlerImpl implements GraphiQLHandler {
   }
 
   @Override
-  public void handle(RoutingContext rc) {
-    if (!options.isEnabled()) {
-      rc.next();
+  public Router router() {
+    Router router = Router.router(vertx);
+    if (options.isEnabled()) {
+      router.get().handler(this::redirectIfNeeded);
+      router.get("/").handler(this::serveIndex);
+      router.get("/index.html").handler(this::serveIndex);
+      router.get().handler(StaticHandler.create(WEBROOT).setCachingEnabled(true).setMaxAgeSeconds(SECONDS.convert(365, DAYS)));
+    }
+    return router;
+  }
+
+  private void redirectIfNeeded(RoutingContext rc) {
+    String normalizedPath = rc.normalizedPath();
+    if (Utils.pathOffset(normalizedPath, rc).isEmpty()) {
+      rc.response().setStatusCode(302).putHeader(HttpHeaders.LOCATION, normalizedPath + "/").end();
       return;
     }
-    String filename = Utils.pathOffset(rc.normalizedPath(), rc);
-    if (filename.isEmpty()) {
-      rc.response().setStatusCode(301).putHeader(HttpHeaders.LOCATION, rc.currentRoute().getPath()).end();
-      return;
-    }
-    if ("/".equals(filename) || "/index.html".equals(filename)) {
-      String resource = rc.vertx().fileSystem()
-        .readFileBlocking(WEBROOT + "/index.html")
-        .toString(UTF_8)
-        .replace("__VERTX_GRAPHIQL_CONFIG__", replacement(rc));
-      rc.response()
-        .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache")
-        .putHeader(HttpHeaders.CONTENT_TYPE, "text/html;charset=utf8")
-        .end(resource);
-    } else {
-      staticHandler.handle(rc);
-    }
+    rc.next();
+  }
+
+  private void serveIndex(RoutingContext rc) {
+    String resource = rc.vertx().fileSystem()
+      .readFileBlocking(WEBROOT + "/index.html")
+      .toString(UTF_8)
+      .replace("__VERTX_GRAPHIQL_CONFIG__", replacement(rc));
+    rc.response()
+      .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache")
+      .putHeader(HttpHeaders.CONTENT_TYPE, "text/html;charset=utf8")
+      .end(resource);
   }
 
   private String replacement(RoutingContext rc) {
