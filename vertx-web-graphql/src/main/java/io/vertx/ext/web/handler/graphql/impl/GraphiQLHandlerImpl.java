@@ -28,7 +28,6 @@ import io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions;
 import io.vertx.ext.web.impl.Utils;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -41,22 +40,15 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class GraphiQLHandlerImpl implements GraphiQLHandler {
 
   private static final String WEBROOT = "io/vertx/ext/web/handler/graphiql";
-  private static final Function<RoutingContext, MultiMap> DEFAULT_GRAPHIQL_REQUEST_HEADERS_FACTORY = rc -> null;
 
   private final Vertx vertx;
   private final GraphiQLHandlerOptions options;
+  private final Function<RoutingContext, MultiMap> factory;
 
-  private Function<RoutingContext, MultiMap> graphiQLRequestHeadersFactory = DEFAULT_GRAPHIQL_REQUEST_HEADERS_FACTORY;
-
-  public GraphiQLHandlerImpl(Vertx vertx, GraphiQLHandlerOptions options) {
-    this.vertx = Objects.requireNonNull(vertx, "vertx is null");
-    this.options = Objects.requireNonNull(options, "options");
-  }
-
-  @Override
-  public GraphiQLHandler graphiQLRequestHeaders(Function<RoutingContext, MultiMap> factory) {
-    graphiQLRequestHeadersFactory = factory != null ? factory : DEFAULT_GRAPHIQL_REQUEST_HEADERS_FACTORY;
-    return this;
+  public GraphiQLHandlerImpl(Vertx vertx, GraphiQLHandlerOptions options, Function<RoutingContext, MultiMap> factory) {
+    this.vertx = vertx;
+    this.options = options;
+    this.factory = factory;
   }
 
   @Override
@@ -109,11 +101,7 @@ public class GraphiQLHandlerImpl implements GraphiQLHandler {
     if (fixedHeaders != null) {
       fixedHeaders.forEach(headers::add);
     }
-    Function<RoutingContext, MultiMap> rh;
-    synchronized (this) {
-      rh = this.graphiQLRequestHeadersFactory;
-    }
-    MultiMap dynamicHeaders = rh.apply(rc);
+    MultiMap dynamicHeaders = factory.apply(rc);
     if (dynamicHeaders != null) {
       headers.addAll(dynamicHeaders);
     }

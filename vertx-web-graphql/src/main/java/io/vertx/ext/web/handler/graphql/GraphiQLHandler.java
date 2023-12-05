@@ -16,15 +16,12 @@
 
 package io.vertx.ext.web.handler.graphql;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.graphql.impl.GraphiQLHandlerImpl;
+import io.vertx.ext.web.handler.graphql.impl.GraphiQLHandlerBuilderImpl;
 
-import java.util.function.Function;
+import java.util.Objects;
 
 /**
  * A handler for GraphiQL resources.
@@ -35,23 +32,10 @@ import java.util.function.Function;
 public interface GraphiQLHandler {
 
   /**
-   * Create a new {@link GraphiQLHandler}.
-   * <p>
-   * The handler will be configured with default {@link GraphiQLHandlerOptions options}.
+   * Create a new {@link GraphiQLHandlerBuilder} with default {@link GraphiQLHandlerOptions}.
    */
-  static GraphiQLHandler create(Vertx vertx) {
-    return create(vertx, new GraphiQLHandlerOptions());
-  }
-
-  /**
-   * Create a new {@link GraphiQLHandler}.
-   * <p>
-   * The handler will be configured with the given {@code options}.
-   *
-   * @param options options for configuring the {@link GraphiQLHandler}
-   */
-  static GraphiQLHandler create(Vertx vertx, GraphiQLHandlerOptions options) {
-    return new GraphiQLHandlerImpl(vertx, options);
+  static GraphiQLHandlerBuilder builder(Vertx vertx) {
+    return new GraphiQLHandlerBuilderImpl(Objects.requireNonNull(vertx, "vertx instance is null"));
   }
 
   /**
@@ -61,15 +45,4 @@ public interface GraphiQLHandler {
    * @see io.vertx.ext.web.Route#subRouter(Router)
    */
   Router router();
-
-  /**
-   * Customize the HTTP headers to add to GraphQL requests sent by the GraphiQL user interface.
-   * The result will be applied on top of the fixed set of headers specified in {@link GraphiQLHandlerOptions#getHeaders()}.
-   * <p>
-   * This can be useful if, for example, the server is protected by authentication.
-   *
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  GraphiQLHandler graphiQLRequestHeaders(Function<RoutingContext, MultiMap> factory);
 }
