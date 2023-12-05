@@ -190,7 +190,7 @@ public class GraphQLExamples {
   }
 
   public void addGraphQLWSHandlerToRouter(Router router, GraphQL graphQL) {
-    router.route("/graphql").handler(GraphQLWSHandler.create(graphQL));
+    router.route("/graphql").handler(GraphQLWSHandler.builder(graphQL).build());
   }
 
   public void configureServerForGraphQLWS() {
@@ -200,7 +200,7 @@ public class GraphQLExamples {
 
   public void configureGraphQLWSAndHttpOnSamePath(Router router, GraphQL graphQL) {
     router.route("/graphql")
-      .handler(GraphQLWSHandler.create(graphQL))
+      .handler(GraphQLWSHandler.builder(graphQL).build())
       .handler(GraphQLHandler.create(graphQL));
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -58,17 +58,17 @@ public class GraphQLWSTestsServer extends AbstractVerticle {
 
     GraphQL graphQL = setupGraphQL();
 
-    router.route("/graphql").handler(GraphQLWSHandler.create(graphQL));
+    router.route("/graphql").handler(GraphQLWSHandler.builder(graphQL).build());
 
-    router.route("/graphqlWithInitHandler").handler(GraphQLWSHandler.create(graphQL)
-      .connectionInitHandler(connectionInitEvent -> {
+    router.route("/graphqlWithInitHandler").handler(GraphQLWSHandler.builder(graphQL)
+      .withConnectionInitHandler(connectionInitEvent -> {
         JsonObject payload = connectionInitEvent.message().message().getJsonObject("payload");
         if (payload != null && payload.containsKey("rejectMessage")) {
           connectionInitEvent.fail(payload.getString("rejectMessage"));
           return;
         }
         connectionInitEvent.complete(payload);
-      }));
+      }).build());
 
     HttpServerOptions httpServerOptions = new HttpServerOptions().addWebSocketSubProtocol("graphql-transport-ws");
     vertx.createHttpServer(httpServerOptions)

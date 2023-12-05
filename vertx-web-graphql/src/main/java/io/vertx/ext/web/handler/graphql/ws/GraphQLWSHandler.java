@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -17,14 +17,12 @@
 package io.vertx.ext.web.handler.graphql.ws;
 
 import graphql.GraphQL;
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
-import io.vertx.core.http.ServerWebSocket;
 import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
-import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
-import io.vertx.ext.web.handler.graphql.impl.ws.GraphQLWSHandlerImpl;
+import io.vertx.ext.web.handler.graphql.impl.ws.GraphQLWSHandlerBuilderImpl;
+
+import java.util.Objects;
 
 import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
@@ -34,62 +32,11 @@ import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 @VertxGen
 public interface GraphQLWSHandler extends ProtocolUpgradeHandler {
 
-
   /**
-   * Create a new {@link GraphQLWSHandler} that will use the provided {@code graphQL} object to execute requests.
-   * <p>
-   * The handler will be configured with the default {@link GraphQLWSOptions}.
+   * Create a new {@link GraphQLWSHandlerBuilder} that will use the provided {@code graphQL} to build a {@link GraphQLWSHandler}.
    */
   @GenIgnore(PERMITTED_TYPE)
-  static GraphQLWSHandler create(GraphQL graphQL) {
-    return create(graphQL, new GraphQLWSOptions());
+  static GraphQLWSHandlerBuilder builder(GraphQL graphQL) {
+    return new GraphQLWSHandlerBuilderImpl(Objects.requireNonNull(graphQL, "graphQL instance is null"));
   }
-
-  /**
-   * Create a new {@link GraphQLWSHandler} that will use the provided {@code graphQL} object to execute requests.
-   * <p>
-   * The handler will be configured with the given {@code options}.
-   *
-   * @param options options for configuring the {@link GraphQLWSOptions}
-   */
-  @GenIgnore(PERMITTED_TYPE)
-  static GraphQLWSHandler create(GraphQL graphQL, GraphQLWSOptions options) {
-    return new GraphQLWSHandlerImpl(graphQL, options);
-  }
-
-  /**
-   * Customize the connection init {@link Handler}.
-   * This handler will be called when the {@link MessageType#CONNECTION_INIT} message is received.
-   *
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  GraphQLWSHandler connectionInitHandler(Handler<ConnectionInitEvent> connectionInitHandler);
-
-  /**
-   * Set a callback to invoke before executing a GraphQL query.
-   *
-   * @param config the callback to invoke
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  GraphQLWSHandler beforeExecute(Handler<ExecutionInputBuilderWithContext<Message>> config);
-
-  /**
-   * Customize the message {@link Handler}.
-   * This handler will be called for each {@link Message} received.
-   *
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  GraphQLWSHandler messageHandler(Handler<Message> messageHandler);
-
-  /**
-   * Customize the end {@link Handler}.
-   * This handler will be called at the end of each websocket connection.
-   *
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  GraphQLWSHandler endHandler(Handler<ServerWebSocket> endHandler);
 }
