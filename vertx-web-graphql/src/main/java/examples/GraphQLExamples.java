@@ -62,11 +62,11 @@ public class GraphQLExamples {
     router.post("/graphql").handler(GraphQLHandler.create(graphQL));
   }
 
-  public void handlerSetupGraphiQL(GraphQL graphQL, Router router) {
+  public void handlerSetupGraphiQL(Vertx vertx, GraphQL graphQL, Router router) {
     GraphiQLHandlerOptions options = new GraphiQLHandlerOptions()
       .setEnabled(true);
 
-    router.route("/graphiql/*").handler(GraphiQLHandler.create(options));
+    router.route("/graphiql*").subRouter(GraphiQLHandler.create(vertx, options).router());
   }
 
   public void handlerSetupGraphiQLAuthn(GraphiQLHandler graphiQLHandler, Router router) {
@@ -75,7 +75,7 @@ public class GraphQLExamples {
       return MultiMap.caseInsensitiveMultiMap().add("Authorization", "Bearer " + token);
     });
 
-    router.route("/graphiql/*").handler(graphiQLHandler);
+    router.route("/graphiql*").subRouter(graphiQLHandler.router());
   }
 
   public void handlerSetupBatching(GraphQL graphQL) {
