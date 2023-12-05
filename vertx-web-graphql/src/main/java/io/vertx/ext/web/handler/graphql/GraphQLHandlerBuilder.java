@@ -16,30 +16,36 @@
 
 package io.vertx.ext.web.handler.graphql;
 
-import graphql.GraphQL;
-import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.graphql.impl.GraphQLHandlerBuilderImpl;
-
-import java.util.Objects;
 
 /**
- * A {@link io.vertx.ext.web.Route} handler for GraphQL requests.
- *
- * @author Thomas Segismont
+ * A builder for {@link GraphQLHandler} instances.
  */
 @VertxGen
-public interface GraphQLHandler extends Handler<RoutingContext> {
+public interface GraphQLHandlerBuilder {
 
   /**
-   * Create a new {@link GraphQLHandlerBuilder} that will use the provided {@code graphQL} to build a {@link GraphQLHandler}.
-   * <p>
-   * The handler will be configured with default {@link GraphQLHandlerOptions options}.
+   * Change the {@link GraphQLHandlerOptions} to use.
+   *
+   * @return a reference to this, so the API can be used fluently
    */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static GraphQLHandlerBuilder builder(GraphQL graphQL) {
-    return new GraphQLHandlerBuilderImpl(Objects.requireNonNull(graphQL, "graphQL instance is null"));
-  }
+  @Fluent
+  GraphQLHandlerBuilder with(GraphQLHandlerOptions options);
+
+  /**
+   * Set a callback to invoke before executing a GraphQL query.
+   *
+   * @param beforeExecuteHandler the callback to invoke
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  GraphQLHandlerBuilder withBeforeExecuteHandler(Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecuteHandler);
+
+  /**
+   * @return a new instance of {@link GraphQLHandler}
+   */
+  GraphQLHandler build();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -41,7 +41,7 @@ public class GraphQLTestBase extends WebTestBase {
   public void setUp() throws Exception {
     super.setUp();
     router.route().handler(BodyHandler.create());
-    graphQLHandler = GraphQLHandler.create(graphQL(), createOptions());
+    graphQLHandler = GraphQLHandler.builder(graphQL()).with(createOptions()).build();
     router.route("/graphql").order(100).handler(graphQLHandler);
   }
 

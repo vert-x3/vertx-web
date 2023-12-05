@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler.graphql.impl.ws;
 
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
+import graphql.GraphQL;
 import graphql.execution.preparsed.persisted.PersistedQuerySupport;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -52,19 +53,29 @@ public class ConnectionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(ConnectionHandler.class);
 
-  private final GraphQLWSHandlerImpl graphQLWSHandler;
+  private final GraphQL graphQL;
+  private final long connectionInitWaitTimeout;
+  private final Handler<ConnectionInitEvent> connectionInitHandler;
+  private final Handler<ExecutionInputBuilderWithContext<Message>> beforeExecuteHandler;
+  private final Handler<Message> messageHandler;
+  private final Handler<ServerWebSocket> endHandler;
   private final ContextInternal context;
   private final ServerWebSocket socket;
-  private final RoutingContext routingContext;
+  private final Map<Class<RoutingContext>, Object> mapOfContext;
 
   private ConnectionState state;
 
-  public ConnectionHandler(GraphQLWSHandlerImpl graphQLWSHandler, ContextInternal context, ServerWebSocket socket, RoutingContext routingContext) {
-    this.graphQLWSHandler = graphQLWSHandler;
-    this.context = context;
+  public ConnectionHandler(GraphQL graphQL, long connectionInitWaitTimeout, Handler<ConnectionInitEvent> connectionInitHandler, Handler<ExecutionInputBuilderWithContext<Message>> beforeExecuteHandler, Handler<Message> messageHandler, Handler<ServerWebSocket> endHandler, RoutingContext routingContext, ServerWebSocket socket) {
+    this.graphQL = graphQL;
+    this.connectionInitWaitTimeout = connectionInitWaitTimeout;
+    this.connectionInitHandler = connectionInitHandler;
+    this.beforeExecuteHandler = beforeExecuteHandler;
+    this.messageHandler = messageHandler;
+    this.endHandler = endHandler;
+    this.context = (ContextInternal) routingContext.vertx().getOrCreateContext();
     this.socket = socket;
-    this.routingContext = routingContext;
-    state = new InitialState();
+    this.mapOfContext = Collections.singletonMap(RoutingContext.class, routingContext);
+    this.state = new InitialState();
   }
 
   public void handleConnection() {
@@ -90,7 +101,7 @@ public class ConnectionHandler {
     }
     MessageImpl message = state.createMessage(type, json);
 
-    Handler<Message> mh = graphQLWSHandler.getMessageHandler();
+    Handler<Message> mh = messageHandler;
     if (mh != null) {
       mh.handle(message);
     }
@@ -116,7 +127,7 @@ public class ConnectionHandler {
 
   private void close(Void unused) {
     state.close();
-    Handler<ServerWebSocket> eh = graphQLWSHandler.getEndHandler();
+    Handler<ServerWebSocket> eh = endHandler;
     if (eh != null) {
       eh.handle(socket);
     }
@@ -136,7 +147,7 @@ public class ConnectionHandler {
     final long timerId;
 
     InitialState() {
-      timerId = context.setTimer(graphQLWSHandler.getConnectionInitWaitTimeout(), this);
+      timerId = context.setTimer(connectionInitWaitTimeout, this);
     }
 
     @Override
@@ -169,11 +180,11 @@ public class ConnectionHandler {
 
     void connectionInit(MessageImpl msg) {
       context.owner().cancelTimer(timerId);
-      Handler<ConnectionInitEvent> connectionInitHandler = graphQLWSHandler.getConnectionInitHandler();
-      if (connectionInitHandler != null) {
+      Handler<ConnectionInitEvent> cih = connectionInitHandler;
+      if (cih != null) {
         Promise<Object> connectionPromise = context.promise();
         state = new InitializingState(connectionPromise.future());
-        connectionInitHandler.handle(new ConnectionInitEventImpl(msg, connectionPromise));
+        cih.handle(new ConnectionInitEventImpl(msg, connectionPromise));
       } else {
         sendMessage(null, CONNECTION_ACK, null);
         state = new ReadyState(null);
@@ -359,9 +370,9 @@ public class ConnectionHandler {
         builder.query(PersistedQuerySupport.PERSISTED_QUERY_MARKER);
       }
 
-      builder.graphQLContext(Collections.singletonMap(RoutingContext.class, routingContext));
+      builder.graphQLContext(mapOfContext);
 
-      Handler<ExecutionInputBuilderWithContext<Message>> beforeExecute = graphQLWSHandler.getBeforeExecute();
+      Handler<ExecutionInputBuilderWithContext<Message>> beforeExecute = beforeExecuteHandler;
       if (beforeExecute != null) {
         beforeExecute.handle(new ExecutionInputBuilderWithContext<Message>() {
           @Override
@@ -376,7 +387,7 @@ public class ConnectionHandler {
         });
       }
 
-      graphQLWSHandler.getGraphQL().executeAsync(builder).whenCompleteAsync((executionResult, throwable) -> {
+      graphQL.executeAsync(builder).whenCompleteAsync((executionResult, throwable) -> {
         if (throwable == null) {
           if (executionResult.getData() instanceof Publisher) {
             Publisher<ExecutionResult> data = executionResult.getData();
