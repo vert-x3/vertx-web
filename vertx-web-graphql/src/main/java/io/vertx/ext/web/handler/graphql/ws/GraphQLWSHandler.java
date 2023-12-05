@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -24,7 +24,10 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
+import io.vertx.ext.web.handler.graphql.impl.ws.GraphQLWSHandlerBuilderImpl;
 import io.vertx.ext.web.handler.graphql.impl.ws.GraphQLWSHandlerImpl;
+
+import java.util.Objects;
 
 import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 
@@ -34,13 +37,23 @@ import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
 @VertxGen
 public interface GraphQLWSHandler extends ProtocolUpgradeHandler {
 
+  /**
+   * Create a new {@link GraphQLWSHandlerBuilder} that will use the provided {@code graphQL} to build a {@link GraphQLWSHandler}.
+   */
+  @GenIgnore(PERMITTED_TYPE)
+  static GraphQLWSHandlerBuilder builder(GraphQL graphQL) {
+    return new GraphQLWSHandlerBuilderImpl(Objects.requireNonNull(graphQL, "graphQL instance is null"));
+  }
 
   /**
    * Create a new {@link GraphQLWSHandler} that will use the provided {@code graphQL} object to execute requests.
    * <p>
    * The handler will be configured with the default {@link GraphQLWSOptions}.
+   *
+   * @deprecated as of 4.5.1, use {@link #builder(GraphQL)} instead
    */
   @GenIgnore(PERMITTED_TYPE)
+  @Deprecated
   static GraphQLWSHandler create(GraphQL graphQL) {
     return create(graphQL, new GraphQLWSOptions());
   }
@@ -51,8 +64,10 @@ public interface GraphQLWSHandler extends ProtocolUpgradeHandler {
    * The handler will be configured with the given {@code options}.
    *
    * @param options options for configuring the {@link GraphQLWSOptions}
+   * @deprecated as of 4.5.1, use {@link #builder(GraphQL)} instead
    */
   @GenIgnore(PERMITTED_TYPE)
+  @Deprecated
   static GraphQLWSHandler create(GraphQL graphQL, GraphQLWSOptions options) {
     return new GraphQLWSHandlerImpl(graphQL, options);
   }
@@ -62,8 +77,10 @@ public interface GraphQLWSHandler extends ProtocolUpgradeHandler {
    * This handler will be called when the {@link MessageType#CONNECTION_INIT} message is received.
    *
    * @return a reference to this, so the API can be used fluently
+   * @deprecated as of 4.5.1, use {@link #builder(GraphQL)} instead
    */
   @Fluent
+  @Deprecated
   GraphQLWSHandler connectionInitHandler(Handler<ConnectionInitEvent> connectionInitHandler);
 
   /**
@@ -71,8 +88,10 @@ public interface GraphQLWSHandler extends ProtocolUpgradeHandler {
    *
    * @param config the callback to invoke
    * @return a reference to this, so the API can be used fluently
+   * @deprecated as of 4.5.1, use {@link #builder(GraphQL)} instead
    */
   @Fluent
+  @Deprecated
   GraphQLWSHandler beforeExecute(Handler<ExecutionInputBuilderWithContext<Message>> config);
 
   /**
@@ -80,8 +99,10 @@ public interface GraphQLWSHandler extends ProtocolUpgradeHandler {
    * This handler will be called for each {@link Message} received.
    *
    * @return a reference to this, so the API can be used fluently
+   * @deprecated as of 4.5.1, use {@link #builder(GraphQL)} instead
    */
   @Fluent
+  @Deprecated
   GraphQLWSHandler messageHandler(Handler<Message> messageHandler);
 
   /**
@@ -89,7 +110,9 @@ public interface GraphQLWSHandler extends ProtocolUpgradeHandler {
    * This handler will be called at the end of each websocket connection.
    *
    * @return a reference to this, so the API can be used fluently
+   * @deprecated as of 4.5.1, use {@link #builder(GraphQL)} instead
    */
   @Fluent
+  @Deprecated
   GraphQLWSHandler endHandler(Handler<ServerWebSocket> endHandler);
 }

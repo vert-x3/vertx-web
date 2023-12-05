@@ -65,20 +65,30 @@ public class GraphQLExamples {
     router.post("/graphql").handler(GraphQLHandler.create(graphQL));
   }
 
-  public void handlerSetupGraphiQL(Vertx vertx, GraphQL graphQL, Router router) {
+  public void handlerSetupGraphiQL(Vertx vertx, Router router) {
     GraphiQLHandlerOptions options = new GraphiQLHandlerOptions()
       .setEnabled(true);
 
-    router.route("/graphiql*").subRouter(GraphiQLHandler.create(vertx, options).router());
+    GraphiQLHandler handler = GraphiQLHandler.builder(vertx)
+      .with(options)
+      .build();
+
+    router.route("/graphiql*").subRouter(handler.router());
   }
 
-  public void handlerSetupGraphiQLAuthn(GraphiQLHandler graphiQLHandler, Router router) {
-    graphiQLHandler.graphiQLRequestHeaders(rc -> {
-      String token = rc.get("token");
-      return MultiMap.caseInsensitiveMultiMap().add("Authorization", "Bearer " + token);
-    });
+  public void handlerSetupGraphiQLAuthn(Vertx vertx, Router router) {
+    GraphiQLHandlerOptions options = new GraphiQLHandlerOptions()
+      .setEnabled(true);
 
-    router.route("/graphiql*").subRouter(graphiQLHandler.router());
+    GraphiQLHandler handler = GraphiQLHandler.builder(vertx)
+      .with(options)
+      .withHeadersFactory(rc -> {
+        String token = rc.get("token");
+        return MultiMap.caseInsensitiveMultiMap().add("Authorization", "Bearer " + token);
+      })
+      .build();
+
+    router.route("/graphiql*").subRouter(handler.router());
   }
 
   public void handlerSetupBatching(GraphQL graphQL) {
@@ -225,7 +235,7 @@ public class GraphQLExamples {
   }
 
   public void addGraphQLWSHandlerToRouter(Router router, GraphQL graphQL) {
-    router.route("/graphql").handler(GraphQLWSHandler.create(graphQL));
+    router.route("/graphql").handler(GraphQLWSHandler.builder(graphQL).build());
   }
 
   public void configureServerForGraphQLWS() {
@@ -235,7 +245,7 @@ public class GraphQLExamples {
 
   public void configureGraphQLWSAndHttpOnSamePath(Router router, GraphQL graphQL) {
     router.route("/graphql")
-      .handler(GraphQLWSHandler.create(graphQL))
+      .handler(GraphQLWSHandler.builder(graphQL).build())
       .handler(GraphQLHandler.create(graphQL));
   }
 }
