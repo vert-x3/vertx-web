@@ -49,7 +49,7 @@ public class GraphQLExamples {
   public void handlerSetup(Router router) {
     GraphQL graphQL = setupGraphQLJava();
 
-    router.route("/graphql").handler(GraphQLHandler.create(graphQL));
+    router.route("/graphql").handler(GraphQLHandler.builder(graphQL).build());
   }
 
   public void persistedQueries(GraphQL.Builder graphQLBuilder, PersistedQueryCache queryCache) {
@@ -59,7 +59,7 @@ public class GraphQLExamples {
   public void handlerSetupPost(Router router) {
     GraphQL graphQL = setupGraphQLJava();
 
-    router.post("/graphql").handler(GraphQLHandler.create(graphQL));
+    router.post("/graphql").handler(GraphQLHandler.builder(graphQL).build());
   }
 
   public void handlerSetupGraphiQL(Vertx vertx, Router router) {
@@ -92,14 +92,18 @@ public class GraphQLExamples {
     GraphQLHandlerOptions options = new GraphQLHandlerOptions()
       .setRequestBatchingEnabled(true);
 
-    GraphQLHandler handler = GraphQLHandler.create(graphQL, options);
+    GraphQLHandler handler = GraphQLHandler.builder(graphQL)
+      .with(options)
+      .build();
   }
 
-  public void setupGraphQLHandlerMultipart(Vertx vertx) {
-    GraphQLHandler graphQLHandler = GraphQLHandler.create(
-      setupGraphQLJava(),
-      new GraphQLHandlerOptions().setRequestMultipartEnabled(true)
-    );
+  public void setupGraphQLHandlerMultipart(Vertx vertx, GraphQL graphQL) {
+    GraphQLHandlerOptions options = new GraphQLHandlerOptions()
+      .setRequestMultipartEnabled(true);
+
+    GraphQLHandler graphQLHandler = GraphQLHandler.builder(graphQL)
+      .with(options)
+      .build();
 
     Router router = Router.router(vertx);
 
@@ -184,7 +188,7 @@ public class GraphQLExamples {
   }
 
   public void dataLoaderRegistry(GraphQL graphQL, BatchLoaderWithContext<String, Link> linksBatchLoader) {
-    GraphQLHandler handler = GraphQLHandler.create(graphQL).beforeExecute(builderWithContext -> {
+    GraphQLHandler handler = GraphQLHandler.builder(graphQL).withBeforeExecuteHandler(builderWithContext -> {
 
       DataLoader<String, Link> linkDataLoader = DataLoaderFactory.newDataLoader(linksBatchLoader);
 
@@ -192,7 +196,7 @@ public class GraphQLExamples {
 
       builderWithContext.builder().dataLoaderRegistry(dataLoaderRegistry);
 
-    });
+    }).build();
   }
 
   private Future<List<String>> findComments(List<Long> ids, BatchLoaderEnvironment env) {
@@ -211,6 +215,6 @@ public class GraphQLExamples {
   public void configureGraphQLWSAndHttpOnSamePath(Router router, GraphQL graphQL) {
     router.route("/graphql")
       .handler(GraphQLWSHandler.builder(graphQL).build())
-      .handler(GraphQLHandler.create(graphQL));
+      .handler(GraphQLHandler.builder(graphQL).build());
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -47,7 +47,7 @@ public class LocaleTest extends WebTestBase {
   }
 
   protected void setUpGraphQLHandler() {
-    graphQLHandler = GraphQLHandler.create(graphQL()).beforeExecute(bwc -> {
+    graphQLHandler = GraphQLHandler.builder(graphQL()).withBeforeExecuteHandler(bwc -> {
       for (LanguageHeader acceptableLocale : bwc.context().acceptableLanguages()) {
         try {
           bwc.builder().locale(Locale.forLanguageTag(acceptableLocale.value()));
@@ -55,7 +55,7 @@ public class LocaleTest extends WebTestBase {
         } catch (RuntimeException ignored) {
         }
       }
-    });
+    }).build();
     router.route("/graphql").order(100).handler(graphQLHandler);
   }
 
