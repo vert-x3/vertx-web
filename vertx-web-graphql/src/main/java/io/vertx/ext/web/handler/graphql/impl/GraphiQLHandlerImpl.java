@@ -40,6 +40,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class GraphiQLHandlerImpl implements GraphiQLHandler {
 
   private static final String WEBROOT = "io/vertx/ext/web/handler/graphiql";
+  private static final Function<RoutingContext, MultiMap> DEFAULT_FACTORY = rc -> null;
 
   private final Vertx vertx;
   private final GraphiQLHandlerOptions options;
@@ -47,8 +48,8 @@ public class GraphiQLHandlerImpl implements GraphiQLHandler {
 
   public GraphiQLHandlerImpl(Vertx vertx, GraphiQLHandlerOptions options, Function<RoutingContext, MultiMap> factory) {
     this.vertx = vertx;
-    this.options = options;
-    this.factory = factory;
+    this.options = options == null ? new GraphiQLHandlerOptions() : options;
+    this.factory = factory == null ? DEFAULT_FACTORY : factory;
   }
 
   @Override

@@ -22,6 +22,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.impl.GraphQLHandlerBuilderImpl;
+import io.vertx.ext.web.handler.graphql.impl.GraphQLHandlerImpl;
 
 import java.util.Objects;
 
@@ -32,6 +33,28 @@ import java.util.Objects;
  */
 @VertxGen
 public interface GraphQLHandler extends Handler<RoutingContext> {
+
+  /**
+   * Create a new {@link GraphQLHandler} that will use the provided {@code graphQL} object to execute queries.
+   * <p>
+   * The handler will be configured with default {@link GraphQLHandlerOptions options}.
+   */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  static GraphQLHandler create(GraphQL graphQL) {
+    return create(graphQL, null);
+  }
+
+  /**
+   * Create a new {@link GraphQLHandler} that will use the provided {@code graphQL} object to execute queries.
+   * <p>
+   * The handler will be configured with the given {@code options}.
+   *
+   * @param options options for configuring the {@link GraphQLHandler}
+   */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  static GraphQLHandler create(GraphQL graphQL, GraphQLHandlerOptions options) {
+    return new GraphQLHandlerImpl(Objects.requireNonNull(graphQL, "graphQL instance is null"), options, null);
+  }
 
   /**
    * Create a new {@link GraphQLHandlerBuilder} that will use the provided {@code graphQL} to build a {@link GraphQLHandler}.

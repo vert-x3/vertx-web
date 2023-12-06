@@ -61,7 +61,7 @@ public class GraphQLWSTestsServer extends AbstractVerticle {
     router.route("/graphql").handler(GraphQLWSHandler.builder(graphQL).build());
 
     router.route("/graphqlWithInitHandler").handler(GraphQLWSHandler.builder(graphQL)
-      .withConnectionInitHandler(connectionInitEvent -> {
+      .onConnectionInit(connectionInitEvent -> {
         JsonObject payload = connectionInitEvent.message().message().getJsonObject("payload");
         if (payload != null && payload.containsKey("rejectMessage")) {
           connectionInitEvent.fail(payload.getString("rejectMessage"));

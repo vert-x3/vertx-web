@@ -42,7 +42,7 @@ public interface GraphQLHandlerBuilder {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  GraphQLHandlerBuilder withBeforeExecuteHandler(Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecuteHandler);
+  GraphQLHandlerBuilder beforeExecute(Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecuteHandler);
 
   /**
    * @return a new instance of {@link GraphQLHandler}

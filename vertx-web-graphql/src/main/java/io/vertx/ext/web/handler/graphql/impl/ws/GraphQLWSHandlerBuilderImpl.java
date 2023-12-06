@@ -33,35 +33,34 @@ public class GraphQLWSHandlerBuilderImpl implements GraphQLWSHandlerBuilder {
 
   public GraphQLWSHandlerBuilderImpl(GraphQL graphQL) {
     this.graphQL = graphQL;
-    options = new GraphQLWSOptions();
   }
 
   @Override
   public GraphQLWSHandlerBuilder with(GraphQLWSOptions options) {
-    this.options = options == null ? new GraphQLWSOptions() : options;
+    this.options = options;
     return this;
   }
 
   @Override
-  public GraphQLWSHandlerBuilder withConnectionInitHandler(Handler<ConnectionInitEvent> connectionInitHandler) {
+  public GraphQLWSHandlerBuilder onConnectionInit(Handler<ConnectionInitEvent> connectionInitHandler) {
     this.connectionInitHandler = connectionInitHandler;
     return this;
   }
 
   @Override
-  public GraphQLWSHandlerBuilder withBeforeExecuteHandler(Handler<ExecutionInputBuilderWithContext<Message>> beforeExecuteHandler) {
+  public GraphQLWSHandlerBuilder beforeExecute(Handler<ExecutionInputBuilderWithContext<Message>> beforeExecuteHandler) {
     this.beforeExecuteHandler = beforeExecuteHandler;
     return this;
   }
 
   @Override
-  public GraphQLWSHandlerBuilder withMessageHandler(Handler<Message> messageHandler) {
+  public GraphQLWSHandlerBuilder onMessage(Handler<Message> messageHandler) {
     this.messageHandler = messageHandler;
     return this;
   }
 
   @Override
-  public GraphQLWSHandlerBuilder withEndHandler(Handler<ServerWebSocket> endHandler) {
+  public GraphQLWSHandlerBuilder onSocketEnd(Handler<ServerWebSocket> endHandler) {
     this.endHandler = endHandler;
     return this;
   }

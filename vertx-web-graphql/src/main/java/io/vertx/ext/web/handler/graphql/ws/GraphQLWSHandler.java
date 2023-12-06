@@ -21,6 +21,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
 import io.vertx.ext.web.handler.graphql.impl.ws.GraphQLWSHandlerBuilderImpl;
+import io.vertx.ext.web.handler.graphql.impl.ws.GraphQLWSHandlerImpl;
 
 import java.util.Objects;
 
@@ -31,6 +32,28 @@ import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
  */
 @VertxGen
 public interface GraphQLWSHandler extends ProtocolUpgradeHandler {
+
+  /**
+   * Create a new {@link GraphQLWSHandler} that will use the provided {@code graphQL} object to execute requests.
+   * <p>
+   * The handler will be configured with the default {@link GraphQLWSOptions}.
+   */
+  @GenIgnore(PERMITTED_TYPE)
+  static GraphQLWSHandler create(GraphQL graphQL) {
+    return create(graphQL, null);
+  }
+
+  /**
+   * Create a new {@link GraphQLWSHandler} that will use the provided {@code graphQL} object to execute requests.
+   * <p>
+   * The handler will be configured with the given {@code options}.
+   *
+   * @param options options for configuring the {@link GraphQLWSOptions}
+   */
+  @GenIgnore(PERMITTED_TYPE)
+  static GraphQLWSHandler create(GraphQL graphQL, GraphQLWSOptions options) {
+    return new GraphQLWSHandlerImpl(Objects.requireNonNull(graphQL, "graphQL instance is null"), options, null, null, null, null);
+  }
 
   /**
    * Create a new {@link GraphQLWSHandlerBuilder} that will use the provided {@code graphQL} to build a {@link GraphQLWSHandler}.
