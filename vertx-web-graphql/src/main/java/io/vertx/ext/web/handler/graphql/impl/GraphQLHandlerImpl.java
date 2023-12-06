@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -20,7 +20,6 @@ import graphql.ExecutionInput;
 import graphql.GraphQL;
 import graphql.execution.preparsed.persisted.PersistedQuerySupport;
 import io.vertx.core.AsyncResult;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -38,23 +37,18 @@ import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 import org.dataloader.DataLoaderRegistry;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-import static io.vertx.core.http.HttpMethod.*;
+import static io.vertx.core.http.HttpMethod.GET;
+import static io.vertx.core.http.HttpMethod.POST;
 
 /**
  * @author Thomas Segismont
  */
 public class GraphQLHandlerImpl implements GraphQLHandler {
+
   private static final Pattern IS_NUMBER = Pattern.compile("\\d+");
 
   private static final Function<RoutingContext, Object> DEFAULT_QUERY_CONTEXT_FACTORY = rc -> rc;
@@ -70,10 +64,8 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   private Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecute;
 
   public GraphQLHandlerImpl(GraphQL graphQL, GraphQLHandlerOptions options) {
-    Objects.requireNonNull(graphQL, "graphQL");
-    Objects.requireNonNull(options, "options");
     this.graphQL = graphQL;
-    this.options = options;
+    this.options = options == null ? new GraphQLHandlerOptions() : options;
   }
 
   @Override
@@ -276,13 +268,12 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     executeBatch(rc, batch);
   }
 
-  @SuppressWarnings("rawtypes")
   private void executeBatch(RoutingContext rc, GraphQLBatch batch) {
-    List<Future> futures = new ArrayList<>(batch.size());
+    List<Future<JsonObject>> futures = new ArrayList<>(batch.size());
     for (GraphQLQuery graphQLQuery : batch) {
       futures.add(execute(rc, graphQLQuery));
     }
-    CompositeFuture.all(futures)
+    Future.all(futures)
       .map(cf -> new JsonArray(cf.list()).toBuffer())
       .onComplete(ar -> sendResponse(rc, ar));
   }
