@@ -128,9 +128,11 @@ class ForwardedParser {
       port = -1;
     }
 
-    authority = HostAndPort.create(host, port);
-    host = host + (port >= 0 ? ":" + port : "");
-    absoluteURI = scheme + "://" + host + delegate.uri();
+    if (host != null) {
+      authority = HostAndPort.create(host, port);
+      host = host + (port >= 0 ? ":" + port : "");
+      absoluteURI = scheme + "://" + host + delegate.uri();
+    }
   }
 
   private void calculateForward() {
