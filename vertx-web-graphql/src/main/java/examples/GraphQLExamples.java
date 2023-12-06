@@ -196,7 +196,7 @@ public class GraphQLExamples {
   }
 
   public void dataLoaderRegistry(GraphQL graphQL, BatchLoaderWithContext<String, Link> linksBatchLoader) {
-    GraphQLHandler handler = GraphQLHandler.create(graphQL).beforeExecute(builderWithContext -> {
+    GraphQLHandler handler = GraphQLHandler.builder(graphQL).beforeExecute(builderWithContext -> {
 
       DataLoader<String, Link> linkDataLoader = DataLoaderFactory.newDataLoader(linksBatchLoader);
 
@@ -204,7 +204,7 @@ public class GraphQLExamples {
 
       builderWithContext.builder().dataLoaderRegistry(dataLoaderRegistry);
 
-    });
+    }).build();
   }
 
   private Future<List<String>> findComments(List<Long> ids, BatchLoaderEnvironment env) {
