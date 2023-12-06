@@ -17,6 +17,8 @@
 package io.vertx.ext.web;
 
 import io.vertx.core.http.*;
+import io.vertx.core.net.NetClient;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -340,6 +342,52 @@ public class ForwardedTest extends WebTestBase {
     });
 
     testRequest("Forwarded", "for=\"" + host + ":" + port + "\"");
+  }
+
+  @Test
+  public void testNoneMissingHostHeader() throws Exception {
+    testMissingHostHeader(router.allowForward(NONE).route("/"));
+  }
+
+  @Test
+  public void testAllMissingHostHeader() throws Exception {
+    testMissingHostHeader(router.allowForward(ALL).route("/"));
+  }
+
+  @Test
+  public void testForwardMissingHostHeader() throws Exception {
+    testMissingHostHeader(router.allowForward(FORWARD).route("/"));
+  }
+
+  @Test
+  public void testXForwardMissingHostHeader() throws Exception {
+    testMissingHostHeader(router.allowForward(X_FORWARD).route("/"));
+  }
+
+  @Test
+  public void testMissingHostHeader() throws Exception {
+    testMissingHostHeader(router.allowForward(ALL).route("/"));
+  }
+
+  private void testMissingHostHeader(Route route) throws Exception {
+
+    route.handler(rc -> {
+      assertNull(rc.request().authority());
+      rc.end();
+    });
+
+    NetClient tcpClient = vertx.createNetClient();
+    try {
+      tcpClient.connect(8080, "localhost").onComplete(onSuccess(so -> {
+        so.write("GET / HTTP/1.1\r\n\r\n");
+        so.handler(buff -> {
+          testComplete();
+        });
+      }));
+      await();
+    } finally {
+      tcpClient.close();
+    }
   }
 
   @Test
