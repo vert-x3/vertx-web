@@ -48,7 +48,7 @@ public class MultipartRequestTest extends WebTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    GraphQLHandler graphQLHandler = GraphQLHandler.builder(graphQL()).with(createOptions()).build();
+    GraphQLHandler graphQLHandler = GraphQLHandler.create(graphQL(), createOptions());
     router.route().handler(BodyHandler.create());
     router.route("/graphql").order(100).handler(graphQLHandler);
   }

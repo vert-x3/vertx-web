@@ -32,17 +32,16 @@ public class GraphQLHandlerBuilderImpl implements GraphQLHandlerBuilder {
 
   public GraphQLHandlerBuilderImpl(GraphQL graphQL) {
     this.graphQL = graphQL;
-    options = new GraphQLHandlerOptions();
   }
 
   @Override
   public GraphQLHandlerBuilder with(GraphQLHandlerOptions options) {
-    this.options = options == null ? new GraphQLHandlerOptions() : options;
+    this.options = options;
     return this;
   }
 
   @Override
-  public GraphQLHandlerBuilder withBeforeExecuteHandler(Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecuteHandler) {
+  public GraphQLHandlerBuilder beforeExecute(Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecuteHandler) {
     this.beforeExecuteHandler = beforeExecuteHandler;
     return this;
   }

@@ -27,26 +27,23 @@ import java.util.function.Function;
 
 public class GraphiQLHandlerBuilderImpl implements GraphiQLHandlerBuilder {
 
-  private static final Function<RoutingContext, MultiMap> DEFAULT_FACTORY = rc -> null;
-
   private final Vertx vertx;
   private GraphiQLHandlerOptions options;
   private Function<RoutingContext, MultiMap> factory;
 
   public GraphiQLHandlerBuilderImpl(Vertx vertx) {
     this.vertx = vertx;
-    options = new GraphiQLHandlerOptions();
   }
 
   @Override
   public GraphiQLHandlerBuilder with(GraphiQLHandlerOptions options) {
-    this.options = options == null ? new GraphiQLHandlerOptions() : options;
+    this.options = options;
     return this;
   }
 
   @Override
-  public GraphiQLHandlerBuilder withHeadersFactory(Function<RoutingContext, MultiMap> factory) {
-    this.factory = factory == null ? DEFAULT_FACTORY : factory;
+  public GraphiQLHandlerBuilder addingHeaders(Function<RoutingContext, MultiMap> factory) {
+    this.factory = factory;
     return this;
   }
 

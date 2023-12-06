@@ -20,6 +20,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.graphql.impl.GraphiQLHandlerBuilderImpl;
+import io.vertx.ext.web.handler.graphql.impl.GraphiQLHandlerImpl;
 
 import java.util.Objects;
 
@@ -30,6 +31,26 @@ import java.util.Objects;
  */
 @VertxGen
 public interface GraphiQLHandler {
+
+  /**
+   * Create a new {@link GraphiQLHandler}.
+   * <p>
+   * The handler will be configured with default {@link GraphiQLHandlerOptions options}.
+   */
+  static GraphiQLHandler create(Vertx vertx) {
+    return create(vertx, null);
+  }
+
+  /**
+   * Create a new {@link GraphiQLHandler}.
+   * <p>
+   * The handler will be configured with the given {@code options}.
+   *
+   * @param options options for configuring the {@link GraphiQLHandler}
+   */
+  static GraphiQLHandler create(Vertx vertx, GraphiQLHandlerOptions options) {
+    return new GraphiQLHandlerImpl(Objects.requireNonNull(vertx, "vertx instance is null"), options, null);
+  }
 
   /**
    * Create a new {@link GraphiQLHandlerBuilder} with default {@link GraphiQLHandlerOptions}.

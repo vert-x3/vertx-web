@@ -46,7 +46,7 @@ public interface GraphiQLHandlerBuilder {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  GraphiQLHandlerBuilder withHeadersFactory(Function<RoutingContext, MultiMap> factory);
+  GraphiQLHandlerBuilder addingHeaders(Function<RoutingContext, MultiMap> factory);
 
   /**
    * @return a new instance of {@link GraphiQLHandler}

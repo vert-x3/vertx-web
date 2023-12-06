@@ -26,6 +26,7 @@ import io.vertx.ext.web.handler.graphql.ws.GraphQLWSHandler;
 import io.vertx.ext.web.handler.graphql.ws.GraphQLWSOptions;
 import io.vertx.ext.web.handler.graphql.ws.Message;
 
+import static io.vertx.ext.web.handler.graphql.ws.GraphQLWSOptions.DEFAULT_CONNECTION_INIT_WAIT_TIMEOUT;
 import static io.vertx.ext.web.impl.Utils.canUpgradeToWebsocket;
 
 public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
@@ -39,7 +40,7 @@ public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
 
   public GraphQLWSHandlerImpl(GraphQL graphQL, GraphQLWSOptions options, Handler<ConnectionInitEvent> connectionInitHandler, Handler<ExecutionInputBuilderWithContext<Message>> beforeExecuteHandler, Handler<Message> messageHandler, Handler<ServerWebSocket> endHandler) {
     this.graphQL = graphQL;
-    this.connectionInitWaitTimeout = options.getConnectionInitWaitTimeout();
+    this.connectionInitWaitTimeout = options == null ? DEFAULT_CONNECTION_INIT_WAIT_TIMEOUT : options.getConnectionInitWaitTimeout();
     this.connectionInitHandler = connectionInitHandler;
     this.beforeExecuteHandler = beforeExecuteHandler;
     this.messageHandler = messageHandler;

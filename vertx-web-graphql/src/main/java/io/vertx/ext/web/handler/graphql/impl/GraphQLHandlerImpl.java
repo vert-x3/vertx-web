@@ -55,7 +55,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
 
   public GraphQLHandlerImpl(GraphQL graphQL, GraphQLHandlerOptions options, Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecuteHandler) {
     this.graphQL = graphQL;
-    this.options = options;
+    this.options = options == null ? new GraphQLHandlerOptions() : options;
     this.beforeExecuteHandler = beforeExecuteHandler;
   }
 

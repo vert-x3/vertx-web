@@ -47,7 +47,7 @@ public class LocaleTest extends WebTestBase {
   }
 
   protected void setUpGraphQLHandler() {
-    graphQLHandler = GraphQLHandler.builder(graphQL()).withBeforeExecuteHandler(bwc -> {
+    graphQLHandler = GraphQLHandler.builder(graphQL()).beforeExecute(bwc -> {
       for (LanguageHeader acceptableLocale : bwc.context().acceptableLanguages()) {
         try {
           bwc.builder().locale(Locale.forLanguageTag(acceptableLocale.value()));

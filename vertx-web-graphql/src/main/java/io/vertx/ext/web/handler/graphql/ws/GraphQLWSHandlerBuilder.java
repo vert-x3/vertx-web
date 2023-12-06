@@ -43,7 +43,7 @@ public interface GraphQLWSHandlerBuilder {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  GraphQLWSHandlerBuilder withConnectionInitHandler(Handler<ConnectionInitEvent> connectionInitHandler);
+  GraphQLWSHandlerBuilder onConnectionInit(Handler<ConnectionInitEvent> connectionInitHandler);
 
   /**
    * Set a callback to invoke before executing a GraphQL query.
@@ -52,7 +52,7 @@ public interface GraphQLWSHandlerBuilder {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  GraphQLWSHandlerBuilder withBeforeExecuteHandler(Handler<ExecutionInputBuilderWithContext<Message>> beforeExecuteHandler);
+  GraphQLWSHandlerBuilder beforeExecute(Handler<ExecutionInputBuilderWithContext<Message>> beforeExecuteHandler);
 
   /**
    * Customize the message {@link Handler}.
@@ -61,7 +61,7 @@ public interface GraphQLWSHandlerBuilder {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  GraphQLWSHandlerBuilder withMessageHandler(Handler<Message> messageHandler);
+  GraphQLWSHandlerBuilder onMessage(Handler<Message> messageHandler);
 
   /**
    * Customize the end {@link Handler}.
@@ -70,7 +70,7 @@ public interface GraphQLWSHandlerBuilder {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  GraphQLWSHandlerBuilder withEndHandler(Handler<ServerWebSocket> endHandler);
+  GraphQLWSHandlerBuilder onSocketEnd(Handler<ServerWebSocket> endHandler);
 
   /**
    * @return a new instance of {@link GraphQLWSHandler}
