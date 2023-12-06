@@ -69,9 +69,7 @@ public class GraphQLExamples {
     GraphiQLHandlerOptions options = new GraphiQLHandlerOptions()
       .setEnabled(true);
 
-    GraphiQLHandler handler = GraphiQLHandler.builder(vertx)
-      .with(options)
-      .build();
+    GraphiQLHandler handler = GraphiQLHandler.create(vertx, options);
 
     router.route("/graphiql*").subRouter(handler.router());
   }
@@ -82,7 +80,7 @@ public class GraphQLExamples {
 
     GraphiQLHandler handler = GraphiQLHandler.builder(vertx)
       .with(options)
-      .withHeadersFactory(rc -> {
+      .addingHeaders(rc -> {
         String token = rc.get("token");
         return MultiMap.caseInsensitiveMultiMap().add("Authorization", "Bearer " + token);
       })
@@ -235,7 +233,7 @@ public class GraphQLExamples {
   }
 
   public void addGraphQLWSHandlerToRouter(Router router, GraphQL graphQL) {
-    router.route("/graphql").handler(GraphQLWSHandler.builder(graphQL).build());
+    router.route("/graphql").handler(GraphQLWSHandler.create(graphQL));
   }
 
   public void configureServerForGraphQLWS() {
@@ -245,7 +243,7 @@ public class GraphQLExamples {
 
   public void configureGraphQLWSAndHttpOnSamePath(Router router, GraphQL graphQL) {
     router.route("/graphql")
-      .handler(GraphQLWSHandler.builder(graphQL).build())
+      .handler(GraphQLWSHandler.create(graphQL))
       .handler(GraphQLHandler.create(graphQL));
   }
 }

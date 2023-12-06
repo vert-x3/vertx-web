@@ -30,7 +30,6 @@ import io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions;
 import io.vertx.ext.web.impl.Utils;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -58,9 +57,8 @@ public class GraphiQLHandlerImpl implements GraphiQLHandler {
       log.warn("This instance of GraphiQLHandler has been created with a deprecated method, which will be removed in the next major version.");
     }
     this.vertx = vertx;
-    Objects.requireNonNull(options, "options");
-    this.options = options;
-    staticHandler = options.isEnabled() ? StaticHandler.create(WEBROOT).setCachingEnabled(true).setMaxAgeSeconds(SECONDS.convert(365, DAYS)) : null;
+    this.options = options == null ? new GraphiQLHandlerOptions() : options;
+    staticHandler = this.options.isEnabled() ? StaticHandler.create(WEBROOT).setCachingEnabled(true).setMaxAgeSeconds(SECONDS.convert(365, DAYS)) : null;
   }
 
   @Override

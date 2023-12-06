@@ -58,17 +58,16 @@ public class GraphQLWSTestsServer extends AbstractVerticle {
 
     GraphQL graphQL = setupGraphQL();
 
-    router.route("/graphql").handler(GraphQLWSHandler.builder(graphQL).build());
+    router.route("/graphql").handler(GraphQLWSHandler.create(graphQL));
 
-    router.route("/graphqlWithInitHandler").handler(GraphQLWSHandler.builder(graphQL)
-      .withConnectionInitHandler(connectionInitEvent -> {
-        JsonObject payload = connectionInitEvent.message().message().getJsonObject("payload");
-        if (payload != null && payload.containsKey("rejectMessage")) {
-          connectionInitEvent.fail(payload.getString("rejectMessage"));
-          return;
-        }
-        connectionInitEvent.complete(payload);
-      }).build());
+    router.route("/graphqlWithInitHandler").handler(GraphQLWSHandler.builder(graphQL).onConnectionInit(connectionInitEvent -> {
+      JsonObject payload = connectionInitEvent.message().message().getJsonObject("payload");
+      if (payload != null && payload.containsKey("rejectMessage")) {
+        connectionInitEvent.fail(payload.getString("rejectMessage"));
+        return;
+      }
+      connectionInitEvent.complete(payload);
+    }).build());
 
     HttpServerOptions httpServerOptions = new HttpServerOptions().addWebSocketSubProtocol("graphql-transport-ws");
     vertx.createHttpServer(httpServerOptions)

@@ -48,8 +48,17 @@ public interface GraphiQLHandler extends Handler<RoutingContext> {
    * Create a new {@link GraphiQLHandler}.
    * <p>
    * The handler will be configured with default {@link GraphiQLHandlerOptions options}.
+   */
+  static GraphiQLHandler create(Vertx vertx) {
+    return create(vertx, null);
+  }
+
+  /**
+   * Create a new {@link GraphiQLHandler}.
+   * <p>
+   * The handler will be configured with default {@link GraphiQLHandlerOptions options}.
    *
-   * @deprecated as of 4.5.1, use {@link #builder(Vertx)}, with {@link #router()}
+   * @deprecated as of 4.5.1, use {@link #create(Vertx)}, with {@link #router()}
    */
   @Deprecated
   static GraphiQLHandler create() {
@@ -62,7 +71,18 @@ public interface GraphiQLHandler extends Handler<RoutingContext> {
    * The handler will be configured with the given {@code options}.
    *
    * @param options options for configuring the {@link GraphiQLHandler}
-   * @deprecated as of 4.5.1, use {@link #builder(Vertx)}, with {@link #router()}
+   */
+  static GraphiQLHandler create(Vertx vertx, GraphiQLHandlerOptions options) {
+    return new GraphiQLHandlerImpl(Objects.requireNonNull(vertx, "vertx instance is null"), options);
+  }
+
+  /**
+   * Create a new {@link GraphiQLHandler}.
+   * <p>
+   * The handler will be configured with the given {@code options}.
+   *
+   * @param options options for configuring the {@link GraphiQLHandler}
+   * @deprecated as of 4.5.1, use {@link #create(Vertx, GraphiQLHandlerOptions)}, with {@link #router()}
    */
   @Deprecated
   static GraphiQLHandler create(GraphiQLHandlerOptions options) {
