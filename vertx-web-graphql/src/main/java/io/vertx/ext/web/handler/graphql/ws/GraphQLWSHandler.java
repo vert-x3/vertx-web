@@ -49,13 +49,10 @@ public interface GraphQLWSHandler extends ProtocolUpgradeHandler {
    * Create a new {@link GraphQLWSHandler} that will use the provided {@code graphQL} object to execute requests.
    * <p>
    * The handler will be configured with the default {@link GraphQLWSOptions}.
-   *
-   * @deprecated as of 4.5.1, use {@link #builder(GraphQL)} instead
    */
   @GenIgnore(PERMITTED_TYPE)
-  @Deprecated
   static GraphQLWSHandler create(GraphQL graphQL) {
-    return create(graphQL, new GraphQLWSOptions());
+    return create(graphQL, null);
   }
 
   /**
@@ -64,12 +61,10 @@ public interface GraphQLWSHandler extends ProtocolUpgradeHandler {
    * The handler will be configured with the given {@code options}.
    *
    * @param options options for configuring the {@link GraphQLWSOptions}
-   * @deprecated as of 4.5.1, use {@link #builder(GraphQL)} instead
    */
   @GenIgnore(PERMITTED_TYPE)
-  @Deprecated
   static GraphQLWSHandler create(GraphQL graphQL, GraphQLWSOptions options) {
-    return new GraphQLWSHandlerImpl(graphQL, options);
+    return new GraphQLWSHandlerImpl(Objects.requireNonNull(graphQL, "graphQL instance is null"), options);
   }
 
   /**

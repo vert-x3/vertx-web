@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -27,8 +27,7 @@ import io.vertx.ext.web.handler.graphql.ws.GraphQLWSHandler;
 import io.vertx.ext.web.handler.graphql.ws.GraphQLWSOptions;
 import io.vertx.ext.web.handler.graphql.ws.Message;
 
-import java.util.Objects;
-
+import static io.vertx.ext.web.handler.graphql.ws.GraphQLWSOptions.DEFAULT_CONNECTION_INIT_WAIT_TIMEOUT;
 import static io.vertx.ext.web.impl.Utils.canUpgradeToWebsocket;
 
 public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
@@ -42,10 +41,8 @@ public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
   private Handler<ServerWebSocket> endHandler;
 
   public GraphQLWSHandlerImpl(GraphQL graphQL, GraphQLWSOptions options) {
-    Objects.requireNonNull(graphQL, "graphQL instance is null");
-    Objects.requireNonNull(options, "options instance is null");
     this.graphQL = graphQL;
-    connectionInitWaitTimeout = options.getConnectionInitWaitTimeout();
+    connectionInitWaitTimeout = options == null ? DEFAULT_CONNECTION_INIT_WAIT_TIMEOUT : options.getConnectionInitWaitTimeout();
   }
 
   GraphQL getGraphQL() {
