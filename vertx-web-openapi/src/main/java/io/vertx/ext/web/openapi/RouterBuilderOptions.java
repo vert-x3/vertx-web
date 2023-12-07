@@ -2,7 +2,7 @@ package io.vertx.ext.web.openapi;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.JsonGen;
+import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 

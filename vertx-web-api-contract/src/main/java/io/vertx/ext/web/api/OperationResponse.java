@@ -2,7 +2,7 @@ package io.vertx.ext.web.api;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.JsonGen;
+import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
