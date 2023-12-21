@@ -21,6 +21,15 @@ import io.vertx.core.Handler;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A specialized collection of handlers for {@link RoutingContextImpl}.
+ * <p>
+ * This collection is not thread-safe because it is assumed the handlers are set when executing on the context bound to the request.
+ * <p>
+ * The underlying list can grow to accomodate new handlers and removal doesn't trigger compaction.
+ * This is required because the index of the handler in the list is used as its unique id.
+ * This isn't a problem as long as the appplication doesn't add dozens of handlers for each event (headers end, body end, response end).
+ */
 class HandlersCollection<E> {
 
   private final List<Handler<E>> list;
