@@ -30,11 +30,11 @@ import java.util.List;
  * This is required because the index of the handler in the list is used as its unique id.
  * This isn't a problem as long as the appplication doesn't add dozens of handlers for each event (headers end, body end, response end).
  */
-class HandlersCollection<E> {
+class HandlersList<E> {
 
   private final List<Handler<E>> list;
 
-  HandlersCollection() {
+  HandlersList() {
     this.list = new ArrayList<>();
   }
 

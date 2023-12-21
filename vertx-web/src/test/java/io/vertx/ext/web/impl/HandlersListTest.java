@@ -23,44 +23,44 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class HandlersCollectionTest {
+public class HandlersListTest {
 
-  private final HandlersCollection<Object> handlersCollection = new HandlersCollection<>();
+  private final HandlersList<Object> handlersList = new HandlersList<>();
   private int counter = 0;
 
   @Test
   public void one() {
     CapturingHandler ch = new CapturingHandler();
-    handlersCollection.put(ch);
+    handlersList.put(ch);
     Object event = new Object();
-    handlersCollection.invokeInReverseOrder(event);
+    handlersList.invokeInReverseOrder(event);
     assertEquals(1, ch.events.size());
     assertEquals(event, ch.events.get(0));
   }
 
   @Test
   public void removeOutOfBounds() {
-    handlersCollection.put(new CapturingHandler());
-    assertFalse(handlersCollection.remove(-1));
-    assertFalse(handlersCollection.remove(1));
+    handlersList.put(new CapturingHandler());
+    assertFalse(handlersList.remove(-1));
+    assertFalse(handlersList.remove(1));
   }
 
   @Test
   public void multi() {
     CapturingHandler ch1 = new CapturingHandler();
-    handlersCollection.put(ch1);
+    handlersList.put(ch1);
 
     CapturingHandler ch2 = new CapturingHandler();
-    int id2 = handlersCollection.put(ch2);
+    int id2 = handlersList.put(ch2);
 
     CapturingHandler ch3 = new CapturingHandler();
-    handlersCollection.put(ch3);
+    handlersList.put(ch3);
 
-    assertTrue(handlersCollection.remove(id2));
-    assertFalse(handlersCollection.remove(id2));
+    assertTrue(handlersList.remove(id2));
+    assertFalse(handlersList.remove(id2));
 
     Object event1 = new Object();
-    handlersCollection.invokeInReverseOrder(event1);
+    handlersList.invokeInReverseOrder(event1);
 
     assertEquals(0, ch3.index);
     assertEquals(1, ch3.events.size());
@@ -73,7 +73,7 @@ public class HandlersCollectionTest {
     assertEquals(event1, ch1.events.get(0));
 
     Object event2 = new Object();
-    handlersCollection.invokeInReverseOrder(event2);
+    handlersList.invokeInReverseOrder(event2);
 
     assertEquals(2, ch3.index);
     assertEquals(2, ch3.events.size());
@@ -85,8 +85,8 @@ public class HandlersCollectionTest {
     assertEquals(2, ch1.events.size());
     assertEquals(event2, ch1.events.get(1));
 
-    handlersCollection.clear();
-    handlersCollection.invokeInReverseOrder(new Object());
+    handlersList.clear();
+    handlersList.invokeInReverseOrder(new Object());
 
     assertEquals(2, ch3.events.size());
     assertEquals(0, ch2.events.size());
@@ -95,7 +95,7 @@ public class HandlersCollectionTest {
 
   @Test
   public void deleteOnEmpty() {
-    assertFalse(handlersCollection.remove(3));
+    assertFalse(handlersList.remove(3));
   }
 
   private class CapturingHandler implements Handler<Object> {

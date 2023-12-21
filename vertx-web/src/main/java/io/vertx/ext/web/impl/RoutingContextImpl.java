@@ -50,10 +50,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Map<String, Object> data;
   private Map<String, String> pathParams;
   private MultiMap queryParams;
-  private HandlersCollection<Void> headersEndHandlers;
-  private HandlersCollection<Void> bodyEndHandlers;
+  private HandlersList<Void> headersEndHandlers;
+  private HandlersList<Void> bodyEndHandlers;
   // clean up handlers
-  private HandlersCollection<AsyncResult<Void>> endHandlers;
+  private HandlersList<AsyncResult<Void>> endHandlers;
 
   private Throwable failure;
   private int statusCode = -1;
@@ -455,28 +455,28 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return pathParams;
   }
 
-  private HandlersCollection<Void> getHeadersEndHandlers() {
+  private HandlersList<Void> getHeadersEndHandlers() {
     if (headersEndHandlers == null) {
-      headersEndHandlers = new HandlersCollection<>();
+      headersEndHandlers = new HandlersList<>();
       // order is important we should traverse backwards
       response().headersEndHandler(v -> headersEndHandlers.invokeInReverseOrder(null));
     }
     return headersEndHandlers;
   }
 
-  private HandlersCollection<Void> getBodyEndHandlers() {
+  private HandlersList<Void> getBodyEndHandlers() {
     if (bodyEndHandlers == null) {
-      bodyEndHandlers = new HandlersCollection<>();
+      bodyEndHandlers = new HandlersList<>();
       // order is important we should traverse backwards
       response().bodyEndHandler(v -> bodyEndHandlers.invokeInReverseOrder(null));
     }
     return bodyEndHandlers;
   }
 
-  private HandlersCollection<AsyncResult<Void>> getEndHandlers() {
+  private HandlersList<AsyncResult<Void>> getEndHandlers() {
     if (endHandlers == null) {
       // order is important as we should traverse backwards
-      endHandlers = new HandlersCollection<>();
+      endHandlers = new HandlersList<>();
       final ContextInternal ctx = (ContextInternal) vertx().getOrCreateContext();
 
       final Handler<Void> endHandler = v -> {
