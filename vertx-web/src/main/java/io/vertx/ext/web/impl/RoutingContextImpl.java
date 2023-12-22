@@ -1,17 +1,17 @@
 /*
- * Copyright 2014 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  and Apache License v2.0 which accompanies this distribution.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * and Apache License v2.0 which accompanies this distribution.
  *
- *  The Eclipse Public License is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * The Eclipse Public License is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  *
- *  The Apache License v2.0 is available at
- *  http://www.opensource.org/licenses/apache2.0.php
+ * The Apache License v2.0 is available at
+ * http://www.opensource.org/licenses/apache2.0.php
  *
- *  You may elect to redistribute this code under either of these licenses.
+ * You may elect to redistribute this code under either of these licenses.
  */
 
 package io.vertx.ext.web.impl;
@@ -35,7 +35,6 @@ import io.vertx.ext.web.handler.impl.UserHolder;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.stream.Collectors;
 
 import static io.vertx.ext.web.handler.impl.SessionHandlerImpl.SESSION_USER_HOLDER_KEY;
@@ -45,22 +44,17 @@ import static io.vertx.ext.web.handler.impl.SessionHandlerImpl.SESSION_USER_HOLD
  */
 public class RoutingContextImpl extends RoutingContextImplBase {
 
-  private static final AtomicIntegerFieldUpdater<RoutingContextImpl> HANDLER_SEQ =
-    AtomicIntegerFieldUpdater.newUpdater(RoutingContextImpl.class, "handlerSeq");
-
   private final RouterImpl router;
   private final HttpServerRequest request;
   private final RequestBodyImpl body;
 
-  private volatile int handlerSeq;
-
   private Map<String, Object> data;
   private Map<String, String> pathParams;
   private MultiMap queryParams;
-  private SparseArray<Handler<Void>> headersEndHandlers;
-  private SparseArray<Handler<Void>> bodyEndHandlers;
+  private HandlersList<Void> headersEndHandlers;
+  private HandlersList<Void> bodyEndHandlers;
   // clean up handlers
-  private SparseArray<Handler<AsyncResult<Void>>> endHandlers;
+  private HandlersList<AsyncResult<Void>> endHandlers;
 
   private Throwable failure;
   private int statusCode = -1;
@@ -84,7 +78,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
     final String path = request.path();
 
-    if (path == null || path.length() == 0) {
+    if (path == null || path.isEmpty()) {
       // HTTP paths must start with a '/'
       fail(400);
     } else if (path.charAt(0) != '/') {
@@ -389,38 +383,32 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public int addHeadersEndHandler(Handler<Void> handler) {
-    int seq = nextHandlerSeq();
-    getHeadersEndHandlers().put(seq, handler);
-    return seq;
+    return getHeadersEndHandlers().put(handler);
   }
 
   @Override
   public boolean removeHeadersEndHandler(int handlerID) {
-    return getHeadersEndHandlers().remove(handlerID) != null;
+    return getHeadersEndHandlers().remove(handlerID);
   }
 
   @Override
   public int addBodyEndHandler(Handler<Void> handler) {
-    int seq = nextHandlerSeq();
-    getBodyEndHandlers().put(seq, handler);
-    return seq;
+    return getBodyEndHandlers().put(handler);
   }
 
   @Override
   public boolean removeBodyEndHandler(int handlerID) {
-    return getBodyEndHandlers().remove(handlerID) != null;
+    return getBodyEndHandlers().remove(handlerID);
   }
 
   @Override
   public int addEndHandler(Handler<AsyncResult<Void>> handler) {
-    int seq = nextHandlerSeq();
-    getEndHandlers().put(seq, handler);
-    return seq;
+    return getEndHandlers().put(handler);
   }
 
   @Override
   public boolean removeEndHandler(int handlerID) {
-    return getEndHandlers().remove(handlerID) != null;
+    return getEndHandlers().remove(handlerID);
   }
 
   @Override
@@ -506,48 +494,48 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return pathParams;
   }
 
-  private SparseArray<Handler<Void>> getHeadersEndHandlers() {
+  private HandlersList<Void> getHeadersEndHandlers() {
     if (headersEndHandlers == null) {
-      headersEndHandlers = new SparseArray<>();
-      // order is important we we should traverse backwards
-      response().headersEndHandler(v -> headersEndHandlers.forEachInReverseOrder(handler -> handler.handle(null)));
+      headersEndHandlers = new HandlersList<>();
+      // order is important we should traverse backwards
+      response().headersEndHandler(v -> headersEndHandlers.invokeInReverseOrder(null));
     }
     return headersEndHandlers;
   }
 
-  private SparseArray<Handler<Void>> getBodyEndHandlers() {
+  private HandlersList<Void> getBodyEndHandlers() {
     if (bodyEndHandlers == null) {
-      bodyEndHandlers = new SparseArray<>();
-      // order is important we we should traverse backwards
-      response().bodyEndHandler(v -> bodyEndHandlers.forEachInReverseOrder(handler -> handler.handle(null)));
+      bodyEndHandlers = new HandlersList<>();
+      // order is important we should traverse backwards
+      response().bodyEndHandler(v -> bodyEndHandlers.invokeInReverseOrder(null));
     }
     return bodyEndHandlers;
   }
 
-  private SparseArray<Handler<AsyncResult<Void>>> getEndHandlers() {
+  private HandlersList<AsyncResult<Void>> getEndHandlers() {
     if (endHandlers == null) {
       // order is important as we should traverse backwards
-      endHandlers = new SparseArray<>();
+      endHandlers = new HandlersList<>();
       final ContextInternal ctx = (ContextInternal) vertx().getOrCreateContext();
 
       final Handler<Void> endHandler = v -> {
         if (!endHandlerCalled) {
           endHandlerCalled = true;
-          endHandlers.forEachInReverseOrder(handler -> handler.handle(ctx.succeededFuture()));
+          endHandlers.invokeInReverseOrder(ctx.succeededFuture());
         }
       };
 
       final Handler<Throwable> exceptionHandler = cause -> {
         if (!endHandlerCalled) {
           endHandlerCalled = true;
-          endHandlers.forEachInReverseOrder(handler -> handler.handle(ctx.failedFuture(cause)));
+          endHandlers.invokeInReverseOrder(ctx.failedFuture(cause));
         }
       };
 
       final Handler<Void> closeHandler = cause -> {
         if (!endHandlerCalled) {
           endHandlerCalled = true;
-          endHandlers.forEachInReverseOrder(handler -> handler.handle(ctx.failedFuture("Connection closed")));
+          endHandlers.invokeInReverseOrder(ctx.failedFuture("Connection closed"));
         }
       };
 
@@ -571,14 +559,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       data = new HashMap<>();
     }
     return data;
-  }
-
-  private int nextHandlerSeq() {
-    int seq = HANDLER_SEQ.incrementAndGet(this);
-    if (seq == Integer.MAX_VALUE) {
-      throw new IllegalStateException("Too many header/body end handlers!");
-    }
-    return seq;
   }
 
   private static final String DEFAULT_404 =
