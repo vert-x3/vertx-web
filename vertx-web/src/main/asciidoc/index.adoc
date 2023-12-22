@@ -1659,6 +1659,15 @@ The variable 'foo' from the session is @{context.session().get('foo')}
 The value 'bar' from the context data is @{context.get('bar')}
 ----
 
+[NOTE]
+====
+You may include a template file into an MVEL template using `@include{}`, as long as the templates reside on the filesystem.
+
+Template inclusion doesn't work if the templates are loaded from the classpath using the Vert.x file resolver.
+
+This is a limitation of the MVEL engine: some other engines let Vert.x plug in a custom template file resolver, MVEL doesn't.
+====
+
 Please consult the http://mvel.documentnode.com/#mvel-2.0-templating-guide[MVEL templates documentation] for how to write
 MVEL templates.
 
