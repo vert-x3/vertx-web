@@ -1,1 +1,4 @@
 Hello @{foo} and @{bar}
+@if{baz != nil}
+Hi @{baz}!
+@end{}

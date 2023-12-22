@@ -24,7 +24,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.common.template.impl.TemplateHolder;
 import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
-import org.mvel2.integration.impl.ImmutableDefaultFactory;
+import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
@@ -82,9 +82,8 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
       handler.handle(Future.succeededFuture(
         Buffer.buffer(
           (String) new TemplateRuntime(mvel.getTemplate(), null, mvel.getRoot(), baseDir)
-            .execute(new StringAppender(), context, new ImmutableDefaultFactory())
-        )
-      ));
+            .execute(new StringAppender(), context, new MapVariableResolverFactory())
+        )));
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }

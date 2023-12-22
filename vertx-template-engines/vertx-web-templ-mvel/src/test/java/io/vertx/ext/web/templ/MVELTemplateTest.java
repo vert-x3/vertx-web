@@ -32,6 +32,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -89,7 +91,9 @@ public class MVELTemplateTest {
 
     String tmplPath = "src/test/filesystemtemplates/test-mvel-template4.templ".replace('/', File.separatorChar);
     engine.render(context, tmplPath).onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Hello badger and fox\nRequest path is /test-mvel-template4.templ", normalizeCRLF(render.toString()));
+      should.verify(v -> {
+        assertEquals("\nHello badger and fox\n\nHi honey!\n\nRequest path is /test-mvel-template4.templ\n", normalizeCRLF(render.toString()));
+      });
     }));
   }
 
