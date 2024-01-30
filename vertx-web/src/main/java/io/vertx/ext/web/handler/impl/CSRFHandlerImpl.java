@@ -130,16 +130,16 @@ public class CSRFHandlerImpl implements CSRFHandler {
     // only add the token to the session when the request ends successfully, doing this avoids storing a token that
     // may due to error not make it to the browser. It is assumed that the token placed onto the context directly
     // would only be returned to the user if the request completed successfully, thus they will remain in sync
-    ctx.addEndHandler(sessionTokenEndHandler(ctx, token));
+    ctx.addEndHandler(sessionTokenEndHandler(ctx));
 
     return token;
   }
 
-  private Handler<AsyncResult<Void>> sessionTokenEndHandler(RoutingContext ctx, String token) {
+  private Handler<AsyncResult<Void>> sessionTokenEndHandler(RoutingContext ctx) {
     return ar -> {
       if (ar.succeeded() && ctx.session() != null) {
         Session session = ctx.session();
-        session.put(headerName, session.id() + "/" + token);
+        session.put(headerName, session.id() + "/" + ctx.get(headerName));
       }
     };
   }
@@ -321,12 +321,15 @@ public class CSRFHandlerImpl implements CSRFHandler {
           // that the token might be invalid as it was issued for a previous session id
           // session id's change on session upgrades (unauthenticated -> authenticated; role change; etc...)
           String sessionToken = getTokenFromSession(ctx);
-          // when there's no token in the session, then we behave just like when there is no session
+          String headerToken = ctx.get(headerName);
+          // when there's no token in the session or header, then we behave just like when there is no session
           // create a new token, but we also store it in the session for the next runs
-          if (sessionToken == null) {
+          // the token will be in the header but not in the session on a reroute
+          if (sessionToken == null && headerToken == null) {
             token = generateToken(ctx);
           } else {
-            String[] parts = sessionToken.split("\\.");
+            String tempToken = sessionToken == null ? headerToken : sessionToken;
+            String[] parts = tempToken.split("\\.");
             final long ts = parseLong(parts[1]);
 
             if (ts == -1) {
@@ -336,7 +339,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
               if (!(System.currentTimeMillis() > ts + timeout)) {
                 // we're still on the same session, no need to regenerate the token
                 // also note that the token isn't expired, so it can be reused
-                token = sessionToken;
+                token = tempToken;
                 // in this case specifically we don't issue the token as it is unchanged
                 // the user agent still has it from the previous interaction.
               } else {
