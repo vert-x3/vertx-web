@@ -30,6 +30,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.CSRFHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.Origin;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.impl.Signature;
 
 import java.nio.charset.StandardCharsets;
@@ -130,16 +131,16 @@ public class CSRFHandlerImpl implements CSRFHandler {
     // only add the token to the session when the request ends successfully, doing this avoids storing a token that
     // may due to error not make it to the browser. It is assumed that the token placed onto the context directly
     // would only be returned to the user if the request completed successfully, thus they will remain in sync
-    ctx.addEndHandler(sessionTokenEndHandler(ctx));
+    ctx.addEndHandler(sessionTokenEndHandler(ctx, token));
 
     return token;
   }
 
-  private Handler<AsyncResult<Void>> sessionTokenEndHandler(RoutingContext ctx) {
+  private Handler<AsyncResult<Void>> sessionTokenEndHandler(RoutingContext ctx, String token) {
     return ar -> {
       if (ar.succeeded() && ctx.session() != null) {
         Session session = ctx.session();
-        session.put(headerName, session.id() + "/" + ctx.get(headerName));
+        session.put(headerName, session.id() + "/" + token);
       }
     };
   }
@@ -292,6 +293,14 @@ public class CSRFHandlerImpl implements CSRFHandler {
   @Override
   public void handle(RoutingContext ctx) {
 
+    // we need to keep state since we can be called again on reroute
+    if (!((RoutingContextInternal) ctx).seenHandler(RoutingContextInternal.CSRF_HANDLER)) {
+      ((RoutingContextInternal) ctx).visitHandler(RoutingContextInternal.CSRF_HANDLER);
+    } else {
+      ctx.next();
+      return;
+    }
+
     if (nagHttps) {
       String uri = ctx.request().absoluteURI();
       if (uri != null && !uri.startsWith("https:")) {
@@ -321,15 +330,12 @@ public class CSRFHandlerImpl implements CSRFHandler {
           // that the token might be invalid as it was issued for a previous session id
           // session id's change on session upgrades (unauthenticated -> authenticated; role change; etc...)
           String sessionToken = getTokenFromSession(ctx);
-          String headerToken = ctx.get(headerName);
-          // when there's no token in the session or header, then we behave just like when there is no session
+          // when there's no token in the session, then we behave just like when there is no session
           // create a new token, but we also store it in the session for the next runs
-          // the token will be in the header but not in the session on a reroute
-          if (sessionToken == null && headerToken == null) {
+          if (sessionToken == null) {
             token = generateToken(ctx);
           } else {
-            String tempToken = sessionToken == null ? headerToken : sessionToken;
-            String[] parts = tempToken.split("\\.");
+            String[] parts = sessionToken.split("\\.");
             final long ts = parseLong(parts[1]);
 
             if (ts == -1) {
@@ -339,7 +345,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
               if (!(System.currentTimeMillis() > ts + timeout)) {
                 // we're still on the same session, no need to regenerate the token
                 // also note that the token isn't expired, so it can be reused
-                token = tempToken;
+                token = sessionToken;
                 // in this case specifically we don't issue the token as it is unchanged
                 // the user agent still has it from the previous interaction.
               } else {
