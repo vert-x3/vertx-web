@@ -30,6 +30,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.CSRFHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.Origin;
+import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.impl.Signature;
 
 import java.nio.charset.StandardCharsets;
@@ -291,6 +292,14 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
   @Override
   public void handle(RoutingContext ctx) {
+
+    // we need to keep state since we can be called again on reroute
+    if (!((RoutingContextInternal) ctx).seenHandler(RoutingContextInternal.CSRF_HANDLER)) {
+      ((RoutingContextInternal) ctx).visitHandler(RoutingContextInternal.CSRF_HANDLER);
+    } else {
+      ctx.next();
+      return;
+    }
 
     if (nagHttps) {
       String uri = ctx.request().absoluteURI();

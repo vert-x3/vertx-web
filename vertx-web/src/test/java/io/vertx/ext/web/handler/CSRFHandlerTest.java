@@ -654,4 +654,53 @@ public class CSRFHandlerTest extends WebTestBase {
       req.putHeader("Cookie", cookieJar.get());
     }, null, 200, "OK", null);
   }
+
+  @Test
+  public void testRerouteRequest() throws Exception {
+    final AtomicReference<String> sessionCookieJar = new AtomicReference<>();
+    final AtomicReference<String> cookieJar = new AtomicReference<>();
+
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+    router.route("/home").handler(rc -> rc.end("home"));
+    router.route("/protected/*").handler(CSRFHandler.create(vertx, "Abracadabra"));
+    router.route("/protected/initial").handler(rc -> rc.reroute("/protected/rerouted"));
+    router.route("/protected/rerouted").handler(rc -> rc.end("done"));
+
+    // get a session, if first request is rerouted we don't get a session because of seenHandler check in SessionHandlerImpl
+    // and context cleaning in reroute function
+    testRequest(HttpMethod.GET, "/home", null, resp -> {
+      List<String> cookies = resp.headers().getAll("set-cookie");
+      assertEquals(1, cookies.size());
+
+      StringBuilder encodedCookie = new StringBuilder();
+      // save the cookies
+      for (String cookie : cookies) {
+        encodedCookie.append(cookie, 0, cookie.indexOf(';'));
+        encodedCookie.append("; ");
+      }
+      sessionCookieJar.set(encodedCookie.toString());
+    }, 200, "OK", null);
+
+    testRequest(HttpMethod.GET, "/protected/initial", req -> req.putHeader("cookie", sessionCookieJar.get()), resp -> {
+      List<String> cookies = resp.headers().getAll("set-cookie");
+      assertEquals(1, cookies.size()); // reroute loses session cookie
+
+      StringBuilder encodedCookie = new StringBuilder();
+      // save the cookies
+      for (String cookie : cookies) {
+        encodedCookie.append(cookie, 0, cookie.indexOf(';'));
+        encodedCookie.append("; ");
+        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+          tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
+        }
+      }
+      cookieJar.set(sessionCookieJar.get() + encodedCookie);
+    }, 200, "OK", null);
+
+    // POST shall be OK as the token and session align
+    testRequest(HttpMethod.POST, "/protected/rerouted", req -> {
+      req.putHeader("cookie", cookieJar.get());
+      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+    }, null, 200, "OK", null);
+  }
 }
