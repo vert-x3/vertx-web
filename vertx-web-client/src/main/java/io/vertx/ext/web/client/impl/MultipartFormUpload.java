@@ -17,15 +17,8 @@ package io.vertx.ext.web.client.impl;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.HttpConstants;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
-import io.netty.handler.codec.http.multipart.FileUpload;
-import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
-import io.netty.handler.codec.http.multipart.MemoryFileUpload;
+import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.multipart.*;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -38,6 +31,7 @@ import io.vertx.ext.web.multipart.FormDataPart;
 import io.vertx.ext.web.multipart.MultipartForm;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 
 /**
@@ -74,6 +68,15 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
     Charset charset = parts.getCharset() != null ? parts.getCharset() : HttpConstants.DEFAULT_CHARSET;
     this.encoder = new HttpPostRequestEncoder(
       new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE, charset) {
+        @Override
+        public Attribute createAttribute(HttpRequest request, String name, String value) {
+          try {
+            return new MemoryAttribute(name, value, charset);
+          } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+          }
+        }
+
         @Override
         public FileUpload createFileUpload(HttpRequest request, String name, String filename, String contentType, String contentTransferEncoding, Charset _charset, long size) {
           if (_charset == null) {
