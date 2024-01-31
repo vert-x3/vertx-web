@@ -45,23 +45,26 @@ public class WebApiProxyModel extends ProxyModel {
   }
 
   @Override
-  protected MethodInfo createMethodInfo(Set<ClassTypeInfo> ownerTypes, String methodName, String comment, Doc doc, TypeInfo returnType, Text returnDescription, boolean isFluent, boolean isCacheReturn, List<ParamInfo> mParams, ExecutableElement methodElt, boolean isStatic, boolean isDefault, ArrayList<TypeParamInfo.Method> typeParams, TypeElement declaringElt, boolean methodDeprecated, Text deprecatedDesc, boolean useFutures, boolean methodOverride) {
-    ProxyMethodInfo baseInfo = (ProxyMethodInfo) super.createMethodInfo(ownerTypes, methodName, comment, doc, returnType, returnDescription, isFluent, isCacheReturn, mParams, methodElt, isStatic, isDefault, typeParams, declaringElt, methodDeprecated, deprecatedDesc, useFutures, methodOverride);
+  protected MethodInfo createMethodInfo(Set<ClassTypeInfo> ownerTypes, String methodName, String comment, Doc doc, TypeInfo returnType, Text returnDescription, boolean isFluent, boolean isCacheReturn, List<ParamInfo> mParams, ExecutableElement methodElt, boolean isStatic, boolean isDefault, ArrayList<TypeParamInfo.Method> typeParams, TypeElement declaringElt, boolean methodDeprecated, Text methodDeprecatedDesc, boolean methodOverride) {
+    ProxyMethodInfo baseInfo = (ProxyMethodInfo) super.createMethodInfo(ownerTypes, methodName, comment, doc, returnType, returnDescription, isFluent, isCacheReturn, mParams, methodElt, isStatic, isDefault, typeParams, declaringElt, methodDeprecated, deprecatedDesc, methodOverride);
     if (!isStatic && !baseInfo.isProxyClose()) {
       // Check signature constraints
 
-      TypeInfo ret;
-      if (baseInfo.getKind() == MethodKind.FUTURE && baseInfo.isUseFutures()) {
-        ret = ((ParameterizedTypeInfo)returnType).getArg(0);
-      } else {
+      if (!returnType.isParameterized()) {
         throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);
       }
+      ParameterizedTypeInfo pt = (ParameterizedTypeInfo) returnType;
+      if (pt.getArgs().size() != 1) {
+        throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);
+      }
+      TypeInfo ret;
+      ret = pt.getArg(0);
       if (!ServiceResponse.class.getName().equals(ret.getName())) {
         throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);
       }
 
       TypeInfo shouldBeServiceRequest;
-      if (mParams.size() == 0) {
+      if (mParams.isEmpty()) {
         throw new GenException(methodElt, SIGNATURE_CONSTRAINT_ERROR);
       }
       shouldBeServiceRequest = mParams.get(mParams.size() - 1).getType();

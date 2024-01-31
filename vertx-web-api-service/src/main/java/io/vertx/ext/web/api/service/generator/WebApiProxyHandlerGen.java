@@ -79,31 +79,17 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
       .code(String.format("service.%s(\n", m.getName()))
       .indent().indent();
 
-    if (!m.isUseFutures()) {
-      Stream<String> methodParamsTail = Stream.of("context", serviceCallHandler);
-      writer.writeSeq(
-        Stream.concat(
-          ((WebApiProxyMethodInfo) m).getParamsToExtract().stream().map(this::generateJsonParamExtractFromContext),
-          methodParamsTail
-        ),
-        ",\n"
-      );
-      writer
-        .unindent()
-        .write(");\n");
-    } else {
-      Stream<String> methodParamsTail = Stream.of("context");
-      writer.writeSeq(
-        Stream.concat(
-          ((WebApiProxyMethodInfo) m).getParamsToExtract().stream().map(this::generateJsonParamExtractFromContext),
-          methodParamsTail
-        ),
-        ",\n"
-      );
-      writer.write(")\n");
-      writer
-        .write(".onComplete(" + serviceCallHandler + ");\n");
-    }
+    Stream<String> methodParamsTail = Stream.of("context");
+    writer.writeSeq(
+      Stream.concat(
+        ((WebApiProxyMethodInfo) m).getParamsToExtract().stream().map(this::generateJsonParamExtractFromContext),
+        methodParamsTail
+      ),
+      ",\n"
+    );
+    writer
+      .unindent()
+      .write(").onComplete(" + serviceCallHandler + ");\n");
     writer.unindent().unindent()
       .codeln("} catch (Exception e) {")
       .indent()
