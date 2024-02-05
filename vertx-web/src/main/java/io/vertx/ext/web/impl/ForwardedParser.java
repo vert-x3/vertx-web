@@ -26,7 +26,6 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.core.net.impl.HostAndPortImpl;
 import io.vertx.core.net.impl.SocketAddressImpl;
 import io.vertx.ext.web.AllowForwardHeaders;
 
@@ -45,9 +44,9 @@ class ForwardedParser {
   private static final AsciiString X_FORWARDED_PORT = AsciiString.cached("X-Forwarded-Port");
   private static final AsciiString X_FORWARDED_FOR = AsciiString.cached("X-Forwarded-For");
 
-  private static final Pattern FORWARDED_HOST_PATTERN = Pattern.compile("host=\"?([^;,\"]+)\"?");
-  private static final Pattern FORWARDED_PROTO_PATTERN = Pattern.compile("proto=\"?([^;,\"]+)\"?");
-  private static final Pattern FORWARDED_FOR_PATTERN = Pattern.compile("for=\"?([^;,\"]+)\"?");
+  private static final Pattern FORWARDED_HOST_PATTERN = Pattern.compile("host=\"?([^;,\"]+)\"?", Pattern.CASE_INSENSITIVE);
+  private static final Pattern FORWARDED_PROTO_PATTERN = Pattern.compile("proto=\"?([^;,\"]+)\"?", Pattern.CASE_INSENSITIVE);
+  private static final Pattern FORWARDED_FOR_PATTERN = Pattern.compile("for=\"?([^;,\"]+)\"?", Pattern.CASE_INSENSITIVE);
 
   private final HttpServerRequest delegate;
   private final AllowForwardHeaders allowForward;
@@ -128,9 +127,11 @@ class ForwardedParser {
       port = -1;
     }
 
-    authority = HostAndPort.create(host, port);
-    host = host + (port >= 0 ? ":" + port : "");
-    absoluteURI = scheme + "://" + host + delegate.uri();
+    if (host != null) {
+      authority = HostAndPort.create(host, port);
+      host = host + (port >= 0 ? ":" + port : "");
+      absoluteURI = scheme + "://" + host + delegate.uri();
+    }
   }
 
   private void calculateForward() {
@@ -145,7 +146,7 @@ class ForwardedParser {
 
       matcher = FORWARDED_HOST_PATTERN.matcher(forwardedToUse);
       if (matcher.find()) {
-        setHostAndPort(HostAndPortImpl.parseHostAndPort(matcher.group(1).trim(), -1));
+        setHostAndPort(HostAndPort.parseAuthority(matcher.group(1).trim(), -1));
       }
 
       matcher = FORWARDED_FOR_PATTERN.matcher(forwardedToUse);
@@ -170,7 +171,7 @@ class ForwardedParser {
 
     String hostHeader = delegate.getHeader(X_FORWARDED_HOST);
     if (hostHeader != null) {
-      setHostAndPort(HostAndPortImpl.parseHostAndPort(hostHeader.split(",")[0], -1));
+      setHostAndPort(HostAndPort.parseAuthority(hostHeader.split(",")[0], -1));
     }
 
     String portHeader = delegate.getHeader(X_FORWARDED_PORT);

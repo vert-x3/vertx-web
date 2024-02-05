@@ -16,6 +16,7 @@
 package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
 
 import io.vertx.ext.bridge.BridgeOptions;
@@ -28,7 +29,8 @@ import java.util.List;
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@DataObject(generateConverter = true)
+@DataObject
+@JsonGen(publicConverter = false)
 public class SockJSBridgeOptions extends BridgeOptions {
 
   /**

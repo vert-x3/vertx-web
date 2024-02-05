@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -46,24 +46,17 @@ import static io.vertx.core.http.HttpMethod.POST;
  * @author Thomas Segismont
  */
 public class GraphQLHandlerImpl implements GraphQLHandler {
+
   private static final Pattern IS_NUMBER = Pattern.compile("\\d+");
 
   private final GraphQL graphQL;
   private final GraphQLHandlerOptions options;
+  private final Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecuteHandler;
 
-  private Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecute;
-
-  public GraphQLHandlerImpl(GraphQL graphQL, GraphQLHandlerOptions options) {
-    Objects.requireNonNull(graphQL, "graphQL");
-    Objects.requireNonNull(options, "options");
+  public GraphQLHandlerImpl(GraphQL graphQL, GraphQLHandlerOptions options, Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecuteHandler) {
     this.graphQL = graphQL;
-    this.options = options;
-  }
-
-  @Override
-  public synchronized GraphQLHandler beforeExecute(Handler<ExecutionInputBuilderWithContext<RoutingContext>> beforeExecute) {
-    this.beforeExecute = beforeExecute;
-    return this;
+    this.options = options == null ? new GraphQLHandlerOptions() : options;
+    this.beforeExecuteHandler = beforeExecuteHandler;
   }
 
   @Override
@@ -406,15 +399,10 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       builder.extensions(extensions);
     }
 
-    Handler<ExecutionInputBuilderWithContext<RoutingContext>> be;
-    synchronized (this) {
-      be = beforeExecute;
-    }
-
     builder.graphQLContext(Collections.singletonMap(RoutingContext.class, rc));
 
-    if (be != null) {
-      be.handle(new ExecutionInputBuilderWithContext<RoutingContext>() {
+    if (beforeExecuteHandler != null) {
+      beforeExecuteHandler.handle(new ExecutionInputBuilderWithContext<RoutingContext>() {
         @Override
         public RoutingContext context() {
           return rc;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -17,12 +17,14 @@
 package io.vertx.ext.web.handler.graphql;
 
 import graphql.GraphQL;
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.graphql.impl.GraphQLHandlerBuilderImpl;
 import io.vertx.ext.web.handler.graphql.impl.GraphQLHandlerImpl;
+
+import java.util.Objects;
 
 /**
  * A {@link io.vertx.ext.web.Route} handler for GraphQL requests.
@@ -39,7 +41,7 @@ public interface GraphQLHandler extends Handler<RoutingContext> {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static GraphQLHandler create(GraphQL graphQL) {
-    return create(graphQL, new GraphQLHandlerOptions());
+    return create(graphQL, null);
   }
 
   /**
@@ -51,15 +53,16 @@ public interface GraphQLHandler extends Handler<RoutingContext> {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static GraphQLHandler create(GraphQL graphQL, GraphQLHandlerOptions options) {
-    return new GraphQLHandlerImpl(graphQL, options);
+    return new GraphQLHandlerImpl(Objects.requireNonNull(graphQL, "graphQL instance is null"), options, null);
   }
 
   /**
-   * Set a callback to invoke before executing a GraphQL query.
-   *
-   * @param config the callback to invoke
-   * @return a reference to this, so the API can be used fluently
+   * Create a new {@link GraphQLHandlerBuilder} that will use the provided {@code graphQL} to build a {@link GraphQLHandler}.
+   * <p>
+   * The handler will be configured with default {@link GraphQLHandlerOptions options}.
    */
-  @Fluent
-  GraphQLHandler beforeExecute(Handler<ExecutionInputBuilderWithContext<RoutingContext>> config);
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  static GraphQLHandlerBuilder builder(GraphQL graphQL) {
+    return new GraphQLHandlerBuilderImpl(Objects.requireNonNull(graphQL, "graphQL instance is null"));
+  }
 }

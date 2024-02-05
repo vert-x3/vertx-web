@@ -20,6 +20,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.PoolOptions;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientInternal;
 import io.vertx.core.net.SocketAddress;
@@ -58,7 +59,7 @@ public interface WebClient {
   }
 
   /**
-   * Create a web client using the provided {@code vertx} instance.
+   * Create a web client using the provided {@code vertx} instance and default pooling options.
    *
    * @param vertx   the vertx instance
    * @param options the Web Client options
@@ -66,6 +67,18 @@ public interface WebClient {
    */
   static WebClient create(Vertx vertx, WebClientOptions options) {
     return new WebClientBase(vertx.createHttpClient(options), options);
+  }
+
+  /**
+   * Create a web client using the provided {@code vertx} instance.
+   *
+   * @param vertx the vertx instance
+   * @param options the Web Client options
+   * @param poolOptions the HTTP Client pool options
+   * @return the created web client
+   */
+  static WebClient create(Vertx vertx, WebClientOptions options, PoolOptions poolOptions) {
+    return new WebClientBase(vertx.createHttpClient(options, poolOptions), options);
   }
 
   /**

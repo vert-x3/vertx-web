@@ -15,7 +15,7 @@
  */
 
 import {WebSocket} from "ws"
-import {createClient} from "graphql-ws"
+import {createClient, MessageType} from "graphql-ws"
 
 let client
 
@@ -139,4 +139,42 @@ test('ws link subscription with failed promise', async () => {
   }
   expect(err).toBeDefined()
   expect(err.code).toEqual(4401)
+})
+
+test('complete message without id from client should result in connection close with error', async () => {
+  let err
+
+  client = createClient({
+    url: 'ws://localhost:8080/graphql',
+    webSocketImpl: WebSocket,
+    on: {
+      connected: (socket) => {
+        socket.send(
+            JSON.stringify({
+              type: MessageType.Complete
+            })
+        )
+      }
+    }
+  })
+
+  try {
+    await new Promise((resolve, reject) => {
+      client.subscribe(
+          {
+            query: 'subscription { greetings }',
+          },
+          {
+            next: () => {
+            },
+            error: error => reject(error),
+            complete: resolve,
+          },
+      )
+    })
+  } catch (e) {
+    err = e
+  }
+  expect(err).toBeDefined()
+  expect(err.code).toEqual(4400)
 })

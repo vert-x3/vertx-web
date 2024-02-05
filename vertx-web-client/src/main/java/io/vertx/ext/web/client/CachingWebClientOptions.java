@@ -16,6 +16,7 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.Http2Settings;
 import io.vertx.core.http.HttpMethod;
@@ -32,7 +33,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */
-@DataObject(generateConverter = true)
+@DataObject
+@JsonGen(publicConverter = false)
 public class CachingWebClientOptions extends WebClientOptions {
 
   public static final Set<Integer> DEFAULT_CACHED_STATUS_CODES = buildDefaultStatusCodes();
@@ -250,38 +252,8 @@ public class CachingWebClientOptions extends WebClientOptions {
   }
 
   @Override
-  public CachingWebClientOptions setKeyStoreOptions(JksOptions options) {
-    return (CachingWebClientOptions) super.setKeyStoreOptions(options);
-  }
-
-  @Override
-  public CachingWebClientOptions setPfxKeyCertOptions(PfxOptions options) {
-    return (CachingWebClientOptions) super.setPfxKeyCertOptions(options);
-  }
-
-  @Override
   public CachingWebClientOptions setTrustOptions(TrustOptions options) {
     return (CachingWebClientOptions) super.setTrustOptions(options);
-  }
-
-  @Override
-  public CachingWebClientOptions setPemKeyCertOptions(PemKeyCertOptions options) {
-    return (CachingWebClientOptions) super.setPemKeyCertOptions(options);
-  }
-
-  @Override
-  public CachingWebClientOptions setTrustStoreOptions(JksOptions options) {
-    return (CachingWebClientOptions) super.setTrustStoreOptions(options);
-  }
-
-  @Override
-  public CachingWebClientOptions setPfxTrustOptions(PfxOptions options) {
-    return (CachingWebClientOptions) super.setPfxTrustOptions(options);
-  }
-
-  @Override
-  public CachingWebClientOptions setPemTrustOptions(PemTrustOptions options) {
-    return (CachingWebClientOptions) super.setPemTrustOptions(options);
   }
 
   @Override
@@ -377,16 +349,6 @@ public class CachingWebClientOptions extends WebClientOptions {
   @Override
   public CachingWebClientOptions setSslEngineOptions(SSLEngineOptions sslEngineOptions) {
     return (CachingWebClientOptions) super.setSslEngineOptions(sslEngineOptions);
-  }
-
-  @Override
-  public CachingWebClientOptions setJdkSslEngineOptions(JdkSSLEngineOptions sslEngineOptions) {
-    return (CachingWebClientOptions) super.setJdkSslEngineOptions(sslEngineOptions);
-  }
-
-  @Override
-  public CachingWebClientOptions setOpenSslEngineOptions(OpenSSLEngineOptions sslEngineOptions) {
-    return (CachingWebClientOptions) super.setOpenSslEngineOptions(sslEngineOptions);
   }
 
   @Override

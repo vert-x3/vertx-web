@@ -1,9 +1,11 @@
 package io.vertx.ext.web;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
 
-@DataObject(generateConverter = true)
+@DataObject
+@JsonGen(publicConverter = false)
 public class Http2PushMapping {
   private String filePath;
   private String extensionTarget;

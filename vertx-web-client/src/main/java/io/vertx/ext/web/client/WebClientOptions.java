@@ -17,6 +17,7 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.Http2Settings;
 import io.vertx.core.http.HttpClientOptions;
@@ -34,7 +35,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Thomas Segismont
  */
-@DataObject(generateConverter = true)
+@DataObject
+@JsonGen(publicConverter = false)
 public class WebClientOptions extends HttpClientOptions {
 
   /**
@@ -233,38 +235,8 @@ public class WebClientOptions extends HttpClientOptions {
   }
 
   @Override
-  public WebClientOptions setKeyStoreOptions(JksOptions options) {
-    return (WebClientOptions) super.setKeyStoreOptions(options);
-  }
-
-  @Override
-  public WebClientOptions setPfxKeyCertOptions(PfxOptions options) {
-    return (WebClientOptions) super.setPfxKeyCertOptions(options);
-  }
-
-  @Override
   public WebClientOptions setTrustOptions(TrustOptions options) {
     return (WebClientOptions) super.setTrustOptions(options);
-  }
-
-  @Override
-  public WebClientOptions setPemKeyCertOptions(PemKeyCertOptions options) {
-    return (WebClientOptions) super.setPemKeyCertOptions(options);
-  }
-
-  @Override
-  public WebClientOptions setTrustStoreOptions(JksOptions options) {
-    return (WebClientOptions) super.setTrustStoreOptions(options);
-  }
-
-  @Override
-  public WebClientOptions setPfxTrustOptions(PfxOptions options) {
-    return (WebClientOptions) super.setPfxTrustOptions(options);
-  }
-
-  @Override
-  public WebClientOptions setPemTrustOptions(PemTrustOptions options) {
-    return (WebClientOptions) super.setPemTrustOptions(options);
   }
 
   @Override
@@ -360,16 +332,6 @@ public class WebClientOptions extends HttpClientOptions {
   @Override
   public WebClientOptions setSslEngineOptions(SSLEngineOptions sslEngineOptions) {
     return (WebClientOptions) super.setSslEngineOptions(sslEngineOptions);
-  }
-
-  @Override
-  public WebClientOptions setJdkSslEngineOptions(JdkSSLEngineOptions sslEngineOptions) {
-    return (WebClientOptions) super.setJdkSslEngineOptions(sslEngineOptions);
-  }
-
-  @Override
-  public WebClientOptions setOpenSslEngineOptions(OpenSSLEngineOptions sslEngineOptions) {
-    return (WebClientOptions) super.setOpenSslEngineOptions(sslEngineOptions);
   }
 
   @Override

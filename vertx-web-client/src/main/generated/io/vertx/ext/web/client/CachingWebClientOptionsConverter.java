@@ -17,7 +17,7 @@ public class CachingWebClientOptionsConverter {
   private static final Base64.Decoder BASE64_DECODER = JsonUtil.BASE64_DECODER;
   private static final Base64.Encoder BASE64_ENCODER = JsonUtil.BASE64_ENCODER;
 
-  public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, CachingWebClientOptions obj) {
+   static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, CachingWebClientOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
         case "enableVaryCaching":
@@ -51,11 +51,11 @@ public class CachingWebClientOptionsConverter {
     }
   }
 
-  public static void toJson(CachingWebClientOptions obj, JsonObject json) {
+   static void toJson(CachingWebClientOptions obj, JsonObject json) {
     toJson(obj, json.getMap());
   }
 
-  public static void toJson(CachingWebClientOptions obj, java.util.Map<String, Object> json) {
+   static void toJson(CachingWebClientOptions obj, java.util.Map<String, Object> json) {
     if (obj.getCachedStatusCodes() != null) {
       JsonArray array = new JsonArray();
       obj.getCachedStatusCodes().forEach(item -> array.add(item));

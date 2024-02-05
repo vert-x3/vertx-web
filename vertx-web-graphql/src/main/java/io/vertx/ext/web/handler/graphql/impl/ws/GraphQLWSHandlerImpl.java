@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Red Hat, Inc.
+ * Copyright 2023 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -19,7 +19,6 @@ package io.vertx.ext.web.handler.graphql.impl.ws;
 import graphql.GraphQL;
 import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
-import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.ws.ConnectionInitEvent;
@@ -27,83 +26,36 @@ import io.vertx.ext.web.handler.graphql.ws.GraphQLWSHandler;
 import io.vertx.ext.web.handler.graphql.ws.GraphQLWSOptions;
 import io.vertx.ext.web.handler.graphql.ws.Message;
 
-import java.util.Objects;
-
+import static io.vertx.ext.web.handler.graphql.ws.GraphQLWSOptions.DEFAULT_CONNECTION_INIT_WAIT_TIMEOUT;
 import static io.vertx.ext.web.impl.Utils.canUpgradeToWebsocket;
 
 public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
 
   private final GraphQL graphQL;
   private final long connectionInitWaitTimeout;
+  private final Handler<ConnectionInitEvent> connectionInitHandler;
+  private final Handler<ExecutionInputBuilderWithContext<Message>> beforeExecuteHandler;
+  private final Handler<Message> messageHandler;
+  private final Handler<ServerWebSocket> endHandler;
 
-  private Handler<ExecutionInputBuilderWithContext<Message>> beforeExecute;
-  private Handler<ConnectionInitEvent> connectionInitHandler;
-  private Handler<Message> messageHandler;
-  private Handler<ServerWebSocket> endHandler;
-
-  public GraphQLWSHandlerImpl(GraphQL graphQL, GraphQLWSOptions options) {
-    Objects.requireNonNull(graphQL, "graphQL instance is null");
-    Objects.requireNonNull(options, "options instance is null");
+  public GraphQLWSHandlerImpl(GraphQL graphQL, GraphQLWSOptions options, Handler<ConnectionInitEvent> connectionInitHandler, Handler<ExecutionInputBuilderWithContext<Message>> beforeExecuteHandler, Handler<Message> messageHandler, Handler<ServerWebSocket> endHandler) {
     this.graphQL = graphQL;
-    connectionInitWaitTimeout = options.getConnectionInitWaitTimeout();
-  }
-
-  GraphQL getGraphQL() {
-    return graphQL;
-  }
-
-  long getConnectionInitWaitTimeout() {
-    return connectionInitWaitTimeout;
-  }
-
-  @Override
-  public GraphQLWSHandler connectionInitHandler(Handler<ConnectionInitEvent> connectionInitHandler) {
+    this.connectionInitWaitTimeout = options == null ? DEFAULT_CONNECTION_INIT_WAIT_TIMEOUT : options.getConnectionInitWaitTimeout();
     this.connectionInitHandler = connectionInitHandler;
-    return this;
-  }
-
-  synchronized Handler<ConnectionInitEvent> getConnectionInitHandler() {
-    return connectionInitHandler;
-  }
-
-  @Override
-  public GraphQLWSHandler beforeExecute(Handler<ExecutionInputBuilderWithContext<Message>> beforeExecute) {
-    this.beforeExecute = beforeExecute;
-    return this;
-  }
-
-  synchronized Handler<ExecutionInputBuilderWithContext<Message>> getBeforeExecute() {
-    return beforeExecute;
-  }
-
-  @Override
-  public synchronized GraphQLWSHandler messageHandler(Handler<Message> messageHandler) {
+    this.beforeExecuteHandler = beforeExecuteHandler;
     this.messageHandler = messageHandler;
-    return this;
-  }
-
-  synchronized Handler<Message> getMessageHandler() { return messageHandler; }
-
-  @Override
-  public synchronized GraphQLWSHandler endHandler(Handler<ServerWebSocket> endHandler) {
     this.endHandler = endHandler;
-    return this;
-  }
-
-  synchronized Handler<ServerWebSocket> getEndHandler() {
-    return endHandler;
   }
 
   @Override
   public void handle(RoutingContext rc) {
     if (canUpgradeToWebsocket(rc.request())) {
-      ContextInternal context = (ContextInternal) rc.vertx().getOrCreateContext();
       rc
         .request()
         .toWebSocket()
         .onFailure(rc::fail)
         .onSuccess(socket -> {
-          ConnectionHandler handler = new ConnectionHandler(this, context, socket, rc);
+          ConnectionHandler handler = new ConnectionHandler(graphQL, connectionInitWaitTimeout, connectionInitHandler, beforeExecuteHandler, messageHandler, endHandler, rc, socket);
           handler.handleConnection();
         });
     } else {

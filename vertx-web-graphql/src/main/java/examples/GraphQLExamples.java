@@ -62,20 +62,28 @@ public class GraphQLExamples {
     router.post("/graphql").handler(GraphQLHandler.create(graphQL));
   }
 
-  public void handlerSetupGraphiQL(GraphQL graphQL, Router router) {
+  public void handlerSetupGraphiQL(Vertx vertx, Router router) {
     GraphiQLHandlerOptions options = new GraphiQLHandlerOptions()
       .setEnabled(true);
 
-    router.route("/graphiql/*").handler(GraphiQLHandler.create(options));
+    GraphiQLHandler handler = GraphiQLHandler.create(vertx, options);
+
+    router.route("/graphiql*").subRouter(handler.router());
   }
 
-  public void handlerSetupGraphiQLAuthn(GraphiQLHandler graphiQLHandler, Router router) {
-    graphiQLHandler.graphiQLRequestHeaders(rc -> {
-      String token = rc.get("token");
-      return MultiMap.caseInsensitiveMultiMap().add("Authorization", "Bearer " + token);
-    });
+  public void handlerSetupGraphiQLAuthn(Vertx vertx, Router router) {
+    GraphiQLHandlerOptions options = new GraphiQLHandlerOptions()
+      .setEnabled(true);
 
-    router.route("/graphiql/*").handler(graphiQLHandler);
+    GraphiQLHandler handler = GraphiQLHandler.builder(vertx)
+      .with(options)
+      .addingHeaders(rc -> {
+        String token = rc.get("token");
+        return MultiMap.caseInsensitiveMultiMap().add("Authorization", "Bearer " + token);
+      })
+      .build();
+
+    router.route("/graphiql*").subRouter(handler.router());
   }
 
   public void handlerSetupBatching(GraphQL graphQL) {
@@ -85,11 +93,11 @@ public class GraphQLExamples {
     GraphQLHandler handler = GraphQLHandler.create(graphQL, options);
   }
 
-  public void setupGraphQLHandlerMultipart(Vertx vertx) {
-    GraphQLHandler graphQLHandler = GraphQLHandler.create(
-      setupGraphQLJava(),
-      new GraphQLHandlerOptions().setRequestMultipartEnabled(true)
-    );
+  public void setupGraphQLHandlerMultipart(Vertx vertx, GraphQL graphQL) {
+    GraphQLHandlerOptions options = new GraphQLHandlerOptions()
+      .setRequestMultipartEnabled(true);
+
+    GraphQLHandler graphQLHandler = GraphQLHandler.create(graphQL, options);
 
     Router router = Router.router(vertx);
 
@@ -174,7 +182,7 @@ public class GraphQLExamples {
   }
 
   public void dataLoaderRegistry(GraphQL graphQL, BatchLoaderWithContext<String, Link> linksBatchLoader) {
-    GraphQLHandler handler = GraphQLHandler.create(graphQL).beforeExecute(builderWithContext -> {
+    GraphQLHandler handler = GraphQLHandler.builder(graphQL).beforeExecute(builderWithContext -> {
 
       DataLoader<String, Link> linkDataLoader = DataLoaderFactory.newDataLoader(linksBatchLoader);
 
@@ -182,7 +190,7 @@ public class GraphQLExamples {
 
       builderWithContext.builder().dataLoaderRegistry(dataLoaderRegistry);
 
-    });
+    }).build();
   }
 
   private Future<List<String>> findComments(List<Long> ids, BatchLoaderEnvironment env) {

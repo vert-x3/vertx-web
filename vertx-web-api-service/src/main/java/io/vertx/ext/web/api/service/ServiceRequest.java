@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.service;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonObject;
@@ -12,7 +13,8 @@ import java.util.function.Function;
 /**
  * Data object that encapsulates all informations about an HTTP Request
  */
-@DataObject(generateConverter = true, publicConverter = false)
+@DataObject
+@JsonGen(publicConverter = false)
 public class ServiceRequest {
 
   /**
