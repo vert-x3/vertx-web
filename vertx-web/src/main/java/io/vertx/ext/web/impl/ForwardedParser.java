@@ -44,9 +44,9 @@ class ForwardedParser {
   private static final AsciiString X_FORWARDED_PORT = AsciiString.cached("X-Forwarded-Port");
   private static final AsciiString X_FORWARDED_FOR = AsciiString.cached("X-Forwarded-For");
 
-  private static final Pattern FORWARDED_HOST_PATTERN = Pattern.compile("host=\"?([^;,\"]+)\"?");
-  private static final Pattern FORWARDED_PROTO_PATTERN = Pattern.compile("proto=\"?([^;,\"]+)\"?");
-  private static final Pattern FORWARDED_FOR_PATTERN = Pattern.compile("for=\"?([^;,\"]+)\"?");
+  private static final Pattern FORWARDED_HOST_PATTERN = Pattern.compile("host=\"?([^;,\"]+)\"?", Pattern.CASE_INSENSITIVE);
+  private static final Pattern FORWARDED_PROTO_PATTERN = Pattern.compile("proto=\"?([^;,\"]+)\"?", Pattern.CASE_INSENSITIVE);
+  private static final Pattern FORWARDED_FOR_PATTERN = Pattern.compile("for=\"?([^;,\"]+)\"?", Pattern.CASE_INSENSITIVE);
 
   private final HttpServerRequest delegate;
   private final AllowForwardHeaders allowForward;

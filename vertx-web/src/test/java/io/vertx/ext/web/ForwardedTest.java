@@ -127,6 +127,19 @@ public class ForwardedTest extends WebTestBase {
   }
 
   @Test
+  public void testForwardedHostAlongWithXForwardSSLWithUppercase() throws Exception {
+    String host = "vertx.io";
+    router.allowForward(ALL).route("/").handler(rc -> {
+      assertEquals(rc.request().authority().toString(), host);
+      assertTrue(rc.request().isSSL());
+      assertEquals(rc.request().scheme(), "https");
+      rc.end();
+    });
+
+    testRequest("Forwarded", "Host=" + host, "X-Forwarded-Ssl", "On");
+  }
+
+  @Test
   public void testMultipleForwarded() throws Exception {
     router.allowForward(ALL).route("/").handler(rc -> {
       assertTrue(rc.request().isSSL());
@@ -135,6 +148,17 @@ public class ForwardedTest extends WebTestBase {
     });
 
     testRequest("Forwarded", "proto=https,proto=http");
+  }
+
+  @Test
+  public void testMultipleForwardedWithUppercase() throws Exception {
+    router.allowForward(ALL).route("/").handler(rc -> {
+      assertTrue(rc.request().isSSL());
+      assertEquals(rc.request().scheme(), "https");
+      rc.end();
+    });
+
+    testRequest("Forwarded", "Proto=https,Proto=http");
   }
 
   @Test
@@ -160,6 +184,17 @@ public class ForwardedTest extends WebTestBase {
   }
 
   @Test
+  public void testForwardedHostWithUppercase() throws Exception {
+    String host = "vertx.io";
+    router.allowForward(ALL).route("/").handler(rc -> {
+      assertEquals(rc.request().authority().host(), host);
+      rc.end();
+    });
+
+    testRequest("Forwarded", "Host=" + host);
+  }
+
+  @Test
   public void testForwardedHostAndPort() throws Exception {
     String host = "vertx.io:1234";
     router.allowForward(ALL).route("/").handler(rc -> {
@@ -181,6 +216,19 @@ public class ForwardedTest extends WebTestBase {
     });
 
     testRequest("Forwarded", "host=" + host + ";proto=https");
+  }
+
+  @Test
+  public void testForwardedHostAndPortAndProtoWithUppercase() throws Exception {
+    String host = "vertx.io:1234";
+    router.allowForward(ALL).route("/").handler(rc -> {
+      assertEquals(rc.request().authority().toString(), host);
+      assertTrue(rc.request().isSSL());
+      assertEquals(rc.request().scheme(), "https");
+      rc.end();
+    });
+
+    testRequest("Forwarded", "Host=" + host + ";Proto=https");
   }
 
   @Test
@@ -331,6 +379,17 @@ public class ForwardedTest extends WebTestBase {
   }
 
   @Test
+  public void testForwardedForWithUpperCase() throws Exception {
+    String host = "1.2.3.4";
+    router.allowForward(ALL).route("/").handler(rc -> {
+      assertTrue(rc.request().remoteAddress().host().equals(host));
+      rc.end();
+    });
+
+    testRequest("Forwarded", "For=" + host);
+  }
+
+  @Test
   public void testForwardedForIpv6() throws Exception {
     String host = "[2001:db8:cafe::17]";
     int port = 4711;
@@ -446,6 +505,34 @@ public class ForwardedTest extends WebTestBase {
     wsClient.connect(new WebSocketConnectOptions().setURI("/ws").addHeader("Forwarded", "host=" + host + ";proto=https" + ";for=" + address)).onComplete(onSuccess(e -> {
       latch.countDown();
     }));
+    awaitLatch(latch);
+  }
+
+  @Test
+  public void testForwardedForAndWebSocketWithUppercase() throws Exception {
+    CountDownLatch latch = new CountDownLatch(2);
+    String host = "vertx.io:1234";
+    String address = "1.2.3.4";
+    router.allowForward(ALL).route("/ws").handler(rc -> {
+      HttpServerRequest request = rc.request();
+      if (canUpgradeToWebsocket(request)) {
+        request
+          .toWebSocket()
+          .onComplete(onSuccess(socket -> {
+            assertTrue(socket.authority().toString().equals(host));
+            assertTrue(socket.isSsl());
+            assertTrue(socket.remoteAddress().host().equals(address));
+            latch.countDown();
+          }));
+      } else {
+        fail("Expected websocket connection");
+      }
+    });
+
+    wsClient.connect(new WebSocketConnectOptions().setURI("/ws").addHeader("Forwarded", "Host=" + host + ";Proto=https" + ";For=" + address))
+      .onComplete(onSuccess(e -> {
+        latch.countDown();
+      }));
     awaitLatch(latch);
   }
 
