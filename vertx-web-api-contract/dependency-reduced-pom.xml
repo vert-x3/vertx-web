@@ -3,7 +3,7 @@
   <parent>
     <artifactId>vertx-web-parent</artifactId>
     <groupId>io.vertx</groupId>
-    <version>4.5.2</version>
+    <version>4.5.3</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>vertx-web-api-contract</artifactId>
@@ -50,7 +50,7 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
-      <version>4.5.2</version>
+      <version>4.5.3</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -74,21 +74,21 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-jwt</artifactId>
-      <version>4.5.2</version>
+      <version>4.5.3</version>
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
-      <version>4.5.2</version>
+      <version>4.5.3</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web-client</artifactId>
-      <version>4.5.2</version>
+      <version>4.5.3</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -100,19 +100,19 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-unit</artifactId>
-      <version>4.5.2</version>
+      <version>4.5.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-properties</artifactId>
-      <version>4.5.2</version>
+      <version>4.5.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-service-proxy</artifactId>
-      <version>4.5.2</version>
+      <version>4.5.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -124,13 +124,13 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-core</artifactId>
-      <version>4.5.2</version>
+      <version>4.5.3</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-codegen</artifactId>
-      <version>4.5.2</version>
+      <version>4.5.3</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
@@ -155,7 +155,7 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-core</artifactId>
-      <version>4.5.2</version>
+      <version>4.5.3</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
