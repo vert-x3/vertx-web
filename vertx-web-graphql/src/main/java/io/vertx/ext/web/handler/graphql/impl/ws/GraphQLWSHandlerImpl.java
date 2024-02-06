@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler.graphql.impl.ws;
 import graphql.GraphQL;
 import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
+import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.ws.ConnectionInitEvent;
@@ -27,7 +28,6 @@ import io.vertx.ext.web.handler.graphql.ws.GraphQLWSOptions;
 import io.vertx.ext.web.handler.graphql.ws.Message;
 
 import static io.vertx.ext.web.handler.graphql.ws.GraphQLWSOptions.DEFAULT_CONNECTION_INIT_WAIT_TIMEOUT;
-import static io.vertx.ext.web.impl.Utils.canUpgradeToWebsocket;
 
 public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
 
@@ -49,7 +49,7 @@ public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
 
   @Override
   public void handle(RoutingContext rc) {
-    if (canUpgradeToWebsocket(rc.request())) {
+    if (HttpUtils.canUpgradeToWebSocket(rc.request())) {
       rc
         .request()
         .toWebSocket()
