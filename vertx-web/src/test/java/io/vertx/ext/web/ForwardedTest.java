@@ -16,15 +16,16 @@
 
 package io.vertx.ext.web;
 
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.WebSocketConnectOptions;
+import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.net.NetClient;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 
 import static io.vertx.ext.web.AllowForwardHeaders.*;
-import static io.vertx.ext.web.impl.Utils.canUpgradeToWebsocket;
 
 public class ForwardedTest extends WebTestBase {
 
@@ -506,7 +507,7 @@ public class ForwardedTest extends WebTestBase {
     String address = "1.2.3.4";
     router.allowForward(ALL).route("/ws").handler(rc -> {
       HttpServerRequest request = rc.request();
-      if (canUpgradeToWebsocket(request)) {
+      if (HttpUtils.canUpgradeToWebSocket(request)) {
         request
           .toWebSocket(onSuccess(socket -> {
             assertTrue(socket.host().equals(host));
@@ -533,7 +534,7 @@ public class ForwardedTest extends WebTestBase {
     String address = "1.2.3.4";
     router.allowForward(ALL).route("/ws").handler(rc -> {
       HttpServerRequest request = rc.request();
-      if (canUpgradeToWebsocket(request)) {
+      if (HttpUtils.canUpgradeToWebSocket(request)) {
         request
           .toWebSocket(onSuccess(socket -> {
             assertTrue(socket.host().equals(host));

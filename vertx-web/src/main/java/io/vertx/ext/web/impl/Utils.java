@@ -24,7 +24,10 @@ import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.regex.Pattern;
@@ -230,27 +233,5 @@ public class Utils {
     }
 
     return true;
-  }
-
-  public static boolean canUpgradeToWebsocket(HttpServerRequest req) {
-    // verify if we can upgrade
-    // 1. Connection header contains "Upgrade"
-    // 2. Upgrade header is "websocket"
-    final MultiMap headers = req.headers();
-    if (headers.contains(HttpHeaders.CONNECTION)) {
-      for (String connection : headers.getAll(HttpHeaders.CONNECTION)) {
-        if (connection.toLowerCase().contains(HttpHeaders.UPGRADE)) {
-          if (headers.contains(HttpHeaders.UPGRADE)) {
-            for (String upgrade : headers.getAll(HttpHeaders.UPGRADE)) {
-              if (upgrade.toLowerCase().contains(HttpHeaders.WEBSOCKET)) {
-                return true;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return false;
   }
 }
