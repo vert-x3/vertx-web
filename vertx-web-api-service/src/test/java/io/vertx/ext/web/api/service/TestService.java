@@ -21,6 +21,9 @@ public interface TestService {
   @Deprecated
   Future<ServiceResponse> testAuthorization(ServiceRequest context);
 
+  @Deprecated
+  Future<ServiceResponse> testHeaders(ServiceRequest context);
+
   static TestService create(Vertx vertx) {
     return new TestServiceImpl(vertx);
   }
