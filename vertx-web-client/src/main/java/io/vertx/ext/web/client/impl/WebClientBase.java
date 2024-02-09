@@ -25,6 +25,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientInternal;
 import io.vertx.core.impl.ContextInternal;
+import io.vertx.core.net.Address;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.HttpRequest;
@@ -90,7 +91,9 @@ public class WebClientBase implements WebClientInternal {
     if (host == null) {
       host = options.getDefaultHost();
     }
-    HttpRequestImpl<Buffer> request = request(method, serverAddress, port, host, requestOptions.getURI());
+    Address address = serverAddress != null ? serverAddress : requestOptions.getServer();
+    HttpRequestImpl<Buffer> request = new HttpRequestImpl<>(this, method, address, options.isSsl(), port, host,
+      requestOptions.getURI(), BodyCodecImpl.BUFFER, options.isFollowRedirects(), buildProxyOptions(options), buildHeaders(options));
     request.ssl(requestOptions.isSsl());
     if (requestOptions.getTimeout() >= 0L) {
       request.timeout(requestOptions.getTimeout());

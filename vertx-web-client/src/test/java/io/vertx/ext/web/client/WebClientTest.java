@@ -1,7 +1,6 @@
 package io.vertx.ext.web.client;
 
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
-import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
@@ -23,13 +22,13 @@ import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.ext.web.client.predicate.ErrorConverter;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
-import io.vertx.uritemplate.UriTemplate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
+import io.vertx.test.fakeresolver.FakeAddress;
+import io.vertx.test.fakeresolver.FakeAddressResolver;
 import io.vertx.test.tls.Cert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -2115,5 +2114,31 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> req = webClient.get("/test/?c:d=e");
     req.send().onComplete(onSuccess(resp -> testComplete()));
     await();
+  }
+
+  @Test
+  public void testCannotResolveAddress() throws Exception {
+    client.close();
+    FakeAddressResolver<?> resolver = new FakeAddressResolver<>();
+    client = vertx.httpClientBuilder().with(createBaseClientOptions()).withAddressResolver(resolver).build();
+    webClient = WebClient.wrap(client);
+
+    // This test verifies the address resolver is actually used by the WebClient
+    webClient.request(HttpMethod.GET, new RequestOptions().setServer(new FakeAddress("mars")))
+      .send()
+      .onComplete(onFailure(t -> assertThat(t.getMessage(), allOf(containsString("resolve"), containsString("mars")))));
+  }
+
+  @Test
+  public void testUseResolvedAddress() throws Exception {
+    client.close();
+    FakeAddressResolver<?> resolver = new FakeAddressResolver<>();
+    resolver.registerAddress("mars", Collections.singletonList(testAddress));
+    client = vertx.httpClientBuilder().with(createBaseClientOptions()).withAddressResolver(resolver).build();
+    webClient = WebClient.wrap(client);
+
+    testRequest(
+      client -> client.request(HttpMethod.GET, new RequestOptions().setServer(new FakeAddress("mars"))),
+      req -> assertEquals("localhost:8080", req.authority().toString()));
   }
 }
