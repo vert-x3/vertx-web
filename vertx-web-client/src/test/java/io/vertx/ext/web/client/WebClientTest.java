@@ -2118,7 +2118,7 @@ public class WebClientTest extends WebClientTestBase {
 
   @Test
   public void testCannotResolveAddress() throws Exception {
-    client.close();
+    awaitFuture(client.close());
     FakeAddressResolver<?> resolver = new FakeAddressResolver<>();
     client = vertx.httpClientBuilder().with(createBaseClientOptions()).withAddressResolver(resolver).build();
     webClient = WebClient.wrap(client);
@@ -2131,7 +2131,7 @@ public class WebClientTest extends WebClientTestBase {
 
   @Test
   public void testUseResolvedAddress() throws Exception {
-    client.close();
+    awaitFuture(client.close());
     FakeAddressResolver<?> resolver = new FakeAddressResolver<>();
     resolver.registerAddress("mars", Collections.singletonList(testAddress));
     client = vertx.httpClientBuilder().with(createBaseClientOptions()).withAddressResolver(resolver).build();
