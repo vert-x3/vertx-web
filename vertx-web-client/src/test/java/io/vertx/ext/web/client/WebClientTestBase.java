@@ -65,7 +65,6 @@ public class WebClientTestBase extends HttpTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    client = vertx.createHttpClient(createBaseClientOptions());
     webClient = WebClient.wrap(client);
     server.close();
     server = vertx.createHttpServer(createBaseServerOptions());
