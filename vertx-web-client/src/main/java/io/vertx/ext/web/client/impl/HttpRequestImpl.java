@@ -17,7 +17,8 @@ package io.vertx.ext.web.client.impl;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.QueryStringEncoder;
-import io.vertx.core.*;
+import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -25,6 +26,7 @@ import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientInternal;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.Address;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
@@ -40,11 +42,7 @@ import io.vertx.uritemplate.Variables;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -53,7 +51,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   private final WebClientBase client;
   private ProxyOptions proxyOptions;
-  private SocketAddress serverAddress;
+  private final Address address;
   private MultiMap queryParams;
   private Variables templateParams;
   private HttpMethod method;
@@ -75,7 +73,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   HttpRequestImpl(WebClientBase client,
                   HttpMethod method,
-                  SocketAddress serverAddress,
+                  Address address,
                   UriTemplate absoluteUri,
                   BodyCodec<T> codec,
                   boolean followRedirects,
@@ -84,7 +82,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     Objects.requireNonNull(absoluteUri, "AbsoluteUri cannot be null");
     this.client = client;
     this.absoluteUri = absoluteUri;
-    this.serverAddress = serverAddress;
+    this.address = address;
     this.method = method;
     this.ssl = null;
     this.host = null;
@@ -98,7 +96,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   HttpRequestImpl(WebClientBase client,
                   HttpMethod method,
-                  SocketAddress serverAddress,
+                  Address address,
                   Boolean ssl,
                   int port,
                   String host,
@@ -110,7 +108,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     Objects.requireNonNull(host, "Host cannot be null");
     this.client = client;
     this.absoluteUri = null;
-    this.serverAddress = serverAddress;
+    this.address = address;
     this.method = method;
     this.ssl = ssl;
     this.port = port;
@@ -125,7 +123,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   private HttpRequestImpl(HttpRequestImpl<T> other) {
     this.client = other.client;
     this.absoluteUri = other.absoluteUri;
-    this.serverAddress = other.serverAddress;
+    this.address = other.address;
     this.ssl = other.ssl;
     this.method = other.method;
     this.port = other.port;
@@ -495,11 +493,11 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     if (protocol != null && !protocol.equals("http") && !protocol.equals("https")) {
       // we have to create an abs url again to parse it in HttpClient
       URI tmp = new URI(protocol, null, host, port, uri, null, null);
-      requestOptions.setServer(this.serverAddress)
+      requestOptions.setServer(this.address)
         .setMethod(this.method)
         .setAbsoluteURI(tmp.toString());
     } else {
-      requestOptions.setServer(this.serverAddress)
+      requestOptions.setServer(this.address)
         .setMethod(this.method)
         .setHost(host)
         .setPort(port)
