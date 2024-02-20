@@ -12,7 +12,6 @@
 
 package io.vertx.router.test.e2e;
 
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
@@ -35,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static com.google.common.truth.Truth.assertThat;
+import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
 import static io.vertx.ext.web.openapi.router.RequestExtractor.withBodyHandler;
@@ -150,7 +150,8 @@ class RouterBuilderTest extends RouterBuilderTestBase {
         JsonObject invalidBodyJson = new JsonObject().put("foo", "bar");
         return createRequest(POST, "/v1/pets").sendJsonObject(invalidBodyJson)
           .onSuccess(response -> testContext.verify(() -> {
-            assertThat(response.statusCode()).isEqualTo(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+            assertThat(response.statusCode()).isEqualTo(BAD_REQUEST.code());
+            assertThat(response.statusMessage()).isEqualTo(BAD_REQUEST.reasonPhrase());
             testContext.completeNow();
           }));
       })
