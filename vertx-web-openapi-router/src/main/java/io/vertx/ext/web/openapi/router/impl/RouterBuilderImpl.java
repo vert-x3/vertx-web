@@ -21,6 +21,7 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.InputTrustHandler;
 import io.vertx.ext.web.openapi.router.OpenAPIRoute;
 import io.vertx.ext.web.openapi.router.RequestExtractor;
@@ -30,6 +31,7 @@ import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.openapi.contract.Operation;
 import io.vertx.openapi.contract.Path;
 import io.vertx.openapi.validation.RequestValidator;
+import io.vertx.openapi.validation.ValidatorException;
 import io.vertx.openapi.validation.impl.RequestValidatorImpl;
 
 import java.util.ArrayList;
@@ -37,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 
 public class RouterBuilderImpl implements RouterBuilderInternal {
   private static final Logger LOG = LoggerFactory.getLogger(RouterBuilderImpl.class);
@@ -126,7 +130,13 @@ public class RouterBuilderImpl implements RouterBuilderInternal {
               .onSuccess(rp -> {
                 rc.put(KEY_META_DATA_VALIDATED_REQUEST, rp);
                 rc.next();
-              }).onFailure(rc::fail);
+              }).onFailure(e -> {
+                if (e instanceof ValidatorException) {
+                  rc.fail(new HttpException(BAD_REQUEST.code(), e.getMessage(), e));
+                } else {
+                  rc.fail(e);
+                }
+              });
             route.handler(validationHandler);
           }
 
