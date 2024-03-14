@@ -1913,31 +1913,42 @@ Please consult the http://www.freemarker.org/[Apache FreeMarker documentation] f
 
 === Pebble template engine
 
-To use Pebble, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-pebble:${maven.version}`. Create an instance of the Pebble template engine
-using: `io.vertx.ext.web.templ.pebble.PebbleTemplateEngine#create(vertx)`.
+To use the Pebble template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-When using the Pebble template engine, it will by default look for
-templates with the `.peb` extension if no extension is specified in the file name.
+* Maven (in your `pom.xml`):
 
-The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
-in the Pebble template as the source of variables, this means you can render the template based on anything in the context
-data. If you need data from the request, response, session then it needs to be added explicitly to the data.
-
-Here are some examples:
-
+[source,xml,subs="+attributes"]
 ----
-[snip]
-<p th:text="{{context.foo}}"></p>
-<p th:text="{{context.bar}}"></p>
-<p th:text="{{context.normalizedPath()}}"></p>
-<p th:text="{{context.request().params().param1}}"></p>
-<p th:text="{{context.request().params().param2}}"></p>
-[snip]
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-pebble</artifactId>
+  <version>${maven.version}</version>
+</dependency>
 ----
 
-Please consult the http://www.mitchellbosecke.com/pebble/home/[Pebble documentation] for how to write
-Pebble templates.
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-pebble:${maven.version}'
+}
+----
+
+Create an instance of the Pebble template engine using: `io.vertx.ext.web.templ.pebble.PebbleTemplateEngine#create(vertx)`.
+
+When using the Pebble template engine, it will by default look for templates with the `.peb` extension if no extension is specified in the file name.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the Pebble template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
+
+----
+Hello {{foo}} and {{bar}}
+----
+
+Please consult the http://www.mitchellbosecke.com/pebble/home/[Pebble documentation] for how to write Pebble templates.
 
 === Rocker template engine
 
