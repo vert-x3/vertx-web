@@ -1673,19 +1673,17 @@ By default the template handler will look for templates in a directory called `t
 The handler will return the results of rendering with a content type of `text/html` by default. This can also be configured.
 
 When you create the template handler you pass in an instance of the template engine you want. Template engines are
-not embedded in vertx-web so, you need to configure your project to access them. Configuration is provided for
+not embedded in vertx-web, so you must configure your project to access them. Configuration is provided for
 each template engine.
 
-Here are some examples:
+Here's an example with the Handlebars template engine:
 
 ////
-These examples are not using the traditional "transcoding" as they use an API providing in another project.
+These examples are not using the traditional "transcoding" as they use an API provided in another project.
 ////
 
-[language, java]
-----
 [source, java]
-\----
+----
 TemplateEngine engine = HandlebarsTemplateEngine.create();
 TemplateHandler handler = TemplateHandler.create(engine);
 
@@ -1695,64 +1693,6 @@ router.get("/dynamic/*").handler(handler);
 
 // Route all GET requests for resource ending in .hbs to the template handler
 router.getWithRegex(".+\\.hbs").handler(handler);
-\----
-----
-
-[language, groovy]
-----
-[source, groovy]
-\----
-import io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine
-import io.vertx.groovy.ext.web.handler.TemplateHandler
-
-def engine = HandlebarsTemplateEngine.create()
-def handler = TemplateHandler.create(engine)
-
-// This will route all GET requests starting with /dynamic/ to the template handler
-// E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
-router.get("/dynamic/*").handler(handler)
-
-// Route all GET requests for resource ending in .hbs to the template handler
-router.getWithRegex(".+\\.hbs").handler(handler)
-\----
-----
-
-[language, ruby]
-----
-[source, ruby]
-\----
-require 'vertx-web/handlebars_template_engine'
-require 'vertx-web/template_handler'
-
-engine = VertxWeb::HandlebarsTemplateEngine.create()
-handler = VertxWeb::TemplateHandler.create(engine)
-
-# This will route all GET requests starting with /dynamic/ to the template handler
-# E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
-router.get("/dynamic/*").handler(&handler.method(:handle))
-
-# Route all GET requests for resource ending in .hbs to the template handler
-router.get_with_regex(".+\\.hbs").handler(&handler.method(:handle))
-\----
-----
-
-[language, js]
-----
-[source, javascript]
-\----
-var HandlebarsTemplateEngine = require("vertx-web-js/handlebars_template_engine");
-var TemplateHandler = require("vertx-web-js/template_handler");
-
-var engine = HandlebarsTemplateEngine.create();
-var handler = TemplateHandler.create(engine);
-
-// This will route all GET requests starting with /dynamic/ to the template handler
-// E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
-router.get("/dynamic/*").handler(handler.handle);
-
-// Route all GET requests for resource ending in .hbs to the template handler
-router.getWithRegex(".+\\.hbs").handler(handler.handle);
-\----
 ----
 
 === MVEL template engine
