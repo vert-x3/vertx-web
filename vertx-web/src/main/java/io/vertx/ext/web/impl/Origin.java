@@ -82,40 +82,50 @@ public final class Origin {
         this.protocol = protocol;
         defaultPort = DEFAULT_HTTPS_PORT;
         break;
+      case "chrome-extension":
+        this.protocol = protocol;
+        defaultPort = "-1";
+        break;
       default:
         throw new IllegalStateException("Unsupported protocol: " + protocol);
     }
     if (host == null) {
       throw new IllegalStateException("Null host not allowed");
     }
-    // hosts are either domain names, dot separated or ipv6 like
-    // https://tools.ietf.org/html/rfc1123
-    boolean ipv6 = false;
-    for (int i = 0; i < host.length(); i++) {
-      char c = host.charAt(i);
-      switch (c) {
-        case '[':
-          if (i == 0) {
-            ipv6 = true;
-          } else {
-            throw new IllegalStateException("Illegal character in hostname: " + host);
-          }
-          break;
-        case ']':
-          if (!ipv6 || i != host.length() - 1) {
-            throw new IllegalStateException("Illegal character in hostname: " + host);
-          }
-          break;
-        case ':':
-          if (!ipv6) {
-            throw new IllegalStateException("Illegal character in hostname: " + host);
-          }
-          break;
-        default:
-          if (!Character.isLetterOrDigit(c) && c != '.' && c != '-') {
-            throw new IllegalStateException("Illegal character in hostname: " + host);
-          }
-          break;
+    if ("chrome-extension".equals(protocol)) {
+      if (!isValidChromeExtensionId(host, 0)) {
+        throw new IllegalStateException("Illegal Chrome Extension id: " + host);
+      }
+    } else {
+      // hosts are either domain names, dot separated or ipv6 like
+      // https://tools.ietf.org/html/rfc1123
+      boolean ipv6 = false;
+      for (int i = 0; i < host.length(); i++) {
+        char c = host.charAt(i);
+        switch (c) {
+          case '[':
+            if (i == 0) {
+              ipv6 = true;
+            } else {
+              throw new IllegalStateException("Illegal character in hostname: " + host);
+            }
+            break;
+          case ']':
+            if (!ipv6 || i != host.length() - 1) {
+              throw new IllegalStateException("Illegal character in hostname: " + host);
+            }
+            break;
+          case ':':
+            if (!ipv6) {
+              throw new IllegalStateException("Illegal character in hostname: " + host);
+            }
+            break;
+          default:
+            if (!Character.isLetterOrDigit(c) && c != '.' && c != '-') {
+              throw new IllegalStateException("Illegal character in hostname: " + host);
+            }
+            break;
+        }
       }
     }
     this.host = host;
@@ -218,6 +228,8 @@ public final class Origin {
         case "http":
         case "https":
           break;
+        case "chrome-extension":
+          return isValidChromeExtensionId(text, sep0 + 3);
         default:
           return false;
       }
@@ -257,6 +269,21 @@ public final class Origin {
 
     // invalid
     return false;
+  }
+
+  private static boolean isValidChromeExtensionId(String text, int offset) {
+    // Chrome extensions IDs are 32 chars long strings
+    if (text.length() - offset != 32) {
+      return false;
+    }
+    for (int i = offset; i < text.length(); i++) {
+      char c = text.charAt(i);
+      // Chrome extensions IDs contain chars from 'a' to 'p'
+      if (c < 'a' || c > 'p') {
+        return false;
+      }
+    }
+    return true;
   }
 
   private static boolean check(String host, String port) {
