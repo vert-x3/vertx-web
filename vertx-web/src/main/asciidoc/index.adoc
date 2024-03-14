@@ -1789,28 +1789,48 @@ Please consult the https://github.com/neuland/pug4j[Pug4j documentation] for how
 
 === Handlebars template engine
 
-To use Handlebars, you need to add the following _dependency_ to your project:
-`${maven.groupId}:vertx-web-templ-handlebars:${maven.version}`. Create an instance of the Handlebars template engine
-using: `io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine#create(io.vertx.core.Vertx)`.
+To use the Handlebars template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-When using the Handlebars template engine, it will by default look for
-templates with the `.hbs` extension if no extension is specified in the file name.
+* Maven (in your `pom.xml`):
 
-Handlebars templates are not able to call arbitrary methods in objects so we can't just pass the routing context
-into the template and let the template introspect it like we can with other template engines.
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-handlebars</artifactId>
+  <version>${maven.version}</version>
+</dependency>
+----
 
-Instead, the context {@link io.vertx.ext.web.RoutingContext#data()} is available in the template.
+* Gradle (in your `build.gradle` file):
 
-If you want to have access to other data like the request path, request params or session data you should
-add it the context data in a handler before the template handler. For example:
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-handlebars:${maven.version}'
+}
+----
+
+Create an instance of the Handlebars template engine using: `io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine#create(io.vertx.core.Vertx)`.
+
+When using the Handlebars template engine, it will by default look for templates with the `.hbs` extension if no extension is specified in the file name.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the Handlebars template as the source of variables, this means you can render the template based on anything in the context data.
+
+[IMPORTANT]
+====
+Handlebars templates are not able to call arbitrary methods in objects.
+
+If you want to have access to other data like the request path, request params or session data you should add it the context data in a handler before the template handler.
+For example:
 
 [source,$lang]
 ----
 {@link examples.WebExamples#example41_2}
 ----
+====
 
-Please consult the https://github.com/jknack/handlebars.java[Handlebars Java port documentation] for how to write
-handlebars templates.
+Please consult the https://github.com/jknack/handlebars.java[Handlebars Java port documentation] for how to write handlebars templates.
 
 === Thymeleaf template engine
 
