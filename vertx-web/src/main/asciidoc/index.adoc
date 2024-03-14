@@ -2029,34 +2029,49 @@ Please consult the https://httl.github.io/en/[HTTL documentation] for how to wri
 
 === Rythm template engine
 
-To use Rythm, you need to add the following _dependency_ to your project:
-`${maven.groupId}:vertx-web-templ-rythm:${maven.version}`. Create an instance of the Rythm template engine
-using: `io.vertx.ext.web.templ.rythm.RythmTemplateEngine#create(io.vertx.core.Vertx)`.
+To use the Rythm template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-When using the Rythm template engine, it will by default look for
-templates with the `.html` extension if no extension is specified in the file name.
+* Maven (in your `pom.xml`):
 
-The values of the JSON context object passed to the `render` method are then exposed as template parameters.
-Given:
-
+[source,xml,subs="+attributes"]
 ----
-[snip]
-TemplateEngine engine = RythmTemplateEngine.create(vertx);
-final JsonObject context = new JsonObject()
-  .put("foo", "badger")
-  .put("bar", "fox");
-
-engine.render(context, "somedir/test-rythm-template1.html", render -> {
-  // (...)
-});
-[snip]
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-rythm</artifactId>
+  <version>${maven.version}</version>
+</dependency>
 ----
 
-then the template can be as the following `somedir/test-rythm-template1.httl` resource file:
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-rythm:${maven.version}'
+}
+----
+
+Create an instance of the Rythm template engine using: `io.vertx.ext.web.templ.rythm.RythmTemplateEngine#create(io.vertx.core.Vertx)`.
+
+When using the Rythm template engine, it will by default look for templates with the `.html` extension if no extension is specified in the file name.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the Rythm template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
 
 ----
-<!-- #set(String foo, String bar) -->
-Hello @foo and @bar
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+  <p>@foo</p>
+  <p>@bar</p>
+</body>
+</html>
 ----
 
 Please consult the http://www.rythmengine.org/[RythmEngine documentation] for how to write templates.
