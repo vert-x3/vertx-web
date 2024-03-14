@@ -1834,31 +1834,43 @@ Please consult the https://github.com/jknack/handlebars.java[Handlebars Java por
 
 === Thymeleaf template engine
 
-To use Thymeleaf, you need to add the following _dependency_ to your project:
-`${maven.groupId}:vertx-web-templ-thymeleaf:${maven.version}`. Create an instance of the Thymeleaf template engine
-using: `io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine#create(io.vertx.core.Vertx)`.
+To use the Thymeleaf template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-When using the Thymeleaf template engine, it will by default look for
-templates with the `.html` extension if no extension is specified in the file name.
+* Maven (in your `pom.xml`):
 
-The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
-in the Thymeleaf template as the source of variables, this means you can render the template based on anything in the context
-data. If you need data from the request, response, session then it needs to be added explicitly to the data.
-
-Here are some examples:
-
+[source,xml,subs="+attributes"]
 ----
-[snip]
-<p th:text="${context.get('foo')}"></p>
-<p th:text="${context.get('bar')}"></p>
-<p th:text="${context.normalizedPath()}"></p>
-<p th:text="${context.request().params().get('param1')}"></p>
-<p th:text="${context.request().params().get('param2')}"></p>
-[snip]
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-thymeleaf</artifactId>
+  <version>${maven.version}</version>
+</dependency>
 ----
 
-Please consult the http://www.thymeleaf.org/[Thymeleaf documentation] for how to write
-Thymeleaf templates.
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-thymeleaf:${maven.version}'
+}
+----
+
+Create an instance of the Thymeleaf template engine using: `io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine#create(io.vertx.core.Vertx)`.
+
+When using the Thymeleaf template engine, it will by default look for templates with the `.html` extension if no extension is specified in the file name.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the Thymeleaf template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
+
+----
+<div th:fragment="example"><p th:text="${foo}"></p>
+<p th:text="${bar}"></p></div>
+----
+
+Please consult the http://www.thymeleaf.org/[Thymeleaf documentation] for how to write Thymeleaf templates.
 
 === Apache FreeMarker template engine
 
