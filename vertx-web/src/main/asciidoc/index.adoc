@@ -1952,32 +1952,39 @@ Please consult the http://www.mitchellbosecke.com/pebble/home/[Pebble documentat
 
 === Rocker template engine
 
-To use Rocker, then add `io.vertx:vertx-web-templ-rocker:${maven.version}` as a dependency to your project.
-You can then create a Rocker template engine instance with `io.vertx.ext.web.templ.rocker#create()`.
+To use the Rocker template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-The values of the JSON context object passed to the `render` method are then exposed as template parameters.
-Given:
+* Maven (in your `pom.xml`):
 
+[source,xml,subs="+attributes"]
 ----
-[snip]
-final JsonObject context = new JsonObject()
-  .put("foo", "badger")
-  .put("bar", "fox")
-  .put("context", new JsonObject().put("path", "/foo/bar"));
-
-engine.render(context, "somedir/TestRockerTemplate2", render -> {
-  // (...)
-});
-[snip]
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-rocker</artifactId>
+  <version>${maven.version}</version>
+</dependency>
 ----
 
-then the template can be as the following `somedir/TestRockerTemplate2.rocker.html` resource file:
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-rocker:${maven.version}'
+}
+----
+
+Create an instance of the Rocker template engine using: `io.vertx.ext.web.templ.rocker.RockerTemplateEngine#create()`.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the Rocker template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
 
 ----
 @import io.vertx.core.json.JsonObject
-@args (JsonObject context, String foo, String bar)
+@args (String foo, String bar)
 Hello @foo and @bar
-Request path is @context.getString("path")
 ----
 
 === HTTL template engine
