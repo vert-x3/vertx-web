@@ -1746,29 +1746,46 @@ MVEL templates.
 
 === Pug template engine
 
-To use the Pug template engine, you need to add the following _dependency_ to your project:
-`${maven.groupId}:vertx-web-templ-pug:${maven.version}`. Create an instance of the Pug template engine using:
-`io.vertx.ext.web.templ.pug.PugTemplateEngine#create(io.vertx.core.Vertx)`.
+To use the Pug template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-When using the Pug template engine, it will by default look for
-templates with the `.pug` extension if no extension is specified in the file name.
+* Maven (in your `pom.xml`):
 
-The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
-in the Pug template as the source of variables, this means you can render the template based on anything in the context
-data. If you need data from the request, response, session then it needs to be added explicitly to the data.
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-pug</artifactId>
+  <version>${maven.version}</version>
+</dependency>
+----
 
-Here are some examples:
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-pug:${maven.version}'
+}
+----
+
+Create an instance of the Pug template engine using: `io.vertx.ext.web.templ.pug.PugTemplateEngine#create(io.vertx.core.Vertx)`.
+
+When using the Pug template engine, it will by default look for templates with the `.pug` extension if no extension is specified in the file name.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the Pug template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
 
 ----
 !!! 5
 html
   head
-    title= context.get('foo') + context.request().path()
+    title The value of 'bar' from routing context data is #{bar}.
   body
 ----
 
-Please consult the https://github.com/neuland/pug4j[Pug4j documentation] for how to write
-Pug templates.
+Please consult the https://github.com/neuland/pug4j[Pug4j documentation] for how to write Pug templates.
 
 === Handlebars template engine
 
