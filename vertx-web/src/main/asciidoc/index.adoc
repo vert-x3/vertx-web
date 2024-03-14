@@ -2076,6 +2076,45 @@ Here is an example:
 
 Please consult the http://www.rythmengine.org/[RythmEngine documentation] for how to write templates.
 
+=== JTE template engine
+
+To use the JTE template engine, add the following dependency to the _dependencies_ section of your build descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-jte</artifactId>
+  <version>${maven.version}</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-jte:${maven.version}'
+}
+----
+
+Create an instance of the JTE template engine using: `io.vertx.ext.web.templ.jte.JteTemplateEngine#create(io.vertx.core.Vertx, java.lang.String)`.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the JTE template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
+
+----
+@import io.vertx.core.json.JsonObject
+@param String foo
+@param String bar
+
+Hello ${foo} and ${bar}
+----
+
 === Caching
 
 Many of the engines support caching of the compiled templates. The cache is stored inside a vert.x shared data local map
