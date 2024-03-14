@@ -1874,31 +1874,42 @@ Please consult the http://www.thymeleaf.org/[Thymeleaf documentation] for how to
 
 === Apache FreeMarker template engine
 
-To use Apache FreeMarker, you need to add the following _dependency_ to your project:
-`${maven.groupId}:vertx-web-templ-freemarker:${maven.version}`. Create an instance of the Apache FreeMarker template engine
-using: `io.vertx.ext.web.templ.Engine#create()`.
+To use the FreeMarker template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-When using the Apache FreeMarker template engine, it will by default look for
-templates with the `.ftl` extension if no extension is specified in the file name.
+* Maven (in your `pom.xml`):
 
-The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
-in the FreeMarker template as the source of variables, this means you can render the template based on anything in the context
-data. If you need data from the request, response, session then it needs to be added explicitly to the data.
-
-Here are some examples:
-
+[source,xml,subs="+attributes"]
 ----
-[snip]
-<p th:text="${context.foo}"></p>
-<p th:text="${context.bar}"></p>
-<p th:text="${context.normalizedPath()}"></p>
-<p th:text="${context.request().params().param1}"></p>
-<p th:text="${context.request().params().param2}"></p>
-[snip]
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-freemarker</artifactId>
+  <version>${maven.version}</version>
+</dependency>
 ----
 
-Please consult the http://www.freemarker.org/[Apache FreeMarker documentation] for how to write
-Apache FreeMarker templates.
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-freemarker:${maven.version}'
+}
+----
+
+Create an instance of the Apache FreeMarker template engine using: `io.vertx.ext.web.templ.Engine#create()`.
+
+When using the Apache FreeMarker template engine, it will by default look for templates with the `.ftl` extension if no extension is specified in the file name.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the FreeMarker template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
+
+----
+Hello ${foo} and ${bar}
+----
+
+Please consult the http://www.freemarker.org/[Apache FreeMarker documentation] for how to write Apache FreeMarker templates.
 
 === Pebble template engine
 
