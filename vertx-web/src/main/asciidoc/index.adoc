@@ -1673,19 +1673,17 @@ By default the template handler will look for templates in a directory called `t
 The handler will return the results of rendering with a content type of `text/html` by default. This can also be configured.
 
 When you create the template handler you pass in an instance of the template engine you want. Template engines are
-not embedded in vertx-web so, you need to configure your project to access them. Configuration is provided for
+not embedded in vertx-web, so you must configure your project to access them. Configuration is provided for
 each template engine.
 
-Here are some examples:
+Here's an example with the Handlebars template engine:
 
 ////
-These examples are not using the traditional "transcoding" as they use an API providing in another project.
+These examples are not using the traditional "transcoding" as they use an API provided in another project.
 ////
 
-[language, java]
-----
 [source, java]
-\----
+----
 TemplateEngine engine = HandlebarsTemplateEngine.create();
 TemplateHandler handler = TemplateHandler.create(engine);
 
@@ -1695,87 +1693,43 @@ router.get("/dynamic/*").handler(handler);
 
 // Route all GET requests for resource ending in .hbs to the template handler
 router.getWithRegex(".+\\.hbs").handler(handler);
-\----
-----
-
-[language, groovy]
-----
-[source, groovy]
-\----
-import io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine
-import io.vertx.groovy.ext.web.handler.TemplateHandler
-
-def engine = HandlebarsTemplateEngine.create()
-def handler = TemplateHandler.create(engine)
-
-// This will route all GET requests starting with /dynamic/ to the template handler
-// E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
-router.get("/dynamic/*").handler(handler)
-
-// Route all GET requests for resource ending in .hbs to the template handler
-router.getWithRegex(".+\\.hbs").handler(handler)
-\----
-----
-
-[language, ruby]
-----
-[source, ruby]
-\----
-require 'vertx-web/handlebars_template_engine'
-require 'vertx-web/template_handler'
-
-engine = VertxWeb::HandlebarsTemplateEngine.create()
-handler = VertxWeb::TemplateHandler.create(engine)
-
-# This will route all GET requests starting with /dynamic/ to the template handler
-# E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
-router.get("/dynamic/*").handler(&handler.method(:handle))
-
-# Route all GET requests for resource ending in .hbs to the template handler
-router.get_with_regex(".+\\.hbs").handler(&handler.method(:handle))
-\----
-----
-
-[language, js]
-----
-[source, javascript]
-\----
-var HandlebarsTemplateEngine = require("vertx-web-js/handlebars_template_engine");
-var TemplateHandler = require("vertx-web-js/template_handler");
-
-var engine = HandlebarsTemplateEngine.create();
-var handler = TemplateHandler.create(engine);
-
-// This will route all GET requests starting with /dynamic/ to the template handler
-// E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
-router.get("/dynamic/*").handler(handler.handle);
-
-// Route all GET requests for resource ending in .hbs to the template handler
-router.getWithRegex(".+\\.hbs").handler(handler.handle);
-\----
 ----
 
 === MVEL template engine
 
-To use MVEL, you need to add the following _dependency_ to your project:
-`${maven.groupId}:vertx-web-templ-mvel:${maven.version}`. Create an instance of the MVEL template engine using:
-`io.vertx.ext.web.templ.mvel.MVELTemplateEngine#create(io.vertx.core.Vertx)`
+To use the MVEL template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-When using the MVEL template engine, it will by default look for
-templates with the `.templ` extension if no extension is specified in the file name.
+* Maven (in your `pom.xml`):
 
-The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
-in the MVEL template as the source of variables, this means you can render the template based on anything in the context
-data. If you need data from the request, response, session then it needs to be added explicitly to the data.
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-mvel</artifactId>
+  <version>${maven.version}</version>
+</dependency>
+----
 
-Here are some examples:
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-mvel:${maven.version}'
+}
+----
+
+Create an instance of the MVEL template engine using: `io.vertx.ext.web.templ.mvel.MVELTemplateEngine#create(io.vertx.core.Vertx)`
+
+When using the MVEL template engine, it will by default look for templates with the `.templ` extension if no extension is specified in the file name.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the MVEL template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
 
 ----
-The request path is @{context.request().path()}
-
-The variable 'foo' from the session is @{context.session().get('foo')}
-
-The value 'bar' from the context data is @{context.get('bar')}
+The value of 'bar' from routing context data is @{bar}.
 ----
 
 [NOTE]
@@ -1792,238 +1746,374 @@ MVEL templates.
 
 === Pug template engine
 
-To use the Pug template engine, you need to add the following _dependency_ to your project:
-`${maven.groupId}:vertx-web-templ-pug:${maven.version}`. Create an instance of the Pug template engine using:
-`io.vertx.ext.web.templ.pug.PugTemplateEngine#create(io.vertx.core.Vertx)`.
+To use the Pug template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-When using the Pug template engine, it will by default look for
-templates with the `.pug` extension if no extension is specified in the file name.
+* Maven (in your `pom.xml`):
 
-The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
-in the Pug template as the source of variables, this means you can render the template based on anything in the context
-data. If you need data from the request, response, session then it needs to be added explicitly to the data.
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-pug</artifactId>
+  <version>${maven.version}</version>
+</dependency>
+----
 
-Here are some examples:
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-pug:${maven.version}'
+}
+----
+
+Create an instance of the Pug template engine using: `io.vertx.ext.web.templ.pug.PugTemplateEngine#create(io.vertx.core.Vertx)`.
+
+When using the Pug template engine, it will by default look for templates with the `.pug` extension if no extension is specified in the file name.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the Pug template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
 
 ----
 !!! 5
 html
   head
-    title= context.get('foo') + context.request().path()
+    title The value of 'bar' from routing context data is #{bar}.
   body
 ----
 
-Please consult the https://github.com/neuland/pug4j[Pug4j documentation] for how to write
-Pug templates.
+Please consult the https://github.com/neuland/pug4j[Pug4j documentation] for how to write Pug templates.
 
 === Handlebars template engine
 
-To use Handlebars, you need to add the following _dependency_ to your project:
-`${maven.groupId}:vertx-web-templ-handlebars:${maven.version}`. Create an instance of the Handlebars template engine
-using: `io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine#create(io.vertx.core.Vertx)`.
+To use the Handlebars template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-When using the Handlebars template engine, it will by default look for
-templates with the `.hbs` extension if no extension is specified in the file name.
+* Maven (in your `pom.xml`):
 
-Handlebars templates are not able to call arbitrary methods in objects so we can't just pass the routing context
-into the template and let the template introspect it like we can with other template engines.
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-handlebars</artifactId>
+  <version>${maven.version}</version>
+</dependency>
+----
 
-Instead, the context {@link io.vertx.ext.web.RoutingContext#data()} is available in the template.
+* Gradle (in your `build.gradle` file):
 
-If you want to have access to other data like the request path, request params or session data you should
-add it the context data in a handler before the template handler. For example:
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-handlebars:${maven.version}'
+}
+----
+
+Create an instance of the Handlebars template engine using: `io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine#create(io.vertx.core.Vertx)`.
+
+When using the Handlebars template engine, it will by default look for templates with the `.hbs` extension if no extension is specified in the file name.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the Handlebars template as the source of variables, this means you can render the template based on anything in the context data.
+
+[IMPORTANT]
+====
+Handlebars templates are not able to call arbitrary methods in objects.
+
+If you want to have access to other data like the request path, request params or session data you should add it the context data in a handler before the template handler.
+For example:
 
 [source,$lang]
 ----
 {@link examples.WebExamples#example41_2}
 ----
+====
 
-Please consult the https://github.com/jknack/handlebars.java[Handlebars Java port documentation] for how to write
-handlebars templates.
+Please consult the https://github.com/jknack/handlebars.java[Handlebars Java port documentation] for how to write handlebars templates.
 
 === Thymeleaf template engine
 
-To use Thymeleaf, you need to add the following _dependency_ to your project:
-`${maven.groupId}:vertx-web-templ-thymeleaf:${maven.version}`. Create an instance of the Thymeleaf template engine
-using: `io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine#create(io.vertx.core.Vertx)`.
+To use the Thymeleaf template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-When using the Thymeleaf template engine, it will by default look for
-templates with the `.html` extension if no extension is specified in the file name.
+* Maven (in your `pom.xml`):
 
-The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
-in the Thymeleaf template as the source of variables, this means you can render the template based on anything in the context
-data. If you need data from the request, response, session then it needs to be added explicitly to the data.
-
-Here are some examples:
-
+[source,xml,subs="+attributes"]
 ----
-[snip]
-<p th:text="${context.get('foo')}"></p>
-<p th:text="${context.get('bar')}"></p>
-<p th:text="${context.normalizedPath()}"></p>
-<p th:text="${context.request().params().get('param1')}"></p>
-<p th:text="${context.request().params().get('param2')}"></p>
-[snip]
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-thymeleaf</artifactId>
+  <version>${maven.version}</version>
+</dependency>
 ----
 
-Please consult the http://www.thymeleaf.org/[Thymeleaf documentation] for how to write
-Thymeleaf templates.
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-thymeleaf:${maven.version}'
+}
+----
+
+Create an instance of the Thymeleaf template engine using: `io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine#create(io.vertx.core.Vertx)`.
+
+When using the Thymeleaf template engine, it will by default look for templates with the `.html` extension if no extension is specified in the file name.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the Thymeleaf template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
+
+----
+<div th:fragment="example"><p th:text="${foo}"></p>
+<p th:text="${bar}"></p></div>
+----
+
+Please consult the http://www.thymeleaf.org/[Thymeleaf documentation] for how to write Thymeleaf templates.
 
 === Apache FreeMarker template engine
 
-To use Apache FreeMarker, you need to add the following _dependency_ to your project:
-`${maven.groupId}:vertx-web-templ-freemarker:${maven.version}`. Create an instance of the Apache FreeMarker template engine
-using: `io.vertx.ext.web.templ.Engine#create()`.
+To use the FreeMarker template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-When using the Apache FreeMarker template engine, it will by default look for
-templates with the `.ftl` extension if no extension is specified in the file name.
+* Maven (in your `pom.xml`):
 
-The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
-in the FreeMarker template as the source of variables, this means you can render the template based on anything in the context
-data. If you need data from the request, response, session then it needs to be added explicitly to the data.
-
-Here are some examples:
-
+[source,xml,subs="+attributes"]
 ----
-[snip]
-<p th:text="${context.foo}"></p>
-<p th:text="${context.bar}"></p>
-<p th:text="${context.normalizedPath()}"></p>
-<p th:text="${context.request().params().param1}"></p>
-<p th:text="${context.request().params().param2}"></p>
-[snip]
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-freemarker</artifactId>
+  <version>${maven.version}</version>
+</dependency>
 ----
 
-Please consult the http://www.freemarker.org/[Apache FreeMarker documentation] for how to write
-Apache FreeMarker templates.
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-freemarker:${maven.version}'
+}
+----
+
+Create an instance of the Apache FreeMarker template engine using: `io.vertx.ext.web.templ.Engine#create()`.
+
+When using the Apache FreeMarker template engine, it will by default look for templates with the `.ftl` extension if no extension is specified in the file name.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the FreeMarker template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
+
+----
+Hello ${foo} and ${bar}
+----
+
+Please consult the http://www.freemarker.org/[Apache FreeMarker documentation] for how to write Apache FreeMarker templates.
 
 === Pebble template engine
 
-To use Pebble, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-pebble:${maven.version}`. Create an instance of the Pebble template engine
-using: `io.vertx.ext.web.templ.pebble.PebbleTemplateEngine#create(vertx)`.
+To use the Pebble template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-When using the Pebble template engine, it will by default look for
-templates with the `.peb` extension if no extension is specified in the file name.
+* Maven (in your `pom.xml`):
 
-The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available
-in the Pebble template as the source of variables, this means you can render the template based on anything in the context
-data. If you need data from the request, response, session then it needs to be added explicitly to the data.
-
-Here are some examples:
-
+[source,xml,subs="+attributes"]
 ----
-[snip]
-<p th:text="{{context.foo}}"></p>
-<p th:text="{{context.bar}}"></p>
-<p th:text="{{context.normalizedPath()}}"></p>
-<p th:text="{{context.request().params().param1}}"></p>
-<p th:text="{{context.request().params().param2}}"></p>
-[snip]
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-pebble</artifactId>
+  <version>${maven.version}</version>
+</dependency>
 ----
 
-Please consult the http://www.mitchellbosecke.com/pebble/home/[Pebble documentation] for how to write
-Pebble templates.
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-pebble:${maven.version}'
+}
+----
+
+Create an instance of the Pebble template engine using: `io.vertx.ext.web.templ.pebble.PebbleTemplateEngine#create(vertx)`.
+
+When using the Pebble template engine, it will by default look for templates with the `.peb` extension if no extension is specified in the file name.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the Pebble template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
+
+----
+Hello {{foo}} and {{bar}}
+----
+
+Please consult the http://www.mitchellbosecke.com/pebble/home/[Pebble documentation] for how to write Pebble templates.
 
 === Rocker template engine
 
-To use Rocker, then add `io.vertx:vertx-web-templ-rocker:${maven.version}` as a dependency to your project.
-You can then create a Rocker template engine instance with `io.vertx.ext.web.templ.rocker#create()`.
+To use the Rocker template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-The values of the JSON context object passed to the `render` method are then exposed as template parameters.
-Given:
+* Maven (in your `pom.xml`):
 
+[source,xml,subs="+attributes"]
 ----
-[snip]
-final JsonObject context = new JsonObject()
-  .put("foo", "badger")
-  .put("bar", "fox")
-  .put("context", new JsonObject().put("path", "/foo/bar"));
-
-engine.render(context, "somedir/TestRockerTemplate2", render -> {
-  // (...)
-});
-[snip]
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-rocker</artifactId>
+  <version>${maven.version}</version>
+</dependency>
 ----
 
-then the template can be as the following `somedir/TestRockerTemplate2.rocker.html` resource file:
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-rocker:${maven.version}'
+}
+----
+
+Create an instance of the Rocker template engine using: `io.vertx.ext.web.templ.rocker.RockerTemplateEngine#create()`.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the Rocker template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
 
 ----
 @import io.vertx.core.json.JsonObject
-@args (JsonObject context, String foo, String bar)
+@args (String foo, String bar)
 Hello @foo and @bar
-Request path is @context.getString("path")
 ----
 
 === HTTL template engine
 
-To use HTTL, you need to add the following _dependency_ to your project:
-`${maven.groupId}:vertx-web-templ-httl:${maven.version}`. Create an instance of the HTTL template engine
-using: `io.vertx.ext.web.templ.httl.HTTLTemplateEngine#create(io.vertx.core.Vertx)`.
+To use the HTTL template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-When using the HTTL template engine, it will by default look for
-templates with the `.httl` extension if no extension is specified in the file name.
+* Maven (in your `pom.xml`):
 
-The values of the JSON context object passed to the `render` method are then exposed as template parameters.
-Given:
-
+[source,xml,subs="+attributes"]
 ----
-[snip]
-TemplateEngine engine = HTTLTemplateEngine.create(vertx);
-final JsonObject context = new JsonObject()
-  .put("foo", "badger")
-  .put("bar", "fox");
-
-engine.render(context, "somedir/test-httl-template1.httl", render -> {
-  // (...)
-});
-[snip]
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-httl</artifactId>
+  <version>${maven.version}</version>
+</dependency>
 ----
 
-then the template can be as the following `somedir/test-httl-template1.httl` resource file:
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-httl:${maven.version}'
+}
+----
+
+Create an instance of the HTTL template engine using: `io.vertx.ext.web.templ.httl.HTTLTemplateEngine#create(io.vertx.core.Vertx)`.
+
+When using the HTTL template engine, it will by default look for templates with the `.httl` extension if no extension is specified in the file name.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the HTTL template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
 
 ----
 <!-- #set(String foo, String bar) -->
 Hello ${foo} and ${bar}
-
 ----
 
-Please consult the https://httl.github.io/en/[HTTL documentation] for how to write
-HTTL templates.
+Please consult the https://httl.github.io/en/[HTTL documentation] for how to write HTTL templates.
 
 === Rythm template engine
 
-To use Rythm, you need to add the following _dependency_ to your project:
-`${maven.groupId}:vertx-web-templ-rythm:${maven.version}`. Create an instance of the Rythm template engine
-using: `io.vertx.ext.web.templ.rythm.RythmTemplateEngine#create(io.vertx.core.Vertx)`.
+To use the Rythm template engine, add the following dependency to the _dependencies_ section of your build descriptor:
 
-When using the Rythm template engine, it will by default look for
-templates with the `.html` extension if no extension is specified in the file name.
+* Maven (in your `pom.xml`):
 
-The values of the JSON context object passed to the `render` method are then exposed as template parameters.
-Given:
-
+[source,xml,subs="+attributes"]
 ----
-[snip]
-TemplateEngine engine = RythmTemplateEngine.create(vertx);
-final JsonObject context = new JsonObject()
-  .put("foo", "badger")
-  .put("bar", "fox");
-
-engine.render(context, "somedir/test-rythm-template1.html", render -> {
-  // (...)
-});
-[snip]
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-rythm</artifactId>
+  <version>${maven.version}</version>
+</dependency>
 ----
 
-then the template can be as the following `somedir/test-rythm-template1.httl` resource file:
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-rythm:${maven.version}'
+}
+----
+
+Create an instance of the Rythm template engine using: `io.vertx.ext.web.templ.rythm.RythmTemplateEngine#create(io.vertx.core.Vertx)`.
+
+When using the Rythm template engine, it will by default look for templates with the `.html` extension if no extension is specified in the file name.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the Rythm template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
 
 ----
-<!-- #set(String foo, String bar) -->
-Hello @foo and @bar
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+  <p>@foo</p>
+  <p>@bar</p>
+</body>
+</html>
 ----
 
 Please consult the http://www.rythmengine.org/[RythmEngine documentation] for how to write templates.
+
+=== JTE template engine
+
+To use the JTE template engine, add the following dependency to the _dependencies_ section of your build descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-templ-jte</artifactId>
+  <version>${maven.version}</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-templ-jte:${maven.version}'
+}
+----
+
+Create an instance of the JTE template engine using: `io.vertx.ext.web.templ.jte.JteTemplateEngine#create(io.vertx.core.Vertx, java.lang.String)`.
+
+The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the JTE template as the source of variables, this means you can render the template based on anything in the context data.
+If you need data from the request, response, session then it needs to be added explicitly to the data.
+
+Here is an example:
+
+----
+@import io.vertx.core.json.JsonObject
+@param String foo
+@param String bar
+
+Hello ${foo} and ${bar}
+----
 
 === Caching
 
