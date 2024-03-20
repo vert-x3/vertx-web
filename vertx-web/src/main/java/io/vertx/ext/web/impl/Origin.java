@@ -273,17 +273,13 @@ public final class Origin {
 
   private static boolean isValidChromeExtensionId(String text, int offset) {
     // Chrome extensions IDs are 32 chars long strings
-    if (text.length() - offset != 32) {
-      return false;
-    }
-    for (int i = offset; i < text.length(); i++) {
+    boolean valid = (text.length() - offset == 32);
+    for (int i = offset; valid && i < text.length(); i++) {
       char c = text.charAt(i);
       // Chrome extensions IDs contain chars from 'a' to 'p'
-      if (c < 'a' || c > 'p') {
-        return false;
-      }
+      valid = c >= 'a' && c <= 'p';
     }
-    return true;
+    return valid;
   }
 
   private static boolean check(String host, String port) {

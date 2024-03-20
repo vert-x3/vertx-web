@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 public class OriginTests {
 
   @RunWith(Parameterized.class)
-  public static class GoodOriginTest {
+  public static class ValidOriginTest {
 
     @Parameters(name = "{0}")
     public static Iterable<Object[]> data() {
@@ -30,12 +30,12 @@ public class OriginTests {
 
     private final String origin;
 
-    public GoodOriginTest(String origin) {
+    public ValidOriginTest(String origin) {
       this.origin = origin;
     }
 
     @Test
-    public void testGoodOrigin() {
+    public void testValidOrigin() {
       Origin.parse(origin); // does not fail
       assertTrue(Origin.isValid(origin));
     }
@@ -43,7 +43,7 @@ public class OriginTests {
 
 
   @RunWith(Parameterized.class)
-  public static class BadOriginTest {
+  public static class InvalidOriginTest {
 
     @Parameters(name = "{0}")
     public static Iterable<Object[]> data() {
@@ -59,15 +59,15 @@ public class OriginTests {
 
     private final String origin;
 
-    public BadOriginTest(String origin) {
+    public InvalidOriginTest(String origin) {
       this.origin = origin;
     }
 
     @Test
-    public void testBadOrigin() {
+    public void testInvalidOrigin() {
       try {
         Origin.parse(origin);
-        fail("Should fail as it is a bad origin: " + origin);
+        fail("Should fail as it is a invalid origin: " + origin);
       } catch (RuntimeException e) {
         // OK
       }
