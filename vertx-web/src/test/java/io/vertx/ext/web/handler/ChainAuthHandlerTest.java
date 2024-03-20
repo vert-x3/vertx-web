@@ -1,5 +1,8 @@
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.MultiMap;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
@@ -91,4 +94,42 @@ public class ChainAuthHandlerTest extends WebTestBase {
       assertTrue(headers.get(1).startsWith("Digest realm=\"testrealm@host.com\""));
     },401, "Unauthorized", "Unauthorized");
   }
+
+  @Test
+  public void testWithPostAuthenticationAction() throws Exception {
+    router.clear();
+
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+
+    chain = ChainAuthHandler.any()
+      // Direct login is implemented as a post-authentication action
+      .add(FormLoginHandler.create(authProvider).setDirectLoggedInOKURL("/welcome"));
+
+    router.post("/login")
+      .handler(BodyHandler.create())
+      .handler(chain);
+
+    testRequest(HttpMethod.POST, "/login", req -> {
+      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+      Buffer buffer = Buffer.buffer();
+      String str =
+        "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + FormLoginHandler.DEFAULT_USERNAME_PARAM + "\"\r\n\r\ntim\r\n" +
+        "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + FormLoginHandler.DEFAULT_PASSWORD_PARAM + "\"\r\n\r\ndelicious:sausages\r\n" +
+        "--" + boundary + "--\r\n";
+      buffer.appendString(str);
+      req.putHeader("content-length", String.valueOf(buffer.length()));
+      req.putHeader("content-type", "multipart/form-data; boundary=" + boundary);
+      req.write(buffer);
+    }, resp -> {
+      MultiMap headers = resp.headers();
+      // session will be upgraded
+      String setCookie = headers.get("set-cookie");
+      assertNotNull(setCookie);
+      // client will be redirected
+      assertTrue(headers.contains(HttpHeaders.LOCATION, "/welcome", false));
+    }, 302, "Found", null);
+  }
+
 }
