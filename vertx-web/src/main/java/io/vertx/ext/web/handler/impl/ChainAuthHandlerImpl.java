@@ -9,7 +9,9 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.*;
+import io.vertx.ext.web.handler.AuthenticationHandler;
+import io.vertx.ext.web.handler.ChainAuthHandler;
+import io.vertx.ext.web.handler.HttpException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +19,8 @@ import java.util.List;
 public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements ChainAuthHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(ChainAuthHandler.class);
+
+  private static final String HANDLER_IDX = "__vertx.auth.chain.idx";
 
   private final List<AuthenticationHandlerInternal> handlers = new ArrayList<>();
   private final boolean all;
@@ -49,7 +53,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
 
   @Override
   public Future<User> authenticate(RoutingContext context) {
-    if (handlers.size() == 0) {
+    if (handlers.isEmpty()) {
       return Future.failedFuture("No providers in the auth chain.");
     } else {
       // iterate all possible authN
@@ -103,7 +107,6 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
           // the error is not a validation exception, so we abort regardless
         }
         handler.handle(Future.failedFuture(err));
-        return;
       })
       .onSuccess(user -> {
       if (all) {
@@ -112,6 +115,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
         iterate(idx + 1, ctx, user, null, handler);
       } else {
         // a single success is enough to signal the end of the validation
+        ctx.put(HANDLER_IDX, idx);
         handler.handle(Future.succeededFuture(user));
       }
     });
@@ -131,5 +135,16 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
       added |= authHandler.setAuthenticateHeader(ctx);
     }
     return added;
+  }
+
+  @Override
+  public void postAuthentication(RoutingContext ctx) {
+    if (all) {
+      // Can't invoke post-processing for all handlers
+      ctx.next();
+    } else {
+      int idx = ctx.get(HANDLER_IDX);
+      handlers.get(idx).postAuthentication(ctx);
+    }
   }
 }
