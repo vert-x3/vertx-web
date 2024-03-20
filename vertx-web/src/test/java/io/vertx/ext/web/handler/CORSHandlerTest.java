@@ -738,4 +738,11 @@ public class CORSHandlerTest extends WebTestBase {
       assertEquals("origin", resp.getHeader(HttpHeaders.VARY));
     }, 200, "OK", null);
   }
+
+  @Test
+  public void testAcceptChromeExtensionOrigin() throws Exception {
+    router.route().handler(CorsHandler.create().addOrigin("*"));
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "chrome-extension://gmbgaklkmjakoegficnlkhebmhkjfich"), resp -> checkHeaders(resp, "*", null, null, null), 200, "OK", null);
+  }
 }
