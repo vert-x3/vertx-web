@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.service;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.core.json.JsonObject;
 
 public class TestServiceImpl implements TestService {
@@ -52,5 +53,11 @@ public class TestServiceImpl implements TestService {
     return Future.succeededFuture(
       ServiceResponse.completedWithJson(new JsonObject().put("result", context.getHeaders().get("Authorization"))))
     ;
+  }
+
+  public Future<ServiceResponse> testHeaders(ServiceRequest context) {
+    return Future.succeededFuture(
+      new ServiceResponse(200, "OK", null, context.getHeaders())
+    );
   }
 }

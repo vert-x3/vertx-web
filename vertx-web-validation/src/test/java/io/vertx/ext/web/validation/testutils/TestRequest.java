@@ -375,6 +375,12 @@ public class TestRequest {
     };
   }
 
+  public static Consumer<HttpResponse<Buffer>> responseHeaders(String headerName, List<String> headerValues) {
+    return res -> {
+      assertEquals(headerValues.toString(), res.headers().getAll(headerName).toString());
+    };
+  }
+
   public static Consumer<HttpResponse<Buffer>> stringBody(Consumer<String> assertBody) {
     return res -> {
       assertBody.accept(res.bodyAsString());
