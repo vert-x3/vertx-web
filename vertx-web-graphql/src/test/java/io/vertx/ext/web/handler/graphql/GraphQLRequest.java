@@ -129,14 +129,14 @@ public class GraphQLRequest {
     return this;
   }
 
-  void send(HttpClient client, Handler<AsyncResult<JsonObject>> handler) throws Exception {
-    send(client, 200, handler);
+  void send(HttpClient client, int serverPort, Handler<AsyncResult<JsonObject>> handler) throws Exception {
+    send(client, 200, serverPort, handler);
   }
 
-  void send(HttpClient client, int expectedStatus, Handler<AsyncResult<JsonObject>> handler) throws Exception {
+  void send(HttpClient client, int expectedStatus, int serverPort, Handler<AsyncResult<JsonObject>> handler) throws Exception {
     Promise<JsonObject> promise = Promise.promise();
     promise.future().onComplete(handler);
-    Future<HttpClientRequest> fut = client.request(method, 8080, "localhost", getUri());
+    Future<HttpClientRequest> fut = client.request(method, serverPort, "localhost", getUri());
     fut.onComplete(ar1 -> {
       if (ar1.succeeded()) {
         HttpClientRequest request = ar1.result();

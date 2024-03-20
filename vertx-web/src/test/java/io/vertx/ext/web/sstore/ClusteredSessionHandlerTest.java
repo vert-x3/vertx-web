@@ -82,7 +82,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     SessionStore store1 = ClusteredSessionStore.create(vertices[0]);
     SessionHandler sessionHandler1 = SessionHandler.create(store1);
     router1.route().handler(sessionHandler1);
-    servers[0] = vertices[0].createHttpServer(new HttpServerOptions().setPort(8081).setHost("localhost"));
+    servers[0] = vertices[0].createHttpServer(new HttpServerOptions().setPort(getServerPort() + 1).setHost("localhost"));
     servers[0].requestHandler(router1);
     servers[0].listen().onComplete(onSuccess(s -> serversReady.countDown()));
 
@@ -90,7 +90,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     SessionStore store2 = ClusteredSessionStore.create(vertices[1]);
     SessionHandler sessionHandler2 = SessionHandler.create(store2);
     router2.route().handler(sessionHandler2);
-    servers[1] = vertices[1].createHttpServer(new HttpServerOptions().setPort(8082).setHost("localhost"));
+    servers[1] = vertices[1].createHttpServer(new HttpServerOptions().setPort(getServerPort() + 2).setHost("localhost"));
     servers[1].requestHandler(router2);
     servers[1].listen().onComplete(onSuccess(s -> serversReady.countDown()));
 
@@ -98,7 +98,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     SessionStore store3 = ClusteredSessionStore.create(vertices[2]);
     SessionHandler sessionHandler3 = SessionHandler.create(store3);
     router3.route().handler(sessionHandler3);
-    servers[2] = vertices[2].createHttpServer(new HttpServerOptions().setPort(8083).setHost("localhost"));
+    servers[2] = vertices[2].createHttpServer(new HttpServerOptions().setPort(getServerPort() + 3).setHost("localhost"));
     servers[2].requestHandler(router3);
     servers[2].listen().onComplete(onSuccess(s -> serversReady.countDown()));
 
@@ -155,12 +155,12 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     });
 
     AtomicReference<String> rSetCookie = new AtomicReference<>();
-    testRequestBuffer(client, HttpMethod.GET, 8081, "/", null, resp -> {
+    testRequestBuffer(client, HttpMethod.GET, getServerPort() + 1, "/", null, resp -> {
       String setCookie = resp.headers().get("set-cookie");
       rSetCookie.set(setCookie);
     }, 200, "OK", null);
-    testRequestBuffer(client, HttpMethod.GET, 8082, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
-    testRequestBuffer(client, HttpMethod.GET, 8083, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
+    testRequestBuffer(client, HttpMethod.GET, getServerPort() + 2, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
+    testRequestBuffer(client, HttpMethod.GET, getServerPort() + 3, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
   }
 
   @Test
@@ -246,7 +246,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     router1.route()
       .handler(sessionHandler1)
       .handler(upgradeHandler);
-    servers[0] = vertices[0].createHttpServer(new HttpServerOptions().setPort(8081).setHost("localhost"));
+    servers[0] = vertices[0].createHttpServer(new HttpServerOptions().setPort(getServerPort() + 1).setHost("localhost"));
     servers[0].requestHandler(router1);
     servers[0].listen().onComplete(onSuccess(s -> serversReady.countDown()));
 
@@ -256,7 +256,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     router1.route()
       .handler(sessionHandler2)
       .handler(upgradeHandler);
-    servers[1] = vertices[1].createHttpServer(new HttpServerOptions().setPort(8082).setHost("localhost"));
+    servers[1] = vertices[1].createHttpServer(new HttpServerOptions().setPort(getServerPort() + 2).setHost("localhost"));
     servers[1].requestHandler(router2);
     servers[1].listen().onComplete(onSuccess(s -> serversReady.countDown()));
 
@@ -266,7 +266,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     router1.route()
       .handler(sessionHandler3)
       .handler(upgradeHandler);
-    servers[2] = vertices[2].createHttpServer(new HttpServerOptions().setPort(8083).setHost("localhost"));
+    servers[2] = vertices[2].createHttpServer(new HttpServerOptions().setPort(getServerPort() + 3).setHost("localhost"));
     servers[2].requestHandler(router3);
     servers[2].listen().onComplete(onSuccess(s -> serversReady.countDown()));
 
@@ -275,7 +275,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
 
     WebSocketConnectOptions options1 = new WebSocketConnectOptions()
       .setURI("/")
-      .setPort(8081)
+      .setPort(getServerPort() + 1)
       .setHost("localhost")
       .addHeader("cookie", sessionCookieName + "=" + TestUtils.randomAlphaString(32));
 
@@ -288,7 +288,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
 
     WebSocketConnectOptions options2 = new WebSocketConnectOptions()
       .setURI("/")
-      .setPort(8081)
+      .setPort(getServerPort() + 1)
       .setHost("localhost")
       .addHeader("cookie", sessionCookieName + "=" + TestUtils.randomAlphaString(32));
 
@@ -301,7 +301,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
 
     WebSocketConnectOptions options3 = new WebSocketConnectOptions()
       .setURI("/")
-      .setPort(8081)
+      .setPort(getServerPort() + 1)
       .setHost("localhost")
       .addHeader("cookie", sessionCookieName + "=" + TestUtils.randomAlphaString(32));
 

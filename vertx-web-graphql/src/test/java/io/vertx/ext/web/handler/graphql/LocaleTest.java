@@ -89,7 +89,7 @@ public class LocaleTest extends WebTestBase {
       .setMethod(GET)
       .setLocale(LOCALE)
       .setGraphQLQuery("query { locale }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       if (body.getJsonObject("data").getString("locale").equals(LOCALE)) {
         testComplete();
       } else {
@@ -105,7 +105,7 @@ public class LocaleTest extends WebTestBase {
       .setMethod(GET)
       .setLocale("")
       .setGraphQLQuery("query { locale }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
 
       Locale expectedLocale = Locale.getDefault();
       String actualLocale = body.getJsonObject("data").getString("locale");
@@ -123,7 +123,7 @@ public class LocaleTest extends WebTestBase {
       .setMethod(GET)
       .setLocale(LOCALE + ",en-GB")
       .setGraphQLQuery("query { locale }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       if (body.getJsonObject("data").getString("locale").equals(LOCALE)) {
         testComplete();
       } else {
@@ -139,7 +139,7 @@ public class LocaleTest extends WebTestBase {
       .setMethod(GET)
       .setLocale(",,,," + LOCALE)
       .setGraphQLQuery("query { locale }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       if (body.getJsonObject("data").getString("locale").equals(LOCALE)) {
         testComplete();
       } else {

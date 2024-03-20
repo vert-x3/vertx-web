@@ -37,7 +37,7 @@ public class BatchRequestsTest extends GraphQLTestBase {
 
   @Test
   public void testEmptyBatch() throws Exception {
-    client.request(HttpMethod.POST, 8080, "localhost", "/graphql")
+    client.request(HttpMethod.POST, getServerPort(), "localhost", "/graphql")
       .onComplete(onSuccess(request -> {
         request.send(new JsonArray().toBuffer()).onComplete(onSuccess(response -> {
           if (response.statusCode() != 200) {
@@ -58,7 +58,7 @@ public class BatchRequestsTest extends GraphQLTestBase {
 
   @Test
   public void testSimpleBatch() throws Exception {
-    client.request(HttpMethod.POST, 8080, "localhost", "/graphql")
+    client.request(HttpMethod.POST, getServerPort(), "localhost", "/graphql")
       .onComplete(onSuccess(request -> {
         JsonObject query = new JsonObject()
           .put("query", "query { allLinks { url } }");
@@ -82,7 +82,7 @@ public class BatchRequestsTest extends GraphQLTestBase {
 
   @Test
   public void testMissingQuery() throws Exception {
-    client.request(HttpMethod.POST, 8080, "localhost", "/graphql")
+    client.request(HttpMethod.POST, getServerPort(), "localhost", "/graphql")
       .onComplete(onSuccess(request -> {
         JsonObject query = new JsonObject()
           .put("foo", "bar");

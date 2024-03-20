@@ -337,7 +337,7 @@ public class ForwardedTest extends WebTestBase {
   @Test
   public void testIllegalPort() throws Exception {
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().authority().toString().endsWith(":8080"));
+      assertTrue(rc.request().authority().toString().endsWith(":"+ getServerPort()));
       rc.end();
     });
 
@@ -454,7 +454,7 @@ public class ForwardedTest extends WebTestBase {
   public void testNoForwarded() throws Exception {
     router.allowForward(ALL).route("/").handler(rc -> {
       assertTrue(rc.request().remoteAddress().host().equals("127.0.0.1"));
-      assertTrue(rc.request().authority().toString().equals("localhost:8080"));
+      assertTrue(rc.request().authority().toString().equals("localhost:"+ getServerPort()));
       assertTrue(rc.request().scheme().equals("http"));
       assertFalse(rc.request().isSSL());
       rc.end();

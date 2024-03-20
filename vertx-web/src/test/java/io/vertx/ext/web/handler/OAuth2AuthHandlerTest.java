@@ -94,7 +94,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     latch.await();
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
-    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/callback");
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:"+getServerPort()+"/callback");
 
     // setup the callback handler for receiving the callback
     oauth2Handler.setupCallback(router.route("/callback"));
@@ -154,7 +154,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
-      .create(vertx, oauth2, "http://localhost:8080/callback")
+      .create(vertx, oauth2, "http://localhost:"+getServerPort()+"/callback")
       // require "read" scope
       .withScope("read");
 
@@ -216,7 +216,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
-      .create(vertx, oauth2, "http://localhost:8080/callback")
+      .create(vertx, oauth2, "http://localhost:"+getServerPort()+"/callback")
       // require "rea" scope (will fail)
       .withScope("rea");
 
@@ -277,7 +277,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
-      .create(vertx, oauth2, "http://localhost:8080/callback");
+      .create(vertx, oauth2, "http://localhost:"+ getServerPort()+"/callback");
 
     // setup the callback handler for receiving the callback
     oauth2Handler.setupCallback(router.route("/callback"));
@@ -339,7 +339,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
-      .create(vertx, oauth2, "http://localhost:8080/callback");
+      .create(vertx, oauth2, "http://localhost:"+getServerPort()+"/callback");
 
     // setup the callback handler for receiving the callback
     oauth2Handler.setupCallback(router.route("/callback"));
@@ -406,7 +406,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     latch.await();
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
-    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/callback");
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:"+getServerPort()+"/callback");
 
     // setup the callback handler for receiving the callback
     oauth2Handler.setupCallback(router.route("/callback"));
@@ -489,7 +489,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
-      .create(vertx, oauth2, "http://localhost:8080/callback")
+      .create(vertx, oauth2, "http://localhost:"+getServerPort()+"/callback")
       .pkceVerifierLength(64);
     // setup the callback handler for receiving the callback
     oauth2Handler.setupCallback(router.route("/callback"));
@@ -579,7 +579,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route()
       .handler(
         OAuth2AuthHandler
-          .create(vertx, oauth2, "http://localhost:8080/callback")
+          .create(vertx, oauth2, "http://localhost:"+getServerPort()+"/callback")
           .setupCallback(router.route("/callback")));
 
     // mount some handler under the protected zone
@@ -604,7 +604,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // protect everything.
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
-      .create(vertx, oauth2, "http://localhost:8080/callback")
+      .create(vertx, oauth2, "http://localhost:"+getServerPort()+"/callback")
       .setupCallback(router.route("/callback"));
 
     // now the callback is registered before as it should
@@ -854,7 +854,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/secret*").subRouter(subRouter);
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/secret/callback"
-    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/secret/callback");
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:"+getServerPort()+"/secret/callback");
 
     // setup the callback handler for receiving the callback
     oauth2Handler.setupCallback(subRouter.route("/callback"));
@@ -886,7 +886,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(vertx, OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
       .setClientSecret("client-secret")
-      .setSite("http://localhost:10000")), "http://localhost:8080/secret/callback");
+      .setSite("http://localhost:10000")), "http://localhost:"+getServerPort()+"/secret/callback");
 
     router.route("/protected/*").handler(oauth2.setupCallback(router.route("/callback")));
     router.route("/protected/userinfo").handler(oauth2);

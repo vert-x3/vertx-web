@@ -30,7 +30,7 @@ public class VirtualHostTest extends WebTestBase {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(getServerPort(), "localhost"))
       .setHost("www.mysite.com")
       .setPort(80), req -> {}, 200, "OK", null);
   }
@@ -41,8 +41,8 @@ public class VirtualHostTest extends WebTestBase {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("www.mysite.com:8080")
+    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(getServerPort(), "localhost"))
+      .setHost("www.mysite.com:"+ getServerPort())
       .setPort(80), req -> {}, 200, "OK", null);
   }
 
@@ -52,7 +52,7 @@ public class VirtualHostTest extends WebTestBase {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(getServerPort(), "localhost"))
       .setHost("[::]")
       .setPort(80), req -> {}, 200, "OK", null);
   }
@@ -63,8 +63,8 @@ public class VirtualHostTest extends WebTestBase {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("[::]:8080")
+    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(getServerPort(), "localhost"))
+      .setHost("[::]:"+ getServerPort())
       .setPort(80), req -> {}, 200, "OK", null);
   }
 
@@ -74,7 +74,7 @@ public class VirtualHostTest extends WebTestBase {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(getServerPort(), "localhost"))
       .setHost("[::1]")
       .setPort(80), req -> {}, 200, "OK", null);
   }
@@ -85,8 +85,8 @@ public class VirtualHostTest extends WebTestBase {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("[::1]:8080")
+    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(getServerPort(), "localhost"))
+      .setHost("[::1]:"+ getServerPort())
       .setPort(80), req -> {}, 200, "OK", null);
   }
 
@@ -96,7 +96,7 @@ public class VirtualHostTest extends WebTestBase {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(getServerPort(), "localhost"))
       .setHost("www.mysite.net")
       .setPort(80), req -> {}, 500, "Internal Server Error", null);
   }
@@ -109,7 +109,7 @@ public class VirtualHostTest extends WebTestBase {
 
     router.route("/*").virtualHost("*.com").subRouter(a);
     testRequest(new RequestOptions()
-      .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setServer(SocketAddress.inetSocketAddress(getServerPort(), "localhost"))
       .setHost("www.mysite.com")
       .setPort(80)
       .setURI("/somepath"), req -> {}, 200, "OK", null);
@@ -118,7 +118,7 @@ public class VirtualHostTest extends WebTestBase {
 
     router.route().virtualHost("*.com").subRouter(a);
     testRequest(new RequestOptions()
-      .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
+      .setServer(SocketAddress.inetSocketAddress(getServerPort(), "localhost"))
       .setHost("www.mysite.com")
       .setPort(80)
       .setURI("/somepath"), req -> {}, 200, "OK", null);

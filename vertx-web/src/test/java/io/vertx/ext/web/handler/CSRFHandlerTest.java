@@ -553,7 +553,7 @@ public class CSRFHandlerTest extends WebTestBase {
     // this request will never return but may incorrectly consume a valid token
     client.request(
       new RequestOptions().setMethod(HttpMethod.POST)
-        .setHost("localhost").setPort(8080).setURI("/broken")
+        .setHost("localhost").setPort(getServerPort()).setURI("/broken")
         .putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie)
         .putHeader("Cookie", cookieJar.get())
     ).onComplete(onSuccess(req -> {
@@ -617,7 +617,7 @@ public class CSRFHandlerTest extends WebTestBase {
     client.request(
       new RequestOptions().setMethod(HttpMethod.GET)
         .putHeader("Cookie", cookieJar.get())
-        .setHost("localhost").setPort(8080).setURI("/csrf/first")
+        .setHost("localhost").setPort(getServerPort()).setURI("/csrf/first")
     ).compose(HttpClientRequest::send).onComplete(onSuccess(res -> {
       assertThat("Should not send set-cookie header", res.headers().get("set-cookie"), nullValue());
       latch.countDown();
@@ -627,7 +627,7 @@ public class CSRFHandlerTest extends WebTestBase {
       new RequestOptions().setMethod(HttpMethod.POST)
         .putHeader("Cookie", cookieJar.get())
         .putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie)
-        .setHost("localhost").setPort(8080).setURI("/csrf/second")
+        .setHost("localhost").setPort(getServerPort()).setURI("/csrf/second")
     ).compose(HttpClientRequest::send).onComplete(onSuccess(res -> {
       assertEquals("Should only have one set-cookie", 1, res.headers().getAll("set-cookie").size());
       final String cookie = res.headers().get("set-cookie");

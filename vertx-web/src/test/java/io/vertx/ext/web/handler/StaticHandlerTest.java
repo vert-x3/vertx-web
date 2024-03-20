@@ -309,11 +309,11 @@ public class StaticHandlerTest extends WebTestBase {
 
   private void testSkipCompression(StaticHandler staticHandler, List<String> uris, List<String> expectedContentEncodings) throws Exception {
     server.close();
-    server = vertx.createHttpServer(getHttpServerOptions().setPort(0).setCompressionSupported(true));
+    server = vertx.createHttpServer(getHttpServerOptions(getServerPort()).setPort(0).setCompressionSupported(true));
     router = Router.router(vertx);
     router.route().handler(staticHandler);
     awaitFuture(server.requestHandler(router).listen());
-    CompositeFuture cf = uris.stream().map(uri -> client.request(HttpMethod.GET, server.actualPort(), getHttpClientOptions().getDefaultHost(), uri)
+    CompositeFuture cf = uris.stream().map(uri -> client.request(HttpMethod.GET, server.actualPort(), getHttpClientOptions(getServerPort()).getDefaultHost(), uri)
         .compose(req -> {
           return req
             .putHeader(ACCEPT_ENCODING, String.join(", ", "gzip", "jpg", "jpeg", "png"))
@@ -972,7 +972,7 @@ public class StaticHandlerTest extends WebTestBase {
     awaitFuture(vertx.deployVerticle(new AbstractVerticle() {
       @Override
       public void start(Promise<Void> startPromise) {
-        server = vertx.createHttpServer(getHttpServerOptions());
+        server = vertx.createHttpServer(getHttpServerOptions(getServerPort()));
         server.requestHandler(router)
           .listen()
           .<Void>mapEmpty()

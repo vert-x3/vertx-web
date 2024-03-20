@@ -83,7 +83,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { hello }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       assertEquals(result, body);
       testComplete();
     }));
@@ -96,7 +96,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       assertEquals(result, body);
       testComplete();
     }));
@@ -109,7 +109,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { floating }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       assertEquals(result, body);
       testComplete();
     }));
@@ -122,7 +122,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { bool }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       assertEquals(result, body);
       testComplete();
     }));
@@ -135,7 +135,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { id }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       assertEquals(result, body);
       testComplete();
     }));
@@ -148,7 +148,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { enum }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       assertEquals(result, body);
       testComplete();
     }));
@@ -165,7 +165,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { list }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       assertEquals(result, body);
       testComplete();
     }));
@@ -182,7 +182,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { arr: array }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       assertEquals(result, body);
       testComplete();
     }));
@@ -197,7 +197,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { when }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       assertEquals(result, body);
       testComplete();
     }));
@@ -210,7 +210,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { answer }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       assertEquals(result, body);
       testComplete();
     }));
@@ -223,7 +223,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { answer(name: \"world\") }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       assertEquals(result, body);
       testComplete();
     }));
@@ -236,13 +236,13 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request1 = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { changing }");
-    request1.send(client, promise1);
+    request1.send(client, getServerPort(), promise1);
 
     Promise<JsonObject> promise2 = Promise.promise();
     GraphQLRequest request2 = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { changing }");
-    request2.send(client, promise2);
+    request2.send(client, getServerPort(), promise2);
 
     Future.all(promise1.future(), promise2.future()).onComplete(onSuccess(compositeFuture -> {
       List<JsonObject> values = compositeFuture.list();
@@ -260,7 +260,7 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { persons { name , friend { name, friend { name } } } }");
-    request.send(client, onSuccess(body -> {
+    request.send(client, getServerPort(), onSuccess(body -> {
       JsonObject person = body.getJsonObject("data").getJsonArray("persons").getJsonObject(0);
       assertEquals("Plato", person.getString("name"));
       JsonObject friend = person.getJsonObject("friend");

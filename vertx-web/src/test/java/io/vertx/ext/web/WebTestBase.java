@@ -17,6 +17,10 @@
 package io.vertx.ext.web;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.config.ConfigRetriever;
+import io.vertx.config.ConfigRetrieverOptions;
+import io.vertx.config.ConfigStoreOptions;
+import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -49,29 +53,48 @@ public class WebTestBase extends VertxTestBase {
   protected HttpClient client;
   protected WebSocketClient wsClient;
   protected Router router;
+  protected static Integer serverPort;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    router = Router.router(vertx);
-    server = vertx.createHttpServer(getHttpServerOptions());
-    client = vertx.createHttpClient(getHttpClientOptions());
-    wsClient = vertx.createWebSocketClient(getWebSocketClientOptions());
+
+    ConfigStoreOptions sysStore = new ConfigStoreOptions()
+      .setType("sys");
+
+    ConfigRetriever retriever = ConfigRetriever.create(vertx,
+      new ConfigRetrieverOptions()
+        .addStore(sysStore)
+    );
+
     CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router).listen().onComplete(onSuccess(res -> latch.countDown()));
+    retriever.getConfig().map(config -> config.getInteger("port", 0)).flatMap(port -> {
+      router = Router.router(vertx);
+      server = vertx.createHttpServer(getHttpServerOptions(port));
+      return Future.succeededFuture(port);
+    }).onComplete(__ -> server.requestHandler(router).listen().onComplete(onSuccess(res -> {
+      serverPort = res.actualPort();
+      client = vertx.createHttpClient(getHttpClientOptions(serverPort));
+      wsClient = vertx.createWebSocketClient(getWebSocketClientOptions(serverPort));
+      latch.countDown();
+    })));
     awaitLatch(latch);
   }
 
-  protected HttpServerOptions getHttpServerOptions() {
-    return new HttpServerOptions().setPort(8080).setHost("localhost");
+  protected static Integer getServerPort() {
+    return serverPort;
   }
 
-  protected HttpClientOptions getHttpClientOptions() {
-    return new HttpClientOptions().setDefaultPort(8080);
+  protected HttpServerOptions getHttpServerOptions(int port) {
+    return new HttpServerOptions().setPort(port).setHost("localhost");
   }
 
-  protected WebSocketClientOptions getWebSocketClientOptions() {
-    return new WebSocketClientOptions().setDefaultPort(8080);
+  protected HttpClientOptions getHttpClientOptions(int port) {
+    return new HttpClientOptions().setDefaultPort(port);
+  }
+
+  protected WebSocketClientOptions getWebSocketClientOptions(int port) {
+    return new WebSocketClientOptions().setDefaultPort(port);
   }
 
   @Override
@@ -197,7 +220,7 @@ public class WebTestBase extends VertxTestBase {
   protected void testRequestBuffer(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
-    testRequestBuffer(client, method, 8080, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, normalizeLineEndings);
+    testRequestBuffer(client, method, serverPort, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, normalizeLineEndings);
   }
 
   protected void testRequestBuffer(HttpClient client, RequestOptions requestOptions, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
