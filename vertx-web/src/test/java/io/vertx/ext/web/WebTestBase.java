@@ -60,7 +60,7 @@ public class WebTestBase extends VertxTestBase {
   public void setUp() throws Exception {
     super.setUp();
     router = Router.router(vertx);
-    server = vertx.createHttpServer(getHttpServerOptions());
+    server = vertx.createHttpServer(getHttpServerOptions().setMaxFormFields(2048));
     client = vertx.createHttpClient(getHttpClientOptions());
     CountDownLatch latch = new CountDownLatch(1);
     server.requestHandler(router).listen(onSuccess(res -> latch.countDown()));
