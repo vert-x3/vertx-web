@@ -54,6 +54,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   private final int maxHandlersPerSocket;
   private final long pingTimeout;
   private final long replyTimeout;
+  private final long maxTimeout;
   private final Vertx vertx;
   private final EventBus eb;
   private final Map<String, Message<?>> messagesAwaitingReply = new HashMap<>();
@@ -71,6 +72,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     this.maxHandlersPerSocket = options.getMaxHandlersPerSocket();
     this.pingTimeout = options.getPingTimeout();
     this.replyTimeout = options.getReplyTimeout();
+    this.maxTimeout = options.getEventBusTimeout();
     this.bridgeEventHandler = bridgeEventHandler;
   }
 
@@ -312,7 +314,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         // Start a checker to check for pings
         PingInfo pingInfo = new PingInfo();
         pingInfo.timerID = vertx.setPeriodic(pingTimeout, id -> {
-          if (System.currentTimeMillis() - pingInfo.lastPing >= pingTimeout) {
+          if (System.currentTimeMillis() - pingInfo.lastPing >= pingTimeout && System.currentTimeMillis() - pingInfo.socketCreationTs >= maxTimeout) {
             // Trigger an event to allow custom behavior before disconnecting client.
             checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_IDLE, null, sock),
               // We didn't receive a ping in time so close the socket
@@ -638,6 +640,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   private static final class PingInfo {
     long lastPing;
     long timerID;
+    long socketCreationTs = System.currentTimeMillis();
   }
 
   private static final class SockInfo {
