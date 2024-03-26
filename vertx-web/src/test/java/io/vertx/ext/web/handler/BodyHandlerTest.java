@@ -313,7 +313,9 @@ public class BodyHandlerTest extends WebTestBase {
   @Test
   public void testFileUploadFileRemovalIfAlreadyRemoved() throws Exception {
     testFileUploadFileRemoval(rc -> {
-      vertx.fileSystem().deleteBlocking(rc.fileUploads().iterator().next().uploadedFileName());
+      List<FileUpload> fileUploads = rc.fileUploads();
+      assertFalse("File uploads is empty.", fileUploads.isEmpty());
+      vertx.fileSystem().deleteBlocking(fileUploads.iterator().next().uploadedFileName());
       rc.response().end();
     }, true, 200, "OK");
   }
@@ -1008,7 +1010,9 @@ public class BodyHandlerTest extends WebTestBase {
     router.route().handler(ctx -> {
       String specData = ctx.request().formAttributes().get("specData");
       System.out.println(specData);
-      FileUpload file = ctx.fileUploads().iterator().next();
+      List<FileUpload> fileUploads = ctx.fileUploads();
+      assertFalse("File uploads is empty.", fileUploads.isEmpty());
+      FileUpload file = fileUploads.iterator().next();
       long uploadSize = file.size();
       assertEquals(realSize, uploadSize);
       ctx.end();
