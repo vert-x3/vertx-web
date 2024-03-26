@@ -265,13 +265,17 @@ public class BodyHandlerImpl implements BodyHandler {
       }
 
       context.request().exceptionHandler(t -> {
+        System.out.println("failure!");
         context.cancelAndCleanupFileUploads();
+        int sc = 200;
         if (t instanceof DecoderException) {
           // bad request
-          context.fail(400, t.getCause());
-        } else {
-          context.fail(t);
+          sc = 400;
+          if (t.getCause() != null) {
+            t = t.getCause();
+          }
         }
+        context.fail(sc, t);
       });
     }
 

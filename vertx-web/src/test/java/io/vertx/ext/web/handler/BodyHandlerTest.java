@@ -1045,4 +1045,31 @@ public class BodyHandlerTest extends WebTestBase {
 
     assertWaitUntil(() -> vertx.fileSystem().readDirBlocking(uploadsDirectory).isEmpty());
   }
+
+
+  @Test
+  public void testMaxFormFieldsLimit() throws Exception {
+    router.clear();
+    router.route().handler(BodyHandler.create());
+    router.route().handler(ctx -> {
+      fail();
+    });
+
+    int len = 1025;
+
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.putHeader("content-type", "application/x-www-form-urlencoded");
+      StringBuilder sb = new StringBuilder();
+      for (int i = 0;i < len;i++) {
+        sb.append("a");
+      }
+
+      req.write(sb.toString());
+
+      vertx.setTimer(10, id -> {
+        req.end("=b");
+      });
+    }, 400, "Bad Request", "Bad Request");
+  }
 }
