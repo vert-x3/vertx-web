@@ -21,6 +21,7 @@ import io.vertx.core.http.HttpHeaders;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -53,13 +54,15 @@ public class CacheControl {
     this.vary = headers.get(HttpHeaders.VARY);
 
     if (headers.contains(HttpHeaders.DATE)) {
-      this.date = DateFormatter.parseHttpDate(headers.get(HttpHeaders.DATE)).toInstant();
+      Date date = DateFormatter.parseHttpDate(headers.get(HttpHeaders.DATE));
+      this.date = date == null ? null : date.toInstant();
     } else {
       this.date = Instant.now();
     }
 
     if (headers.contains(HttpHeaders.EXPIRES)) {
-      this.expires = DateFormatter.parseHttpDate(headers.get(HttpHeaders.EXPIRES)).toInstant();
+      Date expiresDate = DateFormatter.parseHttpDate(headers.get(HttpHeaders.EXPIRES));
+      this.expires = expiresDate == null ? null : expiresDate.toInstant();
     } else {
       this.expires = null;
     }
