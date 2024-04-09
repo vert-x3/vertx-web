@@ -153,7 +153,7 @@ public class CacheControl {
       return timeDirectives.get(CacheControlDirective.SHARED_MAX_AGE);
     } else if (timeDirectives.containsKey(CacheControlDirective.MAX_AGE)) {
       return timeDirectives.get(CacheControlDirective.MAX_AGE);
-    } else if (expires != null) {
+    } else if (date != null && expires != null) {
       return Duration.between(date, expires).getSeconds();
     } else {
       return Long.MAX_VALUE;
