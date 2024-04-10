@@ -1,13 +1,14 @@
 package io.vertx.ext.web.client.impl.cache;
 
+import static org.junit.Assert.*;
+
 import java.time.Duration;
 
 import org.junit.Test;
 
 import io.vertx.core.MultiMap;
-import io.vertx.ext.web.client.WebClientTestBase;
 
-public class CacheControlTest extends WebClientTestBase {
+public class CacheControlTest {
   @Test
   public void testMaxAge() {
     MultiMap headers = MultiMap.caseInsensitiveMultiMap();
