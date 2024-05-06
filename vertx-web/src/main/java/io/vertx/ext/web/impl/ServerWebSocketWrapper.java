@@ -7,6 +7,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.ServerWebSocket;
+import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebSocketBase;
 import io.vertx.core.http.WebSocketFrame;
 import io.vertx.core.net.HostAndPort;
@@ -17,6 +18,7 @@ import javax.net.ssl.SSLSession;
 import javax.security.cert.X509Certificate;
 import java.security.cert.Certificate;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class ServerWebSocketWrapper implements ServerWebSocket {
   private final ServerWebSocket delegate;
@@ -57,12 +59,6 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   @Override
   public ServerWebSocket pause() {
     delegate.pause();
-    return this;
-  }
-
-  @Override
-  public ServerWebSocket resume() {
-    delegate.resume();
     return this;
   }
 
@@ -167,6 +163,17 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
+  public WebSocket shutdownHandler(Handler<Void> handler) {
+    delegate.shutdownHandler(handler);
+    return this;
+  }
+
+  @Override
+  public Future<Void> shutdown(long timeout, TimeUnit unit, short statusCode, @Nullable String reason) {
+    return delegate.shutdown(timeout, unit, statusCode, reason);
+  }
+
+  @Override
   public ServerWebSocket frameHandler(Handler<WebSocketFrame> handler) {
     delegate.frameHandler(handler);
     return this;
@@ -226,11 +233,6 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
-  public void reject() {
-    delegate.reject();
-  }
-
-  @Override
   public void reject(int status) {
     delegate.reject(status);
   }
@@ -238,21 +240,6 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   @Override
   public Future<Integer> setHandshake(Future<Integer> future) {
     return delegate.setHandshake(future);
-  }
-
-  @Override
-  public Future<Void> close() {
-    return delegate.close();
-  }
-
-  @Override
-  public Future<Void> close(short statusCode) {
-    return delegate.close(statusCode);
-  }
-
-  @Override
-  public Future<Void> close(short statusCode, @Nullable String reason) {
-    return delegate.close(statusCode, reason);
   }
 
   @Override

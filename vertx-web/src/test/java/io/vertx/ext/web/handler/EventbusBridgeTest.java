@@ -23,7 +23,6 @@ import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.WebSocketClient;
-import io.vertx.core.http.impl.HttpClientConnectionInternal;
 import io.vertx.core.http.impl.WebSocketInternal;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -1476,7 +1475,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
           @Override
           public void abruptClose() {
-            Channel ch = ((HttpClientConnectionInternal) ((WebSocketInternal) ws).connection()).channel();
+            Channel ch = ((WebSocketInternal) ws).channelHandlerContext().channel();
             ChannelPromise promise = ch.newPromise();
             ch.unsafe().close(promise);
           }
@@ -1528,7 +1527,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
           @Override
           public void abruptClose() {
-            Channel ch = ((HttpClientConnectionInternal) ((WebSocketInternal) ws).connection()).channel();
+            Channel ch = ((WebSocketInternal) ws).channelHandlerContext().channel();
             ChannelPromise promise = ch.newPromise();
             ch.unsafe().close(promise);
           }
