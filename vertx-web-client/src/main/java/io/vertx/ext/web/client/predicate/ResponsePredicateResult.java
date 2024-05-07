@@ -28,7 +28,9 @@ import java.util.function.Function;
  * Represents the outcome of a {@link ResponsePredicate} applied to an {@link HttpResponse}.
  *
  * @author Thomas Segismont
+ * @deprecated instead use {@link io.vertx.core.http.HttpResponseExpectation}
  */
+@Deprecated
 @VertxGen
 public interface ResponsePredicateResult {
 

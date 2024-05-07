@@ -46,7 +46,9 @@ import java.util.function.Function;
  * <p>
  * However, you can create a new {@link ResponsePredicate} instance from an existing one using {@link #create(Function)} or
  * {@link #create(Function, ErrorConverter)} when the body is required to build the validation failure.
+ * @deprecated instead use {@link io.vertx.core.http.HttpResponseExpectation}
  */
+@Deprecated
 @VertxGen
 public interface ResponsePredicate extends Function<HttpResponse<Void>, ResponsePredicateResult> {
 

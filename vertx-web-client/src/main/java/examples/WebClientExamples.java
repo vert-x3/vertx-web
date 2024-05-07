@@ -16,6 +16,7 @@
 
 package examples;
 
+import io.vertx.core.Expectation;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -24,6 +25,8 @@ import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpResponseExpectation;
+import io.vertx.core.http.HttpResponseHead;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.parsetools.JsonParser;
@@ -35,9 +38,6 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.ext.web.client.predicate.ErrorConverter;
-import io.vertx.ext.web.client.predicate.ResponsePredicate;
-import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.uritemplate.ExpandOptions;
@@ -45,7 +45,6 @@ import io.vertx.uritemplate.UriTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -487,16 +486,13 @@ public class WebClientExamples {
   public void usingPredicates(WebClient client) {
 
     // Check CORS header allowing to do POST
-    Function<HttpResponse<Void>, ResponsePredicateResult> methodsPredicate =
-      resp -> {
+    Expectation<HttpResponseHead> methodsPredicate = new Expectation<HttpResponseHead>() {
+      @Override
+      public boolean test(HttpResponseHead resp) {
         String methods = resp.getHeader("Access-Control-Allow-Methods");
-        if (methods != null) {
-          if (methods.contains("POST")) {
-            return ResponsePredicateResult.success();
-          }
-        }
-        return ResponsePredicateResult.failure("Does not work");
-      };
+        return methods != null && methods.contains("POST");
+      }
+    };
 
     // Send pre-flight CORS request
     client
@@ -507,8 +503,8 @@ public class WebClientExamples {
         "/some-uri")
       .putHeader("Origin", "Server-b.com")
       .putHeader("Access-Control-Request-Method", "POST")
-      .expect(methodsPredicate)
       .send()
+      .expecting(methodsPredicate)
       .onSuccess(res -> {
         // Process the POST request now
       })
@@ -519,9 +515,8 @@ public class WebClientExamples {
   public void usingPredefinedPredicates(WebClient client) {
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")
-      .expect(ResponsePredicate.SC_SUCCESS)
-      .expect(ResponsePredicate.JSON)
       .send()
+      .expecting(HttpResponseExpectation.SC_SUCCESS.and(HttpResponseExpectation.JSON))
       .onSuccess(res -> {
         // Safely decode the body as a json object
         JsonObject body = res.bodyAsJsonObject();
@@ -538,8 +533,8 @@ public class WebClientExamples {
   public void usingSpecificStatus(WebClient client) {
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")
-      .expect(ResponsePredicate.status(200, 202))
       .send()
+      .expecting(HttpResponseExpectation.status(200, 202))
       .onSuccess(res -> {
         // ....
       });
@@ -548,8 +543,8 @@ public class WebClientExamples {
   public void usingSpecificContentType(WebClient client) {
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")
-      .expect(ResponsePredicate.contentType("some/content-type"))
       .send()
+      .expecting(HttpResponseExpectation.contentType("some/content-type"))
       .onSuccess(res -> {
         // ....
       });
@@ -570,16 +565,14 @@ public class WebClientExamples {
   }
 
   public void predicateCustomError() {
-    ResponsePredicate predicate = ResponsePredicate.create(
-      ResponsePredicate.SC_SUCCESS,
-      result -> new MyCustomException(result.message()));
+    Expectation<HttpResponseHead> expectation = HttpResponseExpectation.SC_SUCCESS
+      .wrappingFailure((resp, err) -> new MyCustomException(err.getMessage()));
   }
 
   public void predicateCustomErrorWithBody() {
-    ErrorConverter converter = ErrorConverter.createFullBody(result -> {
-
+    HttpResponseExpectation.SC_SUCCESS.wrappingFailure((resp, err) -> {
       // Invoked after the response body is fully received
-      HttpResponse<Buffer> response = result.response();
+      HttpResponse<?> response =(HttpResponse<?>) resp;
 
       if (response
         .getHeader("content-type")
@@ -594,11 +587,8 @@ public class WebClientExamples {
       }
 
       // Fallback to defaut message
-      return new MyCustomException(result.message());
+      return new MyCustomException(err.getMessage());
     });
-
-    ResponsePredicate predicate = ResponsePredicate
-      .create(ResponsePredicate.SC_SUCCESS, converter);
   }
 
   public void testClientDisableFollowRedirects(Vertx vertx) {
@@ -729,9 +719,9 @@ public class WebClientExamples {
         8080,
         "localhost",
         "/images/json")
-      .expect(ResponsePredicate.SC_ACCEPTED)
       .as(BodyCodec.jsonObject())
       .send()
+      .expecting(HttpResponseExpectation.SC_ACCEPTED)
       .onSuccess(res ->
         System.out.println("Current Docker images" + res.body()))
       .onFailure(err ->
