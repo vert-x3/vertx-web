@@ -76,6 +76,11 @@ public class HttpResponseImpl<T> implements HttpResponse<T> {
   }
 
   @Override
+  public String getHeader(CharSequence headerName) {
+    return headers.get(headerName);
+  }
+
+  @Override
   public MultiMap trailers() {
     return trailers;
   }

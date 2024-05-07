@@ -33,7 +33,6 @@ import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.uritemplate.UriTemplate;
@@ -67,7 +66,6 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   private Boolean ssl;
   private boolean multipartMixed = true;
   private String traceOperation;
-  private List<ResponsePredicate> expectations;
   private BodyCodec<T> codec;
   MultiMap headers;
 
@@ -139,7 +137,6 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.queryParams = other.queryParams != null ? MultiMap.caseInsensitiveMultiMap().addAll(other.queryParams) : null;
     this.multipartMixed = other.multipartMixed;
     this.virtualHost = other.virtualHost;
-    this.expectations = other.expectations != null ? new ArrayList<>(other.expectations) : null;
   }
 
   @Override
@@ -338,20 +335,6 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public ProxyOptions proxy() {
     return proxyOptions;
-  }
-
-  @Override
-  public HttpRequest<T> expect(ResponsePredicate expectation) {
-    if (expectations == null) {
-      expectations = new ArrayList<>();
-    }
-    expectations.add(expectation);
-    return this;
-  }
-
-  @Override
-  public List<ResponsePredicate> expectations() {
-    return expectations != null ? expectations : Collections.emptyList();
   }
 
   @Override

@@ -19,7 +19,6 @@ import io.vertx.codegen.annotations.*;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.ProxyOptions;
@@ -27,8 +26,6 @@ import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
-import io.vertx.ext.web.client.predicate.ResponsePredicate;
-import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.uritemplate.Variables;
@@ -36,7 +33,6 @@ import io.vertx.uritemplate.UriTemplate;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * A client-side HTTP request.
@@ -412,35 +408,6 @@ public interface HttpRequest<T> {
    * @return the proxy for this request
    */
   ProxyOptions proxy();
-
-  /**
-   * Add an expectation that the response is valid according to the provided {@code predicate}.
-   * <p>
-   * Multiple predicates can be added.
-   *
-   * @param predicate the predicate
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  default HttpRequest<T> expect(Function<HttpResponse<Void>, ResponsePredicateResult> predicate) {
-    return expect(predicate::apply);
-  }
-
-  /**
-   * Add an expectation that the response is valid according to the provided {@code predicate}.
-   * <p>
-   * Multiple predicates can be added.
-   *
-   * @param predicate the predicate
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  HttpRequest<T> expect(ResponsePredicate predicate);
-
-  /**
-   * @return a read-only list of the response predicate expectations
-   */
-  List<ResponsePredicate> expectations();
 
   /**
    * Return the current query parameters.
