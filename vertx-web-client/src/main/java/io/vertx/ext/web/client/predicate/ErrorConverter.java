@@ -26,7 +26,9 @@ import java.util.function.Function;
  * Converts a {@link ResponsePredicateResult} to a {@code Throwable} describing the error.
  *
  * @author Thomas Segismont
+ * @deprecated instead use {@link io.vertx.core.http.HttpResponseExpectation}
  */
+@Deprecated
 @FunctionalInterface
 @VertxGen
 public interface ErrorConverter {

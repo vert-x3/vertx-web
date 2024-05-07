@@ -20,7 +20,7 @@ import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.HttpResponseHead;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -48,39 +48,7 @@ import java.util.List;
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 @VertxGen
-public interface HttpResponse<T> {
-
-  /**
-   * @return the version of the response
-   */
-  @CacheReturn
-  HttpVersion version();
-
-  /**
-   * @return the status code of the response
-   */
-  @CacheReturn
-  int statusCode();
-
-  /**
-   * @return the status message of the response
-   */
-  @CacheReturn
-  String statusMessage();
-
-  /**
-   * @return the headers
-   */
-  @CacheReturn
-  MultiMap headers();
-
-  /**
-   * Return the first header value with the specified name
-   *
-   * @param headerName  the header name
-   * @return the header value
-   */
-  @Nullable String getHeader(String headerName);
+public interface HttpResponse<T> extends HttpResponseHead {
 
   /**
    * @return the trailers
@@ -95,12 +63,6 @@ public interface HttpResponse<T> {
    * @return the trailer value
    */
   @Nullable String getTrailer(String trailerName);
-
-  /**
-   * @return the Set-Cookie headers (including trailers)
-   */
-  @CacheReturn
-  List<String> cookies();
 
   /**
    * @return the response body in the format it was decoded.

@@ -420,7 +420,9 @@ public interface HttpRequest<T> {
    *
    * @param predicate the predicate
    * @return a reference to this, so the API can be used fluently
+   * @deprecated instead use {@link io.vertx.core.http.HttpResponseExpectation} along with {@link Future#expecting(Expectation)}
    */
+  @Deprecated
   @Fluent
   default HttpRequest<T> expect(Function<HttpResponse<Void>, ResponsePredicateResult> predicate) {
     return expect(predicate::apply);
@@ -433,13 +435,16 @@ public interface HttpRequest<T> {
    *
    * @param predicate the predicate
    * @return a reference to this, so the API can be used fluently
+   * @deprecated instead use {@link io.vertx.core.http.HttpResponseExpectation} along with {@link Future#expecting(Expectation)}
    */
+  @Deprecated
   @Fluent
   HttpRequest<T> expect(ResponsePredicate predicate);
 
   /**
    * @return a read-only list of the response predicate expectations
    */
+  @Deprecated
   List<ResponsePredicate> expectations();
 
   /**
