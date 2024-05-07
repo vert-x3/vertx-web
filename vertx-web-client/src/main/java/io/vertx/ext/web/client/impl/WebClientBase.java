@@ -30,7 +30,6 @@ import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.ext.web.client.impl.predicate.PredicateInterceptor;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 import io.vertx.uritemplate.ExpandOptions;
 import io.vertx.uritemplate.UriTemplate;
@@ -59,9 +58,6 @@ public class WebClientBase implements WebClientInternal {
     this.client = client;
     this.options = options;
     this.interceptors = new CopyOnWriteArrayList<>();
-
-    // Add base interceptor
-    addInterceptor(new PredicateInterceptor());
   }
 
   WebClientBase(WebClientBase webClient) {
