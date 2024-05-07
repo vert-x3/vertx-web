@@ -300,7 +300,7 @@ On a success result the callback happens after the response has been received
 ====
 By default, a Vert.x Web Client request ends with an error only if something wrong happens at the network level.
 In other words, a `404 Not Found` response, or a response with the wrong content type, are *not* considered as failures.
-Use <<response-predicates, response predicates>> if you want the Web Client to perform sanity checks automatically.
+Use <<http-response-expectations, http response expectations>> if you want the Web Client to perform sanity checks automatically.
 ====
 
 WARNING: Responses are fully buffered, use {@link io.vertx.ext.web.codec.BodyCodec#pipe(io.vertx.core.streams.WriteStream)}
@@ -371,8 +371,8 @@ that decode the response to a specific type
 
 WARNING: this is only valid for the response decoded as a buffer.
 
-[[response-predicates]]
-=== Response predicates
+[[http-response-expectations]]
+=== Response expectations
 
 By default, a Vert.x Web Client request ends with an error only if something wrong happens at the network level.
 
@@ -383,33 +383,31 @@ In other words, you must perform sanity checks manually after the response is re
 {@link examples.WebClientExamples#manualSanityChecks(io.vertx.ext.web.client.WebClient)}
 ----
 
-You can trade flexibility for clarity and conciseness using _response predicates_.
+You can trade flexibility for clarity and conciseness using _response expectations_.
 
-{@link io.vertx.ext.web.client.predicate.ResponsePredicate Response predicates} can fail a request when the response does
+{@link io.vertx.core.http.HttpResponseExpectation Response expectations} can fail a request when the response does
 not match a criteria.
 
-The Web Client comes with a set of out of the box predicates ready to use:
+The Web Client can reuse the Vert.x HTTP Client predefined expectations:
 
 [source,$lang]
 ----
 {@link examples.WebClientExamples#usingPredefinedPredicates(io.vertx.ext.web.client.WebClient)}
 ----
 
-You can also create custom predicates when existing predicates don't fit your needs:
+You can also create custom expectations when existing expectations don't fit your needs:
 
 [source,$lang]
 ----
 {@link examples.WebClientExamples#usingPredicates(io.vertx.ext.web.client.WebClient)}
 ----
 
-TIP: Response predicates are evaluated _before_ the response body is received. Therefore you can't inspect the response body
-in a predicate test function.
+==== Predefined expectations
 
-==== Predefined predicates
+As a convenience, the Vert.x HTTP Client ships a few expectations for common uses cases that also applies to the
+Web Client.
 
-As a convenience, the Web Client ships a few predicates for common uses cases .
-
-For status codes, e.g {@link io.vertx.ext.web.client.predicate.ResponsePredicate#SC_SUCCESS} to verify that the
+For status codes, e.g. {@link io.vertx.core.http.HttpResponseExpectation#SC_SUCCESS} to verify that the
 response has a `2xx` code, you can also create a custom one:
 
 [source,$lang]
@@ -417,7 +415,7 @@ response has a `2xx` code, you can also create a custom one:
 {@link examples.WebClientExamples#usingSpecificStatus(io.vertx.ext.web.client.WebClient)}
 ----
 
-For content types, e.g {@link io.vertx.ext.web.client.predicate.ResponsePredicate#JSON} to verify that the
+For content types, e.g. {@link io.vertx.core.http.HttpResponseExpectation#JSON} to verify that the
 response body contains JSON data, you can also create a custom one:
 
 [source,$lang]
@@ -425,13 +423,13 @@ response body contains JSON data, you can also create a custom one:
 {@link examples.WebClientExamples#usingSpecificContentType(io.vertx.ext.web.client.WebClient)}
 ----
 
-Please refer to the {@link io.vertx.ext.web.client.predicate.ResponsePredicate} documentation for a full list of predefined predicates.
+Please refer to the {@link io.vertx.core.http.HttpResponseExpectation} documentation for a full list of predefined predicates.
 
 ifeval::["$lang" == "java"]
 ==== Creating custom failures
 
-By default, response predicates (including the predefined ones) use a default error converter which discards
-the body and conveys a simple message. You can customize the exception class by changing the error converter:
+By default, response expectations (including the predefined ones) use a default error converter which discards
+the body and conveys a simple message. You can customize the exception class by mapping the failure:
 
 [source,$lang]
 ----
@@ -449,8 +447,7 @@ For example, the https://developer.marvel.com/docs[Marvel API] uses this JSON ob
 }
 ----
 
-To avoid losing this information, it is possible to wait for the response body to be fully received before the error
-converter is called:
+To avoid losing this information, it is possible to transform response body:
 
 [source,$lang]
 ----
@@ -458,7 +455,7 @@ converter is called:
 ----
 
 WARNING: creating exception in Java can have a performance cost when it captures a stack trace, so you might want
-         to create exceptions that do not capture the stack trace. By default exceptions are reported using the
+         to create exceptions that do not capture the stack trace. By default, exceptions are reported using
          an exception that does not capture the stack trace.
 
 endif::[]

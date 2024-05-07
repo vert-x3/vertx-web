@@ -332,6 +332,11 @@ public class InterceptorTest extends HttpTestBase {
     }
 
     @Override
+    public String getHeader(CharSequence headerName) {
+      return null;
+    }
+
+    @Override
     public MultiMap trailers() {
       return null;
     }
