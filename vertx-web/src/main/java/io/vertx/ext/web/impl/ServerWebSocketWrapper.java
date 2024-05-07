@@ -1,21 +1,18 @@
 package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.http.WebSocket;
-import io.vertx.core.http.WebSocketBase;
 import io.vertx.core.http.WebSocketFrame;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.core.net.SocketAddress;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
-import javax.security.cert.X509Certificate;
 import java.security.cert.Certificate;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -265,12 +262,6 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   @Override
   public SSLSession sslSession() {
     return delegate.sslSession();
-  }
-
-  @Override
-  @Deprecated
-  public X509Certificate[] peerCertificateChain() throws SSLPeerUnverifiedException {
-    return delegate.peerCertificateChain();
   }
 
   @Override
