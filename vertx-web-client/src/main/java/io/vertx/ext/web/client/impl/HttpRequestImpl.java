@@ -62,6 +62,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   private long timeout = -1;
   private long idleTimeout = -1;
   private long connectTimeout = -1;
+  private String routingKey;
   private boolean followRedirects;
   private Boolean ssl;
   private boolean multipartMixed = true;
@@ -134,6 +135,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     this.timeout = other.timeout;
     this.idleTimeout = other.idleTimeout;
     this.connectTimeout = other.connectTimeout;
+    this.routingKey = other.routingKey;
     this.queryParams = other.queryParams != null ? MultiMap.caseInsensitiveMultiMap().addAll(other.queryParams) : null;
     this.multipartMixed = other.multipartMixed;
     this.virtualHost = other.virtualHost;
@@ -327,6 +329,17 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
+  public HttpRequest<T> routingKey(String key) {
+    routingKey = key;
+    return this;
+  }
+
+  @Override
+  public String routingKey() {
+    return routingKey;
+  }
+
+  @Override
   public HttpRequest<T> proxy(ProxyOptions proxyOptions) {
     this.proxyOptions = proxyOptions;
     return this;
@@ -509,6 +522,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     if (connectTimeout >= 0) {
       requestOptions.setConnectTimeout(connectTimeout);
     }
+    requestOptions.setRoutingKey(this.routingKey);
     requestOptions.setProxyOptions(this.proxyOptions);
     requestOptions.setTraceOperation(this.traceOperation);
     return requestOptions;

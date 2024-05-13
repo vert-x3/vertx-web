@@ -23,13 +23,12 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.OpenOptions;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpResponseExpectation;
-import io.vertx.core.http.HttpResponseHead;
+import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.loadbalancing.LoadBalancer;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.parsetools.JsonParser;
+import io.vertx.core.spi.loadbalancing.Endpoint;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.auth.authentication.TokenCredentials;
@@ -44,6 +43,7 @@ import io.vertx.uritemplate.ExpandOptions;
 import io.vertx.uritemplate.UriTemplate;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -726,5 +726,40 @@ public class WebClientExamples {
         System.out.println("Current Docker images" + res.body()))
       .onFailure(err ->
         System.out.println("Something went wrong " + err.getMessage()));
+  }
+
+  public static void clientSideLoadBalancing(Vertx vertx) {
+    WebClient client = WebClient.wrap(vertx
+      .httpClientBuilder()
+      .withLoadBalancer(LoadBalancer.ROUND_ROBIN)
+      .build());
+  }
+
+  public static void clientSideConsistentHashing(Vertx vertx, int servicePort) {
+    WebClient client = WebClient.wrap(vertx
+      .httpClientBuilder()
+      .withLoadBalancer(LoadBalancer.CONSISTENT_HASHING)
+      .build());
+
+    HttpServer server = vertx.createHttpServer()
+      .requestHandler(inboundReq -> {
+
+        // Get a routing key, in this example we will hash the incoming request host/ip
+        // it could be anything else, e.g. user id, request id, ...
+        String routingKey = inboundReq.remoteAddress().hostAddress();
+
+        client
+          .get("/test")
+          .host("example.com")
+          .routingKey(routingKey)
+          .send()
+          .expecting(HttpResponseExpectation.SC_OK)
+          .onSuccess(res ->
+            System.out.println("Received response with status code" + res.statusCode()))
+          .onFailure(err ->
+            System.out.println("Something went wrong " + err.getMessage()));
+      });
+
+    server.listen(servicePort);
   }
 }

@@ -20,6 +20,7 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.streams.ReadStream;
@@ -392,6 +393,24 @@ public interface HttpRequest<T> {
    * @return whether to follow request redirections
    */
   boolean followRedirects();
+
+  /**
+   * Set the routing key, the routing key can be used by a Vert.x client side sticky load balancer
+   * to pin the request to a remote HTTP server.
+   *
+   * @param key the routing key
+   * @return  a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> routingKey(String key);
+
+  /**
+   * Return the routing key, the routing key can be used by a Vert.x client side sticky load balancer to
+   * pin the request to a remote HTTP server.
+   *
+   * @return the routing key
+   */
+  String routingKey();
 
   /**
    * Configure the request to set a proxy for this request.
