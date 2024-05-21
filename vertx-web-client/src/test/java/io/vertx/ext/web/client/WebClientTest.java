@@ -24,7 +24,7 @@ import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakeresolver.FakeAddress;
-import io.vertx.test.fakeresolver.FakeAddressResolver;
+import io.vertx.test.fakeresolver.FakeEndpointResolver;
 import io.vertx.test.tls.Cert;
 import org.junit.Test;
 
@@ -2137,7 +2137,7 @@ public class WebClientTest extends WebClientTestBase {
   @Test
   public void testCannotResolveAddress() throws Exception {
     awaitFuture(client.close());
-    FakeAddressResolver<?> resolver = new FakeAddressResolver<>();
+    FakeEndpointResolver<?> resolver = new FakeEndpointResolver<>();
     client = vertx.httpClientBuilder().with(createBaseClientOptions()).withAddressResolver(resolver).build();
     webClient = WebClient.wrap(client);
 
@@ -2150,7 +2150,7 @@ public class WebClientTest extends WebClientTestBase {
   @Test
   public void testUseResolvedAddress() throws Exception {
     awaitFuture(client.close());
-    FakeAddressResolver<?> resolver = new FakeAddressResolver<>();
+    FakeEndpointResolver<?> resolver = new FakeEndpointResolver<>();
     resolver.registerAddress("mars", Collections.singletonList(testAddress));
     client = vertx.httpClientBuilder().with(createBaseClientOptions()).withAddressResolver(resolver).build();
     webClient = WebClient.wrap(client);
