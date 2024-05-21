@@ -24,6 +24,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.impl.ContextInternal;
+import io.vertx.core.net.HostAndPort;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RequestBody;
@@ -76,9 +77,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     this.request = new HttpServerRequestWrapper(request, router.getAllowForward());
     this.body = new RequestBodyImpl(this);
 
-    final String path = request.path();
+    String path = request.path();
+    HostAndPort authority = request.authority();
 
-    if (path == null || path.isEmpty()) {
+    if (authority == null || path == null || path.isEmpty()) {
+      // Authority must be present (HTTP/1.x host header // HTTP/2 :authority pseudo header)
       // HTTP paths must start with a '/'
       fail(400);
     } else if (path.charAt(0) != '/') {
