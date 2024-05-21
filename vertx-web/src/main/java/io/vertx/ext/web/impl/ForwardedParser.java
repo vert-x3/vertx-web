@@ -186,15 +186,8 @@ class ForwardedParser {
   }
 
   private void setHostAndPort(HostAndPort authority) {
-    if (authority == null) {
-      // no header is provided
-      host = null;
-      port = -1;
-    } else {
-      String h = authority.host();
-      host = h;
-      port = authority.port();
-    }
+    host = authority.host();
+    port = authority.port();
   }
 
   private SocketAddress parseFor(String forToParse, int defaultPort) {

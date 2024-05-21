@@ -23,6 +23,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.HostAndPort;
+import io.vertx.core.net.NetClient;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.PlatformHandler;
@@ -2597,6 +2598,33 @@ public class RouterTest extends WebTestBase {
     String path = "?test=something";
     router.route().handler(rc -> rc.response().end());
     testRequest(HttpMethod.GET, path, 400, "Bad Request");
+  }
+
+  @Test
+  public void testMissingHostHeader() throws Exception {
+    router.route().handler(rc -> rc.response().end());
+    NetClient nc = vertx.createNetClient();
+    nc.connect(SocketAddress.inetSocketAddress(8080, "localhost")).onComplete(onSuccess(so -> {
+      so.write("GET / HTTP/1.1\r\n\r\n");
+      Buffer response = Buffer.buffer();
+      so.handler(chunk -> {
+        response.appendBuffer(chunk);
+        String s = response.toString();
+        int idx = s.indexOf("\r\n");
+        if (idx >= 0) {
+          so.handler(null);
+          String[] line = s.substring(0, idx).split("\\s+");
+          assertTrue(line.length >= 3);
+          assertEquals("400", line[1]);
+          testComplete();
+        }
+      });
+    }));
+    try {
+      await();
+    } finally {
+      nc.close();
+    }
   }
 
   @Test
