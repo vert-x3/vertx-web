@@ -390,6 +390,11 @@ public class HttpContext<T> {
   }
 
   private void handleFailure() {
+    HttpClientRequest req = clientRequest;
+    if (req != null) {
+      clientRequest = null;
+      req.reset();
+    }
     handler.handle(Future.failedFuture(failure));
   }
 
