@@ -265,7 +265,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   @Override
   public long timeout() {
-      return timeout;
+    return timeout;
   }
 
   @Override
@@ -282,7 +282,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public HttpRequest<T> connectTimeout(long timeout) {
     connectTimeout = timeout;
-    return null;
+    return this;
   }
 
   @Override
