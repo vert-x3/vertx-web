@@ -41,8 +41,8 @@ public class TimeoutHandlerImpl implements TimeoutHandler {
     long tid = ctx.vertx().setTimer(timeout, t -> {
       if (!ctx.request().isEnded()) {
         ctx.request().resume();
+        ctx.fail(errorCode);
       }
-      ctx.fail(errorCode);
     });
 
     ctx.addBodyEndHandler(v -> ctx.vertx().cancelTimer(tid));
