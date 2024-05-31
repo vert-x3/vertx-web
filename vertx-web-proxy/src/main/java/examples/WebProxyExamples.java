@@ -5,6 +5,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.proxy.handler.ProxyHandler;
 import io.vertx.httpproxy.HttpProxy;
 
@@ -56,6 +57,15 @@ public class WebProxyExamples {
     proxyRouter
       .route(HttpMethod.GET, "/foo")
       .handler(ProxyHandler.create(httpProxy, 7070, "localhost"));
+  }
+
+  public void notCompatibleWithBodyHandler(Router router, HttpProxy productServiceProxy) {
+    router.post().handler(BodyHandler.create()); // Don't do this
+    router.route("/product").handler(ProxyHandler.create(productServiceProxy));
+
+    router.route("/product")
+      .handler(BodyHandler.create()) // Don't do this
+      .handler(ProxyHandler.create(productServiceProxy));
   }
 
   public void multi(Vertx vertx, Router proxyRouter) {
