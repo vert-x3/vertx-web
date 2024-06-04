@@ -43,7 +43,7 @@ the *proxy server* using `ProxyHandler`:
 You simply create the *origin server* and handle requests with Vert.x Web `Router`, the *origin server*
 listens to port `7070`
 
-[source,java]
+[source,$lang]
 ----
 {@link examples.WebProxyExamples#origin}
 ----
@@ -52,35 +52,47 @@ listens to port `7070`
 
 Create the *proxy server* that listens to port `8080`
 
-[source,java]
+[source,$lang]
 ----
 {@link examples.WebProxyExamples#proxy}
 ----
+
 == Using `ProxyHandler`
 
 The last interesting part is to route *proxy server* requests to the *origin server*, so you need to create `HttpProxy`
 with specified target and `ProxyHandler`.
 
-[source,java]
+[source,$lang]
 ----
 {@link examples.WebProxyExamples#route}
 ----
 
 Or you can specify the target in `ProxyHandler` instead.
 
-[source,java]
+[source,$lang]
 ----
 {@link examples.WebProxyExamples#routeShort}
 ----
 
 Finally, the *proxy server* requests will be routed as a reverse proxy to the *origin server* conveniently.
 
+[WARNING]
+====
+The {@link io.vertx.ext.web.handler.BodyHandler} is not compatible with the {@link io.vertx.ext.web.proxy.handler.ProxyHandler}.
+It shouldn't be installed on the same route or a previous route.
+
+[source,$lang]
+----
+{@link examples.WebProxyExamples#notCompatibleWithBodyHandler}
+----
+====
+
 == Using `ProxyHandler` for multiple targets
 
 In order to route *proxy server* requests to multiple *origin servers* you simply create `HttpProxy` for
 each one and specify the target independently.
 
-[source,java]
+[source,$lang]
 ----
 {@link examples.WebProxyExamples#multi}
 ----
