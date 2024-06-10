@@ -277,7 +277,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     if (length >= 0) {
       // requires verification
       if (length < 43 || length > 128) {
-        throw new IllegalArgumentException("Length must be between 34 and 128");
+        throw new IllegalArgumentException("Length must be between 43 and 128");
       }
     }
     this.pkce = length;
