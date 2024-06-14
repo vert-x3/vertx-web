@@ -24,7 +24,7 @@ import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
-import io.vertx.ext.auth.VertxContextPRNG;
+import io.vertx.ext.auth.prng.VertxContextPRNG;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.AbstractSession;
 import io.vertx.ext.web.sstore.LocalSessionStore;

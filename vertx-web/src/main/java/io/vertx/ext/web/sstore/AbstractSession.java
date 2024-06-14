@@ -21,7 +21,7 @@ import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.ClusterSerializable;
-import io.vertx.ext.auth.VertxContextPRNG;
+import io.vertx.ext.auth.prng.VertxContextPRNG;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.sstore.impl.SessionInternal;

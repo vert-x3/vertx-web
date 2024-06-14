@@ -29,7 +29,7 @@ import io.vertx.core.http.impl.ws.WebSocketFrameImpl;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.user.User;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.WebTestBase;

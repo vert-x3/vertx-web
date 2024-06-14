@@ -24,7 +24,7 @@ import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.ext.auth.VertxContextPRNG;
+import io.vertx.ext.auth.prng.VertxContextPRNG;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.CSRFHandler;

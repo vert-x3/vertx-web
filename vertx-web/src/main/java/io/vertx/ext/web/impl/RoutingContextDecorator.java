@@ -9,7 +9,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.user.User;
 import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.web.*;
 

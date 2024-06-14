@@ -14,8 +14,8 @@ package io.vertx.router.test.e2e;
 
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.auth.JWTOptions;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.jose.JWTOptions;
+import io.vertx.ext.auth.user.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.providers.OpenIDConnectAuth;

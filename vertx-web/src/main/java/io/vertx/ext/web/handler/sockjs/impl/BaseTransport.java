@@ -45,7 +45,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
-import io.vertx.ext.auth.VertxContextPRNG;
+import io.vertx.ext.auth.prng.VertxContextPRNG;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.SecurityPolicyHandler;

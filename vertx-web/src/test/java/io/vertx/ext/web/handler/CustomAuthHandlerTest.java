@@ -19,7 +19,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.user.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
@@ -39,7 +39,7 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
 
     return SimpleAuthenticationHandler.create()
       .authenticate(ctx -> {
-        final Promise<User> promise = Promise.promise();
+        final Promise<io.vertx.ext.auth.user.User> promise = Promise.promise();
 
         authProvider.authenticate(new UsernamePasswordCredentials("user", "pass")).onComplete(authn -> {
           if (authn.failed()) {

@@ -19,7 +19,7 @@ package io.vertx.ext.web.sstore.impl;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.shareddata.Shareable;
 import io.vertx.core.shareddata.ClusterSerializable;
-import io.vertx.ext.auth.VertxContextPRNG;
+import io.vertx.ext.auth.prng.VertxContextPRNG;
 import io.vertx.ext.web.sstore.AbstractSession;
 
 import java.nio.charset.Charset;

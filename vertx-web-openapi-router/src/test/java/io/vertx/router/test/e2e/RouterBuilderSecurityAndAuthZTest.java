@@ -14,15 +14,12 @@ package io.vertx.router.test.e2e;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.user.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
-import io.vertx.ext.auth.oauth2.OAuth2Auth;
-import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.APIKeyHandler;
 import io.vertx.ext.web.handler.AuthorizationHandler;
-import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.router.ResourceHelper;
 import io.vertx.router.test.base.RouterBuilderTestBase;

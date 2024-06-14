@@ -6,7 +6,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.user.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
@@ -52,18 +52,18 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   }
 
   @Override
-  public Future<User> authenticate(RoutingContext context) {
+  public Future<? extends io.vertx.ext.auth.user.User> authenticate(RoutingContext context) {
     if (handlers.isEmpty()) {
       return Future.failedFuture("No providers in the auth chain.");
     } else {
       // iterate all possible authN
-      Promise<User> promise = Promise.promise();
+      Promise<io.vertx.ext.auth.user.User> promise = Promise.promise();
       iterate(0, context, null, null, promise);
       return promise.future();
     }
   }
 
-  private void iterate(final int idx, final RoutingContext ctx, User result, Throwable exception, Handler<AsyncResult<User>> handler) {
+  private void iterate(final int idx, final RoutingContext ctx, io.vertx.ext.auth.user.User result, Throwable exception, Handler<AsyncResult<io.vertx.ext.auth.user.User>> handler) {
     // stop condition
     if (idx >= handlers.size()) {
       if (all) {

@@ -8,7 +8,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.user.User;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.impl.UserContextInternal;
 import io.vertx.ext.web.validation.BaseValidationHandlerTest;
@@ -122,7 +122,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
         "src", "test",
         "resources", "filter.json")))));
     schemaRepo.dereference("app://filter.json", filterSchema);
-    
+
     router
       .post("/test")
       .handler(BodyHandler.create())

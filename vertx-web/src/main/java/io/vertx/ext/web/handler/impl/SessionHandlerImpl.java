@@ -23,7 +23,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.user.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.SessionHandler;

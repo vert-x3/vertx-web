@@ -1208,7 +1208,7 @@ make sure your authentication handler is before your application handlers on tho
 {@link examples.WebExamples#example38}
 ----
 
-If the authentication handler has successfully authenticated the user it will inject a {@link io.vertx.ext.auth.User}
+If the authentication handler has successfully authenticated the user it will inject a {@link io.vertx.ext.auth.user.User}
 object into the {@link io.vertx.ext.web.UserContext} so it's available in your handlers from the routing context:
 {@link io.vertx.ext.web.RoutingContext#user()}.
 
@@ -3073,7 +3073,7 @@ desired mode at the constructor level.
 
 The behavior of this handler can be seen as:
 
-If there is no {@link io.vertx.ext.auth.User} in the current request, then it is assumed that no previous authentication has been
+If there is no {@link io.vertx.ext.auth.user.User} in the current request, then it is assumed that no previous authentication has been
 performed. This implies that the request will be immediately terminated with status code 401.
 
 If a user is present and the object lacks the property `mfa` with a matching type (`hotp`/`totp`), the request will

@@ -1,6 +1,5 @@
 package io.vertx.ext.web.impl;
 
-import io.vertx.ext.auth.User;
 import io.vertx.ext.web.UserContext;
 
 public interface UserContextInternal extends UserContext {
@@ -10,5 +9,5 @@ public interface UserContextInternal extends UserContext {
    *
    * @param user  the user
    */
-  void setUser(User user);
+  void setUser(io.vertx.ext.auth.user.User user);
 }

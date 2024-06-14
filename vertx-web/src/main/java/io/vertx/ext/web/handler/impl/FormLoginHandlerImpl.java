@@ -21,7 +21,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.user.User;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
@@ -76,7 +76,7 @@ public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   }
 
   @Override
-  public Future<User> authenticate(RoutingContext context) {
+  public Future<? extends io.vertx.ext.auth.user.User> authenticate(RoutingContext context) {
     HttpServerRequest req = context.request();
     if (req.method() != HttpMethod.POST) {
       return Future.failedFuture(BAD_METHOD); // Must be a POST

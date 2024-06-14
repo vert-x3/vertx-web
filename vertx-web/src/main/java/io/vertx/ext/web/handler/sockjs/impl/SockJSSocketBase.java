@@ -37,7 +37,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.impl.VertxInternal;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.user.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;

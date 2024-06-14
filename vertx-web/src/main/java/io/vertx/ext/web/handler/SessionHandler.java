@@ -20,7 +20,7 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.http.CookieSameSite;
-import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.user.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.impl.SessionHandlerImpl;

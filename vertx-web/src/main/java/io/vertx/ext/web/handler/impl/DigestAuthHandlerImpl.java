@@ -22,8 +22,8 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.Shareable;
-import io.vertx.ext.auth.User;
-import io.vertx.ext.auth.VertxContextPRNG;
+import io.vertx.ext.auth.user.User;
+import io.vertx.ext.auth.prng.VertxContextPRNG;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
@@ -100,7 +100,7 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
   }
 
   @Override
-  public Future<User> authenticate(RoutingContext context) {
+  public Future<? extends io.vertx.ext.auth.user.User> authenticate(RoutingContext context) {
     // clean up nonce
     long now = System.currentTimeMillis();
     if (now - lastExpireRun > nonceExpireTimeout / 2) {

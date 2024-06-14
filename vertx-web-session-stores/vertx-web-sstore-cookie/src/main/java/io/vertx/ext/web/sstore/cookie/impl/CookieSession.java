@@ -16,7 +16,7 @@
 package io.vertx.ext.web.sstore.cookie.impl;
 
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.auth.VertxContextPRNG;
+import io.vertx.ext.auth.prng.VertxContextPRNG;
 import io.vertx.ext.web.sstore.AbstractSession;
 
 import javax.crypto.Mac;

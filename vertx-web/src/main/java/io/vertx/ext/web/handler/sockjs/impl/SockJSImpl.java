@@ -40,7 +40,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
-import io.vertx.ext.auth.VertxContextPRNG;
+import io.vertx.ext.auth.prng.VertxContextPRNG;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
