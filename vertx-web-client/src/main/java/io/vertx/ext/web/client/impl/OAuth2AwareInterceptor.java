@@ -13,6 +13,7 @@ package io.vertx.ext.web.client.impl;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
+import io.vertx.ext.auth.User;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -91,7 +92,7 @@ public class OAuth2AwareInterceptor implements Handler<HttpContext<?>> {
             .oauth2Auth()
             .refresh(parentClient.getUser())
             .onSuccess(userResult -> {
-              parentClient.setUser(userResult);
+              parentClient.setUser((User) userResult);
               context.requestOptions().putHeader(AUTHORIZATION, "Bearer " + userResult.principal().getString("access_token"));
               promise.complete();
             })
