@@ -2,9 +2,11 @@ package io.vertx.ext.web.api.service;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
@@ -26,15 +28,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 import static io.vertx.ext.web.validation.builder.Bodies.json;
 import static io.vertx.ext.web.validation.builder.Parameters.param;
-import static io.vertx.ext.web.validation.testutils.TestRequest.bodyResponse;
-import static io.vertx.ext.web.validation.testutils.TestRequest.emptyResponse;
-import static io.vertx.ext.web.validation.testutils.TestRequest.jsonBodyResponse;
-import static io.vertx.ext.web.validation.testutils.TestRequest.statusCode;
-import static io.vertx.ext.web.validation.testutils.TestRequest.statusMessage;
-import static io.vertx.ext.web.validation.testutils.TestRequest.testRequest;
+import static io.vertx.ext.web.validation.testutils.TestRequest.*;
 import static io.vertx.json.schema.common.dsl.Schemas.anyOf;
 import static io.vertx.json.schema.common.dsl.Schemas.arraySchema;
 import static io.vertx.json.schema.common.dsl.Schemas.intSchema;
@@ -122,7 +120,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
         "src", "test",
         "resources", "filter.json")))));
     schemaRepo.dereference("app://filter.json", filterSchema);
-    
+
     router
       .post("/test")
       .handler(BodyHandler.create())
@@ -214,6 +212,35 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     testRequest(client, HttpMethod.GET, "/test")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(jsonBodyResponse(new JsonObject().put("result", "Hello slinkydeveloper!")))
+      .send(testContext, checkpoint);
+  }
+
+  @Test
+  void headersTest(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint();
+
+    TestService service = new TestServiceImpl(vertx);
+    final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
+    consumer = serviceBinder.register(TestService.class, service);
+
+    HeadersMultiMap headers = HeadersMultiMap.headers();
+    headers.add("Set-Cookie", "cookie1=cookie1");
+    headers.add("Set-Cookie", "cookie2=cookie2");
+
+    DeliveryOptions deliveryOptions = new DeliveryOptions();
+    deliveryOptions.setHeaders(headers);
+
+    router
+      .get("/test")
+      .handler(
+        ValidationHandlerBuilder.create(schemaRepo).build()
+      ).handler(
+        RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "testHeaders", deliveryOptions)
+      );
+
+    testRequest(client, HttpMethod.GET, "/test")
+      .expect(statusCode(200), statusMessage("OK"), responseHeaders("Set-Cookie", Arrays.asList("cookie1=cookie1", "cookie2=cookie2")))
+      .expect(emptyResponse())
       .send(testContext, checkpoint);
   }
 
