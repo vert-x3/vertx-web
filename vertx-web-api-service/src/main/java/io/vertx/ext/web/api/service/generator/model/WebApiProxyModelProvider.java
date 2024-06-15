@@ -1,8 +1,8 @@
 package io.vertx.ext.web.api.service.generator.model;
 
-import io.vertx.codegen.Model;
-import io.vertx.codegen.ModelProvider;
-import io.vertx.codegen.type.TypeMirrorFactory;
+import io.vertx.codegen.processor.Model;
+import io.vertx.codegen.processor.ModelProvider;
+import io.vertx.codegen.processor.type.TypeMirrorFactory;
 import io.vertx.ext.web.api.service.WebApiServiceGen;
 
 import javax.annotation.processing.ProcessingEnvironment;

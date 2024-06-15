@@ -1,11 +1,11 @@
 package io.vertx.ext.web.api.service.generator.model;
 
-import io.vertx.codegen.ParamInfo;
-import io.vertx.codegen.TypeParamInfo;
-import io.vertx.codegen.doc.Doc;
-import io.vertx.codegen.doc.Text;
-import io.vertx.codegen.type.ClassTypeInfo;
-import io.vertx.codegen.type.TypeInfo;
+import io.vertx.codegen.processor.ParamInfo;
+import io.vertx.codegen.processor.TypeParamInfo;
+import io.vertx.codegen.processor.doc.Doc;
+import io.vertx.codegen.processor.doc.Text;
+import io.vertx.codegen.processor.type.ClassTypeInfo;
+import io.vertx.codegen.processor.type.TypeInfo;
 import io.vertx.serviceproxy.generator.model.ProxyMethodInfo;
 
 import java.util.List;

@@ -1,7 +1,7 @@
 package io.vertx.ext.web.api.service.generator;
 
-import io.vertx.codegen.Generator;
-import io.vertx.codegen.GeneratorLoader;
+import io.vertx.codegen.processor.Generator;
+import io.vertx.codegen.processor.GeneratorLoader;
 import io.vertx.serviceproxy.generator.GeneratorUtils;
 
 import javax.annotation.processing.ProcessingEnvironment;
