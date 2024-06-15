@@ -1,6 +1,6 @@
 package io.vertx.ext.web.api.service.generator;
 
-import io.vertx.codegen.GenException;
+import io.vertx.codegen.processor.GenException;
 import io.vertx.ext.web.api.service.WebApiServiceGen;
 import io.vertx.ext.web.api.service.generator.model.WebApiProxyModel;
 import io.vertx.ext.web.api.service.generator.models.*;

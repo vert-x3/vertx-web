@@ -1,11 +1,11 @@
 package io.vertx.ext.web.api.service.generator;
 
-import io.vertx.codegen.ParamInfo;
+import io.vertx.codegen.processor.ParamInfo;
 import io.vertx.codegen.annotations.ModuleGen;
-import io.vertx.codegen.type.ClassKind;
-import io.vertx.codegen.type.ParameterizedTypeInfo;
-import io.vertx.codegen.type.TypeInfo;
-import io.vertx.codegen.writer.CodeWriter;
+import io.vertx.codegen.processor.type.ClassKind;
+import io.vertx.codegen.processor.type.ParameterizedTypeInfo;
+import io.vertx.codegen.processor.type.TypeInfo;
+import io.vertx.codegen.processor.writer.CodeWriter;
 import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.api.service.WebApiServiceGen;
 import io.vertx.ext.web.api.service.generator.model.WebApiProxyMethodInfo;

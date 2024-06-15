@@ -1,12 +1,12 @@
 package io.vertx.ext.web.api.service.generator.model;
 
-import io.vertx.codegen.*;
-import io.vertx.codegen.doc.Doc;
-import io.vertx.codegen.doc.Text;
-import io.vertx.codegen.type.ClassTypeInfo;
-import io.vertx.codegen.type.ParameterizedTypeInfo;
-import io.vertx.codegen.type.TypeInfo;
-import io.vertx.codegen.type.TypeMirrorFactory;
+import io.vertx.codegen.processor.*;
+import io.vertx.codegen.processor.doc.Doc;
+import io.vertx.codegen.processor.doc.Text;
+import io.vertx.codegen.processor.type.ClassTypeInfo;
+import io.vertx.codegen.processor.type.ParameterizedTypeInfo;
+import io.vertx.codegen.processor.type.TypeInfo;
+import io.vertx.codegen.processor.type.TypeMirrorFactory;
 import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.api.service.ServiceResponse;
 import io.vertx.ext.web.validation.RequestParameter;
