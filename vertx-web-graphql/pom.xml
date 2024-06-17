@@ -30,7 +30,6 @@
 
   <properties>
     <graphql.java.version>22.0</graphql.java.version>
-    <doc.skip>false</doc.skip>
   </properties>
 
   <dependencies>
@@ -64,6 +63,7 @@
     </dependency>
   </dependencies>
 
+<!--
   <build>
     <pluginManagement>
       <plugins>
@@ -79,5 +79,6 @@
       </plugins>
     </pluginManagement>
   </build>
+-->
 
 </project>

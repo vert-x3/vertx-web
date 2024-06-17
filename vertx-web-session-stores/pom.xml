@@ -13,13 +13,27 @@
   <artifactId>vertx-web-session-stores</artifactId>
   <packaging>pom</packaging>
 
-  <properties>
-    <doc.skip>true</doc.skip>
-  </properties>
-
   <modules>
     <module>vertx-web-sstore-cookie</module>
     <module>vertx-web-sstore-redis</module>
   </modules>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>default-compile</id>
+              <configuration>
+                <proc>none</proc>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 
 </project>

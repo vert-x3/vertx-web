@@ -13,10 +13,6 @@
 
   <artifactId>vertx-web-client</artifactId>
 
-  <properties>
-    <doc.skip>false</doc.skip>
-  </properties>
-
   <dependencies>
 
     <dependency>
@@ -75,7 +71,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.19.1</version>
         <executions>
           <execution>
             <id>databind-itest</id>

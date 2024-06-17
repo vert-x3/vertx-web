@@ -16,7 +16,6 @@
     <assertj.version>3.15.0</assertj.version>
     <mockito.version>3.3.0</mockito.version>
     <truth.version>1.1.3</truth.version>
-    <doc.skip>false</doc.skip>
   </properties>
 
   <dependencies>
@@ -120,6 +119,9 @@
             <execution>
               <id>default-testCompile</id>
               <configuration>
+                <annotationProcessors>
+                  <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
+                </annotationProcessors>
                 <testExcludes>
                   <exclude>**/Invalid*.java</exclude>
                 </testExcludes>
@@ -131,51 +133,9 @@
     </pluginManagement>
     <plugins>
       <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>default-jar</id>
-            <configuration>
-              <excludes>
-                <exclude>examples/**</exclude>
-              </excludes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.bsc.maven</groupId>
-        <artifactId>maven-processor-plugin</artifactId>
-        <version>3.3.3</version>
-        <executions>
-          <execution>
-            <id>generate-sources</id>
-            <phase>process-classes</phase>
-          </execution>
-          <execution>
-            <id>generate-test-sources</id>
-            <goals>
-              <goal>process-test</goal>
-            </goals>
-            <phase>generate-test-sources</phase>
-            <configuration>
-              <processors>
-                <processor>io.vertx.codegen.CodeGenProcessor</processor>
-              </processors>
-              <excludes>
-                <exclude>**/Invalid*.java</exclude>
-                <exclude>**/*Test.java</exclude>
-              </excludes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.0.0-M4</version>
         <configuration>
-          <trimStackTrace>false</trimStackTrace>
           <additionalClasspathElements>
             <additionalClasspathElement>${project.build.testSourceDirectory}</additionalClasspathElement>
           </additionalClasspathElements>
