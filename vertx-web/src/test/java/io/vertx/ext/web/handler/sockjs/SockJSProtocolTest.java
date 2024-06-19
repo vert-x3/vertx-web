@@ -15,11 +15,11 @@
  */
 package io.vertx.ext.web.handler.sockjs;
 
+import io.netty.util.internal.PlatformDependent;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServer;
-import io.vertx.core.impl.Utils;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.AfterClass;
@@ -171,7 +171,7 @@ public class SockJSProtocolTest {
    */
   @Test
   public void testProtocol() throws Exception {
-    Assume.assumeFalse(Utils.isWindows());
+    Assume.assumeFalse(PlatformDependent.isWindows());
     String output = runPython("python sockjs-protocol.py", s -> s.startsWith("OK"));
     assertTrue(output, output.contains("Ran 67 tests"));
   }
@@ -182,7 +182,7 @@ public class SockJSProtocolTest {
    */
   @Test
   public void testQuirks() throws Exception {
-    Assume.assumeFalse(Utils.isWindows());
+    Assume.assumeFalse(PlatformDependent.isWindows());
     String output = runPython("python http-quirks.py", s -> s.startsWith("OK"));
     assertTrue(output, output.contains("Ran 1 test"));
   }

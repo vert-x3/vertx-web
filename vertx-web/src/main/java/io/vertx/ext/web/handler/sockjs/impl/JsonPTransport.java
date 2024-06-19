@@ -32,15 +32,14 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxException;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.impl.NoStackTraceThrowable;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.internal.logging.Logger;
+import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.RequestBody;
@@ -124,7 +123,7 @@ class JsonPTransport extends BaseTransport {
       // we could just add an ad-hoc body handler but this can lead to DDoS attacks
       // and it doesn't really cover all the uploads, such as multipart, etc...
       // as well as resource cleanup
-      rc.fail(500, new NoStackTraceThrowable("BodyHandler is required to process POST requests"));
+      rc.fail(500, VertxException.noStackTrace("BodyHandler is required to process POST requests"));
       return;
     }
 

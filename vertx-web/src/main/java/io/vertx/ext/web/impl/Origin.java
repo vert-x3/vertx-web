@@ -17,8 +17,8 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.internal.logging.Logger;
+import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 
 /**

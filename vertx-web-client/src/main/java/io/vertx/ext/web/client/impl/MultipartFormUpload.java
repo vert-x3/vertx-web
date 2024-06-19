@@ -24,7 +24,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.buffer.impl.BufferInternal;
+import io.vertx.core.internal.buffer.BufferInternal;
 import io.vertx.core.http.impl.headers.HeadersAdaptor;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.impl.InboundBuffer;

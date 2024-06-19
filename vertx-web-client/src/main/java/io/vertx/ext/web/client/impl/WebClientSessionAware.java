@@ -12,7 +12,7 @@ package io.vertx.ext.web.client.impl;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.impl.ContextInternal;
+import io.vertx.core.internal.ContextInternal;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientSession;
 import io.vertx.ext.web.client.spi.CacheStore;

@@ -18,7 +18,7 @@ package io.vertx.ext.web.sstore.cookie.impl;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.impl.ContextInternal;
+import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.prng.VertxContextPRNG;
 import io.vertx.ext.web.Session;

@@ -17,6 +17,7 @@
 package io.vertx.ext.web.templ;
 
 import com.github.jknack.handlebars.ValueResolver;
+import io.netty.util.internal.PlatformDependent;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.file.FileSystemOptions;
@@ -38,7 +39,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static io.vertx.core.impl.Utils.isWindows;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
@@ -149,7 +149,7 @@ public class HandlebarsTemplateTest {
 
   @Test
   public void testTemplateOnWindowsFileSystem(TestContext should) {
-    assumeTrue(isWindows());
+    assumeTrue(PlatformDependent.isWindows());
 
     HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 

@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.templ.mvel.impl;
 
+import io.netty.util.internal.PlatformDependent;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -30,8 +31,6 @@ import org.mvel2.util.StringAppender;
 
 import java.nio.charset.Charset;
 import java.util.Map;
-
-import static io.vertx.core.impl.Utils.isWindows;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -87,7 +86,7 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
   }
 
   private static int findLastFileSeparator(String src) {
-    if (isWindows()) {
+    if (PlatformDependent.isWindows()) {
       return Math.max(src.lastIndexOf('/'), src.lastIndexOf('\\'));
     }
     return src.lastIndexOf('/');

@@ -15,10 +15,10 @@
  */
 package io.vertx.ext.web.handler.sockjs;
 
+import io.netty.util.internal.PlatformDependent;
 import io.vertx.core.Context;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.impl.Utils;
 import io.vertx.test.core.TestUtils;
 import org.junit.Assume;
 import org.junit.Test;
@@ -69,7 +69,7 @@ public class SockJSSessionTest extends SockJSTestBase {
 
   @Test
   public void testNoDeadlockWhenWritingFromAnotherThreadWithWebsocketTransport() throws Exception {
-    Assume.assumeFalse(Utils.isWindows());
+    Assume.assumeFalse(PlatformDependent.isWindows());
     final Buffer random = Buffer.buffer(TestUtils.randomAlphaString(256));
     int numMsg = 1000;
     waitFor(1);

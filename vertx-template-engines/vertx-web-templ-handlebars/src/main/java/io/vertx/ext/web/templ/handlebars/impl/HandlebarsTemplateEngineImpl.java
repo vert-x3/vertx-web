@@ -22,6 +22,7 @@ import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.ValueResolver;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.github.jknack.handlebars.io.TemplateSource;
+import io.netty.util.internal.PlatformDependent;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -34,8 +35,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-
-import static io.vertx.core.impl.Utils.isWindows;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -96,7 +95,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   private static int findLastFileSeparator(String src) {
-    if (isWindows()) {
+    if (PlatformDependent.isWindows()) {
       return Math.max(src.lastIndexOf('/'), src.lastIndexOf('\\'));
     }
     return src.lastIndexOf('/');

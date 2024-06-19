@@ -36,7 +36,7 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
-import io.vertx.core.impl.VertxInternal;
+import io.vertx.core.internal.VertxInternal;
 import io.vertx.ext.auth.user.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;

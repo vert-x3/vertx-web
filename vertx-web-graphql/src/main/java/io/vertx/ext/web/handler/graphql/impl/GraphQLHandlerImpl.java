@@ -19,14 +19,10 @@ package io.vertx.ext.web.handler.graphql.impl;
 import graphql.ExecutionInput;
 import graphql.GraphQL;
 import graphql.execution.preparsed.persisted.PersistedQuerySupport;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.impl.NoStackTraceThrowable;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -70,7 +66,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
         // we could just add an ad-hoc body handler but this can lead to DDoS attacks
         // and it doesn't really cover all the uploads, such as multipart, etc...
         // as well as resource cleanup
-        rc.fail(500, new NoStackTraceThrowable("BodyHandler is required to process POST requests"));
+        rc.fail(500, VertxException.noStackTrace("BodyHandler is required to process POST requests"));
       } else {
         handlePost(rc, rc.body().buffer());
       }
@@ -160,7 +156,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       case "application/json":
         if (body == null) {
           // plain failure as the json body is missing
-          rc.fail(400, new NoStackTraceThrowable("No body"));
+          rc.fail(400, VertxException.noStackTrace("No body"));
           return;
         }
         handlePostJson(rc, body, rc.queryParams().get("operationName"), variables, initialValue, extensions);
@@ -171,7 +167,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       case "application/graphql":
         if (body == null) {
           // plain failure as the query is missing
-          rc.fail(400, new NoStackTraceThrowable("No body"));
+          rc.fail(400, VertxException.noStackTrace("No body"));
           return;
         }
         GraphQLQuery graphQLQuery = new GraphQLQuery()
@@ -460,6 +456,6 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   }
 
   private void failQueryMissing(RoutingContext rc) {
-    rc.fail(400, new NoStackTraceThrowable("Query is missing"));
+    rc.fail(400, VertxException.noStackTrace("Query is missing"));
   }
 }

@@ -16,7 +16,7 @@
 package io.vertx.ext.web.client.impl;
 
 import io.vertx.core.Handler;
-import io.vertx.core.impl.ContextInternal;
+import io.vertx.core.internal.ContextInternal;
 import io.vertx.ext.web.client.WebClient;
 
 /**

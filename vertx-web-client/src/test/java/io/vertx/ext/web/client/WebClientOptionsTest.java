@@ -16,7 +16,7 @@
 
 package io.vertx.ext.web.client;
 
-import io.vertx.core.impl.VertxInternal;
+import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.json.JsonObject;
 import org.junit.Test;
 
