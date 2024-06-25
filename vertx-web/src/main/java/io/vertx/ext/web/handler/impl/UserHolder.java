@@ -19,7 +19,7 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.shareddata.ClusterSerializable;
-import io.vertx.ext.auth.user.User;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.UserContextInternal;
 import io.vertx.ext.web.impl.Utils;

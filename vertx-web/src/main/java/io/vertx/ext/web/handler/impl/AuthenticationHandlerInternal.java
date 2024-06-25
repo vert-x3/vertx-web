@@ -1,7 +1,7 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.Future;
-import io.vertx.ext.auth.user.User;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 
@@ -15,7 +15,7 @@ public interface AuthenticationHandlerInternal extends AuthenticationHandler {
    * @param context the routing context
    * @return future user to be called once the information is available.
    */
-  Future<? extends io.vertx.ext.auth.user.User> authenticate(RoutingContext context);
+  Future<User> authenticate(RoutingContext context);
 
   /**
    * Applies a {@code WWW-Authenticate} Response Header.

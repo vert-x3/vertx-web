@@ -18,7 +18,7 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.Cookie;
-import io.vertx.ext.auth.user.User;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
@@ -81,7 +81,7 @@ public class APIKeyHandlerImpl extends AuthenticationHandlerImpl<AuthenticationP
   }
 
   @Override
-  public Future<? extends io.vertx.ext.auth.user.User> authenticate(RoutingContext context) {
+  public Future<User> authenticate(RoutingContext context) {
     final SecurityAudit audit = ((RoutingContextInternal) context).securityAudit();
     final String token;
 
@@ -124,7 +124,7 @@ public class APIKeyHandlerImpl extends AuthenticationHandlerImpl<AuthenticationP
     }
   }
 
-  private Future<? extends io.vertx.ext.auth.user.User> authenticate(SecurityAudit audit, String token) {
+  private Future<User> authenticate(SecurityAudit audit, String token) {
     final TokenCredentials credentials = new TokenCredentials(token);
     audit.credentials(credentials);
 

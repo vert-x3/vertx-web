@@ -5,7 +5,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
-import io.vertx.ext.auth.user.User;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.UserContext;
@@ -19,21 +19,20 @@ public class UserContextImpl implements UserContextInternal {
   private static final Logger LOG = LoggerFactory.getLogger(UserContext.class);
 
   private final RoutingContext ctx;
-  private io.vertx.ext.auth.user.User user;
+  private User user;
 
   public UserContextImpl(RoutingContext ctx) {
     this.ctx = ctx;
   }
 
   @Override
-  public void setUser(io.vertx.ext.auth.user.User user) {
+  public void setUser(User user) {
     this.user = user;
   }
 
   @Override
   public User get() {
-    // Adapt instead of cast for other user impl
-    return (User) user;
+    return user;
   }
 
   @Override

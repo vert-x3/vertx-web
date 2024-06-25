@@ -17,7 +17,7 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.Future;
-import io.vertx.ext.auth.user.User;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;

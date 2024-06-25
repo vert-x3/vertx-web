@@ -19,7 +19,7 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
-import io.vertx.ext.auth.user.User;
+import io.vertx.ext.auth.User;
 
 /**
  * A web user is extended user coupled to the context and is used to perform verifications
@@ -111,7 +111,7 @@ public interface UserContext {
 
   /**
    * Logout can be called from any route handler which needs to terminate a login session. Invoking logout will remove
-   * the {@link io.vertx.ext.auth.user.User} and clear the {@link Session} (if any) in the current context. Followed by a
+   * the {@link io.vertx.ext.auth.User} and clear the {@link Session} (if any) in the current context. Followed by a
    * redirect to the given uri.
    *
    * @param redirectUri the uri to redirect the user to after the logout.
@@ -122,7 +122,7 @@ public interface UserContext {
 
   /**
    * Logout can be called from any route handler which needs to terminate a login session. Invoking logout will remove
-   * the {@link io.vertx.ext.auth.user.User} and clear the {@link Session} (if any) in the current context. Followed by a
+   * the {@link io.vertx.ext.auth.User} and clear the {@link Session} (if any) in the current context. Followed by a
    * redirect to {@code /}.
    *
    * @return future result of the operation.
@@ -131,7 +131,7 @@ public interface UserContext {
 
   /**
    * Clear can be called from any route handler which needs to terminate a login session. Invoking logout will remove
-   * the {@link io.vertx.ext.auth.user.User} and clear the {@link Session} (if any) in the current context. Unlike
+   * the {@link io.vertx.ext.auth.User} and clear the {@link Session} (if any) in the current context. Unlike
    * {@link #logout()} no redirect will be performed.
    */
   void clear();

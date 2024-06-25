@@ -10,7 +10,7 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import io.vertx.ext.auth.user.User;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.client.WebClient;
@@ -24,7 +24,7 @@ public class Oauth2WebClientAware extends WebClientBase implements OAuth2WebClie
 
   private Credentials credentials;
 
-  private io.vertx.ext.auth.user.User user;
+  private User user;
 
   public Oauth2WebClientAware(WebClient client, OAuth2Auth oauth2Auth, OAuth2WebClientOptions options) {
     super((WebClientBase) client);
@@ -61,11 +61,11 @@ public class Oauth2WebClientAware extends WebClientBase implements OAuth2WebClie
   }
 
   @Override
-  public io.vertx.ext.auth.user.User getUser() {
+  public User getUser() {
     return user;
   }
 
-  void setUser(io.vertx.ext.auth.user.User user) {
+  void setUser(User user) {
     this.user = user;
   }
 

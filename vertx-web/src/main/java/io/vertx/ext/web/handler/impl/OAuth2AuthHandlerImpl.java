@@ -24,7 +24,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.user.User;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.prng.VertxContextPRNG;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
@@ -121,7 +121,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   }
 
   @Override
-  public Future<? extends io.vertx.ext.auth.user.User> authenticate(RoutingContext context) {
+  public Future<User> authenticate(RoutingContext context) {
     // when the handler is working as bearer only, then the `Authorization` header is required
     return parseAuthorization(context, !bearerOnly)
       .compose(token -> {
