@@ -26,9 +26,9 @@ import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpTestBase;
 import io.vertx.core.json.JsonObject;
 import io.vertx.test.core.TestUtils;
+import io.vertx.test.http.HttpTestBase;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 

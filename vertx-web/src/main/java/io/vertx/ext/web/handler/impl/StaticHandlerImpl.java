@@ -50,7 +50,7 @@ import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.net.impl.URIDecoder;
+import io.vertx.core.internal.net.URIDecoder;
 import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;

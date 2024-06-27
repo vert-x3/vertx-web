@@ -1,14 +1,13 @@
 package io.vertx.ext.web.client;
 
-import io.vertx.core.Handler;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.dns.AddressResolverOptions;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.http.HttpTestBase;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
+import io.vertx.test.http.HttpTestBase;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicReference;

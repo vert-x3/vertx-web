@@ -16,7 +16,7 @@
 
 package io.vertx.ext.web;
 
-import io.vertx.core.net.impl.URIDecoder;
+import io.vertx.core.internal.net.URIDecoder;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

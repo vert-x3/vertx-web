@@ -20,7 +20,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
-import io.vertx.core.net.impl.URIDecoder;
+import io.vertx.core.internal.net.URIDecoder;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Router;
