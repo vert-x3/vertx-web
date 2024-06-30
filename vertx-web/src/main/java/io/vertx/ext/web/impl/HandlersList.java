@@ -51,7 +51,10 @@ class HandlersList<E> {
   }
 
   void clear() {
-    list.clear();
+    // Fill with nulls to keep generating unique handlers IDs
+    for (int i = 0; i < list.size(); i++) {
+      list.set(i, null);
+    }
   }
 
   void invokeInReverseOrder(E event) {

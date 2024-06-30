@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.Timer;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.TimeoutHandler;
 
@@ -36,16 +37,18 @@ public class TimeoutHandlerImpl implements TimeoutHandler {
 
   @Override
   public void handle(RoutingContext ctx) {
-
-    // We send a error response after timeout
-    long tid = ctx.vertx().setTimer(timeout, t -> {
-      if (!ctx.request().isEnded()) {
-        ctx.request().resume();
+    Timer timer = ctx.vertx().timer(timeout);
+    int handlerId = ctx.addBodyEndHandler(v -> timer.cancel());
+    timer.onSuccess(v -> {
+      // If this router has been restarted, the timeout shouldn't fire
+      if (ctx.removeBodyEndHandler(handlerId)) {
+        if (!ctx.request().isEnded()) {
+          ctx.request().resume();
+        }
+        ctx.fail(errorCode);
       }
-      ctx.fail(errorCode);
     });
 
-    ctx.addBodyEndHandler(v -> ctx.vertx().cancelTimer(tid));
     ctx.next();
   }
 }
