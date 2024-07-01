@@ -316,6 +316,7 @@ public interface RoutingContext {
    * @param handler the handler that will be called with either a success or failure result.
    * @return  the id of the handler. This can be used if you later want to remove the handler.
    */
+  @GenIgnore(PERMITTED_TYPE)
   int addEndHandler(Handler<AsyncResult<Void>> handler);
 
   /**
