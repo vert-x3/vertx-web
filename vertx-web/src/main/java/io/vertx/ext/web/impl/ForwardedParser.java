@@ -129,7 +129,7 @@ class ForwardedParser {
         break;
     }
 
-    if (((scheme.equalsIgnoreCase(HTTP_SCHEME) && port == 80) || (scheme.equalsIgnoreCase(HTTPS_SCHEME) && port == 443))) {
+    if ((scheme == null) || (scheme.equalsIgnoreCase(HTTP_SCHEME) && port == 80) || (scheme.equalsIgnoreCase(HTTPS_SCHEME) && port == 443)) {
       port = -1;
     }
 
@@ -192,8 +192,13 @@ class ForwardedParser {
   }
 
   private void setHostAndPort(HostAndPort authority) {
-    host = authority.host();
-    port = authority.port();
+    if (authority == null) {
+      host = null;
+      port = -1;
+    } else {
+      host = authority.host();
+      port = authority.port();
+    }
   }
 
   private SocketAddress parseFor(String forToParse, int defaultPort) {
