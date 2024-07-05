@@ -4,7 +4,7 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
 import io.vertx.core.http.*;
-import io.vertx.core.http.impl.HttpServerRequestInternal;
+import io.vertx.core.internal.http.HttpServerRequestInternal;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.AllowForwardHeaders;
@@ -18,7 +18,7 @@ import java.util.Map;
  * Wraps the source {@link HttpServerRequestInternal}. It updates the method, path and query of the original request and
  * resumes the request if a caller explicitly sets a handler to any callback that processes the request body.
  */
-class HttpServerRequestWrapper extends io.vertx.core.http.impl.HttpServerRequestWrapper implements WebServerRequest {
+class HttpServerRequestWrapper extends io.vertx.core.internal.http.HttpServerRequestWrapper implements WebServerRequest {
 
   private final ForwardedParser forwardedParser;
 

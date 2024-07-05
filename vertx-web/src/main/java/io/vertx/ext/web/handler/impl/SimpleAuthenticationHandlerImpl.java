@@ -1,7 +1,7 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.Future;
-import io.vertx.ext.auth.user.User;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.web.RoutingContext;
@@ -13,14 +13,14 @@ import java.util.function.Function;
 
 public class SimpleAuthenticationHandlerImpl extends AuthenticationHandlerImpl<NOOPAuthenticationProvider> implements SimpleAuthenticationHandler {
 
-  private Function<RoutingContext, Future<? extends io.vertx.ext.auth.user.User>> authn;
+  private Function<RoutingContext, Future<User>> authn;
 
   public SimpleAuthenticationHandlerImpl() {
     super(new NOOPAuthenticationProvider());
   }
 
   @Override
-  public Future<? extends io.vertx.ext.auth.user.User> authenticate(RoutingContext ctx) {
+  public Future<User> authenticate(RoutingContext ctx) {
     if (authn != null) {
       final SecurityAudit audit = ((RoutingContextInternal) ctx).securityAudit();
 
@@ -39,7 +39,7 @@ public class SimpleAuthenticationHandlerImpl extends AuthenticationHandlerImpl<N
   }
 
   @Override
-  public SimpleAuthenticationHandlerImpl authenticate(Function<RoutingContext, Future<? extends io.vertx.ext.auth.user.User>> authnFunction) {
+  public SimpleAuthenticationHandlerImpl authenticate(Function<RoutingContext, Future<User>> authnFunction) {
     this.authn = authnFunction;
     return this;
   }

@@ -3,9 +3,9 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.jose.KeyStoreOptions;
-import io.vertx.ext.auth.jose.JWTOptions;
-import io.vertx.ext.auth.user.User;
+import io.vertx.ext.auth.KeyStoreOptions;
+import io.vertx.ext.auth.JWTOptions;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authorization.Authorization;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
@@ -175,7 +175,7 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       }
 
       @Override
-      public Future<Void> getAuthorizations(io.vertx.ext.auth.user.User user) {
+      public Future<Void> getAuthorizations(User user) {
         user.authorizations().put(getId(), _authorizations);
         return Future.succeededFuture();
       }

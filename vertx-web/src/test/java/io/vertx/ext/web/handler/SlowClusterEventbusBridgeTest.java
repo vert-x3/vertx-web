@@ -18,7 +18,7 @@ import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.core.spi.cluster.RegistrationInfo;
-import io.vertx.core.spi.cluster.WrappedClusterManager;
+import io.vertx.tests.eventbus.WrappedClusterManager;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Router;

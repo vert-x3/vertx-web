@@ -13,7 +13,7 @@ package io.vertx.ext.web.client;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.auth.user.User;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.client.impl.Oauth2WebClientAware;
@@ -68,5 +68,5 @@ public interface OAuth2WebClient extends WebClient {
    * Get the authenticated user (if any) that is associated with this client.
    * @return the current user associated with this client or null if no user is associated
    */
-  io.vertx.ext.auth.user.User getUser();
+  User getUser();
 }

@@ -17,7 +17,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.auth.user.User;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.abac.Policy;
 import io.vertx.ext.auth.abac.PolicyBasedAuthorizationProvider;
 import io.vertx.ext.auth.authorization.AuthorizationProvider;

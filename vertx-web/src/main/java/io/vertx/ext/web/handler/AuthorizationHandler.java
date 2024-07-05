@@ -29,7 +29,7 @@ import java.util.function.BiConsumer;
  * Base interface for authorization handlers that provide authorization support.
  * <p>
  * AuthorizationHandlerImpl usually requires a {@link AuthenticationHandler} to be on the routing chain before it
- * or a custom handler that has previously set a {@link io.vertx.ext.auth.user.User} in the {@link io.vertx.ext.web.RoutingContext}
+ * or a custom handler that has previously set a {@link io.vertx.ext.auth.User} in the {@link io.vertx.ext.web.RoutingContext}
  *
  * @author <a href="mail://stephane.bastian.dev@gmail.com">Stephane Bastian</a>
  */

@@ -17,10 +17,9 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
 import io.vertx.core.VertxException;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.user.User;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.authentication.TokenCredentials;
@@ -60,7 +59,7 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
   }
 
   @Override
-  public Future<io.vertx.ext.auth.user.User> authenticate(RoutingContext context) {
+  public Future<User> authenticate(RoutingContext context) {
 
     return parseAuthorization(context)
       .compose(token -> {
@@ -84,21 +83,11 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
         final SecurityAudit audit = ((RoutingContextInternal) context).securityAudit();
         audit.credentials(credentials);
 
-        Promise<io.vertx.ext.auth.user.User> promise = Promise.promise();
-
+        return
           authProvider
             .authenticate(new TokenCredentials(token))
             .andThen(op -> audit.audit(Marker.AUTHENTICATION, op.succeeded()))
-            .recover(err -> Future.failedFuture(new HttpException(401, err)))
-            .onComplete(ar -> {
-              if (ar.succeeded()) {
-                promise.complete(ar.result());
-              } else {
-                promise.fail(ar.cause());
-              }
-            });
-
-        return promise.future();
+            .recover(err -> Future.failedFuture(new HttpException(401, err)));
       });
   }
 
