@@ -490,15 +490,19 @@ public class HttpContext<T> {
         request.end();
       });
     }
-    client.request(requestOptions)
-      .onComplete(ar1 -> {
-        if (ar1.succeeded()) {
-          sendRequest(ar1.result());
-        } else {
-          fail(ar1.cause());
-          requestPromise.fail(ar1.cause());
-        }
-      });
+    try {
+      client.request(requestOptions)
+        .onComplete(ar1 -> {
+          if (ar1.succeeded()) {
+            sendRequest(ar1.result());
+          } else {
+            fail(ar1.cause());
+            requestPromise.fail(ar1.cause());
+          }
+        });
+    } catch (Exception e) {
+      fail(e);
+    }
   }
 
   private void handleReceiveResponse() {
