@@ -203,7 +203,6 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testNoHttp2Push() throws Exception {
-
     router.clear();
     stat = StaticHandler.create(FileSystemAccess.RELATIVE, "webroot/somedir3");
     router.route().handler(stat);
@@ -215,39 +214,35 @@ public class StaticHandlerTest extends WebTestBase {
       .setProtocolVersion(HttpVersion.HTTP_2)
       .setTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem")));
 
-    vertx.createHttpServer(new HttpServerOptions()
+    server.close();
+    server = vertx.createHttpServer(new HttpServerOptions()
         .setUseAlpn(true)
         .setSsl(true)
-        .setKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")))
-      .requestHandler(router).listen(8443)
-      .onFailure(this::fail)
-      .onSuccess(server -> {
-        client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
-          .onComplete(onSuccess(req -> {
-            req.pushHandler(pushedReq -> pushedReq.response().onComplete(pushedResp -> {
-              fail();
-            }));
-            req.send().onComplete(onSuccess(resp -> {
-              assertEquals(200, resp.statusCode());
-              assertEquals(HttpVersion.HTTP_2, resp.version());
-              resp.bodyHandler(this::assertNotNull);
-              testComplete();
-            }));
-          }));
-      });
+      .setKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")));
+    awaitFuture(server.requestHandler(router).listen(8443));
+    client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
+      .onComplete(onSuccess(req -> {
+        req.pushHandler(pushedReq -> pushedReq.response().onComplete(pushedResp -> {
+          fail();
+        }));
+        req.send().onComplete(onSuccess(resp -> {
+          assertEquals(200, resp.statusCode());
+          assertEquals(HttpVersion.HTTP_2, resp.version());
+          resp.bodyHandler(this::assertNotNull);
+          testComplete();
+        }));
+      }));
 
     await();
   }
 
   @Test
   public void testHttp2Push() throws Exception {
-
     waitFor(2);
 
     List<Http2PushMapping> mappings = new ArrayList<>();
     mappings.add(new Http2PushMapping("style.css", "style", false));
     mappings.add(new Http2PushMapping("coin.png", "image", false));
-
 
     router.clear();
     stat = StaticHandler.create(FileSystemAccess.RELATIVE, "webroot/somedir3");
@@ -262,27 +257,26 @@ public class StaticHandlerTest extends WebTestBase {
       .setProtocolVersion(HttpVersion.HTTP_2)
       .setTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem")));
 
-    vertx.createHttpServer(new HttpServerOptions()
+    server.close();
+    server = vertx.createHttpServer(new HttpServerOptions()
         .setUseAlpn(true)
         .setSsl(true)
-        .setKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")))
-      .requestHandler(router).listen(8443)
-      .onFailure(this::fail)
-      .onSuccess(server -> {
-        client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
-          .onComplete(onSuccess(req -> {
-            req.pushHandler(pushedReq -> pushedReq.response().onComplete(onSuccess(pushedResp -> {
-                assertNotNull(pushedResp);
-                pushedResp.bodyHandler(this::assertNotNull);
-                complete();
-              })))
-              .send().onComplete(onSuccess(resp -> {
-                assertEquals(200, resp.statusCode());
-                assertEquals(HttpVersion.HTTP_2, resp.version());
-                resp.bodyHandler(this::assertNotNull);
-              }));
+      .setKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")));
+    awaitFuture(server.requestHandler(router).listen(8443));
+
+    client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
+      .onComplete(onSuccess(req -> {
+        req.pushHandler(pushedReq -> pushedReq.response().onComplete(onSuccess(pushedResp -> {
+            assertNotNull(pushedResp);
+            pushedResp.bodyHandler(this::assertNotNull);
+            complete();
+          })))
+          .send().onComplete(onSuccess(resp -> {
+            assertEquals(200, resp.statusCode());
+            assertEquals(HttpVersion.HTTP_2, resp.version());
+            resp.bodyHandler(this::assertNotNull);
           }));
-      });
+      }));
 
     await();
   }
@@ -972,8 +966,8 @@ public class StaticHandlerTest extends WebTestBase {
     awaitFuture(vertx.deployVerticle(new AbstractVerticle() {
       @Override
       public void start(Promise<Void> startPromise) {
-        server = vertx.createHttpServer(getHttpServerOptions());
-        server.requestHandler(router)
+        vertx.createHttpServer(getHttpServerOptions())
+          .requestHandler(router)
           .listen()
           .<Void>mapEmpty()
           .onComplete(startPromise);
