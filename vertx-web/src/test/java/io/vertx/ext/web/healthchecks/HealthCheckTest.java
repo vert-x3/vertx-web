@@ -9,7 +9,6 @@ import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.web.Router;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -149,7 +148,6 @@ public class HealthCheckTest extends HealthCheckTestBase {
     get("sub2/c/C1/foo", 400).onComplete(tc.asyncAssertSuccess(v -> async.countDown()));
   }
 
-  @Ignore("does not pass reliably in CI")
   @Test
   public void testWithResultHandler(TestContext tc) {
     Function<CheckResult, Future<CheckResult>> resultMapper = cr -> {

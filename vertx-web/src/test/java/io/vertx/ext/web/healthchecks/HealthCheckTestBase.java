@@ -60,10 +60,21 @@ public abstract class HealthCheckTestBase {
 
   @After
   public void tearDown(TestContext tc) {
-    Future<Void> httpServerClose = httpServer != null ? httpServer.close() : Future.succeededFuture();
-    Future<Void> httpClientClose = httpClient != null ? httpClient.close() : Future.succeededFuture();
-    Future.all(httpServerClose, httpClientClose)
-      .andThen(v -> vertx.close()).onComplete(tc.asyncAssertSuccess());
+    if (httpClient != null) {
+      Async async = tc.async();
+      httpClient.close().onComplete(tc.asyncAssertSuccess(v -> async.complete()));
+      async.awaitSuccess();
+    }
+    if (httpServer != null) {
+      Async async = tc.async();
+      httpServer.close().onComplete(tc.asyncAssertSuccess(v -> async.complete()));
+      async.awaitSuccess();
+    }
+    if (vertx != null) {
+      Async async = tc.async();
+      vertx.close().onComplete(tc.asyncAssertSuccess(v -> async.complete()));
+      async.awaitSuccess();
+    }
   }
 
   Future<JsonObject> getCheckResult(String requestURI, int status) {
