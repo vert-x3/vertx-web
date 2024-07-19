@@ -54,7 +54,7 @@ public class CSRFHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", null, resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
       assertEquals(1, cookies.size());
-      assertEquals(CSRFHandler.DEFAULT_COOKIE_NAME, cookies.get(0).substring(0, cookies.get(0).indexOf('=')));
+      assertEquals(CSRFHandlerOptions.DEFAULT_COOKIE_NAME, cookies.get(0).substring(0, cookies.get(0).indexOf('=')));
     }, 200, "OK", null);
   }
 
@@ -93,17 +93,17 @@ public class CSRFHandlerTest extends WebTestBase {
     }, 200, "OK", null);
 
     testRequest(HttpMethod.POST, "/xsrf", req -> {
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie);
       req.putHeader("Cookie", rawCookie);
     }, null, 200, "OK", null);
   }
 
   @Test
   public void testPostWithExpiredCookie() throws Exception {
-    router.route().handler(CSRFHandler.create(vertx, "Abracadabra").setTimeout(1));
+    router.route().handler(CSRFHandler.create(vertx, "Abracadabra", new CSRFHandlerOptions().setTimeout(1)));
     router.route().handler(rc -> rc.response().end());
 
-    testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
+    testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME,
       "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34="), null, 403, "Forbidden", null);
   }
 
@@ -128,7 +128,7 @@ public class CSRFHandlerTest extends WebTestBase {
       Buffer buffer = Buffer.buffer();
       String str =
         "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"" + CSRFHandler.DEFAULT_HEADER_NAME + "\"\r\n\r\n" + tmpCookie + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + CSRFHandlerOptions.DEFAULT_HEADER_NAME + "\"\r\n\r\n" + tmpCookie + "\r\n" +
           "--" + boundary + "--\r\n";
       buffer.appendString(str);
       req.headers().set("content-length", String.valueOf(buffer.length()));
@@ -145,7 +145,7 @@ public class CSRFHandlerTest extends WebTestBase {
     router.route().handler(BodyHandler.create());
     router.route().handler(CSRFHandler.create(vertx, "Abracadabra"));
     router.route().handler(rc -> {
-      String token = rc.get(CSRFHandler.DEFAULT_HEADER_NAME);
+      String token = rc.get(CSRFHandlerOptions.DEFAULT_HEADER_NAME);
       if (token != null) {
         rc.response().end(token);
       } else {
@@ -177,7 +177,7 @@ public class CSRFHandlerTest extends WebTestBase {
       Buffer buffer = Buffer.buffer();
       String str =
         "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"" + CSRFHandler.DEFAULT_HEADER_NAME + "\"\r\n\r\n" + tmpCookie + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + CSRFHandlerOptions.DEFAULT_HEADER_NAME + "\"\r\n\r\n" + tmpCookie + "\r\n" +
           "--" + boundary + "--\r\n";
       buffer.appendString(str);
       req.headers().set("content-length", String.valueOf(buffer.length()));
@@ -188,10 +188,10 @@ public class CSRFHandlerTest extends WebTestBase {
 
   @Test
   public void testPostWithCustomResponseBody() throws Exception {
-    router.route().handler(CSRFHandler.create(vertx, "Abracadabra").setTimeout(1));
+    router.route().handler(CSRFHandler.create(vertx, "Abracadabra", new CSRFHandlerOptions().setTimeout(1)));
     router.route().handler(rc -> rc.response().end());
 
-    testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
+    testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME,
       "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34="), null, 403, "Forbidden", "Forbidden");
   }
 
@@ -239,7 +239,7 @@ public class CSRFHandlerTest extends WebTestBase {
       for (String cookie : cookies) {
         encodedCookie += cookie.substring(0, cookie.indexOf(';'));
         encodedCookie += "; ";
-        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+        if (cookie.startsWith(CSRFHandlerOptions.DEFAULT_COOKIE_NAME)) {
           tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
         }
       }
@@ -249,7 +249,7 @@ public class CSRFHandlerTest extends WebTestBase {
     // POST shall be OK as the token is on the session
     testRequest(HttpMethod.POST, "/", req -> {
       req.putHeader("cookie", cookieJar.get());
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie);
     }, res -> {
       List<String> cookies = res.headers().getAll("set-cookie");
       // as this request was fine, we must invalidate the old cookie
@@ -258,7 +258,7 @@ public class CSRFHandlerTest extends WebTestBase {
     // POST shall be Forbidded as the token is now removed from the session (can only be used once)
     testRequest(HttpMethod.POST, "/", req -> {
       req.putHeader("cookie", cookieJar.get());
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie);
     }, res -> {
 
     }, 403, "Forbidden", null);
@@ -281,7 +281,7 @@ public class CSRFHandlerTest extends WebTestBase {
       for (String cookie : cookies) {
         encodedCookie += cookie.substring(0, cookie.indexOf(';'));
         encodedCookie += "; ";
-        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+        if (cookie.startsWith(CSRFHandlerOptions.DEFAULT_COOKIE_NAME)) {
           tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
         }
       }
@@ -299,7 +299,7 @@ public class CSRFHandlerTest extends WebTestBase {
     // POST shall be OK as the token is on the session
     testRequest(HttpMethod.POST, "/", req -> {
       req.putHeader("cookie", cookieJar.get());
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie);
     }, null, 200, "OK", null);
   }
 
@@ -307,7 +307,7 @@ public class CSRFHandlerTest extends WebTestBase {
   public void testPostWithHeaderAndOrigin() throws Exception {
 
     router.route().handler(StaticHandler.create());
-    router.route("/xsrf").handler(CSRFHandler.create(vertx, "Abracadabra").setOrigin("http://myserver.com"));
+    router.route("/xsrf").handler(CSRFHandler.create(vertx, "Abracadabra", new CSRFHandlerOptions().setOrigin("http://myserver.com")));
     router.route("/xsrf").handler(rc -> rc.response().end());
 
     testRequest(HttpMethod.GET, "/xsrf", req -> {
@@ -321,7 +321,7 @@ public class CSRFHandlerTest extends WebTestBase {
 
     testRequest(HttpMethod.POST, "/xsrf", req -> {
       req.putHeader("Origin", "http://myserver.com");
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie);
       req.putHeader("Cookie", rawCookie);
     }, null, 200, "OK", null);
   }
@@ -330,7 +330,7 @@ public class CSRFHandlerTest extends WebTestBase {
   public void testPostWithHeaderAndWrongOrigin() throws Exception {
 
     router.route().handler(StaticHandler.create());
-    router.route("/xsrf").handler(CSRFHandler.create(vertx, "Abracadabra").setOrigin("http://myserver.com"));
+    router.route("/xsrf").handler(CSRFHandler.create(vertx, "Abracadabra", new CSRFHandlerOptions().setOrigin("http://myserver.com")));
     router.route("/xsrf").handler(rc -> rc.response().end());
 
     testRequest(HttpMethod.GET, "/xsrf", req -> req.putHeader("Origin", "https://myserver.com"), null, 403, "Forbidden", null);
@@ -356,7 +356,7 @@ public class CSRFHandlerTest extends WebTestBase {
       for (String cookie : cookies) {
         encodedCookie += cookie.substring(0, cookie.indexOf(';'));
         encodedCookie += "; ";
-        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+        if (cookie.startsWith(CSRFHandlerOptions.DEFAULT_COOKIE_NAME)) {
           tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
         }
       }
@@ -366,7 +366,7 @@ public class CSRFHandlerTest extends WebTestBase {
     // POST shall be OK as the token is on the session
     testRequest(HttpMethod.POST, "/", req -> {
       req.putHeader("cookie", cookieJar.get());
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie);
     }, resp -> {
       // re-extract the new cookie
       List<String> cookies = resp.headers().getAll("set-cookie");
@@ -379,10 +379,10 @@ public class CSRFHandlerTest extends WebTestBase {
         if ("".equals(cookie)) {
           continue;
         }
-        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+        if (cookie.startsWith(CSRFHandlerOptions.DEFAULT_COOKIE_NAME)) {
           // replace with new one
           tmpCookie = cookies.get(0).substring(cookies.get(0).indexOf('=') + 1, cookies.get(0).indexOf(';'));
-          encodedCookie += CSRFHandler.DEFAULT_COOKIE_NAME + "=" + tmpCookie;
+          encodedCookie += CSRFHandlerOptions.DEFAULT_COOKIE_NAME + "=" + tmpCookie;
         } else {
           encodedCookie += cookie;
         }
@@ -395,12 +395,12 @@ public class CSRFHandlerTest extends WebTestBase {
     // second POST should be fine
     testRequest(HttpMethod.POST, "/", req -> {
       req.putHeader("cookie", cookieJar.get());
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie);
     }, null, 200, "OK", null);
     // third POST should not be fine (as the token cannot be reused
     testRequest(HttpMethod.POST, "/", req -> {
       req.putHeader("cookie", cookieJar.get());
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie);
     }, null, 403, "Forbidden", null);
   }
 
@@ -426,7 +426,7 @@ public class CSRFHandlerTest extends WebTestBase {
     // POST shall be OK as the token is on the session
     testRequest(HttpMethod.POST, "/", req -> {
       req.putHeader("cookie", cookieJar.get());
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie);
     }, resp -> {
       // re-extract the new cookie
       List<String> cookies = resp.headers().getAll("set-cookie");
@@ -439,10 +439,10 @@ public class CSRFHandlerTest extends WebTestBase {
         if ("".equals(cookie)) {
           continue;
         }
-        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+        if (cookie.startsWith(CSRFHandlerOptions.DEFAULT_COOKIE_NAME)) {
           // replace with new one
           tmpCookie = cookies.get(0).substring(cookies.get(0).indexOf('=') + 1, cookies.get(0).indexOf(';'));
-          encodedCookie += CSRFHandler.DEFAULT_COOKIE_NAME + "=" + tmpCookie;
+          encodedCookie += CSRFHandlerOptions.DEFAULT_COOKIE_NAME + "=" + tmpCookie;
         } else {
           encodedCookie += cookie;
         }
@@ -455,7 +455,7 @@ public class CSRFHandlerTest extends WebTestBase {
     // second POST should be fine
     testRequest(HttpMethod.POST, "/", req -> {
       req.putHeader("cookie", cookieJar.get());
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie);
     }, null, 200, "OK", null);
   }
 
@@ -477,7 +477,7 @@ public class CSRFHandlerTest extends WebTestBase {
       for (String cookie : cookies) {
         encodedCookie += cookie.substring(0, cookie.indexOf(';'));
         encodedCookie += "; ";
-        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+        if (cookie.startsWith(CSRFHandlerOptions.DEFAULT_COOKIE_NAME)) {
           tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
         }
       }
@@ -516,7 +516,7 @@ public class CSRFHandlerTest extends WebTestBase {
       for (String cookie : cookies) {
         encodedCookie.append(cookie, 0, cookie.indexOf(';'));
         encodedCookie.append("; ");
-        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+        if (cookie.startsWith(CSRFHandlerOptions.DEFAULT_COOKIE_NAME)) {
           tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
         }
       }
@@ -526,7 +526,7 @@ public class CSRFHandlerTest extends WebTestBase {
     // POST shall be OK as the token is on the session
     testRequest(HttpMethod.POST, "/working", req -> {
       req.putHeader("cookie", cookieJar.get());
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie);
     }, resp -> {
       // re-extract the new cookie
       List<String> cookies = resp.headers().getAll("set-cookie");
@@ -537,10 +537,10 @@ public class CSRFHandlerTest extends WebTestBase {
         if ("".equals(cookie)) {
           continue;
         }
-        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+        if (cookie.startsWith(CSRFHandlerOptions.DEFAULT_COOKIE_NAME)) {
           // replace with new one
           tmpCookie = cookies.get(0).substring(cookies.get(0).indexOf('=') + 1, cookies.get(0).indexOf(';'));
-          encodedCookie.append(CSRFHandler.DEFAULT_COOKIE_NAME + "=").append(tmpCookie);
+          encodedCookie.append(CSRFHandlerOptions.DEFAULT_COOKIE_NAME + "=").append(tmpCookie);
         } else {
           encodedCookie.append(cookie);
         }
@@ -554,7 +554,7 @@ public class CSRFHandlerTest extends WebTestBase {
     client.request(
       new RequestOptions().setMethod(HttpMethod.POST)
         .setHost("localhost").setPort(8080).setURI("/broken")
-        .putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie)
+        .putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie)
         .putHeader("Cookie", cookieJar.get())
     ).onComplete(onSuccess(req -> {
       req.end();
@@ -566,7 +566,7 @@ public class CSRFHandlerTest extends WebTestBase {
 
     // ensure valid token still works
     testRequest(HttpMethod.POST, "/working", req -> {
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie);
       req.putHeader("Cookie", cookieJar.get());
     }, null, 200, "OK", null);
   }
@@ -604,7 +604,7 @@ public class CSRFHandlerTest extends WebTestBase {
       for (String cookie : cookies) {
         encodedCookie.append(cookie, 0, cookie.indexOf(';'));
         encodedCookie.append("; ");
-        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+        if (cookie.startsWith(CSRFHandlerOptions.DEFAULT_COOKIE_NAME)) {
           tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
         }
       }
@@ -626,18 +626,18 @@ public class CSRFHandlerTest extends WebTestBase {
     client.request(
       new RequestOptions().setMethod(HttpMethod.POST)
         .putHeader("Cookie", cookieJar.get())
-        .putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie)
+        .putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie)
         .setHost("localhost").setPort(8080).setURI("/csrf/second")
     ).compose(HttpClientRequest::send).onComplete(onSuccess(res -> {
       assertEquals("Should only have one set-cookie", 1, res.headers().getAll("set-cookie").size());
       final String cookie = res.headers().get("set-cookie");
-      assertThat("Should be token cookie", cookie, startsWith(CSRFHandler.DEFAULT_COOKIE_NAME));
+      assertThat("Should be token cookie", cookie, startsWith(CSRFHandlerOptions.DEFAULT_COOKIE_NAME));
 
       //Store the new token in the cookie jar + header value
       final String cookieValue = cookie.substring(0, cookie.indexOf(';'));
       tmpCookie = cookieValue.substring(cookie.indexOf('=') + 1);
       final String currentCookie = cookieJar.get();
-      final int start = currentCookie.indexOf(CSRFHandler.DEFAULT_COOKIE_NAME);
+      final int start = currentCookie.indexOf(CSRFHandlerOptions.DEFAULT_COOKIE_NAME);
       final int end = currentCookie.indexOf(";", start);
       final String newCookie = currentCookie.replace(currentCookie.substring(start, end + 1), "") + cookieValue + ";";
       cookieJar.set(newCookie);
@@ -650,7 +650,7 @@ public class CSRFHandlerTest extends WebTestBase {
     // The above has confirmed that the GET did not send back a new cookie
     // Now to confirm the new token from the POST works
     testRequest(HttpMethod.POST, "/csrf/basic", req -> {
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie);
       req.putHeader("Cookie", cookieJar.get());
     }, null, 200, "OK", null);
   }
@@ -690,7 +690,7 @@ public class CSRFHandlerTest extends WebTestBase {
       for (String cookie : cookies) {
         encodedCookie.append(cookie, 0, cookie.indexOf(';'));
         encodedCookie.append("; ");
-        if (cookie.startsWith(CSRFHandler.DEFAULT_COOKIE_NAME)) {
+        if (cookie.startsWith(CSRFHandlerOptions.DEFAULT_COOKIE_NAME)) {
           tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
         }
       }
@@ -700,7 +700,7 @@ public class CSRFHandlerTest extends WebTestBase {
     // POST shall be OK as the token and session align
     testRequest(HttpMethod.POST, "/protected/rerouted", req -> {
       req.putHeader("cookie", cookieJar.get());
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader(CSRFHandlerOptions.DEFAULT_HEADER_NAME, tmpCookie);
     }, null, 200, "OK", null);
   }
 }

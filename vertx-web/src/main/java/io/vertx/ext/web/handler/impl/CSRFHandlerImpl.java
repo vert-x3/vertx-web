@@ -21,6 +21,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
@@ -28,13 +29,14 @@ import io.vertx.ext.auth.prng.VertxContextPRNG;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.CSRFHandler;
-import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.handler.CSRFHandlerOptions;
 import io.vertx.ext.web.impl.Origin;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.impl.Signature;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Objects;
 
 import static io.vertx.ext.auth.impl.Codec.base64UrlEncode;
 
@@ -48,67 +50,27 @@ public class CSRFHandlerImpl implements CSRFHandler {
   private final VertxContextPRNG random;
   private final Signature signature;
 
-  private boolean nagHttps;
-  private String cookieName = DEFAULT_COOKIE_NAME;
-  private String cookiePath = DEFAULT_COOKIE_PATH;
-  private String headerName = DEFAULT_HEADER_NAME;
-  private long timeout = SessionHandler.DEFAULT_SESSION_TIMEOUT;
+  private final Origin origin;
+  private final boolean nagHttps;
+  private final String cookieName;
+  private final String cookiePath;
+  private final CharSequence headerName;
+  private final long timeout;
+  private final boolean httpOnly;
+  private final boolean cookieSecure;
 
-  private Origin origin;
-  private boolean httpOnly;
-  private boolean cookieSecure;
-
-  public CSRFHandlerImpl(final Vertx vertx, final String secret) {
+  public CSRFHandlerImpl(final Vertx vertx, final String secret, CSRFHandlerOptions options) {
     random = VertxContextPRNG.current(vertx);
     signature = new Signature(secret);
-  }
-
-  @Override
-  public CSRFHandler setOrigin(String origin) {
-    this.origin = Origin.parse(origin);
-    return this;
-  }
-
-  @Override
-  public CSRFHandler setCookieName(String cookieName) {
-    this.cookieName = cookieName;
-    return this;
-  }
-
-  @Override
-  public CSRFHandler setCookiePath(String cookiePath) {
-    this.cookiePath = cookiePath;
-    return this;
-  }
-
-  @Override
-  public CSRFHandler setCookieHttpOnly(boolean httpOnly) {
-    this.httpOnly = httpOnly;
-    return this;
-  }
-
-  @Override
-  public CSRFHandler setCookieSecure(boolean secure) {
-    this.cookieSecure = secure;
-    return this;
-  }
-
-  @Override
-  public CSRFHandler setHeaderName(String headerName) {
-    this.headerName = headerName;
-    return this;
-  }
-
-  @Override
-  public CSRFHandler setTimeout(long timeout) {
-    this.timeout = timeout;
-    return this;
-  }
-
-  @Override
-  public CSRFHandler setNagHttps(boolean nag) {
-    this.nagHttps = nag;
-    return this;
+    Objects.requireNonNull(options, "options cannot be null");
+    this.origin = options.getOrigin() != null ? Origin.parse(options.getOrigin()) : null;
+    this.nagHttps = options.isNagHttps();
+    this.cookieName = options.getCookieName();
+    this.cookiePath = options.getCookiePath();
+    this.headerName = options.getHeaderName() != null ? HttpHeaders.createOptimized(options.getHeaderName()) : null;
+    this.timeout = options.getTimeout();
+    this.httpOnly = options.isCookieHttpOnly();
+    this.cookieSecure = options.isCookieSecure();
   }
 
   private String generateToken(RoutingContext ctx) {
@@ -140,7 +102,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     return ar -> {
       if (ar.succeeded() && ctx.session() != null) {
         Session session = ctx.session();
-        session.put(headerName, session.id() + "/" + token);
+        session.put(headerName.toString(), session.id() + "/" + token);
       }
     };
   }
@@ -151,7 +113,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
       return null;
     }
     // get the token from the session
-    String sessionToken = session.get(headerName);
+    String sessionToken = session.get(headerName.toString());
     if (sessionToken != null) {
       // attempt to parse the value
       int idx = sessionToken.indexOf('/');
@@ -196,7 +158,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     if (header == null) {
       // fallback to form attributes
       if (ctx.body().available()) {
-        header = ctx.request().getFormAttribute(headerName);
+        header = ctx.request().getFormAttribute(headerName.toString());
       } else {
         ctx.fail(new VertxException("BodyHandler is required to process POST requests", true));
         return false;
@@ -229,7 +191,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
     if (session != null) {
       // get the token from the session
-      String sessionToken = session.get(headerName);
+      String sessionToken = session.get(headerName.toString());
       if (sessionToken != null) {
         // attempt to parse the value
         int idx = sessionToken.indexOf('/');
@@ -262,7 +224,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     String[] tokens = header.split("\\.");
     if (tokens.length != 3) {
       if (session != null) {
-        session.remove(headerName);
+        session.remove(headerName.toString());
       }
       ctx.fail(403);
       return false;
@@ -272,7 +234,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
     if (ts == -1) {
       if (session != null) {
-        session.remove(headerName);
+        session.remove(headerName.toString());
       }
       ctx.fail(403);
       return false;
@@ -281,7 +243,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     // validate validity
     if (System.currentTimeMillis() > ts + timeout) {
       if (session != null) {
-        session.remove(headerName);
+        session.remove(headerName.toString());
       }
       ctx.fail(403, new IllegalArgumentException("CSRF validity expired"));
       return false;
@@ -356,7 +318,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
           }
         }
         // put the token in the context for users who prefer to render the token directly on the HTML
-        ctx.put(headerName, token);
+        ctx.put(headerName.toString(), token);
         ctx.next();
         break;
       case "POST":
@@ -368,7 +330,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
           token = generateToken(ctx);
           // put the token in the context for users who prefer to
           // render the token directly on the HTML
-          ctx.put(headerName, token);
+          ctx.put(headerName.toString(), token);
           ctx.next();
         }
         break;
