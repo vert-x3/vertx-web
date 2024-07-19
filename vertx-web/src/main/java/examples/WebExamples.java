@@ -1906,9 +1906,11 @@ public class WebExamples {
     // all responses will then include the right
     // Content-Security-Policy header allowing sub-domain
     // sources to be fetched from the parent "trusted.com" domain
-    router.route().handler(
-      CSPHandler.create()
-        .addDirective("default-src", "*.trusted.com"));
+    CSPHandler cspHandler = CSPHandler.builder()
+      .addDirective("default-src", "*.trusted.com")
+      .build();
+
+    router.route().handler(cspHandler);
   }
 
   public void example85(Router router) {

@@ -36,7 +36,7 @@ public class CSPHandlerTest extends WebTestBase {
 
   @Test
   public void testCSPCustom() throws Exception {
-    router.route().handler(CSPHandler.create().addDirective("default-src", "*.trusted.com"));
+    router.route().handler(CSPHandler.builder().addDirective("default-src", "*.trusted.com").build());
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", null, resp -> {
       assertEquals("default-src 'self' *.trusted.com", resp.getHeader("Content-Security-Policy"));
@@ -46,10 +46,11 @@ public class CSPHandlerTest extends WebTestBase {
   @Test
   public void testCSPMulti() throws Exception {
     router.route().handler(
-      CSPHandler.create()
+      CSPHandler.builder()
         .addDirective("img-src", "*")
         .addDirective("media-src", "media1.com media2.com")
-        .addDirective("script-src", "userscripts.example.com"));
+        .addDirective("script-src", "userscripts.example.com")
+        .build());
 
 
     router.route().handler(context -> context.response().end());
@@ -62,9 +63,10 @@ public class CSPHandlerTest extends WebTestBase {
   @Test
   public void testCSPReporting() throws Exception {
     router.route().handler(
-      CSPHandler.create()
-        .setReportOnly(true)
-        .addDirective("report-uri", "http://reportcollector.example.com/collector.cgi"));
+      CSPHandler.builder()
+        .reportOnly(true)
+        .addDirective("report-uri", "http://reportcollector.example.com/collector.cgi")
+        .build());
 
 
     router.route().handler(context -> context.response().end());
@@ -74,13 +76,10 @@ public class CSPHandlerTest extends WebTestBase {
     }, 200, "OK", null);
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void testCSPReportingWithoutUri() throws Exception {
-    router.route().handler(
-      CSPHandler.create()
-        .setReportOnly(true));
-
-    router.route().handler(context -> context.response().end());
-    testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
+    CSPHandler.builder()
+      .reportOnly(true)
+      .build();
   }
 }

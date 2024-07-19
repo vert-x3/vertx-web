@@ -15,9 +15,8 @@
  */
 package io.vertx.ext.web.handler;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.handler.impl.CSPHandlerImpl;
+import io.vertx.ext.web.handler.impl.CSPHandlerBuilderImpl;
 
 /**
  * Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of
@@ -39,39 +38,13 @@ public interface CSPHandler extends SecurityPolicyHandler {
    * @return a new CSP handler.
    */
   static CSPHandler create() {
-    return new CSPHandlerImpl();
+    return builder().build();
   }
 
   /**
-   * Sets a single directive entry to the handler. All previously set or added directives will be replaced.
-   * For more information on directives see: <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy">Content-Security-Policy</a>.
-   *
-   * @param name the directive name
-   * @param value the directive value.
-   * @return fluent self
+   * Create a new {@link CSPHandlerBuilder}.
    */
-  @Fluent
-  CSPHandler setDirective(String name, String value);
-
-  /**
-   * Adds a single directive entry to the handler. All previously set or added directives will be preserved.
-   * For more information on directives see: <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy">Content-Security-Policy</a>.
-   *
-   * @param name the directive name
-   * @param value the directive value.
-   * @return fluent self
-   */
-  @Fluent
-  CSPHandler addDirective(String name, String value);
-
-  /**
-   * To ease deployment, CSP can be deployed in report-only mode. The policy is not enforced, but any violations are
-   * reported to a provided URI. Additionally, a report-only header can be used to test a future revision to a policy
-   * without actually deploying it.
-   *
-   * @param reportOnly enable report only
-   * @return fluent self.
-   */
-  @Fluent
-  CSPHandler setReportOnly(boolean reportOnly);
+  static CSPHandlerBuilder builder() {
+    return new CSPHandlerBuilderImpl();
+  }
 }
