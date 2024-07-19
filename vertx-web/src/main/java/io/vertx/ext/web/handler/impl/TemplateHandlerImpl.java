@@ -16,12 +16,11 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.LanguageHeader;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.impl.Utils;
-import io.vertx.ext.web.common.template.TemplateEngine;
-import io.vertx.ext.web.RoutingContext;
 
 import java.util.Locale;
 
@@ -34,13 +33,13 @@ public class TemplateHandlerImpl implements TemplateHandler {
   private final TemplateEngine engine;
   private final String templateDirectory;
   private final String contentType;
-  private String indexTemplate;
+  private final String indexTemplate;
 
-  public TemplateHandlerImpl(TemplateEngine engine, String templateDirectory, String contentType) {
+  public TemplateHandlerImpl(TemplateEngine engine, String templateDirectory, String contentType, String indexTemplate) {
     this.engine = engine;
     this.templateDirectory = templateDirectory == null || templateDirectory.isEmpty() ? "." : templateDirectory;
     this.contentType = contentType;
-    this.indexTemplate = DEFAULT_INDEX_TEMPLATE;
+    this.indexTemplate = indexTemplate;
   }
 
   @Override
@@ -85,11 +84,5 @@ public class TemplateHandlerImpl implements TemplateHandler {
         }
         context.fail(err);
     });
-  }
-
-  @Override
-  public TemplateHandler setIndexTemplate(String indexTemplate) {
-    this.indexTemplate = indexTemplate;
-    return this;
   }
 }
