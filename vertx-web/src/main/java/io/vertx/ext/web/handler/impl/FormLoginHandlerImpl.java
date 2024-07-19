@@ -29,50 +29,29 @@ import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.FormLoginHandler;
+import io.vertx.ext.web.handler.FormLoginHandlerOptions;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.impl.RoutingContextInternal;
+
+import java.util.Objects;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class FormLoginHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements FormLoginHandler {
 
-  private String usernameParam;
-  private String passwordParam;
-  private String returnURLParam;
-  private String directLoggedInOKURL;
+  private final String usernameParam;
+  private final String passwordParam;
+  private final String returnURLParam;
+  private final String directLoggedInOKURL;
 
-  @Override
-  public FormLoginHandler setUsernameParam(String usernameParam) {
-    this.usernameParam = usernameParam;
-    return this;
-  }
-
-  @Override
-  public FormLoginHandler setPasswordParam(String passwordParam) {
-    this.passwordParam = passwordParam;
-    return this;
-  }
-
-  @Override
-  public FormLoginHandler setReturnURLParam(String returnURLParam) {
-    this.returnURLParam = returnURLParam;
-    return this;
-  }
-
-  @Override
-  public FormLoginHandler setDirectLoggedInOKURL(String directLoggedInOKURL) {
-    this.directLoggedInOKURL = directLoggedInOKURL;
-    return this;
-  }
-
-  public FormLoginHandlerImpl(AuthenticationProvider authProvider, String usernameParam, String passwordParam,
-                              String returnURLParam, String directLoggedInOKURL) {
+  public FormLoginHandlerImpl(AuthenticationProvider authProvider, FormLoginHandlerOptions options) {
     super(authProvider);
-    this.usernameParam = usernameParam;
-    this.passwordParam = passwordParam;
-    this.returnURLParam = returnURLParam;
-    this.directLoggedInOKURL = directLoggedInOKURL;
+    Objects.requireNonNull(options, "options is null");
+    this.usernameParam = options.getUsernameParam();
+    this.passwordParam = options.getPasswordParam();
+    this.returnURLParam = options.getReturnURLParam();
+    this.directLoggedInOKURL = options.getDirectLoggedInOKURL();
   }
 
   @Override

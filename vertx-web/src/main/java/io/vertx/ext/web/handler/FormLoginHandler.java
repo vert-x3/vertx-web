@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.handler;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.handler.impl.FormLoginHandlerImpl;
@@ -32,82 +31,21 @@ import io.vertx.ext.web.handler.impl.FormLoginHandlerImpl;
 public interface FormLoginHandler extends AuthenticationHandler {
 
   /**
-   * The default value of the form attribute which will contain the username
-   */
-  String DEFAULT_USERNAME_PARAM = "username";
-
-  /**
-   * The default value of the form attribute which will contain the password
-   */
-  String DEFAULT_PASSWORD_PARAM = "password";
-
-  /**
-   * The default value of the session attribute which will contain the return url
-   */
-  String DEFAULT_RETURN_URL_PARAM = "return_url";
-
-  /**
-   * Create a handler
+   * Create a handler with default {@link FormLoginHandlerOptions}.
    *
    * @param authProvider  the auth service to use
    * @return the handler
    */
   static FormLoginHandler create(AuthenticationProvider authProvider) {
-    return new FormLoginHandlerImpl(authProvider, DEFAULT_USERNAME_PARAM, DEFAULT_PASSWORD_PARAM,
-      DEFAULT_RETURN_URL_PARAM, null);
+    return new FormLoginHandlerImpl(authProvider, new FormLoginHandlerOptions());
   }
 
   /**
-   * Create a handler
-   *
-   * @param authProvider  the auth service to use
-   * @param usernameParam   the value of the form attribute which will contain the username
-   * @param passwordParam   the value of the form attribute which will contain the password
-   * @param returnURLParam   the value of the session attribute which will contain the return url
-   * @param directLoggedInOKURL a url to redirect to if the user logs in directly at the url of the form login handler
-   *                            without being redirected here first
-   *
-   * @return the handler
+   * Like {@link #create(AuthenticationProvider)}, with the given {@link FormLoginHandlerOptions}.
    */
-  static FormLoginHandler create(AuthenticationProvider authProvider, String usernameParam, String passwordParam,
-                                 String returnURLParam, String directLoggedInOKURL) {
-    return new FormLoginHandlerImpl(authProvider, usernameParam, passwordParam, returnURLParam, directLoggedInOKURL);
+  static FormLoginHandler create(AuthenticationProvider authProvider, FormLoginHandlerOptions options) {
+    return new FormLoginHandlerImpl(authProvider, options);
   }
-
-  /**
-   * Set the name of the form param used to submit the username
-   * @param usernameParam  the name of the param
-   * @return a reference to this for a fluent API
-   */
-  @Fluent
-  FormLoginHandler setUsernameParam(String usernameParam);
-
-  /**
-   * Set the name of the form param used to submit the password
-   * @param passwordParam  the name of the param
-   * @return a reference to this for a fluent API
-   */
-  @Fluent
-  FormLoginHandler setPasswordParam(String passwordParam);
-
-  /**
-   * Set the name of the session attrioute used to specify the return url
-   * @param returnURLParam  the name of the param
-   * @return a reference to this for a fluent API
-   */
-  @Fluent
-  FormLoginHandler setReturnURLParam(String returnURLParam);
-
-  /**
-   * Set the url to redirect to if the user logs in directly at the url of the form login handler
-   * without being redirected here first
-   * @param directLoggedInOKURL  the URL to redirect to
-   * @return a reference to this for a fluent API
-   */
-  @Fluent
-  FormLoginHandler setDirectLoggedInOKURL(String directLoggedInOKURL);
-
-
 }
 
 

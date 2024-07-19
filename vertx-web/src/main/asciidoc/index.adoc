@@ -1250,7 +1250,7 @@ the user and, if authenticated redirects the user back to the original resource.
 To use redirect auth you configure an instance of {@link io.vertx.ext.web.handler.RedirectAuthHandler} instead of a
 basic authentication handler.
 
-You will also need to setup handlers to serve your actual login page, and a handler to handle the actual login itself.
+You will also need to set up handlers to serve your actual login page, and a handler to handle the actual login itself.
 To handle the login we provide a prebuilt handler {@link io.vertx.ext.web.handler.FormLoginHandler} for the purpose.
 
 Here's an example of a simple app, using a redirect auth handler on the default redirect url `/loginpage`.

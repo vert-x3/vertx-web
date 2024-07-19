@@ -103,7 +103,7 @@ public class ChainAuthHandlerTest extends WebTestBase {
 
     chain = ChainAuthHandler.any()
       // Direct login is implemented as a post-authentication action
-      .add(FormLoginHandler.create(authProvider).setDirectLoggedInOKURL("/welcome"));
+      .add(FormLoginHandler.create(authProvider, new FormLoginHandlerOptions().setDirectLoggedInOKURL("/welcome")));
 
     router.post("/login")
       .handler(BodyHandler.create())
@@ -114,9 +114,9 @@ public class ChainAuthHandlerTest extends WebTestBase {
       Buffer buffer = Buffer.buffer();
       String str =
         "--" + boundary + "\r\n" +
-        "Content-Disposition: form-data; name=\"" + FormLoginHandler.DEFAULT_USERNAME_PARAM + "\"\r\n\r\ntim\r\n" +
+        "Content-Disposition: form-data; name=\"" + FormLoginHandlerOptions.DEFAULT_USERNAME_PARAM + "\"\r\n\r\ntim\r\n" +
         "--" + boundary + "\r\n" +
-        "Content-Disposition: form-data; name=\"" + FormLoginHandler.DEFAULT_PASSWORD_PARAM + "\"\r\n\r\ndelicious:sausages\r\n" +
+        "Content-Disposition: form-data; name=\"" + FormLoginHandlerOptions.DEFAULT_PASSWORD_PARAM + "\"\r\n\r\ndelicious:sausages\r\n" +
         "--" + boundary + "--\r\n";
       buffer.appendString(str);
       req.putHeader("content-length", String.valueOf(buffer.length()));
