@@ -5,7 +5,8 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.handler.*;
+import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.BodyHandlerOptions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -108,7 +109,7 @@ public class Router100ContinueTest {
   public void testExpectButTooLarge(TestContext should) {
     final Async test = should.async();
     router.route()
-      .handler(BodyHandler.create().setBodyLimit(1))
+      .handler(BodyHandler.create(new BodyHandlerOptions().setBodyLimit(1)))
       .handler(ctx -> {
         should.assertEquals("DATA", ctx.body().asString());
         ctx.end();

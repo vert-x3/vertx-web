@@ -872,9 +872,12 @@ The usage of this handler requires that it is installed as soon as possible. The
 {@link examples.WebExamples#example27}
 ----
 
-CAUTION: Uploads can be a source of DDoS attacks, in order to reduce the attack surface, it is recommended to
-set sensible limits on {@link io.vertx.ext.web.handler.BodyHandler#setBodyLimit} (e.g.: 10mb for general uploads or
-100kb for JSON).
+[CAUTION]
+====
+Uploads can be a source of DDoS attacks.
+In order to reduce the attack surface, it is recommended to set sensible limits with {@link io.vertx.ext.web.handler.BodyHandlerOptions#setBodyLimit}.
+For example, 10mb for general uploads or 100kb for JSON.
+====
 
 === Getting the request body
 
@@ -884,7 +887,7 @@ retrieve it as a buffer use `.buffer()`.
 
 === Limiting body size
 
-To limit the size of a request body, create the body handler then use {@link io.vertx.ext.web.handler.BodyHandler#setBodyLimit(long)} to specify the maximum body size, in bytes.
+To limit the size of a request body, create the body handler then use {@link io.vertx.ext.web.handler.BodyHandlerOptions#setBodyLimit(long)} to specify the maximum body size, in bytes.
 This is useful to avoid running out of memory with very large bodies.
 
 If an attempt to send a body greater than the maximum size is made, an HTTP status code of 413 - `Request Entity Too Large`, will be sent.
@@ -893,12 +896,12 @@ By default, the body size is limited to 10 megabytes.
 
 === Merging form attributes
 
-By default, the body handler will merge any form attributes into the request parameters. If you don't want this behaviour
-you can use disable it with {@link io.vertx.ext.web.handler.BodyHandler#setMergeFormAttributes(boolean)}.
+By default, the body handler will merge any form attributes into the request parameters.
+If you don't want this behaviour you can use disable it with {@link io.vertx.ext.web.handler.BodyHandlerOptions#setMergeFormAttributes(boolean)}.
 
 === Handling file uploads
 
-Body handler is also used to handle multi-part file uploads.
+Body handler is also used to handle multipart file uploads.
 
 If a body handler is on a matching route for the request, any file uploads will be automatically streamed to the
 uploads directory, which is `file-uploads` by default.

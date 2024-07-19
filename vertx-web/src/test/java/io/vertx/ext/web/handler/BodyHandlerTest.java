@@ -193,7 +193,7 @@ public class BodyHandlerTest extends WebTestBase {
   @Test
   public void testBodyTooBig() throws Exception {
     router.clear();
-    router.route().handler(BodyHandler.create().setBodyLimit(5000));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setBodyLimit(5000)));
     Buffer buff = TestUtils.randomBuffer(10000);
     router.route().handler(rc -> fail("Should not be called"));
     testRequest(HttpMethod.POST, "/", req -> {
@@ -205,7 +205,7 @@ public class BodyHandlerTest extends WebTestBase {
   @Test
   public void testBodyTooBig2() throws Exception {
     router.clear();
-    router.route().handler(BodyHandler.create().setBodyLimit(500));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setBodyLimit(500)));
     Buffer buff = TestUtils.randomBuffer(1000);
     router.route().handler(rc -> fail("Should not be called"));
     testRequest(HttpMethod.POST, "/", req -> {
@@ -216,30 +216,30 @@ public class BodyHandlerTest extends WebTestBase {
 
   @Test
   public void testFileUploadSmallUpload() throws Exception {
-    testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, 50);
+    testFileUpload(BodyHandlerOptions.DEFAULT_UPLOADS_DIRECTORY, 50);
   }
 
   @Test
   // This size (7990) has caused issues in the past so testing it
   public void testFileUpload7990Upload() throws Exception {
-    testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, 7990);
+    testFileUpload(BodyHandlerOptions.DEFAULT_UPLOADS_DIRECTORY, 7990);
   }
 
   @Test
   public void testFileUploadLargeUpload() throws Exception {
-    testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, 20000);
+    testFileUpload(BodyHandlerOptions.DEFAULT_UPLOADS_DIRECTORY, 20000);
   }
 
   @Test
   public void testFileUploadDefaultUploadsDir() throws Exception {
-    testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, 5000);
+    testFileUpload(BodyHandlerOptions.DEFAULT_UPLOADS_DIRECTORY, 5000);
   }
 
   @Test
   public void testFileUploadOtherUploadsDir() throws Exception {
     router.clear();
     File dir = tempUploads.newFolder();
-    router.route().handler(BodyHandler.create().setUploadsDirectory(dir.getPath()));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setUploadsDirectory(dir.getPath())));
     testFileUpload(dir.getPath(), 5000);
   }
 
@@ -276,7 +276,7 @@ public class BodyHandlerTest extends WebTestBase {
   @Test
   public void testFileUploadTooBig() throws Exception {
     router.clear();
-    router.route().handler(BodyHandler.create().setBodyLimit(20000));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setBodyLimit(20000)));
 
     Buffer fileData = TestUtils.randomBuffer(50000);
     router.route().handler(rc -> fail("Should not be called"));
@@ -286,7 +286,7 @@ public class BodyHandlerTest extends WebTestBase {
   @Test
   public void testFileUploadTooBig2() throws Exception {
     router.clear();
-    router.route().handler(BodyHandler.create().setBodyLimit(20000));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setBodyLimit(20000)));
 
     Buffer fileData = TestUtils.randomBuffer(50000);
     router.route().handler(rc -> fail("Should not be called"));
@@ -322,10 +322,10 @@ public class BodyHandlerTest extends WebTestBase {
   public void testFileDeleteOnLargeUpload() throws Exception {
     String uploadsDirectory = tempUploads.newFolder().getPath();
     router.clear();
-    router.route().handler(BodyHandler.create()
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions()
       .setDeleteUploadedFilesOnEnd(true)
       .setBodyLimit(10000)
-      .setUploadsDirectory(uploadsDirectory));
+      .setUploadsDirectory(uploadsDirectory)));
     router.route().handler(ctx -> {
       fail();
       ctx.fail(500);
@@ -341,8 +341,7 @@ public class BodyHandlerTest extends WebTestBase {
 
     String uploadsDirectory = tempUploads.newFolder().getPath();
     router.clear();
-    router.route().handler(BodyHandler.create()
-      .setUploadsDirectory(uploadsDirectory));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setUploadsDirectory(uploadsDirectory)));
 
     assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
     client.request(HttpMethod.POST, "/").onComplete(onSuccess(req -> {
@@ -396,9 +395,9 @@ public class BodyHandlerTest extends WebTestBase {
                                          int statusCode, String statusMessage) throws Exception {
     String uploadsDirectory = tempUploads.newFolder().getPath();
     router.clear();
-    router.route().handler(BodyHandler.create()
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions()
       .setDeleteUploadedFilesOnEnd(deletedUploadedFilesOnEnd)
-      .setUploadsDirectory(uploadsDirectory));
+      .setUploadsDirectory(uploadsDirectory)));
     router.route().handler(requestHandler);
 
     sendFileUploadRequest(TestUtils.randomBuffer(50), statusCode, statusMessage);
@@ -452,7 +451,7 @@ public class BodyHandlerTest extends WebTestBase {
         });
         rc.next();
       })
-      .handler(BodyHandler.create().setUploadsDirectory(uploadsDirectory).setDeleteUploadedFilesOnEnd(true))
+      .handler(BodyHandler.create(new BodyHandlerOptions().setUploadsDirectory(uploadsDirectory).setDeleteUploadedFilesOnEnd(true)))
       .handler(rc -> rc.end("foo"));
 
     RequestOptions requestOptions = new RequestOptions()
@@ -536,21 +535,21 @@ public class BodyHandlerTest extends WebTestBase {
   @Test
   public void testFormMultipartFormDataMergeAttributes() throws Exception {
     router.clear();
-    router.route().handler(BodyHandler.create().setMergeFormAttributes(true));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setMergeFormAttributes(true)));
     testFormMultipartFormData(true);
   }
 
   @Test
   public void testFormMultipartFormDataNoMergeAttributes() throws Exception {
     router.clear();
-    router.route().handler(BodyHandler.create().setMergeFormAttributes(false));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setMergeFormAttributes(false)));
     testFormMultipartFormData(false);
   }
 
   @Test
   public void testMultiFileUpload() throws Exception {
     router.clear();
-    router.route().handler(BodyHandler.create().setBodyLimit(-1));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setBodyLimit(-1)));
 
     int uploads = 1000;
 
@@ -625,8 +624,7 @@ public class BodyHandlerTest extends WebTestBase {
     String uploadsDirectory = tempUploads.newFolder().getPath();
 
     router.clear();
-    router.route().handler(BodyHandler.create()
-      .setUploadsDirectory(uploadsDirectory));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setUploadsDirectory(uploadsDirectory)));
     router.route().handler(ctx -> {
       assertNull(ctx.body().buffer());
       assertEquals(1, ctx.fileUploads().size());
@@ -659,7 +657,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testNoUploadDirMultiPartFormData() throws Exception {
     String dirName = getNotCreatedTemporaryFolderName();
     router.clear();
-    router.route().handler(BodyHandler.create(false).setUploadsDirectory(dirName));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setHandleFileUploads(false).setUploadsDirectory(dirName)));
 
     Buffer fileData = TestUtils.randomBuffer(50);
     router.route().handler(rc -> {
@@ -682,7 +680,7 @@ public class BodyHandlerTest extends WebTestBase {
   private void testFormMultipartFormDataWithAllowedFilesUploadFalse(boolean mergeAttributes) throws Exception {
     String fileName = "test.bin";
     router.clear();
-    router.route().handler(BodyHandler.create(false).setMergeFormAttributes(mergeAttributes)).handler(rc -> {
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setHandleFileUploads(false).setMergeFormAttributes(mergeAttributes))).handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
       assertNotNull(attrs);
       assertEquals(2, attrs.size());
@@ -731,7 +729,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testNoUploadDirFormURLEncoded() throws Exception {
     String dirName = getNotCreatedTemporaryFolderName();
     router.clear();
-    router.route().handler(BodyHandler.create(false).setUploadsDirectory(dirName));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setHandleFileUploads(false).setUploadsDirectory(dirName)));
 
     testFormURLEncoded();
 
@@ -741,7 +739,7 @@ public class BodyHandlerTest extends WebTestBase {
   @Test
   public void testBodyHandlerCreateTrueWorks() throws Exception {
     router.clear();
-    router.route().handler(BodyHandler.create(true));
+    router.route().handler(BodyHandler.create());
     testFormURLEncoded();
   }
 
@@ -750,18 +748,19 @@ public class BodyHandlerTest extends WebTestBase {
     String dirName = getNotCreatedTemporaryFolderName();
     router.clear();
 
-    BodyHandler bodyHandler = BodyHandler.create().setUploadsDirectory(dirName).setHandleFileUploads(false);
-    router.route().handler(bodyHandler);
+    Route bodyHandlerRoute = router.route().handler(BodyHandler.create(new BodyHandlerOptions().setUploadsDirectory(dirName).setHandleFileUploads(false)));
 
     Buffer fileData = TestUtils.randomBuffer(50);
-    Route route = router.route().handler(rc -> {
+    Route testRoute = router.route().handler(rc -> {
       rc.response().end();
       assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
     });
     sendFileUploadRequest(fileData, 200, "OK");
 
-    route.remove();
-    bodyHandler.setHandleFileUploads(true);
+    bodyHandlerRoute.remove();
+    testRoute.remove();
+
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions(new BodyHandlerOptions().setUploadsDirectory(dirName).setHandleFileUploads(true))));
     router.route().handler(rc -> {
       rc.response().end();
       assertTrue("Upload directory must be created.", vertx.fileSystem().existsBlocking(dirName));
@@ -773,7 +772,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testRerouteWithHandleFileUploadsFalse() throws Exception {
     String fileName = "test.bin";
     router.clear();
-    router.route().handler(BodyHandler.create(false).setMergeFormAttributes(true));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setHandleFileUploads(false).setMergeFormAttributes(true)));
     router.route("/toBeRerouted").handler(rc -> {
       rc.reroute("/rerouted");
     });
@@ -817,7 +816,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyLimitWithHandleFileUploadsFalse() throws Exception {
     router.clear();
 
-    BodyHandler bodyHandler = BodyHandler.create(false).setBodyLimit(2048);
+    BodyHandler bodyHandler = BodyHandler.create(new BodyHandlerOptions().setHandleFileUploads(false).setBodyLimit(2048));
     router.route().handler(bodyHandler);
 
     Buffer fileData = TestUtils.randomBuffer(4096);
@@ -919,7 +918,7 @@ public class BodyHandlerTest extends WebTestBase {
       assertEquals("binary", upload.contentTransferEncoding());
       assertEquals(fileData.length(), upload.size());
       String uploadedFileName = upload.uploadedFileName();
-      assertTrue(uploadedFileName.startsWith(BodyHandler.DEFAULT_UPLOADS_DIRECTORY + File.separator));
+      assertTrue(uploadedFileName.startsWith(BodyHandlerOptions.DEFAULT_UPLOADS_DIRECTORY + File.separator));
       Buffer uploaded = vertx.fileSystem().readFileBlocking(uploadedFileName);
       assertEquals(fileData, uploaded);
       // the data is upload as HTML form, so the body should be empty
@@ -999,9 +998,9 @@ public class BodyHandlerTest extends WebTestBase {
   public void testFileUploadSize() throws Exception {
     String uploadsDirectory = tempUploads.newFolder().getPath();
     router.clear();
-    router.route().handler(BodyHandler.create()
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions()
       .setDeleteUploadedFilesOnEnd(true)
-      .setUploadsDirectory(uploadsDirectory));
+      .setUploadsDirectory(uploadsDirectory)));
 
     int realSize = 20000;
 

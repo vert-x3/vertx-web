@@ -549,7 +549,7 @@ public class CORSHandlerTest extends WebTestBase {
         .allowedMethod(HttpMethod.POST)
         .allowedMethod(HttpMethod.OPTIONS)
         .allowedHeader("Access-Control-Allow-Origin"))
-      .handler(BodyHandler.create().setBodyLimit(1))
+      .handler(BodyHandler.create(new BodyHandlerOptions().setBodyLimit(1)))
       .handler(context -> context.response().end());
 
     testRequest(HttpMethod.POST, "/", req -> {
@@ -678,7 +678,7 @@ public class CORSHandlerTest extends WebTestBase {
         .allowedMethod(HttpMethod.POST)
         .allowedMethod(HttpMethod.OPTIONS)
         .allowedHeader("Access-Control-Allow-Origin"))
-      .handler(BodyHandler.create().setBodyLimit(1))
+      .handler(BodyHandler.create(new BodyHandlerOptions().setBodyLimit(1)))
       .handler(context -> context.response().end());
 
     testRequest(HttpMethod.POST, "/", req -> {
@@ -703,7 +703,7 @@ public class CORSHandlerTest extends WebTestBase {
         .allowedMethod(HttpMethod.POST)
         .allowedMethod(HttpMethod.OPTIONS)
         .allowedHeader("Access-Control-Allow-Origin"))
-      .handler(BodyHandler.create().setBodyLimit(1))
+      .handler(BodyHandler.create(new BodyHandlerOptions().setBodyLimit(1)))
       .handler(context -> context.response().end());
 
     testRequest(HttpMethod.POST, "/", req -> {
@@ -727,7 +727,7 @@ public class CORSHandlerTest extends WebTestBase {
         .allowedMethod(HttpMethod.POST)
         .allowedMethod(HttpMethod.OPTIONS)
         .allowedHeader("Access-Control-Allow-Origin"))
-      .handler(BodyHandler.create().setBodyLimit(1))
+      .handler(BodyHandler.create(new BodyHandlerOptions().setBodyLimit(1)))
       .handler(context -> context.response().end());
 
     testRequest(HttpMethod.POST, "/", req -> {

@@ -27,11 +27,10 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpVersion;
-import io.vertx.core.internal.logging.Logger;
-import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.BodyHandlerOptions;
 import io.vertx.ext.web.impl.FileUploadImpl;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
@@ -45,32 +44,23 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class BodyHandlerImpl implements BodyHandler {
 
-  private static final Logger LOG = LoggerFactory.getLogger(BodyHandlerImpl.class);
-
-  private long bodyLimit = DEFAULT_BODY_LIMIT;
-  private boolean handleFileUploads;
-  private String uploadsDir;
-  private boolean mergeFormAttributes = DEFAULT_MERGE_FORM_ATTRIBUTES;
-  private boolean deleteUploadedFilesOnEnd = DEFAULT_DELETE_UPLOADED_FILES_ON_END;
-  private boolean isPreallocateBodyBuffer = DEFAULT_PREALLOCATE_BODY_BUFFER;
   private static final int DEFAULT_INITIAL_BODY_BUFFER_SIZE = 1024; //bytes
 
+  private final long bodyLimit;
+  private final boolean handleFileUploads;
+  private final String uploadsDir;
+  private final boolean mergeFormAttributes;
+  private final boolean deleteUploadedFilesOnEnd;
+  private final boolean isPreallocateBodyBuffer;
 
-  public BodyHandlerImpl() {
-    this(true, DEFAULT_UPLOADS_DIRECTORY);
-  }
 
-  public BodyHandlerImpl(boolean handleFileUploads) {
-    this(handleFileUploads, DEFAULT_UPLOADS_DIRECTORY);
-  }
-
-  public BodyHandlerImpl(String uploadDirectory) {
-    this(true, uploadDirectory);
-  }
-
-  private BodyHandlerImpl(boolean handleFileUploads, String uploadDirectory) {
-    this.handleFileUploads = handleFileUploads;
-    setUploadsDirectory(uploadDirectory);
+  public BodyHandlerImpl(BodyHandlerOptions options) {
+    bodyLimit = options.getBodyLimit();
+    handleFileUploads = options.isHandleFileUploads();
+    uploadsDir = options.getUploadsDirectory();
+    mergeFormAttributes = options.isMergeFormAttributes();
+    deleteUploadedFilesOnEnd = options.isDeleteUploadedFilesOnEnd();
+    isPreallocateBodyBuffer = options.isPreallocateBodyBuffer();
   }
 
   @Override
@@ -143,42 +133,6 @@ public class BodyHandlerImpl implements BodyHandler {
 
       context.next();
     }
-  }
-
-  @Override
-  public BodyHandler setHandleFileUploads(boolean handleFileUploads) {
-    this.handleFileUploads = handleFileUploads;
-    return this;
-  }
-
-  @Override
-  public BodyHandler setBodyLimit(long bodyLimit) {
-    this.bodyLimit = bodyLimit;
-    return this;
-  }
-
-  @Override
-  public BodyHandler setUploadsDirectory(String uploadsDirectory) {
-    this.uploadsDir = uploadsDirectory;
-    return this;
-  }
-
-  @Override
-  public BodyHandler setMergeFormAttributes(boolean mergeFormAttributes) {
-    this.mergeFormAttributes = mergeFormAttributes;
-    return this;
-  }
-
-  @Override
-  public BodyHandler setDeleteUploadedFilesOnEnd(boolean deleteUploadedFilesOnEnd) {
-    this.deleteUploadedFilesOnEnd = deleteUploadedFilesOnEnd;
-    return this;
-  }
-
-  @Override
-  public BodyHandler setPreallocateBodyBuffer(boolean isPreallocateBodyBuffer) {
-    this.isPreallocateBodyBuffer = isPreallocateBodyBuffer;
-    return this;
   }
 
   private long parseContentLengthHeader(HttpServerRequest request) {

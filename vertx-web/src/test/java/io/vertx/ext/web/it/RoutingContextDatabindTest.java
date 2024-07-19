@@ -21,6 +21,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.BodyHandlerOptions;
 import org.junit.AfterClass;
 import org.junit.Test;
 
@@ -30,8 +31,8 @@ public class RoutingContextDatabindTest extends WebTestBase {
   @AfterClass
   public static void oneTimeTearDown() {
     Vertx vertx = Vertx.vertx();
-    if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
-      vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
+    if (vertx.fileSystem().existsBlocking(BodyHandlerOptions.DEFAULT_UPLOADS_DIRECTORY)) {
+      vertx.fileSystem().deleteRecursiveBlocking(BodyHandlerOptions.DEFAULT_UPLOADS_DIRECTORY, true);
     }
   }
 
