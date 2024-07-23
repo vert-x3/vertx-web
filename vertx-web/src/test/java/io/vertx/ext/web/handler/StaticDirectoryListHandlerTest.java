@@ -30,7 +30,7 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    stat = StaticHandler.create("webroot").setDirectoryListing(true).setDirectoryTemplate("custom_dir_template.html");
+    stat = StaticHandler.create("webroot", new StaticHandlerOptions().setDirectoryListing(true).setDirectoryTemplate("custom_dir_template.html"));
     router.route().handler(stat);
   }
 

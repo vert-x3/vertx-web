@@ -38,6 +38,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 
 import static io.vertx.core.http.HttpHeaders.ACCEPT_ENCODING;
+import static io.vertx.ext.web.handler.StaticHandler.DEFAULT_WEB_ROOT;
+import static io.vertx.ext.web.handler.StaticHandlerOptions.DEFAULT_MAX_AGE_SECONDS;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 
@@ -76,19 +78,25 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testGetOtherIndex() throws Exception {
-    stat.setIndexPage("otherpage.html");
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setIndexPage("otherpage.html"));
+    router.route().handler(stat);
     testRequest(HttpMethod.GET, "/", 200, "OK", "<html><body>Other page</body></html>");
   }
 
   @Test
   public void testGetSubdirectoryOtherIndex() throws Exception {
-    stat.setIndexPage("otherpage.html");
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setIndexPage("otherpage.html"));
+    router.route().handler(stat);
     testRequest(HttpMethod.GET, "/somedir/", 200, "OK", "<html><body>Subdirectory other page</body></html>");
   }
 
   @Test
   public void testGetSubdirectorySlashOtherIndex() throws Exception {
-    stat.setIndexPage("otherpage.html");
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setIndexPage("otherpage.html"));
+    router.route().handler(stat);
     testRequest(HttpMethod.GET, "/somedir/", 200, "OK", "<html><body>Subdirectory other page</body></html>");
   }
 
@@ -119,7 +127,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testCantGetHiddenPage() throws Exception {
-    stat.setIncludeHidden(false);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setIncludeHidden(false));
+    router.route().handler(stat);
     testRequest(HttpMethod.GET, "/.hidden.html", 404, "Not Found");
   }
 
@@ -130,7 +140,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testCantGetHiddenPageSubdir() throws Exception {
-    stat.setIncludeHidden(false);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setIncludeHidden(false));
+    router.route().handler(stat);
     testRequest(HttpMethod.GET, "/somedir/.hidden.html", 404, "Not Found");
   }
 
@@ -156,7 +168,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testContentHeadersSet() throws Exception {
-    stat.setDefaultContentEncoding("UTF-8");
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setDefaultContentEncoding("UTF-8"));
+    router.route().handler(stat);
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
       String contentType = res.headers().get("content-type");
       String contentLength = res.headers().get("content-length");
@@ -174,7 +188,7 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testNoLinkPreload() throws Exception {
     router.clear();
-    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "webroot/somedir3");
+    stat = StaticHandler.create("webroot/somedir3");
     router.route().handler(stat);
 
     testRequest(HttpMethod.GET, "/testLinkPreload.html", null, res -> {
@@ -190,10 +204,9 @@ public class StaticHandlerTest extends WebTestBase {
     mappings.add(new Http2PushMapping("coin.png", "image", false));
 
     router.clear();
-    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "webroot/somedir3");
+    stat = StaticHandler.create("webroot/somedir3", new StaticHandlerOptions().setHttp2PushMapping(mappings));
     router.route().handler(stat);
 
-    stat.setHttp2PushMapping(mappings);
     testRequest(HttpMethod.GET, "/testLinkPreload.html", null, res -> {
       List<String> linkHeaders = res.headers().getAll("Link");
       assertTrue(linkHeaders.contains("<style.css>; rel=preload; as=style"));
@@ -204,7 +217,7 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testNoHttp2Push() throws Exception {
     router.clear();
-    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "webroot/somedir3");
+    stat = StaticHandler.create("webroot/somedir3");
     router.route().handler(stat);
 
     client.close();
@@ -245,10 +258,8 @@ public class StaticHandlerTest extends WebTestBase {
     mappings.add(new Http2PushMapping("coin.png", "image", false));
 
     router.clear();
-    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "webroot/somedir3");
+    stat = StaticHandler.create("webroot/somedir3", new StaticHandlerOptions().setHttp2PushMapping(mappings));
     router.route().handler(stat);
-
-    stat.setHttp2PushMapping(mappings);
 
     client.close();
     client = vertx.createHttpClient(new HttpClientOptions()
@@ -283,8 +294,8 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testSkipCompressionForMediaTypes() throws Exception {
-    StaticHandler staticHandler = StaticHandler.create()
-      .skipCompressionForMediaTypes(Collections.singleton("image/jpeg"));
+    StaticHandler staticHandler = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions()
+      .setCompressedMediaTypes(Collections.singleton("image/jpeg")));
 
     List<String> uris = Arrays.asList("/testCompressionSuffix.html", "/somedir/range.jpg", "/somedir/range.jpeg", "/somedir3/coin.png");
     List<String> expectedContentEncodings = Arrays.asList("gzip", null, null, "gzip");
@@ -293,8 +304,8 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testSkipCompressionForSuffixes() throws Exception {
-    StaticHandler staticHandler = StaticHandler.create()
-      .skipCompressionForSuffixes(Collections.singleton("jpg"));
+    StaticHandler staticHandler = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions()
+      .setCompressedFileSuffixes(Collections.singleton("jpg")));
 
     List<String> uris = Arrays.asList("/testCompressionSuffix.html", "/somedir/range.jpg", "/somedir/range.jpeg", "/somedir3/coin.png");
     List<String> expectedContentEncodings = Arrays.asList("gzip", null, "gzip", "gzip");
@@ -362,7 +373,7 @@ public class StaticHandlerTest extends WebTestBase {
       lastModifiedRef.set(lastModified);
       assertNotNull(cacheControl);
       assertNotNull(lastModified);
-      assertEquals("public, immutable, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
+      assertEquals("public, immutable, max-age=" + DEFAULT_MAX_AGE_SECONDS, cacheControl);
     }, 200, "OK", "<html><body>Other page</body></html>");
     testRequest(HttpMethod.GET, "/otherpage.html", req -> handler.accept(lastModifiedRef.get(), req), null, expectedStatusCode, expectedStatusMessage, expectedStatusBody);
   }
@@ -376,14 +387,16 @@ public class StaticHandlerTest extends WebTestBase {
       lastModifiedRef.set(lastModified);
       assertNotNull(cacheControl);
       assertNotNull(lastModified);
-      assertEquals("public, immutable, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
+      assertEquals("public, immutable, max-age=" + DEFAULT_MAX_AGE_SECONDS, cacheControl);
     }, 200, "OK", "<html><body>Subdirectory index page</body></html>");
     testRequest(HttpMethod.GET, "/somedir/", req -> req.putHeader("if-modified-since", lastModifiedRef.get()), null, 304, "Not Modified", null);
   }
 
   @Test
   public void testCachingDisabled() throws Exception {
-    stat.setCachingEnabled(false);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setCachingEnabled(false));
+    router.route().handler(stat);
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
       String cacheControl = res.headers().get("cache-control");
       String lastModified = res.headers().get("last-modified");
@@ -440,7 +453,9 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testSetMaxAge() throws Exception {
     long maxAge = 60 * 60;
-    stat.setMaxAgeSeconds(maxAge);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setMaxAgeSeconds(maxAge));
+    router.route().handler(stat);
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
       String cacheControl = res.headers().get("cache-control");
       assertEquals("public, immutable, max-age=" + maxAge, cacheControl);
@@ -456,7 +471,7 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testServeFilesFromFilesystem() throws Exception {
     router.clear();
-    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "src/test/filesystemwebroot");
+    stat = StaticHandler.create("src/test/filesystemwebroot");
     router.route().handler(stat);
 
     testRequest(HttpMethod.GET, "/fspage.html", 200, "OK", "<html><body>File system page</body></html>");
@@ -465,7 +480,7 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testServeFilesFromFilesystemWithSpaces() throws Exception {
     router.clear();
-    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "src/test/filesystemwebroot");
+    stat = StaticHandler.create("src/test/filesystemwebroot");
     router.route().handler(stat);
 
     testRequest(HttpMethod.GET, "/file%20with%20spaces2.html", 200, "OK", "<html><body>File with spaces</body></html>");
@@ -498,10 +513,9 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testCacheFilesNotReadOnly() throws Exception {
     router.clear();
-    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "src/test/filesystemwebroot");
+    stat = StaticHandler.create("src/test/filesystemwebroot", new StaticHandlerOptions().setFilesReadOnly(false));
     router.route().handler(stat);
 
-    stat.setFilesReadOnly(false);
     long modified = Utils.secondsFactor(new File("src/test/filesystemwebroot", "fspage.html").lastModified());
     testRequest(HttpMethod.GET, "/fspage.html", null, res -> {
       String lastModified = res.headers().get("last-modified");
@@ -513,10 +527,9 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testCacheFilesEntryCached() throws Exception {
     router.clear();
-    stat = StaticHandler.create(FileSystemAccess.RELATIVE, "src/test/filesystemwebroot");
+    stat = StaticHandler.create("src/test/filesystemwebroot", new StaticHandlerOptions().setFilesReadOnly(false));
     router.route().handler(stat);
 
-    stat.setFilesReadOnly(false);
     File resource = new File("src/test/filesystemwebroot", "fspage.html");
     long modified = resource.lastModified();
     testRequest(HttpMethod.GET, "/fspage.html", null, res -> {
@@ -537,11 +550,8 @@ public class StaticHandlerTest extends WebTestBase {
     int cacheEntryTimeout = 100;
 
     router.clear();
-    stat = StaticHandler.create(FileSystemAccess.RELATIVE, webroot);
+    stat = StaticHandler.create(webroot, new StaticHandlerOptions().setFilesReadOnly(false).setCacheEntryTimeout(cacheEntryTimeout));
     router.route().handler(stat);
-
-    stat.setFilesReadOnly(false);
-    stat.setCacheEntryTimeout(cacheEntryTimeout);
 
     long modified = Utils.secondsFactor(resource.lastModified());
     testRequest(HttpMethod.GET, page, null, res -> {
@@ -573,11 +583,8 @@ public class StaticHandlerTest extends WebTestBase {
     String page = '/' + pageFile.getName();
 
     router.clear();
-    stat = StaticHandler.create(FileSystemAccess.RELATIVE, webroot.getPath());
+    stat = StaticHandler.create(webroot.getPath(), new StaticHandlerOptions().setFilesReadOnly(false).setCacheEntryTimeout(3600 * 1000));
     router.route().handler(stat);
-
-    stat.setFilesReadOnly(false);
-    stat.setCacheEntryTimeout(3600 * 1000);
 
     long modified = Utils.secondsFactor(pageFile.lastModified());
     testRequest(HttpMethod.GET, page, req -> req.putHeader("if-modified-since", Utils.formatRFC1123DateTime(modified)), null, 304, "Not Modified", null);
@@ -589,7 +596,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testDirectoryListingText() throws Exception {
-    stat.setDirectoryListing(true);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setDirectoryListing(true));
+    router.route().handler(stat);
     Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "a", "foo.json", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html", "sockjs", "swaggerui"));
     testRequest(HttpMethod.GET, "/", null, resp -> {
       resp.bodyHandler(buff -> {
@@ -605,8 +614,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testDirectoryListingTextNoHidden() throws Exception {
-    stat.setDirectoryListing(true);
-    stat.setIncludeHidden(false);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setDirectoryListing(true).setIncludeHidden(false));
+    router.route().handler(stat);
     Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html", "sockjs", "swaggerui"));
     testRequest(HttpMethod.GET, "/", null, resp -> {
       resp.bodyHandler(buff -> {
@@ -623,7 +633,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testDirectoryListingJson() throws Exception {
-    stat.setDirectoryListing(true);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setDirectoryListing(true));
+    router.route().handler(stat);
     Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "a", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html", "sockjs", "swaggerui"));
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("accept", "application/json");
@@ -644,8 +656,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testDirectoryListingJsonNoHidden() throws Exception {
-    stat.setDirectoryListing(true);
-    stat.setIncludeHidden(false);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setDirectoryListing(true).setIncludeHidden(false));
+    router.route().handler(stat);
     Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html", "sockjs", "swaggerui"));
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("accept", "application/json");
@@ -666,24 +679,23 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testDirectoryListingHtml() throws Exception {
-    stat.setDirectoryListing(true);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setDirectoryListing(true));
+    router.route().handler(stat);
 
     testDirectoryListingHtmlCustomTemplate("META-INF/vertx/web/vertx-web-directory.html");
   }
 
   @Test
   public void testCustomDirectoryListingHtml() throws Exception {
-    stat.setDirectoryListing(true);
+    router.clear();
     String dirTemplate = "custom_dir_template.html";
-    stat.setDirectoryTemplate(dirTemplate);
-
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setDirectoryListing(true).setDirectoryTemplate(dirTemplate));
+    router.route().handler(stat);
     testDirectoryListingHtmlCustomTemplate(dirTemplate);
   }
 
   private void testDirectoryListingHtmlCustomTemplate(String dirTemplateFile) throws Exception {
-    stat.setDirectoryListing(true);
-
-
     String directoryTemplate = vertx.fileSystem().readFileBlocking(dirTemplateFile).toString();
 
     String parentLink = "<a href=\"/\">..</a>";
@@ -704,8 +716,10 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testFSBlockingTuning() throws Exception {
-    stat.setCachingEnabled(false);
-    stat.setMaxAvgServeTimeNs(10000);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setCachingEnabled(false).setMaxAvgServeTimeNs(10000));
+    router.route().handler(stat);
+
     for (int i = 0; i < 2000; i++) {
       testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
         String cacheControl = res.headers().get("cache-control");
@@ -734,7 +748,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testRangeAwareRequestHeaders() throws Exception {
-    stat.setEnableRangeSupport(true);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setEnableRangeSupport(true));
+    router.route().handler(stat);
     // this is a 3 step test
     // 1. request a head to a static image, this should tell us the server supports ranges
     // 2. make a request of the 1st 1000 bytes
@@ -766,7 +782,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testRangeAwareRequestBody() throws Exception {
-    stat.setEnableRangeSupport(true);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setEnableRangeSupport(true));
+    router.route().handler(stat);
     testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> req.headers().set("Range", "bytes=0-999"), res -> res.bodyHandler(buff -> {
       assertEquals("bytes", res.headers().get("Accept-Ranges"));
       assertEquals("1000", res.headers().get("Content-Length"));
@@ -780,7 +798,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testRangeAwareRequestSegment() throws Exception {
-    stat.setEnableRangeSupport(true);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setEnableRangeSupport(true));
+    router.route().handler(stat);
     testRequest(HttpMethod.GET, "/somedir/range.bin", req -> req.headers().set("Range", "bytes=0-1023"), res -> {
       assertEquals("bytes", res.headers().get("Accept-Ranges"));
       assertEquals("1024", res.headers().get("Content-Length"));
@@ -829,7 +849,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testRangeAwareRequestBodyForDisabledRangeSupport() throws Exception {
-    stat.setEnableRangeSupport(false);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setEnableRangeSupport(false));
+    router.route().handler(stat);
     testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> req.headers().set("Range", "bytes=0-999"), res -> res.bodyHandler(buff -> {
       assertNull(res.headers().get("Accept-Ranges"));
       assertNotSame("1000", res.headers().get("Content-Length"));
@@ -842,7 +864,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testOutOfRangeRequestBody() throws Exception {
-    stat.setEnableRangeSupport(true);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setEnableRangeSupport(true));
+    router.route().handler(stat);
     testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> req.headers().set("Range", "bytes=15783-"), res -> res.bodyHandler(buff -> {
       assertEquals("bytes */15783", res.headers().get("Content-Range"));
       testComplete();
@@ -863,7 +887,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testAsyncExceptionIssue231() throws Exception {
-    stat.setAlwaysAsyncFS(true);
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setAlwaysAsyncFS(true));
+    router.route().handler(stat);
     testRequest(HttpMethod.GET, "/non_existing.html", 404, "Not Found");
   }
 
@@ -882,7 +908,7 @@ public class StaticHandlerTest extends WebTestBase {
       // expected
     }
 
-    stat = StaticHandler.create(FileSystemAccess.ROOT, file.getParent());
+    stat = StaticHandler.createWithRootFileSystemAccess(file.getParent(), new StaticHandlerOptions());
     router.route().handler(stat);
 
     testRequest(HttpMethod.GET, "/" + file.getName(), 200, "OK", "");
@@ -896,7 +922,7 @@ public class StaticHandlerTest extends WebTestBase {
     file.deleteOnExit();
 
     // remap stat to the temp dir
-    stat = StaticHandler.create(FileSystemAccess.RELATIVE, file.getParent());
+    stat = StaticHandler.create(file.getParent());
   }
 
   @Test
@@ -909,7 +935,9 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testChangeDefaultContentEncoding() throws Exception {
-    stat.setDefaultContentEncoding("ISO-8859-1");
+    router.clear();
+    stat = StaticHandler.create(DEFAULT_WEB_ROOT, new StaticHandlerOptions().setDefaultContentEncoding("ISO-8859-1"));
+    router.route().handler(stat);
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
       String contentType = res.headers().get("Content-Type");
       assertEquals("text/html;charset=ISO-8859-1", contentType);

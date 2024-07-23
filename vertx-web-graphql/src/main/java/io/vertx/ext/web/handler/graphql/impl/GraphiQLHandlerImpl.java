@@ -23,6 +23,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.handler.StaticHandlerOptions;
 import io.vertx.ext.web.handler.graphql.GraphiQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions;
 import io.vertx.ext.web.impl.Utils;
@@ -59,7 +60,7 @@ public class GraphiQLHandlerImpl implements GraphiQLHandler {
       router.get().handler(this::redirectIfNeeded);
       router.get("/").handler(this::serveIndex);
       router.get("/index.html").handler(this::serveIndex);
-      router.get().handler(StaticHandler.create(WEBROOT).setCachingEnabled(true).setMaxAgeSeconds(SECONDS.convert(365, DAYS)));
+      router.get().handler(StaticHandler.create(WEBROOT, new StaticHandlerOptions().setCachingEnabled(true).setMaxAgeSeconds(SECONDS.convert(365, DAYS))));
     }
     return router;
   }

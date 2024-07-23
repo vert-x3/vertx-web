@@ -1,28 +1,30 @@
-= Vert.x-Web
+= Vert.x Web
 :toc: left
 
-Vert.x-Web is a set of building blocks for building web applications with Vert.x. Think of it as a Swiss Army Knife for
+Vert.x Web is a set of building blocks for building web applications with Vert.x.
+Think of it as a Swiss Army Knife for
 building modern, scalable, web apps.
 
 Vert.x core provides a fairly low level set of functionality for handling HTTP, and for some applications
 that will be sufficient.
 
-Vert.x-Web builds on Vert.x core to provide a richer set of functionality for building real web applications, more
+Vert.x Web builds on Vert.x core to provide a richer set of functionality for building real web applications, more
 easily.
 
 It's the successor to http://pmlopes.github.io/yoke/[Yoke] in Vert.x 2.x, and takes inspiration from projects such
 as http://expressjs.com/[Express] in the Node.js world and http://www.sinatrarb.com/[Sinatra] in the Ruby world.
 
-Vert.x-Web is designed to be powerful, un-opionated and fully embeddable. You just use the parts you want and nothing more.
-Vert.x-Web is not a container.
+Vert.x Web is designed to be powerful, un-opionated and fully embeddable.
+You just use the parts you want and nothing more.
+Vert.x Web is not a container.
 
-You can use Vert.x-Web to create classic server-side web applications, RESTful web applications, 'real-time' (server push)
-web applications, or any other kind of web application you can think of. Vert.x-Web doesn't care. It's up to you to chose
-the type of app you prefer, not Vert.x-Web.
+You can use Vert.x Web to create classic server-side web applications, RESTful web applications, 'real-time' (server push) web applications, or any other kind of web application you can think of.
+Vert.x Web doesn't care.
+It's up to you to choose the type of app you prefer, not Vert.x Web.
 
-Vert.x-Web is a great fit for writing RESTful HTTP micro-services**, but we don't force** you to write apps like that.
+Vert.x Web is a great fit for writing RESTful HTTP microservices, **but we don't force you** to write apps like that.
 
-Some of the key features of Vert.x-Web include:
+Some of the key features of Vert.x Web include:
 
 * Routing (based on method, path, etc)
 * Regular expression pattern matching for paths
@@ -42,7 +44,7 @@ Some of the key features of Vert.x-Web include:
 * JWT/OAuth2 based authorization
 * User/role/permission authorization
 * Favicon handling
-* Template support for server side rendering, including support for the following template engines out of the box:
+* Template support for server side rendering, including support for the following template engines out-of-the-box:
 ** Handlebars
 ** Pug,
 ** MVEL
@@ -58,7 +60,8 @@ Some of the key features of Vert.x-Web include:
 * CSRF Cross Site Request Forgery
 * VirtualHost
 
-Most features in Vert.x-Web are implemented as handlers so you can always write your own. We envisage many more being
+Most features in Vert.x Web are implemented as handlers so you can always write your own.
+We envisage many more being
 written over time.
 
 We'll discuss all these features in this manual.
@@ -104,12 +107,13 @@ In development mode:
 
 == Re-cap on Vert.x core HTTP servers
 
-Vert.x-Web uses and exposes the API from Vert.x core, so it's well worth getting familiar with the basic concepts of writing
+Vert.x Web uses and exposes the API from Vert.x core, so it's well worth getting familiar with the basic concepts of writing
 HTTP servers using Vert.x core, if you're not already.
 
 The Vert.x core HTTP documentation goes into a lot of detail on this.
 
-Here's a hello world web server written using Vert.x core. At this point there is no Vert.x-Web involved:
+Here's a hello world web server written using Vert.x core.
+At this point there is no Vert.x Web involved:
 
 [source,java]
 ----
@@ -126,11 +130,12 @@ We then tell the server to listen at port `8080` (default host is `localhost`).
 
 You can run this, and point your browser at `http://localhost:8080` to verify that it works as expected.
 
-== Basic Vert.x-Web concepts
+== Basic Vert.x Web concepts
 
 Here's the 10000 foot view:
 
-A {@link io.vertx.ext.web.Router} is one of the core concepts of Vert.x-Web. It's an object which maintains zero or more
+A {@link io.vertx.ext.web.Router} is one of the core concepts of Vert.x Web.
+It's an object which maintains zero or more
 {@link io.vertx.ext.web.Route Routes}.
 
 A router will pause the incoming {@link io.vertx.core.http.HttpServerRequest}, to ensure that the request body or any
@@ -147,17 +152,14 @@ Here's a simple router example:
 {@link examples.WebExamples#example2}
 ----
 
-It basically does the same thing as the Vert.x Core HTTP server hello world example from the previous section,
-but this time using Vert.x-Web.
+It basically does the same thing as the Vert.x Core HTTP server hello world example from the previous section, but this time using Vert.x Web.
 
 We create an HTTP server as before, then we create a router. Once we've done that we create a simple route with
 no matching criteria so it will match _all_ requests that arrive on the server.
 
 We then specify a handler for that route. That handler will be called for all requests that arrive on the server.
 
-The object that gets passed into the handler is a {@link io.vertx.ext.web.RoutingContext} - this contains
-the standard Vert.x {@link io.vertx.core.http.HttpServerRequest} and {@link io.vertx.core.http.HttpServerResponse}
-but also various other useful stuff that makes working with Vert.x-Web simpler.
+The object that gets passed into the handler is a {@link io.vertx.ext.web.RoutingContext} - this contains the standard Vert.x {@link io.vertx.core.http.HttpServerRequest} and {@link io.vertx.core.http.HttpServerResponse} but also various other useful stuff that makes working with Vert.x Web simpler.
 
 For every request that is routed there is a unique routing context instance, and the same instance is passed to
 all handlers for that request.
@@ -169,7 +171,7 @@ So, that's the basics. Now we'll look at things in more detail:
 
 == Handling requests and calling the next handler
 
-When Vert.x-Web decides to route a request to a matching route, it calls the handler of the route passing in an instance
+When Vert.x Web decides to route a request to a matching route, it calls the handler of the route passing in an instance
 of {@link io.vertx.ext.web.RoutingContext}. A route can have different handlers, that you can append using
 {@link io.vertx.ext.web.Route#handler}
 
@@ -401,7 +403,7 @@ route verbs will yield the enumeration value `OTHER` instead of the custom name.
 
 == Route order
 
-By default routes are matched in the order they are added to the router.
+By default, routes are matched in the order they are added to the router.
 
 When a request arrives the router will step through each route and check if it matches, if it matches then
 the handler for that route will be called.
@@ -811,7 +813,7 @@ locale was provided by the user.
 
 == Route match failures
 
-If no routes match for any particular request, Vert.x-Web will signal an error depending on match failure:
+If no routes match for any particular request, Vert.x Web will signal an error depending on match failure:
 
 * 404 If no route matches the path
 * 405 If a route matches the path but don't match the HTTP Method
@@ -932,7 +934,7 @@ This will delete any file uploaded as part of a request when the corresponding r
 
 == Handling cookies
 
-Vert.x-Web has out of the box cookies support.
+Vert.x Web has out-of-the-box cookies support.
 
 === Manipulating cookies
 
@@ -958,12 +960,13 @@ Here's an example of querying and adding cookies:
 
 == Handling sessions
 
-Vert.x-Web provides out of the box support for sessions.
+Vert.x Web provides out-of-the-box support for sessions.
 
 Sessions last between HTTP requests for the length of a browser session and give you a place where you can add
 session-scope information, such as a shopping basket.
 
-Vert.x-Web uses session cookies to identify a session. The session cookie is temporary and will be deleted by your browser
+Vert.x Web uses session cookies to identify a session.
+The session cookie is temporary and will be deleted by your browser
 when it's closed.
 
 We don't put the actual data of your session in the session cookie - the cookie simply uses an identifier to look-up
@@ -1031,7 +1034,8 @@ The session store is responsible for holding a secure pseudo random number gener
 ids. This PRNG is independent of the store which means that given a session id from store A one cannot derive the
 session id of store B since they have different seeds and states.
 
-By default this PRNG uses a mixed mode, blocking for seeding, non blocking for generating. The PRNG will also reseed
+By default, this PRNG uses a mixed mode, blocking for seeding, non blocking for generating.
+The PRNG will also reseed
 every 5 minutes with 64bits of new entropy. However this can all be configured using the system properties:
 
 * io.vertx.ext.auth.prng.algorithm e.g.: SHA1PRNG
@@ -1041,7 +1045,7 @@ every 5 minutes with 64bits of new entropy. However this can all be configured u
 Most users should not need to configure these values unless if you notice that the performance of your application is
 being affected by the PRNG algorithm.
 
-Vert.x-Web comes with two session store implementations out of the box, and you can also write your own if you prefer.
+Vert.x Web comes with two session store implementations out-of-the-box, and you can also write your own if you prefer.
 
 The implementations are expected to follow the `ServiceLoader` conventions and all stores that are available at runtime
 from the classpath will be exposed. When more than 1 implementations are available the first one that can be
@@ -1189,8 +1193,9 @@ use case to use the same provider module for both cases.
 === Creating an Authentication handler
 
 To create an auth handler you need an instance of {@link io.vertx.ext.auth.authentication.AuthenticationProvider}.
-Authentication provider is used for authentication of users. Vert.x provides several authentication provider instances
-out of the box in the vertx-auth project. For full information on auth providers and how to use and configure them
+Authentication provider is used for authentication of users.
+Vert.x provides several authentication provider instances out-of-the-box in the vertx-auth project.
+For full information on auth providers and how to use and configure them
 please consult the auth documentation.
 
 Here's a simple example of creating a basic auth handler given an auth provider.
@@ -1414,7 +1419,11 @@ This will require the user to authenticate again to confirm the identity.
 
 == Security Auditing
 
-Vert.x-Web comes with an out of the box handler for auditing security events. This handler is useful for logging to an external system like EDR/XDR. EDR stands for Endpoint Detection and Response and XDR stands for Extended Detection and Response. These are security products that are used to detect and respond to threats on endpoints. The handler is called `SecurityAuditLoggerHandler` and it used as a top level handler as:
+Vert.x Web comes with an out-of-the-box handler for auditing security events.
+This handler is useful for logging to an external system like EDR/XDR.
+EDR stands for Endpoint Detection and Response and XDR stands for Extended Detection and Response.
+These are security products that are used to detect and respond to threats on endpoints.
+The handler is called `SecurityAuditLoggerHandler` and it used as a top level handler as:
 
 [source,$lang]
 ----
@@ -1501,14 +1510,12 @@ When using JSON, the same data is logged in a single line json document.
 
 == Serving static resources
 
-Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers
-very easily.
+Vert.x Web comes with an out-of-the-box handler for serving static web resources, so you can write static web servers very easily.
 
-To serve static resources such as `.html`, `.css`, `.js` or any other static resource, you use an instance of
-{@link io.vertx.ext.web.handler.StaticHandler}.
+To serve static resources such as `.html`, `.css`, `.js` or any other static resource, you use an instance of {@link io.vertx.ext.web.handler.StaticHandler}.
 
-Any requests to paths handled by the static handler will result in files being served from a directory on the file system
-or from the classpath. The default static file directory is `webroot` but this can be configured.
+Any requests to paths handled by the static handler will result in files being served from a directory on the file system or from the classpath.
+The default static file directory is `webroot` but this can be configured.
 
 In the following example all requests to paths starting with `/static/` will get served from the directory `webroot`:
 
@@ -1517,97 +1524,93 @@ In the following example all requests to paths starting with `/static/` will get
 {@link examples.WebExamples#example41}
 ----
 
-For example, if there was a request with path `/static/css/mystyles.css` the static serve will look for a file in the
-directory `webroot/css/mystyle.css`.
+For example, if there was a request with path `/static/css/mystyles.css` the static serve will look for a file in the directory `webroot/css/mystyle.css`.
 
-It will also look for a file on the classpath called `webroot/css/mystyle.css`. This means you can package up all your
-static resources into a jar file (or fatjar) and distribute them like that.
+It will also look for a file on the classpath called `webroot/css/mystyle.css`.
+This means you can package up all your static resources into a jar file (or fatjar) and distribute them like that.
 
-When Vert.x finds a resource on the classpath for the first time it extracts it and caches it in a temporary directory
-on disk so it doesn't have to do this each time.
+When Vert.x finds a resource on the classpath for the first time it extracts it and caches it in a temporary directory on disk, so it doesn't have to do this each time.
 
-The handler will handle range aware requests. When a client makes a request to a static resource, the handler will
-notify that it can handle range aware request by stating the unit on the `Accept-Ranges` header. Further requests
-that contain the `Range` header with the correct unit and start and end indexes will then receive partial responses
-with the correct `Content-Range` header.
+The handler will handle range aware requests.
+When a client makes a request to a static resource, the handler will notify that it can handle range aware request by stating the unit on the `Accept-Ranges` header.
+Further requests that contain the `Range` header with the correct unit and start and end indexes will then receive partial responses with the correct `Content-Range` header.
 
 === Configuring caching
 
-By default the static handler will set cache headers to enable browsers to effectively cache files.
+By default, the static handler will set cache headers to enable browsers to effectively cache files.
 
-Vert.x-Web sets the headers `cache-control`,`last-modified`, and `date`.
+Vert.x Web sets the headers `cache-control`,`last-modified`, and `date`.
 
-`cache-control` is set to `max-age=86400` by default. This corresponds to one day. This can be configured with
-{@link io.vertx.ext.web.handler.StaticHandler#setMaxAgeSeconds(long)} if required.
+`cache-control` is set to `max-age=86400` by default.
+This corresponds to one day.
+This can be configured with
+{@link io.vertx.ext.web.handler.StaticHandlerOptions#setMaxAgeSeconds(long)} if required.
 
-If a browser sends a GET or a HEAD request with an `if-modified-since` header and the resource has not been modified
-since that date, a `304` status is returned which tells the browser to use its locally cached resource.
+If a browser sends a GET or a HEAD request with an `if-modified-since` header and the resource has not been modified since that date, a `304` status is returned which tells the browser to use its locally cached resource.
 
-If handling of cache headers is not required, it can be disabled with {@link io.vertx.ext.web.handler.StaticHandler#setCachingEnabled(boolean)}.
+If handling of cache headers is not required, it can be disabled with {@link io.vertx.ext.web.handler.StaticHandlerOptions#setCachingEnabled(boolean)}.
 
-When cache handling is enabled Vert.x-Web will cache the last modified date of resources in memory, this avoids a disk hit
-to check the actual last modified date every time.
+When cache handling is enabled Vert.x Web will cache the last modified date of resources in memory, this avoids a disk hit to check the actual last modified date every time.
 
-Entries in the cache have an expiry time, and after that time, the file on disk will be checked again and the cache
-entry updated.
+Entries in the cache have an expiry time, and after that time, the file on disk will be checked again and the cache entry updated.
 
-If you know that your files never change on disk, then the cache entry will effectively never expire. This is the
-default.
+If you know that your files never change on disk, then the cache entry will effectively never expire.
+This is the default.
 
 If you know that your files might change on disk when the server is running then you can set files read only to false with
-{@link io.vertx.ext.web.handler.StaticHandler#setFilesReadOnly(boolean)}.
+{@link io.vertx.ext.web.handler.StaticHandlerOptions#setFilesReadOnly(boolean)}.
 
 To enable the maximum number of entries that can be cached in memory at any one time you can use
-{@link io.vertx.ext.web.handler.StaticHandler#setMaxCacheSize(int)}.
+{@link io.vertx.ext.web.handler.StaticHandlerOptions#setMaxCacheSize(int)}.
 
-To configure the expiry time of cache entries you can use {@link io.vertx.ext.web.handler.StaticHandler#setCacheEntryTimeout(long)}.
+To configure the expiry time of cache entries you can use {@link io.vertx.ext.web.handler.StaticHandlerOptions#setCacheEntryTimeout(long)}.
 
 === Configuring the index page
 
-Any requests to the root path `/` will cause the index page to be served. By default the index page is `index.html`.
-This can be configured with {@link io.vertx.ext.web.handler.StaticHandler#setIndexPage(String)}.
+Any requests to the root path `/` will cause the index page to be served.
+By default, the index page is `index.html`.
+This can be configured with {@link io.vertx.ext.web.handler.StaticHandlerOptions#setIndexPage(String)}.
 
 === Changing the web root
 
-By default static resources will be served from the directory `webroot`. To configure this use
-{@link io.vertx.ext.web.handler.StaticHandler#create(io.vertx.ext.web.handler.FileSystemAccess, String)}.
+By default, static resources will be served from the directory `webroot`.
+To configure this use {@link io.vertx.ext.web.handler.StaticHandler#create(String)}.
 
 === Serving hidden files
 
-By default the serve will serve hidden files (files starting with `.`).
+By default, the serve will serve hidden files (i.e. files starting with `.`).
 
-If you do not want hidden files to be served you can configure it with {@link io.vertx.ext.web.handler.StaticHandler#setIncludeHidden(boolean)}.
+If you do not want hidden files to be served you can configure it with {@link io.vertx.ext.web.handler.StaticHandlerOptions#setIncludeHidden(boolean)}.
 
 === Directory listing
 
-The server can also perform directory listing. By default directory listing is disabled. To enabled it use
-{@link io.vertx.ext.web.handler.StaticHandler#setDirectoryListing(boolean)}.
+The server can also perform directory listing.
+By default, directory listing is disabled.
+To enabled it use
+{@link io.vertx.ext.web.handler.StaticHandlerOptions#setDirectoryListing(boolean)}.
 
 When directory listing is enabled the content returned depends on the content type in the `accept` header.
 
 For `text/html` directory listing, the template used to render the directory listing page can be configured with
-{@link io.vertx.ext.web.handler.StaticHandler#setDirectoryTemplate(String)}.
+{@link io.vertx.ext.web.handler.StaticHandlerOptions#setDirectoryTemplate(String)}.
 
 === Disabling file caching on disk
 
-By default, Vert.x will cache files that are served from the classpath into a file on disk in a sub-directory of a
-directory called `.vertx` in the current working directory. This is mainly useful when deploying services as
-fatjars in production where serving a file from the classpath every time can be slow.
+By default, Vert.x will cache files that are served from the classpath into a file on disk in a sub-directory of a directory called `.vertx` in the current working directory.
+This is mainly useful when deploying services as fatjars in production where serving a file from the classpath every time can be slow.
 
-In development this can cause a problem, as if you update your static content while the server is running, the
-cached file will be served not the updated file.
+In development this can cause a problem, as if you update your static content while the server is running, the cached file will be served not the updated file.
 
-To disable file caching you can provide your vert.x options the property `fileResolverCachingEnabled` to `false`. For
-backwards compatibility it will also default that value to the system property `vertx.disableFileCaching`. E.g. you
-could set up a run configuration in your IDE to set this when running your main class.
-
+To disable file caching you can provide your vert.x options the property `fileResolverCachingEnabled` to `false`.
+For backwards compatibility it will also default that value to the system property `vertx.disableFileCaching`.
+E.g. you could set up a run configuration in your IDE to set this when running your main class.
 
 == CORS handling
 
 http://en.wikipedia.org/wiki/Cross-origin_resource_sharing[Cross Origin Resource Sharing] is a safe mechanism for
 allowing resources to be requested from one domain and served from another.
 
-Vert.x-Web includes a handler {@link io.vertx.ext.web.handler.CorsHandler} that handles the CORS protocol for you.
+Vert.x Web includes a handler {@link io.vertx.ext.web.handler.CorsHandler} that handles the CORS protocol for you.
 
 Here's an example:
 
@@ -1660,7 +1663,7 @@ for execution. It should not be used as isolation as wrongly written application
 
 == Templates
 
-Vert.x-Web includes dynamic page generation capabilities by including out of the box support for several popular template
+Vert.x Web includes dynamic page generation capabilities by including out-of-the-box support for several popular template
 engines. You can also easily add your own.
 
 Template engines are described by {@link io.vertx.ext.web.common.template.TemplateEngine}. In order to render a template
@@ -1670,7 +1673,8 @@ The simplest way to use templates is not to call the template engine directly bu
 {@link io.vertx.ext.web.handler.TemplateHandler}.
 This handler calls the template engine for you based on the path in the HTTP request.
 
-By default the template handler will look for templates in a directory called `templates`. This can be configured.
+By default, the template handler will look for templates in a directory called `templates`.
+This can be configured.
 
 The handler will return the results of rendering with a content type of `text/html` by default. This can also be configured.
 
@@ -2126,11 +2130,12 @@ which allows the engines to share the same cache across several verticles in a e
 
 During development you might want to disable template caching so that the template gets reevaluated on each request.
 In order to do this you need to set the system property: `vertxweb.environment` or environment variable
-`VERTXWEB_ENVIRONMENT` to `dev` or `development`. By default caching is always enabled.
+`VERTXWEB_ENVIRONMENT` to `dev` or `development`.
+By default, caching is always enabled.
 
 == Error handler
 
-You can render your own errors using a template handler or otherwise but Vert.x-Web also includes an out of the boxy
+You can render your own errors using a template handler or otherwise but Vert.x Web also includes an out-of-the-boxy
 "pretty" error handler that can render error pages for you.
 
 The handler is {@link io.vertx.ext.web.handler.ErrorHandler}. To use the error handler just set it as a
@@ -2138,23 +2143,23 @@ failure handler for any paths that you want covered.
 
 == Request logger
 
-Vert.x-Web includes a handler {@link io.vertx.ext.web.handler.LoggerHandler} that you can use to log HTTP requests.
+Vert.x Web includes a handler {@link io.vertx.ext.web.handler.LoggerHandler} that you can use to log HTTP requests.
 You should mount this handler before any handler that could fail the `RoutingContext`
 
-By default requests are logged to the Vert.x logger which can be configured to use JUL logging, log4j or SLF4J.
+By default, requests are logged to the Vert.x logger which can be configured to use JUL logging, log4j or SLF4J.
 
 See {@link io.vertx.ext.web.handler.LoggerFormat}.
 
 == Serving favicons
 
-Vert.x-Web includes the handler {@link io.vertx.ext.web.handler.FaviconHandler} especially for serving favicons.
+Vert.x Web includes the handler {@link io.vertx.ext.web.handler.FaviconHandler} especially for serving favicons.
 
-Favicons can be specified using a path to the filesystem, or by default Vert.x-Web will look for a file on the classpath
+Favicons can be specified using a path to the filesystem, or by default Vert.x Web will look for a file on the classpath
 with the name `favicon.ico`. This means you bundle the favicon in the jar of your application.
 
 == Timeout handler
 
-Vert.x-Web includes a timeout handler that you can use to timeout requests if they take too long to process.
+Vert.x Web includes a timeout handler that you can use to timeout requests if they take too long to process.
 
 This is configured using an instance of {@link io.vertx.ext.web.handler.TimeoutHandler}.
 
@@ -2215,8 +2220,7 @@ Please see the https://github.com/sockjs/sockjs-client[SockJS website] for more 
 
 === SockJS handler
 
-Vert.x provides an out of the box handler called {@link io.vertx.ext.web.handler.sockjs.SockJSHandler} for
-using SockJS in your Vert.x-Web applications.
+Vert.x provides an out-of-the-box handler called {@link io.vertx.ext.web.handler.sockjs.SockJSHandler} for using SockJS in your Vert.x Web applications.
 
 You should create one handler per SockJS application using {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#create}.
 You can also specify configuration options when creating the instance. The configuration options are described with
@@ -2336,7 +2340,7 @@ Then you can write {@link io.vertx.core.buffer.Buffer}s to the SockJS socket ove
 
 == SockJS event bus bridge
 
-Vert.x-Web comes with a built-in SockJS socket handler called the event bus bridge which effectively extends the server-side
+Vert.x Web comes with a built-in SockJS socket handler called the event bus bridge which effectively extends the server-side
 Vert.x event bus into client side JavaScript.
 
 This creates a distributed event bus which not only spans multiple Vert.x instances on the server side, but includes
@@ -2460,11 +2464,11 @@ based on a regular expression you use this field. If the `address` field is spec
 {@link io.vertx.ext.bridge.PermittedOptions#setMatch}:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
 message with the same values for them to be allowed. This currently only works with JSON messages.
 
-If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Vert.x-Web
+If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Vert.x Web
 will look through any inbound permitted matches. If any match, it will be allowed through.
 
-If a message is _out-bound_ (i.e. being sent from the server to client side JavaScript) before it is sent to the client
-Vert.x-Web will look through any outbound permitted matches. If any match, it will be allowed through.
+If a message is _out-bound_ (i.e. being sent from the server to client side JavaScript) before it is sent to the client Vert.x Web will look through any outbound permitted matches.
+If any match, it will be allowed through.
 
 The actual matching works as follows:
 
@@ -2486,7 +2490,7 @@ Here's an example:
 
 === Requiring authorization for messages
 
-The event bus bridge can also be configured to use the Vert.x-Web authorization functionality to require
+The event bus bridge can also be configured to use the Vert.x Web authorization functionality to require
 authorization for messages, either in-bound or out-bound on the bridge.
 
 To do this, you can add extra fields to the match described in the previous section that determine what authority is
@@ -2627,7 +2631,7 @@ also add headers to the message, here's an example:
 == CSRF Cross Site Request Forgery
 
 CSRF or sometimes also known as XSRF is a technique by which an unauthorized site can gain your user's private data.
-Vert.x-Web includes a handler {@link io.vertx.ext.web.handler.CSRFHandler} that you can use to prevent cross site
+Vert.x Web includes a handler {@link io.vertx.ext.web.handler.CSRFHandler} that you can use to prevent cross site
 request forgery requests.
 
 On each get request under this handler a cookie is added to the response with a unique token. Clients are then
@@ -2771,8 +2775,7 @@ A rule of thumb is once a valid callback is executed issue a client side redirec
 redirect should also create a session cookie (or other session mechanism) so the user is not required to authenticate
 for every request.
 
-Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers but
-vertx-auth provides you with many out of the box implementations:
+Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers but vertx-auth provides you with many out-of-the-box implementations:
 
 
 * Azure Active Directory {@link io.vertx.ext.auth.oauth2.providers.AzureADAuth}
