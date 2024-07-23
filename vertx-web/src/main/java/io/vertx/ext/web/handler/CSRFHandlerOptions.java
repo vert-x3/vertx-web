@@ -20,6 +20,8 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
 
+import static io.vertx.ext.web.handler.SessionHandlerOptions.DEFAULT_SESSION_TIMEOUT;
+
 /**
  * {@link CSRFHandler} options.
  */
@@ -49,7 +51,7 @@ public class CSRFHandlerOptions {
     cookieName = DEFAULT_COOKIE_NAME;
     cookiePath = DEFAULT_COOKIE_PATH;
     headerName = DEFAULT_HEADER_NAME;
-    timeout = SessionHandler.DEFAULT_SESSION_TIMEOUT;
+    timeout = DEFAULT_SESSION_TIMEOUT;
   }
 
   /**

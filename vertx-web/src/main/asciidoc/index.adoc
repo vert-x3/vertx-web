@@ -1019,9 +1019,9 @@ As an example, given the path: `http://localhost:2677/WebSite1/(S(3abhbgwjg33aqr
 be: `3abhbgwjg33aqrt3uat2kh4d`.
 
 Main security problem when working with sessions is a possibility that malicious user will find out others' session id.
-If two users share same session id, they share same session variables too and website is considering them as one
-visitor. This could be a security risk if session is used for any private or sensitive data, or to allow access to
-restricted areas of web site. When cookies are used, session id can be protected using SSL and by marking a cookie as
+If two users share same session id, they share same session variables too and website is considering them as one visitor.
+This could be a security risk if session is used for any private or sensitive data, or to allow access to restricted areas of website.
+When cookies are used, session id can be protected using SSL and by marking a cookie as
 secure. But, in case of cookieless session, session id is part of URL and is much more vulnerable.
 
 
@@ -1131,9 +1131,9 @@ Here's an example:
 The session handler will ensure that your session is automatically looked up (or created if no session exists)
 from the session store and set on the routing context before it gets to your application handlers.
 
-By default, the session handler will always add a session cookie to the HTTP response, even if the session has not been
-accessed by your application. To create the session cookie only when the session has been used, use
-`sessionHandler.setLazySession(true)`.
+By default, the session handler will always add a session cookie to the HTTP response, even if the session has not been accessed by your application.
+To create the session cookie only when the session has been used, use
+{io.vertx.ext.web.handler.SessionHandlerOptions#setLazySession(boolean)}.
 
 === Using the session
 
@@ -3155,10 +3155,10 @@ configure a new application/device, an example HTML page could be:
 ----
 
 The important bit in this example is that the script makes a `POST` request to the configured registration callback.
-Again this callback will return status code 401 if there is no user already authenticated in the request. On success a
-JSON document is returned with a url, and a few extra metadata. This url should be used to configure the authenticator,
-either by manually entering it on the application or by rendering a QR code. Rendering of QR codes can be done both on
-the backend or on the frontend. For the sake of simplicity, this example makes use of the google charts API to render
+Again this callback will return status code 401 if there is no user already authenticated in the request. On success a JSON document is returned with a url, and a few extra metadata.
+This url should be used to configure the authenticator, either by manually entering it on the application or by rendering a QR code.
+Rendering of QR codes can be done both on the backend or on the frontend.
+For the sake of simplicity, this example makes use of the Google charts API to render
 it on the browser.
 
 Finally, this is how you would use the handler in your vert.x application:

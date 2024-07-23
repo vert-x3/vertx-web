@@ -17,13 +17,17 @@
 package io.vertx.ext.web.sstore;
 
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
 import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.handler.SessionHandlerOptions;
 import io.vertx.ext.web.handler.SessionHandlerTestBase;
 import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
 import io.vertx.test.core.TestUtils;
@@ -242,7 +246,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
 
     Router router1 = Router.router(vertices[0]);
     SessionStore store1 = ClusteredSessionStore.create(vertices[0]);
-    SessionHandler sessionHandler1 = SessionHandler.create(store1).setSessionCookieName(sessionCookieName).setMinLength(0);
+    SessionHandler sessionHandler1 = SessionHandler.create(store1, new SessionHandlerOptions().setSessionCookieName(sessionCookieName).setMinLength(0));
     router1.route()
       .handler(sessionHandler1)
       .handler(upgradeHandler);
@@ -252,7 +256,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
 
     Router router2 = Router.router(vertices[1]);
     SessionStore store2 = ClusteredSessionStore.create(vertices[1]);
-    SessionHandler sessionHandler2 = SessionHandler.create(store2).setSessionCookieName(sessionCookieName).setMinLength(0);
+    SessionHandler sessionHandler2 = SessionHandler.create(store2, new SessionHandlerOptions().setSessionCookieName(sessionCookieName).setMinLength(0));
     router1.route()
       .handler(sessionHandler2)
       .handler(upgradeHandler);
@@ -262,7 +266,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
 
     Router router3 = Router.router(vertices[2]);
     SessionStore store3 = ClusteredSessionStore.create(vertices[2]);
-    SessionHandler sessionHandler3 = SessionHandler.create(store3).setSessionCookieName(sessionCookieName).setMinLength(0);
+    SessionHandler sessionHandler3 = SessionHandler.create(store3, new SessionHandlerOptions().setSessionCookieName(sessionCookieName).setMinLength(0));
     router1.route()
       .handler(sessionHandler3)
       .handler(upgradeHandler);

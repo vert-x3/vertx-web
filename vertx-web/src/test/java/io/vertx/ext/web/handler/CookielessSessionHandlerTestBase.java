@@ -19,7 +19,6 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.sstore.AbstractSession;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.Test;
@@ -28,12 +27,9 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
-
-import static java.util.concurrent.TimeUnit.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -50,7 +46,7 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSessionCreation() throws Exception {
-		router.route().handler(SessionHandler.create(store).setCookieless(true));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setCookieless(true)));
 		router.route().handler(rc -> {
 		  rc.response()
         .putHeader("X-Session-Id", "(" + rc.session().value() + ")")
@@ -65,7 +61,7 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSession() throws Exception {
-		router.route().handler(SessionHandler.create(store).setCookieless(true));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setCookieless(true)));
 		AtomicReference<String> rid = new AtomicReference<>();
 		AtomicInteger requestCount = new AtomicInteger();
 		router.route().handler(rc -> {
@@ -102,7 +98,7 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 	@Test
 	public void testSessionExpires() throws Exception {
 		long timeout = 1000;
-		router.route().handler(SessionHandler.create(store).setSessionTimeout(timeout).setCookieless(true));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setSessionTimeout(timeout).setCookieless(true)));
 		AtomicReference<String> rid = new AtomicReference<>();
 		AtomicInteger requestCount = new AtomicInteger();
 		router.route().handler(rc -> {
@@ -153,7 +149,7 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testDestroySession() throws Exception {
-		router.route().handler(SessionHandler.create(store).setCookieless(true));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setCookieless(true)));
 		AtomicReference<String> rid = new AtomicReference<>();
 		AtomicInteger requestCount = new AtomicInteger();
 		router.route().handler(rc -> {
@@ -190,7 +186,7 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testLastAccessed1() throws Exception {
-		router.route().handler(SessionHandler.create(store).setCookieless(true));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setCookieless(true)));
 		AtomicReference<Session> rid = new AtomicReference<>();
 		long start = System.currentTimeMillis();
 		router.route().handler(rc -> {
@@ -207,7 +203,7 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testLastAccessed2() throws Exception {
-		router.route().handler(SessionHandler.create(store).setCookieless(true));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setCookieless(true)));
 		AtomicReference<Session> rid = new AtomicReference<>();
 		router.route().handler(rc -> {
 			rid.set(rc.session());
@@ -221,7 +217,7 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testIssue172_setnull() throws Exception {
-		router.route().handler(SessionHandler.create(store).setCookieless(true));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setCookieless(true)));
 		AtomicReference<Session> rid = new AtomicReference<>();
 
 		router.route().handler(rc -> {

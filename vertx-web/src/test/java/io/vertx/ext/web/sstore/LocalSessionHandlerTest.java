@@ -18,6 +18,7 @@ package io.vertx.ext.web.sstore;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.handler.SessionHandlerOptions;
 import io.vertx.ext.web.handler.SessionHandlerTestBase;
 import org.junit.Test;
 
@@ -39,9 +40,9 @@ public class LocalSessionHandlerTest extends SessionHandlerTestBase {
 
   @Test
   public void test2123() throws Exception {
-    SessionHandler sessionHandler = SessionHandler.create(LocalSessionStore.create(vertx))
+    SessionHandler sessionHandler = SessionHandler.create(LocalSessionStore.create(vertx), new SessionHandlerOptions()
       .setSessionTimeout(10_000)
-      .setLazySession(true);
+      .setLazySession(true));
 
     router.clear();
 

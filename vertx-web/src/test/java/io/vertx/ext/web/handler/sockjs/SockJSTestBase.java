@@ -23,6 +23,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.handler.SessionHandlerOptions;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.test.core.VertxTestBase;
 
@@ -60,9 +61,9 @@ abstract class SockJSTestBase extends VertxTestBase {
 
         Router router = Router.router(vertx);
         router.route()
-          .handler(SessionHandler.create(LocalSessionStore.create(vertx))
+          .handler(SessionHandler.create(LocalSessionStore.create(vertx), new SessionHandlerOptions()
             .setNagHttps(false)
-            .setSessionTimeout(60 * 60 * 1000));
+            .setSessionTimeout(60 * 60 * 1000)));
 
         if (preSockJSHandlerSetup != null) {
           preSockJSHandlerSetup.accept(router);

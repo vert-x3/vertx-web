@@ -18,23 +18,19 @@ package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.internal.buffer.BufferInternal;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.WebSocket;
-import io.vertx.core.http.WebSocketConnectOptions;
-import io.vertx.core.http.WebSocketFrame;
-import io.vertx.core.http.WebSocketFrameType;
+import io.vertx.core.http.*;
 import io.vertx.core.http.impl.ws.WebSocketFrameImpl;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.internal.buffer.BufferInternal;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.handler.SessionHandlerOptions;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.test.core.TestUtils;
@@ -376,7 +372,7 @@ public class SockJSHandlerTest extends WebTestBase {
     // given that we want to test sessions created and modified during sockjs handshakes we
     // can't rely on the response to be available to set cookies. In this test we use cookieless
     // sessions to adress the timing issues
-    SessionHandler handler = SessionHandler.create(store).setCookieless(true);
+    SessionHandler handler = SessionHandler.create(store, new SessionHandlerOptions().setCookieless(true));
     CompletableFuture<String> sessionID = new CompletableFuture<>();
     CompletableFuture<User> sessionUser = new CompletableFuture<>();
     router.route("/webcontext*").subRouter(SockJSHandler.create(vertx)
