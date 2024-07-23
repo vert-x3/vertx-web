@@ -13,8 +13,8 @@ import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.ChainAuthHandler;
 import io.vertx.ext.web.handler.HttpException;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements ChainAuthHandler {
 
@@ -22,7 +22,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
 
   private static final String HANDLER_IDX = "__vertx.auth.chain.idx";
 
-  private final List<AuthenticationHandlerInternal> handlers = new ArrayList<>();
+  private final List<AuthenticationHandlerInternal> handlers = new CopyOnWriteArrayList<>();
   private final boolean all;
 
   private int willRedirect = -1;
@@ -38,7 +38,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   }
 
   @Override
-  public synchronized ChainAuthHandler add(AuthenticationHandler other) {
+  public ChainAuthHandler add(AuthenticationHandler other) {
     if (performsRedirect()) {
       throw new IllegalStateException("Cannot add a handler after a handler known to perform a HTTP redirect: " + handlers.get(willRedirect));
     }
