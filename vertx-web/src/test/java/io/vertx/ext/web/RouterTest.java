@@ -3647,9 +3647,9 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testCatchAllErrorHandler() throws Exception {
+  public void testUncaughtErrorHandler() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
-    router.catchAllErrorHandler(context -> context.response().setStatusCode(context.statusCode()).setStatusMessage("Dumb").end());
+    router.uncaughtErrorHandler(context -> context.response().setStatusCode(context.statusCode()).setStatusMessage("Dumb").end());
 
     testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Dumb");
   }

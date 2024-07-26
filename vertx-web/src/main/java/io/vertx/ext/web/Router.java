@@ -382,7 +382,7 @@ public interface Router extends Handler<HttpServerRequest> {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  Router catchAllErrorHandler(Handler<RoutingContext> errorHandler);
+  Router uncaughtErrorHandler(Handler<RoutingContext> errorHandler);
 
   /**
    * Used to route a context to the router. Used for sub-routers. You wouldn't normally call this method directly.

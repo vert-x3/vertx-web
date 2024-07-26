@@ -57,17 +57,17 @@ final class RouterState {
   private final TreeSet<RouteImpl> routes;
   private final int orderSequence;
   private final Map<Integer, Handler<RoutingContext>> errorHandlers;
-  private final Handler<RoutingContext> catchAllErrorHandler;
+  private final Handler<RoutingContext> uncaughtErrorHandler;
   private final Handler<Router> modifiedHandler;
   private final AllowForwardHeaders allowForward;
   private final Map<String, Object> metadata;
 
-  public RouterState(RouterImpl router, TreeSet<RouteImpl> routes, int orderSequence, Map<Integer, Handler<RoutingContext>> errorHandlers, final Handler<RoutingContext> catchAllErrorHandler, Handler<Router> modifiedHandler, AllowForwardHeaders allowForward, Map<String, Object> metadata) {
+  public RouterState(RouterImpl router, TreeSet<RouteImpl> routes, int orderSequence, Map<Integer, Handler<RoutingContext>> errorHandlers, final Handler<RoutingContext> uncaughtErrorHandler, Handler<Router> modifiedHandler, AllowForwardHeaders allowForward, Map<String, Object> metadata) {
     this.router = router;
     this.routes = routes;
     this.orderSequence = orderSequence;
     this.errorHandlers = errorHandlers;
-    this.catchAllErrorHandler = catchAllErrorHandler;
+    this.uncaughtErrorHandler = uncaughtErrorHandler;
     this.modifiedHandler = modifiedHandler;
     this.allowForward = allowForward;
     this.metadata = metadata;
@@ -102,7 +102,7 @@ final class RouterState {
       new TreeSet<>(routeComparator),
       this.orderSequence,
       this.errorHandlers,
-      this.catchAllErrorHandler,
+      this.uncaughtErrorHandler,
       this.modifiedHandler,
       this.allowForward,
       this.metadata);
@@ -123,7 +123,7 @@ final class RouterState {
       routes,
       this.orderSequence,
       this.errorHandlers,
-      this.catchAllErrorHandler,
+      this.uncaughtErrorHandler,
       this.modifiedHandler,
       this.allowForward,
       this.metadata);
@@ -135,7 +135,8 @@ final class RouterState {
       new TreeSet<>(routeComparator),
       this.orderSequence,
       this.errorHandlers,
-      null, this.modifiedHandler,
+      null,
+      this.modifiedHandler,
       this.allowForward,
       this.metadata);
   }
@@ -152,7 +153,7 @@ final class RouterState {
       routes,
       this.orderSequence,
       this.errorHandlers,
-      this.catchAllErrorHandler,
+      this.uncaughtErrorHandler,
       this.modifiedHandler,
       this.allowForward,
       this.metadata);
@@ -168,7 +169,7 @@ final class RouterState {
       this.routes,
       this.orderSequence + 1,
       this.errorHandlers,
-      this.catchAllErrorHandler,
+      this.uncaughtErrorHandler,
       this.modifiedHandler,
       this.allowForward,
       this.metadata);
@@ -180,7 +181,7 @@ final class RouterState {
       this.routes,
       orderSequence,
       this.errorHandlers,
-      this.catchAllErrorHandler,
+      this.uncaughtErrorHandler,
       this.modifiedHandler,
       this.allowForward,
       this.metadata);
@@ -196,7 +197,7 @@ final class RouterState {
       this.routes,
       this.orderSequence,
       errorHandlers,
-      this.catchAllErrorHandler,
+      this.uncaughtErrorHandler,
       this.modifiedHandler,
       this.allowForward,
       this.metadata);
@@ -209,7 +210,7 @@ final class RouterState {
         return errorHandler;
       }
     }
-    return catchAllErrorHandler;
+    return uncaughtErrorHandler;
   }
 
   RouterState putErrorHandler(int errorCode, Handler<RoutingContext> errorHandler) {
@@ -218,7 +219,7 @@ final class RouterState {
       this.routes,
       this.orderSequence,
       this.errorHandlers == null ? new HashMap<>() : new HashMap<>(errorHandlers),
-      this.catchAllErrorHandler,
+      this.uncaughtErrorHandler,
       this.modifiedHandler,
       this.allowForward,
       this.metadata);
@@ -227,7 +228,7 @@ final class RouterState {
     return newState;
   }
 
-  RouterState setCatchAllErrorHandler(Handler<RoutingContext> errorHandler) {
+  RouterState setUncaughtErrorHandler(Handler<RoutingContext> errorHandler) {
     return new RouterState(
       this.router,
       this.routes,
@@ -249,7 +250,7 @@ final class RouterState {
       this.routes,
       this.orderSequence,
       this.errorHandlers,
-      this.catchAllErrorHandler,
+      this.uncaughtErrorHandler,
       modifiedHandler,
       this.allowForward,
       this.metadata);
@@ -261,7 +262,7 @@ final class RouterState {
       this.routes,
       this.orderSequence,
       this.errorHandlers,
-      this.catchAllErrorHandler,
+      this.uncaughtErrorHandler,
       this.modifiedHandler,
       allow,
       this.metadata);
@@ -283,7 +284,7 @@ final class RouterState {
       this.routes,
       this.orderSequence,
       this.errorHandlers,
-      this.catchAllErrorHandler,
+      this.uncaughtErrorHandler,
       this.modifiedHandler,
       this.allowForward,
       Collections.unmodifiableMap(metadata));

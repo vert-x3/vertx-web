@@ -297,8 +297,8 @@ public class RouterImpl implements Router {
   }
 
   @Override
-  public synchronized Router catchAllErrorHandler(Handler<RoutingContext> errorHandler) {
-    state = state.setCatchAllErrorHandler(errorHandler);
+  public synchronized Router uncaughtErrorHandler(Handler<RoutingContext> errorHandler) {
+    state = state.setUncaughtErrorHandler(errorHandler);
     return this;
   }
 
