@@ -23,7 +23,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.http.impl.HttpClientInternal;
+import io.vertx.core.internal.http.HttpClientInternal;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.ProxyOptions;
