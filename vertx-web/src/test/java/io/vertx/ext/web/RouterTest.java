@@ -3645,4 +3645,12 @@ public class RouterTest extends WebTestBase {
       "/?x=1#4",
       200, "OK");
   }
+
+  @Test
+  public void testUncaughtErrorHandler() throws Exception {
+    router.route().consumes("text/html").handler(rc -> rc.response().end());
+    router.uncaughtErrorHandler(context -> context.response().setStatusCode(context.statusCode()).setStatusMessage("Dumb").end());
+
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Dumb");
+  }
 }
