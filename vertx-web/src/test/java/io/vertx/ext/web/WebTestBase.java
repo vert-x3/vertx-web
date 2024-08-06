@@ -20,6 +20,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.BodyHandlerOptions;
 import io.vertx.test.core.VertxTestBase;
 
 import java.io.BufferedReader;
@@ -297,10 +298,10 @@ public class WebTestBase extends VertxTestBase {
   }
 
   /**
-   * Cleanup upload files left by {@link BodyHandler} at location {@link BodyHandler#DEFAULT_UPLOADS_DIRECTORY}
+   * Cleanup upload files left by {@link BodyHandler} at location {@link BodyHandlerOptions#DEFAULT_UPLOADS_DIRECTORY}
    */
   public static void cleanupFileUploadDir() throws IOException {
-    File f = new File(BodyHandler.DEFAULT_UPLOADS_DIRECTORY);
+    File f = new File(BodyHandlerOptions.DEFAULT_UPLOADS_DIRECTORY);
     if (f.exists() && f.isDirectory()) {
       Files.walk(f.toPath())
         .sorted(Comparator.reverseOrder())

@@ -3,6 +3,7 @@ package io.vertx.ext.web.validation;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.BodyHandlerOptions;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.junit5.Checkpoint;
@@ -35,7 +36,7 @@ public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHa
       .build();
 
     router.route("/testRequiredBody")
-      .handler(BodyHandler.create(tempDir.toAbsolutePath().toString()))
+      .handler(BodyHandler.create(new BodyHandlerOptions().setUploadsDirectory(tempDir.toAbsolutePath().toString())))
       .handler(validationHandler)
       .handler(routingContext ->
         routingContext
@@ -69,7 +70,7 @@ public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHa
       .build();
 
     router.post("/testFileUpload")
-      .handler(BodyHandler.create(tempDir.toAbsolutePath().toString()))
+      .handler(BodyHandler.create(new BodyHandlerOptions().setUploadsDirectory(tempDir.toAbsolutePath().toString())))
       .handler(validationHandler)
       .handler(routingContext ->
         routingContext

@@ -15,17 +15,15 @@
  */
 package io.vertx.ext.web.handler;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
-import io.vertx.ext.web.handler.impl.TemplateHandlerImpl;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.common.template.TemplateEngine;
+import io.vertx.ext.web.handler.impl.TemplateHandlerImpl;
 
 /**
  *
- * A handler which renders responses using a template engine and where the template name is selected from the URI
- * path.
+ * A handler which renders responses using a template engine and where the template name is selected from the URI path.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -47,36 +45,30 @@ public interface TemplateHandler extends Handler<RoutingContext> {
    */
   String DEFAULT_INDEX_TEMPLATE = "index";
 
-
   /**
-   * Set the index template
-   *
-   * @param indexTemplate the index template
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  TemplateHandler setIndexTemplate(String indexTemplate);
-
-  /**
-   * Create a handler
-   *
-   * @param engine  the template engine
-   * @return the handler
+   * Like {@link #create(TemplateEngine, String, String, String)}, with default values.
    */
   static TemplateHandler create(TemplateEngine engine) {
-    return new TemplateHandlerImpl(engine, DEFAULT_TEMPLATE_DIRECTORY, DEFAULT_CONTENT_TYPE);
+    return create(engine, DEFAULT_TEMPLATE_DIRECTORY, DEFAULT_CONTENT_TYPE);
   }
 
   /**
-   * Create a handler
-   *
-   * @param engine  the template engine
-   * @param templateDirectory  the template directory where templates will be looked for
-   * @param contentType  the content type header to be used in the response
-   * @return the handler
+   * Like {@link #create(TemplateEngine, String, String, String)}, with default values.
    */
   static TemplateHandler create(TemplateEngine engine, String templateDirectory, String contentType) {
-    return new TemplateHandlerImpl(engine, templateDirectory, contentType);
+    return new TemplateHandlerImpl(engine, templateDirectory, contentType, TemplateHandler.DEFAULT_INDEX_TEMPLATE);
   }
 
+  /**
+   * Create a handler.
+   *
+   * @param engine the template engine
+   * @param templateDirectory the template directory where templates will be looked for
+   * @param contentType the content type header to be used in the response
+   * @param indexTemplate the index template
+   * @return the handler
+   */
+  static TemplateHandler create(TemplateEngine engine, String templateDirectory, String contentType, String indexTemplate) {
+    return new TemplateHandlerImpl(engine, templateDirectory, contentType, indexTemplate);
+  }
 }

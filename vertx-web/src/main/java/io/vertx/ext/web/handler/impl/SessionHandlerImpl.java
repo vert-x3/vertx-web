@@ -27,6 +27,7 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.handler.SessionHandlerOptions;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.impl.Signature;
 import io.vertx.ext.web.impl.UserContextInternal;
@@ -34,6 +35,9 @@ import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.sstore.impl.SessionInternal;
 
 import java.util.Objects;
+
+import static io.vertx.ext.web.handler.SessionHandlerOptions.DEFAULT_SESSION_COOKIE_NAME;
+import static io.vertx.ext.web.handler.SessionHandlerOptions.DEFAULT_SESSION_COOKIE_PATH;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -48,94 +52,36 @@ public class SessionHandlerImpl implements SessionHandler {
 
   private final SessionStore sessionStore;
 
-  private String sessionCookieName = DEFAULT_SESSION_COOKIE_NAME;
-  private String sessionCookiePath = DEFAULT_SESSION_COOKIE_PATH;
-  private long sessionTimeout = DEFAULT_SESSION_TIMEOUT;
-  private boolean nagHttps = DEFAULT_NAG_HTTPS;
-  private boolean sessionCookieSecure = DEFAULT_COOKIE_SECURE_FLAG;
-  private boolean sessionCookieHttpOnly = DEFAULT_COOKIE_HTTP_ONLY_FLAG;
-  private int minLength = DEFAULT_SESSIONID_MIN_LENGTH;
-  private boolean lazySession = DEFAULT_LAZY_SESSION;
-  private long cookieMaxAge = -1;
+  private final String sessionCookieName;
+  private final String sessionCookiePath;
+  private final long sessionTimeout;
+  private final boolean nagHttps;
+  private final boolean sessionCookieSecure;
+  private final boolean sessionCookieHttpOnly;
+  private final int minLength;
+  private final boolean lazySession;
+  private final long cookieMaxAge;
 
-  private boolean cookieless;
-  private CookieSameSite cookieSameSite;
-  private Signature signature;
+  private final boolean cookieless;
+  private final CookieSameSite cookieSameSite;
+  private final Signature signature;
 
-  public SessionHandlerImpl(SessionStore sessionStore) {
-    this.sessionStore = sessionStore;
-  }
-
-  @Override
-  public SessionHandler setSessionTimeout(long timeout) {
-    this.sessionTimeout = timeout;
-    return this;
-  }
-
-  @Override
-  public SessionHandler setNagHttps(boolean nag) {
-    this.nagHttps = nag;
-    return this;
-  }
-
-  @Override
-  public SessionHandler setCookieSecureFlag(boolean secure) {
-    this.sessionCookieSecure = secure;
-    return this;
-  }
-
-  @Override
-  public SessionHandler setCookieHttpOnlyFlag(boolean httpOnly) {
-    this.sessionCookieHttpOnly = httpOnly;
-    return this;
-  }
-
-  @Override
-  public SessionHandler setSessionCookieName(String sessionCookieName) {
-    this.sessionCookieName = sessionCookieName;
-    return this;
-  }
-
-  @Override
-  public SessionHandler setSessionCookiePath(String sessionCookiePath) {
-    this.sessionCookiePath = sessionCookiePath;
-    return this;
-  }
-
-  @Override
-  public SessionHandler setMinLength(int minLength) {
-    this.minLength = minLength;
-    return this;
-  }
-
-  @Override
-  public SessionHandler setCookieSameSite(CookieSameSite policy) {
-    this.cookieSameSite = policy;
-    return this;
-  }
-
-  @Override
-  public SessionHandler setLazySession(boolean lazySession) {
-    this.lazySession = lazySession;
-    return this;
-  }
-
-  @Override
-  public SessionHandler setCookieMaxAge(long cookieMaxAge) {
-    this.cookieMaxAge = cookieMaxAge;
-    return this;
-  }
-
-  @Override
-  public SessionHandler setCookieless(boolean cookieless) {
-    this.cookieless = cookieless;
-    return this;
-  }
-
-  @Override
-  public SessionHandler setSigningSecret(String secret) {
-    this.signature = new Signature(secret);
-    return this;
+  public SessionHandlerImpl(SessionStore sessionStore, SessionHandlerOptions options) {
+    this.sessionStore = Objects.requireNonNull(sessionStore, "sessionStore cannot be null");
+    Objects.requireNonNull(options, "options cannot be null");
+    sessionCookieName = Objects.requireNonNullElse(options.getSessionCookieName(), DEFAULT_SESSION_COOKIE_NAME);
+    sessionCookiePath = Objects.requireNonNullElse(options.getSessionCookiePath(), DEFAULT_SESSION_COOKIE_PATH);
+    sessionTimeout = options.getSessionTimeout();
+    nagHttps = options.isNagHttps();
+    sessionCookieSecure = options.isCookieSecureFlag();
+    sessionCookieHttpOnly = options.isCookieHttpOnlyFlag();
+    minLength = options.getMinLength();
+    lazySession = options.isLazySession();
+    cookieMaxAge = options.getCookieMaxAge();
+    cookieless = options.isCookieless();
+    cookieSameSite = options.getCookieSameSite();
+    String signingSecret = options.getSigningSecret();
+    signature = signingSecret != null ? new Signature(signingSecret) : null;
   }
 
   @Override
