@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
@@ -66,5 +67,13 @@ public class TimeoutHandlerTest extends WebTestBase {
     Thread.sleep(1000); // Let timer kick in, if it's going to
   }
 
-
+  @Test
+  public void testTimeoutWithReroute() throws Exception {
+    router.route().handler(TimeoutHandler.create(500));
+    router.get("/a").handler(rc -> rc.reroute("/b"));
+    router.get("/b").handler(RoutingContext::end);
+    router.errorHandler(TimeoutHandler.DEFAULT_ERRORCODE, rc -> fail());
+    testRequest(HttpMethod.GET, "/a", 200, "OK");
+    Thread.sleep(1000);
+  }
 }
