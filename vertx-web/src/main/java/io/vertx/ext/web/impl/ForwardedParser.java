@@ -111,7 +111,11 @@ class ForwardedParser {
     calculated = true;
     remoteAddress = delegate.remoteAddress();
     scheme = delegate.scheme();
-    setHostAndPort(delegate.authority());
+
+    HostAndPort authority = delegate.authority();
+    if (authority != null) {
+      setHostAndPort(authority);
+    }
 
     switch (allowForward) {
       case X_FORWARD:
@@ -134,7 +138,7 @@ class ForwardedParser {
     }
 
     if (host != null) {
-      authority = HostAndPort.create(host, port);
+      this.authority = HostAndPort.create(host, port);
       host = host + (port >= 0 ? ":" + port : "");
       absoluteURI = scheme + "://" + host + delegate.uri();
     }
@@ -191,7 +195,7 @@ class ForwardedParser {
     }
   }
 
-  private void setHostAndPort(HostAndPort authority) {
+  private void  setHostAndPort(HostAndPort authority) {
     host = authority.host();
     port = authority.port();
   }
