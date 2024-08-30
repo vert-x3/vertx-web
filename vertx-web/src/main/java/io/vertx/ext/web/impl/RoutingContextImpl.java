@@ -80,7 +80,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     String path = request.path();
     HostAndPort authority = request.authority();
 
-    if (authority == null || path == null || path.isEmpty()) {
+    if ((authority == null && request.version() != HttpVersion.HTTP_1_0) || path == null || path.isEmpty()) {
       // Authority must be present (HTTP/1.x host header // HTTP/2 :authority pseudo header)
       // HTTP paths must start with a '/'
       fail(400);

@@ -2601,11 +2601,20 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testMissingHostHeader() throws Exception {
+  public void testMissingHostHeaderHttp1_1() throws Exception {
+    testMissingHostHeader("HTTP/1.1", 400);
+  }
+
+  @Test
+  public void testMissingHostHeaderHttp1_0() throws Exception {
+    testMissingHostHeader("HTTP/1.0", 200);
+  }
+
+  private void testMissingHostHeader(String httpVersion, int expectedStatusCode) throws Exception {
     router.route().handler(rc -> rc.response().end());
     NetClient nc = vertx.createNetClient();
     nc.connect(SocketAddress.inetSocketAddress(8080, "localhost")).onComplete(onSuccess(so -> {
-      so.write("GET / HTTP/1.1\r\n\r\n");
+      so.write("GET / " + httpVersion + "\r\n\r\n");
       Buffer response = Buffer.buffer();
       so.handler(chunk -> {
         response.appendBuffer(chunk);
@@ -2615,7 +2624,7 @@ public class RouterTest extends WebTestBase {
           so.handler(null);
           String[] line = s.substring(0, idx).split("\\s+");
           assertTrue(line.length >= 3);
-          assertEquals("400", line[1]);
+          assertEquals("" + expectedStatusCode, line[1]);
           testComplete();
         }
       });
