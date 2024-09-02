@@ -29,7 +29,7 @@
   <artifactId>vertx-web-graphql</artifactId>
 
   <properties>
-    <graphql.java.version>22.1</graphql.java.version>
+    <graphql.java.version>22.2</graphql.java.version>
   </properties>
 
   <dependencies>
