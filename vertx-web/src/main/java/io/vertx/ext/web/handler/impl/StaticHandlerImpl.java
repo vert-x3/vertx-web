@@ -16,49 +16,34 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
-import static io.netty.handler.codec.http.HttpResponseStatus.PARTIAL_CONTENT;
-import static io.netty.handler.codec.http.HttpResponseStatus.REQUESTED_RANGE_NOT_SATISFIABLE;
-
-import java.io.File;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.file.FileProps;
 import io.vertx.core.file.FileSystem;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.internal.net.URIDecoder;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.FileSystemAccess;
 import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.handler.StaticHandlerOptions;
 import io.vertx.ext.web.impl.LRUCache;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
 import io.vertx.ext.web.impl.Utils;
+
+import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 
 /**
  * Static web server
@@ -72,48 +57,67 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(StaticHandlerImpl.class);
 
-  // TODO change to private final after setWebRoot has been removed
-  private String webRoot = DEFAULT_WEB_ROOT;
-  private long maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS; // One day
-  private boolean directoryListing = DEFAULT_DIRECTORY_LISTING;
-  private String directoryTemplateResource = DEFAULT_DIRECTORY_TEMPLATE;
+  private final String webRoot;
+  private final long maxAgeSeconds;
+  private final boolean directoryListing;
+  private final String directoryTemplateResource;
   private String directoryTemplate;
-  private boolean includeHidden = DEFAULT_INCLUDE_HIDDEN;
-  private boolean filesReadOnly = DEFAULT_FILES_READ_ONLY;
-  private String indexPage = DEFAULT_INDEX_PAGE;
-  private List<Http2PushMapping> http2PushMappings;
-  private boolean rangeSupport = DEFAULT_RANGE_SUPPORT;
-  // TODO change to private final after setAllowRootAccess has been removed
-  private boolean allowRootFileSystemAccess = DEFAULT_ROOT_FILESYSTEM_ACCESS;
-  private boolean sendVaryHeader = DEFAULT_SEND_VARY_HEADER;
-  private String defaultContentEncoding = Charset.defaultCharset().name();
+  private final boolean includeHidden;
+  private final boolean filesReadOnly;
+  private final String indexPage;
+  private final List<Http2PushMapping> http2PushMappings;
+  private final boolean rangeSupport;
+  private final boolean sendVaryHeader;
+  private final String defaultContentEncoding;
 
-  private Set<String> compressedMediaTypes = Collections.emptySet();
-  private Set<String> compressedFileSuffixes = Collections.emptySet();
+  private final Set<String> compressedMediaTypes;
+  private final Set<String> compressedFileSuffixes;
 
-  private final FSTune tune = new FSTune();
-  private final FSPropsCache cache = new FSPropsCache();
+  private final FSTune tune;
+  private final FSPropsCache cache;
 
-  /**
-   * Constructor called by static factory method
-   *
-   * @param visibility          path specified by root is RELATIVE or ROOT
-   * @param staticRootDirectory path on host with static file location
-   */
-  public StaticHandlerImpl(FileSystemAccess visibility, String staticRootDirectory) {
-
-    switch (visibility) {
-      case ROOT:
-        this.allowRootFileSystemAccess = true;
-        break;
-      case RELATIVE:
-        this.allowRootFileSystemAccess = false;
-        break;
-      default:
-        throw new IllegalStateException("Unsupported visibility: " + visibility);
+  public StaticHandlerImpl(boolean allowRootFileSystemAccess, String webRoot, StaticHandlerOptions options) {
+    Objects.requireNonNull(webRoot);
+    if (!allowRootFileSystemAccess) {
+      for (File root : File.listRoots()) {
+        if (webRoot.startsWith(root.getAbsolutePath())) {
+          throw new IllegalArgumentException("root cannot start with '" + root.getAbsolutePath() + "'");
+        }
+      }
     }
-
-    this.setRoot(staticRootDirectory != null ? staticRootDirectory : DEFAULT_WEB_ROOT);
+    this.webRoot = webRoot;
+    maxAgeSeconds = options.getMaxAgeSeconds();
+    directoryListing = options.isDirectoryListing();
+    directoryTemplateResource = Objects.requireNonNullElse(options.getDirectoryTemplate(), StaticHandlerOptions.DEFAULT_DIRECTORY_TEMPLATE);
+    includeHidden = options.isIncludeHidden();
+    filesReadOnly = options.isFilesReadOnly();
+    indexPage = Objects.requireNonNullElse(options.getIndexPage(), StaticHandlerOptions.DEFAULT_INDEX_PAGE);
+    List<Http2PushMapping> http2PushMappings = options.getHttp2PushMappings();
+    if (http2PushMappings != null) {
+      this.http2PushMappings = new ArrayList<>(http2PushMappings.size());
+      for (Http2PushMapping mapping : http2PushMappings) {
+        this.http2PushMappings.add(new Http2PushMapping(mapping));
+      }
+    } else {
+      this.http2PushMappings = null;
+    }
+    rangeSupport = options.isEnableRangeSupport();
+    sendVaryHeader = options.isSendVaryHeader();
+    defaultContentEncoding = Objects.requireNonNullElse(options.getDefaultContentEncoding(), Charset.defaultCharset().name());
+    Set<String> compressedMediaTypes = options.getCompressedMediaTypes();
+    if (compressedMediaTypes != null) {
+      this.compressedMediaTypes = new HashSet<>(compressedMediaTypes);
+    } else {
+      this.compressedMediaTypes = Collections.emptySet();
+    }
+    Set<String> compressedFileSuffixes = options.getCompressedFileSuffixes();
+    if (compressedFileSuffixes != null) {
+      this.compressedFileSuffixes = new HashSet<>(compressedFileSuffixes);
+    } else {
+      this.compressedFileSuffixes = Collections.emptySet();
+    }
+    tune = new FSTune(options);
+    cache = new FSPropsCache(options);
   }
 
   private String directoryTemplate(FileSystem fileSystem) {
@@ -532,147 +536,12 @@ public class StaticHandlerImpl implements StaticHandler {
     }
   }
 
-  @Override
-  public StaticHandler setFilesReadOnly(boolean readOnly) {
-    this.filesReadOnly = readOnly;
-    return this;
-  }
-
-  @Override
-  public StaticHandler setMaxAgeSeconds(long maxAgeSeconds) {
-    if (maxAgeSeconds < 0) {
-      throw new IllegalArgumentException("timeout must be >= 0");
-    }
-    this.maxAgeSeconds = maxAgeSeconds;
-    return this;
-  }
-
-  @Override
-  public StaticHandler setMaxCacheSize(int maxCacheSize) {
-    cache.setMaxSize(maxCacheSize);
-    return this;
-  }
-
-  @Override
-  public StaticHandler setCachingEnabled(boolean enabled) {
-    cache.setEnabled(enabled);
-    return this;
-  }
-
-  @Override
-  public StaticHandler setDirectoryListing(boolean directoryListing) {
-    this.directoryListing = directoryListing;
-    return this;
-  }
-
-  @Override
-  public StaticHandler setDirectoryTemplate(String directoryTemplate) {
-    this.directoryTemplateResource = directoryTemplate;
-    this.directoryTemplate = null;
-    return this;
-  }
-
-  @Override
-  public StaticHandler setEnableRangeSupport(boolean enableRangeSupport) {
-    this.rangeSupport = enableRangeSupport;
-    return this;
-  }
-
-  @Override
-  public StaticHandler setIncludeHidden(boolean includeHidden) {
-    this.includeHidden = includeHidden;
-    return this;
-  }
-
-  @Override
-  public StaticHandler setCacheEntryTimeout(long timeout) {
-    cache.setCacheEntryTimeout(timeout);
-    return this;
-  }
-
-  @Override
-  public StaticHandler setIndexPage(String indexPage) {
-    Objects.requireNonNull(indexPage);
-    if (indexPage.charAt(0) == '/') {
-      this.indexPage = indexPage.substring(1);
-    } else {
-      this.indexPage = indexPage;
-    }
-    return this;
-  }
-
-  @Override
-  public StaticHandler setAlwaysAsyncFS(boolean alwaysAsyncFS) {
-    tune.setAlwaysAsyncFS(alwaysAsyncFS);
-    return this;
-  }
-
-  @Override
-  public StaticHandler setHttp2PushMapping(List<Http2PushMapping> http2PushMap) {
-    if (http2PushMap != null) {
-      this.http2PushMappings = new ArrayList<>(http2PushMap);
-    }
-    return this;
-  }
-
-  @Override
-  public StaticHandler skipCompressionForMediaTypes(Set<String> mediaTypes) {
-    if (mediaTypes != null) {
-      this.compressedMediaTypes = new HashSet<>(mediaTypes);
-    }
-    return this;
-  }
-
-  @Override
-  public StaticHandler skipCompressionForSuffixes(Set<String> fileSuffixes) {
-    if (fileSuffixes != null) {
-      this.compressedFileSuffixes = new HashSet<>(fileSuffixes);
-    }
-    return this;
-  }
-
-  @Override
-  public synchronized StaticHandler setEnableFSTuning(boolean enableFSTuning) {
-    tune.setEnabled(enableFSTuning);
-    return this;
-  }
-
-  @Override
-  public StaticHandler setMaxAvgServeTimeNs(long maxAvgServeTimeNanoSeconds) {
-    tune.maxAvgServeTimeNanoSeconds = maxAvgServeTimeNanoSeconds;
-    return this;
-  }
-
-  @Override
-  public StaticHandler setSendVaryHeader(boolean sendVaryHeader) {
-    this.sendVaryHeader = sendVaryHeader;
-    return this;
-  }
-
-  @Override
-  public StaticHandler setDefaultContentEncoding(String contentEncoding) {
-    this.defaultContentEncoding = contentEncoding;
-    return this;
-  }
-
   private String getFile(String path, RoutingContext context) {
     String file = webRoot + Utils.pathOffset(path, context);
     if (LOG.isTraceEnabled()) {
       LOG.trace("File to serve is " + file);
     }
     return file;
-  }
-
-  private void setRoot(String webRoot) {
-    Objects.requireNonNull(webRoot);
-    if (!allowRootFileSystemAccess) {
-      for (File root : File.listRoots()) {
-        if (webRoot.startsWith(root.getAbsolutePath())) {
-          throw new IllegalArgumentException("root cannot start with '" + root.getAbsolutePath() + "'");
-        }
-      }
-    }
-    this.webRoot = webRoot;
   }
 
   private static final Collection<MIMEHeader> DIRECTORY_LISTING_ACCEPT = Arrays.asList(
@@ -816,20 +685,24 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   private static class FSTune {
-    // These members are all related to auto tuning of synchronous vs asynchronous
-    // file system access
-    private static final int NUM_SERVES_TUNING_FS_ACCESS = 1000;
+    // These members are all related to auto-tuning of synchronous vs asynchronous file system access
+    static final int NUM_SERVES_TUNING_FS_ACCESS = 1000;
 
-    // these variables are read often and should always represent the
-    // real value, no caching should be allowed
-    private volatile boolean enabled = DEFAULT_ENABLE_FS_TUNING;
-    private volatile boolean useAsyncFS;
+    // These variables are read often and should always represent the real value, no caching should be allowed
+    volatile boolean enabled;
+    volatile boolean useAsyncFS;
 
-    private long totalTime;
-    private long numServesBlocking;
-    private long nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
-    private long maxAvgServeTimeNanoSeconds = DEFAULT_MAX_AVG_SERVE_TIME_NS;
-    private boolean alwaysAsyncFS = DEFAULT_ALWAYS_ASYNC_FS;
+    long totalTime;
+    long numServesBlocking;
+    long nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
+    final long maxAvgServeTimeNanoSeconds;
+    final boolean alwaysAsyncFS;
+
+    FSTune(StaticHandlerOptions options) {
+      enabled = options.isEnableFSTuning();
+      alwaysAsyncFS = options.isAlwaysAsyncFS();
+      maxAvgServeTimeNanoSeconds = options.getMaxAvgServeTimeNs();
+    }
 
     boolean enabled() {
       return enabled;
@@ -837,17 +710,6 @@ public class StaticHandlerImpl implements StaticHandler {
 
     boolean useAsyncFS() {
       return alwaysAsyncFS || useAsyncFS;
-    }
-
-    synchronized void setEnabled(boolean enabled) {
-      this.enabled = enabled;
-      if (!enabled) {
-        reset();
-      }
-    }
-
-    void setAlwaysAsyncFS(boolean alwaysAsyncFS) {
-      this.alwaysAsyncFS = alwaysAsyncFS;
     }
 
     synchronized void update(long start, long end) {
@@ -880,54 +742,23 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   private static class FSPropsCache {
-    private Map<String, CacheEntry> propsCache;
-    private long cacheEntryTimeout = DEFAULT_CACHE_ENTRY_TIMEOUT;
-    private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
+    final Map<String, CacheEntry> propsCache;
+    final long cacheEntryTimeout;
 
-    FSPropsCache() {
-      setEnabled(DEFAULT_CACHING_ENABLED);
+    FSPropsCache(StaticHandlerOptions options) {
+      if (options.isCachingEnabled()) {
+        propsCache = new LRUCache<>(options.getMaxCacheSize());
+      } else {
+        propsCache = null;
+      }
+      cacheEntryTimeout = options.getCacheEntryTimeout();
     }
 
     boolean enabled() {
       return propsCache != null;
     }
 
-    synchronized void setMaxSize(int maxCacheSize) {
-      if (maxCacheSize < 1) {
-        throw new IllegalArgumentException("maxCacheSize must be >= 1");
-      }
-      if (this.maxCacheSize != maxCacheSize) {
-        this.maxCacheSize = maxCacheSize;
-        // force the creation of the cache with the correct size
-        setEnabled(enabled(), true);
-      }
-    }
-
-    void setEnabled(boolean enable) {
-      setEnabled(enable, false);
-    }
-
-    private synchronized void setEnabled(boolean enable, boolean force) {
-      if (force || enable != enabled()) {
-        if (propsCache != null) {
-          propsCache.clear();
-        }
-        if (enable) {
-          propsCache = new LRUCache<>(maxCacheSize);
-        } else {
-          propsCache = null;
-        }
-      }
-    }
-
-    void setCacheEntryTimeout(long timeout) {
-      if (timeout < 1) {
-        throw new IllegalArgumentException("timeout must be >= 1");
-      }
-      this.cacheEntryTimeout = timeout;
-    }
-
-    private void remove(String path) {
+    void remove(String path) {
       if (propsCache != null) {
         propsCache.remove(path);
       }

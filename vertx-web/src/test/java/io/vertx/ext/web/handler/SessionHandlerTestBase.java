@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
+import static io.vertx.ext.web.handler.SessionHandlerOptions.*;
 import static java.util.concurrent.TimeUnit.*;
 
 /**
@@ -46,7 +47,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 	@Test
 	public void testSessionCookieName() throws Exception {
 		String sessionCookieName = "acme.sillycookie";
-		router.route().handler(SessionHandler.create(store).setSessionCookieName(sessionCookieName));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setSessionCookieName(sessionCookieName)));
 		router.route().handler(rc -> rc.response().end());
 		testRequest(HttpMethod.GET, "/", null, resp -> {
 			String setCookie = resp.headers().get("set-cookie");
@@ -56,7 +57,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSessionCookiePath() throws Exception {
-		router.route().handler(SessionHandler.create(store).setSessionCookiePath("/path"));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setSessionCookiePath("/path")));
 		router.route().handler(rc -> rc.response().end());
 		testRequest(HttpMethod.GET, "/", null, resp -> {
 			String setCookie = resp.headers().get("set-cookie");
@@ -66,7 +67,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSessionCookieHttpOnlyFlag() throws Exception {
-		router.route().handler(SessionHandler.create(store).setCookieHttpOnlyFlag(true));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setCookieHttpOnlyFlag(true)));
 		router.route().handler(rc -> rc.response().end());
 
 		testRequest(HttpMethod.GET, "/", null, resp -> {
@@ -78,7 +79,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSessionCookieSecureFlag() throws Exception {
-		router.route().handler(SessionHandler.create(store).setCookieSecureFlag(true));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setCookieSecureFlag(true)));
 		router.route().handler(rc -> rc.response().end());
 
 		testRequest(HttpMethod.GET, "/", null, resp -> {
@@ -90,7 +91,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	@Test
 	public void testSessionCookieSecureFlagAndHttpOnlyFlags() throws Exception {
-		router.route().handler(SessionHandler.create(store).setCookieSecureFlag(true).setCookieHttpOnlyFlag(true));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setCookieSecureFlag(true).setCookieHttpOnlyFlag(true)));
 		router.route().handler(rc -> rc.response().end());
 
 		testRequest(HttpMethod.GET, "/", null, resp -> {
@@ -112,13 +113,13 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 			assertNotNull(sess.id());
 			rid.set(sess.value());
 			assertFalse(sess.isDestroyed());
-			assertEquals(SessionHandler.DEFAULT_SESSION_TIMEOUT, sess.timeout());
+      assertEquals(DEFAULT_SESSION_TIMEOUT, sess.timeout());
 			rc.response().end();
 		});
 		testRequest(HttpMethod.GET, "/", null, resp -> {
 			String setCookie = resp.headers().get("set-cookie");
-			assertTrue(setCookie.startsWith(SessionHandler.DEFAULT_SESSION_COOKIE_NAME + "="));
-			int pos = setCookie.indexOf("; Path=" + SessionHandler.DEFAULT_SESSION_COOKIE_PATH);
+      assertTrue(setCookie.startsWith(DEFAULT_SESSION_COOKIE_NAME + "="));
+      int pos = setCookie.indexOf("; Path=" + DEFAULT_SESSION_COOKIE_PATH);
 			String sessID = setCookie.substring(18, pos);
 			assertEquals(rid.get(), sessID);
 		}, 200, "OK", null);
@@ -170,7 +171,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 	@Test
 	public void testSessionExpires() throws Exception {
 		long timeout = 1000;
-		router.route().handler(SessionHandler.create(store).setSessionTimeout(timeout));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setSessionTimeout(timeout)));
 		AtomicReference<String> rid = new AtomicReference<>();
 		AtomicInteger requestCount = new AtomicInteger();
 		router.route().handler(rc -> {
@@ -397,7 +398,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
   @Test
   public void testInvalidation() throws Exception {
-    router.route().handler(SessionHandler.create(store).setCookieSameSite(CookieSameSite.STRICT));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setCookieSameSite(CookieSameSite.STRICT)));
     AtomicReference<Session> rid = new AtomicReference<>();
 
     router.get("/0").handler(rc -> {
@@ -568,7 +569,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
   @Test
   public void testLazySessionNotAccessed() throws Exception {
     String sessionCookieName = "acme.sillycookie";
-    router.route().handler(SessionHandler.create(store).setSessionCookieName(sessionCookieName).setLazySession(true));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setSessionCookieName(sessionCookieName).setLazySession(true)));
     router.route().handler(rc -> rc.response().end());
     testRequest(HttpMethod.GET, "/", null, resp -> {
       String setCookie = resp.headers().get("set-cookie");
@@ -579,7 +580,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
   @Test
   public void testLazySessionAccessed() throws Exception {
     String sessionCookieName = "acme.sillycookie";
-    router.route().handler(SessionHandler.create(store).setSessionCookieName(sessionCookieName).setLazySession(true));
+    router.route().handler(SessionHandler.create(store, new SessionHandlerOptions().setSessionCookieName(sessionCookieName).setLazySession(true)));
     router.route().handler(rc -> {
       rc.session();
       rc.response().end();
@@ -594,10 +595,10 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
   public void testRegenerateAndCookies() throws Exception {
 
     final SessionHandler sessionHandler =
-      SessionHandler.create(LocalSessionStore.create(vertx))
+      SessionHandler.create(LocalSessionStore.create(vertx), new SessionHandlerOptions()
         .setLazySession(true)
         .setCookieHttpOnlyFlag(true)
-        .setSessionCookieName("vid");
+        .setSessionCookieName("vid"));
 
     router.route("/login")
       .handler(sessionHandler)
@@ -633,8 +634,8 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     final AtomicReference<String> sessionId = new AtomicReference<>();
     final AtomicReference<String> firstSessionId = new AtomicReference<>();
     final AtomicReference<String> sessionHeader = new AtomicReference<>();
-    final SessionHandler handler = SessionHandler.create(store)
-      .setSigningSecret("any-string-value");
+    final SessionHandler handler = SessionHandler.create(store, new SessionHandlerOptions()
+      .setSigningSecret("any-string-value"));
 
     router.route().handler(handler);
     // capture the session ID

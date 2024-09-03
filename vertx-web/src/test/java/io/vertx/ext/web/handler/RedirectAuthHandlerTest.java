@@ -47,8 +47,8 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   public void setUp() throws Exception {
     super.setUp();
     authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
-    usernameParam = FormLoginHandler.DEFAULT_USERNAME_PARAM;
-    passwordParam = FormLoginHandler.DEFAULT_PASSWORD_PARAM;
+    usernameParam = FormLoginHandlerOptions.DEFAULT_USERNAME_PARAM;
+    passwordParam = FormLoginHandlerOptions.DEFAULT_PASSWORD_PARAM;
   }
 
   @Test
@@ -80,19 +80,17 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
 
   @Test
   public void testLoginChangeFormLoginHandlerParams() throws Exception {
-    formLoginHandler = FormLoginHandler.create(authProvider);
     usernameParam = "username2";
     passwordParam ="password2";
-    formLoginHandler.setUsernameParam(usernameParam).setPasswordParam(passwordParam);
+    formLoginHandler = FormLoginHandler.create(authProvider, new FormLoginHandlerOptions().setUsernameParam(usernameParam).setPasswordParam(passwordParam));
     testLogin();
   }
 
   @Test
   public void testFormLoginHandlerDirectDefaultResponse() throws Exception {
-    formLoginHandler = FormLoginHandler.create(authProvider);
     usernameParam = "username2";
     passwordParam ="password2";
-    formLoginHandler.setUsernameParam(usernameParam).setPasswordParam(passwordParam);
+    formLoginHandler = FormLoginHandler.create(authProvider, new FormLoginHandlerOptions().setUsernameParam(usernameParam).setPasswordParam(passwordParam));
     router.route().handler(LoggerHandler.create());
     router.route().handler(BodyHandler.create());
     router.route("/login").handler(formLoginHandler);
@@ -102,11 +100,10 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
 
   @Test
   public void testFormLoginHandlerDirectSpecifyLoggedInURL() throws Exception {
-    formLoginHandler = FormLoginHandler.create(authProvider);
     usernameParam = "username2";
     passwordParam ="password2";
     String loggedInDirectOKPage = "/youloggedinokpage.html";
-    formLoginHandler.setUsernameParam(usernameParam).setPasswordParam(passwordParam).setDirectLoggedInOKURL(loggedInDirectOKPage);
+    formLoginHandler = FormLoginHandler.create(authProvider, new FormLoginHandlerOptions().setUsernameParam(usernameParam).setPasswordParam(passwordParam).setDirectLoggedInOKURL(loggedInDirectOKPage));
     router.route().handler(LoggerHandler.create());
     router.route().handler(BodyHandler.create());
     router.route("/login").handler(formLoginHandler);
@@ -152,12 +149,11 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     router.route().handler(BodyHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
-    FormLoginHandler loginHandler = FormLoginHandler.create(authProvider);
+    FormLoginHandler loginHandler = FormLoginHandler.create(authProvider, new FormLoginHandlerOptions().setUsernameParam("username-not-in-form"));
     router.route("/login").handler(loginHandler);
     // only POST is allowed
     testRequest(HttpMethod.GET, "/login", 405, "Method Not Allowed");
     // missing username in the form
-    loginHandler.setUsernameParam("username-not-in-form");
     testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), 400, "Bad Request", null);
   }
 

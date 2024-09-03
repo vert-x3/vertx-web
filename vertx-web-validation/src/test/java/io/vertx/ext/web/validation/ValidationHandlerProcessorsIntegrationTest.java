@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.BodyHandlerOptions;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.builder.Parameters;
@@ -29,28 +30,12 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
 
-import static io.vertx.ext.web.validation.builder.Parameters.explodedParam;
-import static io.vertx.ext.web.validation.builder.Parameters.optionalExplodedParam;
-import static io.vertx.ext.web.validation.builder.Parameters.optionalParam;
-import static io.vertx.ext.web.validation.builder.Parameters.param;
-import static io.vertx.ext.web.validation.builder.Parameters.serializedParam;
-import static io.vertx.ext.web.validation.testutils.TestRequest.cookie;
-import static io.vertx.ext.web.validation.testutils.TestRequest.jsonBodyResponse;
-import static io.vertx.ext.web.validation.testutils.TestRequest.requestHeader;
-import static io.vertx.ext.web.validation.testutils.TestRequest.statusCode;
-import static io.vertx.ext.web.validation.testutils.TestRequest.statusMessage;
-import static io.vertx.ext.web.validation.testutils.TestRequest.testRequest;
-import static io.vertx.ext.web.validation.testutils.TestRequest.urlEncode;
+import static io.vertx.ext.web.validation.builder.Parameters.*;
+import static io.vertx.ext.web.validation.testutils.TestRequest.*;
 import static io.vertx.ext.web.validation.testutils.ValidationTestUtils.badBodyResponse;
 import static io.vertx.ext.web.validation.testutils.ValidationTestUtils.badParameterResponse;
 import static io.vertx.json.schema.common.dsl.Keywords.multipleOf;
-import static io.vertx.json.schema.common.dsl.Schemas.arraySchema;
-import static io.vertx.json.schema.common.dsl.Schemas.booleanSchema;
-import static io.vertx.json.schema.common.dsl.Schemas.intSchema;
-import static io.vertx.json.schema.common.dsl.Schemas.numberSchema;
-import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
-import static io.vertx.json.schema.common.dsl.Schemas.ref;
-import static io.vertx.json.schema.common.dsl.Schemas.stringSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.*;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -635,7 +620,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
       .body(Bodies.formUrlEncoded(objectSchema().requiredProperty("parameter", intSchema())))
       .build();
 
-    router.route().handler(BodyHandler.create(tempDir.toAbsolutePath().toString()));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setUploadsDirectory(tempDir.toAbsolutePath().toString())));
     router
       .post("/testFormParam")
       .handler(validationHandler)
@@ -667,7 +652,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
       .body(Bodies.multipartFormData(objectSchema().requiredProperty("parameter", intSchema())))
       .build();
 
-    router.route().handler(BodyHandler.create(tempDir.toAbsolutePath().toString()));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setUploadsDirectory(tempDir.toAbsolutePath().toString())));
     router
       .post("/testFormParam")
       .handler(validationHandler)
@@ -702,7 +687,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
       .body(Bodies.formUrlEncoded(bodySchema))
       .build();
 
-    router.route().handler(BodyHandler.create(tempDir.toAbsolutePath().toString()));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setUploadsDirectory(tempDir.toAbsolutePath().toString())));
     router
       .post("/testFormParam")
       .handler(validationHandler)
@@ -775,7 +760,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
       .body(Bodies.formUrlEncoded(bodySchema))
       .build();
 
-    router.route().handler(BodyHandler.create(tempDir.toAbsolutePath().toString()));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setUploadsDirectory(tempDir.toAbsolutePath().toString())));
     router
       .post("/testFormParam")
       .handler(validationHandler)
@@ -862,7 +847,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
       .build();
 
     router.post("/test")
-      .handler(BodyHandler.create(tempDir.toAbsolutePath().toString()))
+      .handler(BodyHandler.create(new BodyHandlerOptions().setUploadsDirectory(tempDir.toAbsolutePath().toString())))
       .handler(validationHandler)
       .handler(routingContext -> {
         RequestParameters params = routingContext.get("parsedParameters");
@@ -903,7 +888,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
       ));
 
     router.post("/test")
-      .handler(BodyHandler.create(tempDir.toAbsolutePath().toString()))
+      .handler(BodyHandler.create(new BodyHandlerOptions().setUploadsDirectory(tempDir.toAbsolutePath().toString())))
       .handler(validationHandler1)
       .handler(routingContext -> {
         RequestParameters params = routingContext.get("parsedParameters");

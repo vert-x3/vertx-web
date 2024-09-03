@@ -54,8 +54,8 @@ public class OtpHandlerTest  extends WebTestBase {
 
     router.route()
       .handler(SessionHandler
-        .create(LocalSessionStore.create(vertx))
-        .setCookieSameSite(CookieSameSite.STRICT));
+        .create(LocalSessionStore.create(vertx), new SessionHandlerOptions()
+          .setCookieSameSite(CookieSameSite.STRICT)));
 
     router.route()
       .handler(BasicAuthHandler.create(PropertyFileAuthentication.create(vertx, "login/loginusers.properties")));

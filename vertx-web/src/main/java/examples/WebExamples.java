@@ -704,7 +704,7 @@ public class WebExamples {
   }
 
   public void housekeepingUploadDir(Router router) {
-    router.route().handler(BodyHandler.create().setDeleteUploadedFilesOnEnd(true));
+    router.route().handler(BodyHandler.create(new BodyHandlerOptions().setDeleteUploadedFilesOnEnd(true)));
   }
 
   public void example30(RoutingContext ctx) {
@@ -758,18 +758,15 @@ public class WebExamples {
   }
 
   public void example33(Vertx vertx) {
-
     Router router = Router.router(vertx);
 
     // Create a clustered session store using defaults
     SessionStore store = ClusteredSessionStore.create(vertx);
 
-    SessionHandler sessionHandler = SessionHandler.create(store);
-
-    // the session handler controls the cookie used for the session
+    // The session handler controls the cookie used for the session
     // this includes configuring, for example, the same site policy
     // like this, for strict same site policy.
-    sessionHandler.setCookieSameSite(CookieSameSite.STRICT);
+    SessionHandler sessionHandler = SessionHandler.create(store, new SessionHandlerOptions().setCookieSameSite(CookieSameSite.STRICT));
 
     // Make sure all requests are routed through the session handler too
     router.route().handler(sessionHandler);
@@ -1846,9 +1843,8 @@ public class WebExamples {
   }
 
   public void example79(Router router, SessionStore store) {
-
     router.route()
-      .handler(SessionHandler.create(store).setCookieless(true));
+      .handler(SessionHandler.create(store, new SessionHandlerOptions().setCookieless(true)));
   }
 
   public void example80(Router router) {
@@ -1906,9 +1902,11 @@ public class WebExamples {
     // all responses will then include the right
     // Content-Security-Policy header allowing sub-domain
     // sources to be fetched from the parent "trusted.com" domain
-    router.route().handler(
-      CSPHandler.create()
-        .addDirective("default-src", "*.trusted.com"));
+    CSPHandler cspHandler = CSPHandler.builder()
+      .addDirective("default-src", "*.trusted.com")
+      .build();
+
+    router.route().handler(cspHandler);
   }
 
   public void example85(Router router) {
@@ -1923,11 +1921,9 @@ public class WebExamples {
     // parse the BODY
     router.post()
       .handler(BodyHandler.create());
+    LocalSessionStore sessionStore = LocalSessionStore.create(vertx);
     // add a session handler (OTP requires state)
-    router.route()
-      .handler(SessionHandler
-        .create(LocalSessionStore.create(vertx))
-        .setCookieSameSite(CookieSameSite.STRICT));
+    router.route().handler(SessionHandler.create(sessionStore, new SessionHandlerOptions().setCookieSameSite(CookieSameSite.STRICT)));
 
     // add the first authentication mode, for example HTTP Basic Authentication
     router.route()
