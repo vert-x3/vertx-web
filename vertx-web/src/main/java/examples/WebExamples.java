@@ -1817,7 +1817,7 @@ public class WebExamples {
     router.allowForward(AllowForwardHeaders.NONE);
   }
 
-  public void example78(Router router, AuthenticationHandler authNHandlerA, AuthenticationHandler authNHandlerB, AuthenticationHandler authNHandlerC) {
+  public void exampleChainAuthHandler(Router router, AuthenticationHandler authNHandlerA, AuthenticationHandler authNHandlerB, AuthenticationHandler authNHandlerC) {
 
     // Chain will verify (A Or (B And C))
     ChainAuthHandler chain =
@@ -1835,7 +1835,7 @@ public class WebExamples {
     });
   }
 
-  public void example78(Router router, SessionHandler sessionHandler) {
+  public void exampleSessionFlushOperation(Router router, SessionHandler sessionHandler) {
 
     router.route().handler(ctx -> sessionHandler.flush(ctx)
       .onSuccess(v -> ctx.end("Success!"))

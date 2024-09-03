@@ -985,7 +985,7 @@ This allows to control the state before completing the response like:
 
 [source,$lang]
 ----
-{@link examples.WebExamples#example78}
+{@link examples.WebExamples#exampleSessionFlushOperation}
 ----
 
 Vert.x Session Handler state by default uses a cookie to store session ID. Session ID is a unique string, used to
@@ -1374,7 +1374,7 @@ Complex chaining is also possible, for example, building logic sequences such as
 
 [source,$lang]
 ----
-{@link examples.WebExamples#example78}
+{@link examples.WebExamples#exampleChainAuthHandler}
 ----
 
 === Impersonation
