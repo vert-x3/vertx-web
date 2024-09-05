@@ -7,11 +7,11 @@ import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.handler.impl.SimpleAuthenticationHandlerImpl;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import org.junit.Test;
-
-import java.util.Arrays;
 
 public class ChainAuthMixHandlerTest extends WebTestBase {
 
@@ -113,5 +113,32 @@ public class ChainAuthMixHandlerTest extends WebTestBase {
     ChainAuthHandler.all()
       .add(OAuth2AuthHandler.create(vertx, null, "http://server.com/callback"))
       .add(BasicAuthHandler.create(null));
+  }
+
+  @Test
+  public void testNestedAnyChainAuthHandler() throws Exception {
+    ChainAuthHandler chain =
+      ChainAuthHandler.any()
+        .add(failure)
+        .add(failure)
+        .add(failure)
+        .add(failure)
+        .add(ChainAuthHandler.any()
+          .add(failure)
+          .add(failure)
+          .add(ChainAuthHandler.any()
+            .add(failure)
+            .add(new SimpleAuthenticationHandlerImpl() {
+              @Override
+              public void postAuthentication(RoutingContext rc) {
+                rc.response().end("Peekaboo");
+              }
+            }.authenticate(ctx -> Future.succeededFuture(USER)))));
+
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+    router.route().handler(chain);
+    router.route().handler(ctx -> fail());
+
+    testRequest(HttpMethod.GET, "/", 200, "OK", "Peekaboo");
   }
 }

@@ -15,21 +15,25 @@ import io.vertx.ext.web.handler.HttpException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements ChainAuthHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(ChainAuthHandler.class);
 
-  private static final String HANDLER_IDX = "__vertx.auth.chain.idx";
+  private static final String HANDLER_KEY_PREFIX = "__vertx.auth.chain.idx.";
+  private static final AtomicInteger HANDLER_KEY_SEQ = new AtomicInteger();
 
   private final List<AuthenticationHandlerInternal> handlers = new ArrayList<>();
   private final boolean all;
+  private final String chainAuthHandlerKey;
 
   private int willRedirect = -1;
 
   public ChainAuthHandlerImpl(boolean all) {
     super(null);
     this.all = all;
+    this.chainAuthHandlerKey = HANDLER_KEY_PREFIX + HANDLER_KEY_SEQ.getAndIncrement();
   }
 
   @Override
@@ -115,7 +119,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
         iterate(idx + 1, ctx, user, null, handler);
       } else {
         // a single success is enough to signal the end of the validation
-        ctx.put(HANDLER_IDX, idx);
+        ctx.put(chainAuthHandlerKey, idx);
         handler.handle(Future.succeededFuture(user));
       }
     });
@@ -139,11 +143,10 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
 
   @Override
   public void postAuthentication(RoutingContext ctx) {
-    if (all) {
-      // Can't invoke post-processing for all handlers
+    Integer idx;
+    if (all || (idx = ctx.get(chainAuthHandlerKey)) == null) {
       ctx.next();
     } else {
-      int idx = ctx.get(HANDLER_IDX);
       handlers.get(idx).postAuthentication(ctx);
     }
   }
