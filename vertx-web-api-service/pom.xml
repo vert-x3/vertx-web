@@ -98,30 +98,29 @@
       <plugins>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.8.1</version>
           <executions>
             <execution>
               <id>default-compile</id>
               <configuration>
                 <annotationProcessorPaths>
-                  <path>
+                  <annotationProcessorPath>
                     <groupId>io.vertx</groupId>
                     <artifactId>vertx-codegen</artifactId>
-                    <version>${project.version}</version>
                     <classifier>processor</classifier>
-                  </path>
+                  </annotationProcessorPath>
                 </annotationProcessorPaths>
-                <annotationProcessors>
-                  <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
-                </annotationProcessors>
               </configuration>
             </execution>
             <execution>
               <id>default-testCompile</id>
               <configuration>
-                <annotationProcessors>
-                  <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
-                </annotationProcessors>
+                <annotationProcessorPaths>
+                  <annotationProcessorPath>
+                    <groupId>io.vertx</groupId>
+                    <artifactId>vertx-codegen</artifactId>
+                    <classifier>processor</classifier>
+                  </annotationProcessorPath>
+                </annotationProcessorPaths>
                 <testExcludes>
                   <exclude>**/Invalid*.java</exclude>
                 </testExcludes>
