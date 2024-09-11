@@ -22,9 +22,9 @@ import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.impl.ContextInternal;
-import io.vertx.core.net.HostAndPort;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RequestBody;
@@ -77,10 +77,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     this.request = new HttpServerRequestWrapper(request, router.getAllowForward());
     this.body = new RequestBodyImpl(this);
 
-    String path = request.path();
-    HostAndPort authority = request.authority();
+    final String path = request.path();
+    // optimized method which try hard to not allocate
+    final boolean hasValidAuthority = ((HttpServerRequestInternal) request).isValidAuthority();
 
-    if ((authority == null && request.version() != HttpVersion.HTTP_1_0) || path == null || path.isEmpty()) {
+    if ((!hasValidAuthority && request.version() != HttpVersion.HTTP_1_0) || path == null || path.isEmpty()) {
       // Authority must be present (HTTP/1.x host header // HTTP/2 :authority pseudo header)
       // HTTP paths must start with a '/'
       fail(400);
