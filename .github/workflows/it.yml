@@ -26,7 +26,7 @@ jobs:
           java-version: ${{ inputs.jdk }}
           distribution: temurin
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
       - run: sh vertx-web-graphql/start-graphql-ws-tests-server.sh
@@ -34,7 +34,7 @@ jobs:
         working-directory: vertx-web-graphql/tests/graphql-ws
       - run: npm run test
         working-directory: vertx-web-graphql/tests/graphql-ws
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           name: GraphQLWSTestsServer.log
@@ -59,7 +59,7 @@ jobs:
           java-version: ${{ inputs.jdk }}
           distribution: temurin
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
       - run: sh vertx-web/start-sockjs-write-handler-tests-server.sh
@@ -67,7 +67,7 @@ jobs:
         working-directory: vertx-web/tests/sockjs
       - run: npm run test
         working-directory: vertx-web/tests/sockjs
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           name: SockJSWriteHandlerTestServer.log
