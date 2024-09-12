@@ -434,7 +434,7 @@ public class SessionHandlerImpl implements SessionHandler {
         return context.succeededFuture(session);
       });
   }
-  private void doGetSession(Vertx vertx, long startTime, String sessionID, Handler<AsyncResult<Session>> resultHandler) {
+  private void doGetSession(Vertx vertx, long startTime, String sessionID, Completable<Session> resultHandler) {
     sessionStore.get(sessionID)
       .onComplete(res -> {
       if (res.succeeded()) {
@@ -448,7 +448,7 @@ public class SessionHandlerImpl implements SessionHandler {
           }
         }
       }
-      resultHandler.handle(res);
+      resultHandler.complete(res.result(), res.cause());
     });
   }
 

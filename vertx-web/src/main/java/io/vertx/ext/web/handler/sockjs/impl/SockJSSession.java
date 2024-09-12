@@ -73,7 +73,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private final long timeout;
   private final Handler<SockJSSocket> sockHandler;
   private final long heartbeatID;
-  private final List<Handler<AsyncResult<Void>>> writeAcks = new ArrayList<>();
+  private final List<Completable<Void>> writeAcks = new ArrayList<>();
   private TransportListener listener;
   private boolean closed;
   private boolean openWritten;
@@ -308,7 +308,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     final TransportListener listener = this.listener;
     if (listener != null) {
       final String json;
-      final List<Handler<AsyncResult<Void>>> acks;
+      final List<Completable<Void>> acks;
       synchronized (this) {
         if (!pendingWrites.isEmpty()) {
           json = JsonCodec.encode(pendingWrites.toArray(new String[0]));
@@ -327,7 +327,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
       }
       if (json != null) {
         if (!acks.isEmpty()) {
-          listener.sendFrame("a" + json).onComplete(ar -> acks.forEach(a -> a.handle(ar)));
+          listener.sendFrame("a" + json).onComplete((res, err) -> acks.forEach(a -> a.complete(res, err)));
         } else {
           listener.sendFrame("a" + json);
         }
@@ -413,7 +413,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     synchronized (this) {
       pendingReads.clear();
       pendingWrites.clear();
-      writeAcks.forEach(handler -> context.runOnContext(v -> handler.handle(Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION))));
+      writeAcks.forEach(handler -> context.runOnContext(v -> handler.complete(null, ConnectionBase.CLOSED_EXCEPTION)));
       writeAcks.clear();
     }
     Handler<Void> handler = endHandler;

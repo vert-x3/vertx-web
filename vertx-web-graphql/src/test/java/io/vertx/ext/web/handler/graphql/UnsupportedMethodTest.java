@@ -30,7 +30,7 @@ public class UnsupportedMethodTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(PUT)
       .setGraphQLQuery("query { allLinks { url } }");
-    request.send(client, 405, onSuccess(v -> {
+    request.send(client, 405).onComplete(onSuccess(v -> {
       testComplete();
     }));
     await();

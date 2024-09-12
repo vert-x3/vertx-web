@@ -35,7 +35,7 @@ public class GetRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setGraphQLQuery("query { allLinks { url } }");
-    request.send(client, onSuccess(body -> {
+    request.send(client).onComplete(onSuccess(body -> {
       if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
@@ -55,7 +55,7 @@ public class GetRequestsTest extends GraphQLTestBase {
       .setGraphQLQuery(query)
       .setOperationName("bar")
       .addVariable("secure", true);
-    request.send(client, onSuccess(body -> {
+    request.send(client).onComplete(onSuccess(body -> {
       List<String> expected = testData.urls().stream()
         .filter(url -> url.startsWith("https://"))
         .collect(toList());
@@ -74,7 +74,7 @@ public class GetRequestsTest extends GraphQLTestBase {
       .setMethod(GET)
       .setGraphQLQuery("query($secure: Boolean) { allLinks(secureOnly: $secure) { url } }")
       .addVariable("secure", true);
-    request.send(client, onSuccess(body -> {
+    request.send(client).onComplete(onSuccess(body -> {
       List<String> expected = testData.urls().stream()
         .filter(url -> url.startsWith("https://"))
         .collect(toList());
@@ -94,7 +94,7 @@ public class GetRequestsTest extends GraphQLTestBase {
       .setGraphQLQuery("query { allLinks { description } }")
       .setInitialValueAsParam(true)
       .setInitialValue("100");
-    request.send(client, onSuccess(body -> {
+    request.send(client).onComplete(onSuccess(body -> {
       String[] descriptions = new String[testData.links.size()];
       Arrays.fill(descriptions,"100");
       List<String> expected = Arrays.asList(descriptions);
@@ -112,7 +112,7 @@ public class GetRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setGraphQLQuery("query { allLinks { description } }");
-    request.send(client, onSuccess(body -> {
+    request.send(client).onComplete(onSuccess(body -> {
       if (testData.checkLinkDescriptions(testData.descriptions(), body)) {
         testComplete();
       } else {
@@ -126,7 +126,7 @@ public class GetRequestsTest extends GraphQLTestBase {
   public void testGetNoQuery() throws Exception {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET);
-    request.send(client, 400, onSuccess(v -> {
+    request.send(client, 400).onComplete(onSuccess(v -> {
       testComplete();
     }));
     await();
@@ -137,7 +137,7 @@ public class GetRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setHttpQueryString("query=" + encode("query { allLinks { url } }") + "&variables=" + encode("[1,2,3]"));
-    request.send(client, 400, onSuccess(v -> {
+    request.send(client, 400).onComplete(onSuccess(v -> {
       testComplete();
     }));
     await();

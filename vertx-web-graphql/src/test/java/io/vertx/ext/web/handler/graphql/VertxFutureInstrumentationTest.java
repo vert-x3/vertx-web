@@ -59,7 +59,7 @@ public class VertxFutureInstrumentationTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setGraphQLQuery("query { allLinks { url } }");
-    request.send(client, onSuccess(body -> {
+    request.send(client).onComplete(onSuccess(body -> {
       if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
@@ -73,7 +73,7 @@ public class VertxFutureInstrumentationTest extends GraphQLTestBase {
   public void testSimplePost() throws Exception {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { url } }");
-    request.send(client, onSuccess(body -> {
+    request.send(client).onComplete(onSuccess(body -> {
       if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {

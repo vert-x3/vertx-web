@@ -98,19 +98,19 @@ public class HealthCheckHandlerImpl implements HealthCheckHandler {
     }
   }
 
-  private Handler<AsyncResult<CheckResult>> healthReportHandler(RoutingContext rc) {
-    Handler<AsyncResult<CheckResult>> handler = json -> {
+  private Completable<CheckResult> healthReportHandler(RoutingContext rc) {
+    Completable<CheckResult> handler = (json,err) -> {
       HttpServerResponse response = rc.response()
         .putHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
-      if (json.failed()) {
-        if (json.cause().getMessage().toLowerCase().contains("not found")) {
+      if (err != null) {
+        if (err.getMessage().toLowerCase().contains("not found")) {
           response.setStatusCode(404);
         } else {
           response.setStatusCode(400);
         }
-        response.end("{\"message\": \"" + json.cause().getMessage() + "\"}");
+        response.end("{\"message\": \"" + err.getMessage() + "\"}");
       } else {
-        buildResponse(json.result(), response);
+        buildResponse(json, response);
       }
     };
     if (this.resultMapper != null) {

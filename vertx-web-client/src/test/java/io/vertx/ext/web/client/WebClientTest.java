@@ -970,10 +970,10 @@ public class WebClientTest extends WebClientTestBase {
         write(buffer, promise);
         return promise.future();
       }
-      public void write(Buffer buffer, Handler<AsyncResult<Void>> handler) {
+      public void write(Buffer buffer, Completable<Void> handler) {
         received.addAndGet(buffer.length());
         if (handler != null) {
-          handler.handle(Future.succeededFuture());
+          handler.succeed();
         }
       }
       public Future<Void> close() {

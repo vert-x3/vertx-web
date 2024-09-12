@@ -1,9 +1,6 @@
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
+import io.vertx.core.*;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
@@ -67,19 +64,15 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
     }
   }
 
-  private void iterate(final int idx, final RoutingContext ctx, User result, Throwable exception, Handler<AsyncResult<User>> handler) {
+  private void iterate(final int idx, final RoutingContext ctx, User result, Throwable exception, Completable<User> handler) {
     // stop condition
     if (idx >= handlers.size()) {
       if (all) {
         // no more providers, if the call is signaling an error we fail as the last handler failed
-        if (exception == null) {
-          handler.handle(Future.succeededFuture(result));
-        } else {
-          handler.handle(Future.failedFuture(exception));
-        }
+        handler.complete(result, exception);
       } else {
         // no more providers, means that we failed to find a provider capable of performing this operation
-        handler.handle(Future.failedFuture(exception));
+        handler.complete(null, exception);
       }
       return;
     }
@@ -110,7 +103,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
           }
           // the error is not a validation exception, so we abort regardless
         }
-        handler.handle(Future.failedFuture(err));
+        handler.complete(null, err);
       })
       .onSuccess(user -> {
       if (all) {
@@ -120,7 +113,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
       } else {
         // a single success is enough to signal the end of the validation
         ctx.put(chainAuthHandlerKey, idx);
-        handler.handle(Future.succeededFuture(user));
+        handler.complete(user, null);
       }
     });
   }
