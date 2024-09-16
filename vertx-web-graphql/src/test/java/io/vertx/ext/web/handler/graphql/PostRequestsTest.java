@@ -26,8 +26,9 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
-import static io.vertx.ext.web.handler.graphql.GraphQLRequest.*;
-import static java.util.stream.Collectors.*;
+import static io.vertx.ext.web.handler.graphql.GraphQLRequest.GRAPHQL;
+import static io.vertx.ext.web.handler.graphql.GraphQLRequest.encode;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Thomas Segismont
@@ -188,7 +189,7 @@ public class PostRequestsTest extends GraphQLTestBase {
   public void testPostNoQuery() throws Exception {
     GraphQLRequest request = new GraphQLRequest()
       .setRequestBody(new JsonObject().put("foo", "bar").toBuffer());
-    request.send(client, 500).onComplete(onSuccess(v -> {
+    request.send(client, 400).onComplete(onSuccess(v -> {
       testComplete();
     }));
     await();
