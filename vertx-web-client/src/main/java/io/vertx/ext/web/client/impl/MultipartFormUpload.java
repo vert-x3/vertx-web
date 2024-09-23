@@ -24,10 +24,11 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.internal.buffer.BufferInternal;
-import io.vertx.core.http.impl.headers.HeadersAdaptor;
+import io.vertx.core.internal.concurrent.InboundMessageQueue;
+import io.vertx.core.internal.http.HttpHeadersInternal;
 import io.vertx.core.streams.ReadStream;
-import io.vertx.core.streams.impl.InboundBuffer;
 import io.vertx.ext.web.multipart.FormDataPart;
 import io.vertx.ext.web.multipart.MultipartForm;
 
@@ -42,6 +43,8 @@ import java.nio.charset.Charset;
  */
 public class MultipartFormUpload implements ReadStream<Buffer> {
 
+  private static final Object END_SENTINEL = new Object();
+
   private static final UnpooledByteBufAllocator ALLOC = new UnpooledByteBufAllocator(false);
 
   private DefaultFullHttpRequest request;
@@ -49,18 +52,32 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
   private Handler<Throwable> exceptionHandler;
   private Handler<Buffer> dataHandler;
   private Handler<Void> endHandler;
-  private final InboundBuffer<Object> pending;
+  private final InboundMessageQueue<Object> pending;
+  private boolean writable;
   private boolean ended;
-  private final Context context;
+  private final ContextInternal context;
 
   public MultipartFormUpload(Context context,
                              MultipartForm parts,
                              boolean multipart,
                              HttpPostRequestEncoder.EncoderMode encoderMode) throws Exception {
-    this.context = context;
-    this.pending = new InboundBuffer<>(context)
-      .handler(this::handleChunk)
-      .drainHandler(v -> run()).pause();
+    this.context = (ContextInternal) context;
+    this.writable = true;
+    this.pending = new InboundMessageQueue<>((ContextInternal) context, (ContextInternal) context) {
+      @Override
+      protected void handleResume() {
+        writable = true;
+        MultipartFormUpload.this.run();
+      }
+      @Override
+      protected void handlePause() {
+        writable = false;
+      }
+      @Override
+      protected void handleMessage(Object msg) {
+        handleChunk(msg);
+      }
+    };
     this.request = new DefaultFullHttpRequest(
       HttpVersion.HTTP_1_1,
       io.netty.handler.codec.http.HttpMethod.POST,
@@ -128,7 +145,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
         handler = dataHandler;
       } else if (item instanceof Throwable) {
         handler = exceptionHandler;
-      } else if (item == InboundBuffer.END_SENTINEL) {
+      } else if (item == END_SENTINEL) {
         handler = endHandler;
         item = null;
       } else {
@@ -139,7 +156,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
   }
 
   public void run() {
-    if (Vertx.currentContext() != context) {
+    if (!context.inThread()) {
       throw new IllegalArgumentException();
     }
     while (!ended) {
@@ -148,12 +165,12 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
           HttpContent chunk = encoder.readChunk(ALLOC);
           ByteBuf content = chunk.content();
           Buffer buff = BufferInternal.buffer(content);
-          boolean writable = pending.write(buff);
+          pending.write(buff);
           if (encoder.isEndOfInput()) {
             ended = true;
             request = null;
             encoder = null;
-            pending.write(InboundBuffer.END_SENTINEL);
+            pending.write(END_SENTINEL);
           } else if (!writable) {
             break;
           }
@@ -171,13 +188,13 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
         encoder = null;
         pending.write(buffer);
         ended = true;
-        pending.write(InboundBuffer.END_SENTINEL);
+        pending.write(END_SENTINEL);
       }
     }
   }
 
   public MultiMap headers() {
-    return new HeadersAdaptor(request.headers());
+    return HttpHeadersInternal.headers(request.headers());
   }
 
   @Override
@@ -206,7 +223,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
 
   @Override
   public synchronized MultipartFormUpload resume() {
-    pending.resume();
+    pending.fetch(Long.MAX_VALUE);
     return this;
   }
 
