@@ -14,7 +14,7 @@
  * under the License.
  */
 
-package io.vertx.ext.web.client;
+package io.vertx.ext.web.client.tests;
 
 import io.vertx.core.http.HttpClientOptions;
 

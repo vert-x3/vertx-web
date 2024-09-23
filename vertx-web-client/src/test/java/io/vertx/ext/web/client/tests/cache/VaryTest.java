@@ -1,8 +1,9 @@
-package io.vertx.ext.web.client.impl.cache;
+package io.vertx.ext.web.client.tests.cache;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
+import io.vertx.ext.web.client.impl.cache.Vary;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;

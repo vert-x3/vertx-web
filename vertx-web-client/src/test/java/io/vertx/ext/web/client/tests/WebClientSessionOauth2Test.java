@@ -1,4 +1,4 @@
-package io.vertx.ext.web.client;
+package io.vertx.ext.web.client.tests;
 
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
@@ -8,6 +8,10 @@ import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.Oauth2Credentials;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.OAuth2WebClient;
+import io.vertx.ext.web.client.OAuth2WebClientOptions;
+import io.vertx.ext.web.client.WebClientSession;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;

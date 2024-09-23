@@ -43,7 +43,7 @@ public class CacheControl {
   private final String vary;
   private final long maxAge;
 
-  static CacheControl parse(MultiMap headers) {
+  public static CacheControl parse(MultiMap headers) {
     return new CacheControl(headers);
   }
 

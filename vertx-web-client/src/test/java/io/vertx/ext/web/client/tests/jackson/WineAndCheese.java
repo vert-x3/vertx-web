@@ -1,4 +1,4 @@
-package io.vertx.ext.web.client.jackson;
+package io.vertx.ext.web.client.tests.jackson;
 
 import java.util.Objects;
 
@@ -36,7 +36,7 @@ public class WineAndCheese {
     }
     return false;
   }
-  
+
   @Override
 	public int hashCode() {
 		return Objects.hash(wine, cheese);
