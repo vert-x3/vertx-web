@@ -22,7 +22,6 @@ import io.netty.handler.codec.http.multipart.*;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.internal.buffer.BufferInternal;
@@ -63,11 +62,11 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
                              HttpPostRequestEncoder.EncoderMode encoderMode) throws Exception {
     this.context = (ContextInternal) context;
     this.writable = true;
-    this.pending = new InboundMessageQueue<>((ContextInternal) context, (ContextInternal) context) {
+    this.pending = new InboundMessageQueue<>(((ContextInternal) context).eventLoop(), ((ContextInternal) context).executor()) {
       @Override
       protected void handleResume() {
         writable = true;
-        MultipartFormUpload.this.run();
+        pump();
       }
       @Override
       protected void handlePause() {
@@ -155,7 +154,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
     handler.handle(item);
   }
 
-  public void run() {
+  public void pump() {
     if (!context.inThread()) {
       throw new IllegalArgumentException();
     }

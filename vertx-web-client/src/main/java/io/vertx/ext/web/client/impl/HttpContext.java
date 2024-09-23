@@ -22,8 +22,6 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.http.impl.CleanableHttpClient;
-import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.core.internal.http.HttpClientInternal;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.internal.PromiseInternal;
@@ -265,7 +263,7 @@ public class HttpContext<T> {
     this.clientResponse = clientResponse;
     if (redirects < maxRedirects && sc >= 300 && sc < 400) {
       redirects++;
-      Future<RequestOptions> next = ((HttpClientImpl)((CleanableHttpClient)client).delegate).redirectHandler().apply(clientResponse);
+      Future<RequestOptions> next = client.redirectHandler().apply(clientResponse);
       if (next != null) {
         if (redirectedLocations.isEmpty()) {
           redirectedLocations = new ArrayList<>();
@@ -469,7 +467,7 @@ public class HttpContext<T> {
               }
             });
             if (body instanceof MultipartFormUpload) {
-              ((MultipartFormUpload) body).run();
+              ((MultipartFormUpload) body).pump();
             }
           } else {
             // Test this

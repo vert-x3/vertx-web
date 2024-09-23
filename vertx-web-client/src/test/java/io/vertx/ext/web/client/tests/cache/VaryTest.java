@@ -2,7 +2,6 @@ package io.vertx.ext.web.client.tests.cache;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.ext.web.client.impl.cache.Vary;
 import org.junit.Test;
 
@@ -22,9 +21,9 @@ public class VaryTest {
 
   @Test
   public void testVaryPerUserAgent() {
-    MultiMap requestHeaders = new HeadersMultiMap()
+    MultiMap requestHeaders = MultiMap.caseInsensitiveMultiMap()
       .add(USER_AGENT, "Concrete Mobile User Agent");
-    MultiMap responseHeaders = new HeadersMultiMap()
+    MultiMap responseHeaders = MultiMap.caseInsensitiveMultiMap()
       .add(VARY, USER_AGENT)
       .add(USER_AGENT, "Mobile");
     Vary instance = new Vary(requestHeaders, responseHeaders);
@@ -37,9 +36,9 @@ public class VaryTest {
 
   @Test
   public void testVaryPerAcceptEncodingIsIgnored() {
-    MultiMap requestHeaders = new HeadersMultiMap()
+    MultiMap requestHeaders = MultiMap.caseInsensitiveMultiMap()
       .add(ACCEPT_ENCODING, "gzip");
-    MultiMap responseHeaders = new HeadersMultiMap()
+    MultiMap responseHeaders = MultiMap.caseInsensitiveMultiMap()
       .add(VARY, ACCEPT_ENCODING)
       .add(CONTENT_ENCODING, "gzip");
     Vary instance = new Vary(requestHeaders, responseHeaders);
@@ -54,9 +53,9 @@ public class VaryTest {
 
   @Test
   public void testVaryForOtherCasesRequestMustMatch() {
-    MultiMap requestHeaders = new HeadersMultiMap()
+    MultiMap requestHeaders = MultiMap.caseInsensitiveMultiMap()
       .add("X-Vertx", "jordi");
-    MultiMap responseHeaders = new HeadersMultiMap()
+    MultiMap responseHeaders = MultiMap.caseInsensitiveMultiMap()
       .add("Vary", "X-Vertx")
       .add("X-Vertx", "jordi");
     Vary instance = new Vary(requestHeaders, responseHeaders);
@@ -70,7 +69,7 @@ public class VaryTest {
   }
 
   private RequestOptions buildEmptyRequestOptions() {
-    return new RequestOptions().setHeaders(new HeadersMultiMap());
+    return new RequestOptions().setHeaders(MultiMap.caseInsensitiveMultiMap());
   }
 
 }

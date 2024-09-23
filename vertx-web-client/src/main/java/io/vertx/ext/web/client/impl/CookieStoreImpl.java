@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Consumer;
 
 import io.netty.handler.codec.http.cookie.Cookie;
-import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.internal.net.RFC3986;
 import io.vertx.ext.web.client.spi.CookieStore;
 

@@ -71,7 +71,7 @@ public class MultipartFormUploadTest {
     });
     upload.handler(result::appendBuffer);
     upload.resume();
-    context.runOnContext(v -> upload.run());
+    context.runOnContext(v -> upload.pump());
   }
 
   @Test
@@ -114,7 +114,7 @@ public class MultipartFormUploadTest {
         if (!paused) {
           upload.resume();
         }
-        upload.run();
+        upload.pump();
         if (paused) {
           context.runOnContext(v3 -> upload.resume());
         }
