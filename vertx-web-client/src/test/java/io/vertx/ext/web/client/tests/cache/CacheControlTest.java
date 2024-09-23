@@ -1,9 +1,10 @@
-package io.vertx.ext.web.client.impl.cache;
+package io.vertx.ext.web.client.tests.cache;
 
 import static org.junit.Assert.*;
 
 import java.time.Duration;
 
+import io.vertx.ext.web.client.impl.cache.CacheControl;
 import org.junit.Test;
 
 import io.vertx.core.MultiMap;

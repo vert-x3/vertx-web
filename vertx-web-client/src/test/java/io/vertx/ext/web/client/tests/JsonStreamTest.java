@@ -1,4 +1,4 @@
-package io.vertx.ext.web.client;
+package io.vertx.ext.web.client.tests;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -7,6 +7,8 @@ import io.vertx.core.parsetools.JsonParser;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 import org.junit.After;
 import org.junit.Before;

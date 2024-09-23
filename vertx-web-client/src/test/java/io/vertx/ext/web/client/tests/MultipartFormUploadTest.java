@@ -13,7 +13,7 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.ext.web.client;
+package io.vertx.ext.web.client.tests;
 
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.Context;
@@ -71,7 +71,7 @@ public class MultipartFormUploadTest {
     });
     upload.handler(result::appendBuffer);
     upload.resume();
-    context.runOnContext(v -> upload.run());
+    context.runOnContext(v -> upload.pump());
   }
 
   @Test
@@ -114,7 +114,7 @@ public class MultipartFormUploadTest {
         if (!paused) {
           upload.resume();
         }
-        upload.run();
+        upload.pump();
         if (paused) {
           context.runOnContext(v3 -> upload.resume());
         }

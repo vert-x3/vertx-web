@@ -1,4 +1,4 @@
-package io.vertx.ext.web.client;
+package io.vertx.ext.web.client.tests;
 
 import io.netty.handler.codec.DateFormatter;
 import io.vertx.core.Future;
@@ -8,6 +8,7 @@ import io.vertx.core.http.*;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.ext.web.client.*;
 import io.vertx.ext.web.client.impl.cache.CacheKey;
 import io.vertx.ext.web.client.impl.cache.CachedHttpResponse;
 import io.vertx.ext.web.client.spi.CacheStore;

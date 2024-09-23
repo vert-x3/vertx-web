@@ -14,7 +14,7 @@
  * under the License.
  */
 
-package io.vertx.ext.web.client;
+package io.vertx.ext.web.client.tests;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -27,6 +27,9 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClient;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.http.HttpTestBase;
 import org.junit.Rule;

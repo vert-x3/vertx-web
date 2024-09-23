@@ -1,4 +1,4 @@
-package io.vertx.ext.web.client;
+package io.vertx.ext.web.client.tests;
 
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.*;
@@ -18,7 +18,11 @@ import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.auth.htdigest.HtdigestCredentials;
-import io.vertx.ext.web.client.jackson.WineAndCheese;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.tests.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.Repeat;

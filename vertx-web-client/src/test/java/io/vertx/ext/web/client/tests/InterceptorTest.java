@@ -1,4 +1,4 @@
-package io.vertx.ext.web.client;
+package io.vertx.ext.web.client.tests;
 
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -12,6 +12,9 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.unit.junit.RepeatRule;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.impl.ClientPhase;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;

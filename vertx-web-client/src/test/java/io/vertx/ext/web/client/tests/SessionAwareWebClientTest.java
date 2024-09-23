@@ -8,7 +8,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
  */
-package io.vertx.ext.web.client;
+package io.vertx.ext.web.client.tests;
 
 import static org.junit.Assert.assertEquals;
 
@@ -22,9 +22,12 @@ import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import io.vertx.core.http.*;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientSession;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 

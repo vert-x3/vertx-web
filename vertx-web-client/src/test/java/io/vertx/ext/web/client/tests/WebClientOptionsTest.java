@@ -14,10 +14,11 @@
  * under the License.
  */
 
-package io.vertx.ext.web.client;
+package io.vertx.ext.web.client.tests;
 
 import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.WebClientOptions;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

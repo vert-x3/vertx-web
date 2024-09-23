@@ -1,4 +1,4 @@
-package io.vertx.ext.web.client;
+package io.vertx.ext.web.client.tests;
 
 import static io.vertx.core.Future.failedFuture;
 import static io.vertx.core.Future.succeededFuture;
@@ -7,6 +7,8 @@ import static io.vertx.core.http.HttpHeaders.AUTHORIZATION;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.WebClientSession;
 import org.junit.Test;
 
 import io.vertx.core.Future;
