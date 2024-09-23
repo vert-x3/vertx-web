@@ -20,7 +20,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
-import io.vertx.core.internal.net.URIDecoder;
+import io.vertx.core.internal.net.RFC3986;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Router;
@@ -1256,7 +1256,7 @@ final class RouteState {
       if (requestPath.startsWith(thePath)) {
         // handle the "rest" as path param *
         ctx.pathParams()
-          .put("*", URIDecoder.decodeURIComponent(requestPath.substring(thePath.length()), false));
+          .put("*", RFC3986.decodeURIComponent(requestPath.substring(thePath.length()), false));
         return true;
       }
       return false;
@@ -1326,7 +1326,7 @@ final class RouteState {
 
   private void addPathParam(RoutingContext context, String name, String value) {
     HttpServerRequest request = context.request();
-    final String decodedValue = URIDecoder.decodeURIComponent(value, false);
+    final String decodedValue = RFC3986.decodeURIComponent(value, false);
     if (!request.params().contains(name)) {
       request.params().add(name, decodedValue);
     }

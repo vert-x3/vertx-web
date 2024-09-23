@@ -45,12 +45,11 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpVersion;
-import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
+import io.vertx.core.internal.net.RFC3986;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.internal.net.URIDecoder;
 import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
@@ -164,7 +163,7 @@ public class StaticHandlerImpl implements StaticHandler {
         request.pause();
       }
       // decode URL path
-      String uriDecodedPath = URIDecoder.decodeURIComponent(context.normalizedPath(), false);
+      String uriDecodedPath = RFC3986.decodeURIComponent(context.normalizedPath(), false);
       // if the normalized path is null it cannot be resolved
       if (uriDecodedPath == null) {
         LOG.warn("Invalid path: " + context.request().path());
@@ -172,7 +171,7 @@ public class StaticHandlerImpl implements StaticHandler {
         return;
       }
       // will normalize and handle all paths as UNIX paths
-      String path = HttpUtils.removeDots(uriDecodedPath.replace('\\', '/'));
+      String path = RFC3986.removeDotSegments(uriDecodedPath.replace('\\', '/'));
 
       // Access fileSystem once here to be safe
       FileSystem fs = context.vertx().fileSystem();

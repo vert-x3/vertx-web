@@ -20,7 +20,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.http.impl.HttpUtils;
+import io.vertx.core.internal.net.RFC3986;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 
@@ -82,7 +82,7 @@ public class Utils {
         // normalize
         if (rest.length() > 0) {
           // remove any attempt to escape the web root and use UNIX style path separators
-          rest = HttpUtils.removeDots(rest.replace('\\', '/'));
+          rest = RFC3986.removeDotSegments(rest.replace('\\', '/'));
           if (rest.charAt(0) == '/') {
             return rest;
           } else {

@@ -40,7 +40,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
-import io.vertx.core.internal.net.URIDecoder;
+import io.vertx.core.internal.net.RFC3986;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.Router;
@@ -147,7 +147,7 @@ class JsonPTransport extends BaseTransport {
     }
 
     if (urlEncoded) {
-      stringBody = URIDecoder.decodeURIComponent(stringBody, true).substring(2);
+      stringBody = RFC3986.decodeURIComponent(stringBody, true).substring(2);
     }
 
     if (!session.handleMessages(stringBody)) {

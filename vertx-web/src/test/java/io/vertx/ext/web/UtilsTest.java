@@ -16,7 +16,7 @@
 
 package io.vertx.ext.web;
 
-import io.vertx.core.internal.net.URIDecoder;
+import io.vertx.core.internal.net.RFC3986;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -29,9 +29,9 @@ public class UtilsTest {
 
   @Test
   public void testSockJSEscape() throws Exception {
-    assertEquals("[\"x\"]", URIDecoder.decodeURIComponent("%5B%22x%22%5D", true));
-    assertEquals("[\"abc\"]", URIDecoder.decodeURIComponent("%5B%22abc%22%5D", true));
-    assertEquals("[\"x", URIDecoder.decodeURIComponent("%5B%22x", true));
-    assertEquals("[\"b\"]", URIDecoder.decodeURIComponent("%5B%22b%22%5D", true));
+    assertEquals("[\"x\"]", RFC3986.decodeURIComponent("%5B%22x%22%5D", true));
+    assertEquals("[\"abc\"]", RFC3986.decodeURIComponent("%5B%22abc%22%5D", true));
+    assertEquals("[\"x", RFC3986.decodeURIComponent("%5B%22x", true));
+    assertEquals("[\"b\"]", RFC3986.decodeURIComponent("%5B%22b%22%5D", true));
   }
 }
