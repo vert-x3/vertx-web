@@ -22,7 +22,7 @@ module io.vertx.web.client {
   requires io.netty.buffer;
   requires io.netty.codec;
   requires io.netty.codec.http;
-  requires io.vertx.auth.oauth2;
+  requires static io.vertx.auth.oauth2;
   requires io.vertx.uritemplate;
   requires io.vertx.web.common;
   requires io.netty.common;
