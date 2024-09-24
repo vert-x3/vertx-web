@@ -55,7 +55,7 @@ public interface SessionStore {
     SessionStore defaultStore;
 
     try {
-      defaultStore = io.vertx.core.internal.ServiceHelper.loadFactoryOrNull(SessionStore.class);
+      defaultStore = io.vertx.core.impl.ServiceHelper.loadFactoryOrNull(SessionStore.class);
       if (defaultStore != null) {
         return defaultStore.init(vertx, options);
       }
