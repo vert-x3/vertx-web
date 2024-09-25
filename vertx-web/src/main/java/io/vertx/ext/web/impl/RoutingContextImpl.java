@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Red Hat, Inc.
+ * Copyright 2024 Red Hat, Inc.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -74,7 +74,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
     super(mountPoint, routes, router);
     this.router = router;
-    this.request = new HttpServerRequestWrapper(request, router.getAllowForward());
+    this.request = new HttpServerRequestWrapper(request, router.getAllowForward(), this);
     this.body = new RequestBodyImpl(this);
 
     final String path = request.path();

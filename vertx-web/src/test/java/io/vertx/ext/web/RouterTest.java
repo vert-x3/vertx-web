@@ -17,7 +17,9 @@
 package io.vertx.ext.web;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.vertx.core.*;
+import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
+import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpServerRequestInternal;
@@ -32,7 +34,10 @@ import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -55,7 +60,15 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testSimpleRoute() throws Exception {
-    router.route().handler(rc -> rc.response().end());
+    router.route().handler(rc -> {
+      if (rc.request() instanceof WebServerRequest) {
+        WebServerRequest request = (WebServerRequest) rc.request();
+        if (request.routingContext() == rc) {
+          rc.response().end();
+        }
+      }
+      rc.fail(500);
+    });
     testRequest(HttpMethod.GET, "/", 200, "OK");
   }
 

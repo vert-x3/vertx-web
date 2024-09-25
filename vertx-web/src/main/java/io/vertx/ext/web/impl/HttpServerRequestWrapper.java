@@ -2,14 +2,20 @@ package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
-import io.vertx.core.*;
-import io.vertx.core.http.*;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.http.impl.HttpServerRequestInternal;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.AllowForwardHeaders;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebServerRequest;
+
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +27,7 @@ import java.util.Map;
 class HttpServerRequestWrapper extends io.vertx.core.http.impl.HttpServerRequestWrapper implements WebServerRequest {
 
   private final ForwardedParser forwardedParser;
+  private final RoutingContext ctx;
 
   private boolean modified;
 
@@ -30,11 +37,6 @@ class HttpServerRequestWrapper extends io.vertx.core.http.impl.HttpServerRequest
   private String uri;
   private String absoluteURI;
   private MultiMap params;
-  private RoutingContext ctx;
-
-  HttpServerRequestWrapper(HttpServerRequest request, AllowForwardHeaders allowForward) {
-    this(request, allowForward, null);
-  }
 
   HttpServerRequestWrapper(HttpServerRequest request, AllowForwardHeaders allowForward, RoutingContext ctx) {
     super((HttpServerRequestInternal) request);
