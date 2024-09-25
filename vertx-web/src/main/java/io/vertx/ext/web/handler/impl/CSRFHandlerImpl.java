@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Red Hat, Inc.
+ * Copyright 2024 Red Hat, Inc.
  *
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
@@ -15,13 +15,10 @@
  */
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.ext.auth.prng.VertxContextPRNG;
@@ -111,38 +108,22 @@ public class CSRFHandlerImpl implements CSRFHandler {
     return this;
   }
 
-  private String generateToken(RoutingContext ctx) {
+  private String generateAndStoreToken(RoutingContext ctx) {
     byte[] salt = new byte[32];
     random.nextBytes(salt);
 
     String saltPlusToken = base64UrlEncode(salt) + "." + System.currentTimeMillis();
 
     final String token = signature.sign(saltPlusToken);
-    // a new token was generated add it to the cookie
-    ctx.response()
-      .addCookie(
-        Cookie.cookie(cookieName, token)
-          .setPath(cookiePath)
-          .setHttpOnly(httpOnly)
-          .setSecure(cookieSecure)
-          // it's not an option to change the same site policy
-          .setSameSite(CookieSameSite.STRICT));
 
-    // only add the token to the session when the request ends successfully, doing this avoids storing a token that
-    // may due to error not make it to the browser. It is assumed that the token placed onto the context directly
-    // would only be returned to the user if the request completed successfully, thus they will remain in sync
-    ctx.addEndHandler(sessionTokenEndHandler(ctx, token));
+    Session session = ctx.session();
+    if (session != null) {
+      // storing will include the session id too. The reason is that if a session is upgraded
+      // we don't want to allow the token to be valid anymore
+      session.put(headerName, session.id() + "/" + token);
+    }
 
     return token;
-  }
-
-  private Handler<AsyncResult<Void>> sessionTokenEndHandler(RoutingContext ctx, String token) {
-    return ar -> {
-      if (ar.succeeded() && ctx.session() != null) {
-        Session session = ctx.session();
-        session.put(headerName, session.id() + "/" + token);
-      }
-    };
   }
 
   private String getTokenFromSession(RoutingContext ctx) {
@@ -187,8 +168,97 @@ public class CSRFHandlerImpl implements CSRFHandler {
     }
   }
 
-  private boolean isValidRequest(RoutingContext ctx) {
+  @Override
+  public void handle(RoutingContext ctx) {
 
+    // we need to keep state since we can be called again on reroute
+    if (!((RoutingContextInternal) ctx).seenHandler(RoutingContextInternal.CSRF_HANDLER)) {
+      ((RoutingContextInternal) ctx).visitHandler(RoutingContextInternal.CSRF_HANDLER);
+    } else {
+      ctx.next();
+      return;
+    }
+
+    if (nagHttps && LOG.isTraceEnabled()) {
+      String uri = ctx.request().absoluteURI();
+      if (uri != null && !uri.startsWith("https:")) {
+        LOG.trace("Using session cookies without https could make you susceptible to session hijacking: " + uri);
+      }
+    }
+
+    // If we're being strict with the origin
+    // ensure that they are always valid
+    if (!Origin.check(origin, ctx)) {
+      ctx.fail(403, new VertxException("Invalid Origin", true));
+      return;
+    }
+
+    String methodName = ctx.request().method().name();
+    switch (methodName) {
+      case "HEAD":
+      case "GET":
+        handleSafeMethod(ctx);
+        break;
+      case "POST":
+      case "PUT":
+      case "DELETE":
+      case "PATCH":
+        handleUnsafeMethod(ctx);
+        break;
+      default:
+        // ignore other methods
+        ctx.next();
+        break;
+    }
+  }
+
+  private void handleSafeMethod(RoutingContext ctx) {
+    boolean sendCookie = true;
+    Session session = ctx.session();
+    String token;
+    if (session == null) {
+      // if there's no session to store values, tokens are issued on every request
+      token = generateAndStoreToken(ctx);
+    } else {
+      // Get the token from the session, this also considers the fact
+      // that the token might be invalid as it was issued for a previous session id.
+      // Session ids change on session upgrades (unauthenticated -> authenticated; role change; etc...)
+      String sessionToken = getTokenFromSession(ctx);
+      // When there's no token in the session, then we behave just like when there is no session.
+      // Create a new token, but we also store it in the session for the next runs.
+      if (sessionToken == null) {
+        token = generateAndStoreToken(ctx);
+      } else {
+        String[] parts = sessionToken.split("\\.");
+        final long ts = parseLong(parts[1]);
+
+        if (ts == -1) {
+          // fallback as the token is expired
+          token = generateAndStoreToken(ctx);
+        } else {
+          if (!(System.currentTimeMillis() > ts + timeout)) {
+            // We're still on the same session, and the token hasn't expired so it can be reused.
+            token = sessionToken;
+            // If a previous unsafe interaction succeeded, but the response didn't get to the client
+            // (e.g. the response headers were sent but not the response body), the session token may be different.
+            // In this case, we send it again to synchronize with the client.
+            // Otherwise, it's not necessary to send it again.
+            Cookie cookie = ctx.request().getCookie(cookieName);
+            if (cookie != null && token.equals(cookie.getValue())) {
+              sendCookie = false;
+            }
+          } else {
+            // Fallback as the token is expired
+            token = generateAndStoreToken(ctx);
+          }
+        }
+      }
+    }
+    synchronizeWithClient(ctx, token, sendCookie);
+    ctx.next();
+  }
+
+  private void handleUnsafeMethod(RoutingContext ctx) {
     /* Verifying CSRF token using "Double Submit Cookie" approach */
     final Cookie cookie = ctx.request().getCookie(cookieName);
 
@@ -199,21 +269,21 @@ public class CSRFHandlerImpl implements CSRFHandler {
         header = ctx.request().getFormAttribute(headerName);
       } else {
         ctx.fail(new VertxException("BodyHandler is required to process POST requests", true));
-        return false;
+        return;
       }
     }
 
     // both the header and the cookie must be present, not null and not empty
     if (header == null || cookie == null || isBlank(header)) {
       ctx.fail(403, new IllegalArgumentException("Token provided via HTTP Header/Form is absent/empty"));
-      return false;
+      return;
     }
 
     final String cookieValue = cookie.getValue();
 
     if (cookieValue == null || isBlank(cookieValue)) {
       ctx.fail(403, new IllegalArgumentException("Token provided via HTTP Header/Form is absent/empty"));
-      return false;
+      return;
     }
 
     final byte[] headerBytes = header.getBytes(StandardCharsets.UTF_8);
@@ -222,7 +292,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     //Verify that token from header and one from cookie are the same
     if (!MessageDigest.isEqual(headerBytes, cookieBytes)) {
       ctx.fail(403, new IllegalArgumentException("Token provided via HTTP Header and via Cookie are not equal"));
-      return false;
+      return;
     }
 
     final Session session = ctx.session();
@@ -238,21 +308,21 @@ public class CSRFHandlerImpl implements CSRFHandler {
           // the challenge must match the user-agent input
           if (!MessageDigest.isEqual(challenge.getBytes(StandardCharsets.UTF_8), headerBytes)) {
             ctx.fail(403, new IllegalArgumentException("Token has been used or is outdated"));
-            return false;
+            return;
           }
         } else {
           ctx.fail(403, new IllegalArgumentException("Token has been issued for a different session"));
-          return false;
+          return;
         }
       } else {
         ctx.fail(403, new IllegalArgumentException("No Token has been added to the session"));
-        return false;
+        return;
       }
     }
 
     if (!signature.verify(header)) {
       ctx.fail(403, new IllegalArgumentException("Token signature does not match"));
-      return false;
+      return;
     }
 
     // if the token has expired remove the token from the session so that a new one can be acquired by a fresh GET
@@ -265,7 +335,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
         session.remove(headerName);
       }
       ctx.fail(403);
-      return false;
+      return;
     }
 
     final long ts = parseLong(tokens[1]);
@@ -275,7 +345,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
         session.remove(headerName);
       }
       ctx.fail(403);
-      return false;
+      return;
     }
 
     // validate validity
@@ -284,98 +354,27 @@ public class CSRFHandlerImpl implements CSRFHandler {
         session.remove(headerName);
       }
       ctx.fail(403, new IllegalArgumentException("CSRF validity expired"));
-      return false;
+      return;
     }
 
-    return true;
+    // The token matches, so refresh it to avoid replay attacks
+    String token = generateAndStoreToken(ctx);
+    synchronizeWithClient(ctx, token, true);
+    ctx.next();
   }
 
-  @Override
-  public void handle(RoutingContext ctx) {
-
-    // we need to keep state since we can be called again on reroute
-    if (!((RoutingContextInternal) ctx).seenHandler(RoutingContextInternal.CSRF_HANDLER)) {
-      ((RoutingContextInternal) ctx).visitHandler(RoutingContextInternal.CSRF_HANDLER);
-    } else {
-      ctx.next();
-      return;
+  private void synchronizeWithClient(RoutingContext ctx, String token, boolean cookie) {
+    if (cookie) {
+      ctx.response()
+        .addCookie(
+          Cookie.cookie(cookieName, token)
+            .setPath(cookiePath)
+            .setHttpOnly(httpOnly)
+            .setSecure(cookieSecure)
+            // it's not an option to change the same site policy
+            .setSameSite(CookieSameSite.STRICT));
     }
-
-    if (nagHttps) {
-      String uri = ctx.request().absoluteURI();
-      if (uri != null && !uri.startsWith("https:")) {
-        LOG.trace("Using session cookies without https could make you susceptible to session hijacking: " + uri);
-      }
-    }
-
-    HttpMethod method = ctx.request().method();
-    Session session = ctx.session();
-
-    // if we're being strict with the origin
-    // ensure that they are always valid
-    if (!Origin.check(origin, ctx)) {
-      ctx.fail(403, new VertxException("Invalid Origin", true));
-      return;
-    }
-
-    switch (method.name()) {
-      case "GET":
-        final String token;
-
-        if (session == null) {
-          // if there's no session to store values, tokens are issued on every request
-          token = generateToken(ctx);
-        } else {
-          // get the token from the session, this also considers the fact
-          // that the token might be invalid as it was issued for a previous session id
-          // session id's change on session upgrades (unauthenticated -> authenticated; role change; etc...)
-          String sessionToken = getTokenFromSession(ctx);
-          // when there's no token in the session, then we behave just like when there is no session
-          // create a new token, but we also store it in the session for the next runs
-          if (sessionToken == null) {
-            token = generateToken(ctx);
-          } else {
-            String[] parts = sessionToken.split("\\.");
-            final long ts = parseLong(parts[1]);
-
-            if (ts == -1) {
-              // fallback as the token is expired
-              token = generateToken(ctx);
-            } else {
-              if (!(System.currentTimeMillis() > ts + timeout)) {
-                // we're still on the same session, no need to regenerate the token
-                // also note that the token isn't expired, so it can be reused
-                token = sessionToken;
-                // in this case specifically we don't issue the token as it is unchanged
-                // the user agent still has it from the previous interaction.
-              } else {
-                // fallback as the token is expired
-                token = generateToken(ctx);
-              }
-            }
-          }
-        }
-        // put the token in the context for users who prefer to render the token directly on the HTML
-        ctx.put(headerName, token);
-        ctx.next();
-        break;
-      case "POST":
-      case "PUT":
-      case "DELETE":
-      case "PATCH":
-        if (isValidRequest(ctx)) {
-          // it matches, so refresh the token to avoid replay attacks
-          token = generateToken(ctx);
-          // put the token in the context for users who prefer to
-          // render the token directly on the HTML
-          ctx.put(headerName, token);
-          ctx.next();
-        }
-        break;
-      default:
-        // ignore other methods
-        ctx.next();
-        break;
-    }
+    // Put the token in the context for users who prefer to render the token directly on the HTML
+    ctx.put(headerName, token);
   }
 }
