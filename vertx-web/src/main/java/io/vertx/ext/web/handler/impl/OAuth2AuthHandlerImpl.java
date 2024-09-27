@@ -40,6 +40,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.impl.*;
+import io.vertx.ext.web.internal.handler.ScopedAuthentication;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

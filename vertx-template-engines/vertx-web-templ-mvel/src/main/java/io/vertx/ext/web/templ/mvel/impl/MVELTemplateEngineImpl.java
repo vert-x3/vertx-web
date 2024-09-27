@@ -21,7 +21,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
-import io.vertx.ext.web.common.template.impl.TemplateHolder;
+import io.vertx.ext.web.common.template.CachedTemplate;
 import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
 import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.mvel2.templates.CompiledTemplate;
@@ -48,7 +48,7 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
   public Future<Buffer> render(Map<String, Object> context, String templateFile) {
     try {
       String src = adjustLocation(templateFile);
-      TemplateHolder<CompiledTemplate> template = getTemplate(src);
+      CachedTemplate<CompiledTemplate> template = getTemplate(src);
 
       if (template == null) {
         int idx = findLastFileSeparator(src);
@@ -61,7 +61,7 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
           return Future.failedFuture("Cannot find template " + src);
         }
 
-        template = new TemplateHolder<>(
+        template = new CachedTemplate<>(
           TemplateCompiler
           .compileTemplate(
             vertx.fileSystem()

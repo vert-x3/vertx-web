@@ -23,7 +23,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
-import io.vertx.ext.web.common.template.impl.TemplateHolder;
+import io.vertx.ext.web.common.template.CachedTemplate;
 import io.vertx.ext.web.templ.pug.PugTemplateEngine;
 import java.io.IOException;
 import java.io.Reader;
@@ -70,12 +70,12 @@ public class PugTemplateEngineImpl extends CachingTemplateEngine<PugTemplate> im
   public Future<Buffer> render(Map<String, Object> context, String templateFile) {
     try {
       String src = adjustLocation(templateFile);
-      TemplateHolder<PugTemplate> template = getTemplate(src);
+      CachedTemplate<PugTemplate> template = getTemplate(src);
 
       if (template == null) {
         synchronized (this) {
           // Compile
-          template = new TemplateHolder<>(config.getTemplate(src));
+          template = new CachedTemplate<>(config.getTemplate(src));
         }
         putTemplate(src, template);
       }

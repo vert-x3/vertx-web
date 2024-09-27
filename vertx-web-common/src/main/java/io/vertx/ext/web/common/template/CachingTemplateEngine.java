@@ -19,7 +19,6 @@ package io.vertx.ext.web.common.template;
 import io.vertx.core.Vertx;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.common.WebEnvironment;
-import io.vertx.ext.web.common.template.impl.TemplateHolder;
 
 import java.util.Objects;
 
@@ -28,7 +27,7 @@ import java.util.Objects;
  */
 public abstract class CachingTemplateEngine<T> implements TemplateEngine {
 
-  private final LocalMap<String, TemplateHolder<T>> cache;
+  private final LocalMap<String, CachedTemplate<T>> cache;
   protected String extension;
 
   protected CachingTemplateEngine(Vertx vertx, String ext) {
@@ -42,7 +41,7 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
     this.extension = ext.charAt(0) == '.' ? ext : "." + ext;
   }
 
-  public TemplateHolder<T> getTemplate(String filename) {
+  public CachedTemplate<T> getTemplate(String filename) {
     if (cache != null) {
       return cache.get(filename);
     }
@@ -50,9 +49,9 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
     return null;
   }
 
-  public TemplateHolder<T> putTemplate(String filename, TemplateHolder<T> templateHolder) {
+  public CachedTemplate<T> putTemplate(String filename, CachedTemplate<T> cachedTemplate) {
     if (cache != null) {
-      return cache.put(filename, templateHolder);
+      return cache.put(filename, cachedTemplate);
     }
 
     return null;

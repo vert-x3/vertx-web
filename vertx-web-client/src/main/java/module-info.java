@@ -29,6 +29,7 @@ module io.vertx.web.client {
 
   exports io.vertx.ext.web.client;
   exports io.vertx.ext.web.client.spi;
+
   exports io.vertx.ext.web.client.impl to io.vertx.web.client.tests;
   exports io.vertx.ext.web.client.impl.cache to io.vertx.web.client.tests;
 

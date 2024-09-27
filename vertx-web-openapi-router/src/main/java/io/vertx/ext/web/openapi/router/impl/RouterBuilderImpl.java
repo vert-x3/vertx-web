@@ -32,7 +32,6 @@ import io.vertx.openapi.contract.Operation;
 import io.vertx.openapi.contract.Path;
 import io.vertx.openapi.validation.RequestValidator;
 import io.vertx.openapi.validation.ValidatorException;
-import io.vertx.openapi.validation.impl.RequestValidatorImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,12 +64,16 @@ public class RouterBuilderImpl implements RouterBuilderInternal {
       contract.operations().stream().collect(Collectors.toMap(Operation::getOperationId, OpenAPIRouteImpl::new));
   }
 
+  public List<Handler<RoutingContext>> rootHandlers() {
+    return rootHandlers;
+  }
+
   /**
    * @param openAPIPath the path with placeholders in OpenAPI format
    * @return the path with placeholders in vertx-web format
    */
   // VisibleForTesting
-  static String toVertxWebPath(String openAPIPath) {
+  public static String toVertxWebPath(String openAPIPath) {
     return openAPIPath.replaceAll(PATH_PARAM_PLACEHOLDER_REGEX, ":$1");
   }
 
@@ -105,7 +108,7 @@ public class RouterBuilderImpl implements RouterBuilderInternal {
   @Override
   public Router createRouter() {
     Router router = Router.router(vertx);
-    RequestValidator validator = new RequestValidatorImpl(vertx, contract);
+    RequestValidator validator = RequestValidator.create(vertx, contract);
 
     Route globalRoute = router.route();
     rootHandlers.forEach(globalRoute::handler);

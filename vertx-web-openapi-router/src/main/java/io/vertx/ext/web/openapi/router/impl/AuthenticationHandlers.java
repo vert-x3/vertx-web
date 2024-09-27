@@ -7,7 +7,7 @@ import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.ChainAuthHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
-import io.vertx.ext.web.handler.impl.ScopedAuthentication;
+import io.vertx.ext.web.internal.handler.ScopedAuthentication;
 import io.vertx.openapi.contract.Operation;
 import io.vertx.openapi.contract.SecurityRequirement;
 

@@ -43,12 +43,6 @@
       <artifactId>vertx-unit</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.fizzed</groupId>
-      <artifactId>rocker-compiler</artifactId>
-      <version>${rocker.version}</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>

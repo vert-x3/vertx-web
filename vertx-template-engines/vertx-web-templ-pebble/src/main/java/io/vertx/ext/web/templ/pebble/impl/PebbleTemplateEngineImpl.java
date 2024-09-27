@@ -22,7 +22,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
-import io.vertx.ext.web.common.template.impl.TemplateHolder;
+import io.vertx.ext.web.common.template.CachedTemplate;
 import io.vertx.ext.web.templ.pebble.PebbleTemplateEngine;
 
 import java.io.StringWriter;
@@ -60,11 +60,11 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
   public Future<Buffer> render(Map<String, Object> context, String templateFile) {
     try {
       String src = adjustLocation(templateFile);
-      TemplateHolder<PebbleTemplate> template = getTemplate(src);
+      CachedTemplate<PebbleTemplate> template = getTemplate(src);
       if (template == null) {
         // real compile
         synchronized (this) {
-          template = new TemplateHolder<>(pebbleEngine.getTemplate(adjustLocation(src)));
+          template = new CachedTemplate<>(pebbleEngine.getTemplate(adjustLocation(src)));
         }
         putTemplate(src, template);
       }

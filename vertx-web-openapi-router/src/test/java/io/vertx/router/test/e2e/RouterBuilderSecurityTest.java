@@ -25,7 +25,7 @@ import io.vertx.ext.web.handler.APIKeyHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.router.ResourceHelper;
+import io.vertx.router.test.ResourceHelper;
 import io.vertx.router.test.base.RouterBuilderTestBase;
 import org.junit.jupiter.api.Test;
 

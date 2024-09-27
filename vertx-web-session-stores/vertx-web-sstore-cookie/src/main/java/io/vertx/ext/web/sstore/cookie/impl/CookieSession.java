@@ -24,14 +24,23 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-
-import static io.vertx.ext.auth.impl.Codec.base64UrlDecode;
-import static io.vertx.ext.auth.impl.Codec.base64UrlEncode;
+import java.util.Base64;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 public class CookieSession extends AbstractSession {
+
+  private static final Base64.Encoder BASE64_URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
+  private static final Base64.Decoder BASE64_URL_DECODER = Base64.getUrlDecoder();
+
+  public static String base64UrlEncode(byte[] bytes) {
+    return BASE64_URL_ENCODER.encodeToString(bytes);
+  }
+
+  public static byte[] base64UrlDecode(String base64) {
+    return BASE64_URL_DECODER.decode(base64);
+  }
 
   private static final Charset UTF8 = StandardCharsets.UTF_8;
 

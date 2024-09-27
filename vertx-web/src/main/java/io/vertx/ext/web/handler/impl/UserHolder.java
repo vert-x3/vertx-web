@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.ClusterSerializable;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
@@ -90,11 +91,16 @@ public class UserHolder implements ClusterSerializable {
       pos += len;
       String className = new String(bytes, StandardCharsets.UTF_8);
       try {
-        Class<?> clazz = Utils.getClassLoader().loadClass(className);
-        if (!ClusterSerializable.class.isAssignableFrom(clazz)) {
-          throw new ClassCastException(className + " is not ClusterSerializable");
+        ClusterSerializable obj;
+        if (className.equals("io.vertx.ext.auth.impl.UserImpl")) {
+          obj = (ClusterSerializable) User.create(new JsonObject());
+        } else {
+          Class<?> clazz = Utils.getClassLoader().loadClass(className);
+          if (!ClusterSerializable.class.isAssignableFrom(clazz)) {
+            throw new ClassCastException(className + " is not ClusterSerializable");
+          }
+          obj = (ClusterSerializable) clazz.getDeclaredConstructor().newInstance();
         }
-        ClusterSerializable obj = (ClusterSerializable) clazz.getDeclaredConstructor().newInstance();
         pos = obj.readFromBuffer(pos, buffer);
         synchronized (this) {
           user = (User) obj;

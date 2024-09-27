@@ -30,34 +30,34 @@ import java.util.List;
  * This is required because the index of the handler in the list is used as its unique id.
  * This isn't a problem as long as the appplication doesn't add dozens of handlers for each event (headers end, body end, response end).
  */
-class HandlersList<E> {
+public class HandlersList<E> {
 
   private final List<Handler<E>> list;
 
-  HandlersList() {
+  public HandlersList() {
     this.list = new ArrayList<>();
   }
 
-  int put(Handler<E> handler) {
+  public int put(Handler<E> handler) {
     list.add(handler);
     return list.size() - 1;
   }
 
-  boolean remove(int handlerID) {
+  public boolean remove(int handlerID) {
     if (handlerID < 0 || handlerID >= list.size()) {
       return false;
     }
     return list.set(handlerID, null) != null;
   }
 
-  void clear() {
+  public void clear() {
     // Fill with nulls to keep generating unique handlers IDs
     for (int i = 0; i < list.size(); i++) {
       list.set(i, null);
     }
   }
 
-  void invokeInReverseOrder(E event) {
+  public void invokeInReverseOrder(E event) {
     for (int i = list.size() - 1; i >= 0; i--) {
       Handler<E> handler = list.get(i);
       if (handler != null) {

@@ -12,7 +12,7 @@
   <artifactId>vertx-web-templ-jte</artifactId>
 
   <properties>
-    <jte.version>2.1.1</jte.version>
+    <jte.version>2.3.2</jte.version>
   </properties>
 
   <dependencies>
@@ -37,7 +37,27 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <configuration>
+              <useModulePath>false</useModulePath>
+            </configuration>
+          </execution>
+          <execution>
+            <id>jpms-test</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <useModulePath>true</useModulePath>
+              <includes>
+                <include>**/JteCompiledTemplateEngineTest.java</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>gg.jte</groupId>
@@ -56,6 +76,10 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
       </plugin>
     </plugins>
   </build>

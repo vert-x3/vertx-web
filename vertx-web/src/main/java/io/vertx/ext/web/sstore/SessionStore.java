@@ -25,6 +25,9 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.impl.ClusteredSessionStoreImpl;
 import io.vertx.ext.web.sstore.impl.LocalSessionStoreImpl;
 
+import java.util.Iterator;
+import java.util.ServiceLoader;
+
 /**
  * A session store is used to store sessions for an Vert.x-Web web app
  *
@@ -52,10 +55,14 @@ public interface SessionStore {
    * @return the store or runtime exception
    */
   static SessionStore create(Vertx vertx, JsonObject options) {
-    SessionStore defaultStore;
+    SessionStore defaultStore = null;
 
     try {
-      defaultStore = io.vertx.core.impl.ServiceHelper.loadFactoryOrNull(SessionStore.class);
+      ServiceLoader<SessionStore> loader = ServiceLoader.load(SessionStore.class);
+      Iterator<SessionStore> it = loader.iterator();
+      if (it.hasNext()) {
+        defaultStore = it.next();
+      }
       if (defaultStore != null) {
         return defaultStore.init(vertx, options);
       }
