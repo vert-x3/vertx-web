@@ -22,7 +22,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.ext.auth.audit.SecurityAudit;
-import io.vertx.ext.auth.audit.impl.SecurityAuditNOOP;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -71,7 +70,7 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
     this.mountPoint = mountPoint;
     this.routes = routes;
     this.iter = routes.iterator();
-    this.securityAudit = SecurityAuditNOOP.INSTANCE;
+    this.securityAudit = SecurityAudit.NOOP;
 
     this.currentRouter = currentRouter;
     resetMatchFailure();

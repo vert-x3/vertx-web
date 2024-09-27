@@ -20,7 +20,6 @@ import io.vertx.codegen.annotations.*;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
-import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.Json;
@@ -61,7 +60,7 @@ public interface RoutingContext {
    * @return the HTTP request object
    */
   @CacheReturn
-  HttpServerRequest request();
+  HttpServerRequest request(); // WebServerRequest ????
 
   /**
    * @return the HTTP response object
@@ -438,7 +437,7 @@ public interface RoutingContext {
   @Fluent
   default RoutingContext attachment(String filename) {
     if (filename != null) {
-      String contentType = MimeMapping.getMimeTypeForFilename(filename);
+      String contentType = MimeMapping.mimeTypeForFilename(filename);
 
       if (contentType != null) {
         response()

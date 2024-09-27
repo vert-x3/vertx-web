@@ -24,7 +24,6 @@ import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.webauthn.WebAuthn;
 import io.vertx.ext.auth.webauthn.WebAuthnCredentials;
-import io.vertx.ext.auth.webauthn.impl.attestation.AttestationException;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -321,7 +320,7 @@ public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> imp
             })
             .onFailure(cause -> {
               audit.audit(Marker.AUTHENTICATION, false);
-              if (cause instanceof AttestationException) {
+              if (cause.getClass().getName().equals("io.vertx.ext.auth.webauthn.impl.attestation.AttestationException")) {
                 ctx.fail(400, cause);
               } else {
                 ctx.fail(cause);

@@ -17,17 +17,20 @@ package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.internal.logging.Logger;
+import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
-import io.vertx.ext.auth.audit.impl.SecurityAuditLogger;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.SecurityAuditLoggerHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
 public class SecurityAuditLoggerHandlerImpl implements SecurityAuditLoggerHandler {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(SecurityAudit.class);
+
   public SecurityAuditLoggerHandlerImpl() {
-    if (!SecurityAuditLogger.isEnabled()) {
+    if (!LOGGER.isInfoEnabled()) {
       throw new IllegalStateException("Security audit logger is not enabled. Please check your logging configuration.");
     }
   }

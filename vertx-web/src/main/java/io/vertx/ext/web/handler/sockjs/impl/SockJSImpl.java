@@ -32,6 +32,7 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
+import io.netty.util.internal.StringUtil;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -53,7 +54,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static io.vertx.core.buffer.Buffer.buffer;
-import static io.vertx.ext.auth.impl.Codec.base16Encode;
 import static io.vertx.ext.web.handler.sockjs.impl.BaseTransport.createCORSOptionsHandler;
 import static io.vertx.ext.web.handler.sockjs.impl.BaseTransport.createInfoHandler;
 
@@ -239,7 +239,7 @@ public class SockJSImpl implements SockJSHandler {
     try {
       MessageDigest md = MessageDigest.getInstance("MD5");
       byte[] bytes = md.digest(str.getBytes(StandardCharsets.UTF_8));
-      return base16Encode(bytes);
+      return StringUtil.toHexString(bytes);
     } catch (Exception e) {
       LOG.error("Failed to generate MD5 for iframe, If-None-Match headers will be ignored");
       return null;

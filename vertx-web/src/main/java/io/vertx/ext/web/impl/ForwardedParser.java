@@ -26,7 +26,6 @@ import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.core.net.impl.SocketAddressImpl;
 import io.vertx.ext.web.AllowForwardHeaders;
 
 import java.util.regex.Matcher;
@@ -215,7 +214,7 @@ class ForwardedParser {
         }
       }
     }
-    return new SocketAddressImpl(port, host);
+    return SocketAddress.inetSocketAddress(port, host);
   }
 
 

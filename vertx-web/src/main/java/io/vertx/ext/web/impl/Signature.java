@@ -27,8 +27,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-import static io.vertx.ext.auth.impl.Codec.base64UrlEncode;
-
 public class Signature {
   private static final Logger LOG = LoggerFactory.getLogger(Signature.class);
   private static final String algorithm = "HmacSHA256";
@@ -50,7 +48,7 @@ public class Signature {
   public String sign(String data) {
     final String signature;
     synchronized (mac) {
-      signature = base64UrlEncode(mac.doFinal(data.getBytes(StandardCharsets.US_ASCII)));
+      signature = Utils.base64UrlEncode(mac.doFinal(data.getBytes(StandardCharsets.US_ASCII)));
     }
     return data + "." + signature;
   }
@@ -68,7 +66,7 @@ public class Signature {
     final String calculatedSignature;
 
     synchronized (mac) {
-      calculatedSignature = base64UrlEncode(mac.doFinal(data.getBytes(StandardCharsets.US_ASCII)));
+      calculatedSignature = Utils.base64UrlEncode(mac.doFinal(data.getBytes(StandardCharsets.US_ASCII)));
     }
 
     return MessageDigest.isEqual(
