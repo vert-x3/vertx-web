@@ -248,6 +248,6 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
 
   private static synchronized String md5(byte[] payload) {
     MD5.reset();
-    return StringUtil.toHexString(MD5.digest(payload));
+    return StringUtil.toHexStringPadded(MD5.digest(payload));
   }
 }

@@ -17,7 +17,7 @@
 package io.vertx.ext.web.it;
 
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase;
 import org.junit.Test;
 
 /**

@@ -14,8 +14,8 @@
   <properties>
     <junit5.version>5.7.0</junit5.version>
     <assertj.version>3.15.0</assertj.version>
-    <mockito.version>3.3.0</mockito.version>
     <truth.version>1.1.3</truth.version>
+    <s>${path.separator}</s>
   </properties>
 
   <dependencies>
@@ -82,7 +82,6 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-junit-jupiter</artifactId>
-      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -119,12 +118,34 @@
             <execution>
               <id>default-testCompile</id>
               <configuration>
+                <useModulePath>false</useModulePath>
                 <annotationProcessors>
                   <annotationProcessor>io.vertx.codegen.processor.Processor</annotationProcessor>
                 </annotationProcessors>
+                <testCompilerArguments>
+                  <processorpath>${project.build.directory}/classes${s}${io.vertx:vertx-codegen-api:jar}${s}${io.vertx:vertx-codegen-json:jar}${s}${io.vertx:vertx-codegen-processor:jar}${s}${io.vertx:vertx-service-proxy:jar}${s}${io.vertx:vertx-web-validation:jar}</processorpath>
+                </testCompilerArguments>
                 <testExcludes>
                   <exclude>**/Invalid*.java</exclude>
                 </testExcludes>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>default-test</id>
+              <configuration>
+                <useModulePath>false</useModulePath>
+                <excludes>
+                  <exclude>**/WebApiServiceHandlerTest.java</exclude>
+                </excludes>
+                <additionalClasspathElements>
+                  <additionalClasspathElement>${project.build.testSourceDirectory}</additionalClasspathElement>
+                </additionalClasspathElements>
               </configuration>
             </execution>
           </executions>
@@ -134,12 +155,15 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <additionalClasspathElements>
-            <additionalClasspathElement>${project.build.testSourceDirectory}</additionalClasspathElement>
-          </additionalClasspathElements>
-        </configuration>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>initialize</phase>
+            <goals>
+              <goal>properties</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

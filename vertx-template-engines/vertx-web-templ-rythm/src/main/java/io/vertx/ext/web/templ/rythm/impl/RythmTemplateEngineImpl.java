@@ -5,7 +5,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
-import io.vertx.ext.web.common.template.impl.TemplateHolder;
+import io.vertx.ext.web.common.template.CachedTemplate;
 import io.vertx.ext.web.templ.rythm.RythmTemplateEngine;
 import org.rythmengine.RythmEngine;
 
@@ -30,12 +30,12 @@ public class RythmTemplateEngineImpl extends CachingTemplateEngine<String>  impl
   public Future<Buffer> render(Map<String, Object> context, String templateFile) {
     try {
       String src = adjustLocation(templateFile);
-      TemplateHolder<String> template = getTemplate(src);
+      CachedTemplate<String> template = getTemplate(src);
 
       if (template == null) {
         // either it's not cache or cache is disabled
         synchronized (this) {
-          template = new TemplateHolder<>(fileSystem.readFileBlocking(src).toString());
+          template = new CachedTemplate<>(fileSystem.readFileBlocking(src).toString());
         }
         putTemplate(src, template);
       }

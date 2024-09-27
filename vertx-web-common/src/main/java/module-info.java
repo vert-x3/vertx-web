@@ -14,13 +14,18 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 module io.vertx.web.common {
+
   requires static io.vertx.docgen;
   requires static io.vertx.codegen.api;
   requires static io.vertx.codegen.json;
+
   requires io.vertx.core;
+
   exports io.vertx.ext.web.common;
+  exports io.vertx.ext.web.common.template;
   exports io.vertx.ext.web.codec;
   exports io.vertx.ext.web.codec.spi;
   exports io.vertx.ext.web.multipart;
+
   exports io.vertx.ext.web.codec.impl to io.vertx.web.client;
 }

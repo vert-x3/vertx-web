@@ -23,7 +23,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
-import io.vertx.ext.web.common.template.impl.TemplateHolder;
+import io.vertx.ext.web.common.template.CachedTemplate;
 import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
 
 import java.io.ByteArrayOutputStream;
@@ -61,12 +61,12 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
         Locale.getDefault();
       String src = adjustLocation(templateFile);
       String key = src + "_" + locale.toLanguageTag();
-      TemplateHolder<Template> template = getTemplate(key);
+      CachedTemplate<Template> template = getTemplate(key);
       if (template == null) {
         // real compile
         synchronized (this) {
           // Compile
-          template = new TemplateHolder<>(config.getTemplate(src, locale));
+          template = new CachedTemplate<>(config.getTemplate(src, locale));
         }
         putTemplate(key, template);
       }

@@ -28,6 +28,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
+import io.vertx.ext.web.internal.handler.ScopedAuthentication;
 
 import java.util.ArrayList;
 import java.util.Collections;

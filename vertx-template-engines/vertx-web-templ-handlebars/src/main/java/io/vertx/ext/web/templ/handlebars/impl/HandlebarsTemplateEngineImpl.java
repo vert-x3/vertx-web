@@ -27,7 +27,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
-import io.vertx.ext.web.common.template.impl.TemplateHolder;
+import io.vertx.ext.web.common.template.CachedTemplate;
 import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 
 import java.io.FileNotFoundException;
@@ -69,7 +69,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   public Future<Buffer> render(Map<String, Object> context, String templateFile) {
     try {
       String src = adjustLocation(templateFile);
-      TemplateHolder<Template> template = getTemplate(src);
+      CachedTemplate<Template> template = getTemplate(src);
 
       if (template == null) {
         // either it's not cache or cache is disabled
@@ -82,7 +82,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
         }
         synchronized (this) {
           loader.setPrefix(prefix);
-          template = new TemplateHolder<>(handlebars.compile(basename), prefix);
+          template = new CachedTemplate<>(handlebars.compile(basename), prefix);
         }
         putTemplate(src, template);
       }

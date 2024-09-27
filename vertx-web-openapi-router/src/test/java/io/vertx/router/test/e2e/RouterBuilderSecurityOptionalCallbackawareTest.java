@@ -13,7 +13,6 @@
 package io.vertx.router.test.e2e;
 
 import io.vertx.core.Future;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
@@ -22,7 +21,7 @@ import io.vertx.ext.auth.oauth2.providers.OpenIDConnectAuth;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.router.ResourceHelper;
+import io.vertx.router.test.ResourceHelper;
 import io.vertx.router.test.base.RouterBuilderTestBase;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +29,6 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
-import static io.vertx.core.http.HttpMethod.GET;
 
 class RouterBuilderSecurityOptionalCallbackawareTest extends RouterBuilderTestBase {
 

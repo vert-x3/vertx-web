@@ -19,7 +19,7 @@ import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.openapi.validation.ValidatedRequest;
-import io.vertx.router.ResourceHelper;
+import io.vertx.router.test.ResourceHelper;
 import io.vertx.router.test.base.RouterBuilderTestBase;
 import org.junit.jupiter.api.Test;
 

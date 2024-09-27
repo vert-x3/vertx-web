@@ -19,7 +19,6 @@ package io.vertx.ext.web.handler.graphql.impl.ws;
 import graphql.GraphQL;
 import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
-import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.ExecutionInputBuilderWithContext;
 import io.vertx.ext.web.handler.graphql.ws.ConnectionInitEvent;
@@ -49,7 +48,7 @@ public class GraphQLWSHandlerImpl implements GraphQLWSHandler {
 
   @Override
   public void handle(RoutingContext rc) {
-    if (HttpUtils.canUpgradeToWebSocket(rc.request())) {
+    if (rc.request().canUpgradeToWebSocket()) {
       rc
         .request()
         .toWebSocket()
