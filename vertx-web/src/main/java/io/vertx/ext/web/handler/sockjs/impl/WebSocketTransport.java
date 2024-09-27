@@ -38,10 +38,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
-import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
-import io.vertx.core.net.impl.ConnectionBase;
+import io.vertx.core.internal.net.NetSocketInternal;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -81,7 +80,7 @@ class WebSocketTransport extends BaseTransport {
 
   private void handleGet(RoutingContext ctx) {
     HttpServerRequest req = ctx.request();
-    if (!HttpUtils.canUpgradeToWebSocket(req)) {
+    if (!req.canUpgradeToWebSocket()) {
       ctx.response().setStatusCode(400);
       ctx.response().end("Can \"Upgrade\" only to \"WebSocket\".");
       return;
@@ -144,7 +143,7 @@ class WebSocketTransport extends BaseTransport {
       if (!closed) {
         return ws.writeTextMessage(body);
       } else {
-        return Future.failedFuture(ConnectionBase.CLOSED_EXCEPTION);
+        return Future.failedFuture(NetSocketInternal.CLOSED_EXCEPTION);
       }
     }
 

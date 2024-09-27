@@ -30,6 +30,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Base64;
 import java.util.regex.Pattern;
 
 
@@ -38,6 +39,17 @@ import java.util.regex.Pattern;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class Utils {
+
+  private static final Base64.Encoder BASE64_URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
+  private static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
+
+  public static String base64UrlEncode(byte[] bytes) {
+    return BASE64_URL_ENCODER.encodeToString(bytes);
+  }
+
+  public static byte[] base64Decode(String base64) {
+    return BASE64_DECODER.decode(base64);
+  }
 
   public static ClassLoader getClassLoader() {
     // try current thread

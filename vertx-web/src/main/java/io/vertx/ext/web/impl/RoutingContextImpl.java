@@ -22,8 +22,8 @@ import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
-import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.internal.ContextInternal;
+import io.vertx.core.internal.net.RFC3986;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.HttpException;
@@ -255,7 +255,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       if (path == null) {
         normalizedPath = "/";
       } else {
-        normalizedPath = HttpUtils.normalizePath(path);
+        normalizedPath = RFC3986.normalizePath(path);
       }
     }
     return normalizedPath;

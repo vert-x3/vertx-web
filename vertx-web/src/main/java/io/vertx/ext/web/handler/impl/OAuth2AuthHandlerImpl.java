@@ -30,7 +30,6 @@ import io.vertx.ext.auth.audit.Marker;
 import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.TokenCredentials;
-import io.vertx.ext.auth.impl.Codec;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2AuthorizationURL;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
@@ -40,10 +39,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
-import io.vertx.ext.web.impl.OrderListener;
-import io.vertx.ext.web.impl.Origin;
-import io.vertx.ext.web.impl.RoutingContextInternal;
-import io.vertx.ext.web.impl.UserContextInternal;
+import io.vertx.ext.web.impl.*;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -237,7 +233,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       synchronized (sha256) {
         sha256.update(codeVerifier.getBytes(StandardCharsets.US_ASCII));
         config
-          .setCodeChallenge(Codec.base64UrlEncode(sha256.digest()))
+          .setCodeChallenge(Utils.base64UrlEncode(sha256.digest()))
           .setCodeChallengeMethod("S256");
       }
     }

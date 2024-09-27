@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.netty.util.internal.StringUtil;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.internal.logging.Logger;
@@ -40,8 +41,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static io.vertx.ext.auth.impl.Codec.base16Encode;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
@@ -249,6 +248,6 @@ public class DigestAuthHandlerImpl extends HTTPAuthorizationHandler<HtdigestAuth
 
   private static synchronized String md5(byte[] payload) {
     MD5.reset();
-    return base16Encode(MD5.digest(payload));
+    return StringUtil.toHexString(MD5.digest(payload));
   }
 }

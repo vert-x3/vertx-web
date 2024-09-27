@@ -36,10 +36,9 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
-import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.internal.VertxInternal;
+import io.vertx.core.internal.net.NetSocketInternal;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.core.net.impl.ConnectionBase;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.PlatformHandler;
@@ -76,7 +75,7 @@ class RawWebSocketTransport {
 
   private void handleGet(RoutingContext ctx) {
     HttpServerRequest req = ctx.request();
-    if (!HttpUtils.canUpgradeToWebSocket(req)) {
+    if (!req.canUpgradeToWebSocket()) {
       ctx.response().setStatusCode(400);
       ctx.response().end("Can \"Upgrade\" only to \"WebSocket\".");
       return;
@@ -147,7 +146,7 @@ class RawWebSocketTransport {
         return ws.writeBinaryMessage(data);
       }
       final Promise<Void> promise = ((VertxInternal) vertx).promise();
-      vertx.runOnContext(v -> promise.fail(ConnectionBase.CLOSED_EXCEPTION));
+      vertx.runOnContext(v -> promise.fail(NetSocketInternal.CLOSED_EXCEPTION));
       return promise.future();
     }
 
@@ -157,7 +156,7 @@ class RawWebSocketTransport {
         return ws.writeTextMessage(data);
       }
       final Promise<Void> promise = ((VertxInternal) vertx).promise();
-      vertx.runOnContext(v -> promise.fail(ConnectionBase.CLOSED_EXCEPTION));
+      vertx.runOnContext(v -> promise.fail(NetSocketInternal.CLOSED_EXCEPTION));
       return promise.future();
     }
 

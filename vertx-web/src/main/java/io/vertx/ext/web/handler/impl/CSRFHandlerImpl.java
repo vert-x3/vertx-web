@@ -29,11 +29,10 @@ import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.Origin;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.impl.Signature;
+import io.vertx.ext.web.impl.Utils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-
-import static io.vertx.ext.auth.impl.Codec.base64UrlEncode;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
@@ -112,7 +111,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
     byte[] salt = new byte[32];
     random.nextBytes(salt);
 
-    String saltPlusToken = base64UrlEncode(salt) + "." + System.currentTimeMillis();
+    String saltPlusToken = Utils.base64UrlEncode(salt) + "." + System.currentTimeMillis();
 
     final String token = signature.sign(saltPlusToken);
 

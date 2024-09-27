@@ -45,7 +45,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpVersion;
-import io.vertx.core.http.impl.MimeMapping;
+import io.vertx.core.http.MimeMapping;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.core.internal.net.RFC3986;
@@ -445,7 +445,7 @@ public class StaticHandlerImpl implements StaticHandler {
         final long finalOffset = offset;
         final long finalLength = end + 1 - offset;
         // guess content type
-        String contentType = MimeMapping.getMimeTypeForFilename(file);
+        String contentType = MimeMapping.mimeTypeForFilename(file);
         if (contentType != null) {
           if (contentType.startsWith("text")) {
             response.putHeader(HttpHeaders.CONTENT_TYPE, contentType + ";charset=" + defaultContentEncoding);
@@ -464,7 +464,7 @@ public class StaticHandlerImpl implements StaticHandler {
       } else {
         // guess content type
         String extension = getFileExtension(file);
-        String contentType = MimeMapping.getMimeTypeForExtension(extension);
+        String contentType = MimeMapping.mimeTypeForExtension(extension);
         if (compressedMediaTypes.contains(contentType) || compressedFileSuffixes.contains(extension)) {
           response.putHeader(HttpHeaders.CONTENT_ENCODING, HttpHeaders.IDENTITY);
         }
@@ -489,7 +489,7 @@ public class StaticHandlerImpl implements StaticHandler {
                   response
                     .push(HttpMethod.GET, "/" + dependency.getFilePath())
                     .onSuccess(res -> {
-                      final String depContentType = MimeMapping.getMimeTypeForExtension(file);
+                      final String depContentType = MimeMapping.mimeTypeForExtension(file);
                       if (depContentType != null) {
                         if (depContentType.startsWith("text")) {
                           res.putHeader(HttpHeaders.CONTENT_TYPE, contentType + ";charset=" + defaultContentEncoding);

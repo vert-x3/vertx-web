@@ -36,13 +36,13 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.internal.ContextInternal;
+import io.vertx.core.internal.concurrent.InboundMessageQueue;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
+import io.vertx.core.internal.net.NetSocketInternal;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.core.net.impl.ConnectionBase;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.Shareable;
-import io.vertx.core.streams.impl.InboundBuffer;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
@@ -67,8 +67,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   private final LocalMap<String, SockJSSession> sessions;
   private final Deque<String> pendingWrites = new LinkedList<>();
-  private final Context context;
-  private final InboundBuffer<Buffer> pendingReads;
+  private final ContextInternal context;
   private final String id;
   private final long timeout;
   private final Handler<SockJSSocket> sockHandler;
@@ -80,6 +79,8 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private long timeoutTimerID = -1;
   private int maxQueueSize = 64 * 1024; // Message queue size is measured in *characters* (not bytes)
   private int messagesSize;
+  private InboundMessageQueue<Buffer> pendingReads;
+  private Handler<Buffer> handler;
   private Handler<Void> drainHandler;
   private Handler<Void> endHandler;
   private Handler<Void> closeHandler;
@@ -101,8 +102,9 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     this.id = id;
     this.timeout = id == null ? -1 : options.getSessionTimeout();
     this.sockHandler = sockHandler;
-    context = vertx.getOrCreateContext();
-    pendingReads = new InboundBuffer<>(context);
+    this.context = (ContextInternal) vertx.getOrCreateContext();
+
+    initPendingReads();
 
     // Start a heartbeat
 
@@ -111,6 +113,18 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
         listener.sendFrame("h");
       }
     });
+  }
+
+  private void initPendingReads() {
+    pendingReads = new InboundMessageQueue<>(context.executor(), context.executor()) {
+      @Override
+      protected void handleMessage(Buffer msg) {
+        Handler<Buffer> h = handler;
+        if (h != null) {
+          context.dispatch(msg, h);
+        }
+      }
+    };
   }
 
   private void writeInternal(String msg, Promise<Void> promise) {
@@ -137,9 +151,9 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     if (isClosed()) {
       final Context ctx = transportCtx;
       if (Vertx.currentContext() != ctx) {
-        vertx.runOnContext(v -> promise.fail(ConnectionBase.CLOSED_EXCEPTION));
+        vertx.runOnContext(v -> promise.fail(NetSocketInternal.CLOSED_EXCEPTION));
       } else {
-        promise.fail(ConnectionBase.CLOSED_EXCEPTION);
+        promise.fail(NetSocketInternal.CLOSED_EXCEPTION);
       }
     } else {
       final String msg = buffer.toString();
@@ -155,9 +169,9 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     if (isClosed()) {
       final Context ctx = transportCtx;
       if (Vertx.currentContext() != ctx) {
-        vertx.runOnContext(v -> promise.fail(ConnectionBase.CLOSED_EXCEPTION));
+        vertx.runOnContext(v -> promise.fail(NetSocketInternal.CLOSED_EXCEPTION));
       } else {
-        promise.fail(ConnectionBase.CLOSED_EXCEPTION);
+        promise.fail(NetSocketInternal.CLOSED_EXCEPTION);
       }
     } else {
       writeInternal(text, promise);
@@ -167,7 +181,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   @Override
   public SockJSSession handler(Handler<Buffer> handler) {
-    pendingReads.handler(handler);
+    this.handler = handler;
     return this;
   }
 
@@ -185,7 +199,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   @Override
   public SockJSSession resume() {
-    pendingReads.resume();
+    pendingReads.fetch(Long.MAX_VALUE);
     return this;
   }
 
@@ -411,9 +425,9 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   private void handleClosed() {
     synchronized (this) {
-      pendingReads.clear();
+      initPendingReads();
       pendingWrites.clear();
-      writeAcks.forEach(handler -> context.runOnContext(v -> handler.complete(null, ConnectionBase.CLOSED_EXCEPTION)));
+      writeAcks.forEach(handler -> context.runOnContext(v -> handler.complete(null, NetSocketInternal.CLOSED_EXCEPTION)));
       writeAcks.clear();
     }
     Handler<Void> handler = endHandler;
