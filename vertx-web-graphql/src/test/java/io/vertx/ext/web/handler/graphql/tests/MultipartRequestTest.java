@@ -99,7 +99,7 @@ public class MultipartRequestTest extends WebTestBase {
       .compose(req -> req.send(bodyBuffer)
         .compose(HttpClientResponse::body)
       ).onComplete(onSuccess(buffer -> {
-      final JsonObject json = ((JsonObject) buffer.toJson()).getJsonObject("data").getJsonObject("singleUpload");
+      final JsonObject json = ((JsonObject) buffer.toJsonValue()).getJsonObject("data").getJsonObject("singleUpload");
       assertEquals("a.txt", json.getString("id"));
       complete();
     }));
@@ -120,7 +120,7 @@ public class MultipartRequestTest extends WebTestBase {
       .setIdleTimeout(10000))
       .compose(req -> req.send(bodyBuffer).compose(HttpClientResponse::body))
       .onComplete(onSuccess(buffer -> {
-        final JsonObject json = ((JsonObject) buffer.toJson()).getJsonObject("data").getJsonObject("multipleUpload");
+        final JsonObject json = ((JsonObject) buffer.toJsonValue()).getJsonObject("data").getJsonObject("multipleUpload");
         assertEquals("b.txt c.txt", json.getString("id"));
         complete();
       }));

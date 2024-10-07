@@ -30,7 +30,7 @@ public class ServiceResponseConverter {
           break;
         case "payload":
           if (member.getValue() instanceof String) {
-            obj.setPayload(io.vertx.core.buffer.Buffer.buffer(BASE64_DECODER.decode((String)member.getValue())));
+            obj.setPayload(io.vertx.core.buffer.Buffer.fromJson((String)member.getValue()));
           }
           break;
       }
@@ -49,7 +49,7 @@ public class ServiceResponseConverter {
       json.put("statusMessage", obj.getStatusMessage());
     }
     if (obj.getPayload() != null) {
-      json.put("payload", BASE64_ENCODER.encodeToString(obj.getPayload().getBytes()));
+      json.put("payload", obj.getPayload().toJson());
     }
   }
 }
