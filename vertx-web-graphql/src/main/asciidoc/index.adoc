@@ -258,7 +258,3 @@ The `FileUpload` instance can be accessed using the `DataFetchingEnvironment::ge
 ----
 {@link examples.GraphQLExamples#getFileUpload}
 ----
-
-ifeval::["$lang" == "java"]
-include::override/rxjava3.adoc[]
-endif::[]
