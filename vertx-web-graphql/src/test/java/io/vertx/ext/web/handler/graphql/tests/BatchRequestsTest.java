@@ -44,7 +44,7 @@ public class BatchRequestsTest extends GraphQLTestBase {
             fail(response.statusCode() + " " + response.statusMessage());
           } else {
             response.bodyHandler(buffer -> {
-              Object json = buffer.toJson();
+              Object json = buffer.toJsonValue();
               assertThat(json, is(instanceOf(JsonArray.class)));
               JsonArray results = (JsonArray) json;
               assertTrue(results.isEmpty());
@@ -67,7 +67,7 @@ public class BatchRequestsTest extends GraphQLTestBase {
             fail(response.statusCode() + " " + response.statusMessage());
           } else {
             response.bodyHandler(buffer -> {
-              Object json = buffer.toJson();
+              Object json = buffer.toJsonValue();
               assertThat(json, is(instanceOf(JsonArray.class)));
               JsonArray results = (JsonArray) json;
               assertEquals(1, results.size());
