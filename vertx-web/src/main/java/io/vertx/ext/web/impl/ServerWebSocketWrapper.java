@@ -225,21 +225,6 @@ public class ServerWebSocketWrapper implements ServerWebSocket {
   }
 
   @Override
-  public void accept() {
-    delegate.accept();
-  }
-
-  @Override
-  public void reject(int status) {
-    delegate.reject(status);
-  }
-
-  @Override
-  public Future<Integer> setHandshake(Future<Integer> future) {
-    return delegate.setHandshake(future);
-  }
-
-  @Override
   public SocketAddress remoteAddress() {
     return remoteAddress;
   }
