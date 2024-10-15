@@ -619,7 +619,8 @@ public interface RoutingContext {
   void addOrReplacePathParam(String name, String value);
 
   /**
-   * Remove a path parameter
+   * Remove a path parameter.
+   *
    * @return {@code true} when removed, {@code false} otherwise
    */
   boolean removePathParam(String s);
