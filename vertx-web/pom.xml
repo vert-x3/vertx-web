@@ -134,9 +134,6 @@
           <excludes>
             <exclude>io/vertx/ext/web/it/**/*.java</exclude>
           </excludes>
-          <classpathDependencyExcludes>
-            <classpathDependencyExclude>com.fasterxml.jackson.core:jackson-databind</classpathDependencyExclude>
-          </classpathDependencyExcludes>
         </configuration>
       </plugin>
       <plugin>
