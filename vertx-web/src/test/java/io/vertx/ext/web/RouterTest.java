@@ -1168,7 +1168,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testConsumesNoContentType() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
-    testRequest(HttpMethod.GET, "/foo", HttpResponseStatus.BAD_REQUEST);
+    testRequest(HttpMethod.GET, "/foo", HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
   }
 
   @Test
