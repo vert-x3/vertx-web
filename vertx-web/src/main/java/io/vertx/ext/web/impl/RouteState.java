@@ -1157,11 +1157,7 @@ final class RouteState {
       MIMEHeader contentType = context.parsedHeaders().contentType();
       MIMEHeader consumal = contentType.findMatchedBy(consumes);
       if (consumal == null && !(contentType.rawValue().isEmpty() && emptyBodyPermittedWithConsumes)) {
-        if (contentType.rawValue().isEmpty()) {
-          return 400;
-        } else {
-          return 415;
-        }
+        return 415;
       }
     }
     if (!isEmpty(produces)) {
