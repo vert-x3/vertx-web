@@ -27,6 +27,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.*;
 import io.vertx.core.tracing.TracingPolicy;
 import io.vertx.uritemplate.ExpandOptions;
+import io.vertx.core.http.WebSocketClientOptionsConverter;
 
 import java.util.List;
 import java.util.Set;
