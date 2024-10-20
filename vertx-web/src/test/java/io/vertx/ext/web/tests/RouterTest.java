@@ -54,7 +54,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static io.vertx.core.Future.succeededFuture;
-import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -3670,5 +3669,18 @@ public class RouterTest extends WebTestBase {
       HttpMethod.GET,
       "/?x=1#4",
       200, "OK");
+  }
+
+  @Test
+  public void testErrorHandlerInvokedOnce() throws Exception {
+    AtomicInteger errorHandlerInvocations = new AtomicInteger();
+
+    router.errorHandler(404, rc -> {
+      errorHandlerInvocations.incrementAndGet();
+      rc.response().setStatusCode(404).end();
+    });
+
+    testRequest(HttpMethod.GET, "path-without-slash-prefix", HttpResponseStatus.NOT_FOUND);
+    assertEquals(1, errorHandlerInvocations.get());
   }
 }
