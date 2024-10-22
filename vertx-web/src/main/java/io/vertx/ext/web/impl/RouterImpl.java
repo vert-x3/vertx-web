@@ -66,7 +66,9 @@ public class RouterImpl implements Router {
     }
 
     RoutingContext routingContext = new RoutingContextImpl(null, this, request, state.getRoutes());
-    if (!routingContext.failed()) routingContext.next();
+    if (!routingContext.failed()) {
+      routingContext.next();
+    }
   }
 
   @Override
