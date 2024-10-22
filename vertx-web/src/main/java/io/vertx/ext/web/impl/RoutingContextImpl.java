@@ -78,10 +78,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
     if ((authority == null && request.version() != HttpVersion.HTTP_1_0) || path == null || path.isEmpty()) {
       // Authority must be present (HTTP/1.x host header // HTTP/2 :authority pseudo header)
-      // HTTP paths must be present
+      // HTTP paths must start with a '/'
       fail(400);
     } else if (path.charAt(0) != '/') {
-      // For compatibility, we return `Not Found` when a path does not start with `/`
+      // For compatiblity we return `Not Found` when a path does not start with `/`
       fail(404);
     }
   }
