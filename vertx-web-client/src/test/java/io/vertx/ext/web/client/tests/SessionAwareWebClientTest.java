@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
+import io.vertx.core.*;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
@@ -35,11 +36,6 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.Verticle;
-import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.OpenOptions;
@@ -462,15 +458,16 @@ public class SessionAwareWebClientTest {
     String host = "localhost";
     String uri = "/";
 
-    Verticle v = new AbstractVerticle() {
+    Deployable v = new VerticleBase() {
       @Override
-      public void start() throws Exception {
+      public Future<?> start() throws Exception {
         vertx.eventBus().consumer("test", m -> {
           client.get(host, uri).send().onComplete(ar -> {
             testContext.assertTrue(ar.succeeded());
             async.countDown();
           });
         });
+        return super.start();
       }
     };
 

@@ -29,7 +29,6 @@ import io.vertx.ext.web.handler.FileSystemAccess;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.impl.Utils;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -974,14 +973,12 @@ public class StaticHandlerTest extends WebTestBase {
       }
     };
     server.close();
-    awaitFuture(vertx.deployVerticle(new AbstractVerticle() {
+    awaitFuture(vertx.deployVerticle(new VerticleBase() {
       @Override
-      public void start(Promise<Void> startPromise) {
-        vertx.createHttpServer(getHttpServerOptions())
+      public Future<?> start() throws Exception {
+        return vertx.createHttpServer(getHttpServerOptions())
           .requestHandler(router)
-          .listen()
-          .<Void>mapEmpty()
-          .onComplete(startPromise);
+          .listen();
       }
     }, new DeploymentOptions().setClassLoader(classLoader)));
     testRequest(HttpMethod.GET, "/index.html", 200, "OK", "hello");

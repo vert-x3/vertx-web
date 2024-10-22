@@ -16,10 +16,7 @@
 
 package io.vertx.ext.web.tests.handler.sockjs;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
+import io.vertx.core.*;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.SessionHandler;
@@ -57,9 +54,9 @@ abstract class SockJSTestBase extends VertxTestBase {
 
   void startServers(SockJSHandlerOptions options) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    vertx.deployVerticle(() -> new AbstractVerticle() {
+    vertx.deployVerticle(() -> new VerticleBase() {
       @Override
-      public void start(Promise<Void> startFuture) throws Exception {
+      public Future<?> start() throws Exception {
 
         Router router = Router.router(vertx);
         router.route()
@@ -76,15 +73,9 @@ abstract class SockJSTestBase extends VertxTestBase {
         SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
         router.route("/test/*").subRouter(sockJSHandler.socketHandler(socketHandler.get()));
 
-        vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"))
+        return vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"))
           .requestHandler(router)
-          .listen().onComplete(ar -> {
-            if (ar.succeeded()) {
-              startFuture.complete();
-            } else {
-              startFuture.fail(ar.cause());
-            }
-          });
+          .listen();
       }
     }, new DeploymentOptions().setInstances(numServers)).onComplete(onSuccess(id -> latch.countDown()));
     awaitLatch(latch);

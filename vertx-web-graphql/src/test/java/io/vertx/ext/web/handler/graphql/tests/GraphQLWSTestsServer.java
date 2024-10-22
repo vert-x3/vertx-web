@@ -23,8 +23,8 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
+import io.vertx.core.Future;
+import io.vertx.core.VerticleBase;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
@@ -43,14 +43,14 @@ import static io.vertx.core.http.HttpMethod.POST;
 /**
  * Backend for the GraphQLWS compatibility tests.
  */
-public class GraphQLWSTestsServer extends AbstractVerticle {
+public class GraphQLWSTestsServer extends VerticleBase {
 
   public static void main(String[] args) {
     Vertx.vertx().deployVerticle(new GraphQLWSTestsServer());
   }
 
   @Override
-  public void start(Promise<Void> startPromise) throws Exception {
+  public Future<?> start() throws Exception {
     Router router = Router.router(vertx);
 
     router.route().handler(CorsHandler.create().addOrigin("*").allowedMethod(GET).allowedMethod(POST));
@@ -71,17 +71,9 @@ public class GraphQLWSTestsServer extends AbstractVerticle {
       }).build());
 
     HttpServerOptions httpServerOptions = new HttpServerOptions().addWebSocketSubProtocol("graphql-transport-ws");
-    vertx.createHttpServer(httpServerOptions)
+    return vertx.createHttpServer(httpServerOptions)
       .requestHandler(router)
-      .listen(8080)
-      .<Void>mapEmpty()
-      .onComplete(ar -> {
-        if (ar.succeeded()) {
-          System.out.println("GraphQLWS tests server started");
-        }
-        startPromise.handle(ar);
-      });
-
+      .listen(8080);
   }
 
   private GraphQL setupGraphQL() {

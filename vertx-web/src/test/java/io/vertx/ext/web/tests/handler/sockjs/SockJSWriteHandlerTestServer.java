@@ -38,14 +38,14 @@ public class SockJSWriteHandlerTestServer {
       .onFailure(Throwable::printStackTrace);
   }
 
-  private static Future<String> createClusteredAndDeploy(Verticle verticle) {
+  private static Future<String> createClusteredAndDeploy(Deployable verticle) {
     return Vertx.builder().withClusterManager(new FakeClusterManager()).buildClustered().flatMap(vertx -> vertx.deployVerticle(verticle));
   }
 
-  private static class HttpServerVerticle extends AbstractVerticle {
+  private static class HttpServerVerticle extends VerticleBase {
 
     @Override
-    public void start() {
+    public Future<?> start() {
       Router router = Router.router(vertx);
 
       router.get("/transports").handler(rc -> {
@@ -79,7 +79,7 @@ public class SockJSWriteHandlerTestServer {
 
       router.route().failureHandler(ErrorHandler.create(vertx, true));
 
-      vertx.createHttpServer()
+      return vertx.createHttpServer()
         .requestHandler(router)
         .listen(8080);
     }
@@ -109,13 +109,14 @@ public class SockJSWriteHandlerTestServer {
     eventBus.send(address, Buffer.buffer(content));
   }
 
-  private static class EventBusRelayVerticle extends AbstractVerticle {
+  private static class EventBusRelayVerticle extends VerticleBase {
 
     @Override
-    public void start() {
+    public Future<?> start() throws Exception {
       vertx.eventBus().<JsonObject>consumer("relay", msg -> {
         sendToWriteHandler(vertx.eventBus(), msg.body());
       });
+      return super.start();
     }
   }
 }

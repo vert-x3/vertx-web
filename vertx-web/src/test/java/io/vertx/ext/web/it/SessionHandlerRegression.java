@@ -1,9 +1,6 @@
 package io.vertx.ext.web.it;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.SessionHandler;
@@ -19,7 +16,7 @@ public class SessionHandlerRegression {
     vertx.deployVerticle(() -> new MyVerticle(store), new DeploymentOptions().setInstances(1)); // Fails with IllegalStateException
   }
 
-  public static class MyVerticle extends AbstractVerticle {
+  public static class MyVerticle extends VerticleBase {
     SessionStore sessionStore;
 
     public MyVerticle(final SessionStore sessionStore) {
@@ -30,7 +27,8 @@ public class SessionHandlerRegression {
       super();
     }
 
-    public void start(final Promise<Void> startPromise) {
+    @Override
+    public Future<?> start() throws Exception {
       if (sessionStore == null) {
         sessionStore = LocalSessionStore.create(vertx);
       }
@@ -47,9 +45,9 @@ public class SessionHandlerRegression {
             .end("hello"));
       });
       HttpServerOptions options = new HttpServerOptions();
-      vertx.createHttpServer(options)
+      return vertx.createHttpServer(options)
         .requestHandler(router)
-        .listen(8080).onComplete(ar -> startPromise.complete());
+        .listen(8080);
     }
   }
 }
