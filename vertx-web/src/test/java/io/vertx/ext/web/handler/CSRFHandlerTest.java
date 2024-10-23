@@ -440,6 +440,7 @@ public class CSRFHandlerTest extends WebTestBase {
   @Test
   public void simultaneousGetAndPostDoesNotOverrideTokenInSession() throws Exception {
     final SessionStore store = LocalSessionStore.create(vertx);
+    final Promise<Void> firstRequestReceived = Promise.promise();
     final Promise<Void> delayedResponse = Promise.promise();
 
     router.route().handler(BodyHandler.create());
@@ -447,6 +448,7 @@ public class CSRFHandlerTest extends WebTestBase {
     router.route("/csrf/*").handler(CSRFHandler.create(vertx, "Abracadabra"));
     router.route("/csrf/basic").handler(rc -> rc.response().end());
     router.route("/csrf/first").handler(rc -> {
+      firstRequestReceived.complete();
       delayedResponse.future().onComplete(v -> rc.response().end());
     });
     router.route("/csrf/second").handler(rc -> {
@@ -468,25 +470,26 @@ public class CSRFHandlerTest extends WebTestBase {
       latch.countDown();
     }));
 
-    client.request(
-      new RequestOptions().setMethod(HttpMethod.POST)
-        .putHeader("Cookie", encodeCookies())
-        .putHeader(CSRFHandler.DEFAULT_HEADER_NAME, cookieJar.get(CSRFHandler.DEFAULT_COOKIE_NAME))
-        .setHost("localhost").setPort(8080).setURI("/csrf/second")
-    ).compose(HttpClientRequest::send).onComplete(onSuccess(res -> {
-      Map<String, String> oldState = new HashMap<>(cookieJar);
-      cookieJar.clear();
+    firstRequestReceived.future().onComplete(ar ->
+      client.request(
+        new RequestOptions().setMethod(HttpMethod.POST)
+          .putHeader("Cookie", encodeCookies())
+          .putHeader(CSRFHandler.DEFAULT_HEADER_NAME, cookieJar.get(CSRFHandler.DEFAULT_COOKIE_NAME))
+          .setHost("localhost").setPort(8080).setURI("/csrf/second")
+      ).compose(HttpClientRequest::send).onComplete(onSuccess(res -> {
+        Map<String, String> oldState = new HashMap<>(cookieJar);
+        cookieJar.clear();
 
-      storeCookies(res);
-      assertEquals("Should only have one set-cookie", 1, cookieJar.size());
-      assertTrue("Should be token cookie", cookieJar.containsKey(CSRFHandler.DEFAULT_COOKIE_NAME));
+        storeCookies(res);
+        assertEquals("Should only have one set-cookie", 1, cookieJar.size());
+        assertTrue("Should be token cookie", cookieJar.containsKey(CSRFHandler.DEFAULT_COOKIE_NAME));
 
-      // Get the session ID back in the cookie jar
-      oldState.remove(CSRFHandler.DEFAULT_COOKIE_NAME);
-      cookieJar.putAll(oldState);
+        // Get the session ID back in the cookie jar
+        oldState.remove(CSRFHandler.DEFAULT_COOKIE_NAME);
+        cookieJar.putAll(oldState);
 
-      latch.countDown();
-    }));
+        latch.countDown();
+      })));
 
     awaitLatch(latch);
 
