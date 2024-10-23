@@ -46,11 +46,13 @@ import static io.vertx.core.http.HttpMethod.POST;
 public class GraphQLWSTestsServer extends VerticleBase {
 
   public static void main(String[] args) {
-    Vertx.vertx().deployVerticle(new GraphQLWSTestsServer());
+    Vertx vertx = Vertx.vertx();
+    vertx.deployVerticle(new GraphQLWSTestsServer()).await();
+    System.out.println("GraphQLWS tests server started");
   }
 
   @Override
-  public Future<?> start() throws Exception {
+  public Future<?> start() {
     Router router = Router.router(vertx);
 
     router.route().handler(CorsHandler.create().addOrigin("*").allowedMethod(GET).allowedMethod(POST));
