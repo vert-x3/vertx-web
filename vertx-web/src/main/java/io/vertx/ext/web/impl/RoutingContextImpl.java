@@ -76,7 +76,9 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     this.router = router;
     this.request = new HttpServerRequestWrapper(request, router.getAllowForward(), this);
     this.body = new RequestBodyImpl(this);
+  }
 
+  void route() {
     final String path = request.path();
     // optimized method which try hard to not allocate
     final boolean hasValidAuthority = ((HttpServerRequestInternal) request).isValidAuthority();
@@ -88,6 +90,8 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     } else if (path.charAt(0) != '/') {
       // For compatiblity we return `Not Found` when a path does not start with `/`
       fail(404);
+    } else {
+      next();
     }
   }
 

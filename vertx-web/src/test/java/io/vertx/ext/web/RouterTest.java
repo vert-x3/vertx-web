@@ -3655,4 +3655,17 @@ public class RouterTest extends WebTestBase {
 
     await();
   }
+
+  @Test
+  public void testErrorHandlerInvokedOnce() throws Exception {
+    AtomicInteger errorHandlerInvocations = new AtomicInteger();
+
+    router.errorHandler(404, rc -> {
+      errorHandlerInvocations.incrementAndGet();
+      rc.response().setStatusCode(404).end();
+    });
+
+    testRequest(HttpMethod.GET, "path-without-slash-prefix", HttpResponseStatus.NOT_FOUND);
+    assertEquals(1, errorHandlerInvocations.get());
+  }
 }
