@@ -65,7 +65,8 @@ public class RouterImpl implements Router {
       LOG.trace("Router: " + System.identityHashCode(this) + " accepting request " + request.method() + " " + request.absoluteURI());
     }
 
-    new RoutingContextImpl(null, this, request, state.getRoutes()).next();
+    RoutingContextImpl routingContext = new RoutingContextImpl(null, this, request, state.getRoutes());
+    routingContext.route();
   }
 
   @Override
