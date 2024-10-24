@@ -1,18 +1,21 @@
 package io.vertx.ext.web.client;
 
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
-import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.AsyncFileLock;
 import io.vertx.core.http.*;
+import io.vertx.core.http.impl.HttpClientImpl;
+import io.vertx.core.impl.CloseFuture;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetServer;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
+import io.vertx.core.net.SSLOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
@@ -23,13 +26,11 @@ import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.ext.web.client.predicate.ErrorConverter;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
-import io.vertx.uritemplate.UriTemplate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.tls.Cert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -2316,5 +2317,35 @@ public class WebClientTest extends WebClientTestBase {
     HttpRequest<Buffer> req = webClient.get("/test/?c:d=e");
     req.send(onSuccess(resp -> testComplete()));
     await();
+  }
+
+  @Test
+  public void testUpdateSSLOptionsProxiesInternalClient() {
+    InterceptingHttpClass proxy = new InterceptingHttpClass((VertxInternal) vertx, new HttpClientOptions(), new PoolOptions(), new CloseFuture());
+    WebClient webClient = WebClient.wrap(proxy);
+    webClient.updateSSLOptions(new SSLOptions(), false);
+    assertEquals(1, proxy.proxiedCallsToUpdateSSLOptions.get());
+    webClient.updateSSLOptions(new SSLOptions(), true);
+    assertEquals(2, proxy.proxiedCallsToUpdateSSLOptions.get());
+    webClient.updateSSLOptions(new SSLOptions());
+    assertEquals(3, proxy.proxiedCallsToUpdateSSLOptions.get());
+    webClient.updateSSLOptions(new SSLOptions(), event -> {});
+    assertEquals(4, proxy.proxiedCallsToUpdateSSLOptions.get());
+    webClient.updateSSLOptions(new SSLOptions(), true, event -> {});
+    assertEquals(5, proxy.proxiedCallsToUpdateSSLOptions.get());
+  }
+
+  // Intercepts calls to updateSSLOptions and keeps track of the number of calls made to the method.
+  static class InterceptingHttpClass extends HttpClientImpl {
+    AtomicInteger proxiedCallsToUpdateSSLOptions = new AtomicInteger(0);
+    public InterceptingHttpClass(VertxInternal vertx, HttpClientOptions options, PoolOptions poolOptions, CloseFuture closeFuture) {
+      super(vertx, options, poolOptions, closeFuture);
+    }
+
+    @Override
+    public Future<Boolean> updateSSLOptions(SSLOptions options, boolean force) {
+      proxiedCallsToUpdateSSLOptions.incrementAndGet();
+      return Future.succeededFuture(true);
+    }
   }
 }
