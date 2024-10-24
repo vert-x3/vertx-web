@@ -480,9 +480,9 @@ public class HttpContext<T> {
         if (body instanceof Buffer) {
           buffer = (Buffer) body;
         } else if (body instanceof JsonObject) {
-          buffer = Buffer.buffer(((JsonObject)body).encode());
+          buffer = ((JsonObject) body).toBuffer();
         } else {
-          buffer = Buffer.buffer(Json.encode(body));
+          buffer = Json.encodeToBuffer(body);
         }
         requestOptions.putHeader(HttpHeaders.CONTENT_LENGTH, "" + buffer.length());
         requestPromise.future().onSuccess(request -> {
