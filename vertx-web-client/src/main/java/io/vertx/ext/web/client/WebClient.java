@@ -16,6 +16,7 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
@@ -23,6 +24,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.PoolOptions;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.internal.http.HttpClientInternal;
+import io.vertx.core.net.ClientSSLOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.impl.WebClientBase;
 import io.vertx.uritemplate.UriTemplate;
@@ -772,6 +774,35 @@ public interface WebClient {
   default HttpRequest<Buffer> headAbs(UriTemplate absoluteURI) {
     return requestAbs(HttpMethod.HEAD, absoluteURI);
   }
+
+  /**
+   * <p>Update the client with new SSL {@code options}, the update happens if the options object is valid and different
+   * from the existing options object.
+   *
+   * <p>The boolean succeeded future result indicates whether the update occurred.
+   *
+   * @param options the new SSL options
+   * @return a future signaling the update success
+   */
+  default Future<Boolean> updateSSLOptions(ClientSSLOptions options) {
+    return updateSSLOptions(options, false);
+  }
+
+  /**
+   * <p>Update the client with new SSL {@code options}, the update happens if the options object is valid and different
+   * from the existing options object.
+   *
+   * <p>The {@code options} object is compared using its {@code equals} method against the existing options to prevent
+   * an update when the objects are equals since loading options can be costly, this can happen for share TCP servers.
+   * When object are equals, setting {@code force} to {@code true} forces the update.
+   *
+   * <p>The boolean succeeded future result indicates whether the update occurred.
+   *
+   * @param options the new SSL options
+   * @param force force the update when options are equals
+   * @return a future signaling the update success
+   */
+  Future<Boolean> updateSSLOptions(ClientSSLOptions options, boolean force);
 
   /**
    * Close the client. Closing will close down any pooled connections.

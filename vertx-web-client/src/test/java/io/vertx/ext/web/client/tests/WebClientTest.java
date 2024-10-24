@@ -6,13 +6,18 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.AsyncFileLock;
 import io.vertx.core.http.*;
+import io.vertx.core.internal.VertxInternal;
+import io.vertx.core.internal.http.HttpClientInternal;
+import io.vertx.core.internal.net.NetClientInternal;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.ClientSSLOptions;
 import io.vertx.core.net.NetServer;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.core.spi.metrics.Metrics;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.auth.authentication.TokenCredentials;
@@ -42,6 +47,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -2162,5 +2168,40 @@ public class WebClientTest extends WebClientTestBase {
     testRequest(
       client -> client.request(HttpMethod.GET, new RequestOptions().setServer(new FakeAddress("mars"))),
       req -> assertEquals("localhost:8080", req.authority().toString()));
+  }
+
+  @Test
+  public void testUpdateSSLOptionsProxiesInternalClient() {
+    InterceptingHttpClass proxy = new InterceptingHttpClass();
+    WebClient webClient = WebClient.wrap(proxy);
+    webClient.updateSSLOptions(new ClientSSLOptions(), false);
+    assertEquals(1, proxy.proxiedCallsToUpdateSSLOptions.get());
+    webClient.updateSSLOptions(
+      new ClientSSLOptions(), true);
+    assertEquals(2, proxy.proxiedCallsToUpdateSSLOptions.get());
+    webClient.updateSSLOptions(new ClientSSLOptions());
+    assertEquals(3, proxy.proxiedCallsToUpdateSSLOptions.get());
+  }
+
+  // Intercepts calls to updateSSLOptions and keeps track of the number of calls made to the method.
+  static class InterceptingHttpClass implements HttpClientInternal {
+    AtomicInteger proxiedCallsToUpdateSSLOptions = new AtomicInteger(0);
+
+    @Override
+    public Future<Boolean> updateSSLOptions(ClientSSLOptions options, boolean force) {
+      proxiedCallsToUpdateSSLOptions.incrementAndGet();
+      return Future.succeededFuture(true);
+    }
+
+    @Override public Future<HttpClientConnection> connect(HttpConnectOptions options){return null;}
+    @Override public VertxInternal vertx(){return null;}
+    @Override public Function<HttpClientResponse, Future<RequestOptions>> redirectHandler(){return null;}
+    @Override public HttpClientOptions options(){return new HttpClientOptions();}
+    @Override public NetClientInternal netClient(){return null;}
+    @Override public Future<Void> closeFuture(){return null;}
+    @Override public void close(Promise<Void> completion){}
+    @Override public Future<HttpClientRequest> request(RequestOptions options){return null;}
+    @Override public Future<Void> shutdown(long timeout, TimeUnit unit){return null;}
+    @Override public Metrics getMetrics(){return null;}
   }
 }
