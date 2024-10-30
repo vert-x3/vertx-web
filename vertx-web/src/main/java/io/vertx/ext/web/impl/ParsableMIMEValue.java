@@ -28,6 +28,12 @@ public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader
   }
 
   @Override
+  public String fullType() {
+    ensureHeaderProcessed();
+    return component + "/" + subComponent;
+  }
+
+  @Override
   protected boolean isMatchedBy2(ParsableHeaderValue matchTry) {
     ParsableMIMEValue myMatchTry = (ParsableMIMEValue) matchTry;
     ensureHeaderProcessed();

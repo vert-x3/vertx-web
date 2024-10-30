@@ -3,7 +3,7 @@ package io.vertx.ext.web;
 import io.vertx.codegen.annotations.VertxGen;
 
 @VertxGen
-public interface MIMEHeader extends ParsedHeaderValue{
+public interface MIMEHeader extends ParsedHeaderValue {
 
   /**
    * Gets the parsed component part of the MIME. This is the string between the beginning and the first {@code '/'}
@@ -18,5 +18,12 @@ public interface MIMEHeader extends ParsedHeaderValue{
    * @return The subcomponent of the MIME this represents
    */
   String subComponent();
+
+  /**
+   * Gets the full MIME type string.
+   * This includes both the component and subcomponent parts of the MIME type.
+   * @return The full MIME type string.
+   */
+  String fullType();
 
 }

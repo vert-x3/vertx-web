@@ -158,6 +158,9 @@ public class RoutingContextImpl extends RoutingContextImplBase {
           // If it's a 405 let's send a body too
           this.response()
             .putHeader(HttpHeaderNames.ALLOW, allowedMethods.stream().map(HttpMethod::name).collect(Collectors.joining(","))).end();
+        } else if (this.request().method() != HttpMethod.HEAD && matchFailure == 415) {
+          // In case of a 415, send a header with the accepted content types
+          this.response().putHeader(HttpHeaderNames.ACCEPT, allowedContentTypes.stream().map(MIMEHeader::fullType).collect(Collectors.joining(", ")));
         } else {
           this.response().end();
         }
