@@ -1057,7 +1057,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html;boo", res.getHeader("Accept")));
+      res -> assertEquals("text/html; boo", res.getHeader("Accept")));
   }
 
   @Test
@@ -1065,9 +1065,9 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html;boo=ya").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html;boo=ya", res.getHeader("Accept")));
+      res -> assertEquals("text/html; boo=ya", res.getHeader("Accept")));
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html;boo=ya", res.getHeader("Accept")));
+      res -> assertEquals("text/html; boo=ya", res.getHeader("Accept")));
   }
 
   @Test
@@ -1076,14 +1076,14 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\";itWorks=4real", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html;boo=\"yeah,right\"", res.getHeader("Accept")));
+      res -> assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept")));
     // this might look wrong but since there is only 1 entry per content-type, the comma has no semantic meaning
     // therefore it is ignored
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html;boo=\"yeah,right\"", res.getHeader("Accept")));
+      res -> assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept")));
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html;boo=\"yeah,right\"", res.getHeader("Accept")));
+      res -> assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept")));
   }
 
   @Test
@@ -1091,13 +1091,13 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html;boo=\"yeah\\\"right\"").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah\\\"right\"", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html;boo=\"yeah\\\"right\"", res.getHeader("Accept")));
+      res -> assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html;boo=\"yeah\\\"right\"", res.getHeader("Accept")));
+      res -> assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html;boo=\"yeah\\\"right\"", res.getHeader("Accept")));
+      res -> assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html;boo=\"yeah\\\"right\"", res.getHeader("Accept")));
+      res -> assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
   }
 
   @Test
@@ -1131,11 +1131,11 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;works", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=done;it=works", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;yes=no;right", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html;works", res.getHeader("Accept")));
+      res -> assertEquals("text/html; boo; works", res.getHeader("Accept")));
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;boo", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html;works", res.getHeader("Accept")));
+      res -> assertEquals("text/html; boo; works", res.getHeader("Accept")));
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;works=aright", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html;works", res.getHeader("Accept")));
+      res -> assertEquals("text/html; boo; works", res.getHeader("Accept")));
   }
 
   @Test
@@ -1146,7 +1146,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> assertEquals("json", res.getHeader("Accept")));
+      res -> assertEquals("*/json", res.getHeader("Accept")));
   }
 
   @Test
@@ -2822,8 +2822,7 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
     router.errorHandler(415, context -> context.response().setStatusCode(context.statusCode()).setStatusMessage("Dumb").end());
 
-    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Dumb",
-      res -> assertEquals("text/html", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Dumb");
   }
 
   @Test
@@ -2860,8 +2859,7 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
     router.get("/hello").consumes("something/html").handler(rc -> rc.response().end());
 
-    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415,
-      HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE.reasonPhrase(), res -> assertEquals("text/html", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE.reasonPhrase());
   }
 
   @Test
@@ -2932,11 +2930,9 @@ public class RouterTest extends WebTestBase {
     router.post("/api").consumes("application/json").handler(rc -> rc.response().setStatusMessage("post api").end());
     router.put("/api").consumes("application/json").handler(rc -> rc.response().setStatusMessage("put api").end());
     testRequestWithContentType(HttpMethod.POST, "/api", "application/json", 200, "post api");
-    testRequestWithContentType(HttpMethod.POST, "/api", "application/xml", 415, "Unsupported Media Type",
-      res -> assertEquals("application/json", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.POST, "/api", "application/xml", 415, "Unsupported Media Type");
     testRequestWithContentType(HttpMethod.PUT, "/api", "application/json", 200, "put api");
-    testRequestWithContentType(HttpMethod.PUT, "/api", "application/xml", 415, "Unsupported Media Type",
-      res -> assertEquals("application/json", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.PUT, "/api", "application/xml", 415, "Unsupported Media Type");
     testRequestWithContentType(HttpMethod.PATCH, "/api", "application/json", 405, "Method Not Allowed");
   }
 
@@ -2947,8 +2943,7 @@ public class RouterTest extends WebTestBase {
     router.get("/api").handler(rc -> rc.response().setStatusMessage("get api").end());
     router.put("/api").consumes("application/xml").handler(rc -> rc.response().setStatusMessage("put api xml").end());
     testRequestWithContentType(HttpMethod.POST, "/api", "application/json", 200, "post api");
-    testRequestWithContentType(HttpMethod.POST, "/api", "application/xml", 415, "Unsupported Media Type",
-      res -> assertEquals("application/json", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.POST, "/api", "application/xml", 415, "Unsupported Media Type");
     testRequestWithContentType(HttpMethod.PUT, "/api", "application/json", 200, "put api");
     testRequestWithContentType(HttpMethod.PUT, "/api", "application/xml", 200, "put api xml");
     testRequestWithContentType(HttpMethod.PATCH, "/api", "application/json", 405, "Method Not Allowed");

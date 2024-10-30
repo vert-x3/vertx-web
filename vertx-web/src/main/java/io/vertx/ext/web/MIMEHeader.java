@@ -26,4 +26,11 @@ public interface MIMEHeader extends ParsedHeaderValue {
    */
   String mediaType();
 
+  /**
+   * Gets the MIME media type string with parameters attached.
+   * This includes both the component and subcomponent parts of the MIME type, and parameters.
+   * @return The MIME media type string.
+   */
+  String mediaTypeWithParams();
+
 }
