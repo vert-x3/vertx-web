@@ -1131,11 +1131,11 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;works", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=done;it=works", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;yes=no;right", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; boo; works", res.getHeader("Accept")));
+      res -> assertEquals("text/html; works, text/html; boo", res.getHeader("Accept")));
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;boo", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; boo; works", res.getHeader("Accept")));
+      res -> assertEquals("text/html; works, text/html; boo", res.getHeader("Accept")));
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;works=aright", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; boo; works", res.getHeader("Accept")));
+      res -> assertEquals("text/html; works, text/html; boo", res.getHeader("Accept")));
   }
 
   @Test
