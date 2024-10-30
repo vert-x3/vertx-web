@@ -31,10 +31,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
@@ -140,6 +137,10 @@ public class WebTestBase extends VertxTestBase {
     testRequest(method, path, req -> req.putHeader("content-type", contentType), statusCode, statusMessage, null);
   }
 
+  protected void testRequestWithContentTypeAndResponseHeader(HttpMethod method, String path, String contentType, int statusCode, String statusMessage, Map<String, String> headers) throws Exception {
+    testRequest(method, path, req -> req.putHeader("content-type", contentType), res -> headers.forEach((key, val) -> assertEquals(val, res.getHeader(key))), statusCode, statusMessage, null);
+  }
+
   protected void testRequestWithAccepts(RequestOptions requestOptions, String accepts, int statusCode, String statusMessage) throws Exception {
     testRequest(requestOptions, req -> req.putHeader("accept", accepts), statusCode, statusMessage, null);
   }
@@ -161,6 +162,7 @@ public class WebTestBase extends VertxTestBase {
                              String responseBody) throws Exception {
     testRequest(requestOptions, requestAction, null, statusCode, statusMessage, responseBody);
   }
+
   protected void testRequest(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction,
                              int statusCode, String statusMessage,
                              String responseBody) throws Exception {
@@ -172,6 +174,7 @@ public class WebTestBase extends VertxTestBase {
                              String responseBody) throws Exception {
     testRequestBuffer(requestOptions, requestAction, responseAction, statusCode, statusMessage, responseBody != null ? Buffer.buffer(responseBody) : null, true);
   }
+
   protected void testRequest(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                              int statusCode, String statusMessage,
                              String responseBody) throws Exception {
@@ -183,6 +186,7 @@ public class WebTestBase extends VertxTestBase {
                                    Buffer responseBodyBuffer) throws Exception {
     testRequestBuffer(requestOptions, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, false);
   }
+
   protected void testRequestBuffer(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer) throws Exception {
