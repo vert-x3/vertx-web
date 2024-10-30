@@ -28,7 +28,7 @@ public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader
   }
 
   @Override
-  public String fullType() {
+  public String mediaType() {
     ensureHeaderProcessed();
     return component + "/" + subComponent;
   }

@@ -86,23 +86,23 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     }
   }
 
-  private String ensureNotNull(String string){
+  private String ensureNotNull(String string) {
     return string == null ? "" : string;
   }
 
   private void fillParsedHeaders(HttpServerRequest request) {
     String accept = request.getHeader(HttpHeaders.ACCEPT);
-    String acceptCharset = request.getHeader (HttpHeaders.ACCEPT_CHARSET);
+    String acceptCharset = request.getHeader(HttpHeaders.ACCEPT_CHARSET);
     String acceptEncoding = request.getHeader(HttpHeaders.ACCEPT_ENCODING);
     String acceptLanguage = request.getHeader(HttpHeaders.ACCEPT_LANGUAGE);
     String contentType = ensureNotNull(request.getHeader(HttpHeaders.CONTENT_TYPE));
 
     parsedHeaders = new ParsableHeaderValuesContainer(
-        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(accept, ParsableMIMEValue::new)),
-        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptCharset, ParsableHeaderValue::new)),
-        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptEncoding, ParsableHeaderValue::new)),
-        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptLanguage, ParsableLanguageValue::new)),
-        new ParsableMIMEValue(contentType)
+      HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(accept, ParsableMIMEValue::new)),
+      HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptCharset, ParsableHeaderValue::new)),
+      HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptEncoding, ParsableHeaderValue::new)),
+      HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptLanguage, ParsableLanguageValue::new)),
+      new ParsableMIMEValue(contentType)
     );
   }
 
@@ -160,7 +160,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
             .putHeader(HttpHeaderNames.ALLOW, allowedMethods.stream().map(HttpMethod::name).collect(Collectors.joining(","))).end();
         } else if (this.request().method() != HttpMethod.HEAD && matchFailure == 415) {
           // In case of a 415, send a header with the accepted content types
-          this.response().putHeader(HttpHeaderNames.ACCEPT, allowedContentTypes.stream().map(MIMEHeader::fullType).collect(Collectors.joining(", ")));
+          this.response().putHeader(HttpHeaderNames.ACCEPT, allowedContentTypes.stream().map(MIMEHeader::mediaType).collect(Collectors.joining(", ")));
         } else {
           this.response().end();
         }
@@ -315,7 +315,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public boolean isSessionAccessed(){
+  public boolean isSessionAccessed() {
     return isSessionAccessed;
   }
 

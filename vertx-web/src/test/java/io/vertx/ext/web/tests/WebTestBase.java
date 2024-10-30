@@ -31,7 +31,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
@@ -137,8 +140,8 @@ public class WebTestBase extends VertxTestBase {
     testRequest(method, path, req -> req.putHeader("content-type", contentType), statusCode, statusMessage, null);
   }
 
-  protected void testRequestWithContentTypeAndResponseHeader(HttpMethod method, String path, String contentType, int statusCode, String statusMessage, Map<String, String> headers) throws Exception {
-    testRequest(method, path, req -> req.putHeader("content-type", contentType), res -> headers.forEach((key, val) -> assertEquals(val, res.getHeader(key))), statusCode, statusMessage, null);
+  protected void testRequestWithContentType(HttpMethod method, String path, String contentType, int statusCode, String statusMessage, Consumer<HttpClientResponse> responseAction) throws Exception {
+    testRequest(method, path, req -> req.putHeader("content-type", contentType), responseAction, statusCode, statusMessage, null);
   }
 
   protected void testRequestWithAccepts(RequestOptions requestOptions, String accepts, int statusCode, String statusMessage) throws Exception {

@@ -20,10 +20,10 @@ public interface MIMEHeader extends ParsedHeaderValue {
   String subComponent();
 
   /**
-   * Gets the full MIME type string.
+   * Gets the MIME media type string.
    * This includes both the component and subcomponent parts of the MIME type.
-   * @return The full MIME type string.
+   * @return The MIME media type string.
    */
-  String fullType();
+  String mediaType();
 
 }
