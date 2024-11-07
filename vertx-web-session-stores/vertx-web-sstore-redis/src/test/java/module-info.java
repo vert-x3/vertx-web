@@ -1,6 +1,6 @@
 open module io.vertx.web.sstore.redis.tests {
 
-  requires io.vertx.client.redis;
+  requires io.vertx.redis.client;
   requires io.vertx.core;
   requires io.vertx.web;
   requires io.vertx.testing.unit;
