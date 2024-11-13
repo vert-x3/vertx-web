@@ -38,6 +38,7 @@ import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 import org.dataloader.DataLoaderRegistry;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -56,7 +57,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   private static final Function<RoutingContext, Locale> DEFAULT_LOCALE_FACTORY = rc -> null;
 
   private final GraphQL graphQL;
-  private final Function<RoutingContext, GraphQL> graphQLFactory;
+  private final Function<RoutingContext, CompletableFuture<GraphQL>> graphQLFactory;
   private final GraphQLHandlerOptions options;
 
   private Function<RoutingContext, Object> queryContextFactory = DEFAULT_QUERY_CONTEXT_FACTORY;
@@ -70,7 +71,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     this.options = options == null ? new GraphQLHandlerOptions() : options;
   }
 
-  public GraphQLHandlerImpl(Function<RoutingContext, GraphQL> graphQLFactory, GraphQLHandlerOptions options) {
+  public GraphQLHandlerImpl(Function<RoutingContext, CompletableFuture<GraphQL>> graphQLFactory, GraphQLHandlerOptions options) {
     this.graphQL = null;
     this.graphQLFactory = graphQLFactory;
     this.options = options == null ? new GraphQLHandlerOptions() : options;
@@ -481,7 +482,8 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
 
     if(graphQLFactory != null){
       return Future.fromCompletionStage(graphQLFactory.apply(rc)
-                                                      .executeAsync(builder.build()), rc.vertx().getOrCreateContext())
+                                                      .thenComposeAsync(graphql -> graphql.executeAsync(builder.build())),
+                                        rc.vertx().getOrCreateContext())
                    .map(executionResult -> new JsonObject(executionResult.toSpecification()));
     }else if(graphQL != null){
       return Future.fromCompletionStage(graphQL.executeAsync(builder.build()), rc.vertx().getOrCreateContext())
