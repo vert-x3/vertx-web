@@ -24,6 +24,7 @@ module io.vertx.web.client {
   requires io.netty.codec.http;
   requires static io.vertx.auth.oauth2;
   requires io.vertx.uritemplate;
+  requires io.vertx.core;
   requires io.vertx.web.common;
   requires io.netty.common;
 
