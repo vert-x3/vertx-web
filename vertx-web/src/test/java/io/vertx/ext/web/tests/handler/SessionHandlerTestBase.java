@@ -359,7 +359,8 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 	}
 
 	protected long doTestSessionRetryTimeout() throws Exception {
-		router.route().handler(SessionHandler.create(store));
+    SessionHandler sessionHandler = SessionHandler.create(store);
+		router.route().handler(sessionHandler);
 		AtomicReference<Session> rid = new AtomicReference<>();
 
 		router.get("/0").handler(rc -> {
@@ -370,8 +371,8 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		router.get("/1").handler(rc -> {
 			rid.set(rc.session());
 			assertEquals("foo_value", rc.session().get("foo"));
-			rc.session().destroy();
-			rc.response().end();
+      rc.session().destroy();
+      sessionHandler.flush(rc).onComplete(v -> rc.response().end(), rc::fail);
 		});
 		router.get("/2").handler(rc -> {
 			rid.set(rc.session());
