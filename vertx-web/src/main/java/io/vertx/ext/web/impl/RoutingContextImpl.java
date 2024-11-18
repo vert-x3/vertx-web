@@ -30,11 +30,7 @@ import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.impl.UserHolder;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -85,12 +81,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       String message = HttpVersion.HTTP_1_1 == request.version() ?
         "For HTTP/1.x requests, the 'Host' header is required" :
         "For HTTP/2 requests, the ':authority' pseudo-header is required";
-      fail(400, new VertxException(message), true);
+      fail(400, new VertxException(message, true));
       return;
     }
 
     if (path == null || path.isEmpty()) {
-      fail(400, new VertxException("The request path must start with '/' and cannot be empty"), true);
+      fail(400, new VertxException("The request path must start with '/' and cannot be empty", true));
       return;
     }
 
