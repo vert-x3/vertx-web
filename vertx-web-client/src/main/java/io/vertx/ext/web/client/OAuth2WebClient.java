@@ -13,9 +13,11 @@ package io.vertx.ext.web.client;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Handler;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
+import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.Oauth2WebClientAware;
 
 /**
@@ -63,6 +65,10 @@ public interface OAuth2WebClient extends WebClient {
   @Fluent
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   OAuth2WebClient withCredentials(Credentials credentials);
+
+  @GenIgnore
+  @Override
+  OAuth2WebClient addInterceptor(Handler<HttpContext<?>> interceptor);
 
   /**
    * Get the authenticated user (if any) that is associated with this client.

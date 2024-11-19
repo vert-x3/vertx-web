@@ -21,7 +21,7 @@ import io.vertx.ext.web.client.spi.CookieStore;
 /**
  * @author <a href="mailto:tommaso.nolli@gmail.com">Tommaso Nolli</a>
  */
-public class WebClientSessionAware extends WebClientBase implements WebClientSession {
+public class WebClientSessionAware extends WebClientBase<WebClientSessionAware> implements WebClientSession {
 
   private final CookieStore cookieStore;
   private final CacheStore cacheStore;

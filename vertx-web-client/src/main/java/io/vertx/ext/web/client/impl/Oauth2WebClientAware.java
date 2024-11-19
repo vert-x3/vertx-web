@@ -17,7 +17,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.OAuth2WebClient;
 import io.vertx.ext.web.client.OAuth2WebClientOptions;
 
-public class Oauth2WebClientAware extends WebClientBase implements OAuth2WebClient {
+public class Oauth2WebClientAware extends WebClientBase<Oauth2WebClientAware> implements OAuth2WebClient {
 
   private final OAuth2Auth oauth2Auth;
   private final OAuth2WebClientOptions option;
