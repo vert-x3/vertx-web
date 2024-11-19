@@ -44,7 +44,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class WebClientBase implements WebClientInternal {
+public class WebClientBase<C extends WebClientBase<C>> implements WebClientInternal {
 
   final HttpClient client;
   final WebClientOptions options;
@@ -152,13 +152,13 @@ public class WebClientBase implements WebClientInternal {
   }
 
   @Override
-  public WebClientInternal addInterceptor(Handler<HttpContext<?>> interceptor) {
+  public C addInterceptor(Handler<HttpContext<?>> interceptor) {
     // If a web client is constructed using another client, interceptors could get added twice.
     if (interceptors.stream().anyMatch(i -> i.getClass() == interceptor.getClass())) {
       throw new IllegalStateException(String.format("Client already contains a %s interceptor", interceptor.getClass()));
     }
     interceptors.add(interceptor);
-    return this;
+    return (C) this;
   }
 
   @Override

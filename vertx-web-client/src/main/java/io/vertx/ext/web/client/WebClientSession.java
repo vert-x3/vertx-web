@@ -13,6 +13,8 @@ package io.vertx.ext.web.client;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Handler;
+import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientSessionAware;
 import io.vertx.ext.web.client.spi.CookieStore;
 
@@ -135,4 +137,8 @@ public interface WebClientSession extends WebClient {
    */
   @GenIgnore(PERMITTED_TYPE)
   CookieStore cookieStore();
+
+  @GenIgnore
+  @Override
+  WebClientSession addInterceptor(Handler<HttpContext<?>> interceptor);
 }

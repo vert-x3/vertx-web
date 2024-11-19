@@ -26,19 +26,6 @@ public interface WebClientInternal extends WebClient {
 
   <T> HttpContext<T> createContext(ContextInternal context);
 
-  /**
-   * Add interceptor in the chain.
-   * <p/>
-   * The interceptor can maintain per request state with {@link HttpContext#get(String)}/{@link HttpContext#set(String, Object)}.
-   * <p/>
-   * A request/response can be processed several times (in case of retry) and thus they should use the per request state
-   * to ensure an operation is not done twice.
-   * <p/>
-   * This API is internal.
-   *
-   * @param interceptor the interceptor to add, must not be null
-   * @return a reference to this, so the API can be used fluently
-   */
+  @Override
   WebClientInternal addInterceptor(Handler<HttpContext<?>> interceptor);
-
 }
