@@ -23,8 +23,8 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.internal.ContextInternal;
+import io.vertx.core.internal.http.HttpServerRequestInternal;
 import io.vertx.core.internal.net.RFC3986;
-import io.vertx.core.net.HostAndPort;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.impl.UserHolder;
@@ -75,9 +75,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   void route() {
-    String path = request.path();
-    HostAndPort authority = request.authority();
-    if (authority == null && request.version() != HttpVersion.HTTP_1_0) {
+    final String path = request.path();
+    // optimized method which try hard to not allocate
+    final boolean hasValidAuthority = ((HttpServerRequestInternal) request).isValidAuthority();
+
+    if (!hasValidAuthority && request.version() != HttpVersion.HTTP_1_0) {
       String message = HttpVersion.HTTP_1_1 == request.version() ?
         "For HTTP/1.x requests, the 'Host' header is required" :
         "For HTTP/2 requests, the ':authority' pseudo-header is required";
