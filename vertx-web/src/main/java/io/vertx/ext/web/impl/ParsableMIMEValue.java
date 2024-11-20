@@ -4,7 +4,6 @@ import io.vertx.ext.web.MIMEHeader;
 
 import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader {
 
@@ -40,12 +39,14 @@ public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader
   @Override
   public String mediaTypeWithParams() {
     ensureHeaderProcessed();
-    StringBuilder sb = new StringBuilder(component + "/" + subComponent);
-    if (!parameters().isEmpty()) {
-      sb.append("; ");
-      sb.append(parameters().entrySet().stream().map(ParsableMIMEValue::encodeParam).collect(Collectors.joining("; ")));
+    Map<String, String> parameters = parameters();
+    if (parameters.isEmpty()) {
+      return component + "/" + subComponent;
     }
-
+    StringBuilder sb = new StringBuilder(component).append("/").append(subComponent);
+    for (Map.Entry<String, String> param : parameters.entrySet()) {
+      sb.append("; ").append(encodeParam(param));
+    }
     return sb.toString();
   }
 
