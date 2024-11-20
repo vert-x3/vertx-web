@@ -2,6 +2,9 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.ext.web.MIMEHeader;
 
+import java.util.Map;
+import java.util.regex.Pattern;
+
 public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader {
 
   private String component;
@@ -26,6 +29,27 @@ public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader
     ensureHeaderProcessed();
     return subComponent;
   }
+
+  @Override
+  public String mediaType() {
+    ensureHeaderProcessed();
+    return component + "/" + subComponent;
+  }
+
+  @Override
+  public String mediaTypeWithParams() {
+    ensureHeaderProcessed();
+    Map<String, String> parameters = parameters();
+    if (parameters.isEmpty()) {
+      return component + "/" + subComponent;
+    }
+    StringBuilder sb = new StringBuilder(component).append("/").append(subComponent);
+    for (Map.Entry<String, String> param : parameters.entrySet()) {
+      sb.append("; ").append(encodeParam(param));
+    }
+    return sb.toString();
+  }
+
 
   @Override
   protected boolean isMatchedBy2(ParsableHeaderValue matchTry) {
@@ -76,5 +100,42 @@ public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader
   @Override
   protected int weightedOrderPart2() {
     return orderWeight;
+  }
+
+  private static final Pattern SPECIAL_CHARACTERS_IN_PARAM_VALUE = Pattern.compile(".*[\\s,;=\"].*");
+
+  /**
+   * Encodes a MIME parameter.
+   * <p>
+   * This method takes a parameter entry and encodes it into a string format suitable for MIME headers.
+   * If the parameter value is null or blank, it returns just the key.
+   * If the value is enclosed in double quotes, it returns the key and value as is.
+   * If the value contains special characters, it encloses the value in double quotes.
+   * Otherwise, it returns the key and value in a key=value format.
+   * @param param The parameter entry to encode.
+   * @return The encoded parameter string.
+   */
+  private static String encodeParam(Map.Entry<String, String> param) {
+    // Check if the parameter value is null or blank
+    if (param.getValue() == null || param.getValue().isBlank()) {
+      // Return just the key if value is null or blank
+      return param.getKey();
+    } else {
+      String value = param.getValue();
+      // Check if the value is enclosed in double quotes
+      if (value.startsWith("\"") && value.endsWith("\"")) {
+        // Return the key and value as is
+        return param.getKey() + "=" + value;
+        // Check if the value contains special characters
+      } else if (SPECIAL_CHARACTERS_IN_PARAM_VALUE.matcher(value).matches()) {
+        // Escape quotes
+        value = value.replace("\"", "\\\"");
+        // Enclose the value in double quotes
+        return param.getKey() + "=\"" + value + "\"";
+      } else {
+        // Return the key and value in key=value format
+        return param.getKey() + "=" + param.getValue();
+      }
+    }
   }
 }

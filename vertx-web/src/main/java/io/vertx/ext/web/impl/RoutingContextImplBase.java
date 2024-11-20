@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.ext.auth.audit.SecurityAudit;
+import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -65,6 +66,8 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   private SecurityAudit securityAudit;
 
   protected Set<HttpMethod> allowedMethods = new HashSet<>();
+
+  protected Set<MIMEHeader> allowedContentTypes = new HashSet<>();
 
   RoutingContextImplBase(String mountPoint, Set<RouteImpl> routes, Router currentRouter) {
     this.mountPoint = mountPoint;
@@ -206,6 +209,11 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
           if (this.matchFailure == 404) {
             this.matchFailure = matchResult;
           }
+        } else if (matchResult == 415) {
+          // invalid content type
+          // send allowed content types
+          allowedContentTypes.addAll(routeState.getConsumes());
+          this.matchFailure = matchResult;
         } else if (matchResult != 404) {
           this.matchFailure = matchResult;
         }
@@ -263,8 +271,8 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
       } catch (IllegalArgumentException e) {
         // means that there are invalid chars in the status message
         response()
-            .setStatusMessage(HttpResponseStatus.valueOf(code).reasonPhrase())
-            .setStatusCode(code);
+          .setStatusMessage(HttpResponseStatus.valueOf(code).reasonPhrase())
+          .setStatusCode(code);
       }
       response().end(response().getStatusMessage());
     }
