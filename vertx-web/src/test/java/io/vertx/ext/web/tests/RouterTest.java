@@ -1043,8 +1043,10 @@ public class RouterTest extends WebTestBase {
   public void testConsumes() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html", res.getHeader("Accept")));
   }
 
   @Test
@@ -1054,15 +1056,18 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;itWorks", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html; boo", res.getHeader("Accept")));
   }
 
   @Test
   public void testConsumesWithParameter() throws Exception {
     router.route().consumes("text/html;boo=ya").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html; boo=ya", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html; boo=ya", res.getHeader("Accept")));
   }
 
   @Test
@@ -1070,22 +1075,29 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html;boo=\"yeah,right\"").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\";itWorks=4real", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept")));
     // this might look wrong but since there is only 1 entry per content-type, the comma has no semantic meaning
     // therefore it is ignored
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept")));
   }
 
   @Test
   public void testConsumesWithQuotedParameterWithQuotes() throws Exception {
     router.route().consumes("text/html;boo=\"yeah\\\"right\"").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah\\\"right\"", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 415, "Unsupported Media Type");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 415, "Unsupported Media Type");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
   }
 
   @Test
@@ -1101,10 +1113,14 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html").consumes("application/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html, application/json", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html, application/json", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html, application/json", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html, application/json", res.getHeader("Accept")));
   }
 
   @Test
@@ -1114,9 +1130,12 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;works", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;works", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=done;it=works", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;yes=no;right", 415, "Unsupported Media Type");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;boo", 415, "Unsupported Media Type");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;works=aright", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;yes=no;right", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html; works, text/html; boo", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;boo", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html; works, text/html; boo", res.getHeader("Accept")));
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;works=aright", 415, "Unsupported Media Type",
+      res -> assertEquals("text/html; works, text/html; boo", res.getHeader("Accept")));
   }
 
   @Test
@@ -1126,7 +1145,8 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
+      res -> assertEquals("*/json", res.getHeader("Accept")));
   }
 
   @Test
@@ -1134,7 +1154,8 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/*").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 415, "Unsupported Media Type",
+      res -> assertEquals("text/*", res.getHeader("Accept")));
   }
 
   @Test
@@ -1142,7 +1163,8 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("*/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/html", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/html", 415, "Unsupported Media Type",
+      res -> assertEquals("*/json", res.getHeader("Accept")));
   }
 
   @Test
@@ -1468,7 +1490,7 @@ public class RouterTest extends WebTestBase {
     router.route("/sub/*").subRouter(subRouter);
     List<Route> routes = router.getRoutes();
     assertEquals(2, routes.size());
-    for(Route route: routes) {
+    for (Route route : routes) {
       Router theSubRouter = route.getSubRouter();
       if (route.getPath().equals("/sub/")) {
         assertNotNull(theSubRouter);
@@ -2445,8 +2467,8 @@ public class RouterTest extends WebTestBase {
       // using executeBlocking should create multiple connections
       vertx.executeBlocking((new Random().nextBoolean() ? execute200Request : execute400Request), false)
         .onComplete(onSuccess(v -> {
-        latch.countDown();
-      }));
+          latch.countDown();
+        }));
     }
     awaitLatch(latch);
   }
@@ -3537,12 +3559,12 @@ public class RouterTest extends WebTestBase {
         ctx.response().end(ctx.normalizedPath() + "\n");
       });
 
-    int numRequests= 20;
+    int numRequests = 20;
 
     waitFor(numRequests);
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
-    for (int i = 0;i < numRequests;i++) {
+    for (int i = 0; i < numRequests; i++) {
       client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
         // 8192 * 8 fills the HTTP server request pending queue
         // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
@@ -3572,12 +3594,12 @@ public class RouterTest extends WebTestBase {
     router.route("/")
       .handler(BodyHandler.create());
 
-    int numRequests= 20;
+    int numRequests = 20;
 
     waitFor(numRequests);
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
-    for (int i = 0;i < numRequests;i++) {
+    for (int i = 0; i < numRequests; i++) {
       client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
         // 8192 * 8 fills the HTTP server request pending queue
         // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
@@ -3610,12 +3632,12 @@ public class RouterTest extends WebTestBase {
         ctx.request().endHandler(done -> ctx.response().end(ctx.normalizedPath() + "\n"));
       });
 
-    int numRequests= 20;
+    int numRequests = 20;
 
     waitFor(numRequests);
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
-    for (int i = 0;i < numRequests;i++) {
+    for (int i = 0; i < numRequests; i++) {
       client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
         // 8192 * 8 fills the HTTP server request pending queue
         // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
@@ -3638,12 +3660,12 @@ public class RouterTest extends WebTestBase {
           .setTimer(1L, t -> ctx.next());
       });
 
-    int numRequests= 20;
+    int numRequests = 20;
 
     waitFor(numRequests);
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
-    for (int i = 0;i < numRequests;i++) {
+    for (int i = 0; i < numRequests; i++) {
       client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
         // 8192 * 8 fills the HTTP server request pending queue
         // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
