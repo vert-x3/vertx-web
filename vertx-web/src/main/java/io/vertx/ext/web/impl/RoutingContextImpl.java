@@ -83,12 +83,21 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     // optimized method which try hard to not allocate
     final boolean hasValidAuthority = ((HttpServerRequestInternal) request).isValidAuthority();
 
-    if ((!hasValidAuthority && request.version() != HttpVersion.HTTP_1_0) || path == null || path.isEmpty()) {
-      // Authority must be present (HTTP/1.x host header // HTTP/2 :authority pseudo header)
-      // HTTP paths must start with a '/'
-      fail(400);
-    } else if (path.charAt(0) != '/') {
-      // For compatiblity we return `Not Found` when a path does not start with `/`
+    if (!hasValidAuthority && request.version() != HttpVersion.HTTP_1_0) {
+      String message = HttpVersion.HTTP_1_1 == request.version() ?
+        "For HTTP/1.x requests, the 'Host' header is required" :
+        "For HTTP/2 requests, the ':authority' pseudo-header is required";
+      fail(400, new VertxException(message, true));
+      return;
+    }
+
+    if (path == null || path.isEmpty()) {
+      fail(400, new VertxException("The request path must start with '/' and cannot be empty", true));
+      return;
+    }
+
+    if (path.charAt(0) != '/') {
+      // For compatibility, we return `Not Found` when a path does not start with `/`
       fail(404);
     } else {
       next();
