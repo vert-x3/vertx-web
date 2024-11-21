@@ -754,12 +754,12 @@ ifeval::["$lang" == "java"]
 include::override/rxjava3.adoc[]
 endif::[]
 
-== Domain sockets
+== Unix domain sockets
 
-Since 3.7.1 the Web Client supports domain sockets, e.g you can interact with the https://docs.docker.com/engine/reference/commandline/dockerd/[local Docker daemon].
+The Web Client supports Unix domain sockets.
+For example, you can interact with the https://docs.docker.com/engine/reference/commandline/dockerd/[local Docker daemon].
 
-To achieve this, the {@link io.vertx.core.Vertx} instance must be created using a native transport, you can read
-the Vert.x core documentation that explains it clearly.
+To achieve this, you must run your application with JDK16+ or create the {@link io.vertx.core.Vertx} instance using a link:../../vertx-core/java/#_native_transports[native transport].
 
 [source,$lang]
 ----
