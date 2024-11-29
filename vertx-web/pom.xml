@@ -13,6 +13,10 @@
 
   <artifactId>vertx-web</artifactId>
 
+  <properties>
+    <webauthn4j.version>0.28.2.RELEASE</webauthn4j.version>
+  </properties>
+
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
@@ -108,6 +112,19 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.webauthn4j</groupId>
+        <artifactId>webauthn4j-test</artifactId>
+        <scope>test</scope>
+        <version>${webauthn4j.version}</version>
+        <exclusions>
+            <!--Causes double module import by different paths otherwise-->
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jcl</artifactId>
+            </exclusion>
+        </exclusions>
     </dependency>
   </dependencies>
 
