@@ -130,7 +130,7 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 					database.stream()
 					.filter(entry -> {
 						if (userName != null) {
-							return userName.equals(entry.getUserName());
+							return userName.equals(entry.getUsername());
 						}
 						if (credentialId != null) {
 							return credentialId.equals(entry.getCredID());
@@ -148,13 +148,13 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 					.filter(entry -> authenticator.getCredID().equals(entry.getCredID()))
 					.count();
 			long userNameFound = database.stream()
-					.filter(entry -> authenticator.getUserName().equals(entry.getUserName()))
+					.filter(entry -> authenticator.getUsername().equals(entry.getUsername()))
 					.count();
 
 			if (credentialIdFound > 0) {
 				return ctx.failedFuture("Duplicate authenticator for credential ID "+authenticator.getCredID());
 			} else if (userNameFound > 0) {
-				return ctx.failedFuture("Duplicate user "+authenticator.getUserName());
+				return ctx.failedFuture("Duplicate user "+authenticator.getUsername());
 			} else {
 				database.add(authenticator);
 				return ctx.succeededFuture();
@@ -213,8 +213,7 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 
 		Handler<RoutingContext> handler = rc -> {
 			assertNotNull(rc.user().get());
-			// FIXME: can't use subject() because it looks for "username" while WebAuthn is using "userName"
-			assertEquals(username, rc.user().get().principal().getString("userName"));
+			assertEquals(username, rc.user().get().subject());
 			rc.response().end("Welcome to the protected resource!");
 		};
 
@@ -284,7 +283,7 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 			Assert.assertEquals(1, authenticators.size());
 			Authenticator authenticator = authenticators.get(0);
 			// Check username, credid, counter, publicKey
-			Assert.assertEquals(username, authenticator.getUserName());
+			Assert.assertEquals(username, authenticator.getUsername());
 			Assert.assertEquals(credId, authenticator.getCredID());
 			Assert.assertEquals(1, authenticator.getCounter());
 			Assert.assertEquals(publicKey, authenticator.getPublicKey());
@@ -391,7 +390,7 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 			Assert.assertEquals(1, authenticators.size());
 			Authenticator authenticator = authenticators.get(0);
 			// Check username, credid, counter, publicKey
-			Assert.assertEquals(username, authenticator.getUserName());
+			Assert.assertEquals(username, authenticator.getUsername());
 			Assert.assertEquals(credId, authenticator.getCredID());
 			Assert.assertEquals(2, authenticator.getCounter());
 			Assert.assertEquals(publicKey, authenticator.getPublicKey());

@@ -41,7 +41,7 @@ open module io.vertx.web.tests {
   requires io.netty.codec.http;
   requires static hamcrest.core;
   requires static org.mockito;
-  requires com.webauthn4j.metadata.async;
-  requires com.webauthn4j.test;
-  requires com.webauthn4j.core;
+  requires static com.webauthn4j.metadata.async;
+  requires static com.webauthn4j.test;
+  requires static com.webauthn4j.core;
 }
