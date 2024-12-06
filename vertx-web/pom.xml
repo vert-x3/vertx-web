@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="https://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <parent>
     <groupId>io.vertx</groupId>
@@ -12,6 +12,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>vertx-web</artifactId>
+
+  <properties>
+    <webauthn4j.version>0.28.2.RELEASE</webauthn4j.version>
+  </properties>
 
   <licenses>
     <license>
@@ -64,6 +68,11 @@
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-webauthn4j</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-otp</artifactId>
       <optional>true</optional>
     </dependency>
@@ -104,6 +113,19 @@
       <artifactId>jackson-databind</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+        <groupId>com.webauthn4j</groupId>
+        <artifactId>webauthn4j-test</artifactId>
+        <scope>test</scope>
+        <version>${webauthn4j.version}</version>
+        <exclusions>
+            <!--Causes double module import by different paths otherwise-->
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jcl</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
   </dependencies>
 
   <build>
@@ -129,9 +151,6 @@
           <excludes>
             <exclude>io/vertx/ext/web/it/**/*.java</exclude>
           </excludes>
-          <classpathDependencyExcludes>
-            <classpathDependencyExclude>com.fasterxml.jackson.core:jackson-databind</classpathDependencyExclude>
-          </classpathDependencyExcludes>
         </configuration>
       </plugin>
       <plugin>

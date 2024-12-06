@@ -24,6 +24,9 @@ import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
 import io.vertx.ext.auth.otp.totp.TotpAuth;
 import io.vertx.ext.auth.webauthn.*;
+import io.vertx.ext.auth.webauthn4j.CredentialStorage;
+import io.vertx.ext.auth.webauthn4j.WebAuthn4J;
+import io.vertx.ext.auth.webauthn4j.WebAuthn4JOptions;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.healthchecks.HealthChecks;
@@ -2045,4 +2048,41 @@ public class WebExamples {
     HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx, auth);
     router.get("/health*").handler(healthCheckHandler);
   }
+
+  public void example89(Vertx vertx, Router router, CredentialStorage credentialStorage) {
+	    // create the webauthn4j security object
+	    WebAuthn4J webAuthn = WebAuthn4J.create(
+	        vertx,
+	        new WebAuthn4JOptions()
+	          .setRelyingParty(new io.vertx.ext.auth.webauthn4j.RelyingParty().setName("Vert.x WebAuthN4J Demo"))
+	          // What kind of authentication do you want? do you care?
+	          // # security keys
+	          .setAuthenticatorAttachment(io.vertx.ext.auth.webauthn4j.AuthenticatorAttachment.CROSS_PLATFORM)
+	          // # fingerprint
+	          .setAuthenticatorAttachment(io.vertx.ext.auth.webauthn4j.AuthenticatorAttachment.PLATFORM)
+	          .setUserVerification(io.vertx.ext.auth.webauthn4j.UserVerification.REQUIRED))
+	      // where to load or store the credentials
+	      .credentialStorage(credentialStorage);
+
+	    // parse the BODY
+	    router.post()
+	      .handler(BodyHandler.create());
+	    // add a session handler
+	    router.route()
+	      .handler(SessionHandler
+	        .create(LocalSessionStore.create(vertx)));
+
+	    // security handler
+	    WebAuthn4JHandler webAuthNHandler = WebAuthn4JHandler.create(webAuthn)
+	      .setOrigin("https://192.168.178.74.xip.io:8443")
+	      // required callback
+	      .setupCallback(router.post("/webauthn4j/response"))
+	      // optional register options callback
+	      .setupCredentialsCreateCallback(router.post("/webauthn4j/register"))
+	      // optional login options callback
+	      .setupCredentialsGetCallback(router.post("/webauthn4j/login"));
+
+	    // secure the remaining routes
+	    router.route().handler(webAuthNHandler);
+	  }
 }
