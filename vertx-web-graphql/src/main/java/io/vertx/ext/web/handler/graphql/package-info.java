@@ -14,7 +14,7 @@
  * under the License.
  */
 
-@ModuleGen(name = "vertx-web-graphql", groupPackage = "io.vertx", useFutures = true)
+@ModuleGen(name = "vertx-web-graphql", groupPackage = "io.vertx")
 package io.vertx.ext.web.handler.graphql;
 
 import io.vertx.codegen.annotations.ModuleGen;
