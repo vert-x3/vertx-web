@@ -34,7 +34,6 @@ module io.vertx.web {
   requires static io.vertx.auth.jwt;
   requires static io.vertx.auth.otp;
   requires static io.vertx.auth.oauth2;
-  requires static io.vertx.auth.webauthn;
   requires static io.vertx.auth.webauthn4j;
   requires static io.vertx.healthcheck;
 

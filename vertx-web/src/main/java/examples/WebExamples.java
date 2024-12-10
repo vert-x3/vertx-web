@@ -23,7 +23,6 @@ import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
 import io.vertx.ext.auth.otp.totp.TotpAuth;
-import io.vertx.ext.auth.webauthn.*;
 import io.vertx.ext.auth.webauthn4j.CredentialStorage;
 import io.vertx.ext.auth.webauthn4j.WebAuthn4J;
 import io.vertx.ext.auth.webauthn4j.WebAuthn4JOptions;
@@ -1756,45 +1755,6 @@ public class WebExamples {
           break;
       }
     });
-  }
-
-  public void example75(Vertx vertx, Router router, Function<Authenticator, Future<List<Authenticator>>> fetcher, Function<Authenticator, Future<Void>> updater) {
-    // create the webauthn security object
-    WebAuthn webAuthn = WebAuthn.create(
-        vertx,
-        new WebAuthnOptions()
-          .setRelyingParty(new RelyingParty().setName("Vert.x WebAuthN Demo"))
-          // What kind of authentication do you want? do you care?
-          // # security keys
-          .setAuthenticatorAttachment(AuthenticatorAttachment.CROSS_PLATFORM)
-          // # fingerprint
-          .setAuthenticatorAttachment(AuthenticatorAttachment.PLATFORM)
-          .setUserVerification(UserVerification.REQUIRED))
-      // where to load the credentials from?
-      .authenticatorFetcher(fetcher)
-      // update the state of an authenticator
-      .authenticatorUpdater(updater);
-
-    // parse the BODY
-    router.post()
-      .handler(BodyHandler.create());
-    // add a session handler
-    router.route()
-      .handler(SessionHandler
-        .create(LocalSessionStore.create(vertx)));
-
-    // security handler
-    WebAuthnHandler webAuthNHandler = WebAuthnHandler.create(webAuthn)
-      .setOrigin("https://192.168.178.74.xip.io:8443")
-      // required callback
-      .setupCallback(router.post("/webauthn/response"))
-      // optional register callback
-      .setupCredentialsCreateCallback(router.post("/webauthn/register"))
-      // optional login callback
-      .setupCredentialsGetCallback(router.post("/webauthn/login"));
-
-    // secure the remaining routes
-    router.route().handler(webAuthNHandler);
   }
 
   public void example76(Vertx vertx, Router router) {

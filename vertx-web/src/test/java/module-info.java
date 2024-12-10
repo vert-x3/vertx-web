@@ -24,7 +24,6 @@ open module io.vertx.web.tests {
   requires static io.vertx.auth.abac;
   requires static io.vertx.auth.oauth2;
   requires static io.vertx.auth.jwt;
-  requires static io.vertx.auth.webauthn;
   requires static io.vertx.auth.webauthn4j;
   requires static io.vertx.auth.htdigest;
   requires static io.vertx.auth.properties;
