@@ -17,6 +17,6 @@ module io.vertx.web.template.thymeleaf {
   requires static io.vertx.codegen.api;
   requires io.vertx.core;
   requires io.vertx.web.common;
-  requires thymeleaf;
+  requires thymeleaf; // named automatic
   exports io.vertx.ext.web.templ.thymeleaf;
 }

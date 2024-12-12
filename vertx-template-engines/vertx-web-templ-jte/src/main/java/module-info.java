@@ -17,7 +17,7 @@ module io.vertx.web.template.jte {
 
   requires static io.vertx.codegen.api;
 
-  requires gg.jte.runtime;
+  requires gg.jte.runtime; // named automatic
   requires io.vertx.core;
   requires io.vertx.web.common;
 
