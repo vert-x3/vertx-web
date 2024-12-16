@@ -54,7 +54,7 @@ public class OpenAPIRouterHandlerImpl extends EventbusHandler implements OpenAPI
   protected Future<JsonObject> transformRequest(ValidatedRequest request, RoutingContext routingContext,
                                                 Operation operation) {
     JsonObject params = buildParametersObject(request);
-    JsonObject userPrincipal = Optional.ofNullable(routingContext.user().get()).map(User::principal).orElse(null);
+    JsonObject userPrincipal = Optional.ofNullable(routingContext.user()).map(User::principal).orElse(null);
 
     ServiceRequest sr = new ServiceRequest(
       params,

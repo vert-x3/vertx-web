@@ -60,10 +60,10 @@ class RouterBuilderSecurityOptionalCallbackawareTest extends RouterBuilderTestBa
       .onSuccess(self -> {
         self
           .getRoute("opA")
-          .addHandler(ctx -> ctx.json(ctx.user().get().principal()));
+          .addHandler(ctx -> ctx.json(ctx.user().principal()));
         self
           .getRoute("opB")
-          .addHandler(ctx -> ctx.json(ctx.user().get().principal()));
+          .addHandler(ctx -> ctx.json(ctx.user().principal()));
       }))
       // this test may seem useless but it proves that the chain auth properly sets up a chain when the a handler
       // can perform redirects (callback aware) and doesn't throw an exception at setup time.

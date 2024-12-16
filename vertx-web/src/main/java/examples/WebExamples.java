@@ -42,7 +42,6 @@ import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * These are the examples used in the documentation.
@@ -837,7 +836,7 @@ public class WebExamples {
       // This will require a login
 
       // This will have the value true
-      boolean isAuthenticated = ctx.user().authenticated();
+      boolean isAuthenticated = ctx.userContext().authenticated();
 
     });
   }
@@ -871,7 +870,7 @@ public class WebExamples {
         // This will require a login
 
         // This will have the value true
-        boolean isAuthenticated = ctx.user().authenticated();
+        boolean isAuthenticated = ctx.userContext().authenticated();
 
       });
 
@@ -1268,8 +1267,8 @@ public class WebExamples {
   public void example53(Vertx vertx) {
 
     Handler<RoutingContext> handler = ctx -> {
-      String theSubject = ctx.user().get().principal().getString("sub");
-      String someKey = ctx.user().get().principal().getString("someKey");
+      String theSubject = ctx.user().principal().getString("sub");
+      String someKey = ctx.user().principal().getString("someKey");
     };
   }
 
@@ -1495,7 +1494,7 @@ public class WebExamples {
       // at this moment your user object should contain the info
       // from the Oauth2 response, since this is a protected resource
       // as specified above in the handler config the user object is never null
-      User user = ctx.user().get();
+      User user = ctx.user();
       // just dump it to the client for demo purposes
       ctx.response().end(user.toString());
     });
@@ -1947,7 +1946,7 @@ public class WebExamples {
       .handler(ctx -> {
         // if the user isn't admin, we ask the user to login again as admin
         ctx
-          .user()
+          .userContext()
           .loginHint("admin")
           .impersonate();
       });
@@ -1958,7 +1957,7 @@ public class WebExamples {
       .route("/high/security/route/back/to/me")
       .handler(ctx -> {
         ctx
-          .user()
+          .userContext()
           .restore();
       });
   }
@@ -1968,7 +1967,7 @@ public class WebExamples {
       .route("/high/security/route/refresh/me")
       .handler(ctx -> {
         ctx
-          .user()
+          .userContext()
           .refresh();
       });
   }

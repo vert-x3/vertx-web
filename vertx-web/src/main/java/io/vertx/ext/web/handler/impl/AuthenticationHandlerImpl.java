@@ -60,7 +60,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
       ctx.request().pause();
     }
 
-    final User user = ctx.user().get();
+    final User user = ctx.user();
 
     if (user != null) {
       if (mfa != null) {
@@ -85,7 +85,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
     // perform the authentication
     authenticate(ctx)
       .onSuccess(authenticated -> {
-        ((UserContextInternal) ctx.user())
+        ((UserContextInternal) ctx.userContext())
           .setUser(authenticated);
         Session session = ctx.session();
         if (session != null) {

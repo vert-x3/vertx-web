@@ -23,6 +23,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.Json;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
 import io.vertx.ext.web.impl.Utils;
 
@@ -223,7 +224,15 @@ public interface RoutingContext {
    * as perform authentication refreshes, logout and other operations.
    * @return the user context
    */
-  UserContext user();
+  UserContext userContext();
+
+  /**
+   * Get the authenticated user (if any). This will usually be injected by an auth handler if authentication if successful.
+   * @return  the user, or null if the current user is not authenticated.
+   */
+  default @Nullable User user() {
+    return userContext().get();
+  }
 
   /**
    * If the context is being routed to failure handlers after a failure has been triggered by calling

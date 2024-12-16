@@ -19,37 +19,25 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.internal.ContextInternal;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.JWTOptions;
-import io.vertx.ext.auth.KeyStoreOptions;
-import io.vertx.ext.auth.jwt.JWTAuth;
-import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.auth.webauthn4j.RelyingParty;
 import io.vertx.ext.auth.webauthn4j.Authenticator;
 import io.vertx.ext.auth.webauthn4j.CredentialStorage;
 import io.vertx.ext.auth.webauthn4j.WebAuthn4J;
-import io.vertx.ext.auth.webauthn4j.WebAuthn4JCredentials;
 import io.vertx.ext.auth.webauthn4j.WebAuthn4JOptions;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.WebAuthn4JHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.tests.WebTestBase;
-import io.vertx.ext.web.tests.handler.WebAuthn4JHandlerTest.TestStorage;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -93,7 +81,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -212,8 +199,8 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 	public void testRegisterAndLogin() throws Exception {
 
 		Handler<RoutingContext> handler = rc -> {
-			assertNotNull(rc.user().get());
-			assertEquals(username, rc.user().get().subject());
+			assertNotNull(rc.user());
+			assertEquals(username, rc.user().subject());
 			rc.response().end("Welcome to the protected resource!");
 		};
 
@@ -234,7 +221,7 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 
 		// Now try again with credentials
 		testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader(HttpHeaders.COOKIE, session1Cookie), 200, "OK", "Welcome to the protected resource!");
-		
+
 		// Let's drop this session and try logging in
 		String session2Cookie = testAuthentication(clientPlatform);
 
@@ -276,7 +263,7 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 			String cookie = resp.getHeader(HttpHeaders.SET_COOKIE);
 			obtainedCookie[0] = extractVertxSessionCookie(cookie);
 		}, 204, "No Content", null);
-		
+
 		testStorage.find(username, null)
 		.onSuccess(authenticators -> {
 			Assert.assertNotNull(authenticators);
@@ -289,7 +276,7 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 			Assert.assertEquals(publicKey, authenticator.getPublicKey());
 		})
 		.onFailure(x -> Assert.fail("Well that did not work"));
-		
+
 		return obtainedCookie[0];
 	}
 
@@ -383,7 +370,7 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 			String cookie = resp.getHeader(HttpHeaders.SET_COOKIE);
 			obtainedCookie[0] = extractVertxSessionCookie(cookie);
 		}, 204, "No Content", null);
-		
+
 		testStorage.find(username, null)
 		.onSuccess(authenticators -> {
 			Assert.assertNotNull(authenticators);
@@ -396,7 +383,7 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 			Assert.assertEquals(publicKey, authenticator.getPublicKey());
 		})
 		.onFailure(x -> Assert.fail("Well that did not work"));
-		
+
 		return obtainedCookie[0];
 	}
 

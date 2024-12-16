@@ -9,7 +9,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.audit.SecurityAudit;
 import io.vertx.ext.web.*;
 
@@ -195,8 +194,8 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
-  public UserContext user() {
-    return decoratedContext.user();
+  public UserContext userContext() {
+    return decoratedContext.userContext();
   }
 
   @Override

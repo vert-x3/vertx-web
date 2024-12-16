@@ -339,7 +339,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public UserContext user() {
+  public UserContext userContext() {
     if (identity == null) {
       identity = new UserContextImpl(this);
     }

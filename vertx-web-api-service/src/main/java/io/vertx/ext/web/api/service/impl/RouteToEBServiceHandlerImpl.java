@@ -73,7 +73,7 @@ public class RouteToEBServiceHandlerImpl implements RouteToEBServiceHandler {
 
   private JsonObject buildPayload(RoutingContext context) {
     JsonObject params = context.get("parsedParameters") != null ? ((RequestParameters)context.get("parsedParameters")).toJson() : null;
-    User user = context.user().get();
+    User user = context.user();
     return new JsonObject().put("context", new ServiceRequest(
       params,
       context.request().headers(),
