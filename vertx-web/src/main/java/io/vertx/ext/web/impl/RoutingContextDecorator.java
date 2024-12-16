@@ -230,6 +230,11 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  public UserContext userContext() {
+    return decoratedContext.userContext();
+  }
+
+  @Override
   public Session session() {
     return decoratedContext.session();
   }

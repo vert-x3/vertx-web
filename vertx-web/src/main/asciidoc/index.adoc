@@ -1378,6 +1378,20 @@ Complex chaining is also possible, for example, building logic sequences such as
 {@link examples.WebExamples#exampleChainAuthHandler}
 ----
 
+=== Impersonation
+When using authentication handlers, it is possible that the identity of the user changes over time. For
+example, a user may require to become `admin` for a specific period of time. This can be achieved by calling:
+[source,$lang]
+----
+{@link examples.WebExamples#example89}
+----
+The operation can be reversed by calling:
+[source,$lang]
+----
+{@link examples.WebExamples#example90}
+----
+The impersonation does not require calling other router endpoints to avoid being exploited from the outside.
+
 == Serving static resources
 
 Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers

@@ -1971,4 +1971,26 @@ public class WebExamples {
         ctx.end(value);
       });
   }
+
+  public void example89(Router router) {
+    router
+      .route("/high/security/route/check")
+      .handler(ctx -> {
+        // if the user isn't admin, we ask the user to login again as admin
+        ctx
+          .userContext()
+          .loginHint("admin")
+          .impersonate();
+      });
+  }
+
+  public void example90(Router router) {
+    router
+      .route("/high/security/route/back/to/me")
+      .handler(ctx -> {
+        ctx
+          .userContext()
+          .restore();
+      });
+  }
 }
