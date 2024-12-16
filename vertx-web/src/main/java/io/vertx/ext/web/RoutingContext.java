@@ -28,6 +28,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
+import io.vertx.ext.web.impl.UserContextImpl;
 import io.vertx.ext.web.impl.Utils;
 
 import java.nio.charset.Charset;
@@ -407,7 +408,11 @@ public interface RoutingContext {
    * Get the authenticated user (if any). This will usually be injected by an auth handler if authentication if successful.
    * @return  the user, or null if the current user is not authenticated.
    */
-  @Nullable User user();
+  default @Nullable User user() {
+    return userContext().get();
+  }
+
+  UserContext userContext();
 
   /**
    * If the context is being routed to failure handlers after a failure has been triggered by calling
@@ -551,14 +556,23 @@ public interface RoutingContext {
    * Set the user. Usually used by auth handlers to inject a User. You will not normally call this method.
    *
    * @param user  the user
+   * @deprecated this method should not be called, application authentication should rely on {@link io.vertx.ext.web.handler.AuthenticationHandler} implementations.
    */
-  void setUser(User user);
+  @Deprecated
+  default void setUser(User user) {
+    ((UserContextImpl) userContext()).setUser(user);
+  }
 
   /**
    * Clear the current user object in the context. This usually is used for implementing a log out feature, since the
    * current user is unbounded from the routing context.
+   *
+   * @deprecated instead use {@link UserContext#logout()}
    */
-  void clearUser();
+  @Deprecated
+  default void clearUser() {
+    setUser(null);
+  }
 
   /**
    * Set the acceptable content type. Used by
