@@ -412,6 +412,12 @@ public interface RoutingContext {
     return userContext().get();
   }
 
+  /**
+   * Control the user associated with this request. The user context allows accessing the security user object as well
+   * as perform authentication refreshes, logout and other operations.
+   *
+   * @return the user context
+   */
   UserContext userContext();
 
   /**
