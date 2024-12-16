@@ -178,8 +178,8 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public UserContext user() {
-    return inner.user();
+  public UserContext userContext() {
+    return inner.userContext();
   }
 
   @Override

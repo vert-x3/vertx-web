@@ -393,7 +393,7 @@ public class SockJSHandlerTest extends WebTestBase {
           assertEquals(session, sock.webSession());
           ((RoutingContextInternal) sock.routingContext()).setSession(session);
           assertEquals(sock.webSession(), sock.routingContext().session());
-          assertEquals(sock.webUser(), sock.routingContext().user().get());
+          assertEquals(sock.webUser(), sock.routingContext().user());
           assertEquals(sock.webUser(), user);
           assertEquals(session, sock.webSession());
           assertEquals(session, store.get(session.id()).result());

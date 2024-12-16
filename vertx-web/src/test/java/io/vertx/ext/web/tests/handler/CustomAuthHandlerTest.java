@@ -119,7 +119,7 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
       .handler(SimpleAuthenticationHandler.create().authenticate(ctx -> Future.succeededFuture()))
       .handler(ctx -> {
         // validation
-        assertNull(ctx.user().get());
+        assertNull(ctx.user());
         ctx.next();
       })
       .handler(ctx -> ctx.response().end("Welcome to the protected resource!"));

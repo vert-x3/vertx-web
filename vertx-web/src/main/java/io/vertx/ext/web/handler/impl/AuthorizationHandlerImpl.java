@@ -94,7 +94,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
 
   @Override
   public void handle(RoutingContext ctx) {
-    final User user = ctx.user().get();
+    final User user = ctx.user();
 
     if (user == null) {
       ctx.fail(FORBIDDEN_CODE, FORBIDDEN_EXCEPTION);
@@ -141,7 +141,7 @@ public class AuthorizationHandlerImpl implements AuthorizationHandler {
    * @param providers            the providers iterator
    */
   private void checkOrFetchAuthorizations(RoutingContext ctx, Authorization authorization, AuthorizationContext authorizationContext, Iterator<AuthorizationProvider> providers) {
-    final User user = ctx.user().get();
+    final User user = ctx.user();
     final SecurityAudit audit = ((RoutingContextInternal) ctx).securityAudit();
     audit.authorization(authorization);
     audit.user(user);

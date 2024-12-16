@@ -100,7 +100,7 @@ public class WebAuthn4JHandlerImpl extends AuthenticationHandlerImpl<WebAuthn4J>
       return Future.failedFuture(new HttpException(500, new IllegalStateException("No callback mounted!")));
     }
 
-    final User user = ctx.user().get();
+    final User user = ctx.user();
 
     if (user == null) {
       return Future.failedFuture(new HttpException(401));
@@ -301,7 +301,7 @@ public class WebAuthn4JHandlerImpl extends AuthenticationHandlerImpl<WebAuthn4J>
             .onSuccess(user -> {
               audit.audit(Marker.AUTHENTICATION, true);
               // save the user into the context
-              ((UserContextInternal) ctx.user())
+              ((UserContextInternal) ctx.userContext())
                 .setUser(user);
               // the user has upgraded from unauthenticated to authenticated
               // session should be upgraded as recommended by owasp

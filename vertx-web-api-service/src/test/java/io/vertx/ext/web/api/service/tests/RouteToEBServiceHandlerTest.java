@@ -181,7 +181,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .handler(
         ValidationHandlerBuilder.create(schemaRepo).build()
       ).handler(rc -> {
-        ((UserContextInternal) rc.user()).setUser(User.fromName("slinkydeveloper")); // Put user mock into context
+        ((UserContextInternal) rc.userContext()).setUser(User.fromName("slinkydeveloper")); // Put user mock into context
         rc.next();
       })
       .handler(

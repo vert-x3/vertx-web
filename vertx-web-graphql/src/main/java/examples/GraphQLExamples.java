@@ -154,7 +154,7 @@ public class GraphQLExamples {
 
       RoutingContext routingContext = environment.getGraphQlContext().get(RoutingContext.class);
 
-      UserContext user = routingContext.user();
+      UserContext user = routingContext.userContext();
 
       Future<List<Link>> future = retrieveLinksPostedBy(user);
       return future.toCompletionStage();

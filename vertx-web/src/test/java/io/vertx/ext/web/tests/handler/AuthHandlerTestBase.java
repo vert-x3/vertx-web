@@ -79,11 +79,11 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
     AuthenticationHandler authNHandler = createAuthHandler(authNProvider);
     router.route().handler(rc -> {
       // we need to be logged in
-      if (!rc.user().authenticated()) {
+      if (!rc.userContext().authenticated()) {
         UsernamePasswordCredentials authInfo = new UsernamePasswordCredentials(username, "delicious:sausages");
         authNProvider.authenticate(authInfo).onComplete(res -> {
           if (res.succeeded()) {
-            ((UserContextInternal) rc.user())
+            ((UserContextInternal) rc.userContext())
               .setUser(res.result());
             rc.next();
           } else {

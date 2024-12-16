@@ -134,7 +134,7 @@ public class OAuth2ImpersonationTest extends WebTestBase {
     router.route("/user-switch/impersonate")
       // this is a high precedence handler
       .handler(ctx -> {
-        ctx.user()
+        ctx.userContext()
           .loginHint(ctx.request().getParam("login_hint"))
           .impersonate(ctx.request().getParam("redirect_uri"))
           .onFailure(err -> {
@@ -149,7 +149,7 @@ public class OAuth2ImpersonationTest extends WebTestBase {
     router.route("/user-switch/undo")
       // this is a high precedence handler
       .handler(ctx -> {
-        ctx.user()
+        ctx.userContext()
           .loginHint(ctx.request().getParam("login_hint"))
           .restore(ctx.request().getParam("redirect_uri"))
           .onFailure(err -> {
@@ -176,8 +176,8 @@ public class OAuth2ImpersonationTest extends WebTestBase {
           .create(PermissionBasedAuthorization.create("read"))
           .addAuthorizationProvider(ScopeAuthorization.create()))
       .handler(rc -> {
-        assertNotNull(rc.user().get());
-        userRef.set(rc.user().get());
+        assertNotNull(rc.user());
+        userRef.set(rc.user());
         rc.end("OK");
       });
 
@@ -190,13 +190,13 @@ public class OAuth2ImpersonationTest extends WebTestBase {
           .create(PermissionBasedAuthorization.create("write"))
           .addAuthorizationProvider(ScopeAuthorization.create()))
       .handler(rc -> {
-        assertNotNull(rc.user().get());
-        System.out.println(rc.user().get().principal().encodePrettily());
+        assertNotNull(rc.user());
+        System.out.println(rc.user().principal().encodePrettily());
 
         // assert that the old and new users are not the same
         User oldUser = userRef.get();
         assertNotNull(oldUser);
-        User newUser = rc.user().get();
+        User newUser = rc.user();
         assertFalse(oldUser.equals(newUser));
 
         // also the old user should be in the session

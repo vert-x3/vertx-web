@@ -118,7 +118,7 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
    */
   @Override
   public void postAuthentication(RoutingContext ctx) {
-    final User user = ctx.user().get();
+    final User user = ctx.user();
     if (user == null) {
       // bad state
       ctx.fail(403, new VertxException("no user in the context", true));

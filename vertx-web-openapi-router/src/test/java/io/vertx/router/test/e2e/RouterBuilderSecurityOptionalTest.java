@@ -46,8 +46,8 @@ class RouterBuilderSecurityOptionalTest extends RouterBuilderTestBase {
 
       rb.getRoute("pets")
         .addHandler(ctx -> {
-          if (ctx.user().authenticated()) {
-            ctx.json(ctx.user().get().principal());
+          if (ctx.userContext().authenticated()) {
+            ctx.json(ctx.user().principal());
           } else {
             ctx.json(null);
           }

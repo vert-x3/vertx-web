@@ -61,7 +61,7 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
       return Future.failedFuture(new HttpException(500, new IllegalStateException("No callback mounted!")));
     }
 
-    final User user = ctx.user().get();
+    final User user = ctx.user();
 
     if (user == null) {
       return Future.failedFuture(new HttpException(401));
@@ -145,7 +145,7 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
       .method(HttpMethod.POST)
       .order(order - 1)
       .handler(ctx -> {
-        final User user = ctx.user().get();
+        final User user = ctx.user();
         if (user == null || user.get("username") == null) {
           ctx.fail(new VertxException("User object misses 'username' attribute", true));
           return;
@@ -169,7 +169,7 @@ public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> imp
       .method(HttpMethod.POST)
       .order(order - 1)
       .handler(ctx -> {
-        final User user = ctx.user().get();
+        final User user = ctx.user();
         if (user == null || user.get("username") == null) {
           ctx.fail(new VertxException("User object misses 'username' attribute", true));
           return;

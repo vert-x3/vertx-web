@@ -59,7 +59,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
       Session sess = rc.session();
       assertNotNull(sess);
       assertEquals(sessionCookie.get().substring(18, 50), sess.id());
-      assertNotNull(rc.user().get());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
     // And request it again
@@ -67,7 +67,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     }, 200, "OK", "Welcome to the protected resource!");
     // Now logout
     router.route("/logout").handler(rc -> {
-      rc.user().clear();
+      rc.userContext().clear();
       rc.response().end("logged out");
     });
     testRequest(HttpMethod.GET, "/logout", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
@@ -245,7 +245,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
       Session sess = rc.session();
       assertNotNull(sess);
       assertEquals(sessionCookie.get().substring(18, 54), sess.id());
-      assertNotNull(rc.user().get());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
   }

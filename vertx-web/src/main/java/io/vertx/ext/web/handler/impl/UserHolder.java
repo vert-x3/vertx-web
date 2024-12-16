@@ -47,12 +47,12 @@ public class UserHolder implements ClusterSerializable {
   public synchronized void refresh(RoutingContext context) {
     if (this.context != null) {
       // this is a new object instance or already refreshed
-      user = this.context.user().get();
+      user = this.context.user();
     }
     // refresh the context
     this.context = context;
     if (user != null) {
-      ((UserContextInternal) this.context.user())
+      ((UserContextInternal) this.context.userContext())
         .setUser(user);
     }
   }
@@ -63,7 +63,7 @@ public class UserHolder implements ClusterSerializable {
     final User user;
 
     synchronized (this) {
-      user = context != null ? context.user().get() : this.user;
+      user = context != null ? context.user() : this.user;
       // clear the context as this holder is not in a request anymore
       context = null;
     }

@@ -337,7 +337,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     final List<String> scopes = getScopesOrSearchMetadata(this.scopes, ctx);
 
     if (scopes.size() > 0) {
-      final User user = ctx.user().get();
+      final User user = ctx.user();
       if (user == null) {
         // bad state
         ctx.fail(403, new VertxException("no user in the context", true));
@@ -506,7 +506,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         .andThen(op -> audit.audit(Marker.AUTHENTICATION, op.succeeded()))
         .onFailure(ctx::fail)
         .onSuccess(user -> {
-          ((UserContextInternal) ctx.user())
+          ((UserContextInternal) ctx.userContext())
             .setUser(user);
           String location = resource != null ? resource : "/";
           if (session != null) {

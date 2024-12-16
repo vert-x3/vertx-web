@@ -181,7 +181,7 @@ public class SessionHandlerImpl implements SessionHandler {
         Boolean storeUser = context.get(SESSION_STOREUSER_KEY);
         if (storeUser != null && storeUser) {
           // during the request the user might have been removed
-          if (context.user().get() != null) {
+          if (context.user() != null) {
             session.put(SESSION_USER_HOLDER_KEY, new UserHolder(context));
           }
         }
@@ -368,7 +368,7 @@ public class SessionHandlerImpl implements SessionHandler {
     if (!cookieless) {
       context.response().removeCookie(sessionCookieName, false);
     }
-    ((UserContextInternal) context.user())
+    ((UserContextInternal) context.userContext())
       .setUser(user);
     // signal we must store the user to link it to the session
     context.put(SESSION_STOREUSER_KEY, true);
