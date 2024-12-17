@@ -6,13 +6,7 @@ import io.vertx.ext.web.validation.builder.impl.ValidationDSLUtils;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessorImpl;
 import io.vertx.ext.web.validation.impl.parameter.SingleValueParameterParser;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
-import io.vertx.json.schema.common.dsl.ArraySchemaBuilder;
-import io.vertx.json.schema.common.dsl.BooleanSchemaBuilder;
-import io.vertx.json.schema.common.dsl.NumberSchemaBuilder;
-import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
-import io.vertx.json.schema.common.dsl.SchemaBuilder;
-import io.vertx.json.schema.common.dsl.StringSchemaBuilder;
-import io.vertx.json.schema.common.dsl.TupleSchemaBuilder;
+import io.vertx.json.schema.common.dsl.*;
 
 /**
  * In this interface you can find all available {@link ParameterProcessorFactory} to use in
@@ -40,7 +34,7 @@ public interface Parameters {
       false,
       new SingleValueParameterParser(
         location.lowerCaseIfNeeded(parameterName),
-        schemaBuilder.isIntegerSchema() ? ValueParser.LONG_PARSER : ValueParser.DOUBLE_PARSER
+        schemaBuilder.getType() == SchemaType.INTEGER ? ValueParser.LONG_PARSER : ValueParser.DOUBLE_PARSER
       ),
       schemaRepository,
       schemaBuilder.toJson()
@@ -63,7 +57,7 @@ public interface Parameters {
       true,
       new SingleValueParameterParser(
         location.lowerCaseIfNeeded(parameterName),
-        schemaBuilder.isIntegerSchema() ? ValueParser.LONG_PARSER : ValueParser.DOUBLE_PARSER
+        schemaBuilder.getType() == SchemaType.INTEGER ? ValueParser.LONG_PARSER : ValueParser.DOUBLE_PARSER
       ),
       schemaRepository,
       schemaBuilder.toJson()

@@ -50,16 +50,14 @@ public class CookieHandlerTest extends WebTestBase {
   public void testGetCookies() throws Exception {
     router.route().handler(rc -> {
       assertEquals(3, rc.request().cookieCount());
-      Map<String, Cookie> cookies = rc.request().cookieMap();
-      assertTrue(cookies.containsKey("foo"));
-      assertTrue(cookies.containsKey("wibble"));
-      assertTrue(cookies.containsKey("plop"));
+      assertNotNull(rc.request().getCookie("foo"));
+      assertNotNull(rc.request().getCookie("wibble"));
+      assertNotNull(rc.request().getCookie("plop"));
       Cookie removed = rc.response().removeCookie("foo");
-      cookies = rc.request().cookieMap();
       // removed cookies, need to be sent back with an expiration date
-      assertTrue(cookies.containsKey("foo"));
-      assertTrue(cookies.containsKey("wibble"));
-      assertTrue(cookies.containsKey("plop"));
+      assertNotNull(rc.request().getCookie("foo"));
+      assertNotNull(rc.request().getCookie("wibble"));
+      assertNotNull(rc.request().getCookie("plop"));
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", req -> req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop"), resp -> {
