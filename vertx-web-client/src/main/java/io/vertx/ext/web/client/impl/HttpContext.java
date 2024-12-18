@@ -443,11 +443,14 @@ public class HttpContext<T> {
           fail(e);
           return;
         }
-        for (String headerName : this.request.headers().names()) {
-          requestOptions.putHeader(headerName, this.request.headers().get(headerName));
+        MultiMap headers = this.request.checkHeaders(requestOptions);
+        MultiMap requestHeaders = this.request.headers();
+        for (String headerName : requestHeaders.names()) {
+          headers.remove(headerName);
         }
+        headers.addAll(requestHeaders);
         multipartForm.headers().forEach(header -> {
-          requestOptions.putHeader(header.getKey(), header.getValue());
+          headers.set(header.getKey(), header.getValue());
         });
       }
       if (body instanceof ReadStream<?>) {
