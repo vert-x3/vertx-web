@@ -19,7 +19,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
-import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
@@ -56,13 +55,13 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
   private boolean ended;
   private final ContextInternal context;
 
-  public MultipartFormUpload(Context context,
+  public MultipartFormUpload(ContextInternal context,
                              MultipartForm parts,
                              boolean multipart,
                              HttpPostRequestEncoder.EncoderMode encoderMode) throws Exception {
-    this.context = (ContextInternal) context;
+    this.context = context;
     this.writable = true;
-    this.pending = new InboundMessageQueue<>(((ContextInternal) context).eventLoop(), ((ContextInternal) context).executor()) {
+    this.pending = new InboundMessageQueue<>(context.executor(), context.executor()) {
       @Override
       protected void handleResume() {
         writable = true;
