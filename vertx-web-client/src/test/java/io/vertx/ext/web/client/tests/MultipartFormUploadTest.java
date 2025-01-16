@@ -16,19 +16,17 @@
 package io.vertx.ext.web.client.tests;
 
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
-import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.internal.ContextInternal;
+import io.vertx.core.internal.VertxInternal;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.impl.MultipartFormUpload;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.TestUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
@@ -40,6 +38,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
 
 @RunWith(VertxUnitRunner.class)
 public class MultipartFormUploadTest {
@@ -47,11 +46,11 @@ public class MultipartFormUploadTest {
   @ClassRule
   public static TemporaryFolder testFolder = new TemporaryFolder();
 
-  private Vertx vertx;
+  private VertxInternal vertx;
 
   @Before
   public void setUp() throws Exception {
-    vertx = Vertx.vertx();
+    vertx = (VertxInternal) Vertx.vertx();
   }
 
   @After
@@ -63,7 +62,7 @@ public class MultipartFormUploadTest {
   public void testSimpleAttribute(TestContext ctx) throws Exception {
     Async async = ctx.async();
     Buffer result = Buffer.buffer();
-    Context context = vertx.getOrCreateContext();
+    ContextInternal context = vertx.getOrCreateContext();
     MultipartFormUpload upload = new MultipartFormUpload(context, MultipartForm.create().attribute("foo", "bar"), false, HttpPostRequestEncoder.EncoderMode.RFC1738);
     upload.endHandler(v -> {
       assertEquals("foo=bar", result.toString());
@@ -75,24 +74,45 @@ public class MultipartFormUploadTest {
   }
 
   @Test
-  public void testFileUpload(TestContext ctx) throws Exception {
-    testFileUpload(ctx, false);
+  public void testFileUploadEventLoopContext(TestContext ctx) throws Exception {
+    testFileUpload(ctx, vertx.createEventLoopContext(), false);
   }
 
   @Test
-  public void testFileUploadPaused(TestContext ctx) throws Exception {
-    testFileUpload(ctx, true);
+  public void testFileUploadWorkerContext(TestContext ctx) throws Exception {
+    testFileUpload(ctx, vertx.createWorkerContext(), false);
   }
 
-  private void testFileUpload(TestContext ctx, boolean paused) throws Exception {
+  @Test
+  public void testFileUploadVirtualThreadContext(TestContext ctx) throws Exception {
+    assumeTrue(vertx.isVirtualThreadAvailable());
+    testFileUpload(ctx, vertx.createVirtualThreadContext(), false);
+  }
+
+  @Test
+  public void testFileUploadPausedEventLoopContext(TestContext ctx) throws Exception {
+    testFileUpload(ctx, vertx.createEventLoopContext(), true);
+  }
+
+  @Test
+  public void testFileUploadPausedWorkerContext(TestContext ctx) throws Exception {
+    testFileUpload(ctx, vertx.createWorkerContext(), true);
+  }
+
+  @Test
+  public void testFileUploadPausedVirtualThreadContext(TestContext ctx) throws Exception {
+    assumeTrue(vertx.isVirtualThreadAvailable());
+    testFileUpload(ctx, vertx.createVirtualThreadContext(), true);
+  }
+
+  private void testFileUpload(TestContext testContext, ContextInternal context, boolean paused) throws Exception {
     File file = testFolder.newFile();
     Files.write(file.toPath(), TestUtils.randomByteArray(32 * 1024));
 
     String filename = file.getName();
     String pathname = file.getAbsolutePath();
 
-    Async async = ctx.async();
-    Context context = vertx.getOrCreateContext();
+    Async async = testContext.async();
     context.runOnContext(v1 -> {
       try {
         MultipartFormUpload upload = new MultipartFormUpload(context, MultipartForm.create().textFileUpload(
@@ -104,7 +124,7 @@ public class MultipartFormUploadTest {
         AtomicInteger end = new AtomicInteger();
         upload.endHandler(v2 -> {
           assertEquals(0, end.getAndIncrement());
-          ctx.assertTrue(buffers.size() > 0);
+          testContext.assertFalse(buffers.isEmpty());
           async.complete();
         });
         upload.handler(buffer -> {
@@ -119,7 +139,7 @@ public class MultipartFormUploadTest {
           context.runOnContext(v3 -> upload.resume());
         }
       } catch (Exception e) {
-        ctx.fail(e);
+        testContext.fail(e);
         throw new AssertionError(e);
       }
     });
