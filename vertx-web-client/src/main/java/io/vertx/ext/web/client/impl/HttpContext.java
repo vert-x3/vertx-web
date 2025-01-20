@@ -22,9 +22,9 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.internal.http.HttpClientInternal;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.internal.PromiseInternal;
+import io.vertx.core.internal.http.HttpClientInternal;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pipe;
@@ -443,15 +443,9 @@ public class HttpContext<T> {
           fail(e);
           return;
         }
-        MultiMap headers = this.request.checkHeaders(requestOptions);
-        MultiMap requestHeaders = this.request.headers();
-        for (String headerName : requestHeaders.names()) {
-          headers.remove(headerName);
+        for (Map.Entry<String, String> header : multipartForm.headers()) {
+          requestOptions.putHeader(header.getKey(), header.getValue());
         }
-        headers.addAll(requestHeaders);
-        multipartForm.headers().forEach(header -> {
-          headers.set(header.getKey(), header.getValue());
-        });
       }
       if (body instanceof ReadStream<?>) {
         ReadStream<Buffer> stream = (ReadStream<Buffer>) body;

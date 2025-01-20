@@ -535,18 +535,13 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
     return ctx.future();
   }
 
-  MultiMap checkHeaders(RequestOptions options) {
-    MultiMap tmp = options.getHeaders();
-    if (tmp == null) {
-      tmp = MultiMap.caseInsensitiveMultiMap();
-      options.setHeaders(tmp);
-    }
-    return tmp;
-  }
-
   void mergeHeaders(RequestOptions options) {
     if (headers != null) {
-      MultiMap tmp = checkHeaders(options);
+      MultiMap tmp = options.getHeaders();
+      if (tmp == null) {
+        tmp = MultiMap.caseInsensitiveMultiMap();
+        options.setHeaders(tmp);
+      }
       tmp.addAll(headers);
     }
   }
