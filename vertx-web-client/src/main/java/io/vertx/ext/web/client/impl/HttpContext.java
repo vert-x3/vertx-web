@@ -443,12 +443,9 @@ public class HttpContext<T> {
           fail(e);
           return;
         }
-        for (String headerName : this.request.headers().names()) {
-          requestOptions.putHeader(headerName, this.request.headers().get(headerName));
-        }
-        multipartForm.headers().forEach(header -> {
+        for (Map.Entry<String, String> header : multipartForm.headers()) {
           requestOptions.putHeader(header.getKey(), header.getValue());
-        });
+        }
       }
       if (body instanceof ReadStream<?>) {
         ReadStream<Buffer> stream = (ReadStream<Buffer>) body;
