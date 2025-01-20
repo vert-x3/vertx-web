@@ -1176,6 +1176,23 @@ public class WebClientTest extends WebClientTestBase {
   }
 
   @Test
+  public void testFormUrlEncodedMultipleHeaders() throws Exception {
+    server.requestHandler(req -> {
+      req.setExpectMultipart(true);
+      req.endHandler(v -> {
+        assertEquals(Arrays.asList("1", "2"), req.headers().getAll("bla"));
+        req.response().end();
+      });
+    });
+    startServer();
+    MultiMap form = MultiMap.caseInsensitiveMultiMap();
+    HttpRequest<Buffer> builder = webClient.post("/somepath");
+    builder.putHeader("bla", Arrays.asList("1", "2"));
+    builder.sendForm(form).onComplete(onSuccess(resp -> complete()));
+    await();
+  }
+
+  @Test
   public void testFormMultipart() throws Exception {
     server.requestHandler(req -> {
       req.setExpectMultipart(true);
@@ -1385,6 +1402,23 @@ public class WebClientTest extends WebClientTestBase {
     static Upload memoryUpload(String name, String filename, Buffer data) {
       return new Upload(name, filename, true, null, data);
     }
+  }
+
+  @Test
+  public void testMultipartFormMultipleHeaders() throws Exception {
+    server.requestHandler(req -> {
+      req.setExpectMultipart(true);
+      req.endHandler(v -> {
+        assertEquals(Arrays.asList("1", "2"), req.headers().getAll("bla"));
+        req.response().end();
+      });
+    });
+    startServer();
+    HttpRequest<Buffer> builder = webClient.post("somepath");
+    MultipartForm form = MultipartForm.create();
+    builder.putHeader("bla", Arrays.asList("1", "2"));
+    builder.sendMultipartForm(form).onComplete(onSuccess(resp -> complete()));
+    await();
   }
 
   @Test
