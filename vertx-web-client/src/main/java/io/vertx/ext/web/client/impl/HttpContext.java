@@ -22,9 +22,9 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.internal.http.HttpClientInternal;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.internal.PromiseInternal;
+import io.vertx.core.internal.http.HttpClientInternal;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pipe;
@@ -430,7 +430,7 @@ public class HttpContext<T> {
   }
 
   private void handleCreateRequest() {
-    requestPromise = Promise.promise();
+    requestPromise = context.promise();
     if (body != null || "application/json".equals(contentType)) {
       if (body instanceof MultipartForm) {
         MultipartFormUpload multipartForm;
