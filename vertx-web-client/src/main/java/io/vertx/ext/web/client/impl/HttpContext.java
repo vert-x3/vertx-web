@@ -426,7 +426,9 @@ public class HttpContext<T> {
         contentType = prev;
       }
     }
-    if (body instanceof MultipartForm) {
+    if (body instanceof Pipe) {
+      //
+    } else if (body instanceof MultipartForm) {
       MultipartFormUpload multipartForm;
       try {
         boolean multipart = "multipart/form-data".equals(contentType);
@@ -444,8 +446,18 @@ public class HttpContext<T> {
         requestOptions.putHeader(header.getKey(), header.getValue());
       });
     } else if (body == null && "application/json".equals(contentType)) {
-      body = "null";
+      body = Buffer.buffer("null");
+    } else if (body instanceof JsonObject) {
+      body = ((JsonObject) body).toBuffer();
+    } else if (body != null && !(body instanceof Buffer)) {
+      body = Json.encodeToBuffer(body);
     }
+
+    if (body instanceof Buffer) {
+      Buffer buffer = (Buffer) body;
+      requestOptions.putHeader(HttpHeaders.CONTENT_LENGTH, "" + buffer.length());
+    }
+
     createRequest(requestOptions);
   }
 
@@ -474,15 +486,7 @@ public class HttpContext<T> {
           }
         });
       } else {
-        Buffer buffer;
-        if (body instanceof Buffer) {
-          buffer = (Buffer) body;
-        } else if (body instanceof JsonObject) {
-          buffer = ((JsonObject) body).toBuffer();
-        } else {
-          buffer = Json.encodeToBuffer(body);
-        }
-        requestOptions.putHeader(HttpHeaders.CONTENT_LENGTH, "" + buffer.length());
+        Buffer buffer = (Buffer) body;
         requestPromise.future().onSuccess(request -> {
           clientRequest = null;
           request.end(buffer);
