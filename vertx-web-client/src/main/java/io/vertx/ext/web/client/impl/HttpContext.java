@@ -118,7 +118,7 @@ public class HttpContext<T> {
     return requestOptions;
   }
 
-  public void setRequestOptions(RequestOptions requestOptions) {
+  public void requestOptions(RequestOptions requestOptions) {
     this.requestOptions = requestOptions;
   }
 
@@ -176,7 +176,7 @@ public class HttpContext<T> {
   /**
    * @return all traced redirects
    */
-  public List<String> getRedirectedLocations() {
+  public List<String> redirectedLocations() {
     return redirectedLocations;
   }
 
@@ -474,25 +474,6 @@ public class HttpContext<T> {
   }
 
   private void handleReceiveResponse() {
-    HttpClientResponse resp = clientResponse;
-    Context context = Vertx.currentContext();
-    Promise<HttpResponse<T>> promise = Promise.promise();
-    promise.future().onComplete(r -> {
-      // We are running on a context (the HTTP client mandates it)
-      context.runOnContext(v -> {
-        if (r.succeeded()) {
-          dispatchResponse(r.result());
-        } else {
-          fail(r.cause());
-        }
-      });
-    });
-    resp.exceptionHandler(err -> {
-      if (!promise.future().isComplete()) {
-        promise.fail(err);
-      }
-    });
-    Pipe<Buffer> pipe = resp.pipe();
     BodyStream<T> stream;
     try {
       stream = request.bodyCodec().stream();
@@ -500,28 +481,26 @@ public class HttpContext<T> {
       fail(e);
       return;
     }
-    pipe.to(stream).onComplete(ar2 -> {
-      if (ar2.succeeded()) {
-        stream.result().onComplete(ar3 -> {
-          if (ar3.succeeded()) {
-            promise.complete(new HttpResponseImpl<>(
-              resp.version(),
-              resp.statusCode(),
-              resp.statusMessage(),
-              resp.headers(),
-              resp.trailers(),
-              resp.cookies(),
-              stream.result().result(),
-              redirectedLocations
-            ));
-          } else {
-            promise.fail(ar3.cause());
-          }
-        });
-      } else {
-        promise.fail(ar2.cause());
-      }
-    });
+    HttpClientResponse resp = clientResponse;
+    resp
+      .pipeTo(stream)
+      .compose(v -> stream.result())
+      .map(result -> new HttpResponseImpl<>(
+        resp.version(),
+        resp.statusCode(),
+        resp.statusMessage(),
+        resp.headers(),
+        resp.trailers(),
+        resp.cookies(),
+        result,
+        redirectedLocations
+      )).onComplete(ar -> {
+        if (ar.succeeded()) {
+          dispatchResponse(ar.result());
+        } else {
+          fail(ar.cause());
+        }
+      });
   }
 
   private void handleSendRequest() {
