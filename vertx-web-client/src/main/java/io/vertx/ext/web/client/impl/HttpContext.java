@@ -22,9 +22,9 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.core.internal.http.HttpClientInternal;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.internal.PromiseInternal;
-import io.vertx.core.internal.http.HttpClientInternal;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pipe;
@@ -426,27 +426,30 @@ public class HttpContext<T> {
         contentType = prev;
       }
     }
+    if (body instanceof MultipartForm) {
+      MultipartFormUpload multipartForm;
+      try {
+        boolean multipart = "multipart/form-data".equals(contentType);
+        HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed() ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
+        multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
+        this.body = multipartForm.pipe();
+      } catch (Exception e) {
+        fail(e);
+        return;
+      }
+      for (String headerName : this.request.headers().names()) {
+        requestOptions.putHeader(headerName, this.request.headers().get(headerName));
+      }
+      multipartForm.headers().forEach(header -> {
+        requestOptions.putHeader(header.getKey(), header.getValue());
+      });
+    }
     createRequest(requestOptions);
   }
 
   private void handleCreateRequest() {
-    requestPromise = context.promise();
+    requestPromise = Promise.promise();
     if (body != null || "application/json".equals(contentType)) {
-      if (body instanceof MultipartForm) {
-        MultipartFormUpload multipartForm;
-        try {
-          boolean multipart = "multipart/form-data".equals(contentType);
-          HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed() ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
-          multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
-          this.body = multipartForm.pipe();
-        } catch (Exception e) {
-          fail(e);
-          return;
-        }
-        for (Map.Entry<String, String> header : multipartForm.headers()) {
-          requestOptions.putHeader(header.getKey(), header.getValue());
-        }
-      }
       if (body instanceof Pipe) {
         Pipe<Buffer> pipe = (Pipe<Buffer>) body; // Shouldn't this be called in an earlier phase ?
         requestPromise.future().onComplete(ar -> {
