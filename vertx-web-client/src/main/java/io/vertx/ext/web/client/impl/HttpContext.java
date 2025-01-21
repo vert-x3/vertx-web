@@ -463,9 +463,6 @@ public class HttpContext<T> {
                 req.reset(0L, ar2.cause());
               }
             });
-            if (body instanceof MultipartFormUpload) {
-              ((MultipartFormUpload) body).pump();
-            }
           } else {
             // Test this
             clientRequest = null;
