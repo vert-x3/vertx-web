@@ -1,7 +1,6 @@
 package io.vertx.ext.web.codec.impl;
 
 import io.vertx.codegen.annotations.Nullable;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
@@ -64,7 +63,7 @@ public class JsonStreamBodyCodec implements BodyCodec<Void> {
 
 
   @Override
-  public void create(Handler<AsyncResult<BodyStream<Void>>> handler) {
-    delegate.create(handler);
+  public BodyStream<Void> stream() throws Exception {
+    return delegate.stream();
   }
 }

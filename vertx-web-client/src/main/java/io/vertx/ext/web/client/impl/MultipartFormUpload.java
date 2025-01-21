@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
@@ -26,7 +27,9 @@ import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.internal.buffer.BufferInternal;
 import io.vertx.core.internal.concurrent.InboundMessageQueue;
 import io.vertx.core.internal.http.HttpHeadersInternal;
+import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.multipart.FormDataPart;
 import io.vertx.ext.web.multipart.MultipartForm;
 
@@ -229,5 +232,37 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
   public synchronized MultipartFormUpload endHandler(Handler<Void> handler) {
     endHandler = handler;
     return this;
+  }
+
+  @Override
+  public Pipe<Buffer> pipe() {
+    Pipe<Buffer> pipe = ReadStream.super.pipe();
+    return new Pipe<>() {
+      @Override
+      public Pipe<Buffer> endOnFailure(boolean end) {
+        pipe.endOnFailure(end);
+        return this;
+      }
+      @Override
+      public Pipe<Buffer> endOnSuccess(boolean end) {
+        pipe.endOnSuccess(end);
+        return this;
+      }
+      @Override
+      public Pipe<Buffer> endOnComplete(boolean end) {
+        pipe.endOnComplete(end);
+        return this;
+      }
+      @Override
+      public Future<Void> to(WriteStream<Buffer> dst) {
+        Future<Void> f = pipe.to(dst);
+        pump();
+        return f;
+      }
+      @Override
+      public void close() {
+        pipe.close();
+      }
+    };
   }
 }

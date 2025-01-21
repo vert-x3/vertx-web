@@ -17,8 +17,6 @@ package io.vertx.ext.web.codec;
 
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -99,7 +97,7 @@ public interface BodyCodec<T> {
    * @param decode the decode function
    * @return the created codec
    */
-  static <T> BodyCodec<T> create(Function<Buffer, T> decode) {
+  static <T> BodyCodec<T> stream(Function<Buffer, T> decode) {
     return new BodyCodecImpl<>(decode);
   }
 
@@ -145,6 +143,6 @@ public interface BodyCodec<T> {
    * This method is usually called for creating the pump for the HTTP response and should not be called directly.
    */
   @GenIgnore
-  void create(Handler<AsyncResult<BodyStream<T>>> handler);
+  BodyStream<T> stream() throws Exception;
 
 }
