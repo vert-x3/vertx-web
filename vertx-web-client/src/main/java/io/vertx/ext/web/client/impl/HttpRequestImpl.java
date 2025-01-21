@@ -406,7 +406,7 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   @Override
   public Future<HttpResponse<T>> sendStream(ReadStream<Buffer> body) {
-    return send(null, body);
+    return send(null, body.pipe());
   }
 
   @Override

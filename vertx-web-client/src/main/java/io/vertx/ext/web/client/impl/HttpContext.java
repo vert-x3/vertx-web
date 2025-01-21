@@ -438,7 +438,7 @@ public class HttpContext<T> {
           boolean multipart = "multipart/form-data".equals(contentType);
           HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed() ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
           multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
-          this.body = multipartForm;
+          this.body = multipartForm.pipe();
         } catch (Exception e) {
           fail(e);
           return;
@@ -447,9 +447,8 @@ public class HttpContext<T> {
           requestOptions.putHeader(header.getKey(), header.getValue());
         }
       }
-      if (body instanceof ReadStream<?>) {
-        ReadStream<Buffer> stream = (ReadStream<Buffer>) body;
-        Pipe<Buffer> pipe = stream.pipe(); // Shouldn't this be called in an earlier phase ?
+      if (body instanceof Pipe) {
+        Pipe<Buffer> pipe = (Pipe<Buffer>) body; // Shouldn't this be called in an earlier phase ?
         requestPromise.future().onComplete(ar -> {
           if (ar.succeeded()) {
             HttpClientRequest req = ar.result();
