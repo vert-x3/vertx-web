@@ -14,6 +14,7 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 open module io.vertx.web.client.tests {
+  requires static org.hamcrest;
   requires io.netty.codec;
   requires io.netty.codec.http;
   requires io.vertx.auth.htdigest;
