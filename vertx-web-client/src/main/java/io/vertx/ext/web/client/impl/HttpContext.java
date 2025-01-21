@@ -443,13 +443,15 @@ public class HttpContext<T> {
       multipartForm.headers().forEach(header -> {
         requestOptions.putHeader(header.getKey(), header.getValue());
       });
+    } else if (body == null && "application/json".equals(contentType)) {
+      body = "null";
     }
     createRequest(requestOptions);
   }
 
   private void handleCreateRequest() {
     requestPromise = Promise.promise();
-    if (body != null || "application/json".equals(contentType)) {
+    if (body != null) {
       if (body instanceof Pipe) {
         Pipe<Buffer> pipe = (Pipe<Buffer>) body; // Shouldn't this be called in an earlier phase ?
         requestPromise.future().onComplete(ar -> {
