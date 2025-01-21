@@ -82,8 +82,8 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
   }
 
   @Override
-  public void create(Handler<AsyncResult<BodyStream<T>>> handler) {
-    handler.handle(Future.succeededFuture(new BodyStream<T>() {
+  public BodyStream<T> stream() {
+    return new BodyStream<T>() {
 
       final Buffer buffer = Buffer.buffer();
       final Promise<T> state = Promise.promise();
@@ -145,6 +145,6 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
       public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
         return this;
       }
-    }));
+    };
   }
 }

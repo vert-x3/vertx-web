@@ -493,34 +493,33 @@ public class HttpContext<T> {
       }
     });
     Pipe<Buffer> pipe = resp.pipe();
-    request.bodyCodec().create(ar1 -> {
-      if (ar1.succeeded()) {
-        BodyStream<T> stream = ar1.result();
-        pipe.to(stream).onComplete(ar2 -> {
-          if (ar2.succeeded()) {
-            stream.result().onComplete(ar3 -> {
-              if (ar3.succeeded()) {
-                promise.complete(new HttpResponseImpl<>(
-                  resp.version(),
-                  resp.statusCode(),
-                  resp.statusMessage(),
-                  resp.headers(),
-                  resp.trailers(),
-                  resp.cookies(),
-                  stream.result().result(),
-                  redirectedLocations
-                ));
-              } else {
-                promise.fail(ar3.cause());
-              }
-            });
+    BodyStream<T> stream;
+    try {
+      stream = request.bodyCodec().stream();
+    } catch (Exception e) {
+      fail(e);
+      return;
+    }
+    pipe.to(stream).onComplete(ar2 -> {
+      if (ar2.succeeded()) {
+        stream.result().onComplete(ar3 -> {
+          if (ar3.succeeded()) {
+            promise.complete(new HttpResponseImpl<>(
+              resp.version(),
+              resp.statusCode(),
+              resp.statusMessage(),
+              resp.headers(),
+              resp.trailers(),
+              resp.cookies(),
+              stream.result().result(),
+              redirectedLocations
+            ));
           } else {
-            promise.fail(ar2.cause());
+            promise.fail(ar3.cause());
           }
         });
       } else {
-        pipe.close();
-        fail(ar1.cause());
+        promise.fail(ar2.cause());
       }
     });
   }
