@@ -18,6 +18,7 @@ import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.metrics.Metrics;
+import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.auth.authentication.TokenCredentials;
@@ -367,6 +368,66 @@ public class WebClientTest extends WebClientTestBase {
         testComplete();
       }));
     await();
+  }
+
+  @Test
+  public void testRequestConnectError() throws Exception {
+    HttpRequest<Buffer> post = webClient.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    AtomicInteger closed = new AtomicInteger();
+    Future<?> resp = post.sendStream(new ReadStream<>() {
+      @Override
+      public ReadStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
+        throw new UnsupportedOperationException();
+      }
+      @Override
+      public ReadStream<Buffer> handler(Handler<Buffer> handler) {
+        throw new UnsupportedOperationException();
+      }
+      @Override
+      public ReadStream<Buffer> pause() {
+        throw new UnsupportedOperationException();
+      }
+      @Override
+      public ReadStream<Buffer> resume() {
+        throw new UnsupportedOperationException();
+      }
+      @Override
+      public ReadStream<Buffer> fetch(long amount) {
+        throw new UnsupportedOperationException();
+      }
+      @Override
+      public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
+        throw new UnsupportedOperationException();
+      }
+      @Override
+      public Pipe<Buffer> pipe() {
+        return new Pipe<>() {
+          @Override
+          public Pipe<Buffer> endOnFailure(boolean end) {
+            throw new UnsupportedOperationException();
+          }
+          @Override
+          public Pipe<Buffer> endOnSuccess(boolean end) {
+            throw new UnsupportedOperationException();
+          }
+          @Override
+          public Pipe<Buffer> endOnComplete(boolean end) {
+            throw new UnsupportedOperationException();
+          }
+          @Override
+          public Future<Void> to(WriteStream<Buffer> dst) {
+            throw new UnsupportedOperationException();
+          }
+          @Override
+          public void close() {
+            closed.incrementAndGet();
+          }
+        };
+      }
+    });
+    assertWaitUntil(resp::isComplete);
+    assertTrue(resp.failed());
+    assertWaitUntil(() -> closed.get() == 1);
   }
 
   @Test

@@ -400,6 +400,12 @@ public class HttpContext<T> {
       clientRequest = null;
       req.reset();
     }
+    if (body != null) {
+      if (body instanceof Pipe) {
+        ((Pipe<?>)body).close();
+      }
+      body = null;
+    }
     promise.tryFail(failure);
   }
 
@@ -466,17 +472,6 @@ public class HttpContext<T> {
           sendRequest(ar1.result());
         } else {
           fail(ar1.cause());
-          // Should be close the pipe ???
-/*
-          requestPromise.future().onComplete(ar -> {
-            if (ar.succeeded()) {
-            } else {
-              // Test this
-              clientRequest = null;
-              pipe.close();
-            }
-          });
-*/
         }
       });
   }
@@ -546,9 +541,11 @@ public class HttpContext<T> {
   }
 
   private void doSendRequest(HttpClientRequest request) {
-    if (body != null) {
-      if (body instanceof Pipe) {
-        Pipe<Buffer> pipe = (Pipe<Buffer>) body;
+    Object bodyToSend = body;
+    if (bodyToSend != null) {
+      body = null;
+      if (bodyToSend instanceof Pipe) {
+        Pipe<Buffer> pipe = (Pipe<Buffer>) bodyToSend;
         if (this.request.headers == null || !this.request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
           request.setChunked(true);
         }
@@ -559,7 +556,7 @@ public class HttpContext<T> {
           }
         });
       } else {
-        Buffer buffer = (Buffer) body;
+        Buffer buffer = (Buffer) bodyToSend;
         request.send(buffer);
       }
     } else {
