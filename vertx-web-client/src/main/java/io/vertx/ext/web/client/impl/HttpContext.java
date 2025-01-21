@@ -28,7 +28,6 @@ import io.vertx.core.internal.PromiseInternal;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pipe;
-import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -59,7 +58,6 @@ public class HttpContext<T> {
   private RequestOptions requestOptions;
   private HttpClientRequest clientRequest;
   private HttpClientResponse clientResponse;
-  private Promise<HttpClientRequest> requestPromise;
   private HttpResponse<T> response;
   private Throwable failure;
   private int redirects;
@@ -462,49 +460,23 @@ public class HttpContext<T> {
   }
 
   private void handleCreateRequest() {
-    requestPromise = Promise.promise();
-    if (body != null) {
-      if (body instanceof Pipe) {
-        Pipe<Buffer> pipe = (Pipe<Buffer>) body; // Shouldn't this be called in an earlier phase ?
-        requestPromise.future().onComplete(ar -> {
-          if (ar.succeeded()) {
-            HttpClientRequest req = ar.result();
-            if (this.request.headers == null || !this.request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
-              req.setChunked(true);
-            }
-            pipe.endOnFailure(false);
-            pipe.to(req).onComplete(ar2 -> {
-              clientRequest = null;
-              if (ar2.failed()) {
-                req.reset(0L, ar2.cause());
-              }
-            });
-          } else {
-            // Test this
-            clientRequest = null;
-            pipe.close();
-          }
-        });
-      } else {
-        Buffer buffer = (Buffer) body;
-        requestPromise.future().onSuccess(request -> {
-          clientRequest = null;
-          request.end(buffer);
-        });
-      }
-    } else {
-      requestPromise.future().onSuccess(request -> {
-        clientRequest = null;
-        request.end();
-      });
-    }
     client.request(requestOptions)
       .onComplete(ar1 -> {
         if (ar1.succeeded()) {
           sendRequest(ar1.result());
         } else {
           fail(ar1.cause());
-          requestPromise.fail(ar1.cause());
+          // Should be close the pipe ???
+/*
+          requestPromise.future().onComplete(ar -> {
+            if (ar.succeeded()) {
+            } else {
+              // Test this
+              clientRequest = null;
+              pipe.close();
+            }
+          });
+*/
         }
       });
   }
@@ -563,13 +535,36 @@ public class HttpContext<T> {
 
   private void handleSendRequest() {
     clientRequest.response().onComplete(ar -> {
+      clientRequest = null;
       if (ar.succeeded()) {
         receiveResponse(ar.result().pause());
       } else {
         fail(ar.cause());
       }
     });
-    requestPromise.complete(clientRequest);
+    doSendRequest(clientRequest);
+  }
+
+  private void doSendRequest(HttpClientRequest request) {
+    if (body != null) {
+      if (body instanceof Pipe) {
+        Pipe<Buffer> pipe = (Pipe<Buffer>) body;
+        if (this.request.headers == null || !this.request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
+          request.setChunked(true);
+        }
+        pipe.endOnFailure(false);
+        pipe.to(request).onComplete(ar2 -> {
+          if (ar2.failed()) {
+            request.reset(0L, ar2.cause());
+          }
+        });
+      } else {
+        Buffer buffer = (Buffer) body;
+        request.send(buffer);
+      }
+    } else {
+      request.send();
+    }
   }
 
   public <T> T get(String key) {
