@@ -190,19 +190,15 @@ public interface RoutingContext {
   }
 
   /**
-   * Return the normalized path for the request.
+   * Normalizes a path as per <a href="http://tools.ietf.org/html/rfc3986#section-5.2.4>rfc3986</a>.
    * <p>
-   * The normalized path is where the URI path has been decoded, i.e. any unicode or other illegal URL characters that
-   * were encoded in the original URL with `%` will be returned to their original form. E.g. `%20` will revert to a space.
-   * Also `+` reverts to a space in a query.
+   * There are 2 extra transformations that are not part of the spec but kept for backwards compatibility:
    * <p>
-   * The normalized path will also not contain any `..` character sequences to prevent resources being accessed outside
-   * of the permitted area.
+   * double slash // will be converted to single slash and the path will always start with slash.
    * <p>
-   * It's recommended to always use the normalized path as opposed to {@link HttpServerRequest#path()}
-   * if accessing server resources requested by a client.
+   * Null paths are normalized to {@code /}.
    *
-   * @return the normalized path
+   * @return normalized path
    */
   String normalizedPath();
 
