@@ -179,11 +179,11 @@ public interface RoutingContext {
 
   /**
    * Normalizes a path as per <a href="http://tools.ietf.org/html/rfc3986#section-5.2.4>rfc3986</a>.
-   *
+   * <p>
    * There are 2 extra transformations that are not part of the spec but kept for backwards compatibility:
-   *
+   * <p>
    * double slash // will be converted to single slash and the path will always start with slash.
-   *
+   * <p>
    * Null paths are normalized to {@code /}.
    *
    * @return normalized path
