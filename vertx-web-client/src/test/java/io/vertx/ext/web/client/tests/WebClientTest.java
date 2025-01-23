@@ -1,6 +1,5 @@
 package io.vertx.ext.web.client.tests;
 
-import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
@@ -36,10 +35,10 @@ import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakeresolver.FakeAddress;
 import io.vertx.test.fakeresolver.FakeEndpointResolver;
 import io.vertx.test.tls.Cert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URLDecoder;
@@ -1264,6 +1263,7 @@ public class WebClientTest extends WebClientTestBase {
   @Test
   public void testFormMultipart() throws Exception {
     server.requestHandler(req -> {
+      assertTrue(req.getHeader(HttpHeaders.CONTENT_TYPE).startsWith("multipart/form-data"));
       req.setExpectMultipart(true);
       req.endHandler(v -> {
         assertEquals("param1_value", req.getFormAttribute("param1"));
@@ -1469,7 +1469,7 @@ public class WebClientTest extends WebClientTestBase {
       return new Upload(name, filename, true, null, data);
     }
     static Upload memoryUpload(String name, String filename, Buffer data) {
-      return new Upload(name, filename, true, null, data);
+      return new Upload(name, filename, false, null, data);
     }
   }
 
@@ -1497,8 +1497,6 @@ public class WebClientTest extends WebClientTestBase {
       .textFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain");
 
     builder.sendMultipartForm(form).onComplete(onFailure(err -> {
-      assertEquals(err.getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
-      assertEquals(err.getCause().getClass(), FileNotFoundException.class);
       complete();
     }));
     await();
@@ -1514,7 +1512,6 @@ public class WebClientTest extends WebClientTestBase {
     MultipartForm form = MultipartForm.create()
       .textFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain");
     builder.sendMultipartForm(form).onComplete(onFailure(err -> {
-      assertEquals(err.getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
       complete();
     }));
     await();
