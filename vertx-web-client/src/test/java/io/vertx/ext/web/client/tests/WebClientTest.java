@@ -1264,6 +1264,7 @@ public class WebClientTest extends WebClientTestBase {
   @Test
   public void testFormMultipart() throws Exception {
     server.requestHandler(req -> {
+      assertTrue(req.getHeader(HttpHeaders.CONTENT_TYPE).startsWith("multipart/form-data"));
       req.setExpectMultipart(true);
       req.endHandler(v -> {
         assertEquals("param1_value", req.getFormAttribute("param1"));
@@ -1469,7 +1470,7 @@ public class WebClientTest extends WebClientTestBase {
       return new Upload(name, filename, true, null, data);
     }
     static Upload memoryUpload(String name, String filename, Buffer data) {
-      return new Upload(name, filename, true, null, data);
+      return new Upload(name, filename, false, null, data);
     }
   }
 
