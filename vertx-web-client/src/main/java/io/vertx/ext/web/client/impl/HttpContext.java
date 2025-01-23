@@ -15,13 +15,9 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.RequestOptions;
+import io.vertx.core.http.*;
 import io.vertx.core.internal.http.HttpClientInternal;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.internal.PromiseInternal;
@@ -433,18 +429,41 @@ public class HttpContext<T> {
     if (body instanceof Pipe) {
       //
     } else if (body instanceof MultipartForm) {
-      MultipartFormUpload multipartForm;
+      ClientForm form;
       try {
         boolean multipart = "multipart/form-data".equals(contentType);
-        HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed() ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
-        multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
-        this.body = multipartForm.pipe();
+        if (multipart) {
+          ClientMultipartForm multipartForm = ClientMultipartForm.multipartForm();
+          multipartForm.mixed(request.multipartMixed());
+          form = multipartForm;
+        } else {
+          form = ClientForm.form();
+        }
+        form.charset(((MultipartForm)body).getCharset());
+        ((MultipartForm)body).forEach(part -> {
+          if (part.isAttribute()) {
+            form.attribute(part.name(), part.value());
+          } else {
+            ClientMultipartForm multipartForm = (ClientMultipartForm) form;
+            if (part.isText()) {
+              if (part.pathname() != null) {
+                multipartForm.textFileUpload(part.name(), part.filename(), part.mediaType(), part.pathname());
+              } else {
+                multipartForm.textFileUpload(part.name(), part.filename(), part.mediaType(), part.content());
+              }
+            } else {
+              if (part.pathname() != null) {
+                multipartForm.binaryFileUpload(part.name(), part.filename(), part.mediaType(), part.pathname());
+              } else {
+                multipartForm.binaryFileUpload(part.name(), part.filename(), part.mediaType(), part.content());
+              }
+            }
+          }
+        });
+        this.body = form;
       } catch (Exception e) {
         fail(e);
         return;
-      }
-      for (Map.Entry<String, String> header : multipartForm.headers()) {
-        requestOptions.putHeader(header.getKey(), header.getValue());
       }
     } else if (body == null && "application/json".equals(contentType)) {
       body = Buffer.buffer("null");
@@ -530,6 +549,8 @@ public class HttpContext<T> {
             request.reset(0L, ar2.cause());
           }
         });
+      } else if (bodyToSend instanceof ClientForm) {
+        request.send((ClientForm) bodyToSend);
       } else {
         Buffer buffer = (Buffer) bodyToSend;
         request.send(buffer);
