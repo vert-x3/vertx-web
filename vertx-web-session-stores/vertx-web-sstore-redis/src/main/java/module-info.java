@@ -20,7 +20,6 @@ module io.vertx.web.sstore.redis {
   requires io.vertx.core;
   requires io.vertx.web;
   requires io.vertx.redis.client;
-  requires io.vertx.auth.common;
 
   exports io.vertx.ext.web.sstore.redis;
 

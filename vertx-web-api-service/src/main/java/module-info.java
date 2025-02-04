@@ -4,7 +4,6 @@ module io.vertx.web.apiservice {
   requires static io.vertx.codegen.api;
   requires io.vertx.codegen.processor;
   requires io.vertx.core;
-  requires io.vertx.auth.common;
   requires io.vertx.openapi;
   requires io.vertx.serviceproxy;
   requires io.vertx.web.openapi.router;

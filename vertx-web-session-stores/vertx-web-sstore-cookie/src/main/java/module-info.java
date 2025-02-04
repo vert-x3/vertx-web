@@ -19,7 +19,6 @@ module io.vertx.web.sstore.cookie {
 
   requires io.vertx.core;
   requires io.vertx.web;
-  requires io.vertx.auth.common;
 
   exports io.vertx.ext.web.sstore.cookie;
 
