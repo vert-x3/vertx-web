@@ -19,7 +19,6 @@ module io.vertx.web.openapi.router {
   requires static io.vertx.codegen.json;
   requires static io.vertx.docgen;
 
-  requires static io.vertx.auth.common; // Examples
   requires static io.vertx.auth.oauth2; // Examples
   requires static io.vertx.auth.jwt;    // Examples
 

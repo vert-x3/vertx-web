@@ -8,7 +8,6 @@ open module io.vertx.web.openapi.router.tests {
   requires org.junit.jupiter.params;
   requires truth;
   requires org.mockito;
-  requires io.vertx.auth.common;
   requires static io.vertx.auth.oauth2;
   requires static io.vertx.auth.jwt;
   exports io.vertx.router.test.base;
