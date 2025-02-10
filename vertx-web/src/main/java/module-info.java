@@ -29,7 +29,9 @@ module io.vertx.web {
   requires io.netty.codec.http;
   requires com.fasterxml.jackson.core;
 
-  requires static io.vertx.auth.common;
+  // Required by Vert.x Web even when no Vert.x Auth handler is used
+  requires io.vertx.auth.common;
+
   requires static io.vertx.auth.htdigest;
   requires static io.vertx.auth.jwt;
   requires static io.vertx.auth.otp;
