@@ -11,7 +11,7 @@
   <packaging>pom</packaging>
 
   <artifactId>vertx-web-parent</artifactId>
-  <version>5.0.0-SNAPSHOT</version>
+  <version>5.0.0.CR5</version>
 
   <scm>
     <connection>scm:git:git@github.com:vert-x3/vertx-web.git</connection>
