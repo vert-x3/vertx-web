@@ -20,6 +20,10 @@ public interface ParameterProcessor {
 
   ParameterLocation getLocation();
 
+  ParameterProcessor validationErrorMessage(String message);
+
+  ParameterProcessor parsingErrorMessage(String message);
+
   /**
    * Create a new request parameter processor
    *

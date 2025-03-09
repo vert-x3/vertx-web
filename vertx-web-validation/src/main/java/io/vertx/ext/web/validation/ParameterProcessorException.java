@@ -60,16 +60,16 @@ public class ParameterProcessorException extends BadRequestException {
     return new ParameterProcessorException("Missing parameter " + parameterName + " in " +  location, parameterName, location, ParameterProcessorErrorType.MISSING_PARAMETER_WHEN_REQUIRED_ERROR, null);
   }
 
-  public static ParameterProcessorException createParsingError(String parameterName, ParameterLocation location, MalformedValueException cause) {
+  public static ParameterProcessorException createParsingError(String parameterName, ParameterLocation location, MalformedValueException cause, String message) {
     return new ParameterProcessorException(
-      String.format("Parsing error for parameter %s in location %s: %s", parameterName, location, cause.getMessage()),
+      message != null ? message : String.format("Parsing error for parameter %s in location %s: %s", parameterName, location, cause.getMessage()),
       parameterName, location, ParameterProcessorErrorType.PARSING_ERROR, cause
     );
   }
 
-  public static ParameterProcessorException createValidationError(String parameterName, ParameterLocation location, Throwable cause) {
+  public static ParameterProcessorException createValidationError(String parameterName, ParameterLocation location, Throwable cause, String messsage) {
     return new ParameterProcessorException(
-      String.format("Validation error for parameter %s in location %s: %s", parameterName, location, cause.getMessage()),
+      messsage != null ? messsage : String.format("Validation error for parameter %s in location %s: %s", parameterName, location, cause.getMessage()),
       parameterName, location, ParameterProcessorErrorType.VALIDATION_ERROR, cause
     );
   }

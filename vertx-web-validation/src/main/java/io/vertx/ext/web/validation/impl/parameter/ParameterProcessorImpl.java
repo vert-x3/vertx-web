@@ -25,6 +25,8 @@ public class ParameterProcessorImpl implements ParameterProcessor, Comparable<Pa
   private ParameterParser parser;
   private SchemaRepository repo;
   private JsonObject schema;
+  private String validationErrorMessage;
+  private String parsingErrorMessage;
 
   public ParameterProcessorImpl(String parameterName, ParameterLocation location, boolean isOptional,
                                 ParameterParser parser, SchemaRepository repo, JsonObject schema) {
@@ -42,7 +44,7 @@ public class ParameterProcessorImpl implements ParameterProcessor, Comparable<Pa
     try {
       json = parser.parseParameter(params);
     } catch (MalformedValueException e) {
-      throw createParsingError(parameterName, location, e);
+      throw createParsingError(parameterName, location, e, parsingErrorMessage);
     }
     if (json != null)
       return Future.<RequestParameter>future(p -> {
@@ -52,7 +54,7 @@ public class ParameterProcessorImpl implements ParameterProcessor, Comparable<Pa
         } else {
           p.fail(result.toException(""));
         }
-      }).recover(t -> Future.failedFuture(createValidationError(parameterName, location, t)));
+      }).recover(t -> Future.failedFuture(createValidationError(parameterName, location, t, validationErrorMessage)));
     else if (!isOptional)
       throw createMissingParameterWhenRequired(parameterName, location);
     else {
@@ -70,6 +72,18 @@ public class ParameterProcessorImpl implements ParameterProcessor, Comparable<Pa
   @Override
   public ParameterLocation getLocation() {
     return location;
+  }
+
+  @Override
+  public ParameterProcessor validationErrorMessage(String message) {
+    this.validationErrorMessage = message;
+    return this;
+  }
+
+  @Override
+  public ParameterProcessor parsingErrorMessage(String message) {
+    this.parsingErrorMessage = message;
+    return this;
   }
 
   @Override
