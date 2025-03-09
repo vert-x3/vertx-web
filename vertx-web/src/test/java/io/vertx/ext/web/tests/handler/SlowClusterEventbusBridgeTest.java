@@ -156,7 +156,7 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
       .onComplete(onSuccess(v -> {
         Promise<List<RegistrationInfo>> promise = Promise.promise();
         node1.setTimer(1500, l -> {
-          node1.getClusterManager().getRegistrations(addr, promise);
+          node1.clusterManager().getRegistrations(addr, promise);
           promise.future().onComplete(onSuccess(registrationInfos -> {
             assertTrue(registrationInfos == null || registrationInfos.isEmpty());
             testComplete();
