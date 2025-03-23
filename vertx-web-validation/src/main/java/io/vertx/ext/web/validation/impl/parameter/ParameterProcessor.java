@@ -24,6 +24,8 @@ public interface ParameterProcessor {
 
   ParameterProcessor parsingErrorMessage(String message);
 
+  ParameterProcessor missingParameterErrorMessage(String message);
+
   /**
    * Create a new request parameter processor
    *

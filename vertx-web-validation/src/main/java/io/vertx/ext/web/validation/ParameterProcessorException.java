@@ -29,8 +29,8 @@ public class ParameterProcessorException extends BadRequestException {
   private ParameterLocation location;
   private ParameterProcessorErrorType errorType;
 
-  public ParameterProcessorException(String message, String parameterName, ParameterLocation location, ParameterProcessorErrorType errorType, Throwable cause) {
-    super(message, cause);
+  public ParameterProcessorException(String message, boolean customMessage, String parameterName, ParameterLocation location, ParameterProcessorErrorType errorType, Throwable cause) {
+    super(message, customMessage, cause);
     this.parameterName = parameterName;
     this.location = location;
     this.errorType = errorType;
@@ -56,21 +56,22 @@ public class ParameterProcessorException extends BadRequestException {
       .put("location", this.location.name());
   }
 
-  public static ParameterProcessorException createMissingParameterWhenRequired(String parameterName, ParameterLocation location) {
-    return new ParameterProcessorException("Missing parameter " + parameterName + " in " +  location, parameterName, location, ParameterProcessorErrorType.MISSING_PARAMETER_WHEN_REQUIRED_ERROR, null);
+  public static ParameterProcessorException createMissingParameterWhenRequired(String parameterName, ParameterLocation location, String message) {
+    return new ParameterProcessorException(message != null ? message : "Missing parameter " + parameterName + " in " +  location,
+      message != null, parameterName, location, ParameterProcessorErrorType.MISSING_PARAMETER_WHEN_REQUIRED_ERROR, null);
   }
 
   public static ParameterProcessorException createParsingError(String parameterName, ParameterLocation location, MalformedValueException cause, String message) {
     return new ParameterProcessorException(
-      message != null ? message : String.format("Parsing error for parameter %s in location %s: %s", parameterName, location, cause.getMessage()),
+      message != null ? message : String.format("Parsing error for parameter %s in location %s: %s", parameterName, location, cause.getMessage()), message != null,
       parameterName, location, ParameterProcessorErrorType.PARSING_ERROR, cause
     );
   }
 
-  public static ParameterProcessorException createValidationError(String parameterName, ParameterLocation location, Throwable cause, String messsage) {
+  public static ParameterProcessorException createValidationError(String parameterName, ParameterLocation location, Throwable cause, String message) {
     return new ParameterProcessorException(
-      messsage != null ? messsage : String.format("Validation error for parameter %s in location %s: %s", parameterName, location, cause.getMessage()),
-      parameterName, location, ParameterProcessorErrorType.VALIDATION_ERROR, cause
+      message != null ? message : String.format("Validation error for parameter %s in location %s: %s", parameterName, location, cause.getMessage()),
+      message != null, parameterName, location, ParameterProcessorErrorType.VALIDATION_ERROR, cause
     );
   }
 }

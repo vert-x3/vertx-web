@@ -27,6 +27,7 @@ public class ParameterProcessorImpl implements ParameterProcessor, Comparable<Pa
   private JsonObject schema;
   private String validationErrorMessage;
   private String parsingErrorMessage;
+  private String missingParameterErrorMessage;
 
   public ParameterProcessorImpl(String parameterName, ParameterLocation location, boolean isOptional,
                                 ParameterParser parser, SchemaRepository repo, JsonObject schema) {
@@ -56,7 +57,7 @@ public class ParameterProcessorImpl implements ParameterProcessor, Comparable<Pa
         }
       }).recover(t -> Future.failedFuture(createValidationError(parameterName, location, t, validationErrorMessage)));
     else if (!isOptional)
-      throw createMissingParameterWhenRequired(parameterName, location);
+      throw createMissingParameterWhenRequired(parameterName, location, missingParameterErrorMessage);
     else {
       RequestParameter defaultValue =
         Optional.ofNullable(schema.getValue("default")).map(RequestParameter::create).orElse(null);
@@ -85,6 +86,13 @@ public class ParameterProcessorImpl implements ParameterProcessor, Comparable<Pa
     this.parsingErrorMessage = message;
     return this;
   }
+
+  @Override
+  public ParameterProcessor missingParameterErrorMessage(String message) {
+    this.missingParameterErrorMessage = message;
+    return this;
+  }
+
 
   @Override
   public int compareTo(ParameterProcessorImpl o) {
