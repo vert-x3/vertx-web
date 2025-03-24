@@ -78,7 +78,7 @@ public class StaticHandlerTest extends WebTestBase {
 
     VertxInternal vi = (VertxInternal) vertx;
     FileResolver resolver = vi.fileResolver();
-    File f = resolver.resolveFile("webroot/");
+    File f = resolver.resolve("webroot/");
     System.out.println("f = " + f.getAbsolutePath());
 
     testRequest(HttpMethod.GET, "/somedir/", 200, "OK", "<html><body>Subdirectory index page</body></html>");

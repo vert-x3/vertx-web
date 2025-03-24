@@ -31,7 +31,7 @@ public class RoutingContextDatabindTest extends WebTestBase {
   public static void oneTimeTearDown() {
     Vertx vertx = Vertx.vertx();
     if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
-      vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
+      vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY);
     }
   }
 
