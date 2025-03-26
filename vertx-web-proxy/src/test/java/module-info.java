@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Red Hat, Inc.
+ * Copyright 2025 Red Hat, Inc.
  *
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
@@ -20,4 +20,5 @@ open module io.vertx.web.proxy.tests {
   requires io.vertx.web.proxy;
   requires io.vertx.web.tests;
   requires junit;
+  requires io.vertx.auth.common;
 }

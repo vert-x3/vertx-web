@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2025 Red Hat, Inc.
  *
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
@@ -46,7 +46,6 @@ final class RouteState {
   enum Priority {
     PLATFORM,
     SECURITY_POLICY,
-    PROTOCOL_UPGRADE,
     BODY,
     MULTI_TENANT,
     AUTHENTICATION,
@@ -61,9 +60,6 @@ final class RouteState {
     }
     if (handler instanceof SecurityPolicyHandler) {
       return Priority.SECURITY_POLICY;
-    }
-    if (handler instanceof ProtocolUpgradeHandler) {
-      return Priority.PROTOCOL_UPGRADE;
     }
     if (handler instanceof BodyHandler) {
       return Priority.BODY;
@@ -562,30 +558,36 @@ final class RouteState {
 
     int len = newState.contextHandlers.size();
     final Priority weight = weight(contextHandler);
-    final Priority lastWeight;
     if (len > 0) {
-      lastWeight = weight(newState.contextHandlers.get(len - 1));
+      Handler<RoutingContext> lastHandler = newState.contextHandlers.get(len - 1);
+      final Priority lastWeight = weight(lastHandler);
       if (lastWeight.ordinal() > weight.ordinal()) {
-        String message = "Cannot add [" + weight.name() + "] handler to route with [" + lastWeight.name() + "] handler at index " + (len - 1);
-        // when lenient mode is disabled, throw IllegalStateException to signal that the setup is incorrect
-        if (!Boolean.getBoolean("io.vertx.web.router.setup.lenient")) {
-          throw new IllegalStateException(message);
-        }
-        LOG.warn(message);
+        failOrWarn("Cannot add [" + weight.name() + "] handler to route with [" + lastWeight.name() + "] handler at index " + (len - 1));
       }
-    } else {
-      lastWeight = null;
-    }
-
-    if (lastWeight == Priority.PROTOCOL_UPGRADE) {
-      // when lenient mode is disabled, don't log to signal that the setup might be incorrect
-      if (!Boolean.getBoolean("io.vertx.web.router.setup.lenient")) {
-        LOG.warn("Adding an handler after PROTOCOL_UPGRADE handler may not be reachable");
+      if (contextHandler instanceof ProtocolUpgradeHandler && newState.hasBodyHandler()) {
+        failOrWarn("Cannot add [PROTOCOL_UPGRADE] handler to route with [BODY] handler");
       }
     }
 
     newState.contextHandlers.add(contextHandler);
     return newState;
+  }
+
+  private static void failOrWarn(String message) {
+    // when lenient mode is disabled, throw IllegalStateException to signal that the setup is incorrect
+    if (!Boolean.getBoolean("io.vertx.web.router.setup.lenient")) {
+      throw new IllegalStateException(message);
+    }
+    LOG.warn(message);
+  }
+
+  private boolean hasBodyHandler() {
+    for (Handler<RoutingContext> contextHandler : contextHandlers) {
+      if (contextHandler instanceof BodyHandler) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public List<Handler<RoutingContext>> getFailureHandlers() {
