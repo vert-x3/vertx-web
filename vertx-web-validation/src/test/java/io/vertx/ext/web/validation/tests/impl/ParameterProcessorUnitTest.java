@@ -60,6 +60,29 @@ public class ParameterProcessorUnitTest {
   }
 
   @Test
+  public void testRequiredParamCustomMessage() {
+    String missingParameterErrorMessage = "Missing myParam";
+    ParameterProcessor processor = new ParameterProcessorImpl(
+      "myParam",
+      ParameterLocation.QUERY,
+      false,
+      mockedParser,
+      mockedSchemaRepository,
+      new JsonObject()
+    ).missingParameterErrorMessage(missingParameterErrorMessage);
+
+    when(mockedParser.parseParameter(any())).thenReturn(null);
+    assertThatCode(() -> processor.process(new HashMap<>()))
+      .isInstanceOf(ParameterProcessorException.class)
+      .hasFieldOrPropertyWithValue("errorType",
+        ParameterProcessorException.ParameterProcessorErrorType.MISSING_PARAMETER_WHEN_REQUIRED_ERROR)
+      .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
+      .hasFieldOrPropertyWithValue("parameterName", "myParam")
+      .hasFieldOrPropertyWithValue("message", missingParameterErrorMessage)
+      .hasNoCause();
+  }
+
+  @Test
   public void testOptionalParam(VertxTestContext testContext) {
     ParameterProcessor processor = new ParameterProcessorImpl(
       "myParam",
@@ -124,6 +147,29 @@ public class ParameterProcessorUnitTest {
   }
 
   @Test
+  public void testParsingCustomMessageFailure() {
+    String parsingErrorMessage = "Failed to parse myParam";
+    ParameterProcessor processor = new ParameterProcessorImpl(
+      "myParam",
+      ParameterLocation.QUERY,
+      false,
+      mockedParser,
+      mockedSchemaRepository,
+      new JsonObject()
+    ).parsingErrorMessage(parsingErrorMessage);
+
+    when(mockedParser.parseParameter(any())).thenThrow(new MalformedValueException("bla"));
+
+    assertThatCode(() -> processor.process(new HashMap<>()))
+      .isInstanceOf(ParameterProcessorException.class)
+      .hasFieldOrPropertyWithValue("errorType", ParameterProcessorException.ParameterProcessorErrorType.PARSING_ERROR)
+      .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
+      .hasFieldOrPropertyWithValue("parameterName", "myParam")
+      .hasCauseInstanceOf(MalformedValueException.class)
+      .hasFieldOrPropertyWithValue("message", parsingErrorMessage);
+  }
+
+  @Test
   public void testValidation(VertxTestContext testContext) {
     ParameterProcessor processor = new ParameterProcessorImpl(
       "myParam",
@@ -174,6 +220,38 @@ public class ParameterProcessorUnitTest {
             ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
           .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
           .hasFieldOrPropertyWithValue("parameterName", "myParam");
+      });
+      testContext.completeNow();
+    }));
+  }
+
+  @Test
+  public void testValidationCustomMessageFailure(VertxTestContext testContext) {
+    String customValidationErrorMessage = "Failed to validate myParam";
+    ParameterProcessor processor = new ParameterProcessorImpl(
+      "myParam",
+      ParameterLocation.QUERY,
+      true,
+      mockedParser,
+      mockedSchemaRepository,
+      new JsonObject()
+    ).validationErrorMessage(customValidationErrorMessage);
+
+    when(mockedParser.parseParameter(any())).thenReturn("aaa");
+
+    when(mockedSchemaRepository.validator(any(JsonSchema.class))).thenReturn(mockedValidator);
+    when(mockedValidator.validate(any())).thenReturn(mockedOutputUnit);
+    when(mockedOutputUnit.getValid()).thenReturn(false);
+
+    processor.process(new HashMap<>()).onComplete(testContext.failing(throwable -> {
+      testContext.verify(() -> {
+        assertThat(throwable)
+          .isInstanceOf(ParameterProcessorException.class)
+          .hasFieldOrPropertyWithValue("errorType",
+            ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
+          .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
+          .hasFieldOrPropertyWithValue("parameterName", "myParam")
+          .hasFieldOrPropertyWithValue("message", customValidationErrorMessage);
       });
       testContext.completeNow();
     }));
