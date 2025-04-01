@@ -36,7 +36,7 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.internal.ContextInternal;
-import io.vertx.core.internal.concurrent.InboundMessageChannel;
+import io.vertx.core.internal.concurrent.InboundMessageQueue;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.core.internal.net.NetSocketInternal;
@@ -79,7 +79,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private long timeoutTimerID = -1;
   private int maxQueueSize = 64 * 1024; // Message queue size is measured in *characters* (not bytes)
   private int messagesSize;
-  private InboundMessageChannel<Buffer> pendingReads;
+  private InboundMessageQueue<Buffer> pendingReads;
   private Handler<Buffer> handler;
   private Handler<Void> drainHandler;
   private Handler<Void> endHandler;
@@ -116,7 +116,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   }
 
   private void initPendingReads() {
-    pendingReads = new InboundMessageChannel<>(context.executor(), context.executor()) {
+    pendingReads = new InboundMessageQueue<>(context.executor(), context.executor()) {
       @Override
       protected void handleMessage(Buffer msg) {
         Handler<Buffer> h = handler;
