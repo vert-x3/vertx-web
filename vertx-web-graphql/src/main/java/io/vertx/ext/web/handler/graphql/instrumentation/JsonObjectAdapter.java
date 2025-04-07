@@ -19,11 +19,7 @@ package io.vertx.ext.web.handler.graphql.instrumentation;
 import graphql.execution.instrumentation.InstrumentationState;
 import graphql.execution.instrumentation.SimplePerformantInstrumentation;
 import graphql.execution.instrumentation.parameters.InstrumentationFieldFetchParameters;
-import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.LightDataFetcher;
-import graphql.schema.PropertyDataFetcher;
+import graphql.schema.*;
 import io.vertx.core.json.JsonObject;
 
 import java.util.function.Supplier;
@@ -35,6 +31,9 @@ public class JsonObjectAdapter extends SimplePerformantInstrumentation {
 
   @Override
   public DataFetcher<?> instrumentDataFetcher(DataFetcher<?> dataFetcher, InstrumentationFieldFetchParameters parameters, InstrumentationState state) {
+    if (dataFetcher instanceof SingletonPropertyDataFetcher) {
+      return JsonObjectCompatible.FOR_SINGLETON_FETCHER;
+    }
     if (dataFetcher instanceof PropertyDataFetcher) {
       PropertyDataFetcher<?> fetcher = (PropertyDataFetcher<?>) dataFetcher;
       return new JsonObjectCompatible(fetcher);
@@ -44,19 +43,21 @@ public class JsonObjectAdapter extends SimplePerformantInstrumentation {
 
   private static class JsonObjectCompatible implements LightDataFetcher<Object> {
 
-    final PropertyDataFetcher<?> propertyDataFetcher;
+    static final JsonObjectCompatible FOR_SINGLETON_FETCHER = new JsonObjectCompatible(SingletonPropertyDataFetcher.singleton());
 
-    JsonObjectCompatible(PropertyDataFetcher<?> propertyDataFetcher) {
-      this.propertyDataFetcher = propertyDataFetcher;
+    final LightDataFetcher<?> delegate;
+
+    JsonObjectCompatible(LightDataFetcher<?> delegate) {
+      this.delegate = delegate;
     }
 
     @Override
     public Object get(GraphQLFieldDefinition fieldDefinition, Object sourceObject, Supplier<DataFetchingEnvironment> environmentSupplier) throws Exception {
       if (sourceObject instanceof JsonObject) {
         JsonObject jsonObject = (JsonObject) sourceObject;
-        return propertyDataFetcher.get(fieldDefinition, jsonObject.getMap(), environmentSupplier);
+        return delegate.get(fieldDefinition, jsonObject.getMap(), environmentSupplier);
       }
-      return propertyDataFetcher.get(fieldDefinition, sourceObject, environmentSupplier);
+      return delegate.get(fieldDefinition, sourceObject, environmentSupplier);
     }
 
     @Override
