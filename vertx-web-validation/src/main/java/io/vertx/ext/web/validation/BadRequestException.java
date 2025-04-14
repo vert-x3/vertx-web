@@ -17,6 +17,10 @@ public abstract class BadRequestException extends VertxException {
     super("[Bad Request] " + message, cause);
   }
 
+  public BadRequestException(String message, boolean customMessage, Throwable cause) {
+    super(customMessage ? message : "[Bad Request] " + message, cause);
+  }
+
   /**
    * Returns a Json representation of the exception
    *

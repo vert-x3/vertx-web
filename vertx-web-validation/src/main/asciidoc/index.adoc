@@ -70,6 +70,13 @@ Every parameter is represented by a {@link io.vertx.ext.web.validation.impl.para
 {@link examples.WebValidationExamples#parameters}
 ----
 
+=== Defining custom error messages
+Error messages can be customized:
+
+* {@link io.vertx.ext.web.validation.impl.parameter.ParameterProcessor#validationErrorMessage(String)}
+* {@link io.vertx.ext.web.validation.impl.parameter.ParameterProcessor#parsingErrorMessage(String)}
+* {@link io.vertx.ext.web.validation.impl.parameter.ParameterProcessor#missingParameterErrorMessage(String)}
+
 Note that all these methods requires a schema that validator can use to perform the validation.
 The schema is also used to infer the correct parser
 
