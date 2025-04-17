@@ -23,6 +23,7 @@ import io.vertx.core.http.HttpVersion;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.LoggerFormat;
 import io.vertx.ext.web.handler.LoggerFormatter;
@@ -33,10 +34,11 @@ import java.util.function.Function;
 
 /** # Logger
  *
- * Logger for request. There are 3 formats included:
+ * Logger for request. There are 4 formats included:
  * 1. DEFAULT
- * 2. SHORT
- * 3. TINY
+ * 2. COMBINED
+ * 3. SHORT
+ * 4. TINY
  *
  * Default tries to log in a format similar to Apache log format, while the other 2 are more suited to development mode.
  * The logging depends on Vert.x logger settings and the severity of the error, so for errors with status greater or
@@ -106,18 +108,42 @@ public class LoggerHandlerImpl implements LoggerHandler {
     final MultiMap headers = request.headers();
     int status = request.response().getStatusCode();
     String message = null;
+    String referrer = null;
+    String userAgent = null;
 
     switch (format) {
       case DEFAULT:
         // as per RFC1945 the header is referer but it is not mandatory some implementations use referrer
-        String referrer = headers.contains("referrer") ? headers.get("referrer") : headers.get("referer");
-        String userAgent = request.headers().get("user-agent");
+        referrer = headers.contains("referrer") ? headers.get("referrer") : headers.get("referer");
+        userAgent = request.headers().get("user-agent");
         referrer = referrer == null ? "-" : referrer;
         userAgent = userAgent == null ? "-" : userAgent;
 
         message = String.format("%s - - [%s] \"%s %s %s\" %d %d \"%s\" \"%s\"",
           remoteClient,
           Utils.formatRFC1123DateTime(timestamp),
+          method,
+          uri,
+          versionFormatted,
+          status,
+          contentLength,
+          referrer,
+          userAgent);
+        break;
+      case COMBINED:
+        // as per RFC1945 the header is referer but it is not mandatory some implementations use referrer
+        referrer = headers.contains("referrer") ? headers.get("referrer") : headers.get("referer");
+        userAgent = request.headers().get("user-agent");
+        referrer = referrer == null ? "-" : referrer;
+        userAgent = userAgent == null ? "-" : userAgent;
+
+        User user = context.user();
+        String userId = user == null ? "-" : user.subject();
+
+        message = String.format("%s - %s [%s] \"%s %s %s\" %d %d \"%s\" \"%s\"",
+          remoteClient,
+          userId,
+          Utils.formatStrftimeDateTime(timestamp),
           method,
           uri,
           versionFormatted,

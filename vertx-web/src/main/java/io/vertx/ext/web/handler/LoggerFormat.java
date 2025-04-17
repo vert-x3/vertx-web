@@ -31,6 +31,11 @@ public enum LoggerFormat {
   DEFAULT,
 
   /**
+   * <i>remote-client</i> - <i>user</> [<i>timestamp in strftime format</i>] "<i>method</i> <i>uri</i> <i>version</i>" <i>status</i> <i>content-length</i> "<i>referrer</i>" "<i>user-agent</i>"
+   */
+  COMBINED,
+
+  /**
    * <i>remote-client</i> - <i>method</i> <i>uri</i> <i>version</i> <i>status</i> <i>content-length</i> <i>duration</i> ms
    */
   SHORT,
