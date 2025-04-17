@@ -45,6 +45,12 @@ public class LoggerHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testLoggerCombined() throws Exception {
+    LoggerHandler logger = LoggerHandler.create(LoggerFormat.COMBINED);
+    testLogger(logger);
+  }
+
+  @Test
   public void testLogger2() throws Exception {
     LoggerHandler logger = LoggerHandler.create(LoggerFormat.TINY);
     testLogger(logger);

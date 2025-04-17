@@ -31,6 +31,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Base64;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 
@@ -69,6 +70,12 @@ public class Utils {
 
   public static String formatRFC1123DateTime(final long time) {
     return DateTimeFormatter.RFC_1123_DATE_TIME.format(Instant.ofEpochMilli(time).atZone(ZONE_GMT));
+  }
+
+  private static final DateTimeFormatter STRFTIME = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z").withLocale(Locale.US);
+
+  public static String formatStrftimeDateTime(final long time) {
+    return STRFTIME.format(Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()));
   }
 
   public static long parseRFC1123DateTime(final String header) {
