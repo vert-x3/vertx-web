@@ -36,4 +36,7 @@ public interface RythmTemplateEngine extends TemplateEngine {
   static RythmTemplateEngine create(Vertx vertx, String extension) {
     return new RythmTemplateEngineImpl(vertx, extension);
   }
+
+  @Override
+  RythmEngine unwrap();
 }

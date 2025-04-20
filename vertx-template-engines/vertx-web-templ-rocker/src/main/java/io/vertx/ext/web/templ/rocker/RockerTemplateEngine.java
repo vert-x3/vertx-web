@@ -50,4 +50,5 @@ public interface RockerTemplateEngine extends TemplateEngine {
   static RockerTemplateEngine create(String extension) {
     return new RockerTemplateEngineImpl(extension);
   }
+
 }

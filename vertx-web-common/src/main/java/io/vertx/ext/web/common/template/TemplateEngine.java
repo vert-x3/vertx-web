@@ -64,13 +64,12 @@ public interface TemplateEngine {
   Future<Buffer> render(Map<String, Object> context, String templateFileName);
 
   /**
-   * Returns the underlying engine, so further configurations or customizations may be applied.
-   * @param <T> the engine object type.
+   * Returns the underlying engine, so further configurations or customizations may be applied or {@code null} when the
+   * engine cannot unwrap it.
    * @return the engine instance.
-   * @throws ClassCastException when the expected type does not match the internal type.
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  default <T> T unwrap() throws ClassCastException {
+  default Object unwrap() {
     return null;
   }
 

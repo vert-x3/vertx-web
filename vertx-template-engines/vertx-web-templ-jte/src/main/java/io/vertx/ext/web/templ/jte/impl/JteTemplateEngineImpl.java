@@ -77,8 +77,7 @@ public class JteTemplateEngineImpl implements JteTemplateEngine {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public <T> T unwrap() throws ClassCastException {
-    return (T) templateEngine;
+  public TemplateEngine unwrap() throws ClassCastException {
+    return templateEngine;
   }
 }

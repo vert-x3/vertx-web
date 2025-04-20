@@ -62,8 +62,8 @@ public class PugTemplateEngineImpl extends CachingTemplateEngine<PugTemplate> im
   }
 
   @Override
-  public <T> T unwrap() {
-    return (T) config;
+  public PugConfiguration unwrap() {
+    return config;
   }
 
   @Override

@@ -52,8 +52,8 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
   }
 
   @Override
-  public <T> T unwrap() {
-    return (T) pebbleEngine;
+  public PebbleEngine unwrap() {
+    return pebbleEngine;
   }
 
   @Override

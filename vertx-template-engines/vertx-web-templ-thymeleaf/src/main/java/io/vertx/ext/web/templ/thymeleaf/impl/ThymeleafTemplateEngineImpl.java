@@ -66,8 +66,8 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
   }
 
   @Override
-  public <T> T unwrap() {
-    return (T) templateEngine;
+  public TemplateEngine unwrap() {
+    return templateEngine;
   }
 
   @Override

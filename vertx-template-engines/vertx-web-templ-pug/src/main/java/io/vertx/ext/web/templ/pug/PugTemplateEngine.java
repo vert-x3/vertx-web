@@ -67,4 +67,7 @@ public interface PugTemplateEngine extends TemplateEngine {
   static PugTemplateEngine create(Vertx vertx, String extension, String encoding) {
     return new PugTemplateEngineImpl(vertx, extension, encoding);
   }
+
+  @Override
+  PugConfiguration unwrap();
 }

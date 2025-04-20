@@ -40,4 +40,7 @@ public interface ThymeleafTemplateEngine extends TemplateEngine {
   static ThymeleafTemplateEngine create(Vertx vertx) {
     return new ThymeleafTemplateEngineImpl(vertx);
   }
+
+  @Override
+  org.thymeleaf.TemplateEngine unwrap();
 }
