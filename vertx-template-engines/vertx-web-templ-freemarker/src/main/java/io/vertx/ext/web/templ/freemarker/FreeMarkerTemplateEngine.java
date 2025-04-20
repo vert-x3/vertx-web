@@ -15,6 +15,7 @@
  */
 package io.vertx.ext.web.templ.freemarker;
 
+import freemarker.template.Configuration;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.common.template.TemplateEngine;
@@ -50,4 +51,7 @@ public interface FreeMarkerTemplateEngine extends TemplateEngine {
   static FreeMarkerTemplateEngine create(Vertx vertx, String extension) {
     return new FreeMarkerTemplateEngineImpl(vertx, extension);
   }
+
+  @Override
+  Configuration unwrap();
 }

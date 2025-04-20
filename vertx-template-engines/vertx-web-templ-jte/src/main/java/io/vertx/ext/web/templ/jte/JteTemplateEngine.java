@@ -65,4 +65,7 @@ public interface JteTemplateEngine extends TemplateEngine {
   static JteTemplateEngine create(gg.jte.TemplateEngine engine) {
     return new JteTemplateEngineImpl(engine);
   }
+
+  @Override
+  gg.jte.TemplateEngine unwrap();
 }

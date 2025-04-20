@@ -53,7 +53,7 @@ public class RythmTemplateEngineImpl extends CachingTemplateEngine<String>  impl
     }
   }
 
-  public <T> T unwrap() throws ClassCastException {
-    return (T) engine;
+  public RythmEngine unwrap() throws ClassCastException {
+    return engine;
   }
 }

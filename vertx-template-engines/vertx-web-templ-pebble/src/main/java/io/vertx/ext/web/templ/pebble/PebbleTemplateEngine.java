@@ -76,4 +76,7 @@ public interface PebbleTemplateEngine extends TemplateEngine {
   static PebbleTemplateEngine create(Vertx vertx, String extension, PebbleEngine engine) {
     return new PebbleTemplateEngineImpl(vertx, extension, engine);
   }
+
+  @Override
+  PebbleEngine unwrap();
 }

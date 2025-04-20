@@ -48,8 +48,8 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
-  public <T> T unwrap() {
-    return (T) config;
+  public Configuration unwrap() {
+    return config;
   }
 
   @Override

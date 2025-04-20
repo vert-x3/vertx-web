@@ -64,4 +64,7 @@ public interface HandlebarsTemplateEngine extends TemplateEngine {
    */
   @GenIgnore
   HandlebarsTemplateEngine setResolvers(ValueResolver... resolvers);
+
+  @Override
+  Handlebars unwrap();
 }

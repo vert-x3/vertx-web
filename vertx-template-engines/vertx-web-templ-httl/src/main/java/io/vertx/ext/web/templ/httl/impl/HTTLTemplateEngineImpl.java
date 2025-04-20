@@ -42,8 +42,8 @@ public class HTTLTemplateEngineImpl extends CachingTemplateEngine<Template> impl
   }
 
   @Override
-  public <T> T unwrap() {
-    return (T) engine;
+  public Engine unwrap() {
+    return engine;
   }
 
   @Override
