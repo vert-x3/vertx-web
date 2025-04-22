@@ -47,7 +47,7 @@ module io.vertx.web {
   exports io.vertx.ext.web.internal.handler;
 
   exports io.vertx.ext.web.impl to io.vertx.web.tests, io.vertx.web.validation, io.vertx.web.apiservice, io.vertx.web.graphql;
-  exports io.vertx.ext.web.sstore.impl to io.vertx.web.tests, io.vertx.web.sstore.redis;
+  exports io.vertx.ext.web.sstore.impl to io.vertx.web.tests, io.vertx.web.sstore.redis, io.vertx.web.sstore.caffeine;
   exports io.vertx.ext.web.handler.impl to io.vertx.web.tests;
   exports io.vertx.ext.web.handler.sockjs.impl to io.vertx.web.tests;
 
