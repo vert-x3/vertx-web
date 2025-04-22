@@ -170,8 +170,8 @@ public class StaticHandlerImpl implements StaticHandler {
         context.next();
         return;
       }
-      // will normalize and handle all paths as UNIX paths
-      String path = RFC3986.removeDotSegments(uriDecodedPath.replace('\\', '/'));
+      // Handle all paths as UNIX paths
+      String path = uriDecodedPath.replace('\\', '/');
 
       // Access fileSystem once here to be safe
       FileSystem fs = context.vertx().fileSystem();
