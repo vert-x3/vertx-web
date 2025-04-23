@@ -127,10 +127,7 @@ public class CaffeineSessionStoreImpl implements SessionStore, CaffeineSessionSt
   @Override
   public Future<Integer> size() {
     final ContextInternal ctx = vertx.getOrCreateContext();
-    return ctx.executeBlocking(() -> {
-      localCaffeineCache.synchronous().estimatedSize();
-      return null;
-    });
+    return ctx.executeBlocking(() -> (int) localCaffeineCache.synchronous().estimatedSize());
   }
 
   @Override
