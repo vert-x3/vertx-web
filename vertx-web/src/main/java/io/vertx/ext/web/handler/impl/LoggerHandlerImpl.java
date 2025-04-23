@@ -30,8 +30,6 @@ import io.vertx.ext.web.handler.LoggerFormatter;
 import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.impl.Utils;
 
-import java.util.function.Function;
-
 /** # Logger
  *
  * Logger for request. There are 4 formats included:
@@ -49,7 +47,7 @@ import java.util.function.Function;
  */
 public class LoggerHandlerImpl implements LoggerHandler {
 
-  private static final Logger LOG = LoggerFactory.getLogger(LoggerHandlerImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LoggerHandler.class);
 
   /** log before request or after
    */
@@ -138,7 +136,18 @@ public class LoggerHandlerImpl implements LoggerHandler {
         userAgent = userAgent == null ? "-" : userAgent;
 
         User user = context.user();
-        String userId = user == null ? "-" : user.subject();
+        String userId = "-";
+        // user may be null if no auth was performed
+        if (user != null) {
+          // subject may be null if no auth was performed
+          if (user.subject() != null) {
+            userId = user.subject();
+            // if the userId contains spaces, we need to quote it
+            if (userId.indexOf(' ') != -1) {
+              userId = "\"" + userId + "\"";
+            }
+          }
+        }
 
         message = String.format("%s - %s [%s] \"%s %s %s\" %d %d \"%s\" \"%s\"",
           remoteClient,

@@ -21,7 +21,10 @@ import io.vertx.ext.web.handler.impl.LoggerHandlerImpl;
 
 /**
  * A handler which logs request information to the Vert.x logger.
- * You should mount this handler before any handler that could fail the routing context
+ * You should mount this handler before any handler that could fail the routing context.
+ * Logs will be produced with the appropriate severity level depending on the status code of the response.
+ * To capture the logs configure the logger in your logging configuration with the name:
+ * {@code io.vertx.ext.web.handler.LoggerHandler}.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
