@@ -56,7 +56,13 @@ public class CaffeineSessionStoreImpl implements SessionStore, CaffeineSessionSt
     this.random = VertxContextPRNG.current(vertx);
     this.vertx = (VertxInternal) vertx;
     this.sessionMapName = options.getString("mapName", DEFAULT_SESSION_MAP_NAME);
-
+    final ContextInternal ctx = ((VertxInternal) vertx).getOrCreateContext();
+    localCaffeineCache = (AsyncCache<String, Session>) ctx.contextData()
+      .computeIfAbsent(sessionMapName, k -> Caffeine.newBuilder()
+        .executor(cmd -> ctx.runOnContext(v -> cmd.run()))
+        .expireAfter(Expiry.creating((String key, Session session) ->
+          Duration.ofMillis(session.timeout())))
+        .buildAsync());
     return this;
   }
 
@@ -68,86 +74,67 @@ public class CaffeineSessionStoreImpl implements SessionStore, CaffeineSessionSt
   @Override
   public Future<@Nullable Session> get(String id) {
     final ContextInternal ctx = vertx.getOrCreateContext();
-    return getCache()
-      .compose(cache -> {
-        CompletableFuture<Session> result = cache.getIfPresent(id);
-        if (result != null) {
-          return Future.fromCompletionStage(result, ctx);
-        } else {
-          return ctx.succeededFuture(null);
-        }
-      });
+    CompletableFuture<Session> result = localCaffeineCache.getIfPresent(id);
+    if (result != null) {
+      return Future.fromCompletionStage(result, ctx);
+    } else {
+      return ctx.succeededFuture(null);
+    }
   }
 
   @Override
   public Future<Void> delete(String id) {
     final ContextInternal ctx = vertx.getOrCreateContext();
-    return getCache()
-      .compose(cache -> {
-        cache.asMap().remove(id);
-        return ctx.succeededFuture();
-      });
+    return ctx.executeBlocking(() -> {
+      localCaffeineCache.synchronous().invalidate(id);
+      return null;
+    });
   }
 
   @Override
   public Future<Void> put(Session session) {
     final ContextInternal ctx = vertx.getOrCreateContext();
-    return getCache()
-      .compose(cache -> {
-        CompletableFuture<Session> result = cache.getIfPresent(session.id());
-        Future<Session> oldSessionResult = result != null ? Future.fromCompletionStage(result, ctx) : ctx.succeededFuture(null);
-        return oldSessionResult
-          .compose(old -> {
-            final AbstractSession oldSession = (AbstractSession) old;
-            final AbstractSession newSession = (AbstractSession) session;
+    CompletableFuture<Session> result = localCaffeineCache.getIfPresent(session.id());
+    Future<Session> oldSessionResult = result != null ? Future.fromCompletionStage(result, ctx) : ctx.succeededFuture(null);
+    return oldSessionResult
+      .compose(old -> {
+        final AbstractSession oldSession = (AbstractSession) old;
+        final AbstractSession newSession = (AbstractSession) session;
 
-            if (oldSession != null) {
-              // there was already some stored data in this case we need to validate versions
-              if (oldSession.version() != newSession.version()) {
-                return ctx.failedFuture("Session version mismatch");
-              }
-            }
+        if (oldSession != null) {
+          // there was already some stored data in this case we need to validate versions
+          if (oldSession.version() != newSession.version()) {
+            return ctx.failedFuture("Session version mismatch");
+          }
+        }
 
-            // we can now safely store the new version
-            newSession.incrementVersion();
-            cache.synchronous().put(session.id(), session);
-            return ctx.succeededFuture();
-          });
+        // we can now safely store the new version
+        newSession.incrementVersion();
+        localCaffeineCache.put(session.id(), CompletableFuture.completedFuture(session));
+        return ctx.succeededFuture();
       });
   }
 
   @Override
   public Future<Void> clear() {
     final ContextInternal ctx = vertx.getOrCreateContext();
-    localCaffeineCache.asMap().clear();
-    return ctx.succeededFuture();
+    return ctx.executeBlocking(() -> {
+      localCaffeineCache.synchronous().invalidateAll();
+      return null;
+    });
   }
 
   @Override
   public Future<Integer> size() {
     final ContextInternal ctx = vertx.getOrCreateContext();
-    return ctx.succeededFuture(localCaffeineCache.asMap().size());
+    return ctx.executeBlocking(() -> {
+      localCaffeineCache.synchronous().estimatedSize();
+      return null;
+    });
   }
 
   @Override
   public void close() {
   }
 
-  private Future<AsyncCache<String, Session>> getCache() {
-    final ContextInternal ctx = vertx.getOrCreateContext();
-    if (localCaffeineCache == null) {
-      synchronized (CaffeineSessionStoreImpl.class) {
-        localCaffeineCache = ctx.get(sessionMapName);
-        if (localCaffeineCache == null) {
-          localCaffeineCache = Caffeine.newBuilder()
-            .executor(cmd -> ctx.runOnContext(v -> cmd.run()))
-            .expireAfter(Expiry.creating((String key, Session session) ->
-              Duration.ofMillis(session.timeout())))
-            .buildAsync();
-          ctx.put(sessionMapName, localCaffeineCache);
-        }
-      }
-    }
-    return ctx.succeededFuture(localCaffeineCache);
-  }
 }
