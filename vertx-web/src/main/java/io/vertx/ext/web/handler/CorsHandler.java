@@ -51,22 +51,22 @@ public interface CorsHandler extends SecurityPolicyHandler {
   CorsHandler addOrigin(String origin);
 
   /**
-   * Set the list of allowed relative origins.
-   * A relative origin is a regex that should match the format {@code <scheme> "://" <hostname> [ ":" <port> ]}.
-   * @param origins the well formatted relative origin list
+   * Set the list of allowed regex origins.
+   * A regex origin is a pattern that should match the format {@code <scheme> "://" <hostname> [ ":" <port> ]}.
+   * @param origins the well formatted regex origin list
    * @return self
    */
   @Fluent
-  CorsHandler addRelativeOrigins(List<String> origins);
+  CorsHandler addOriginsWithRegex(List<String> origins);
 
   /**
-   * Add a relative origin to the list of allowed Origins.
-   * A relative origin is a regex that should match the format {@code <scheme> "://" <hostname> [ ":" <port> ]}.
+   * Add a regex origin to the list of allowed Origins.
+   * A regex origin is a pattern that should match the format {@code <scheme> "://" <hostname> [ ":" <port> ]}.
    * @param origin the well formatted static origin
    * @return self
    */
   @Fluent
-  CorsHandler addRelativeOrigin(String origin);
+  CorsHandler addOriginWithRegex(String origin);
 
   /**
    * Set the list of allowed origins. An origin follows rfc6454#section-7

@@ -32,7 +32,7 @@ public class SockJSCORSTest extends WebTestBase {
   public void testNoConflictsSockJSAndCORSHandler() {
     router
       .route()
-      .handler(CorsHandler.create().addRelativeOrigin(".*").allowCredentials(false))
+      .handler(CorsHandler.create().addOriginWithRegex(".*").allowCredentials(false))
       .handler(BodyHandler.create());
     SockJSProtocolTest.installTestApplications(router, vertx);
     client.request(HttpMethod.GET, "/echo/info?t=21321")
@@ -54,7 +54,7 @@ public class SockJSCORSTest extends WebTestBase {
     router
       .route()
       .handler(BodyHandler.create())
-      .handler(CorsHandler.create().addRelativeOrigin(".*").allowCredentials(false));
+      .handler(CorsHandler.create().addOriginWithRegex(".*").allowCredentials(false));
     SockJSProtocolTest.installTestApplications(router, vertx);
   }
 
@@ -65,7 +65,7 @@ public class SockJSCORSTest extends WebTestBase {
       router
         .route()
         .handler(BodyHandler.create())
-        .handler(CorsHandler.create().addRelativeOrigin(".*").allowCredentials(false));
+        .handler(CorsHandler.create().addOriginWithRegex(".*").allowCredentials(false));
       SockJSProtocolTest.installTestApplications(router, vertx);
     } finally {
       System.clearProperty("io.vertx.web.router.setup.lenient");
