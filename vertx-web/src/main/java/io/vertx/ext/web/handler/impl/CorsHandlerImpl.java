@@ -41,7 +41,7 @@ import static io.vertx.core.http.HttpHeaders.*;
  */
 public class CorsHandlerImpl implements CorsHandler {
 
-  private Set<Pattern> relativeOrigins;
+  private Set<Pattern> regexOrigins;
   private Set<Origin> staticOrigins;
 
   private String allowedMethodsString;
@@ -55,16 +55,16 @@ public class CorsHandlerImpl implements CorsHandler {
   private final Set<String> exposedHeaders = new LinkedHashSet<>();
 
   public CorsHandlerImpl() {
-    relativeOrigins = null;
+    regexOrigins = null;
     staticOrigins = null;
   }
 
   private boolean starOrigin() {
-    return relativeOrigins == null && staticOrigins == null;
+    return regexOrigins == null && staticOrigins == null;
   }
 
   private boolean uniqueOrigin() {
-    return relativeOrigins == null && staticOrigins != null && staticOrigins.size() == 1;
+    return regexOrigins == null && staticOrigins != null && staticOrigins.size() == 1;
   }
 
   @Override
@@ -98,31 +98,30 @@ public class CorsHandlerImpl implements CorsHandler {
   }
 
   @Override
-  public CorsHandler addRelativeOrigin(String origin) {
+  public CorsHandler addOriginWithRegex(String origin) {
     Objects.requireNonNull(origin, "'origin' cannot be null");
 
-    if (relativeOrigins == null) {
+    if (regexOrigins == null) {
       if (origin.equals(".*")) {
         // we signal any as null
         return this;
       }
-      relativeOrigins = new LinkedHashSet<>();
+      regexOrigins = new LinkedHashSet<>();
     } else {
       if (origin.equals(".*")) {
-        // we signal any as null
-        throw new IllegalStateException("Cannot mix '/.*/' with relative origins");
+        throw new IllegalStateException("Cannot mix '/.*/' (catch all) with other origins");
       }
     }
-    relativeOrigins.add(Pattern.compile(origin));
+    regexOrigins.add(Pattern.compile(origin));
     return this;
   }
 
   @Override
-  public CorsHandler addRelativeOrigins(List<String> origins) {
+  public CorsHandler addOriginsWithRegex(List<String> origins) {
     Objects.requireNonNull(origins, "'origins' cannot be null");
 
     for (String origin : origins) {
-      addRelativeOrigin(origin);
+      addOriginWithRegex(origin);
     }
     return this;
   }
@@ -282,9 +281,9 @@ public class CorsHandlerImpl implements CorsHandler {
       }
     }
 
-    if(relativeOrigins != null) {
+    if(regexOrigins != null) {
       // check for allowed origin pattern match
-      for (Pattern allowedOrigin : relativeOrigins) {
+      for (Pattern allowedOrigin : regexOrigins) {
         if (allowedOrigin.matcher(origin).matches()) {
           return true;
         }

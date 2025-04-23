@@ -912,7 +912,7 @@ public class WebExamples {
     router.route()
       .handler(
         CorsHandler.create()
-          .addRelativeOrigin("vertx\\.io")
+          .addOriginWithRegex("vertx\\.io")
           .allowedMethod(HttpMethod.GET));
 
     router.route().handler(ctx -> {
