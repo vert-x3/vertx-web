@@ -9,7 +9,8 @@ import io.vertx.ext.web.sstore.caffeine.impl.CaffeineSessionStoreImpl;
 /**
  * A session store based on the Caffeine which is only available on a single node.
  * <p>
- * Can be used when sticky sessions are being used.
+ * This store is appropriate if you have just a single Vert.x instance and you are using sticky sessions in your
+ * application and have configured your load balancer to always route HTTP requests to the same Vert.x instance.
  *
  * @author <a href="mailto:lazarbulic@gmail.com">Lazar Bulic</a>
  */

@@ -24,7 +24,8 @@ import io.vertx.ext.web.sstore.impl.LocalSessionStoreImpl;
 /**
  * A session store which is only available on a single node.
  * <p>
- * Can be used when sticky sessions are being used.
+ * This store is appropriate if you have just a single Vert.x instance and you are using sticky sessions in your
+ * application and have configured your load balancer to always route HTTP requests to the same Vert.x instance.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
