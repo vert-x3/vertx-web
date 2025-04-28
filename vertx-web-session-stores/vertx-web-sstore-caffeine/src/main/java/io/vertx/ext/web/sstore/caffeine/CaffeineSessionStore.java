@@ -20,7 +20,7 @@ public interface CaffeineSessionStore extends SessionStore {
   /**
    * Default name for map used to store sessions
    */
-  String DEFAULT_SESSION_MAP_NAME = "vertx-web.caffeine.sessions";
+  String DEFAULT_SESSION_CACHE_NAME = "vertx-web.caffeine.sessions";
 
   /**
    * Create a session store
@@ -31,21 +31,21 @@ public interface CaffeineSessionStore extends SessionStore {
   static CaffeineSessionStore create(Vertx vertx) {
     CaffeineSessionStoreImpl store = new CaffeineSessionStoreImpl();
     store.init(vertx, new JsonObject()
-      .put("mapName", DEFAULT_SESSION_MAP_NAME));
+      .put("cacheName", DEFAULT_SESSION_CACHE_NAME));
     return store;
   }
 
   /**
    * Create a session store
    *
-   * @param vertx          the Vert.x instance
-   * @param sessionMapName name for map used to store sessions
+   * @param vertx            the Vert.x instance
+   * @param sessionCacheName name for map used to store sessions
    * @return the session store
    */
-  static CaffeineSessionStore create(Vertx vertx, String sessionMapName) {
+  static CaffeineSessionStore create(Vertx vertx, String sessionCacheName) {
     CaffeineSessionStoreImpl store = new CaffeineSessionStoreImpl();
     store.init(vertx, new JsonObject()
-      .put("mapName", sessionMapName));
+      .put("cacheName", sessionCacheName));
     return store;
   }
 }

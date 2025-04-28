@@ -4,8 +4,11 @@ import com.github.benmanes.caffeine.cache.AsyncCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
 import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.Closeable;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.internal.CloseFuture;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.json.JsonObject;
@@ -27,12 +30,13 @@ public class CaffeineSessionStoreImpl implements SessionStore, CaffeineSessionSt
   /**
    * Default name for map used to store sessions
    */
-  private static final String DEFAULT_SESSION_MAP_NAME = "vertx-web.caffeine.sessions";
+  private static final String DEFAULT_SESSION_CACHE_NAME = "vertx-web.caffeine.sessions";
 
 
   private AsyncCache<String, Session> localCaffeineCache;
   private VertxContextPRNG random;
-  private String sessionMapName;
+  private String sessionCacheName;
+  private Closeable closeable;
 
   private VertxInternal vertx;
 
@@ -55,14 +59,19 @@ public class CaffeineSessionStoreImpl implements SessionStore, CaffeineSessionSt
     // initialize a secure random
     this.random = VertxContextPRNG.current(vertx);
     this.vertx = (VertxInternal) vertx;
-    this.sessionMapName = options.getString("mapName", DEFAULT_SESSION_MAP_NAME);
+    this.sessionCacheName = options.getString("cacheName", DEFAULT_SESSION_CACHE_NAME);
     final ContextInternal ctx = ((VertxInternal) vertx).getOrCreateContext();
-    localCaffeineCache = (AsyncCache<String, Session>) ctx.contextData()
-      .computeIfAbsent(sessionMapName, k -> Caffeine.newBuilder()
+    CloseFuture closeFuture = new CloseFuture();
+    localCaffeineCache = this.vertx.createSharedResource("__vertx.shared.caffeine.sessions.store", sessionCacheName, closeFuture, cf_ -> {
+      AsyncCache<String, Session> localCaffeineCache = Caffeine.newBuilder()
         .executor(cmd -> ctx.runOnContext(v -> cmd.run()))
         .expireAfter(Expiry.creating((String key, Session session) ->
           Duration.ofMillis(session.timeout())))
-        .buildAsync());
+        .buildAsync();
+      cf_.add(Promise::complete);
+      return localCaffeineCache;
+    });
+    closeable = closeFuture;
     return this;
   }
 
@@ -132,6 +141,7 @@ public class CaffeineSessionStoreImpl implements SessionStore, CaffeineSessionSt
 
   @Override
   public void close() {
+    closeable.close(Promise.promise());
   }
 
 }
