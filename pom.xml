@@ -13,6 +13,12 @@
   <artifactId>vertx-web-parent</artifactId>
   <version>4.5.15-SNAPSHOT</version>
 
+  <scm>
+    <connection>scm:git:git@github.com:vert-x3/vertx-web.git</connection>
+    <developerConnection>scm:git:git@github.com:vert-x3/vertx-web.git</developerConnection>
+    <url>git@github.com:vert-x3/vertx-web.git</url>
+  </scm>
+
   <properties>
     <pac4j.version>1.6.0</pac4j.version>
     <doc.skip>true</doc.skip>
