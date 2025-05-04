@@ -1105,9 +1105,38 @@ Also, there is the Infinispan session store (details below).
 These stores are available with the coordinates:
 
 * groupId: `io.vertx`
-* artifactId: `vertx-web-sstore-{cookie|redis|infinispan}`
+* artifactId: `vertx-web-sstore-{cookie|redis|infinispan|caffeine}`
 
 include::web-sstore-infinispan.adoc[leveloffset=+4]
+
+===== Caffeine session store
+
+The Caffeine session store is a local session store that uses the Caffeine caching library to store sessions in memory.
+It is backed by a high-performance, in-memory caching library that provides an efficient way to store, retrieve and manage session data.
+This store is suitable for applications that require fast access to session data and do not need to share session data across multiple Vert.x instances.
+It is also recommended for application that require a high number of sessions to be handled as it has an optimized eviction policy.
+
+To use this module, add the following to the dependencies section of your Maven POM file:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-sstore-caffeine</artifactId>
+  <version>${maven.version}</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-sstore-caffeine:${maven.version}'
+}
+----
 
 === Creating the session handler
 
