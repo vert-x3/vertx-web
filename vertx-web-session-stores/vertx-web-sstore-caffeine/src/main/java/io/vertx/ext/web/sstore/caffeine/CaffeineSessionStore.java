@@ -29,10 +29,7 @@ public interface CaffeineSessionStore extends SessionStore {
    * @return the session store
    */
   static CaffeineSessionStore create(Vertx vertx) {
-    CaffeineSessionStoreImpl store = new CaffeineSessionStoreImpl();
-    store.init(vertx, new JsonObject()
-      .put("cacheName", DEFAULT_SESSION_CACHE_NAME));
-    return store;
+    return create(vertx, DEFAULT_SESSION_CACHE_NAME);
   }
 
   /**
