@@ -22,6 +22,7 @@
   <properties>
     <pac4j.version>1.6.0</pac4j.version>
     <mockito.version>5.13.0</mockito.version>
+    <caffeine.version>3.2.0</caffeine.version>
   </properties>
 
   <dependencyManagement>
@@ -32,6 +33,11 @@
         <version>${project.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.github.ben-manes.caffeine</groupId>
+        <artifactId>caffeine</artifactId>
+        <version>${caffeine.version}</version>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
