@@ -37,11 +37,11 @@ public class WebApiProxyModel extends ProxyModel {
   }
 
   @Override
-  protected void checkParamType(ExecutableElement elem, TypeInfo typeInfo, int pos, int numParams, boolean allowAnyJavaType) {
+  protected void checkParamType(ExecutableElement elem, TypeInfo typeInfo, int pos, int numParams) {
     // We allow RequestParameter but not as last or before last parameter
     if (RequestParameter.class.getName().equals(typeInfo.getName()))
       return;
-    super.checkParamType(elem, typeInfo, pos, numParams, allowAnyJavaType);
+    super.checkParamType(elem, typeInfo, pos, numParams);
   }
 
   @Override
