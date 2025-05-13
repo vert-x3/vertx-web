@@ -15,15 +15,19 @@ jobs:
         include:
           - os: ubuntu-latest
             jdk: 11
+            jte: false
           - os: ubuntu-latest
             jdk: 21
+            jte: true
           - os: windows-latest
             jdk: 11
+            jte: false
     uses: ./.github/workflows/ci.yml
     with:
       branch: ${{ github.event.pull_request.head.sha || github.ref_name }}
       jdk: ${{ matrix.jdk }}
       os: ${{ matrix.os }}
+      jte: ${{ matrix.jte }}
     secrets: inherit
   IT:
     uses: ./.github/workflows/it.yml
@@ -37,5 +41,5 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       branch: ${{ github.event.pull_request.head.sha || github.ref_name }}
-      jdk: 11
+      jdk: 17
     secrets: inherit
