@@ -11,6 +11,9 @@ on:
       os:
         default: ubuntu-latest
         type: string
+      jte:
+        default: true
+        type: boolean
 jobs:
   Test:
     name: Run tests
@@ -26,4 +29,20 @@ jobs:
           java-version: ${{ inputs.jdk }}
           distribution: temurin
       - name: Run tests
-        run: mvn -s .github/maven-ci-settings.xml clean verify -B
+        run: mvn -s .github/maven-ci-settings.xml clean verify -pl -:vertx-web-templ-jte -B
+  Test-JTE:
+    if: ${{ inputs.jte }}
+    name: Run JTE tests
+    runs-on: ${{ inputs.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.branch }}
+      - name: Install JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: ${{ inputs.jdk }}
+          distribution: temurin
+      - name: Run tests
+        run: mvn -s .github/maven-ci-settings.xml clean verify -pl :vertx-web-templ-jte -B
