@@ -2291,7 +2291,7 @@ public class WebClientTest extends WebClientTestBase {
     @Override public HttpClientOptions options(){return new HttpClientOptions();}
     @Override public NetClientInternal netClient(){return null;}
     @Override public Future<Void> closeFuture(){return null;}
-    @Override public void close(Promise<Void> completion){}
+    @Override public void close(Completable<Void> completion){}
     @Override public Future<HttpClientRequest> request(RequestOptions options){return null;}
     @Override public Future<Void> shutdown(long timeout, TimeUnit unit){return null;}
     @Override public Metrics getMetrics(){return null;}
