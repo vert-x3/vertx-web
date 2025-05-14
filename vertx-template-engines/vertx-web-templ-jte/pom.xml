@@ -12,7 +12,7 @@
   <artifactId>vertx-web-templ-jte</artifactId>
 
   <properties>
-    <jte.version>2.3.2</jte.version>
+    <jte.version>3.2.1</jte.version>
   </properties>
 
   <dependencies>
@@ -37,51 +37,117 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>default-test</id>
-            <configuration>
-              <useModulePath>false</useModulePath>
-            </configuration>
-          </execution>
-          <execution>
-            <id>jpms-test</id>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <useModulePath>true</useModulePath>
-              <includes>
-                <include>**/JteCompiledTemplateEngineTest.java</include>
-              </includes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>gg.jte</groupId>
-        <artifactId>jte-maven-plugin</artifactId>
-        <version>${jte.version}</version>
-        <configuration>
-          <sourceDirectory>${project.basedir}/src/test/templates</sourceDirectory>
-          <targetDirectory>${project.build.directory}/test-classes</targetDirectory>
-          <contentType>Html</contentType>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>process-test-classes</phase>
-            <goals>
-              <goal>precompile</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
+
+  <!-- Java 11 => use Maven Toolchain to compile this module with JDK 17
+       The config file .m2/toolchains.xml is needed with this content
+
+       <toolchains>
+         <toolchain>
+           <type>jdk</type>
+           <provides>
+             <id>Java17</id>
+             <version>17</version>
+           </provides>
+           <configuration>
+             <jdkHome>/PATH/TO/JDK/17</jdkHome>
+           </configuration>
+         </toolchain>
+       </toolchains>
+  -->
+  <profiles>
+    <profile>
+      <id>Java11</id>
+      <activation>
+        <jdk>[11,17)</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-toolchains-plugin</artifactId>
+            <version>1.0</version>
+            <executions>
+              <execution>
+                <phase>validate</phase>
+                <goals>
+                  <goal>toolchain</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <toolchains>
+                <jdk>
+                  <version>21</version>
+                </jdk>
+              </toolchains>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>Java17</id>
+      <activation>
+        <jdk>[17,)</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>gg.jte</groupId>
+            <artifactId>jte-maven-plugin</artifactId>
+            <version>${jte.version}</version>
+            <configuration>
+              <sourceDirectory>${project.basedir}/src/test/templates</sourceDirectory>
+              <targetDirectory>${project.build.directory}/test-classes</targetDirectory>
+              <contentType>Html</contentType>
+            </configuration>
+            <executions>
+              <execution>
+                <phase>process-test-classes</phase>
+                <goals>
+                  <goal>precompile</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>default-test</id>
+                <configuration>
+                  <useModulePath>false</useModulePath>
+                </configuration>
+              </execution>
+              <execution>
+                <id>jpms-test</id>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+                <configuration>
+                  <useModulePath>true</useModulePath>
+                  <includes>
+                    <include>**/JteCompiledTemplateEngineTest.java</include>
+                  </includes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>
