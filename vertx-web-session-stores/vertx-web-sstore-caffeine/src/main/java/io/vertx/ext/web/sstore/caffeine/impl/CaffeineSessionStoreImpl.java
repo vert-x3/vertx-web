@@ -4,10 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
 import io.vertx.codegen.annotations.Nullable;
-import io.vertx.core.Closeable;
-import io.vertx.core.Future;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.internal.CloseFuture;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.internal.VertxInternal;
@@ -67,7 +64,7 @@ public class CaffeineSessionStoreImpl implements SessionStore, CaffeineSessionSt
         .expireAfter(Expiry.accessing((String key, Session session) ->
           Duration.ofMillis(session.timeout())))
         .build();
-      cf_.add(Promise::complete);
+      cf_.add(Completable::succeed);
       return localCaffeineCache;
     });
     closeable = closeFuture;

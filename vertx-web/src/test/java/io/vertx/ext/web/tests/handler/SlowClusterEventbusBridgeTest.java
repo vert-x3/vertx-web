@@ -11,6 +11,7 @@
 
 package io.vertx.ext.web.tests.handler;
 
+import io.vertx.core.Completable;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
@@ -177,7 +178,7 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
     }
 
     @Override
-    public void addRegistration(String address, RegistrationInfo registrationInfo, Promise<Void> promise) {
+    public void addRegistration(String address, RegistrationInfo registrationInfo, Completable<Void> promise) {
       vertx.setTimer(1000, l -> {
         super.addRegistration(address, registrationInfo, promise);
       });
