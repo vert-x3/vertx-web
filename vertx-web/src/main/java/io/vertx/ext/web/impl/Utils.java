@@ -52,19 +52,38 @@ public class Utils {
     return BASE64_DECODER.decode(base64);
   }
 
-  public static ClassLoader getClassLoader() {
-    // try current thread
-    ClassLoader cl = Thread.currentThread().getContextClassLoader();
-    if (cl == null) {
-      // try the current class
-      cl = Utils.class.getClassLoader();
-      if (cl == null) {
-        // fall back to a well known object that should alwways exist
-        cl = Object.class.getClassLoader();
-      }
+ public static ClassLoader getClassLoader() {
+    ClassLoader cl = null;
+    
+    // Check for SecurityManager first (optimization)
+    if (System.getSecurityManager() == null) {
+        // Fast path - no security manager
+        cl = Thread.currentThread().getContextClassLoader();
+    } else {
+        // Privileged access when under a SecurityManager
+        cl = AccessController.doPrivileged((PrivilegedAction<ClassLoader>) () -> {
+            try {
+                return Thread.currentThread().getContextClassLoader();
+            } catch (SecurityException ex) {
+                // Log the exception (assuming LOG is available)
+                LOG.warn("Unable to get context classloader instance.", ex);
+                return null;
+            }
+        });
     }
+    
+    // Keep the fallback logic from the original cloned code
+    if (cl == null) {
+        // try the current class
+        cl = Utils.class.getClassLoader();
+        if (cl == null) {
+            // fall back to a well known object that should always exist
+            cl = Object.class.getClassLoader();
+        }
+    }
+    
     return cl;
-  }
+}
 
   private static final ZoneId ZONE_GMT = ZoneId.of("GMT");
 
