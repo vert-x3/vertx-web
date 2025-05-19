@@ -62,10 +62,6 @@ public class WebProxyExamples {
   public void notCompatibleWithBodyHandler(Router router, HttpProxy productServiceProxy) {
     router.post().handler(BodyHandler.create()); // Don't do this
     router.route("/product").handler(ProxyHandler.create(productServiceProxy));
-
-    router.route("/product")
-      .handler(BodyHandler.create()) // Don't do this
-      .handler(ProxyHandler.create(productServiceProxy));
   }
 
   public void multi(Vertx vertx, Router proxyRouter) {

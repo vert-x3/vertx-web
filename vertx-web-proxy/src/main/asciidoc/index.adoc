@@ -78,8 +78,8 @@ Finally, the *proxy server* requests will be routed as a reverse proxy to the *o
 
 [WARNING]
 ====
-The {@link io.vertx.ext.web.handler.BodyHandler} is not compatible with the {@link io.vertx.ext.web.proxy.handler.ProxyHandler}.
-It shouldn't be installed on the same route or a previous route.
+The {@link io.vertx.ext.web.handler.BodyHandler} is not allowed with the {@link io.vertx.ext.web.proxy.handler.ProxyHandler}.
+It shouldn't be on a previous route.
 
 [source,$lang]
 ----

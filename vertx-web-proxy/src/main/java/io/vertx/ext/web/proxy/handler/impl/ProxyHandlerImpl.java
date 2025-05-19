@@ -3,7 +3,7 @@ package io.vertx.ext.web.proxy.handler.impl;
 import io.vertx.core.VertxException;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
+import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.proxy.handler.ProxyHandler;
 import io.vertx.httpproxy.HttpProxy;
 
@@ -11,7 +11,7 @@ import io.vertx.httpproxy.HttpProxy;
  * @author <a href="mailto:emad.albloushi@gmail.com">Emad Alblueshi</a>
  */
 
-public class ProxyHandlerImpl implements ProxyHandler, ProtocolUpgradeHandler {
+public class ProxyHandlerImpl implements ProxyHandler, PlatformHandler {
 
   private static final Throwable BH_FAILURE;
 
