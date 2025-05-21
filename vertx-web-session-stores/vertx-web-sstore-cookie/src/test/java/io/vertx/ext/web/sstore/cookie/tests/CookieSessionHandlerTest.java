@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.sstore.cookie.tests;
 
+import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Session;
@@ -25,6 +26,7 @@ import io.vertx.ext.web.tests.handler.SessionHandlerTestBase;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -115,4 +117,16 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
     super.testSessionExpires();
   }
 
+  @Test
+  public void testInterStoreCommunication() throws Exception {
+    CookieSessionStore store1 = CookieSessionStore.create(vertx, "KeyboardCat!", Buffer.buffer("salt"));
+    CookieSessionStore store2 = CookieSessionStore.create(vertx, "KeyboardCat!", Buffer.buffer("salt"));
+    Session sesh = store1.createSession(TimeUnit.DAYS.toMillis(1));
+  }
+
+  private <T> T get(Future<T> future) {
+  return future.toCompletionStage()
+    .toCompletableFuture()
+    .join();
+  }
 }
