@@ -38,10 +38,10 @@ public class TimeoutHandlerImpl implements TimeoutHandler {
   @Override
   public void handle(RoutingContext ctx) {
     Timer timer = ctx.vertx().timer(timeout);
-    int handlerId = ctx.addBodyEndHandler(v -> timer.cancel());
+    int handlerId = ctx.addEndHandler(v -> timer.cancel());
     timer.onSuccess(v -> {
       // If this router has been restarted, the timeout shouldn't fire
-      if (ctx.removeBodyEndHandler(handlerId)) {
+      if (ctx.removeEndHandler(handlerId)) {
         if (!ctx.request().isEnded()) {
           ctx.request().resume();
         }

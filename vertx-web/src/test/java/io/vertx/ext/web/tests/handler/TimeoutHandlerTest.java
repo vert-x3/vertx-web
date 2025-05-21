@@ -40,12 +40,12 @@ public class TimeoutHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testTimeoutWithCustomBodyEndHandler() throws Exception {
+  public void testTimeoutWithCustomEndHandler() throws Exception {
     long timeout = 500;
 
     AtomicBoolean ended = new AtomicBoolean();
     router.route().handler(routingContext -> {
-      routingContext.addBodyEndHandler(event -> ended.set(true));
+      routingContext.addEndHandler(event -> ended.set(true));
       routingContext.next();
     });
 
