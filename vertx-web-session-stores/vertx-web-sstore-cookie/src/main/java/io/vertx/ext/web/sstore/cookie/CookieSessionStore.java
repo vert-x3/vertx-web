@@ -31,6 +31,25 @@ import io.vertx.ext.web.sstore.cookie.impl.CookieSessionStoreImpl;
 public interface CookieSessionStore extends SessionStore {
 
   /**
+   * @deprecated use {@link #create(Vertx, String)}
+   * 
+   * Creates a CookieSessionStore.
+   * 
+   * This factory method is deprecated and will be removed in a future version.
+   * The salt value is ignored and should not be used. This was an artifact of
+   * the original implementation which used a different encryption scheme.
+   *
+   * @param vertx a vert.x instance
+   * @param secret a secret to derive a secure private key
+   * @param salt ignored
+   * @return the store
+   */
+  @Deprecated
+  static CookieSessionStore create(Vertx vertx, String secret, Buffer salt) {
+    return create(vertx, secret);
+  }
+
+  /**
    * Creates a CookieSessionStore.
    *
    * Cookie data will be encrypted using the given secret. The secret as the name
