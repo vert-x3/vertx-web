@@ -151,7 +151,8 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
   }
 
   /**
-   * We explicitly ignore this test as there is value on signing a encrypted payload.
+   * We explicitly ignore this test as there is no value on signing an encrypted payload.
+   * The cookie is signed with AES/GCM which has built-in integrity checks.
    *
    * @throws Exception
    */
