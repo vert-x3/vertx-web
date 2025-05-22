@@ -1,0 +1,38 @@
+name: CI matrix (5.x)
+on:
+  workflow_call:
+    inputs:
+      branch:
+        required: true
+        type: string
+jobs:
+  CI:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            jdk: 11
+          - os: ubuntu-latest
+            jdk: 21
+          - os: windows-latest
+            jdk: 11
+    uses: ./.github/workflows/ci.yml
+    with:
+      branch: ${{ github.event.pull_request.head.sha || github.ref_name }}
+      jdk: ${{ matrix.jdk }}
+      os: ${{ matrix.os }}
+    secrets: inherit
+  IT:
+    uses: ./.github/workflows/it.yml
+    with:
+      branch: ${{ github.event.pull_request.head.sha || github.ref_name }}
+      jdk: 11
+    secrets: inherit
+  Deploy:
+    if: ${{ github.repository_owner == 'vert-x3' && (github.event_name == 'push' || github.event_name == 'schedule') }}
+    needs: [CI, IT]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      branch: ${{ github.event.pull_request.head.sha || github.ref_name }}
+      jdk: 11
+    secrets: inherit
