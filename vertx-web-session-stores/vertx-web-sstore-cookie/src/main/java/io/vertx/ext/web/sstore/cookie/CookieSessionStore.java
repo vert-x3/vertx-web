@@ -23,7 +23,7 @@ import io.vertx.ext.web.sstore.cookie.impl.CookieSessionStoreImpl;
 
 /**
  * A SessionStore that uses a Cookie to store the session data. All data is stored in
- * encrypted form using {@code AES-256 with AES/CBC/PKCS5Padding}.
+ * encrypted form using {@code AES-256 with AES/GCM/NoPadding}.
  *
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
@@ -33,16 +33,19 @@ public interface CookieSessionStore extends SessionStore {
   /**
    * Creates a CookieSessionStore.
    *
-   * Cookie data will be encrypted using the given secret and salt. The secret as the name
+   * Cookie data will be encrypted using the given secret. The secret as the name
    * reflects, should never leave the server, otherwise user agents could tamper
-   * with the payload. The salt adds an extra later of security and should be a random.
+   * with the payload.
+   * 
+   * The choice of GCM, ensures that no (IV, Key) is reusable, which means that
+   * there is no need for a salt. Also encrypting the same session multiple times
+   * will render different outputs, which prevents rainbow attacks.
    *
    * @param vertx a vert.x instance
    * @param secret a secret to derive a secure private key
-   * @param salt a binary salt used in the key derivation
    * @return the store
    */
-  static CookieSessionStore create(Vertx vertx, String secret, Buffer salt) {
-    return new CookieSessionStoreImpl(vertx, secret, salt);
+  static CookieSessionStore create(Vertx vertx, String secret) {
+    return new CookieSessionStoreImpl(vertx, secret);
   }
 }
