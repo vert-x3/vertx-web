@@ -1,4 +1,4 @@
-name: vertx-web (5.x)
+name: CI/CD (5.x)
 on:
   push:
     branches:
@@ -9,33 +9,8 @@ on:
   schedule:
     - cron: '0 5 * * *'
 jobs:
-  CI:
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            jdk: 11
-          - os: ubuntu-latest
-            jdk: 21
-          - os: windows-latest
-            jdk: 11
-    uses: ./.github/workflows/ci.yml
+  CI-CD:
+    uses: ./.github/workflows/ci-matrix-5.x.yml
+    secrets: inherit
     with:
       branch: ${{ github.event.pull_request.head.sha || github.ref_name }}
-      jdk: ${{ matrix.jdk }}
-      os: ${{ matrix.os }}
-    secrets: inherit
-  IT:
-    uses: ./.github/workflows/it.yml
-    with:
-      branch: ${{ github.event.pull_request.head.sha || github.ref_name }}
-      jdk: 11
-    secrets: inherit
-  Deploy:
-    if: ${{ github.repository_owner == 'vert-x3' && (github.event_name == 'push' || github.event_name == 'schedule') }}
-    needs: [CI, IT]
-    uses: ./.github/workflows/deploy.yml
-    with:
-      branch: ${{ github.event.pull_request.head.sha || github.ref_name }}
-      jdk: 11
-    secrets: inherit
