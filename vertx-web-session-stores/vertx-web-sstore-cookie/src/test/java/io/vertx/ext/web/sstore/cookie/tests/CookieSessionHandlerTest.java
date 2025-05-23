@@ -43,15 +43,13 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
     Session session = store.createSession(30_000);
     String cookieId = session.id();
 
-    store.get(session.value()).onComplete(get -> {
-      if (get.failed()) {
-        fail(get.cause());
-      } else {
-        assertNotNull(get.result());
-        assertEquals(cookieId, get.result().id());
+    store
+      .get(session.value())
+      .onComplete(onSuccess(c -> {
+        assertNotNull(c);
+        assertEquals(cookieId, c.id());
         testComplete();
-      }
-    });
+    }));
 
     await();
   }
@@ -61,18 +59,16 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
     Session session = store.createSession(30_000);
     String cookieValue = session.value();
 
-    store.get(cookieValue).onComplete(get -> {
-      if (get.failed()) {
-        fail(get.cause());
-      } else {
-        assertNotNull(get.result());
+    store
+      .get(cookieValue)
+      .onComplete(onSuccess(c -> {
+        assertNotNull(c);
         // the session id must be the same
-        assertEquals(session.id(), get.result().id());
+        assertEquals(session.id(), c.id());
         // the session value will not be the same as IV is random
-        assertFalse(cookieValue.equals(get.result().value()));
+        assertFalse(cookieValue.equals(c.value()));
         testComplete();
-      }
-    });
+    }));
 
     await();
   }
@@ -124,18 +120,16 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
     Session session = store1.createSession(30_000);
     String cookieValue = session.value();
 
-    store2.get(cookieValue).onComplete(get -> {
-      if (get.failed()) {
-        fail(get.cause());
-      } else {
-        assertNotNull(get.result());
+    store2
+      .get(cookieValue)
+      .onComplete(onSuccess(c -> {
+        assertNotNull(c);
         // the session id must be the same
-        assertEquals(session.id(), get.result().id());
+        assertEquals(session.id(), c.id());
         // the session value will not be the same as IV is random
-        assertFalse(cookieValue.equals(get.result().value()));
+        assertFalse(cookieValue.equals(c.value()));
         testComplete();
-      }
-    });
+    }));
     await();
   }
 
@@ -186,15 +180,13 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
 		}, 200, "OK", null);
 
 
-      store.get(rsession.get()).onComplete(get -> {
-        if (get.failed()) {
-          fail(get.cause());
-        } else {
-          assertNotNull(get.result());
-          assertEquals(rid.get(), get.result().id());
+      store
+        .get(rsession.get())
+        .onComplete(onSuccess(c -> {
+          assertNotNull(c);
+          assertEquals(rid.get(), c.id());
           testComplete();
-        }
-      });
+      }));
 
       await();
   }
