@@ -17,13 +17,15 @@ jobs:
       VERTX_NEXUS_PASSWORD: ${{ secrets.VERTX_NEXUS_PASSWORD }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch }}
       - name: Install JDK
         uses: actions/setup-java@v2
         with:
-          java-version: ${{ inputs.jdk }}
+          java-version: |
+            21
+            ${{ inputs.jdk }}
           distribution: temurin
       - name: Get project version
         run: echo "PROJECT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version -q -DforceStdout | grep -v '\[')" >> $GITHUB_ENV
