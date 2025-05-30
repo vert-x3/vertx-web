@@ -22,8 +22,14 @@ import io.vertx.ext.web.sstore.AbstractSession;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.util.Base64;
 
 /**
@@ -33,6 +39,11 @@ public class CookieSession extends AbstractSession {
 
   private static final Base64.Encoder BASE64_URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
   private static final Base64.Decoder BASE64_URL_DECODER = Base64.getUrlDecoder();
+
+  private static final String AES_ALGORITHM_GCM = "AES/GCM/NoPadding";
+
+  private static final int IV_LENGTH = 12;
+  private static final int TAG_LENGTH = 16;
 
   public static String base64UrlEncode(byte[] bytes) {
     return BASE64_URL_ENCODER.encodeToString(bytes);
@@ -44,23 +55,23 @@ public class CookieSession extends AbstractSession {
 
   private static final Charset UTF8 = StandardCharsets.UTF_8;
 
-  private final Cipher encrypt;
-  private final Cipher decrypt;
+  private final SecretKeySpec aesKey;
+  private final VertxContextPRNG prng;
   // track the original version
   private int oldVersion = 0;
   // track the original crc
   private int oldCrc = 0;
 
-  public CookieSession(Cipher encrypt, Cipher decrypt, VertxContextPRNG prng, long timeout, int length) {
+  public CookieSession(SecretKeySpec aesKey, VertxContextPRNG prng, long timeout, int length) {
     super(prng, timeout, length);
-    this.encrypt = encrypt;
-    this.decrypt = decrypt;
+    this.prng = prng;
+    this.aesKey = aesKey;
   }
 
-  public CookieSession(Cipher encrypt, Cipher decrypt, VertxContextPRNG prng) {
+  public CookieSession(SecretKeySpec aesKey, VertxContextPRNG prng) {
     super(prng);
-    this.encrypt = encrypt;
-    this.decrypt = decrypt;
+    this.prng = prng;
+    this.aesKey = aesKey;
   }
 
   @Override
@@ -76,8 +87,8 @@ public class CookieSession extends AbstractSession {
     writeDataToBuffer(buff);
 
     try {
-      return base64UrlEncode(encrypt.doFinal(buff.getBytes()));
-    } catch (IllegalBlockSizeException | BadPaddingException e) {
+      return encrypt(buff);
+    } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
       throw new RuntimeException(e);
     }
   }
@@ -99,21 +110,8 @@ public class CookieSession extends AbstractSession {
       throw new NullPointerException();
     }
 
-//    String[] tokens = payload.split("\\.");
-//    if (tokens.length != 2) {
-//      // no signature present, force a regeneration
-//      // by claiming this session as invalid
-//      return null;
-//    }
-//
-//    String signature = base64UrlEncode(mac.doFinal(tokens[0].getBytes(StandardCharsets.US_ASCII)));
-//
-//    if(!signature.equals(tokens[1])) {
-//      throw new RuntimeException("Session data was Tampered!");
-//    }
-
     try {
-      final Buffer buffer = Buffer.buffer(decrypt.doFinal(base64UrlDecode(payload)));
+      final Buffer buffer = decrypt(payload);
 
       // reconstruct the session
       int pos = 0;
@@ -133,7 +131,7 @@ public class CookieSession extends AbstractSession {
       // defaults
       oldVersion = version();
       oldCrc = crc();
-    } catch (IllegalBlockSizeException | BadPaddingException e) {
+    } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
       // this is a bad session, force a regeneration
       return null;
     }
@@ -143,5 +141,44 @@ public class CookieSession extends AbstractSession {
 
   int oldVersion() {
     return oldVersion;
+  }
+
+  private String encrypt(Buffer data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
+    // Initialization Vector
+    byte[] iv = new byte[IV_LENGTH];
+    prng.nextBytes(iv);
+
+    // get a cipher
+    Cipher cipher = Cipher.getInstance(AES_ALGORITHM_GCM);
+    GCMParameterSpec gcmSpec = new GCMParameterSpec(TAG_LENGTH * 8, iv);
+    cipher.init(Cipher.ENCRYPT_MODE, aesKey, gcmSpec);
+
+    byte[] encryptedBytes = cipher.doFinal(data.getBytes());
+
+    // combine IV and cipher data
+    byte[] combinedIvAndCipherText = new byte[iv.length + encryptedBytes.length];
+    System.arraycopy(iv, 0, combinedIvAndCipherText, 0, iv.length);
+    System.arraycopy(encryptedBytes, 0, combinedIvAndCipherText, iv.length, encryptedBytes.length);
+
+    return base64UrlEncode(combinedIvAndCipherText);
+  }
+
+  private Buffer decrypt(String data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
+    byte[] decodedCipherText = base64UrlDecode(data);
+
+    // extract the IV
+    byte[] iv = new byte[IV_LENGTH];
+    System.arraycopy(decodedCipherText, 0, iv, 0, iv.length);
+    byte[] encryptedText = new byte[decodedCipherText.length - IV_LENGTH];
+    System.arraycopy(decodedCipherText, IV_LENGTH, encryptedText, 0, encryptedText.length);
+
+    // get a cipher
+    Cipher cipher = Cipher.getInstance(AES_ALGORITHM_GCM);
+    GCMParameterSpec gcmSpec = new GCMParameterSpec(TAG_LENGTH * 8, iv);
+    cipher.init(Cipher.DECRYPT_MODE, aesKey, gcmSpec);
+
+    byte[] decryptedBytes = cipher.doFinal(encryptedText);
+
+    return Buffer.buffer(decryptedBytes);
   }
 }
