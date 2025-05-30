@@ -37,24 +37,9 @@ public class CookieSessionCreateTest {
   public RunTestOnContext rule = new RunTestOnContext();
 
   @Test
-  public void testCreateStoreAll() throws Exception {
-    SessionStore store = SessionStore.create(rule.vertx(), new JsonObject().put("secret", "KeyboardCat!").put("salt", "salt").put("iv", "iv"));
-    assertNotNull(store);
-    assertTrue(store instanceof CookieSessionStore);
-  }
-
-  @Test
-  public void testCreateStoreNoIV() throws Exception {
-    SessionStore store = SessionStore.create(rule.vertx(), new JsonObject().put("secret", "KeyboardCat!").put("salt", "salt"));
-    assertNotNull(store);
-    assertTrue(store instanceof CookieSessionStore);
-  }
-
-  @Test
-  public void testCreateStoreNoSalt() throws Exception {
+  public void testCreateStore() throws Exception {
     SessionStore store = SessionStore.create(rule.vertx(), new JsonObject().put("secret", "KeyboardCat!"));
     assertNotNull(store);
-    // salt is missing, default to LocalStore as we don't want to leak session data if config isn't complete
-    assertFalse(store instanceof CookieSessionStore);
+    assertTrue(store instanceof CookieSessionStore);
   }
 }
