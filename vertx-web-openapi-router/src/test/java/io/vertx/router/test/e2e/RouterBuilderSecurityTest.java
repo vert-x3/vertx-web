@@ -59,7 +59,14 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
   void testBuilderWithDisabledSecurity(VertxTestContext testContext) {
     createServer(pathDereferencedContractGlobal, rb -> {
-      rb.getRoutes().forEach(route -> route.setDoSecurity(false));
+      rb
+        .getRoutes()
+        .forEach(route -> route.setDoSecurity(false));
+
+      rb
+        .getRoute("listPetsWithOverride")
+        .addHandler(RoutingContext::end);
+
       return Future.succeededFuture(rb);
     })
       .compose(v -> {
