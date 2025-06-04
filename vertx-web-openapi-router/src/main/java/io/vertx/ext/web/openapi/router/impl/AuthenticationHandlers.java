@@ -12,6 +12,7 @@ import io.vertx.openapi.contract.Operation;
 import io.vertx.openapi.contract.SecurityRequirement;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -130,7 +131,8 @@ class AuthenticationHandlers {
       }
     }
 
-    ChainAuthHandler authHandler;
+    final ChainAuthHandler authHandler;
+    final AtomicBoolean emptyAuthHandler = new AtomicBoolean(true);
 
     switch (securityRequirements.size()) {
       case 0:
@@ -146,12 +148,14 @@ class AuthenticationHandlers {
           .stream()
           .map(securityRequirement -> and(route, securityRequirement, failOnNotFound))
           .filter(Objects::nonNull)
-          .forEach(authHandler::add);
+          .forEach(handler -> {
+              authHandler.add(handler);
+              emptyAuthHandler.set(false);
+          });
     }
 
-    if (emptyAuth) {
-      authHandler
-        .add(ANONYMOUS_SUCCESS_AUTH_HANDLER);
+    if (emptyAuth || emptyAuthHandler.get()) {
+      authHandler.add(ANONYMOUS_SUCCESS_AUTH_HANDLER);
     }
 
     return authHandler;
