@@ -56,6 +56,29 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
   }
 
   @Test
+  @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
+  void testBuilderWithDisabledSecurity(VertxTestContext testContext) {
+    createServer(pathDereferencedContractGlobal, rb -> {
+      rb.getRoutes().forEach(route -> route.setDoSecurity(false));
+      return Future.succeededFuture(rb);
+    })
+      .compose(v -> {
+        /*
+         * This is a test to ensure that a default anonymous success
+         * handler is added when routes have security disabled.
+         * Any request sent is fine, and should return a 200.
+         */
+        return createRequest(GET, "/v1/petsWithOverride")
+          .send()
+          .onSuccess(response -> testContext.verify(() -> {
+            assertThat(response.statusCode()).isEqualTo(200);
+          }));
+      })
+      .onSuccess(v -> testContext.completeNow())
+      .onFailure(testContext::failNow);
+  }
+
+  @Test
   public void mountSingle(Vertx vertx, VertxTestContext testContext) {
 
     AuthenticationProvider authProvider = cred -> Future.succeededFuture(User.fromName(cred.toString()));
