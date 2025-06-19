@@ -11,6 +11,7 @@
   </parent>
 
   <artifactId>vertx-web-session-stores</artifactId>
+  <name>Vert.x Web Session Stores</name>
   <packaging>pom</packaging>
 
   <properties>

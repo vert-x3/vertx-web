@@ -12,5 +12,6 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>vertx-web-common</artifactId>
+  <name>Vert.x Web Common</name>
 
 </project>

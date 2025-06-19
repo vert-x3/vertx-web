@@ -11,6 +11,7 @@
   </parent>
 
   <artifactId>vertx-web-sstore-cookie</artifactId>
+  <name>Vert.x Web Session Store cookie implementation</name>
 
   <licenses>
     <license>

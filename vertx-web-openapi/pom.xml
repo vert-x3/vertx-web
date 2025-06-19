@@ -26,6 +26,7 @@
   </parent>
 
   <artifactId>vertx-web-openapi</artifactId>
+  <name>Vert.x Web OpenAPI</name>
 
   <properties>
     <doc.skip>false</doc.skip>

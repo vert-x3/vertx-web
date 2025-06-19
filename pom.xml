@@ -11,6 +11,7 @@
   <packaging>pom</packaging>
 
   <artifactId>vertx-web-parent</artifactId>
+  <name>Vert.x Web Parent</name>
   <version>4.5.16-SNAPSHOT</version>
 
   <scm>

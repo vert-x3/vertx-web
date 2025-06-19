@@ -10,6 +10,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>vertx-web-validation</artifactId>
+  <name>Vert.x Web Validation</name>
 
   <properties>
     <mockito.version>3.3.0</mockito.version>

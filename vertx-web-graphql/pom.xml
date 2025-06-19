@@ -27,6 +27,7 @@
   </parent>
 
   <artifactId>vertx-web-graphql</artifactId>
+  <name>Vert.x Web GraphQL</name>
 
   <properties>
     <graphql.java.version>20.7</graphql.java.version>

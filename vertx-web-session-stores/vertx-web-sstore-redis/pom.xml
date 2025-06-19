@@ -10,6 +10,7 @@
   </parent>
 
   <artifactId>vertx-web-sstore-redis</artifactId>
+  <name>Vert.x Web Session Store Redis implementation</name>
 
   <licenses>
     <license>

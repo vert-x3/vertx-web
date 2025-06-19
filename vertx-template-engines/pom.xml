@@ -11,6 +11,7 @@
   </parent>
 
   <artifactId>vertx-template-engines</artifactId>
+  <name>Vert.x Web Template Engines</name>
   <packaging>pom</packaging>
 
   <properties>

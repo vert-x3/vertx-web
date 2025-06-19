@@ -11,6 +11,7 @@
   </parent>
 
   <artifactId>vertx-web-templ-pug</artifactId>
+  <name>Vert.x Web Pug Template</name>
 
   <dependencies>
     <dependency>

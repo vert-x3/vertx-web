@@ -10,6 +10,7 @@
   </parent>
 
   <artifactId>vertx-web-api-service</artifactId>
+  <name>Vert.x Web API Service</name>
 
   <properties>
     <junit5.version>5.7.0</junit5.version>

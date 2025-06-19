@@ -11,6 +11,7 @@
   </parent>
 
   <artifactId>vertx-web-templ-httl</artifactId>
+  <name>Vert.x Web HTTL Template</name>
 
   <dependencies>
     <dependency>

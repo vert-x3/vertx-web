@@ -10,6 +10,7 @@
   </parent>
 
   <artifactId>vertx-web-templ-jte</artifactId>
+  <name>Vert.x Web JTE Template</name>
 
   <properties>
     <jte.version>2.1.1</jte.version>

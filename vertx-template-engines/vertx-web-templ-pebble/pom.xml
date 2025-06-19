@@ -11,6 +11,7 @@
   </parent>
 
   <artifactId>vertx-web-templ-pebble</artifactId>
+  <name>Vert.x Web Pebble Template</name>
 
   <dependencies>
     <dependency>

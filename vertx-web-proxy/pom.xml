@@ -26,6 +26,7 @@
   </parent>
 
   <artifactId>vertx-web-proxy</artifactId>
+  <name>Vert.x Web Proxy</name>
 
   <properties>
     <doc.skip>false</doc.skip>

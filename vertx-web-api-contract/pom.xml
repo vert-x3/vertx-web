@@ -15,6 +15,7 @@
   </properties>
 
   <artifactId>vertx-web-api-contract</artifactId>
+  <name>Vert.x Web API Contract</name>
 
   <dependencies>
 
