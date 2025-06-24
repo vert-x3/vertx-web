@@ -13,6 +13,8 @@
 
   <artifactId>vertx-web</artifactId>
 
+  <name>Vert.x Web</name>
+
   <properties>
     <webauthn4j.version>0.28.2.RELEASE</webauthn4j.version>
   </properties>

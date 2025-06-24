@@ -11,6 +11,8 @@
 
   <artifactId>vertx-web-validation</artifactId>
 
+  <name>Vert.x Web Validation</name>
+
   <properties>
     <assertj.version>3.15.0</assertj.version>
   </properties>

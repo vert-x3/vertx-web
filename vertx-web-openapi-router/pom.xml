@@ -27,6 +27,8 @@
 
   <artifactId>vertx-web-openapi-router</artifactId>
 
+  <name>Vert.x Web OpenApi Router</name>
+
   <properties>
     <junit5.version>5.7.0</junit5.version>
     <truth.version>1.1.3</truth.version>

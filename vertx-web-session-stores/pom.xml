@@ -13,6 +13,8 @@
   <artifactId>vertx-web-session-stores</artifactId>
   <packaging>pom</packaging>
 
+  <name>Vert.x Web Session Stores</name>
+
   <modules>
     <module>vertx-web-sstore-cookie</module>
     <module>vertx-web-sstore-redis</module>

@@ -28,6 +28,8 @@
 
   <artifactId>vertx-web-graphql</artifactId>
 
+  <name>Vert.x Web GraphQL</name>
+
   <properties>
     <graphql.java.version>24.1</graphql.java.version>
   </properties>

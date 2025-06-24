@@ -11,6 +11,8 @@
 
   <artifactId>vertx-web-sstore-redis</artifactId>
 
+  <name>Vert.x Web Redis Session Store</name>
+
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>

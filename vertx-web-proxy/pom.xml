@@ -27,6 +27,8 @@
 
   <artifactId>vertx-web-proxy</artifactId>
 
+  <name>Vert.x Web Proxy</name>
+
   <dependencies>
     <dependency>
       <groupId>io.vertx</groupId>

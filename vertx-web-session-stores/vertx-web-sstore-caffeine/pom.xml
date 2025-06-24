@@ -9,7 +9,9 @@
     <version>5.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>vertx-web-sstore-cafeinne</artifactId>
+  <artifactId>vertx-web-sstore-caffeine</artifactId>
+
+  <name>Vert.x Web Caffeine Session Store</name>
 
   <licenses>
     <license>

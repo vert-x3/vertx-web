@@ -11,6 +11,8 @@
 
   <artifactId>vertx-web-api-service</artifactId>
 
+  <name>Vert.x Web API Service</name>
+
   <properties>
     <vertx.surefire.useModulePath>false</vertx.surefire.useModulePath>
     <junit5.version>5.7.0</junit5.version>

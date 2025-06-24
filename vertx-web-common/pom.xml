@@ -13,4 +13,6 @@
 
   <artifactId>vertx-web-common</artifactId>
 
+  <name>Vert.x Web Common</name>
+
 </project>

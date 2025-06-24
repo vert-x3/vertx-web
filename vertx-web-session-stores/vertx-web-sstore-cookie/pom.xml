@@ -12,6 +12,8 @@
 
   <artifactId>vertx-web-sstore-cookie</artifactId>
 
+  <name>Vert.x Web Cookie Session Store</name>
+
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>

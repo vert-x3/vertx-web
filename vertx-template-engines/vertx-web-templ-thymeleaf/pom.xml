@@ -12,6 +12,8 @@
 
   <artifactId>vertx-web-templ-thymeleaf</artifactId>
 
+  <name>Vert.x Web Thymeleaf Template</name>
+
   <dependencies>
     <dependency>
       <groupId>org.thymeleaf</groupId>

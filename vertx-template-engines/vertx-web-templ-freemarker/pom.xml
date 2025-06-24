@@ -12,6 +12,8 @@
 
   <artifactId>vertx-web-templ-freemarker</artifactId>
 
+  <name>Vert.x Web Freemarker Template</name>
+
   <dependencies>
     <dependency>
       <groupId>org.freemarker</groupId>

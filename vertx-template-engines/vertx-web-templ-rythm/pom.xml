@@ -12,6 +12,8 @@
 
   <artifactId>vertx-web-templ-rythm</artifactId>
 
+  <name>Vert.x Web Rythm Template</name>
+
   <dependencies>
     <dependency>
       <groupId>io.vertx</groupId>

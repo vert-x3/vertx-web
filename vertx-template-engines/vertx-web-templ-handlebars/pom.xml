@@ -12,6 +12,8 @@
 
   <artifactId>vertx-web-templ-handlebars</artifactId>
 
+  <name>Vert.x Web Handlebars Template</name>
+
   <dependencies>
     <dependency>
       <groupId>com.github.jknack</groupId>
