@@ -267,7 +267,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
       if (ctx.body().available()) {
         header = ctx.request().getFormAttribute(headerName);
       } else {
-        ctx.fail(new VertxException("BodyHandler is required to process POST requests", true));
+        ctx.fail(new VertxException("BodyHandler is required to process unsafe methods", true));
         return;
       }
     }
