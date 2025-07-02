@@ -845,7 +845,9 @@ public class WebExamples {
 
     // Handle the actual login
     // One of your pages must POST form login data
-    router.post("/login").handler(FormLoginHandler.create(authProvider));
+    router.post("/login")
+      .handler(BodyHandler.create())
+      .handler(FormLoginHandler.create(authProvider));
 
     // Set a static server to serve static resources, e.g. the login page
     router.route().handler(StaticHandler.create());
@@ -972,6 +974,9 @@ public class WebExamples {
       .setHeartbeatInterval(2000);
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
+
+    // Required to handle SockJS traffic when WebSockets are not available
+    router.post("/myapp/*").handler(BodyHandler.create());
 
     router.route("/myapp/*")
       .subRouter(sockJSHandler.socketHandler(sockJSSocket -> {
@@ -1267,6 +1272,8 @@ public class WebExamples {
 
   public void example54(Vertx vertx, Router router) {
 
+    // Required to handle request having an unsafe method (`POST`, `PUT`, ...etc.)
+    router.route().handler(BodyHandler.create());
     router.route().handler(CSRFHandler.create(vertx, "abracadabra"));
     router.route().handler(ctx -> {
 
