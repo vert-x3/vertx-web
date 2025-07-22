@@ -2051,4 +2051,39 @@ public class WebExamples {
 	    // secure the remaining routes
 	    router.route().handler(webAuthNHandler);
 	  }
+
+    public void example90(Vertx vertx, Router router) {
+      router.get("/branching").handler(BranchingHandler.create(
+        rc -> rc.request().headers().contains("Foo"),
+        rc -> {
+          String foo = rc.request().getHeader("Foo");
+          rc.response().end("Foo: " + foo);
+        },
+        rc -> rc.response().end("N/A")
+      ));
+    }
+
+  public void example91(Vertx vertx, Router router) {
+    // Special case if 'X-REQUEST-CLIENT-TYPE' is present, else forward to the next handler
+    router.get("/profile").handler(BranchingHandler.create(
+      rc -> "mobile".equals(rc.request().getHeader("X-REQUEST-CLIENT-TYPE")),
+      this::handleMobileProfileRequest,
+      RoutingContext::next
+    ));
+
+    // Handle the general case, or fail with a 401 is the 'Authorization` header is missing
+    router.get("/profile").handler(BranchingHandler.create(
+      rc -> rc.request().headers().contains("Authorization"),
+      this::handleProfileRequest,
+      rc -> rc.fail(401)
+    ));
+  }
+
+  private void handleMobileProfileRequest(RoutingContext rc) {
+    // Nothing
+  }
+
+  private void handleProfileRequest(RoutingContext rc) {
+    // Nothing
+  }
 }
