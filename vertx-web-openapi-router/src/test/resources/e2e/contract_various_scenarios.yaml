@@ -1,0 +1,42 @@
+openapi: 3.1.0
+info:
+  version: 1.0.0
+  title: Various Scenarios
+  license:
+    identifier: MIT
+    name: MIT License
+servers:
+  - url: https://various.example.com/v1
+paths:
+  /user/{id}:
+    get:
+      summary: https://github.com/vert-x3/vertx-web/issues/2709
+      operationId: stringPathParameter
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Doesn't matter
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
