@@ -12,7 +12,7 @@
 
   <artifactId>vertx-web-parent</artifactId>
   <name>Vert.x Web Parent</name>
-  <version>4.5.17-SNAPSHOT</version>
+  <version>4.5.17</version>
 
   <scm>
     <connection>scm:git:git@github.com:vert-x3/vertx-web.git</connection>
