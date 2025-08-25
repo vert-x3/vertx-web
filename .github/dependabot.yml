@@ -4,3 +4,34 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+
+  - package-ecosystem: "maven"
+    directory: "/vertx-web-graphql"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-name: "com.graphql-java:graphql-java"
+
+  - package-ecosystem: "maven"
+    directory: "/vertx-web-graphql"
+    target-branch: 4.x
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-name: "com.graphql-java:graphql-java"
+    ignore:
+      - dependency-name: "com.graphql-java:graphql-java"
+        update-types:
+          - "version-update:semver-major"
+
+  - package-ecosystem: "maven"
+    directory: "/vertx-web-graphql"
+    target-branch: "5.0"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-name: "com.graphql-java:graphql-java"
+    ignore:
+      - dependency-name: "com.graphql-java:graphql-java"
+        update-types:
+          - "version-update:semver-major"
