@@ -17,6 +17,7 @@
 package io.vertx.ext.web.tests;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.Router;
@@ -317,4 +318,8 @@ public class WebTestBase extends VertxTestBase {
     }
   }
 
+  public Future<HttpClientResponse> requestGet(String path) {
+    RequestOptions options = new RequestOptions().setHost("localhost").setPort(server.actualPort()).setURI(path);
+    return client.request(options).compose(HttpClientRequest::send).compose(resp -> resp.body().map(resp));
+  }
 }
