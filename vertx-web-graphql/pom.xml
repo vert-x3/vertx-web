@@ -30,7 +30,7 @@
   <name>Vert.x Web GraphQL</name>
 
   <properties>
-    <graphql.java.version>20.7</graphql.java.version>
+    <graphql.java.version>20.9</graphql.java.version>
     <doc.skip>false</doc.skip>
   </properties>
 
