@@ -37,6 +37,9 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -318,8 +321,14 @@ public class WebTestBase extends VertxTestBase {
     }
   }
 
-  public Future<HttpClientResponse> requestGet(String path) {
+  long timeout = 200;
+  TimeUnit timeoutUnit = TimeUnit.MILLISECONDS;
+
+  public void requestGet(String path, BiConsumer<HttpClientResponse, Buffer> assertAction) throws TimeoutException {
     RequestOptions options = new RequestOptions().setHost("localhost").setPort(server.actualPort()).setURI(path);
-    return client.request(options).compose(HttpClientRequest::send).compose(resp -> resp.body().map(resp));
+    client.request(options).compose(HttpClientRequest::send).compose(resp -> resp.body().compose(buffer -> {
+      assertAction.accept(resp, buffer);
+      return Future.succeededFuture();
+    })).await(timeout, timeoutUnit);
   }
 }
