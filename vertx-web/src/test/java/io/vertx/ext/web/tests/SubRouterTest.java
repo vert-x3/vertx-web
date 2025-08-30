@@ -18,13 +18,12 @@ package io.vertx.ext.web.tests;
 
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import org.junit.Test;
 
-import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 /**
@@ -762,9 +761,10 @@ public class SubRouterTest extends WebTestBase {
       ctx.response().end();
     });
 
-    HttpClientResponse response = requestGet("/rest/product/123/ex").await();
-    assertEquals(500, response.statusCode());
-    assertEquals("Internal Server Error", response.body().await().toString());
+    requestGet("/rest/product/123/ex", (response, buffer) -> {
+      assertEquals(500, response.statusCode());
+      assertEquals("Internal Server Error", buffer.toString());
+    });
 
     assertRouterErrorHandlers("root", router, 500, "/rest/product/123/ex");
     assertRouterErrorHandlers("root", router, 404, "/rest/product/123/foo/404");
@@ -779,12 +779,13 @@ public class SubRouterTest extends WebTestBase {
     assertRouterErrorHandlers("instance", instanceRouter, 404, "/rest/product/123/foo/404");
   }
 
-  private void assertRouterErrorHandlers(String name, Router router, int statusCode, String path) {
+  private void assertRouterErrorHandlers(String name, Router router, int statusCode, String path) throws TimeoutException {
     String handlerKey = name + "." + statusCode + ".errorHandler";
     router.errorHandler(statusCode, ctx -> ctx.response().setStatusCode(statusCode).end(handlerKey));
 
-    HttpClientResponse response = requestGet(path).await();
-    assertEquals(statusCode, response.statusCode());
-    assertEquals(handlerKey, response.body().await().toString());
+    requestGet(path, (response, buffer) -> {
+      assertEquals(statusCode, response.statusCode());
+      assertEquals(handlerKey, buffer.toString());
+    });
   }
 }
