@@ -244,12 +244,6 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
-  public HttpRequest<T> putHeader(CharSequence name, Iterable<CharSequence> value) {
-    headers().set(name, value);
-    return this;
-  }
-
-  @Override
   public MultiMap headers() {
     if (headers == null) {
       headers = HttpHeaders.headers();
