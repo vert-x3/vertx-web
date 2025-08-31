@@ -64,8 +64,6 @@ public class UserHolder implements ClusterSerializable {
 
     synchronized (this) {
       user = context != null ? context.user() : this.user;
-      // clear the context as this holder is not in a request anymore
-      context = null;
     }
 
     if (user instanceof ClusterSerializable) {
