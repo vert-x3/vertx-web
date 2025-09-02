@@ -232,6 +232,12 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
+  public HttpRequest<T> putHeader(CharSequence name, CharSequence value) {
+    headers().set(name, value);
+    return this;
+  }
+
+  @Override
   public HttpRequest<T> putHeader(String name, Iterable<String> value) {
     headers().set(name, value);
     return this;

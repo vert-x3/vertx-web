@@ -183,6 +183,19 @@ public interface HttpRequest<T> {
   HttpRequest<T> putHeader(String name, String value);
 
   /**
+   * Configure the request to set a new HTTP header using CharSequence.
+   * <p>
+   * This is an overload of {@link #putHeader(String, String)} that accepts CharSequence parameters.
+   *
+   * @param name  the header name
+   * @param value the header value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  HttpRequest<T> putHeader(CharSequence name, CharSequence value);
+
+  /**
    * Configure the request to set a new HTTP header with multiple values.
    *
    * @param name  the header name
