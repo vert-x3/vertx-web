@@ -45,6 +45,12 @@
       <artifactId>graphql-java</artifactId>
       <version>${graphql.java.version}</version>
       <exclusions>
+        <!-- Can be removed after a new data loader release -->
+        <!-- See https://github.com/graphql-java/java-dataloader/issues/227 -->
+        <exclusion>
+          <groupId>org.jetbrains.kotlin</groupId>
+          <artifactId>kotlin-stdlib</artifactId>
+        </exclusion>
         <exclusion>
           <groupId>org.reactivestreams</groupId>
           <artifactId>reactive-streams</artifactId>
