@@ -32,6 +32,10 @@
           <groupId>com.google.code.gson</groupId>
           <artifactId>gson</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>com.github.ben-manes.caffeine</groupId>
+          <artifactId>caffeine</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -49,6 +53,11 @@
       <groupId>org.jetbrains</groupId>
       <artifactId>annotations</artifactId>
       <version>13.0</version>
+    </dependency>
+    <dependency>
+      <!-- For dependency convergence -->
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
