@@ -57,7 +57,7 @@ public class CookieStoreImpl implements CookieStore {
     TreeMap<String, Cookie> matches = new TreeMap<>();
 
     Consumer<Cookie> adder = c -> {
-      if (ssl != Boolean.TRUE && c.isSecure()) {
+      if (c.isSecure() && (!Boolean.TRUE.equals(ssl) && !"localhost".equals(domain))) {
         return;
       }
       if (c.path() != null && !cleanPath.equals(c.path())) {

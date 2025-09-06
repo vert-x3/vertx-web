@@ -542,6 +542,14 @@ public class SessionAwareWebClientTest {
     validate(context, store.get(true, "test.vertx.io", "/"),
         new String[] { "a", "b", "e" },
         new String[] { "1", "2", "5" });
+
+    c = new DefaultCookie("localhost-secure", "http-localhost");
+    c.setDomain("localhost");
+    c.setPath("/");
+    store.put(c);
+
+    validate(context, store.get(true, "localhost", "/"), new String[] { "a", "localhost-secure" }, new String[] { "1", "http-localhost" });
+    validate(context, store.get(false, "localhost", "/"), new String[] { "a", "localhost-secure" }, new String[] { "1", "http-localhost" });
   }
 
   @Test
