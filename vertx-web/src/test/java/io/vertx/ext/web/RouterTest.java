@@ -3289,7 +3289,7 @@ public class RouterTest extends WebTestBase {
         for (String req : reqs) {
           writer.print(req);
         }
-        writer.println();
+        writer.flush();
 
         InputStream input = socket.getInputStream();
         StringBuilder buffer = new StringBuilder();
@@ -3326,9 +3326,9 @@ public class RouterTest extends WebTestBase {
         "content-length: 10\n" +
         "\n" +
         "/parse/ok\n",
-      test.apply(Arrays.asList(
-        "POST / HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nABC",
-        "POST /parse/ok HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nDEF"
+      test.apply(postReqs(
+        "/", "ABC",
+        "/parse/ok", "DEF"
       )));
 
     // Test:
@@ -3350,9 +3350,9 @@ public class RouterTest extends WebTestBase {
         "content-length: 2\n" +
         "\n" +
         "/\n",
-      test.apply(Arrays.asList(
-        "POST /parse/ok HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nDEF",
-        "POST / HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nABC"
+      test.apply(postReqs(
+        "/parse/ok", "DEF",
+        "/", "ABC"
       )));
 
     // Test:
@@ -3374,9 +3374,9 @@ public class RouterTest extends WebTestBase {
         "content-length: 12\n" +
         "\n" +
         "/expect/end\n",
-      test.apply(Arrays.asList(
-        "POST /parse/ok HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nDEF",
-        "POST /expect/end HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nABC"
+      test.apply(postReqs(
+        "/parse/ok", "DEF",
+        "/expect/end", "ABC"
       )));
 
     // Test:
@@ -3398,10 +3398,11 @@ public class RouterTest extends WebTestBase {
         "content-length: 10\n" +
         "\n" +
         "/parse/ok\n",
-      test.apply(Arrays.asList(
-        "POST /expect/end HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nABC",
-        "POST /parse/ok HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nDEF"
+      test.apply(postReqs(
+        "/expect/end", "ABC",
+        "/parse/ok", "DEF"
       )));
+
 
     // Test:
     // 1. 1st request is paused
@@ -3422,9 +3423,9 @@ public class RouterTest extends WebTestBase {
         "content-length: 12\n" +
         "\n" +
         "/expect/end\n",
-      test.apply(Arrays.asList(
-        "POST / HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nDEF",
-        "POST /expect/end HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nABC"
+      test.apply(postReqs(
+        "/", "DEF",
+        "/expect/end", "ABC"
       )));
 
     // Test:
@@ -3446,9 +3447,9 @@ public class RouterTest extends WebTestBase {
         "content-length: 2\n" +
         "\n" +
         "/\n",
-      test.apply(Arrays.asList(
-        "POST /expect/end HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nABC",
-        "POST / HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nDEF"
+      test.apply(postReqs(
+        "/expect/end", "ABC",
+        "/", "DEF"
       )));
 
     // Test:
@@ -3468,11 +3469,10 @@ public class RouterTest extends WebTestBase {
         "content-length: 12\n" +
         "\n" +
         "/expect/end\n",
-      test.apply(Arrays.asList(
-        "POST /not/found HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nDEF",
-        "POST /expect/end HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nABC"
+      test.apply(postReqs(
+        "/not/found", "DEF",
+        "/expect/end", "ABC"
       )));
-
     // Test:
     // 1. 1st request is paused
     // 2. returns 404
@@ -3491,9 +3491,9 @@ public class RouterTest extends WebTestBase {
         "content-length: 2\n" +
         "\n" +
         "/\n",
-      test.apply(Arrays.asList(
-        "POST /not/found HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nABC",
-        "POST / HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nDEF"
+      test.apply(postReqs(
+        "/not/found", "ABC",
+        "/", "DEF"
       )));
 
     // Test:
@@ -3514,10 +3514,19 @@ public class RouterTest extends WebTestBase {
         "content-length: 10\n" +
         "\n" +
         "/parse/ok\n",
-      test.apply(Arrays.asList(
-        "POST /not/found HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 3\n\nABC",
-        "POST /parse/ok HTTP/1.1\nHost: localhost\nConnection: close\nContent-Length: 3\n\nDEF"
+      test.apply(postReqs(
+        "/not/found", "ABC",
+        "/parse/ok", "DEF"
       )));
+  }
+
+  private static List<String> postReqs(String p1, String d1, String p2, String d2) {
+    return Arrays.asList(postReq(p1, false, d1), postReq(p2, true, d2));
+  }
+
+  private static String postReq(String path, boolean close, String body) {
+    return "POST " + path + " HTTP/1.1\r\nHost: localhost\r\nConnection: " + (close ? "close" : "keep-alive")
+      + "\r\nContent-Length: " + body.length() + "\r\n\r\n" + body;
   }
 
   @Test
