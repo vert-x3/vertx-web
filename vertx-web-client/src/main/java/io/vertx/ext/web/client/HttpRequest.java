@@ -32,6 +32,7 @@ import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.uritemplate.Variables;
 import io.vertx.uritemplate.UriTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -183,6 +184,21 @@ public interface HttpRequest<T> {
   HttpRequest<T> putHeader(String name, String value);
 
   /**
+   * Configure the request to set a new HTTP header using CharSequence.
+   * <p>
+   * This is an overload of {@link #putHeader(String, String)} that accepts CharSequence parameters.
+   *
+   * @param name  the header name
+   * @param value the header value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  default HttpRequest<T> putHeader(CharSequence name, CharSequence value) {
+    return putHeader(name.toString(), value.toString());
+  }
+
+  /**
    * Configure the request to set a new HTTP header with multiple values.
    *
    * @param name  the header name
@@ -192,6 +208,25 @@ public interface HttpRequest<T> {
   @Fluent
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   HttpRequest<T> putHeader(String name, Iterable<String> value);
+
+  /**
+   * Configure the request to set a new HTTP header with multiple values using CharSequence.
+   * <p>
+   * This is an overload of {@link #putHeader(String, Iterable)} that accepts CharSequence parameters.
+   *
+   * @param name  the header name
+   * @param value the header value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  default HttpRequest<T> putHeader(CharSequence name, Iterable<CharSequence> value) {
+    List<String> values = new ArrayList<>();
+    for (CharSequence cs : value) {
+      values.add(cs.toString());
+    }
+    return putHeader(name.toString(), values);
+  }
 
   /**
    * @return The HTTP headers
