@@ -521,7 +521,7 @@ public class WebClientTest extends WebClientTestBase {
     Future<HttpResponse<Buffer>> send(WebClient client) {
       return client
         .get("somepath")
-        .putHeader("bla", Arrays.asList("1", "2"))
+        .putHeader("bla", List.<String>of("1", "2"))
         .send();
     }
   }
@@ -629,7 +629,7 @@ public class WebClientTest extends WebClientTestBase {
     Future<HttpResponse<Buffer>> send(WebClient client) {
       MultiMap form = MultiMap.caseInsensitiveMultiMap();
       return client.post("/somepath")
-        .putHeader("bla", Arrays.asList("1", "2"))
+        .putHeader("bla", List.<String>of("1", "2"))
         .sendForm(form);
     }
   }
@@ -1669,7 +1669,7 @@ public class WebClientTest extends WebClientTestBase {
     @Override
     Future<HttpResponse<Buffer>> send(WebClient client) {
       HttpRequest<Buffer> builder = webClient.post("somepath");
-      builder.putHeader("bla", Arrays.asList("1", "2"));
+      builder.putHeader("bla", List.<String>of("1", "2"));
       builder.multipartMixed(multipartMixed);
       return builder.sendMultipartForm(form);
     }
