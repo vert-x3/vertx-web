@@ -43,6 +43,8 @@ import java.util.function.Predicate;
 import static io.vertx.core.buffer.Buffer.buffer;
 import static org.junit.Assert.assertTrue;
 
+import org.testcontainers.DockerClientFactory;
+
 /**
  * SockJS protocol tests
  *
@@ -53,8 +55,19 @@ public class SockJSProtocolTest {
   private static Vertx vertx;
   private static HttpServer server;
 
+    public static boolean isDockerAvailable() {
+        try {
+            DockerClientFactory.instance().client();
+            return true;
+        } catch (Throwable ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
   @BeforeClass
   public static void before() throws Exception {
+    //Ignoring tests if docker is not configured
+    Assume.assumeTrue("Docker is not available.", isDockerAvailable());
     vertx = Vertx.vertx();
     server = vertx.createHttpServer();
     Router router = Router.router(vertx);
@@ -64,8 +77,11 @@ public class SockJSProtocolTest {
 
   @AfterClass
   public static void after() {
-    server.close();
-    vertx.close();
+    //Ignoring tests if docker is not configured
+    if (isDockerAvailable()) { 
+      server.close();
+      vertx.close();
+    }
   }
 
   private String runPython(String cmd, Predicate<String> exitTest) throws Exception {
