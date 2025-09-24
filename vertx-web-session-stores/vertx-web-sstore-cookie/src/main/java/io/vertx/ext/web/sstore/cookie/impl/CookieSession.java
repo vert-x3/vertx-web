@@ -23,6 +23,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.ShortBufferException;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.Charset;
@@ -131,7 +132,7 @@ public class CookieSession extends AbstractSession {
       // defaults
       oldVersion = version();
       oldCrc = crc();
-    } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
+    } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException | ShortBufferException e) {
       // this is a bad session, force a regeneration
       return null;
     }
@@ -163,7 +164,7 @@ public class CookieSession extends AbstractSession {
     return base64UrlEncode(combinedIvAndCipherText);
   }
 
-  private Buffer decrypt(String data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
+  private Buffer decrypt(String data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, ShortBufferException {
     byte[] decodedCipherText = base64UrlDecode(data);
 
     // extract the IV
@@ -177,8 +178,14 @@ public class CookieSession extends AbstractSession {
     GCMParameterSpec gcmSpec = new GCMParameterSpec(TAG_LENGTH * 8, iv);
     cipher.init(Cipher.DECRYPT_MODE, aesKey, gcmSpec);
 
-    byte[] decryptedBytes = cipher.doFinal(encryptedText);
+    // For AES-GCM, the output size is input size minus the authentication tag length
+    int outputSize = cipher.getOutputSize(encryptedText.length);
+    byte[] decryptedBytes = new byte[outputSize];
+    int decryptedLength = cipher.doFinal(encryptedText, 0, encryptedText.length, decryptedBytes, 0);
 
-    return Buffer.buffer(decryptedBytes);
+    // Create buffer with only the actual decrypted bytes
+    byte[] actualDecryptedBytes = new byte[decryptedLength];
+    System.arraycopy(decryptedBytes, 0, actualDecryptedBytes, 0, decryptedLength);
+    return Buffer.buffer(actualDecryptedBytes);
   }
 }
