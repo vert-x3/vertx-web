@@ -143,12 +143,14 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testGetHiddenPageSubdir() throws Exception {
     testRequest(HttpMethod.GET, "/somedir/.hidden.html", 200, "OK", "<html><body>Hidden page</body></html>");
+    testRequest(HttpMethod.GET, "/somedir/.hidden/otherpage.html", 200, "OK", "<html><body>Subdirectory other page</body></html>");
   }
 
   @Test
   public void testCantGetHiddenPageSubdir() throws Exception {
     stat.setIncludeHidden(false);
     testRequest(HttpMethod.GET, "/somedir/.hidden.html", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somedir/.hidden/otherpage.html", 404, "Not Found");
   }
 
   @Test
