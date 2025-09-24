@@ -193,15 +193,16 @@ public class StaticHandlerImpl implements StaticHandler {
 
     if (!includeHidden) {
       file = getFile(path, context);
-      int idx = file.lastIndexOf('/');
-      String name = file.substring(idx + 1);
-      if (name.length() > 0 && name.charAt(0) == '.') {
-        // skip
-        if (!context.request().isEnded()) {
-          context.request().resume();
+      for (int idx = file.indexOf('/'); idx >= 0; idx = file.indexOf('/', idx + 1)) {
+        String name = file.substring(idx + 1);
+        if (name.length() > 0 && name.charAt(0) == '.') {
+          // skip
+          if (!context.request().isEnded()) {
+            context.request().resume();
+          }
+          context.next();
+          return;
         }
-        context.next();
-        return;
       }
     }
 
