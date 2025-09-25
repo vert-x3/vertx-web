@@ -16,7 +16,11 @@
 
 package io.vertx.ext.web.tests.handler;
 
-import io.vertx.core.*;
+import io.netty.util.internal.PlatformDependent;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Future;
+import io.vertx.core.VerticleBase;
 import io.vertx.core.http.*;
 import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.json.JsonArray;
@@ -27,15 +31,16 @@ import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.FileSystemAccess;
 import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.impl.Utils;
-import io.vertx.test.core.Repeat;
+import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.Assume;
 import org.junit.Test;
 
 import java.io.File;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -684,7 +689,9 @@ public class StaticHandlerTest extends WebTestBase {
   public void testDirectoryListingHtml() throws Exception {
     stat.setDirectoryListing(true);
 
-    testDirectoryListingHtmlCustomTemplate("META-INF/vertx/web/vertx-web-directory.html");
+    testDirectoryListingHtmlCustomTemplate("META-INF/vertx/web/vertx-web-directory.html", "/somedir2/", "<a href=\"/\">..</a>", "<ul id=\"files\"><li><a href=\"/somedir2/foo2.json\" title=\"foo2.json\">foo2.json</a></li>" +
+      "<li><a href=\"/somedir2/somepage.html\" title=\"somepage.html\">somepage.html</a></li>" +
+      "<li><a href=\"/somedir2/somepage2.html\" title=\"somepage2.html\">somepage2.html</a></li></ul>");
   }
 
   @Test
@@ -693,23 +700,40 @@ public class StaticHandlerTest extends WebTestBase {
     String dirTemplate = "custom_dir_template.html";
     stat.setDirectoryTemplate(dirTemplate);
 
-    testDirectoryListingHtmlCustomTemplate(dirTemplate);
+    testDirectoryListingHtmlCustomTemplate(dirTemplate, "/somedir2/", "<a href=\"/\">..</a>", "<ul id=\"files\"><li><a href=\"/somedir2/foo2.json\" title=\"foo2.json\">foo2.json</a></li>" +
+      "<li><a href=\"/somedir2/somepage.html\" title=\"somepage.html\">somepage.html</a></li>" +
+      "<li><a href=\"/somedir2/somepage2.html\" title=\"somepage2.html\">somepage2.html</a></li></ul>");
   }
 
-  private void testDirectoryListingHtmlCustomTemplate(String dirTemplateFile) throws Exception {
+  @Test
+  public void testCustomDirectoryListingHtmlEscaping() throws Exception {
+    Assume.assumeFalse(PlatformDependent.isWindows());
+
+    File testDir = new File("target/test-classes/webroot/dirxss");
+    Files.createDirectories(testDir.toPath());
+    File dangerousFile = new File(testDir, "<img src=x onerror=alert('XSS-FILE')>.txt");
+    Path dangerousFilePath = dangerousFile.toPath();
+    Files.deleteIfExists(dangerousFilePath);
+    Files.createFile(dangerousFilePath);
+
+    stat.setDirectoryListing(true);
+
+    testDirectoryListingHtmlCustomTemplate(
+      "META-INF/vertx/web/vertx-web-directory.html",
+      "/dirxss/",
+      "<a href=\"/\">..</a>",
+      "<ul id=\"files\"><li><a href=\"/dirxss/%3Cimg%20src=x%20onerror=alert('XSS-FILE')%3E.txt\" title=\"&#60;img src=x onerror=alert(&#39;XSS-FILE&#39;)&#62;.txt\">&#60;img src=x onerror=alert(&#39;XSS-FILE&#39;)&#62;.txt</a></li></ul>");
+  }
+
+  private void testDirectoryListingHtmlCustomTemplate(String dirTemplateFile, String path, String parentLink, String files) throws Exception {
     stat.setDirectoryListing(true);
 
 
     String directoryTemplate = vertx.fileSystem().readFileBlocking(dirTemplateFile).toString();
 
-    String parentLink = "<a href=\"/\">..</a>";
-    String files = "<ul id=\"files\"><li><a href=\"/somedir2/foo2.json\" title=\"foo2.json\">foo2.json</a></li>" +
-      "<li><a href=\"/somedir2/somepage.html\" title=\"somepage.html\">somepage.html</a></li>" +
-      "<li><a href=\"/somedir2/somepage2.html\" title=\"somepage2.html\">somepage2.html</a></li></ul>";
+    String expected = directoryTemplate.replace("{directory}", path).replace("{parent}", parentLink).replace("{files}", files);
 
-    String expected = directoryTemplate.replace("{directory}", "/somedir2/").replace("{parent}", parentLink).replace("{files}", files);
-
-    testRequest(HttpMethod.GET, "/somedir2/", req -> req.putHeader("accept", "text/html"), resp -> resp.bodyHandler(buff -> {
+    testRequest(HttpMethod.GET, path, req -> req.putHeader("accept", "text/html"), resp -> resp.bodyHandler(buff -> {
       assertEquals("text/html", resp.headers().get("content-type"));
       String sBuff = buff.toString();
       assertEquals(expected, sBuff);
