@@ -24,6 +24,8 @@ import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -233,5 +235,69 @@ public class Utils {
     }
 
     return true;
+  }
+
+  /**
+   * Very incomplete html escape that will escape the most common characters on error messages.
+   * This is to avoid pulling a full dependency to perform a compliant escape. Error messages
+   * are created by developers as such that they should not be to complex for logging.
+   */
+  public static String escapeHTML(String s) {
+    StringBuilder out = new StringBuilder(Math.max(16, s.length()));
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c > 127 || c == '"' || c == '\'' || c == '<' || c == '>' || c == '&') {
+        out.append("&#");
+        out.append((int) c);
+        out.append(';');
+      } else {
+        out.append(c);
+      }
+    }
+    return out.toString();
+  }
+
+  /**
+   * Encode the given URI path by replacing special characters as defined by RFC3986.
+   * Adapted from Spring <a href="https://github.com/spring-projects/spring-framework/blob/16edf9867a143f95cefadb7b2115dcbbf624e176/spring-web/src/main/java/org/springframework/web/util/UriUtils.java#L179">UriUtils</a> code.
+   */
+  public static String encodeUriPath(String path) {
+    byte[] bytes = path.getBytes(StandardCharsets.UTF_8);
+    boolean needsReplacement = false;
+    for (byte b : bytes) {
+      if (isAllowedForPath(b)) {
+        needsReplacement = true;
+        break;
+      }
+    }
+    if (!needsReplacement) {
+      return path;
+    }
+    return replaceCharactersForUriPath(bytes);
+  }
+
+  private static String replaceCharactersForUriPath(byte[] bytes) {
+    // Create a buffer at least twice as big as the original byte array length.
+    // BAOS would double the buffer size the first time the min capacity is bigger than the current length anyway.
+    ByteArrayOutputStream baos = new ByteArrayOutputStream(2 * bytes.length);
+    for (byte b : bytes) {
+      if (isAllowedForPath(b)) {
+        baos.write(b);
+      } else {
+        baos.write('%');
+        baos.write(Character.toUpperCase(Character.forDigit((b >> 4) & 0xF, 16)));
+        baos.write(Character.toUpperCase(Character.forDigit(b & 0xF, 16)));
+      }
+    }
+    return new String(baos.toByteArray(), StandardCharsets.UTF_8);
+  }
+
+  private static boolean isAllowedForPath(byte c) {
+    return (c >= 'a' && c <= 'z')
+      || (c >= 'A' && c <= 'Z')
+      || (c >= '0' && c <= '9')
+      || '-' == c || '.' == c || '_' == c || '~' == c || '!' == c || '$' == c || '&' == c || '\'' == c
+      || '(' == c || ')' == c || '*' == c || '+' == c || ',' == c || ';' == c || '=' == c || ':' == c
+      || '@' == c || '/' == c;
   }
 }
