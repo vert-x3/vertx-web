@@ -188,11 +188,15 @@ public class SessionHandlerImpl implements SessionHandler {
             session.setAccessed();
           } else {
             // the session cookie needs to be updated to the new id
-            final Cookie cookie = sessionCookie(context, session);
+            final Cookie cookie = requestSessionCookie(context);
             // restore defaults
             session.setAccessed();
-            cookie.setValue(session.value());
-            setCookieProperties(cookie, false);
+            if (cookie != null) {
+              cookie.setValue(session.value());
+              setCookieProperties(cookie, false);
+            } else {
+              sessionCookie(context, session.value());
+            }
           }
 
           // we must invalidate the old id
@@ -210,7 +214,9 @@ public class SessionHandlerImpl implements SessionHandler {
         } else if (!lazySession || sessionUsed) {
           if (!cookieless) {
             // if lazy mode activated, no need to store the session nor to create the session cookie if not used.
-            sessionCookie(context, session);
+            if (requestSessionCookie(context) == null) {
+              sessionCookie(context, session.value());
+            }
           }
           session.setAccessed();
           return sessionStore.put(session)
@@ -372,11 +378,7 @@ public class SessionHandlerImpl implements SessionHandler {
         return path.substring(s, e);
       }
     } else {
-      // only pick the first cookie, when multiple sessions are used:
-      // https://www.rfc-editor.org/rfc/rfc6265#section-5.4
-      // The user agent SHOULD sort the cookie-list in the following order:
-      // Cookies with longer paths are listed before cookies with shorter paths.
-      Cookie cookie = context.request().getCookie(sessionCookieName);
+      Cookie cookie = requestSessionCookie(context);
       if (cookie != null) {
         // Look up sessionId
         return cookie.getValue();
@@ -443,18 +445,19 @@ public class SessionHandlerImpl implements SessionHandler {
     addStoreSessionHandler(context);
   }
 
-  private Cookie sessionCookie(final RoutingContext context, final Session session) {
-    // only pick the first cookie, when multiple sessions are used:
-    // https://www.rfc-editor.org/rfc/rfc6265#section-5.4
-    // The user agent SHOULD sort the cookie-list in the following order:
-    // Cookies with longer paths are listed before cookies with shorter paths.
-    Cookie cookie = context.request().getCookie(sessionCookieName);
-    if (cookie != null) {
-      return cookie;
-    }
-    cookie = Cookie.cookie(sessionCookieName, session.value());
+  /**
+   * only pick the first cookie, when multiple sessions are used:
+   * https://www.rfc-editor.org/rfc/rfc6265#section-5.4
+   * The user agent SHOULD sort the cookie-list in the following order:
+   * Cookies with longer paths are listed before cookies with shorter paths.
+   */
+  private Cookie requestSessionCookie(final RoutingContext context) {
+    return context.request().getCookie(sessionCookieName);
+  }
+
+  private void sessionCookie(final RoutingContext context, final String cookieValue) {
+    Cookie cookie = Cookie.cookie(sessionCookieName, cookieValue);
     setCookieProperties(cookie, false);
     context.response().addCookie(cookie);
-    return cookie;
   }
 }
