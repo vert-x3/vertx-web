@@ -16,10 +16,17 @@
 
 package io.vertx.ext.web.sstore.cookie.tests;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
 import io.vertx.ext.web.sstore.cookie.CookieSessionStore;
 import io.vertx.ext.web.tests.handler.SessionHandlerTestBase;
 import org.junit.Ignore;
@@ -36,6 +43,59 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
   public void setUp() throws Exception {
     super.setUp();
     store = CookieSessionStore.create(vertx, "KeyboardCat!", Buffer.buffer("salt"));
+  }
+
+  @Test
+  public void testSessionAndUser() throws Exception {
+    router.route().handler(BodyHandler.create());
+    router.route().handler(SessionHandler.create(store));
+    router.route("/authenticate").handler(SimpleAuthenticationHandler.create().authenticate(rc -> {
+      JsonObject body = rc.body().asJsonObject();
+      if (body.getString("username").equals("myuser")) {
+        return Future.succeededFuture(User.create(body));
+      } else {
+        return Future.failedFuture(new HttpException(401));
+      }
+    })).handler(rc -> {
+      if (rc.normalizedPath().equals("/authenticate")) {
+        rc.response().end("Authenticated");
+      } else {
+        rc.next();
+      }
+    });
+    router.route("/private/*").handler(rc -> {
+      if (rc.user() == null) {
+        rc.response().setStatusCode(401).end();
+      } else {
+        rc.next();
+      }
+    });
+    router.get("/private/whoami").handler(rc -> rc.end(rc.user().principal().encode()));
+
+    testRequest(HttpMethod.GET, "/private/whoami", HttpResponseStatus.UNAUTHORIZED);
+
+    JsonObject myuser = new JsonObject().put("username", "myuser").put("password", System.currentTimeMillis());
+    AtomicReference<String> cookie = new AtomicReference<>();
+    testRequest(HttpMethod.POST, "/authenticate",
+      req -> req.putHeader("content-type", "application/json").send(myuser.toString()),
+      resp -> {
+        String setCookie = resp.headers().get("set-cookie");
+        cookie.set(setCookie.substring(0, setCookie.indexOf(";")));
+        resp.body().compose(body -> {
+          assertEquals("Authenticated", body.toString());
+          return Future.succeededFuture();
+        }).onFailure(this::fail);
+      }, 200, "OK", null);
+    assertNotNull(cookie.get());
+
+    testRequest(HttpMethod.GET, "/private/whoami", req -> {
+      req.putHeader("cookie", cookie.get());
+    }, resp -> {
+      resp.body().compose(body -> {
+        assertEquals(myuser, body.toJsonObject());
+        return Future.succeededFuture();
+      }).onFailure(this::fail);
+    }, 200, "OK", null);
   }
 
   @Test
