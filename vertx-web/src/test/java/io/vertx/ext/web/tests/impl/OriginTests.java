@@ -8,6 +8,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -25,7 +26,9 @@ public class OriginTests {
         {"http://[::1]"},
         {"http://my-site.com"},
         {"http://my-site.123.com"},
-        {"chrome-extension://gmbgaklkmjakoegficnlkhebmhkjfich"}
+        {"chrome-extension://gmbgaklkmjakoegficnlkhebmhkjfich"},
+        {"moz-extension://a1cd9ab7-ab15-462c-9315-8eece8e16982"},
+        {"moz-extension://" + UUID.randomUUID()}
       });
     }
 
@@ -55,6 +58,8 @@ public class OriginTests {
         {"http://1[::1]:8080"},
         {"chrome-extension://gmbg0klkmjakoegficnlkhebmhkjfich"},
         {"chrome-extension://gmbgaklkmjako"},
+        {"moz-extension://" + UUID.randomUUID().toString().replace('-', 'z')},
+        {"moz-extension://" + UUID.randomUUID().toString().substring(1)},
       });
     }
 
