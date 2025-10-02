@@ -83,6 +83,7 @@ public final class Origin {
         defaultPort = DEFAULT_HTTPS_PORT;
         break;
       case "chrome-extension":
+      case "moz-extension":
         this.protocol = protocol;
         defaultPort = "-1";
         break;
@@ -95,6 +96,10 @@ public final class Origin {
     if ("chrome-extension".equals(protocol)) {
       if (!isValidChromeExtensionId(host, 0)) {
         throw new IllegalStateException("Illegal Chrome Extension id: " + host);
+      }
+    } else if ("moz-extension".equals(protocol)) {
+      if (!isValidMozExtensionId(host, 0)) {
+        throw new IllegalStateException("Illegal Moz Extension id: " + host);
       }
     } else {
       // hosts are either domain names, dot separated or ipv6 like
@@ -230,6 +235,8 @@ public final class Origin {
           break;
         case "chrome-extension":
           return isValidChromeExtensionId(text, sep0 + 3);
+        case "moz-extension":
+          return isValidMozExtensionId(text, sep0 + 3);
         default:
           return false;
       }
@@ -278,6 +285,19 @@ public final class Origin {
       char c = text.charAt(i);
       // Chrome extensions IDs contain chars from 'a' to 'p'
       valid = c >= 'a' && c <= 'p';
+    }
+    return valid;
+  }
+
+  private static boolean isValidMozExtensionId(String text, int offset) {
+    boolean valid = text.length() - offset == 36;
+    for (int i = offset, pos = 0; valid && i < text.length(); i++, pos++) {
+      char c = text.charAt(i);
+      if (pos == 8 || pos == 13 || pos == 18 || pos == 23) {
+        valid = c == '-';
+      } else {
+        valid = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z');
+      }
     }
     return valid;
   }

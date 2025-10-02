@@ -23,10 +23,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -744,5 +741,13 @@ public class CORSHandlerTest extends WebTestBase {
     router.route().handler(CorsHandler.create().addOrigin("*"));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "chrome-extension://gmbgaklkmjakoegficnlkhebmhkjfich"), resp -> checkHeaders(resp, "*", null, null, null), 200, "OK", null);
+  }
+
+  @Test
+  public void testAcceptMozExtensionOrigin() throws Exception {
+    router.route().handler(CorsHandler.create().addOriginWithRegex("moz-extension://.*"));
+    router.route().handler(context -> context.response().end());
+    String origin = "moz-extension://" + UUID.randomUUID();
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", origin), resp -> checkHeaders(resp, origin, null, null, null), 200, "OK", null);
   }
 }
