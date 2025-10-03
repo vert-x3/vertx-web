@@ -233,6 +233,17 @@ public class CorsHandlerImpl implements CorsHandler {
           .end();
 
       } else {
+        // Origin correct and not a pre-flight request
+
+        // in this case, we to verify the method, if it is not allowed we return a 403
+        if (!allowedMethods.isEmpty() && !allowedMethods.contains(request.method().name())) {
+          response
+            .setStatusMessage("CORS Rejected - Method not allowed");
+          context
+            .fail(403, new VertxException("CORS Rejected - Method not allowed", true));
+          return;
+        }
+
         // when it is possible to determine if only one origin is allowed, we can skip this extra caching header
         // If allow credentials is set, the response cannot be '*' thus we need to vary on origin
         if (!(starOrigin() && !allowCredentials) && !uniqueOrigin()) {
