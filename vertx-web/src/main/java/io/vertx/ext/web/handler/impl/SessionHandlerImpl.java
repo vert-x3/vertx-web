@@ -16,7 +16,10 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.*;
+import io.vertx.core.Completable;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.http.HttpServerRequest;
@@ -199,15 +202,19 @@ public class SessionHandlerImpl implements SessionHandler {
             session.setAccessed();
           } else {
             // the session cookie needs to be updated to the new id
-            final Cookie cookie = sessionCookie(context, session);
+            final Cookie cookie = requestSessionCookie(context);
             // restore defaults
             session.setAccessed();
-            String cookieValue = session.value();
-            if (Objects.nonNull(signature)) {
-              cookieValue = signature.sign(cookieValue);
+            if (cookie != null) {
+              String cookieValue = session.value();
+              if (Objects.nonNull(signature)) {
+                cookieValue = signature.sign(cookieValue);
+              }
+              cookie.setValue(cookieValue);
+              setCookieProperties(cookie, false);
+            } else {
+              sessionCookie(context, session.value());
             }
-            cookie.setValue(cookieValue);
-            setCookieProperties(cookie, false);
           }
 
           // we must invalidate the old id
@@ -225,7 +232,9 @@ public class SessionHandlerImpl implements SessionHandler {
         } else if (!lazySession || sessionUsed) {
           if (!cookieless) {
             // if lazy mode activated, no need to store the session nor to create the session cookie if not used.
-            sessionCookie(context, session);
+            if (requestSessionCookie(context) == null) {
+              sessionCookie(context, session.value());
+            }
           }
           session.setAccessed();
           return sessionStore.put(session)
@@ -400,11 +409,7 @@ public class SessionHandlerImpl implements SessionHandler {
         return path.substring(s, e);
       }
     } else {
-      // only pick the first cookie, when multiple sessions are used:
-      // https://www.rfc-editor.org/rfc/rfc6265#section-5.4
-      // The user agent SHOULD sort the cookie-list in the following order:
-      // Cookies with longer paths are listed before cookies with shorter paths.
-      Cookie cookie = context.request().getCookie(sessionCookieName);
+      Cookie cookie = requestSessionCookie(context);
       if (cookie != null) {
         // Look up sessionId
         if (Objects.nonNull(signature)) {
@@ -475,22 +480,22 @@ public class SessionHandlerImpl implements SessionHandler {
     addStoreSessionHandler(context);
   }
 
-  private Cookie sessionCookie(final RoutingContext context, final Session session) {
-    // only pick the first cookie, when multiple sessions are used:
-    // https://www.rfc-editor.org/rfc/rfc6265#section-5.4
-    // The user agent SHOULD sort the cookie-list in the following order:
-    // Cookies with longer paths are listed before cookies with shorter paths.
-    Cookie cookie = context.request().getCookie(sessionCookieName);
-    if (cookie != null) {
-      return cookie;
-    }
-    String cookieValue = session.value();
+  /**
+   * only pick the first cookie, when multiple sessions are used:
+   * https://www.rfc-editor.org/rfc/rfc6265#section-5.4
+   * The user agent SHOULD sort the cookie-list in the following order:
+   * Cookies with longer paths are listed before cookies with shorter paths.
+   */
+  private Cookie requestSessionCookie(final RoutingContext context) {
+    return context.request().getCookie(sessionCookieName);
+  }
+
+  private void sessionCookie(final RoutingContext context, String cookieValue) {
     if (Objects.nonNull(signature)) {
       cookieValue = signature.sign(cookieValue);
     }
-    cookie = Cookie.cookie(sessionCookieName, cookieValue);
+    Cookie cookie = Cookie.cookie(sessionCookieName, cookieValue);
     setCookieProperties(cookie, false);
     context.response().addCookie(cookie);
-    return cookie;
   }
 }
