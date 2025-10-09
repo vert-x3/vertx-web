@@ -20,7 +20,7 @@ jobs:
         jdk: [8]
         include:
           - os: ubuntu-latest
-            jdk: 17
+            jdk: 25
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
