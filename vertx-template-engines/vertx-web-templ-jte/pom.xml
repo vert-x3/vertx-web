@@ -49,8 +49,8 @@
          <toolchain>
            <type>jdk</type>
            <provides>
-             <id>Java17</id>
-             <version>17</version>
+             <id>Java25</id>
+             <version>25</version>
            </provides>
            <configuration>
              <jdkHome>/PATH/TO/JDK/17</jdkHome>
@@ -81,7 +81,7 @@
             <configuration>
               <toolchains>
                 <jdk>
-                  <version>21</version>
+                  <version>25</version>
                 </jdk>
               </toolchains>
             </configuration>

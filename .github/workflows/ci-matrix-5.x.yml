@@ -13,7 +13,7 @@ jobs:
           - os: ubuntu-latest
             jdk: 11
           - os: ubuntu-latest
-            jdk: 21
+            jdk: 25
           - os: windows-latest
             jdk: 11
     uses: ./.github/workflows/ci.yml

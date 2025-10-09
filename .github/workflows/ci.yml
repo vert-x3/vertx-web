@@ -26,7 +26,7 @@ jobs:
           java-version: |
             8
             11
-            21
+            25
           distribution: temurin
       - name: Set JAVA_HOME
         run: echo "JAVA_HOME=$JAVA_HOME_${{ inputs.jdk }}_X64" >> $GITHUB_ENV

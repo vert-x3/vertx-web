@@ -21,7 +21,7 @@
 
   <properties>
     <pac4j.version>1.6.0</pac4j.version>
-    <mockito.version>5.13.0</mockito.version>
+    <mockito.version>5.20.0</mockito.version>
     <!-- When changing this version, make sure to update vertx-infinispan for dependency convergence -->
     <caffeine.version>3.2.1</caffeine.version>
   </properties>
