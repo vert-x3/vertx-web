@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: |
-            21
+            25
             ${{ inputs.jdk }}
           distribution: temurin
       - name: Get project version
