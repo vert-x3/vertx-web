@@ -163,6 +163,19 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
           currentRoute.handleFailure(this);
           return true;
         }
+
+        RouterImpl subRouter = (RouterImpl) currentRoute.getSubRouter();
+        if (subRouter != null) {
+          int statusCode = statusCode();
+          if (statusCode == -1) {
+            statusCode = failed ? 500 : matchFailure;
+          }
+          Handler<RoutingContext> errorHandler = subRouter.getErrorHandlerByStatusCode(statusCode);
+          if (errorHandler != null) {
+            errorHandler.handle(this);
+            return true;
+          }
+        }
       } catch (Throwable t) {
         handleInHandlerRuntimeFailure(currentRoute.getRouter(), failed, t);
         return true;
