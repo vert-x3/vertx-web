@@ -29,6 +29,7 @@ import io.vertx.ext.web.handler.FileSystemAccess;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.impl.Utils;
+import io.vertx.test.core.Repeat;
 import org.junit.Test;
 
 import java.io.File;
@@ -272,21 +273,26 @@ public class StaticHandlerTest extends WebTestBase {
         .setUseAlpn(true)
         .setSsl(true)
       .setKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")));
-    awaitFuture(server.requestHandler(router).listen(8443));
+    server
+      .requestHandler(router)
+      .listen(8443)
+      .await();
 
     client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
-      .onComplete(onSuccess(req -> {
-        req.pushHandler(pushedReq -> pushedReq.response().onComplete(onSuccess(pushedResp -> {
-            assertNotNull(pushedResp);
-            pushedResp.bodyHandler(this::assertNotNull);
-            complete();
-          })))
-          .send().onComplete(onSuccess(resp -> {
-            assertEquals(200, resp.statusCode());
-            assertEquals(HttpVersion.HTTP_2, resp.version());
-            resp.bodyHandler(this::assertNotNull);
-          }));
-      }));
+      .compose(req ->
+        req.pushHandler(push -> {
+            assertNotNull(push);
+            push.response().onComplete(onSuccess(resp -> {
+              resp.body().onComplete(onSuccess(body -> {
+                assertTrue(body.length() > 0);
+                complete();
+              }));
+            }));
+        }).send()
+          .expecting(HttpResponseExpectation.SC_OK)
+          .expecting(resp -> resp.version() == HttpVersion.HTTP_2)
+          .compose(HttpClientResponse::body)
+      ).await();
 
     await();
   }
