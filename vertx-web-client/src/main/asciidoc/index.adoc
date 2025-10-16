@@ -372,6 +372,21 @@ that decode the response to a specific type
 
 WARNING: this is only valid for the response decoded as a buffer.
 
+=== Server-Sent Events
+
+Using a specific body codec: {@link io.vertx.ext.web.codec.sse.SseBodyCodec}, you can decode a Server-Sent Events stream into a list of events:
+
+[source,$lang]
+----
+client.get("/eventsource").as(SseBodyCodec.sseStream(stream -> {
+      stream.handler(event -> //process the event);
+      stream.endHandler(v -> {
+        async.complete();
+      });
+    })).send();
+----
+
+
 [[http-response-expectations]]
 === Response expectations
 

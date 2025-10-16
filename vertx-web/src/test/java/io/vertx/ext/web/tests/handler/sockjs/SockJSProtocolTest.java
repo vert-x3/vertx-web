@@ -55,15 +55,16 @@ public class SockJSProtocolTest {
   private static Vertx vertx;
   private static HttpServer server;
 
-    public static boolean isDockerAvailable() {
-        try {
-            DockerClientFactory.instance().client();
-            return true;
-        } catch (Throwable ex) {
-            ex.printStackTrace();
-            return false;
-        }
+  public static boolean isDockerAvailable() {
+    try {
+      DockerClientFactory.instance().client();
+      return true;
+    } catch (Throwable ex) {
+      ex.printStackTrace();
+      return false;
     }
+  }
+
   @BeforeClass
   public static void before() throws Exception {
     //Ignoring tests if docker is not configured
