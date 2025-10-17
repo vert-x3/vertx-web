@@ -18,6 +18,7 @@ package examples;
 
 import io.vertx.core.Expectation;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -42,7 +43,6 @@ import io.vertx.uritemplate.ExpandOptions;
 import io.vertx.uritemplate.UriTemplate;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -760,5 +760,45 @@ public class WebClientExamples {
       });
 
     server.listen(servicePort);
+  }
+
+  public static void receiveResponseAsServerSentEvents(Vertx vertx, int servicePort) {
+    WebClient client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(servicePort).setDefaultHost("localhost"));
+
+    HttpServer server = vertx.createHttpServer()
+        .requestHandler(req -> {
+          req.response().setChunked(true);
+          // set headers
+          req.response().headers().add("Content-Type", "text/event-stream;charset=UTF-8");
+          req.response().headers().add("Connection", "keep-alive");
+          req.response().headers().add("Cache-Control", "no-cache");
+          req.response().headers().add("Access-Control-Allow-Origin", "*");
+          int count = Integer.parseInt(req.getParam("count"));
+          vertx.setPeriodic(50, new Handler<Long>() {
+            private int index = 0;
+
+            @Override
+            public void handle(Long timerId) {
+              if (index < count) {
+                String event = String.format("event: event%d\ndata: data%d\nid: %d\n\n", index, index, index);
+                index++;
+                req.response().write(event);
+              } else {
+                vertx.cancelTimer(timerId);
+                req.response().end();
+              }
+            }
+          });
+        });
+    server.listen(servicePort);
+
+    client.get("/basic?count=5").as(BodyCodec.sseStream(stream -> {
+      stream.handler(v -> System.out.println("Event received " + v));
+      stream.endHandler(v ->  System.out.println("End of stream " + v));
+      })).send().expecting(HttpResponseExpectation.SC_OK)
+          .onSuccess(res ->
+            System.out.println("Received response with status code" + res.statusCode()))
+          .onFailure(err ->
+            System.out.println("Something went wrong " + err.getMessage()));
   }
 }

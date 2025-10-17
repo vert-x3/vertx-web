@@ -13,19 +13,13 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-module io.vertx.web.common {
-
-  requires static io.vertx.docgen;
-  requires static io.vertx.codegen.api;
-  requires static io.vertx.codegen.json;
-
+open module io.vertx.web.common.tests {
+  requires static org.hamcrest;
+  requires io.netty.codec;
+  requires io.netty.codec.http;
   requires io.vertx.core;
-
-  exports io.vertx.ext.web.common;
-  exports io.vertx.ext.web.common.template;
-  exports io.vertx.ext.web.codec;
-  exports io.vertx.ext.web.codec.spi;
-  exports io.vertx.ext.web.multipart;
-
-  exports io.vertx.ext.web.codec.impl to io.vertx.web.client, io.vertx.web.common.tests;
+  requires io.vertx.web.common;
+  requires io.vertx.core.tests;
+  requires io.vertx.testing.unit;
+  requires junit;
 }
