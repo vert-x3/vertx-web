@@ -38,15 +38,11 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
-import io.vertx.ext.web.codec.sse.SseBodyCodec;
-import io.vertx.ext.web.codec.sse.SseEvent;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.uritemplate.ExpandOptions;
 import io.vertx.uritemplate.UriTemplate;
-import java.util.ArrayList;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -766,7 +762,7 @@ public class WebClientExamples {
     server.listen(servicePort);
   }
 
-  public static void receiveServerSideEvents(Vertx vertx, int servicePort) {
+  public static void receiveResponseAsServerSentEvents(Vertx vertx, int servicePort) {
     WebClient client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(servicePort).setDefaultHost("localhost"));
 
     HttpServer server = vertx.createHttpServer()
@@ -795,9 +791,9 @@ public class WebClientExamples {
           });
         });
     server.listen(servicePort);
-    final List<SseEvent> events = new ArrayList<>();
-    client.get("/basic?count=5").as(SseBodyCodec.sseStream(stream -> {
-      stream.handler(events::add);
+
+    client.get("/basic?count=5").as(BodyCodec.sseStream(stream -> {
+      stream.handler(v -> System.out.println("Event received " + v));
       stream.endHandler(v ->  System.out.println("End of stream " + v));
       })).send().expecting(HttpResponseExpectation.SC_OK)
           .onSuccess(res ->

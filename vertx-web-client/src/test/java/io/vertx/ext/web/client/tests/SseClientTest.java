@@ -8,8 +8,8 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.ext.web.codec.sse.SseBodyCodec;
-import io.vertx.ext.web.codec.sse.SseEvent;
+import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.ext.web.codec.SseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -120,7 +120,7 @@ public class SseClientTest {
     Async async = tc.async();
     final List<SseEvent> events = new ArrayList<>();
 
-    client.get("/basic?count=5").as(SseBodyCodec.sseStream(stream -> {
+    client.get("/basic?count=5").as(BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
       stream.endHandler(v -> {
         tc.assertEquals(5, events.size());
@@ -139,7 +139,7 @@ public class SseClientTest {
     Async async = tc.async();
     final List<SseEvent> events = new ArrayList<>();
 
-    client.get("/multiline-data").as(SseBodyCodec.sseStream(stream -> {
+    client.get("/multiline-data").as(BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
       stream.endHandler(v -> {
         tc.assertEquals(1, events.size());
@@ -157,7 +157,7 @@ public class SseClientTest {
     Async async = tc.async();
     final List<SseEvent> events = new ArrayList<>();
 
-    client.get("/comments").as(SseBodyCodec.sseStream(stream -> {
+    client.get("/comments").as(BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
       stream.endHandler(v -> {
         tc.assertEquals(1, events.size());
@@ -172,7 +172,7 @@ public class SseClientTest {
     Async async = tc.async();
     final List<SseEvent> events = new ArrayList<>();
 
-    client.get("/retry").as(SseBodyCodec.sseStream(stream -> {
+    client.get("/retry").as(BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
       stream.endHandler(v -> {
         tc.assertEquals(1, events.size());
@@ -188,7 +188,7 @@ public class SseClientTest {
     Async async = tc.async();
     final List<SseEvent> events = new ArrayList<>();
 
-    client.get("/no-event-type").as(SseBodyCodec.sseStream(stream -> {
+    client.get("/no-event-type").as(BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
       stream.endHandler(v -> {
         tc.assertEquals(1, events.size());
@@ -206,7 +206,7 @@ public class SseClientTest {
     Async async = tc.async();
     final List<SseEvent> events = new ArrayList<>();
 
-    client.get("/burst?count=100").as(SseBodyCodec.sseStream(stream -> {
+    client.get("/burst?count=100").as(BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
       stream.endHandler(v -> {
         tc.assertEquals(100, events.size());
@@ -224,7 +224,7 @@ public class SseClientTest {
     final List<SseEvent> events = new ArrayList<>();
     final AtomicInteger pauseCount = new AtomicInteger(0);
 
-    client.get("/basic?count=10").as(SseBodyCodec.sseStream(stream -> {
+    client.get("/basic?count=10").as(BodyCodec.sseStream(stream -> {
       stream.handler(event -> {
         events.add(event);
         // Pause after every 3 events
@@ -249,7 +249,7 @@ public class SseClientTest {
     final List<SseEvent> events = new ArrayList<>();
     final AtomicInteger fetchCount = new AtomicInteger(0);
 
-    client.get("/basic?count=10").as(SseBodyCodec.sseStream(stream -> {
+    client.get("/basic?count=10").as(BodyCodec.sseStream(stream -> {
       stream.pause(); // Start paused
       stream.handler(event -> {
         events.add(event);
@@ -279,7 +279,7 @@ public class SseClientTest {
     final List<SseEvent> events = new ArrayList<>();
     final List<Long> timestamps = new ArrayList<>();
 
-    client.get("/slow?count=5").as(SseBodyCodec.sseStream(stream -> {
+    client.get("/slow?count=5").as(BodyCodec.sseStream(stream -> {
       stream.handler(event -> {
         timestamps.add(System.currentTimeMillis());
         events.add(event);
@@ -304,7 +304,7 @@ public class SseClientTest {
     Async async = tc.async();
     final List<Throwable> exceptions = new ArrayList<>();
 
-    client.get("/invalid-retry").as(SseBodyCodec.sseStream(stream -> {
+    client.get("/invalid-retry").as(BodyCodec.sseStream(stream -> {
       stream.handler(event -> {
         // This might or might not be called depending on when the parser fails
       });

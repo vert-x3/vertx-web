@@ -1,4 +1,4 @@
-package io.vertx.ext.web.codec.sse;
+package io.vertx.ext.web.codec.impl;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Future;
@@ -6,17 +6,19 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
+import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.ext.web.codec.SseEvent;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A codec for processing and decoding Server Sent Event from streaming HTTP body content .
  */
-public class SseBodyCodecImpl implements SseBodyCodec<Void> {
+public class SseBodyCodec implements BodyCodec<Void> {
 
   private final Handler<ReadStream<SseEvent>> handler;
 
-  SseBodyCodecImpl(Handler<ReadStream<SseEvent>> handler) {
+  public SseBodyCodec(Handler<ReadStream<SseEvent>> handler) {
     this.handler = handler;
   }
 
@@ -78,7 +80,7 @@ public class SseBodyCodecImpl implements SseBodyCodec<Void> {
     }
 
     SseEvent nextSseEvent() {
-      SseEvent.Builder eventBuilder = SseEvent.builder();
+      SseEventBuilder eventBuilder = new SseEventBuilder();
       int lineStart = 0;
       byte[] bytes = content.getBytes();
 
@@ -201,6 +203,84 @@ public class SseBodyCodecImpl implements SseBodyCodec<Void> {
     @Override
     public WriteStream<Buffer> setWriteQueueMaxSize(int i) {
       return this;
+    }
+  }
+
+  private static class SseEventBuilder {
+
+    private String id;
+    private String event = "message";
+    private StringBuilder data = new StringBuilder();
+    private int retry;
+
+    SseEventBuilder id(String id) {
+      this.id = id;
+      return this;
+    }
+
+    SseEventBuilder event(String event) {
+      this.event = event;
+      return this;
+    }
+
+    SseEventBuilder data(String data) {
+      this.data.append(data);
+      return this;
+    }
+
+    SseEventBuilder retry(int retry) {
+      this.retry = retry;
+      return this;
+    }
+
+    void parseLine(String line) {
+      int colonIndex = line.indexOf(':');
+      if (colonIndex == 0) {
+        return;
+      }
+      if (colonIndex == -1) {
+        processField(line, "");
+        return;
+      }
+      String field = line.substring(0, colonIndex);
+      String value = line.substring(colonIndex + 1);
+      // Remove leading space from value if present (SSE spec)
+      if (value.startsWith(" ")) {
+        value = value.substring(1);
+      }
+      processField(field, value);
+    }
+
+    private void processField(String field, String value) {
+      // Field names must be compared literally, with no case folding performed.
+      switch (field) {
+        case "event":
+          event(value);
+          break;
+        case "data":
+          data(value);
+          break;
+        case "id":
+          id(value);
+          break;
+        case "retry":
+          // If the field value consists of only ASCII digits, then interpret the field value as an
+          // integer in base ten, and set the event stream's reconnection time to that integer.
+          // Otherwise, ignore the field.
+          try {
+            retry(Integer.parseInt(value));
+          } catch (NumberFormatException ex) {
+            throw new RuntimeException("Invalid \"retry\" value:" + value, ex);
+          }
+          break;
+        default:
+          // Ignore unknown fields as per SSE spec
+          break;
+      }
+    }
+
+    public SseEvent build() {
+      return new SseEvent(this.id, this.event, this.data.toString(), this.retry);
     }
   }
 }

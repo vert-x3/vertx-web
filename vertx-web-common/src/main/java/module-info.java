@@ -24,9 +24,8 @@ module io.vertx.web.common {
   exports io.vertx.ext.web.common;
   exports io.vertx.ext.web.common.template;
   exports io.vertx.ext.web.codec;
-  exports io.vertx.ext.web.codec.sse;
   exports io.vertx.ext.web.codec.spi;
   exports io.vertx.ext.web.multipart;
 
-  exports io.vertx.ext.web.codec.impl to io.vertx.web.client;
+  exports io.vertx.ext.web.codec.impl to io.vertx.web.client, io.vertx.web.common.tests;
 }

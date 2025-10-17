@@ -3,8 +3,7 @@ package io.vertx.ext.web.codec.tests.sse;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.codec.BodyCodec;
-import io.vertx.ext.web.codec.sse.SseBodyCodec;
-import io.vertx.ext.web.codec.sse.SseEvent;
+import io.vertx.ext.web.codec.SseEvent;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.test.core.VertxTestBase;
 import org.junit.Test;
@@ -19,7 +18,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testBasicEventParsing() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
@@ -50,7 +49,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testMultipleEvents() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
@@ -80,7 +79,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testRetryField() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
@@ -104,7 +103,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   @Test
   public void testInvalidRetryField() {
     AtomicReference<Throwable> caught = new AtomicReference<>();
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(evt -> fail("Should not receive event"));
       stream.exceptionHandler(err -> {
         caught.set(err);
@@ -129,7 +128,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testCommentLines() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
@@ -154,7 +153,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testFieldWithoutColon() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
@@ -180,7 +179,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testFieldWithLeadingSpace() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
@@ -205,7 +204,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testMultipleDataFields() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
@@ -230,7 +229,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testUnknownFieldsIgnored() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
@@ -255,7 +254,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testBackpressure() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
@@ -286,7 +285,7 @@ public class SseBodyCodecTest extends VertxTestBase {
     List<SseEvent> events = new ArrayList<>();
     AtomicReference<Boolean> endCalled = new AtomicReference<>(false);
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
       stream.endHandler(v -> endCalled.set(true));
     });
@@ -316,7 +315,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testEndWithPendingData() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
@@ -346,7 +345,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testCarriageReturnLineSeparator() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
@@ -371,7 +370,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testWriteQueueMethods() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
@@ -396,7 +395,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testExceptionHandler() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
@@ -420,7 +419,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testResultFuture() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
@@ -442,7 +441,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testPauseResume() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.pause();
       stream.handler(events::add);
     });
@@ -468,7 +467,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testFetch() {
     List<SseEvent> events = new ArrayList<>();
 
-    BodyCodec<Void> codec = SseBodyCodec.sseStream(stream -> {
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.pause();
       stream.handler(events::add);
       stream.fetch(1);
