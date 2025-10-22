@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 
 import static io.vertx.core.http.HttpHeaders.ACCEPT_ENCODING;
+import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 
@@ -713,11 +714,18 @@ public class StaticHandlerTest extends WebTestBase {
 
     stat.setDirectoryListing(true);
 
-    testDirectoryListingHtmlCustomTemplate(
-      "META-INF/vertx/web/vertx-web-directory.html",
-      "/dirxss/",
-      "<a href=\"/\">..</a>",
-      "<ul id=\"files\"><li><a href=\"/dirxss/%3Cimg%20src=x%20onerror=alert('XSS-FILE')%3E.txt\" title=\"&#60;img src=x onerror=alert(&#39;XSS-FILE&#39;)&#62;.txt\">&#60;img src=x onerror=alert(&#39;XSS-FILE&#39;)&#62;.txt</a></li></ul>");
+    try {
+      testDirectoryListingHtmlCustomTemplate(
+        "META-INF/vertx/web/vertx-web-directory.html",
+        "/dirxss/",
+        "<a href=\"/\">..</a>",
+        "<ul id=\"files\"><li><a href=\"/dirxss/%3Cimg%20src=x%20onerror=alert('XSS-FILE')%3E.txt\" title=\"&#60;img src=x onerror=alert(&#39;XSS-FILE&#39;)&#62;.txt\">&#60;img src=x onerror=alert(&#39;XSS-FILE&#39;)&#62;.txt</a></li></ul>");
+    } finally {
+      try (var pathStream = Files.walk(testDir.toPath())) {
+        pathStream.sorted(reverseOrder()).map(Path::toFile).forEach(File::delete);
+      }
+      assertFalse(testDir.exists());
+    }
   }
 
   private void testDirectoryListingHtmlCustomTemplate(String dirTemplateFile, String path, String parentLink, String files) throws Exception {
