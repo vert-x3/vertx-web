@@ -38,6 +38,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -64,7 +65,11 @@ public class StaticHandlerTest extends WebTestBase {
     if (webRootUrl == null) {
       throw new AssertionError("webRootUrl is null");
     }
-    webRootSrc = Paths.get(webRootUrl.getPath());
+    try {
+      webRootSrc = Paths.get(webRootUrl.toURI());
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private Path webRootTarget;
