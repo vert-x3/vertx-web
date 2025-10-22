@@ -39,6 +39,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 import static io.vertx.core.http.HttpHeaders.ACCEPT_ENCODING;
 import static java.util.Comparator.reverseOrder;
@@ -684,7 +685,7 @@ public class StaticHandlerTest extends WebTestBase {
         "<a href=\"/\">..</a>",
         "<ul id=\"files\"><li><a href=\"/dirxss/%3Cimg%20src=x%20onerror=alert('XSS-FILE')%3E.txt\" title=\"&#60;img src=x onerror=alert(&#39;XSS-FILE&#39;)&#62;.txt\">&#60;img src=x onerror=alert(&#39;XSS-FILE&#39;)&#62;.txt</a></li></ul>");
     } finally {
-      try (var pathStream = Files.walk(testDir.toPath())) {
+      try (Stream<Path> pathStream = Files.walk(testDir.toPath())) {
         pathStream.sorted(reverseOrder()).map(Path::toFile).forEach(File::delete);
       }
       assertFalse(testDir.exists());
