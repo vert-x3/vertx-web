@@ -37,10 +37,12 @@ import org.junit.Assume;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -48,7 +50,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 
 import static io.vertx.core.http.HttpHeaders.ACCEPT_ENCODING;
-import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 
@@ -57,13 +58,73 @@ import static java.util.stream.Collectors.toList;
  */
 public class StaticHandlerTest extends WebTestBase {
 
+  private static final Path webRootSrc;
+
+  static {
+    URL webRootUrl = StaticHandlerTest.class.getClassLoader().getResource("webroot");
+    if (webRootUrl == null) {
+      throw new AssertionError("webRootUrl is null");
+    }
+    try {
+      webRootSrc = Paths.get(webRootUrl.toURI());
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private Path webRootTarget;
+
   protected StaticHandler stat;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    stat = StaticHandler.create();
+    webRootTarget = Files.createTempDirectory(webRootSrc.getParent(), "webroot");
+    copyWebRootFiles();
+    stat = StaticHandler.create(webRootTarget.getFileName().toString());
     router.route().handler(stat);
+  }
+
+  private void copyWebRootFiles() throws IOException {
+    Files.walkFileTree(webRootSrc, new SimpleFileVisitor<>() {
+      @Override
+      public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+        Path resolved = webRootTarget.resolve(webRootSrc.relativize(dir));
+        if (Files.notExists(resolved)) {
+          Files.createDirectories(resolved);
+        }
+        return FileVisitResult.CONTINUE;
+      }
+
+      @Override
+      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        Path resolved = webRootTarget.resolve(webRootSrc.relativize(file));
+        Files.copy(file, resolved, StandardCopyOption.REPLACE_EXISTING);
+        return FileVisitResult.CONTINUE;
+      }
+    });
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    super.tearDown();
+    deleteWebRootFiles();
+  }
+
+  private void deleteWebRootFiles() throws IOException {
+    Files.walkFileTree(webRootTarget, new SimpleFileVisitor<>() {
+      @Override
+      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        Files.delete(file);
+        return FileVisitResult.CONTINUE;
+      }
+
+      @Override
+      public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+        Files.delete(dir);
+        return FileVisitResult.CONTINUE;
+      }
+    });
   }
 
   @Test
@@ -712,27 +773,19 @@ public class StaticHandlerTest extends WebTestBase {
   public void testCustomDirectoryListingHtmlEscaping() throws Exception {
     Assume.assumeFalse(PlatformDependent.isWindows());
 
-    File testDir = new File("target/test-classes/webroot/dirxss");
-    Files.createDirectories(testDir.toPath());
-    File dangerousFile = new File(testDir, "<img src=x onerror=alert('XSS-FILE')>.txt");
-    Path dangerousFilePath = dangerousFile.toPath();
-    Files.deleteIfExists(dangerousFilePath);
-    Files.createFile(dangerousFilePath);
+    Path testDir = webRootTarget.resolve("dirxss");
+    Files.createDirectories(testDir);
+    Path dangerousFile = testDir.resolve("<img src=x onerror=alert('XSS-FILE')>.txt");
+    Files.deleteIfExists(dangerousFile);
+    Files.createFile(dangerousFile);
 
     stat.setDirectoryListing(true);
 
-    try {
-      testDirectoryListingHtmlCustomTemplate(
-        "META-INF/vertx/web/vertx-web-directory.html",
-        "/dirxss/",
-        "<a href=\"/\">..</a>",
-        "<ul id=\"files\"><li><a href=\"/dirxss/%3Cimg%20src=x%20onerror=alert('XSS-FILE')%3E.txt\" title=\"&#60;img src=x onerror=alert(&#39;XSS-FILE&#39;)&#62;.txt\">&#60;img src=x onerror=alert(&#39;XSS-FILE&#39;)&#62;.txt</a></li></ul>");
-    } finally {
-      try (var pathStream = Files.walk(testDir.toPath())) {
-        pathStream.sorted(reverseOrder()).map(Path::toFile).forEach(File::delete);
-      }
-      assertFalse(testDir.exists());
-    }
+    testDirectoryListingHtmlCustomTemplate(
+      "META-INF/vertx/web/vertx-web-directory.html",
+      "/dirxss/",
+      "<a href=\"/\">..</a>",
+      "<ul id=\"files\"><li><a href=\"/dirxss/%3Cimg%20src=x%20onerror=alert('XSS-FILE')%3E.txt\" title=\"&#60;img src=x onerror=alert(&#39;XSS-FILE&#39;)&#62;.txt\">&#60;img src=x onerror=alert(&#39;XSS-FILE&#39;)&#62;.txt</a></li></ul>");
   }
 
   private void testDirectoryListingHtmlCustomTemplate(String dirTemplateFile, String path, String parentLink, String files) throws Exception {
@@ -1002,10 +1055,11 @@ public class StaticHandlerTest extends WebTestBase {
     URL url = tmp.toURI().toURL();
     Files.write(tmp.toPath(), "hello".getBytes(StandardCharsets.UTF_8));
     AtomicBoolean used = new AtomicBoolean();
+    String expectedResourceName = webRootTarget.getFileName().toString() + "/index.html";
     ClassLoader classLoader = new ClassLoader(Thread.currentThread().getContextClassLoader()) {
       @Override
       public URL getResource(String name) {
-        if (name.equals("webroot/index.html")) {
+        if (expectedResourceName.equals(name)) {
           used.set(true);
           return url;
         }
