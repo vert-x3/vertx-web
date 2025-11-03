@@ -162,7 +162,8 @@ public interface HttpRequest<T> {
   HttpRequest<T> uri(String value);
 
   /**
-   * @return the request uri or {@code null} when none is set for absolute URI templates
+   * @return the request uri or {@code null} when none is set for absolute URI templates, when the request
+   * uri is a template, the template is extrapolated tolerating missing variables.
    */
   String uri();
 
