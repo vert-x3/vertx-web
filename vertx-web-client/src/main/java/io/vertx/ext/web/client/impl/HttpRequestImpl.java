@@ -35,6 +35,7 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
+import io.vertx.uritemplate.ExpandOptions;
 import io.vertx.uritemplate.UriTemplate;
 import io.vertx.uritemplate.Variables;
 
@@ -47,6 +48,8 @@ import java.util.*;
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 public class HttpRequestImpl<T> implements HttpRequest<T> {
+
+  private static final ExpandOptions INTERNAL_EXPAND_OPTIONS = new ExpandOptions().setAllowVariableMiss(true);
 
   private final WebClientBase client;
   private ProxyOptions proxyOptions;
@@ -205,7 +208,14 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   public String uri() {
-    return uri.toString();
+    if (uri == null) {
+      return null;
+    } else if (uri instanceof UriTemplate) {
+      UriTemplate uriTemplate = (UriTemplate) uri;
+      return uriTemplate.expandToString(templateParams(), INTERNAL_EXPAND_OPTIONS);
+    } else {
+      return uri.toString();
+    }
   }
 
   @Override
