@@ -73,10 +73,16 @@ public class UriTemplateTest extends WebClientTestBase {
     Map<String, String> query = new HashMap<>();
     query.put("color", "red");
     query.put("currency", EURO_SYMBOL);
-    testRequest(client -> client.request(HttpMethod.GET, UriTemplate.of("/{action}?username={username}{&query*}"))
-      .setTemplateParam("action", "info")
-      .setTemplateParam("username", "vietj")
-      .setTemplateParam("query", query), req -> {
+    testRequest(client -> {
+      HttpRequest<Buffer> request = client.request(HttpMethod.GET, UriTemplate.of("/{action}?username={username}{&query*}"))
+        .setTemplateParam("action", "info")
+        .setTemplateParam("query", query);
+      // Missing variable is accepted
+      assertEquals("/info?username=&color=red&currency=%E2%82%AC", request.uri());
+      request.setTemplateParam("username", "vietj");
+      assertEquals("/info?username=vietj&color=red&currency=%E2%82%AC", request.uri());
+      return request;
+    }, req -> {
       assertEquals("/info", req.path());
       assertEquals("vietj", req.getParam("username"));
       assertEquals("red", req.getParam("color"));
