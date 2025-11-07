@@ -29,6 +29,4 @@ public class AuthWithSessionsTest extends WebTestBase {
 
 
   }
-
-
 }

@@ -49,6 +49,7 @@ public class SockJSProtocolTest {
   private static Vertx vertx;
   private static HttpServer server;
 
+
   @BeforeClass
   public static void before() throws Exception {
     vertx = Vertx.vertx();
