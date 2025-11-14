@@ -42,7 +42,6 @@ import io.vertx.uritemplate.ExpandOptions;
 import io.vertx.uritemplate.UriTemplate;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -760,5 +759,17 @@ public class WebClientExamples {
       });
 
     server.listen(servicePort);
+  }
+
+  public static void receiveResponseAsServerSentEvents(Vertx vertx, int servicePort) {
+    WebClient client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(servicePort).setDefaultHost("localhost"));
+    client.get("/basic?count=5").as(BodyCodec.sseStream(stream -> {
+      stream.handler(v -> System.out.println("Event received " + v));
+      stream.endHandler(v ->  System.out.println("End of stream " + v));
+      })).send().expecting(HttpResponseExpectation.SC_OK)
+          .onSuccess(res ->
+            System.out.println("Received response with status code" + res.statusCode()))
+          .onFailure(err ->
+            System.out.println("Something went wrong " + err.getMessage()));
   }
 }
