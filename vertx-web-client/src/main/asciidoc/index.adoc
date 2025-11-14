@@ -371,6 +371,13 @@ that decode the response to a specific type
 
 WARNING: this is only valid for the response decoded as a buffer.
 
+=== Server-Sent Events
+
+Using a specific body codec: {@link io.vertx.ext.web.codec.impl.SseBodyCodec}, you can decode a Server-Sent Events stream into a list of events:
+[source,$lang]
+----
+{@link examples.WebClientExamples#receiveResponseAsServerSentEvents}
+----
 [[http-response-expectations]]
 === Response expectations
 
