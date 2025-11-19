@@ -504,44 +504,49 @@ public class WebClientTest extends WebClientTestBase {
     });
     Throwable cause = new Throwable();
     startServer();
-    post.sendStream(new ReadStream<Buffer>() {
-          @Override
-          public ReadStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
-            if (handler != null) {
-              done.thenAccept(v -> handler.handle(cause));
-            }
-            return this;
-          }
-          @Override
-          public ReadStream<Buffer> handler(Handler<Buffer> handler) {
-            if (handler != null) {
-              handler.handle(TestUtils.randomBuffer(1024));
-            }
-            return this;
-          }
-          @Override
-          public ReadStream<Buffer> fetch(long amount) {
-            return this;
-          }
-          @Override
-          public ReadStream<Buffer> pause() {
-            return this;
-          }
-          @Override
-          public ReadStream<Buffer> resume() {
-            return this;
-          }
-          @Override
-          public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
-            return this;
-          }
-        }).onComplete(onFailure(err -> {
-          if (err instanceof StreamResetException && cause == err.getCause()) {
-            complete();
-          } else {
-            fail(new Exception("Unexpected failure", err));
-          }
-        }));
+    post.sendStream(new ReadStream<>() {
+      @Override
+      public ReadStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
+        if (handler != null) {
+          done.thenAccept(v -> handler.handle(cause));
+        }
+        return this;
+      }
+
+      @Override
+      public ReadStream<Buffer> handler(Handler<Buffer> handler) {
+        if (handler != null) {
+          handler.handle(TestUtils.randomBuffer(1024));
+        }
+        return this;
+      }
+
+      @Override
+      public ReadStream<Buffer> fetch(long amount) {
+        return this;
+      }
+
+      @Override
+      public ReadStream<Buffer> pause() {
+        return this;
+      }
+
+      @Override
+      public ReadStream<Buffer> resume() {
+        return this;
+      }
+
+      @Override
+      public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
+        return this;
+      }
+    }).onComplete(onFailure(err -> {
+      if (cause == err) {
+        complete();
+      } else {
+        fail(new Exception("Unexpected failure", err));
+      }
+    }));
     await();
   }
 
@@ -556,13 +561,15 @@ public class WebClientTest extends WebClientTestBase {
     });
     Throwable cause = new Throwable();
     startServer();
-    post.sendStream(new ReadStream<Buffer>() {
+    post.sendStream(new ReadStream<>() {
       Handler<Throwable> exceptionHandler;
+
       @Override
       public ReadStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
         exceptionHandler = handler;
         return this;
       }
+
       @Override
       public ReadStream<Buffer> handler(Handler<Buffer> handler) {
         if (handler != null) {
@@ -573,25 +580,28 @@ public class WebClientTest extends WebClientTestBase {
         }
         return this;
       }
+
       @Override
       public ReadStream<Buffer> fetch(long amount) {
         return this;
       }
+
       @Override
       public ReadStream<Buffer> pause() {
         return this;
       }
+
       @Override
       public ReadStream<Buffer> resume() {
         return this;
       }
+
       @Override
       public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
         return this;
       }
     }).onComplete(onFailure(err -> {
-      assertEquals(StreamResetException.class, err.getClass());
-      assertSame(cause, err.getCause());
+      assertSame(cause, err);
       complete();
     }));
     await();
