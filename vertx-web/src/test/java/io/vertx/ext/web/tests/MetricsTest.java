@@ -1,7 +1,8 @@
 package io.vertx.ext.web.tests;
 
 import io.vertx.core.VertxOptions;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.metrics.MetricsOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.VertxMetricsFactory;
@@ -10,7 +11,10 @@ import io.vertx.core.spi.metrics.VertxMetrics;
 import io.vertx.core.spi.observability.HttpRequest;
 import io.vertx.core.spi.observability.HttpResponse;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.test.fakemetrics.*;
+import io.vertx.test.fakemetrics.FakeMetricsBase;
+import io.vertx.test.fakemetrics.HttpServerMetric;
+import io.vertx.test.fakemetrics.SocketMetric;
+import io.vertx.test.fakemetrics.WebSocketMetric;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -113,6 +117,11 @@ class FakeHttpServerMetrics extends FakeMetricsBase implements HttpServerMetrics
     assertEquals(4, seq.incrementAndGet());
     requestMetric.responseEnded.set(true);
     requestMetric.bytesWritten.set(bytesWritten);
+  }
+
+  @Override
+  public String type() {
+    return "tcp";
   }
 
   public SocketMetric connected(SocketAddress remoteAddress, String remoteName) {
