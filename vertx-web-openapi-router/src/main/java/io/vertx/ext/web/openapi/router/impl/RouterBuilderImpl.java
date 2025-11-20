@@ -147,9 +147,9 @@ public class RouterBuilderImpl implements RouterBuilderInternal {
           openAPIRoute.getFailureHandlers().forEach(route::failureHandler);
         } else {
           LOG.warn("No handlers found for operation " + operation.getOperationId() + " - skipping route creation");
-          // terminate the request with 503 (Not Implemented)
+          // terminate the request with 501 (Not Implemented)
           route
-            .handler(ctx -> ctx.response().setStatusCode(503).end());
+            .handler(ctx -> ctx.response().setStatusCode(501).end());
         }
       }
     }
