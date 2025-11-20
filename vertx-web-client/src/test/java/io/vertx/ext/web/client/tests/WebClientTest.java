@@ -13,7 +13,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.ClientSSLOptions;
 import io.vertx.core.net.NetServer;
 import io.vertx.core.net.ProxyOptions;
-import io.vertx.core.net.ProxyType;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.metrics.Metrics;
 import io.vertx.core.streams.Pipe;
@@ -33,8 +32,11 @@ import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakeresolver.FakeAddress;
 import io.vertx.test.fakeresolver.FakeEndpointResolver;
+import io.vertx.test.proxy.Proxy;
+import io.vertx.test.proxy.ProxyKind;
+import io.vertx.test.proxy.WithProxy;
 import io.vertx.test.tls.Cert;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -62,6 +64,9 @@ import static org.hamcrest.CoreMatchers.*;
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 public class WebClientTest extends WebClientTestBase {
+
+  @Rule
+  public Proxy proxy = new Proxy();
 
   @Test
   public void testDefaultHostAndPort() throws Exception {
@@ -283,9 +288,9 @@ public class WebClientTest extends WebClientTestBase {
   }
 
   @Test
+  @WithProxy(kind = ProxyKind.HTTP)
   public void testProxyPerRequest() throws Exception {
-    startProxy(null, ProxyType.HTTP);
-    proxy.setForceUri("http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT);
+    proxy.forceUri("http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT);
     server.requestHandler(req -> req.response().setStatusCode(200).end());
     startServer();
 
@@ -297,7 +302,7 @@ public class WebClientTest extends WebClientTestBase {
           // Obtain response
           HttpResponse<Buffer> response = ar.result();
           assertEquals(200, response.statusCode());
-          assertEquals("http://checkip.amazonaws.com/", proxy.getLastUri());
+          assertEquals("http://checkip.amazonaws.com/", proxy.lastUri());
           testComplete();
         } else {
           fail(ar.cause());
@@ -499,44 +504,49 @@ public class WebClientTest extends WebClientTestBase {
     });
     Throwable cause = new Throwable();
     startServer();
-    post.sendStream(new ReadStream<Buffer>() {
-          @Override
-          public ReadStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
-            if (handler != null) {
-              done.thenAccept(v -> handler.handle(cause));
-            }
-            return this;
-          }
-          @Override
-          public ReadStream<Buffer> handler(Handler<Buffer> handler) {
-            if (handler != null) {
-              handler.handle(TestUtils.randomBuffer(1024));
-            }
-            return this;
-          }
-          @Override
-          public ReadStream<Buffer> fetch(long amount) {
-            return this;
-          }
-          @Override
-          public ReadStream<Buffer> pause() {
-            return this;
-          }
-          @Override
-          public ReadStream<Buffer> resume() {
-            return this;
-          }
-          @Override
-          public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
-            return this;
-          }
-        }).onComplete(onFailure(err -> {
-          if (err instanceof StreamResetException && cause == err.getCause()) {
-            complete();
-          } else {
-            fail(new Exception("Unexpected failure", err));
-          }
-        }));
+    post.sendStream(new ReadStream<>() {
+      @Override
+      public ReadStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
+        if (handler != null) {
+          done.thenAccept(v -> handler.handle(cause));
+        }
+        return this;
+      }
+
+      @Override
+      public ReadStream<Buffer> handler(Handler<Buffer> handler) {
+        if (handler != null) {
+          handler.handle(TestUtils.randomBuffer(1024));
+        }
+        return this;
+      }
+
+      @Override
+      public ReadStream<Buffer> fetch(long amount) {
+        return this;
+      }
+
+      @Override
+      public ReadStream<Buffer> pause() {
+        return this;
+      }
+
+      @Override
+      public ReadStream<Buffer> resume() {
+        return this;
+      }
+
+      @Override
+      public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
+        return this;
+      }
+    }).onComplete(onFailure(err -> {
+      if (cause == err) {
+        complete();
+      } else {
+        fail(new Exception("Unexpected failure", err));
+      }
+    }));
     await();
   }
 
@@ -551,13 +561,15 @@ public class WebClientTest extends WebClientTestBase {
     });
     Throwable cause = new Throwable();
     startServer();
-    post.sendStream(new ReadStream<Buffer>() {
+    post.sendStream(new ReadStream<>() {
       Handler<Throwable> exceptionHandler;
+
       @Override
       public ReadStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
         exceptionHandler = handler;
         return this;
       }
+
       @Override
       public ReadStream<Buffer> handler(Handler<Buffer> handler) {
         if (handler != null) {
@@ -568,25 +580,28 @@ public class WebClientTest extends WebClientTestBase {
         }
         return this;
       }
+
       @Override
       public ReadStream<Buffer> fetch(long amount) {
         return this;
       }
+
       @Override
       public ReadStream<Buffer> pause() {
         return this;
       }
+
       @Override
       public ReadStream<Buffer> resume() {
         return this;
       }
+
       @Override
       public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
         return this;
       }
     }).onComplete(onFailure(err -> {
-      assertEquals(StreamResetException.class, err.getClass());
-      assertSame(cause, err.getCause());
+      assertSame(cause, err);
       complete();
     }));
     await();
@@ -1841,9 +1856,9 @@ public class WebClientTest extends WebClientTestBase {
   }
 
   @Test
+  @WithProxy(kind = ProxyKind.HTTP)
   public void testHttpProxyFtpRequest() throws Exception {
-    startProxy(null, ProxyType.HTTP);
-    proxy.setForceUri("http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT);
+    proxy.forceUri("http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT);
     server.requestHandler(req -> req.response().setStatusCode(200).end());
     startServer();
 
@@ -1857,7 +1872,7 @@ public class WebClientTest extends WebClientTestBase {
         // Obtain response
         HttpResponse<Buffer> response = ar.result();
         assertEquals(200, response.statusCode());
-        assertEquals("ftp://ftp.gnu.org/gnu/", proxy.getLastUri());
+        assertEquals("ftp://ftp.gnu.org/gnu/", proxy.lastUri());
         testComplete();
       } else {
         fail(ar.cause());
