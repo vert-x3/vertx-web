@@ -35,6 +35,8 @@ import java.util.function.Function;
 
 import static com.google.common.truth.Truth.assertThat;
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_IMPLEMENTED;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
 import static io.vertx.ext.web.openapi.router.RequestExtractor.withBodyHandler;
@@ -155,6 +157,86 @@ class RouterBuilderTest extends RouterBuilderTestBase {
             testContext.completeNow();
           }));
       })
+      .onFailure(testContext::failNow);
+  }
+
+  @Test
+  @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
+  void testRouterWithNoHandlerReturns501NotImplemented(VertxTestContext testContext) {
+    Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("v3.1").resolve("petstore.json");
+    createServer(pathDereferencedContract, rb -> {
+      // Intentionally do NOT add any handlers for the operations
+      // This will trigger the default behavior of returning 501 Not Implemented
+      return Future.succeededFuture(rb);
+    }).compose(v -> createRequest(GET, "/v1/pets").send())
+      .onSuccess(response -> testContext.verify(() -> {
+        assertThat(response.statusCode()).isEqualTo(NOT_IMPLEMENTED.code());
+        testContext.completeNow();
+      }))
+      .onFailure(testContext::failNow);
+  }
+
+  @Test
+  @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
+  void testRouterWithNoHandlersReturns501ForAllOperations(VertxTestContext testContext) {
+    Checkpoint cpAllOperations = testContext.checkpoint(3);
+
+    Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("v3.1").resolve("petstore.json");
+    createServer(pathDereferencedContract, rb -> Future.succeededFuture(rb))
+      .compose(v -> createRequest(GET, "/v1/pets").send())
+      .onSuccess(response -> testContext.verify(() -> {
+        assertThat(response.statusCode()).isEqualTo(NOT_IMPLEMENTED.code());
+        cpAllOperations.flag();
+      }))
+      .compose(v -> {
+        JsonObject bodyJson = new JsonObject().put("id", 1).put("name", "FooBar");
+        return createRequest(POST, "/v1/pets").sendJsonObject(bodyJson);
+      })
+      .onSuccess(response -> testContext.verify(() -> {
+        assertThat(response.statusCode()).isEqualTo(NOT_IMPLEMENTED.code());
+        cpAllOperations.flag();
+      }))
+      .compose(v -> createRequest(GET, "/v1/pets/123").send())
+      .onSuccess(response -> testContext.verify(() -> {
+        assertThat(response.statusCode()).isEqualTo(NOT_IMPLEMENTED.code());
+        cpAllOperations.flag();
+      }))
+      .onFailure(testContext::failNow);
+  }
+
+  @Test
+  @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
+  void testRouterWithPartialHandlersReturns501ForUnimplemented(VertxTestContext testContext) {
+    Checkpoint cpAllOperations = testContext.checkpoint(3);
+
+    Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("v3.1").resolve("petstore.json");
+    createServer(pathDereferencedContract, rb -> {
+      // Add handlers for only listPets and createPets operations but intentionally do NOT add handler for showPetById
+      rb.getRoute("listPets")
+        .setDoSecurity(false)
+        .addHandler(rc -> rc.response().setStatusCode(OK.code()).end("[]"));
+      rb.getRoute("createPets")
+        .setDoSecurity(false)
+        .addHandler(rc -> rc.response().setStatusCode(OK.code()).end());
+      return Future.succeededFuture(rb);
+    }).compose(v -> createRequest(GET, "/v1/pets").send())
+      .onSuccess(response -> testContext.verify(() -> {
+        assertThat(response.statusCode()).isEqualTo(OK.code());
+        cpAllOperations.flag();
+      }))
+      .compose(v -> {
+        JsonObject bodyJson = new JsonObject().put("id", 1).put("name", "FooBar");
+        return createRequest(POST, "/v1/pets").sendJsonObject(bodyJson);
+      })
+      .onSuccess(response -> testContext.verify(() -> {
+        assertThat(response.statusCode()).isEqualTo(OK.code());
+        cpAllOperations.flag();
+      }))
+      .compose(v -> createRequest(GET, "/v1/pets/123").send())
+      .onSuccess(response -> testContext.verify(() -> {
+        assertThat(response.statusCode()).isEqualTo(NOT_IMPLEMENTED.code());
+        cpAllOperations.flag();
+      }))
       .onFailure(testContext::failNow);
   }
 }
