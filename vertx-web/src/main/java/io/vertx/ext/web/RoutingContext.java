@@ -178,15 +178,25 @@ public interface RoutingContext {
   @Nullable Route currentRoute();
 
   /**
-   * Normalizes a path as per <a href="http://tools.ietf.org/html/rfc3986#section-5.2.4>rfc3986</a>.
+   * Returns the normalized path of the current request.
    * <p>
-   * There are 2 extra transformations that are not part of the spec but kept for backwards compatibility:
+   * Unlike {@link io.vertx.core.http.HttpServerRequest#path()}, which returns
+   * the <em>raw</em> path as sent by the client, this value is normalized for
+   * routing purposes. The normalization process:
+   * <ul>
+   *   <li>resolves dot-segments such as {@code ".."} and {@code "."},</li>
+   *   <li>collapses multiple {@code '/'} characters into a single slash,</li>
+   *   <li>ensures the path always starts with {@code '/'},</li>
+   *   <li>normalizes {@code null} paths to {@code "/"}</li>
+   * </ul>
    * <p>
-   * double slash // will be converted to single slash and the path will always start with slash.
-   * <p>
-   * Null paths are normalized to {@code /}.
+   * This is the value used internally by Vert.x Web when matching routes. For
+   * any security-sensitive checks or custom authorization logic, prefer using
+   * this normalized path instead of {@code request().path()}, as the raw path
+   * may still contain traversal-like sequences (e.g. {@code "/a/../b"}) that
+   * resolve to the same route.
    *
-   * @return normalized path
+   * @return the normalized path
    */
   String normalizedPath();
 
