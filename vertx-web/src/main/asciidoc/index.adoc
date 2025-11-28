@@ -167,6 +167,41 @@ to {@link io.vertx.ext.web.Router#handle}.
 
 So, that's the basics. Now we'll look at things in more detail:
 
+== Raw path vs normalized path
+
+When working with routes, it is important to understand that
+`HttpServerRequest#path()` returns the *raw* request path as it was
+sent by the client. This value may still contain segments such as
+`.` or `..`, or repeated `/` characters.
+
+Vert.x Web internally uses a *normalized* version of the path when
+matching routes. To obtain this normalized value inside a handler,
+use `RoutingContext#normalizedPath()`:
+
+[source,java]
+----
+router.route("/secured/*").handler(ctx -> {
+  // Raw path as sent by the client (may contain "..")
+  String raw = ctx.request().path();
+
+  // Normalized path as used by the router for matching
+  String normalized = ctx.normalizedPath();
+
+  // For security-sensitive checks, prefer the normalized path
+  if ("/secured/data".equals(normalized)) {
+    // ...
+  }
+});
+----
+
+[NOTE]
+====
+For logging or authorization decisions that depend on the request path,
+prefer `RoutingContext#normalizedPath()` instead of `HttpServerRequest#path()`,
+to avoid surprises with paths like `/secured/../secured/data`.
+====
+
+
 == Handling requests and calling the next handler
 
 When Vert.x-Web decides to route a request to a matching route, it calls the handler of the route passing in an instance
