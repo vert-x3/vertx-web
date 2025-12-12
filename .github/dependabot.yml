@@ -35,3 +35,9 @@ updates:
       - dependency-name: "com.graphql-java:graphql-java"
         update-types:
           - "version-update:semver-major"
+
+  - package-ecosystem: "npm"
+    directory: "/vertx-web-graphql/vertx-web-graphiql"
+    schedule:
+      interval: "monthly"
+      open-pull-requests-limit: 10
