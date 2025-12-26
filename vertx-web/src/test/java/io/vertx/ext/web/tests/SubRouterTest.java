@@ -23,6 +23,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import org.junit.Test;
 
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 /**
@@ -742,5 +743,49 @@ public class SubRouterTest extends WebTestBase {
     //                  /:foo -> OK
 
     testRequest(HttpMethod.GET, "/rest/product/123/bar", 200, "OK");
+  }
+
+  @Test
+  public void testSetExceptionHandler() throws Exception {
+    Router restRouter = Router.router(vertx);
+    Router productRouter = Router.router(vertx);
+    Router instanceRouter = Router.router(vertx);
+
+    router.route("/rest*").subRouter(restRouter);
+    restRouter.route("/product*").subRouter(productRouter);
+    productRouter.route("/:id*").subRouter(instanceRouter);
+    instanceRouter.get("/:foo").handler(ctx -> {
+      if ("ex".equals(ctx.pathParam("foo"))) {
+        throw new RuntimeException("ouch!");
+      }
+      ctx.response().end();
+    });
+
+    requestGet("/rest/product/123/ex", (response, buffer) -> {
+      assertEquals(500, response.statusCode());
+      assertEquals("Internal Server Error", buffer.toString());
+    });
+
+    assertRouterErrorHandlers("root", router, 500, "/rest/product/123/ex");
+    assertRouterErrorHandlers("root", router, 404, "/rest/product/123/foo/404");
+
+    assertRouterErrorHandlers("rest", restRouter, 500, "/rest/product/123/ex");
+    assertRouterErrorHandlers("rest", restRouter, 404, "/rest/product/123/foo/404");
+
+    assertRouterErrorHandlers("product", productRouter, 500, "/rest/product/123/ex");
+    assertRouterErrorHandlers("product", productRouter, 404, "/rest/product/123/foo/404");
+
+    assertRouterErrorHandlers("instance", instanceRouter, 500, "/rest/product/123/ex");
+    assertRouterErrorHandlers("instance", instanceRouter, 404, "/rest/product/123/foo/404");
+  }
+
+  private void assertRouterErrorHandlers(String name, Router router, int statusCode, String path) throws TimeoutException {
+    String handlerKey = name + "." + statusCode + ".errorHandler";
+    router.errorHandler(statusCode, ctx -> ctx.response().setStatusCode(statusCode).end(handlerKey));
+
+    requestGet(path, (response, buffer) -> {
+      assertEquals(statusCode, response.statusCode());
+      assertEquals(handlerKey, buffer.toString());
+    });
   }
 }
