@@ -7,6 +7,7 @@ import io.vertx.core.file.AsyncFileLock;
 import io.vertx.core.http.*;
 import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.internal.http.HttpClientInternal;
+import io.vertx.core.internal.net.endpoint.EndpointResolverInternal;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -31,7 +32,7 @@ import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakeresolver.FakeAddress;
-import io.vertx.test.fakeresolver.FakeEndpointResolver;
+import io.vertx.test.fakeresolver.FakeAddressResolver;
 import io.vertx.test.proxy.Proxy;
 import io.vertx.test.proxy.ProxyKind;
 import io.vertx.test.proxy.WithProxy;
@@ -2253,7 +2254,7 @@ public class WebClientTest extends WebClientTestBase {
   @Test
   public void testCannotResolveAddress() throws Exception {
     awaitFuture(client.close());
-    FakeEndpointResolver<?> resolver = new FakeEndpointResolver<>();
+    FakeAddressResolver<?> resolver = new FakeAddressResolver<>();
     client = vertx.httpClientBuilder().with(createBaseClientOptions()).withAddressResolver(resolver).build();
     webClient = WebClient.wrap(client);
 
@@ -2266,7 +2267,7 @@ public class WebClientTest extends WebClientTestBase {
   @Test
   public void testUseResolvedAddress() throws Exception {
     awaitFuture(client.close());
-    FakeEndpointResolver<?> resolver = new FakeEndpointResolver<>();
+    FakeAddressResolver<?> resolver = new FakeAddressResolver<>();
     resolver.registerAddress("mars", Collections.singletonList(testAddress));
     client = vertx.httpClientBuilder().with(createBaseClientOptions()).withAddressResolver(resolver).build();
     webClient = WebClient.wrap(client);
@@ -2303,6 +2304,8 @@ public class WebClientTest extends WebClientTestBase {
     @Override public VertxInternal vertx(){return null;}
     @Override public Function<HttpClientResponse, Future<RequestOptions>> redirectHandler(){return null;}
     @Override public HttpClientOptions options(){return new HttpClientOptions();}
+    @Override public EndpointResolverInternal originResolver() {return null;}
+    @Override public EndpointResolverInternal resolver() {return null;}
 
     @Override
     public io.vertx.core.internal.http.HttpChannelConnector channelConnector() {
