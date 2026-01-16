@@ -7,6 +7,7 @@ import io.vertx.core.file.AsyncFileLock;
 import io.vertx.core.http.*;
 import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.internal.http.HttpClientInternal;
+import io.vertx.core.internal.http.HttpClientTransport;
 import io.vertx.core.internal.net.endpoint.EndpointResolverInternal;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
@@ -2306,12 +2307,7 @@ public class WebClientTest extends WebClientTestBase {
     @Override public HttpClientOptions options(){return new HttpClientOptions();}
     @Override public EndpointResolverInternal originResolver() {return null;}
     @Override public EndpointResolverInternal resolver() {return null;}
-
-    @Override
-    public io.vertx.core.internal.http.HttpChannelConnector channelConnector() {
-      return null;
-    }
-
+    @Override  public HttpClientTransport channelConnector() { return null; }
     @Override public Future<Void> closeFuture(){return null;}
     @Override public void close(Completable<Void> completion){}
     @Override public Future<HttpClientRequest> request(RequestOptions options){return null;}
