@@ -140,7 +140,16 @@ class ForwardedParser {
     if (host != null) {
       this.authority = HostAndPort.create(host, port);
       host = host + (port >= 0 ? ":" + port : "");
-      absoluteURI = scheme + "://" + host + delegate.uri();
+
+      String uri = delegate.uri();
+      if (uri.startsWith(scheme) && uri.startsWith("://", scheme.length())) {
+        // URI is already absolute, only append the path and query
+        uri = delegate.path();
+        if (delegate.query() != null) {
+          uri += "?" + delegate.query();
+        }
+      }
+      absoluteURI = scheme + "://" + host + uri;
     }
   }
 
@@ -195,7 +204,7 @@ class ForwardedParser {
     }
   }
 
-  private void  setHostAndPort(HostAndPort authority) {
+  private void setHostAndPort(HostAndPort authority) {
     host = authority.host();
     port = authority.port();
   }
