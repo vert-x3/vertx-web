@@ -135,7 +135,7 @@ class ForwardedParser {
       host = host + (port >= 0 ? ":" + port : "");
 
       String uri = delegate.uri();
-      if (uri.startsWith(scheme + "://")) {
+      if (uri.startsWith(scheme) && uri.startsWith("://", scheme.length())) {
         // URI is already absolute, only append the path and query
         uri = delegate.path();
         if (delegate.query() != null) {
