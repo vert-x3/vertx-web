@@ -263,15 +263,17 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   }
 
   private Future<JsonObject> resolveExternalRef(final URI ref) {
-    return externalSolvingRefs.computeIfAbsent(ref,
-      uri ->
-        ((URIUtils.isRemoteURI(uri)) ? solveRemoteRef(uri) : solveLocalRef(uri))
-          .compose(j -> {
-            absolutePaths.put(uri, j); // Circular refs hell!
-            return walkAndSolve(j, uri).map(j);
-          })
-
-    );
+    Promise<JsonObject> promise = Promise.promise();
+    Future<JsonObject> previous = externalSolvingRefs.putIfAbsent(ref, promise.future());
+    if (previous != null) {
+      return previous;
+    }
+    Future<JsonObject> solvedRef = URIUtils.isRemoteURI(ref) ? solveRemoteRef(ref) : solveLocalRef(ref);
+    solvedRef.compose(jsonObject -> {
+      absolutePaths.put(ref, jsonObject);
+      return walkAndSolve(jsonObject, ref).map(jsonObject);
+    }).onComplete(promise);
+    return promise.future();
   }
 
   private Future<JsonObject> solveRemoteRef(final URI ref) {
