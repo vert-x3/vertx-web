@@ -1271,7 +1271,7 @@ public class WebClientTest extends WebClientTestBase {
     startServer();
     MultiMap form = MultiMap.caseInsensitiveMultiMap();
     HttpRequest<Buffer> builder = webClient.post("/somepath");
-    builder.putHeader("bla", Arrays.asList("1", "2"));
+    builder.putHeader((CharSequence) "bla", Arrays.asList("1", "2"));
     builder.sendForm(form).onComplete(onSuccess(resp -> complete()));
     await();
   }
@@ -1501,7 +1501,7 @@ public class WebClientTest extends WebClientTestBase {
     startServer();
     HttpRequest<Buffer> builder = webClient.post("somepath");
     MultipartForm form = MultipartForm.create();
-    builder.putHeader("bla", Arrays.asList("1", "2"));
+    builder.putHeader((CharSequence) "bla", Arrays.asList("1", "2"));
     builder.sendMultipartForm(form).onComplete(onSuccess(resp -> complete()));
     await();
   }
@@ -2177,7 +2177,7 @@ public class WebClientTest extends WebClientTestBase {
     testRequest(
       client -> client
         .get("somepath")
-        .putHeader("bla", Arrays.asList("1", "2")),
+        .putHeader((CharSequence) "bla", Arrays.asList("1", "2")),
       req -> assertEquals(Arrays.asList("1", "2"), req.headers().getAll("bla")));
   }
 
