@@ -11,9 +11,9 @@ import io.vertx.core.spi.metrics.VertxMetrics;
 import io.vertx.core.spi.observability.HttpRequest;
 import io.vertx.core.spi.observability.HttpResponse;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.test.fakemetrics.ConnectionMetric;
 import io.vertx.test.fakemetrics.FakeMetricsBase;
 import io.vertx.test.fakemetrics.HttpServerMetric;
-import io.vertx.test.fakemetrics.SocketMetric;
 import io.vertx.test.fakemetrics.WebSocketMetric;
 import org.junit.Test;
 
@@ -72,7 +72,7 @@ public class MetricsTest extends WebTestBase {
   }
 }
 
-class FakeHttpServerMetrics extends FakeMetricsBase implements HttpServerMetrics<HttpServerMetric, WebSocketMetric, SocketMetric> {
+class FakeHttpServerMetrics extends FakeMetricsBase implements HttpServerMetrics<HttpServerMetric, WebSocketMetric, ConnectionMetric> {
 
   public FakeHttpServerMetrics() {
   }
@@ -87,9 +87,9 @@ class FakeHttpServerMetrics extends FakeMetricsBase implements HttpServerMetrics
     this.args = args == null ? new String[0] : args;
   }
 
-  public HttpServerMetric requestBegin(SocketMetric socketMetric, HttpRequest request) {
+  public HttpServerMetric requestBegin(ConnectionMetric connectionMetric, HttpRequest request) {
     assertEquals(2, seq.incrementAndGet());
-    return new HttpServerMetric(request, socketMetric);
+    return new HttpServerMetric(request, connectionMetric);
   }
 
   public void requestEnd(HttpServerMetric requestMetric, HttpRequest request, long bytesRead) {
@@ -98,8 +98,8 @@ class FakeHttpServerMetrics extends FakeMetricsBase implements HttpServerMetrics
     requestMetric.bytesRead.set(bytesRead);
   }
 
-  public HttpServerMetric responsePushed(SocketMetric socketMetric, HttpMethod method, String uri, HttpResponse response) {
-    HttpServerMetric requestMetric = new HttpServerMetric(uri, socketMetric);
+  public HttpServerMetric responsePushed(ConnectionMetric connectionMetric, HttpMethod method, String uri, HttpResponse response) {
+    HttpServerMetric requestMetric = new HttpServerMetric(uri, connectionMetric);
     requestMetric.response.set(response);
     return requestMetric;
   }
@@ -119,32 +119,27 @@ class FakeHttpServerMetrics extends FakeMetricsBase implements HttpServerMetrics
     requestMetric.bytesWritten.set(bytesWritten);
   }
 
-  @Override
-  public String type() {
-    return "tcp";
-  }
-
-  public SocketMetric connected(SocketAddress remoteAddress, String remoteName) {
+  public ConnectionMetric connected(SocketAddress remoteAddress, String remoteName) {
     assertEquals(1, seq.incrementAndGet());
-    return new SocketMetric(remoteAddress, remoteName);
+    return new ConnectionMetric(remoteAddress, remoteName);
   }
 
-  public void disconnected(SocketMetric socketMetric, SocketAddress remoteAddress) {
+  public void disconnected(ConnectionMetric connectionMetric, SocketAddress remoteAddress) {
     assertEquals(6, seq.incrementAndGet());
-    socketMetric.connected.set(false);
+    connectionMetric.connected.set(false);
   }
 
-  public void bytesRead(SocketMetric socketMetric, SocketAddress remoteAddress, long numberOfBytes) {
-    socketMetric.bytesRead.addAndGet(numberOfBytes);
-    socketMetric.bytesReadEvents.add(numberOfBytes);
+  public void bytesRead(ConnectionMetric connectionMetric, SocketAddress remoteAddress, long numberOfBytes) {
+    connectionMetric.bytesRead.addAndGet(numberOfBytes);
+    connectionMetric.bytesReadEvents.add(numberOfBytes);
   }
 
-  public void bytesWritten(SocketMetric socketMetric, SocketAddress remoteAddress, long numberOfBytes) {
-    socketMetric.bytesWritten.addAndGet(numberOfBytes);
-    socketMetric.bytesWrittenEvents.add(numberOfBytes);
+  public void bytesWritten(ConnectionMetric connectionMetric, SocketAddress remoteAddress, long numberOfBytes) {
+    connectionMetric.bytesWritten.addAndGet(numberOfBytes);
+    connectionMetric.bytesWrittenEvents.add(numberOfBytes);
   }
 
-  public void exceptionOccurred(SocketMetric socketMetric, SocketAddress remoteAddress, Throwable t) {
+  public void exceptionOccurred(ConnectionMetric connectionMetric, SocketAddress remoteAddress, Throwable t) {
   }
 
   public void requestRouted(HttpServerMetric requestMetric, String route) {
