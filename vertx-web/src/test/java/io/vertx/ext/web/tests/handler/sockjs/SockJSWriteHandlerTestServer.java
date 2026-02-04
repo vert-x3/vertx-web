@@ -16,7 +16,10 @@
 
 package io.vertx.ext.web.tests.handler.sockjs;
 
-import io.vertx.core.*;
+import io.vertx.core.Deployable;
+import io.vertx.core.Future;
+import io.vertx.core.VerticleBase;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
@@ -106,7 +109,9 @@ public class SockJSWriteHandlerTestServer {
   private static void sendToWriteHandler(EventBus eventBus, JsonObject body) {
     String address = body.getString("address");
     String content = body.getString("content");
-    eventBus.send(address, Buffer.buffer(content));
+    if (address != null && content != null) {
+      eventBus.send(address, Buffer.buffer(content));
+    }
   }
 
   private static class EventBusRelayVerticle extends VerticleBase {
