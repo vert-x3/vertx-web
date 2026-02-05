@@ -26,6 +26,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pipe;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClientConfig;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.spi.CacheStore;
 import io.vertx.ext.web.codec.spi.BodyStream;
@@ -39,7 +40,7 @@ import java.util.*;
 public class HttpContext<T> {
 
   private final HttpClientInternal client;
-  private final WebClientOptions options;
+  private final WebClientConfig options;
   private final List<Handler<HttpContext<?>>> interceptors;
   private final ContextInternal context;
   private final PromiseInternal<HttpResponse<T>> promise;
@@ -60,7 +61,7 @@ public class HttpContext<T> {
   private List<String> redirectedLocations = Collections.emptyList();
   private CacheStore privateCacheStore;
 
-  HttpContext(ContextInternal context, HttpClientInternal client, WebClientOptions options, List<Handler<HttpContext<?>>> interceptors, PromiseInternal<HttpResponse<T>> promise) {
+  HttpContext(ContextInternal context, HttpClientInternal client, WebClientConfig options, List<Handler<HttpContext<?>>> interceptors, PromiseInternal<HttpResponse<T>> promise) {
     this.context = context;
     this.client = client;
     this.options = options;

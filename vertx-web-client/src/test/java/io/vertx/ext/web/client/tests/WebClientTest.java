@@ -23,10 +23,7 @@ import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.auth.htdigest.HtdigestCredentials;
-import io.vertx.ext.web.client.HttpRequest;
-import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.*;
 import io.vertx.ext.web.client.tests.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
@@ -2306,6 +2303,7 @@ public class WebClientTest extends WebClientTestBase {
     @Override public VertxInternal vertx(){return null;}
     @Override public Function<HttpClientResponse, Future<RequestOptions>> redirectHandler(){return null;}
     @Override public HttpClientOptions options(){return new HttpClientOptions();}
+    @Override public HttpClientConfig config() { return new WebClientConfig(); }
     @Override public EndpointResolverInternal originResolver() {return null;}
     @Override public EndpointResolverInternal resolver() {return null;}
     @Override public HttpClientTransport tcpTransport() { return null; }

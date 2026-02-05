@@ -21,6 +21,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.ext.web.client.CachingWebClientConfig;
 import io.vertx.ext.web.client.CachingWebClientOptions;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
@@ -45,10 +46,10 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
   private static final String IS_CACHE_REVALIDATION = "cache.revalidation";
 
   private final CacheStore publicCacheStore;
-  private final CachingWebClientOptions options;
+  private final CachingWebClientConfig options;
   private final Map<CacheVariationsKey, Set<Vary>> variationsRegistry;
 
-  public CacheInterceptor(CacheStore store, CachingWebClientOptions options) {
+  public CacheInterceptor(CacheStore store, CachingWebClientConfig options) {
     this.publicCacheStore = store;
     this.options = options;
     this.variationsRegistry = new ConcurrentHashMap<>();

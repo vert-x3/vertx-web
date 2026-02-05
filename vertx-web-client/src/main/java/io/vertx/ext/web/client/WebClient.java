@@ -71,7 +71,7 @@ public interface WebClient {
    * @return the created web client
    */
   static WebClient create(Vertx vertx, WebClientOptions options) {
-    return new WebClientBase(vertx.createHttpClient(options), options);
+    return new WebClientBase(vertx.createHttpClient(options), new WebClientConfig(options));
   }
 
   /**
@@ -83,6 +83,29 @@ public interface WebClient {
    * @return the created web client
    */
   static WebClient create(Vertx vertx, WebClientOptions options, PoolOptions poolOptions) {
+    return new WebClientBase(vertx.createHttpClient(options, poolOptions), new WebClientConfig(options));
+  }
+
+  /**
+   * Create a web client using the provided {@code vertx} instance and default pooling options.
+   *
+   * @param vertx   the vertx instance
+   * @param options the Web Client options
+   * @return the created web client
+   */
+  static WebClient create(Vertx vertx, WebClientConfig options) {
+    return new WebClientBase(vertx.createHttpClient(options), options);
+  }
+
+  /**
+   * Create a web client using the provided {@code vertx} instance.
+   *
+   * @param vertx the vertx instance
+   * @param options the Web Client options
+   * @param poolOptions the HTTP Client pool options
+   * @return the created web client
+   */
+  static WebClient create(Vertx vertx, WebClientConfig options, PoolOptions poolOptions) {
     return new WebClientBase(vertx.createHttpClient(options, poolOptions), options);
   }
 
@@ -107,9 +130,9 @@ public interface WebClient {
    * @return the web client
    */
   static WebClient wrap(HttpClient httpClient, WebClientOptions options) {
-    WebClientOptions actualOptions = new WebClientOptions(((HttpClientInternal) httpClient).options());
-    actualOptions.init(options);
-    return new WebClientBase(httpClient, actualOptions);
+    WebClientConfig config = new WebClientConfig(((HttpClientInternal) httpClient).config());
+    config.init(options);
+    return new WebClientBase<>(httpClient, config);
   }
 
   /**
