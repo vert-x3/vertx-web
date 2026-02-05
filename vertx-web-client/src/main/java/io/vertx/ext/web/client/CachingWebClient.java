@@ -101,6 +101,19 @@ public interface CachingWebClient {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static WebClient create(WebClient webClient, CacheStore cacheStore, CachingWebClientOptions options) {
+    return CachingWebClientImpl.wrap(webClient, cacheStore, new CachingWebClientConfig(options));
+  }
+
+  /**
+   * Create a cache aware web client using the provided {@link WebClient}.
+   *
+   * @param webClient  the web client instance
+   * @param cacheStore the cache adapter
+   * @param options    the caching web client options
+   * @return the created web client
+   */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  static WebClient create(WebClient webClient, CacheStore cacheStore, CachingWebClientConfig options) {
     return CachingWebClientImpl.wrap(webClient, cacheStore, options);
   }
 }

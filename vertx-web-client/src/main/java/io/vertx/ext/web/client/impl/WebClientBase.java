@@ -31,7 +31,7 @@ import io.vertx.core.net.ClientSSLOptions;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.HttpRequest;
-import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.WebClientConfig;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 import io.vertx.uritemplate.ExpandOptions;
 import io.vertx.uritemplate.UriTemplate;
@@ -47,12 +47,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class WebClientBase<C extends WebClientBase<C>> implements WebClientInternal {
 
   final HttpClient client;
-  final WebClientOptions options;
+  final WebClientConfig options;
   final List<Handler<HttpContext<?>>> interceptors;
 
-  public WebClientBase(HttpClient client, WebClientOptions options) {
+  public WebClientBase(HttpClient client, WebClientConfig options) {
 
-    options = new WebClientOptions(options);
+    options = new WebClientConfig(options);
     if (options.getTemplateExpandOptions() == null) {
       options.setTemplateExpandOptions(new ExpandOptions());
     }
@@ -64,7 +64,7 @@ public class WebClientBase<C extends WebClientBase<C>> implements WebClientInter
 
   WebClientBase(WebClientBase webClient) {
     this.client = webClient.client;
-    this.options = new WebClientOptions(webClient.options);
+    this.options = new WebClientConfig(webClient.options);
     this.interceptors = new CopyOnWriteArrayList<>(webClient.interceptors);
   }
 
@@ -178,7 +178,7 @@ public class WebClientBase<C extends WebClientBase<C>> implements WebClientInter
     client.close();
   }
 
-  private static MultiMap buildHeaders(WebClientOptions options) {
+  private static MultiMap buildHeaders(WebClientConfig options) {
     if (options.isUserAgentEnabled()) {
       return HttpHeaders.set(HttpHeaders.USER_AGENT, options.getUserAgent());
     } else {
@@ -186,9 +186,9 @@ public class WebClientBase<C extends WebClientBase<C>> implements WebClientInter
     }
   }
 
-  private static ProxyOptions buildProxyOptions(WebClientOptions options) {
-    if (options.getProxyOptions() !=  null) {
-      return new ProxyOptions(options.getProxyOptions());
+  private static ProxyOptions buildProxyOptions(WebClientConfig options) {
+    if (options.getTcpConfig().getProxyOptions() !=  null) {
+      return new ProxyOptions(options.getTcpConfig().getProxyOptions());
     } else {
       return null;
     }
