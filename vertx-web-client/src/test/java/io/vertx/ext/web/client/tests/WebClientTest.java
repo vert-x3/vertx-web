@@ -47,6 +47,7 @@ import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -2307,7 +2308,9 @@ public class WebClientTest extends WebClientTestBase {
     @Override public HttpClientOptions options(){return new HttpClientOptions();}
     @Override public EndpointResolverInternal originResolver() {return null;}
     @Override public EndpointResolverInternal resolver() {return null;}
-    @Override  public HttpClientTransport channelConnector() { return null; }
+    @Override public HttpClientTransport tcpTransport() { return null; }
+    @Override public HttpClientTransport quicTransport() { return null; }
+    @Override public Future<Void> shutdown(Duration timeout) { return null; }
     @Override public Future<Void> closeFuture(){return null;}
     @Override public void close(Completable<Void> completion){}
     @Override public Future<HttpClientRequest> request(RequestOptions options){return null;}
