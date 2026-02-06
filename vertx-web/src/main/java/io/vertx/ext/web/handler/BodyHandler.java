@@ -22,6 +22,8 @@ import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.BodyHandlerImpl;
 
+import java.util.List;
+
 /**
  * A handler which gathers the entire request body and sets it on the {@link RoutingContext}.
  * <p>
@@ -56,6 +58,21 @@ public interface BodyHandler extends Handler<RoutingContext> {
    * Default value of whether to pre-allocate the body buffer size according to the content-length HTTP request header
    */
   boolean DEFAULT_PREALLOCATE_BODY_BUFFER = false;
+
+  /**
+   * Default value of whether to stream large request bodies to temporary files
+   */
+  boolean DEFAULT_STREAM_TO_FILE = false;
+
+  /**
+   * Default size threshold in bytes for streaming to file = {@code 1048576}, i.e. 1 megabyte
+   */
+  long DEFAULT_STREAM_THRESHOLD = 1024 * 1024;
+
+  /**
+   * Default value of whether to stream all binary (non-text, non-form) content types to file
+   */
+  boolean DEFAULT_STREAM_ALL_BINARY = false;
 
   /**
    * Create a body handler with defaults.
@@ -141,5 +158,47 @@ public interface BodyHandler extends Handler<RoutingContext> {
    */
   @Fluent
   BodyHandler setPreallocateBodyBuffer(boolean isPreallocateBodyBuffer);
+
+  /**
+   * Enable streaming large request bodies to temporary files instead of holding them in memory.
+   * When enabled, non-multipart request bodies that match the configured content types and exceed the
+   * stream threshold will be written to a temporary file in the uploads directory.
+   *
+   * @param streamToFile true to enable file streaming (default: false)
+   * @return reference to this for fluency
+   */
+  @Fluent
+  BodyHandler setStreamToFile(boolean streamToFile);
+
+  /**
+   * Set the size threshold for streaming to file. Bodies larger than this value will be
+   * streamed to disk when file streaming is enabled and the content type matches.
+   *
+   * @param bytes threshold in bytes (default: 1MB)
+   * @return reference to this for fluency
+   */
+  @Fluent
+  BodyHandler setStreamThreshold(long bytes);
+
+  /**
+   * Set the content types that should be streamed to file. Supports wildcard patterns
+   * such as {@code "image/*"} or {@code "video/*"}.
+   *
+   * @param contentTypes list of MIME type patterns
+   * @return reference to this for fluency
+   */
+  @Fluent
+  BodyHandler setStreamContentTypes(List<String> contentTypes);
+
+  /**
+   * Enable streaming for all non-text, non-form content types. When enabled, any content type
+   * that is not {@code text/*}, {@code multipart/form-data}, or
+   * {@code application/x-www-form-urlencoded} will be streamed to file if it exceeds the threshold.
+   *
+   * @param streamAllBinary true to stream all binary content types (default: false)
+   * @return reference to this for fluency
+   */
+  @Fluent
+  BodyHandler setStreamAllBinary(boolean streamAllBinary);
 
 }

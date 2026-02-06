@@ -233,6 +233,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public void setBodyFileInfo(String filePath, String contentType, long size) {
+    inner.setBodyFileInfo(filePath, contentType, size);
+  }
+
+  @Override
   public List<FileUpload> fileUploads() {
     return inner.fileUploads();
   }

@@ -67,6 +67,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private volatile boolean isSessionAccessed = false;
   private volatile boolean endHandlerCalled = false;
 
+  private String bodyFilePath;
+  private String bodyFileContentType;
+  private long bodyFileSize;
+  private FileUpload bodyFileUpload;
+
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
     super(mountPoint, routes, router);
     this.router = router;
@@ -294,6 +299,35 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
+  public void setBodyFileInfo(String filePath, String contentType, long size) {
+    this.bodyFilePath = filePath;
+    this.bodyFileContentType = contentType;
+    this.bodyFileSize = size;
+  }
+
+  @Override
+  public boolean isBodyStreamed() {
+    return bodyFilePath != null;
+  }
+
+  @Override
+  public String getBodyFilePath() {
+    return bodyFilePath;
+  }
+
+  @Override
+  public FileUpload getBodyFile() {
+    if (bodyFilePath == null) {
+      return null;
+    }
+    if (bodyFileUpload == null) {
+      bodyFileUpload = new BodyFileUploadImpl(
+        vertx().fileSystem(), bodyFilePath, bodyFileContentType, bodyFileSize);
+    }
+    return bodyFileUpload;
+  }
+
+  @Override
   public List<FileUpload> fileUploads() {
     if (fileUploads == null) {
       fileUploads = new ArrayList<>();
@@ -312,6 +346,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
           if (LOG.isTraceEnabled()) {
             future.onFailure(err -> LOG.trace("Delete of uploaded file failed", err));
           }
+        }
+      }
+      if (bodyFilePath != null) {
+        Future<Void> future = vertx().fileSystem().delete(bodyFilePath);
+        if (LOG.isTraceEnabled()) {
+          future.onFailure(err -> LOG.trace("Delete of streamed body file failed", err));
         }
       }
     }

@@ -214,6 +214,35 @@ public interface RoutingContext {
   void cancelAndCleanupFileUploads();
 
   /**
+   * Check if the request body was streamed to a temporary file instead of being held in memory.
+   * This is only the case when a {@link io.vertx.ext.web.handler.BodyHandler} is configured
+   * with file streaming enabled and the request body exceeded the stream threshold.
+   *
+   * @return true if body is stored in a temporary file, false if in memory or absent
+   */
+  default boolean isBodyStreamed() {
+    return false;
+  }
+
+  /**
+   * Get the path of the temporary file where the request body was streamed.
+   *
+   * @return the file path, or null if the body was not streamed to a file
+   */
+  default @Nullable String getBodyFilePath() {
+    return null;
+  }
+
+  /**
+   * Get file metadata for the streamed body file.
+   *
+   * @return a {@link FileUpload} object with metadata, or null if the body was not streamed
+   */
+  default @Nullable FileUpload getBodyFile() {
+    return null;
+  }
+
+  /**
    * Get the session. The context must have first been routed to a {@link io.vertx.ext.web.handler.SessionHandler}
    * for this to be populated.
    * Sessions live for a browser session, and are maintained by session cookies.

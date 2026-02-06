@@ -82,6 +82,16 @@ public interface RoutingContextInternal extends RoutingContext {
   void setBody(Buffer body);
 
   /**
+   * Set the body file info when the body was streamed to a temporary file.
+   * Used by the {@link io.vertx.ext.web.handler.BodyHandler}.
+   *
+   * @param filePath the path to the temporary file
+   * @param contentType the content type of the body
+   * @param size the size of the body in bytes
+   */
+  void setBodyFileInfo(String filePath, String contentType, long size);
+
+  /**
    * Set the session. Used by the {@link io.vertx.ext.web.handler.SessionHandler}.
    *
    * @param session  the session

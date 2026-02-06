@@ -27,6 +27,16 @@ public class ServiceResponseConverter {
             obj.setPayload(io.vertx.core.buffer.Buffer.fromJson((String)member.getValue()));
           }
           break;
+        case "filePath":
+          if (member.getValue() instanceof String) {
+            obj.setFilePath((String)member.getValue());
+          }
+          break;
+        case "deleteAfterSend":
+          if (member.getValue() instanceof Boolean) {
+            obj.setDeleteAfterSend((Boolean)member.getValue());
+          }
+          break;
       }
     }
   }
@@ -44,6 +54,12 @@ public class ServiceResponseConverter {
     }
     if (obj.getPayload() != null) {
       json.put("payload", obj.getPayload().toJson());
+    }
+    if (obj.getFilePath() != null) {
+      json.put("filePath", obj.getFilePath());
+    }
+    if (obj.getDeleteAfterSend() != null) {
+      json.put("deleteAfterSend", obj.getDeleteAfterSend());
     }
   }
 }

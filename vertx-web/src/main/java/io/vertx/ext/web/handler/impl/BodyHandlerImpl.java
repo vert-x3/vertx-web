@@ -22,7 +22,9 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.FileSystem;
+import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -36,6 +38,7 @@ import io.vertx.ext.web.impl.FileUploadImpl;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -53,6 +56,10 @@ public class BodyHandlerImpl implements BodyHandler {
   private boolean mergeFormAttributes = DEFAULT_MERGE_FORM_ATTRIBUTES;
   private boolean deleteUploadedFilesOnEnd = DEFAULT_DELETE_UPLOADED_FILES_ON_END;
   private boolean isPreallocateBodyBuffer = DEFAULT_PREALLOCATE_BODY_BUFFER;
+  private boolean streamToFile = DEFAULT_STREAM_TO_FILE;
+  private long streamThreshold = DEFAULT_STREAM_THRESHOLD;
+  private List<String> streamContentTypes;
+  private boolean streamAllBinary = DEFAULT_STREAM_ALL_BINARY;
   private static final int DEFAULT_INITIAL_BODY_BUFFER_SIZE = 1024; //bytes
 
 
@@ -181,6 +188,63 @@ public class BodyHandlerImpl implements BodyHandler {
     return this;
   }
 
+  @Override
+  public BodyHandler setStreamToFile(boolean streamToFile) {
+    this.streamToFile = streamToFile;
+    return this;
+  }
+
+  @Override
+  public BodyHandler setStreamThreshold(long bytes) {
+    this.streamThreshold = bytes;
+    return this;
+  }
+
+  @Override
+  public BodyHandler setStreamContentTypes(List<String> contentTypes) {
+    this.streamContentTypes = contentTypes;
+    return this;
+  }
+
+  @Override
+  public BodyHandler setStreamAllBinary(boolean streamAllBinary) {
+    this.streamAllBinary = streamAllBinary;
+    return this;
+  }
+
+  private boolean shouldStreamContentType(String contentType) {
+    if (contentType == null) {
+      return false;
+    }
+    String lowerCT = contentType.toLowerCase();
+    // strip parameters (e.g., "image/jpeg; charset=utf-8" -> "image/jpeg")
+    int semiIdx = lowerCT.indexOf(';');
+    String mediaType = semiIdx >= 0 ? lowerCT.substring(0, semiIdx).trim() : lowerCT.trim();
+
+    if (streamAllBinary) {
+      return !mediaType.startsWith("text/")
+        && !mediaType.startsWith(HttpHeaderValues.MULTIPART_FORM_DATA.toString())
+        && !mediaType.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString());
+    }
+
+    if (streamContentTypes != null) {
+      for (String pattern : streamContentTypes) {
+        if (matchesMimePattern(mediaType, pattern.toLowerCase())) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private static boolean matchesMimePattern(String mediaType, String pattern) {
+    if (pattern.endsWith("/*")) {
+      String prefix = pattern.substring(0, pattern.length() - 1); // e.g. "image/"
+      return mediaType.startsWith(prefix);
+    }
+    return mediaType.equals(pattern);
+  }
+
   private long parseContentLengthHeader(HttpServerRequest request) {
     String contentLength = request.getHeader(HttpHeaders.CONTENT_LENGTH);
     if (contentLength == null || contentLength.isEmpty()) {
@@ -207,15 +271,17 @@ public class BodyHandlerImpl implements BodyHandler {
     final boolean isMultipart;
     final boolean isUrlEncoded;
 
+    // file streaming state
+    final boolean shouldStreamToFile;
+    boolean streamingToFile;
+    String streamedFilePath;
+    AsyncFile asyncFile;
+    List<Buffer> pendingWrites;
+    boolean fileOpening;
+
     public BHandler(RoutingContext context, long contentLength) {
       this.context = context;
       this.contentLength = contentLength;
-      // the request clearly states that there should
-      // be a body, so we respect the client and ensure
-      // that the body will not be null
-      if (contentLength != -1) {
-        initBodyBuffer();
-      }
 
       List<FileUpload> fileUploads = context.fileUploads();
 
@@ -227,6 +293,28 @@ public class BodyHandlerImpl implements BodyHandler {
         final String lowerCaseContentType = contentType.toLowerCase();
         isMultipart = lowerCaseContentType.startsWith(HttpHeaderValues.MULTIPART_FORM_DATA.toString());
         isUrlEncoded = lowerCaseContentType.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString());
+      }
+
+      // Determine if we should stream to file for non-multipart/non-urlencoded bodies
+      if (!isMultipart && !isUrlEncoded && streamToFile && shouldStreamContentType(contentType)) {
+        shouldStreamToFile = true;
+        if (contentLength > 0 && contentLength > streamThreshold) {
+          // Content-Length known and exceeds threshold: start file streaming immediately
+          startFileStreaming();
+        } else {
+          // Unknown size or below threshold: start in memory, may switch later
+          if (contentLength != -1) {
+            initBodyBuffer();
+          }
+        }
+      } else {
+        shouldStreamToFile = false;
+        // the request clearly states that there should
+        // be a body, so we respect the client and ensure
+        // that the body will not be null
+        if (contentLength != -1) {
+          initBodyBuffer();
+        }
       }
 
       if (isMultipart || isUrlEncoded) {
@@ -278,6 +366,63 @@ public class BodyHandlerImpl implements BodyHandler {
       });
     }
 
+    private void startFileStreaming() {
+      FileSystem fs = context.vertx().fileSystem();
+      makeUploadDir(fs);
+      streamedFilePath = new File(uploadsDir, UUID.randomUUID().toString()).getPath();
+      fileOpening = true;
+      pendingWrites = new ArrayList<>();
+
+      fs.open(streamedFilePath, new OpenOptions().setCreate(true).setWrite(true).setTruncateExisting(true))
+        .onSuccess(file -> {
+          asyncFile = file;
+          fileOpening = false;
+          streamingToFile = true;
+
+          // flush any buffered data
+          if (body != null && body.length() > 0) {
+            asyncFile.write(body);
+            body = null;
+          }
+          // flush pending writes that arrived while the file was opening
+          for (Buffer pending : pendingWrites) {
+            asyncFile.write(pending);
+          }
+          pendingWrites = null;
+
+          // handle back-pressure
+          if (asyncFile.writeQueueFull()) {
+            context.request().pause();
+            asyncFile.drainHandler(v -> context.request().resume());
+          }
+
+          // if end was already received while the file was opening, close and finish
+          if (ended && uploadCount.get() == 0) {
+            closeFileAndEnd();
+          }
+        })
+        .onFailure(err -> {
+          fileOpening = false;
+          failed = true;
+          context.fail(500, err);
+        });
+    }
+
+    private void closeFileAndEnd() {
+      if (asyncFile != null) {
+        asyncFile.close().onComplete(ar -> {
+          if (ar.succeeded()) {
+            doEnd();
+          } else {
+            failed = true;
+            context.fail(500, ar.cause());
+          }
+        });
+      } else {
+        doEnd();
+      }
+    }
+
     private void initBodyBuffer() {
       int initialBodyBufferSize;
       if (contentLength < 0) {
@@ -309,8 +454,34 @@ public class BodyHandlerImpl implements BodyHandler {
       uploadSize += buff.length();
       if (bodyLimit != -1 && uploadSize > bodyLimit) {
         failed = true;
+        // clean up async file if streaming
+        if (asyncFile != null) {
+          asyncFile.close();
+        }
         context.cancelAndCleanupFileUploads();
         context.fail(413);
+      } else if (shouldStreamToFile && !isMultipart) {
+        if (streamingToFile) {
+          // File is ready, write directly
+          asyncFile.write(buff);
+          if (asyncFile.writeQueueFull()) {
+            context.request().pause();
+            asyncFile.drainHandler(v -> context.request().resume());
+          }
+        } else if (fileOpening) {
+          // File is being opened, queue the chunk
+          pendingWrites.add(buff);
+        } else {
+          // Still in memory, check if we need to switch to file
+          if (body == null) {
+            initBodyBuffer();
+          }
+          body.appendBuffer(buff);
+          if (uploadSize > streamThreshold) {
+            // Threshold exceeded, start streaming to file
+            startFileStreaming();
+          }
+        }
       } else {
         // multipart requests will not end up in the request body
         // url encoded should also not, however jQuery by default
@@ -339,7 +510,15 @@ public class BodyHandlerImpl implements BodyHandler {
 
       // only if parsing is done and count is 0 then all files have been processed
       if (uploadCount.get() == 0) {
-        doEnd();
+        if (streamingToFile || fileOpening) {
+          // If file is ready, close it then doEnd; if still opening, the callback handles it
+          if (streamingToFile) {
+            closeFileAndEnd();
+          }
+          // if fileOpening, startFileStreaming's onSuccess callback will call closeFileAndEnd
+        } else {
+          doEnd();
+        }
       }
     }
 
@@ -358,7 +537,15 @@ public class BodyHandlerImpl implements BodyHandler {
       if (mergeFormAttributes && req.isExpectMultipart()) {
         req.params().addAll(req.formAttributes());
       }
-      ((RoutingContextInternal) context).setBody(body);
+
+      if (streamingToFile && streamedFilePath != null) {
+        ((RoutingContextInternal) context).setBodyFileInfo(
+          streamedFilePath,
+          req.getHeader(HttpHeaders.CONTENT_TYPE),
+          uploadSize);
+      } else {
+        ((RoutingContextInternal) context).setBody(body);
+      }
       // release body as it may take lots of memory
       body = null;
 

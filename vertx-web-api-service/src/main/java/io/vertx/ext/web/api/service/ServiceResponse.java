@@ -25,6 +25,8 @@ public class ServiceResponse {
   private String statusMessage;
   private Buffer payload;
   private MultiMap headers;
+  private String filePath;
+  private Boolean deleteAfterSend;
 
   public ServiceResponse() {
     init();
@@ -57,6 +59,8 @@ public class ServiceResponse {
     this.statusMessage = other.getStatusMessage();
     this.payload = other.getPayload();
     this.headers = other.getHeaders();
+    this.filePath = other.getFilePath();
+    this.deleteAfterSend = other.getDeleteAfterSend();
   }
 
   public JsonObject toJson() {
@@ -117,6 +121,24 @@ public class ServiceResponse {
     return this;
   }
 
+  public String getFilePath() {
+    return filePath;
+  }
+
+  @Fluent public ServiceResponse setFilePath(String filePath) {
+    this.filePath = filePath;
+    return this;
+  }
+
+  public Boolean getDeleteAfterSend() {
+    return deleteAfterSend;
+  }
+
+  @Fluent public ServiceResponse setDeleteAfterSend(Boolean deleteAfterSend) {
+    this.deleteAfterSend = deleteAfterSend;
+    return this;
+  }
+
   /**
    * Creates a {@link ServiceResponse} with status code 200, status message OK, content type {@code application/json} and {@code jsonObject} as body
    *
@@ -164,5 +186,34 @@ public class ServiceResponse {
       .setStatusMessage(HttpResponseStatus.OK.reasonPhrase())
       .putHeader(HttpHeaders.CONTENT_TYPE.toString(), "text/plain")
       .setPayload(text);
+  }
+
+  /**
+   * Creates a {@link ServiceResponse} with status code 200, status message OK, the given content type,
+   * and a file path to stream as the response body using {@code response.sendFile()}.
+   *
+   * @param filePath the path to the file to send
+   * @param contentType the content type header value
+   * @return the service response
+   */
+  public static ServiceResponse completedWithFilePath(String filePath, String contentType) {
+    return new ServiceResponse()
+      .setStatusCode(200)
+      .setStatusMessage(HttpResponseStatus.OK.reasonPhrase())
+      .putHeader(HttpHeaders.CONTENT_TYPE.toString(), contentType)
+      .setFilePath(filePath);
+  }
+
+  /**
+   * Creates a {@link ServiceResponse} with a file path and auto-delete after sending.
+   *
+   * @param filePath the path to the file to send
+   * @param contentType the content type header value
+   * @param deleteAfterSend true to delete the file after the response is sent
+   * @return the service response
+   */
+  public static ServiceResponse completedWithFilePath(String filePath, String contentType, boolean deleteAfterSend) {
+    return completedWithFilePath(filePath, contentType)
+      .setDeleteAfterSend(deleteAfterSend);
   }
 }

@@ -254,6 +254,11 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  public void setBodyFileInfo(String filePath, String contentType, long size) {
+    decoratedContext.setBodyFileInfo(filePath, contentType, size);
+  }
+
+  @Override
   public void setSession(Session session) {
     decoratedContext.setSession(session);
   }

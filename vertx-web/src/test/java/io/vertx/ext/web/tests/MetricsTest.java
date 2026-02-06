@@ -119,7 +119,6 @@ class FakeHttpServerMetrics extends FakeMetricsBase implements HttpServerMetrics
     requestMetric.bytesWritten.set(bytesWritten);
   }
 
-  @Override
   public String type() {
     return "tcp";
   }
