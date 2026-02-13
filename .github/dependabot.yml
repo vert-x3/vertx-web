@@ -11,6 +11,7 @@ updates:
       interval: "daily"
     allow:
       - dependency-name: "com.graphql-java:graphql-java"
+      - dependency-name: "org.testcontainers:*"
 
   - package-ecosystem: "maven"
     directory: "/vertx-web-graphql"
@@ -19,6 +20,7 @@ updates:
       interval: "daily"
     allow:
       - dependency-name: "com.graphql-java:graphql-java"
+      - dependency-name: "org.testcontainers:*"
     ignore:
       - dependency-name: "com.graphql-java:graphql-java"
         update-types:
@@ -31,6 +33,7 @@ updates:
       interval: "daily"
     allow:
       - dependency-name: "com.graphql-java:graphql-java"
+      - dependency-name: "org.testcontainers:*"
     ignore:
       - dependency-name: "com.graphql-java:graphql-java"
         update-types:
