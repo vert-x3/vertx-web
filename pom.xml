@@ -25,7 +25,7 @@
     <pac4j.version>1.6.0</pac4j.version>
     <mockito.version>5.20.0</mockito.version>
     <caffeine.version>3.2.0</caffeine.version>
-    <testcontainers.version>2.0.3</testcontainers.version>
+    <testcontainers.version>1.21.4</testcontainers.version>
   </properties>
 
   <dependencyManagement>
