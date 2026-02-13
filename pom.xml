@@ -24,7 +24,7 @@
     <mockito.version>5.20.0</mockito.version>
     <!-- When changing this version, make sure to update vertx-infinispan for dependency convergence -->
     <caffeine.version>3.2.1</caffeine.version>
-    <testcontainers.version>2.0.3</testcontainers.version>
+    <testcontainers.version>1.21.4</testcontainers.version>
   </properties>
 
   <dependencyManagement>
