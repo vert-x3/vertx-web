@@ -28,7 +28,7 @@ public class MetricsTest extends WebTestBase {
   protected VertxMetricsFactory getMetrics() {
     return options -> new VertxMetrics() {
       @Override
-      public HttpServerMetrics<?, ?> createHttpServerMetrics(HttpServerConfig config, SocketAddress localAddress) {
+      public HttpServerMetrics<?, ?> createHttpServerMetrics(HttpServerConfig config, SocketAddress tcpLocalAddress, SocketAddress udpLocalAddress) {
         return fakeHttpServerMetrics;
       }
     };
