@@ -25,6 +25,7 @@
     <pac4j.version>1.6.0</pac4j.version>
     <mockito.version>5.20.0</mockito.version>
     <caffeine.version>3.2.0</caffeine.version>
+    <testcontainers.version>2.0.3</testcontainers.version>
   </properties>
 
   <dependencyManagement>
@@ -93,7 +94,7 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>1.17.5</version>
+      <version>${testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
