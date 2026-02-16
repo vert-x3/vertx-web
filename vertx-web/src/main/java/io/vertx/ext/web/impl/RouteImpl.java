@@ -183,7 +183,7 @@ public class RouteImpl implements Route {
     validateMount(subRouter);
 
     // mark the route as exclusive from now on
-    this.state = state.setExclusive(true);
+    this.state = state.setExclusive(true).setSubRouter(subRouter);
     return this;
   }
 
@@ -426,5 +426,11 @@ public class RouteImpl implements Route {
       }
     }
   }
+
+  @Override
+  public Router getSubRouter() {
+    return this.state.getSubRouter();
+  }
+
 }
 

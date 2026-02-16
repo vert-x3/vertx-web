@@ -163,6 +163,12 @@ public interface Route {
   Route subRouter(Router subRouter);
 
   /**
+   * @return the sub router if this route acts as a sub router, <code>null</code> if it does not.
+   */
+  @Nullable
+  Router getSubRouter();
+
+  /**
    * Specify a blocking request handler for the route.
    * This method works just like {@link #handler(Handler)} excepted that it will run the blocking handler on a worker thread
    * so that it won't block the event loop. Note that it's safe to call context.next() from the
