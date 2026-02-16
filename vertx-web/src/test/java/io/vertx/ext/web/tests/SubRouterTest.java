@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.tests;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -24,6 +25,9 @@ import io.vertx.ext.web.RoutingContext;
 import org.junit.Test;
 
 import java.util.function.Consumer;
+
+import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -742,5 +746,42 @@ public class SubRouterTest extends WebTestBase {
     //                  /:foo -> OK
 
     testRequest(HttpMethod.GET, "/rest/product/123/bar", 200, "OK");
+  }
+
+  @Test
+  public void testSetExceptionHandler() throws Exception {
+    Router restRouter = Router.router(vertx);
+    Router productRouter = Router.router(vertx);
+    Router instanceRouter = Router.router(vertx);
+
+    router.route("/rest*").subRouter(restRouter);
+    restRouter.route("/product*").subRouter(productRouter);
+    productRouter.route("/:id*").subRouter(instanceRouter);
+    instanceRouter.get("/:foo").handler(ctx -> {
+      if ("ex".equals(ctx.pathParam("foo"))) {
+        throw new RuntimeException("ouch!");
+      }
+      ctx.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/rest/product/123/ex", 500, "Internal Server Error", "Internal Server Error");
+
+    assertRouterErrorHandlers("root", router, INTERNAL_SERVER_ERROR, "/rest/product/123/ex");
+    assertRouterErrorHandlers("root", router, NOT_FOUND, "/rest/product/123/foo/404");
+
+    assertRouterErrorHandlers("rest", restRouter, INTERNAL_SERVER_ERROR, "/rest/product/123/ex");
+    assertRouterErrorHandlers("rest", restRouter, NOT_FOUND, "/rest/product/123/foo/404");
+
+    assertRouterErrorHandlers("product", productRouter, INTERNAL_SERVER_ERROR, "/rest/product/123/ex");
+    assertRouterErrorHandlers("product", productRouter, NOT_FOUND, "/rest/product/123/foo/404");
+
+    assertRouterErrorHandlers("instance", instanceRouter, INTERNAL_SERVER_ERROR, "/rest/product/123/ex");
+    assertRouterErrorHandlers("instance", instanceRouter, NOT_FOUND, "/rest/product/123/foo/404");
+  }
+
+  private void assertRouterErrorHandlers(String name, Router router, HttpResponseStatus status, String path) throws Exception {
+    String handlerKey = name + "." + status.codeAsText() + ".errorHandler";
+    router.errorHandler(status.code(), ctx -> ctx.response().setStatusCode(status.code()).end(handlerKey));
+    testRequest(HttpMethod.GET, path, status.code(), status.reasonPhrase(), handlerKey);
   }
 }
