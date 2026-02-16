@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.tests;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -23,8 +24,10 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import org.junit.Test;
 
-import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+
+import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -761,31 +764,24 @@ public class SubRouterTest extends WebTestBase {
       ctx.response().end();
     });
 
-    requestGet("/rest/product/123/ex", (response, buffer) -> {
-      assertEquals(500, response.statusCode());
-      assertEquals("Internal Server Error", buffer.toString());
-    });
+    testRequest(HttpMethod.GET, "/rest/product/123/ex", 500, "Internal Server Error", "Internal Server Error");
 
-    assertRouterErrorHandlers("root", router, 500, "/rest/product/123/ex");
-    assertRouterErrorHandlers("root", router, 404, "/rest/product/123/foo/404");
+    assertRouterErrorHandlers("root", router, INTERNAL_SERVER_ERROR, "/rest/product/123/ex");
+    assertRouterErrorHandlers("root", router, NOT_FOUND, "/rest/product/123/foo/404");
 
-    assertRouterErrorHandlers("rest", restRouter, 500, "/rest/product/123/ex");
-    assertRouterErrorHandlers("rest", restRouter, 404, "/rest/product/123/foo/404");
+    assertRouterErrorHandlers("rest", restRouter, INTERNAL_SERVER_ERROR, "/rest/product/123/ex");
+    assertRouterErrorHandlers("rest", restRouter, NOT_FOUND, "/rest/product/123/foo/404");
 
-    assertRouterErrorHandlers("product", productRouter, 500, "/rest/product/123/ex");
-    assertRouterErrorHandlers("product", productRouter, 404, "/rest/product/123/foo/404");
+    assertRouterErrorHandlers("product", productRouter, INTERNAL_SERVER_ERROR, "/rest/product/123/ex");
+    assertRouterErrorHandlers("product", productRouter, NOT_FOUND, "/rest/product/123/foo/404");
 
-    assertRouterErrorHandlers("instance", instanceRouter, 500, "/rest/product/123/ex");
-    assertRouterErrorHandlers("instance", instanceRouter, 404, "/rest/product/123/foo/404");
+    assertRouterErrorHandlers("instance", instanceRouter, INTERNAL_SERVER_ERROR, "/rest/product/123/ex");
+    assertRouterErrorHandlers("instance", instanceRouter, NOT_FOUND, "/rest/product/123/foo/404");
   }
 
-  private void assertRouterErrorHandlers(String name, Router router, int statusCode, String path) throws TimeoutException {
-    String handlerKey = name + "." + statusCode + ".errorHandler";
-    router.errorHandler(statusCode, ctx -> ctx.response().setStatusCode(statusCode).end(handlerKey));
-
-    requestGet(path, (response, buffer) -> {
-      assertEquals(statusCode, response.statusCode());
-      assertEquals(handlerKey, buffer.toString());
-    });
+  private void assertRouterErrorHandlers(String name, Router router, HttpResponseStatus status, String path) throws Exception {
+    String handlerKey = name + "." + status.codeAsText() + ".errorHandler";
+    router.errorHandler(status.code(), ctx -> ctx.response().setStatusCode(status.code()).end(handlerKey));
+    testRequest(HttpMethod.GET, path, status.code(), status.reasonPhrase(), handlerKey);
   }
 }
