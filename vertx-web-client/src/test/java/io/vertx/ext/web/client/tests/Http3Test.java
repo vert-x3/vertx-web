@@ -22,19 +22,21 @@ public class Http3Test extends HttpTestBase {
 
   @Test
   public void smokeTest() {
-    HttpServer server = vertx.createHttpServer(new HttpServerConfig()
-        .setSsl(true)
-        .setSslOptions(new ServerSSLOptions().setKeyCertOptions(Cert.SERVER_JKS.get()))
-        .addVersion(HttpVersion.HTTP_3))
+    HttpServer server = vertx.createHttpServer(
+        new HttpServerConfig()
+          .setSsl(true)
+          .setVersions(HttpVersion.HTTP_3),
+        new ServerSSLOptions().setKeyCertOptions(Cert.SERVER_JKS.get()))
       .requestHandler(request -> {
         request.response().end();
       });
     server.listen(4043).await();
-    WebClient client = WebClient.create(vertx, new WebClientConfig()
-      .setVersions(List.of(HttpVersion.HTTP_3))
-      .setSslOptions(new ClientSSLOptions().setTrustAll(true))
-      .setDefaultHost("localhost")
-      .setDefaultPort(4043));
+    WebClient client = WebClient.create(vertx,
+      new WebClientConfig()
+        .setVersions(List.of(HttpVersion.HTTP_3))
+        .setDefaultHost("localhost")
+        .setDefaultPort(4043),
+      new ClientSSLOptions().setTrustAll(true));
     HttpResponse<Buffer> response = client.get("/test").send().await();
   }
 }

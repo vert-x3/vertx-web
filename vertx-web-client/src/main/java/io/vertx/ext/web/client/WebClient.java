@@ -90,23 +90,48 @@ public interface WebClient {
    * Create a web client using the provided {@code vertx} instance and default pooling options.
    *
    * @param vertx   the vertx instance
-   * @param options the Web Client options
+   * @param config the Web Client config
    * @return the created web client
    */
-  static WebClient create(Vertx vertx, WebClientConfig options) {
-    return new WebClientBase(vertx.createHttpClient(options), options);
+  static WebClient create(Vertx vertx, WebClientConfig config) {
+    return new WebClientBase(vertx.createHttpClient(config), config);
   }
 
   /**
    * Create a web client using the provided {@code vertx} instance.
    *
    * @param vertx the vertx instance
-   * @param options the Web Client options
+   * @param config the Web Client config
    * @param poolOptions the HTTP Client pool options
    * @return the created web client
    */
-  static WebClient create(Vertx vertx, WebClientConfig options, PoolOptions poolOptions) {
-    return new WebClientBase(vertx.createHttpClient(options, poolOptions), options);
+  static WebClient create(Vertx vertx, WebClientConfig config, PoolOptions poolOptions) {
+    return new WebClientBase(vertx.createHttpClient(config, poolOptions), config);
+  }
+
+  /**
+   * Create a web client using the provided {@code vertx} instance, SSL options and default pooling options.
+   *
+   * @param vertx   the vertx instance
+   * @param sslOptions the SSL options
+   * @param config the Web Client config
+   * @return the created web client
+   */
+  static WebClient create(Vertx vertx, WebClientConfig config, ClientSSLOptions sslOptions) {
+    return new WebClientBase(vertx.createHttpClient(config, sslOptions), config);
+  }
+
+  /**
+   * Create a web client using the provided {@code vertx} instance and SSL options.
+   *
+   * @param vertx the vertx instance
+   * @param config the Web Client config
+   * @param sslOptions the SSL options
+   * @param poolOptions the HTTP Client pool options
+   * @return the created web client
+   */
+  static WebClient create(Vertx vertx, WebClientConfig config, ClientSSLOptions sslOptions, PoolOptions poolOptions) {
+    return new WebClientBase(vertx.createHttpClient(config, sslOptions, poolOptions), config);
   }
 
   /**

@@ -17,6 +17,7 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.core.http.*;
 import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.net.*;
@@ -150,6 +151,7 @@ public class WebClientConfig extends HttpClientConfig {
     return (WebClientConfig) super.setKeepAliveTimeout(keepAliveTimeout);
   }
 
+  @GenIgnore
   @Override
   public WebClientConfig setVersions(HttpVersion... versions) {
     return (WebClientConfig) super.setVersions(versions);
@@ -158,11 +160,6 @@ public class WebClientConfig extends HttpClientConfig {
   @Override
   public WebClientConfig setConnectTimeout(Duration connectTimeout) {
     return (WebClientConfig) super.setConnectTimeout(connectTimeout);
-  }
-
-  @Override
-  public WebClientConfig setMetricsName(String metricsName) {
-    return (WebClientConfig) super.setMetricsName(metricsName);
   }
 
   @Override
@@ -178,6 +175,11 @@ public class WebClientConfig extends HttpClientConfig {
   @Override
   public WebClientConfig setWriteIdleTimeout(Duration idleTimeout) {
     return (WebClientConfig) super.setWriteIdleTimeout(idleTimeout);
+  }
+
+  @Override
+  public WebClientConfig setLogConfig(LogConfig config) {
+    return (WebClientConfig) super.setLogConfig(config);
   }
 
   @Override
@@ -236,8 +238,8 @@ public class WebClientConfig extends HttpClientConfig {
   }
 
   @Override
-  public WebClientConfig setTracingPolicy(TracingPolicy tracingPolicy) {
-    return (WebClientConfig) super.setTracingPolicy(tracingPolicy);
+  public WebClientConfig setObservabilityConfig(ObservabilityConfig observabilityConfig) {
+    return (WebClientConfig) super.setObservabilityConfig(observabilityConfig);
   }
 
   @Override

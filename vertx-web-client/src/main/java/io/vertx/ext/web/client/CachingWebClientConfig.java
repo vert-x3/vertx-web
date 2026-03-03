@@ -16,6 +16,7 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
@@ -190,16 +191,6 @@ public class CachingWebClientConfig extends WebClientConfig {
   }
 
   @Override
-  public CachingWebClientConfig setSslOptions(ClientSSLOptions sslOptions) {
-    return (CachingWebClientConfig) super.setSslOptions(sslOptions);
-  }
-
-  @Override
-  public CachingWebClientConfig setMetricsName(String metricsName) {
-    return (CachingWebClientConfig) super.setMetricsName(metricsName);
-  }
-
-  @Override
   public CachingWebClientConfig setConnectTimeout(Duration connectTimeout) {
     return (CachingWebClientConfig) super.setConnectTimeout(connectTimeout);
   }
@@ -217,6 +208,11 @@ public class CachingWebClientConfig extends WebClientConfig {
   @Override
   public CachingWebClientConfig setWriteIdleTimeout(Duration idleTimeout) {
     return (CachingWebClientConfig) super.setWriteIdleTimeout(idleTimeout);
+  }
+
+  @Override
+  public CachingWebClientConfig setLogConfig(LogConfig config) {
+    return (CachingWebClientConfig) super.setLogConfig(config);
   }
 
   @Override
@@ -275,8 +271,19 @@ public class CachingWebClientConfig extends WebClientConfig {
   }
 
   @Override
-  public CachingWebClientConfig setTracingPolicy(TracingPolicy tracingPolicy) {
-    return (CachingWebClientConfig) super.setTracingPolicy(tracingPolicy);
+  public CachingWebClientConfig setObservabilityConfig(ObservabilityConfig observabilityConfig) {
+    return (CachingWebClientConfig) super.setObservabilityConfig(observabilityConfig);
+  }
+
+  @GenIgnore
+  @Override
+  public CachingWebClientConfig setVersions(HttpVersion... versions) {
+    return (CachingWebClientConfig) super.setVersions(versions);
+  }
+
+  @Override
+  public CachingWebClientConfig setKeepAliveTimeout(Duration keepAliveTimeout) {
+    return (CachingWebClientConfig) super.setKeepAliveTimeout(keepAliveTimeout);
   }
 
   @Override
