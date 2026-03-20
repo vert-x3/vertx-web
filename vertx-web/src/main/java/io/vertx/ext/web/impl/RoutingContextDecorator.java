@@ -51,6 +51,16 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  public RoutingContextInternal addAllowedMethods(java.util.Set<HttpMethod> allowedMethods) {
+    return decoratedContext.addAllowedMethods(allowedMethods);
+  }
+
+  @Override
+  public RoutingContextInternal addAllowedContentTypes(java.util.Set<MIMEHeader> allowedContentTypes) {
+    return decoratedContext.addAllowedContentTypes(allowedContentTypes);
+  }
+
+  @Override
   public int addBodyEndHandler(Handler<Void> handler) {
     return decoratedContext.addBodyEndHandler(handler);
   }
