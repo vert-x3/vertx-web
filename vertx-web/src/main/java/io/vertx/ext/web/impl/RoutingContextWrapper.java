@@ -186,8 +186,10 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   public void next() {
     if (!super.iterateNext()) {
       // We didn't route request to anything so go to parent,
-      // but also propagate the current status
+      // but also propagate the current status and accumulated allowed methods/content types
       inner.setMatchFailure(matchFailure);
+      inner.addAllowedMethods(allowedMethods);
+      inner.addAllowedContentTypes(allowedContentTypes);
       inner.next();
     }
   }

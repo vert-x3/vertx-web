@@ -118,6 +118,18 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
   }
 
   @Override
+  public synchronized RoutingContextInternal addAllowedMethods(Set<HttpMethod> allowedMethods) {
+    this.allowedMethods.addAll(allowedMethods);
+    return this;
+  }
+
+  @Override
+  public synchronized RoutingContextInternal addAllowedContentTypes(Set<MIMEHeader> allowedContentTypes) {
+    this.allowedContentTypes.addAll(allowedContentTypes);
+    return this;
+  }
+
+  @Override
   public String mountPoint() {
     return mountPoint;
   }

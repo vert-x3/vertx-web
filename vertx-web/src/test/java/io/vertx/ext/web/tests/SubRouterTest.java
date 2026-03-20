@@ -784,4 +784,67 @@ public class SubRouterTest extends WebTestBase {
     router.errorHandler(status.code(), ctx -> ctx.response().setStatusCode(status.code()).end(handlerKey));
     testRequest(HttpMethod.GET, path, status.code(), status.reasonPhrase(), handlerKey);
   }
+
+  @Test
+  public void testSubRouterConsumes() throws Exception {
+    Router subRouter = Router.router(vertx);
+
+    router.route("/api*").subRouter(subRouter);
+
+    subRouter.route("/resource").consumes("application/json").handler(rc -> rc.response().end("OK"));
+
+    // Test successful content type match
+    testRequestWithContentType(HttpMethod.POST, "/api/resource", "application/json", 200, "OK");
+
+    // Test 415 response - Accept header should contain allowed content type from sub-router
+    testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/xml", 415, "Unsupported Media Type",
+      res -> assertEquals("application/json", res.getHeader("Accept")));
+  }
+
+  @Test
+  public void testSubRouterConsumesMultiple() throws Exception {
+    Router subRouter = Router.router(vertx);
+
+    router.route("/api*").subRouter(subRouter);
+
+    subRouter.route("/resource")
+      .consumes("application/json")
+      .consumes("text/html; charset=utf-8")
+      .handler(rc -> rc.response().end("OK"));
+
+    // Test successful content type match
+    testRequestWithContentType(HttpMethod.POST, "/api/resource", "application/json", 200, "OK");
+    testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/html; charset=utf-8", 200, "OK");
+
+    // Test 415 response - Accept header should contain both allowed content types from sub-router
+    testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/xml", 415, "Unsupported Media Type",
+      res -> {
+        String acceptHeader = res.getHeader("Accept");
+        assertNotNull(acceptHeader);
+        assertTrue(acceptHeader.contains("application/json"));
+        assertTrue(acceptHeader.contains("text/html; charset=utf-8"));
+      });
+  }
+
+  @Test
+  public void testSubRouterMethodNotAllowed() throws Exception {
+    Router subRouter = Router.router(vertx);
+
+    router.route("/api*").subRouter(subRouter);
+
+    subRouter.post("/resource").handler(rc -> rc.response().end("OK"));
+    subRouter.put("/resource").handler(rc -> rc.response().end("OK"));
+
+    // Test successful method match
+    testRequest(HttpMethod.POST, "/api/resource", 200, "OK");
+    testRequest(HttpMethod.PUT, "/api/resource", 200, "OK");
+
+    // Test 405 response - Allow header should contain allowed methods from sub-router
+    testRequest(HttpMethod.GET, "/api/resource", null, res -> {
+      String allowHeader = res.getHeader("Allow");
+      assertNotNull(allowHeader);
+      assertTrue(allowHeader.contains("POST"));
+      assertTrue(allowHeader.contains("PUT"));
+    }, 405, "Method Not Allowed", null);
+  }
 }
