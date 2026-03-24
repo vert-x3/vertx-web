@@ -256,13 +256,4 @@ public class WebClientConfig extends HttpClientConfig {
   public WebClientConfig setFollowAlternativeServices(boolean followAlternativeServices) {
     return (WebClientConfig) super.setFollowAlternativeServices(followAlternativeServices);
   }
-
-  public static String loadUserAgent() {
-    String userAgent = "Vert.x-WebClient";
-    String version = VertxInternal.version();
-    if (version.length() > 0) {
-      userAgent += "/" + version;
-    }
-    return userAgent;
-  }
 }
