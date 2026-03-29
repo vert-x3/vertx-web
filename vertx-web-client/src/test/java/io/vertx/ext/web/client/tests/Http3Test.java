@@ -28,7 +28,7 @@ public class Http3Test extends HttpTestBase {
       .requestHandler(request -> {
         request.response().end();
       });
-    server.listen(4043).await();
+    server.listen(4043, "localhost").await();
     WebClient client = WebClient.create(vertx,
       new WebClientConfig()
         .setVersions(List.of(HttpVersion.HTTP_3))
