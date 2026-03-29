@@ -58,7 +58,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static org.hamcrest.CoreMatchers.*;
 import org.assertj.core.api.Assertions;
 
 /**
@@ -2024,7 +2023,7 @@ public class WebClientTest extends WebClientTestBase {
       .wrappingFailure((head, err) -> new CustomException("boom"));
     testExpectation_2(true, expectation, HttpServerResponse::end, ar -> {
       Throwable cause = ar.cause();
-      assertThat(cause, instanceOf(CustomException.class));
+      assertThat(cause, a -> a.isInstanceOf(CustomException.class));
       CustomException customException = (CustomException) cause;
       assertEquals("boom", customException.getMessage());
     });
@@ -2043,7 +2042,7 @@ public class WebClientTest extends WebClientTestBase {
         .end(new JsonObject().put("tag", uuid.toString()).put("message", "tilt").toBuffer());
     }, ar -> {
       Throwable cause = ar.cause();
-      assertThat(cause, instanceOf(CustomException.class));
+      assertThat(cause, a -> a.isInstanceOf(CustomException.class));
       CustomException customException = (CustomException) cause;
       assertEquals("tilt", customException.getMessage());
       assertEquals(uuid, customException.tag);
@@ -2064,7 +2063,7 @@ public class WebClientTest extends WebClientTestBase {
         .end(TestUtils.randomBuffer(2048));
     }, ar -> {
       Throwable cause = ar.cause();
-      assertThat(cause, instanceOf(CustomException.class));
+      assertThat(cause, a -> a.isInstanceOf(CustomException.class));
       CustomException customException = (CustomException) cause;
       assertEquals(String.valueOf(statusCode), customException.getMessage());
       assertEquals(uuid, customException.tag);
@@ -2078,7 +2077,7 @@ public class WebClientTest extends WebClientTestBase {
     };
 
     testExpectation_2(true, expectation, HttpServerResponse::end, ar -> {
-      assertThat(ar.cause(), instanceOf(IndexOutOfBoundsException.class));
+      assertThat(ar.cause(), a -> a.isInstanceOf(IndexOutOfBoundsException.class));
     });
   }
 
@@ -2089,7 +2088,7 @@ public class WebClientTest extends WebClientTestBase {
     });
 
     testExpectation_2(true, expectation, HttpServerResponse::end, ar -> {
-      assertThat(ar.cause(), instanceOf(IndexOutOfBoundsException.class));
+      assertThat(ar.cause(), a -> a.isInstanceOf(IndexOutOfBoundsException.class));
     });
   }
 
@@ -2099,7 +2098,7 @@ public class WebClientTest extends WebClientTestBase {
       .wrappingFailure((head, err) -> null);
 
     testExpectation_2(true, expectation, HttpServerResponse::end, ar -> {
-      assertThat(ar.cause(), not(instanceOf(NullPointerException.class)));
+      assertThat(ar.cause(), a -> a.isNotInstanceOf(NullPointerException.class));
     });
   }
 
@@ -2223,7 +2222,7 @@ public class WebClientTest extends WebClientTestBase {
     try {
       webClient.requestAbs(HttpMethod.POST, "blah://foo@bar");
     } catch (VertxException e) {
-      assertThat(e.getCause(), instanceOf(MalformedURLException.class));
+      Assertions.assertThat(e.getCause()).isInstanceOf(MalformedURLException.class);
     }
   }
 
@@ -2261,7 +2260,7 @@ public class WebClientTest extends WebClientTestBase {
     // This test verifies the address resolver is actually used by the WebClient
     webClient.request(HttpMethod.GET, new RequestOptions().setServer(new FakeAddress("mars")))
       .send()
-      .onComplete(onFailure(t -> assertThat(t.getMessage(), allOf(containsString("resolve"), containsString("mars")))));
+      .onComplete(onFailure(t -> assertThatString(t.getMessage(), a -> a.contains("resolve", "mars"))));
   }
 
   @Test

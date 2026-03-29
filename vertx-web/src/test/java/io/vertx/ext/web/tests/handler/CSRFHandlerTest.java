@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import static java.util.stream.Collectors.joining;
-import static org.hamcrest.CoreMatchers.nullValue;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
@@ -468,7 +467,7 @@ public class CSRFHandlerTest extends WebTestBase {
         .putHeader("Cookie", encodeCookies())
         .setHost("localhost").setPort(8080).setURI("/csrf/first")
     ).compose(HttpClientRequest::send).onComplete(onSuccess(res -> {
-      assertThat("Should not send set-cookie header", res.headers().get("set-cookie"), nullValue());
+      assertThat(res.headers().get("set-cookie"), a -> a.as("Should not send set-cookie header").isNull());
       latch.countDown();
     }));
 

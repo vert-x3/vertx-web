@@ -21,4 +21,5 @@ open module io.vertx.web.graphql.tests {
   requires io.vertx.web.tests;
   requires junit;
   requires org.reactivestreams;
+  requires org.assertj.core;
 }

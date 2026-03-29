@@ -22,8 +22,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
 
 /**
  * @author Thomas Segismont
@@ -45,7 +43,7 @@ public class BatchRequestsTest extends GraphQLTestBase {
           } else {
             response.bodyHandler(buffer -> {
               Object json = buffer.toJsonValue();
-              assertThat(json, is(instanceOf(JsonArray.class)));
+              assertThat(json, a -> a.isInstanceOf(JsonArray.class));
               JsonArray results = (JsonArray) json;
               assertTrue(results.isEmpty());
               complete();
@@ -68,7 +66,7 @@ public class BatchRequestsTest extends GraphQLTestBase {
           } else {
             response.bodyHandler(buffer -> {
               Object json = buffer.toJsonValue();
-              assertThat(json, is(instanceOf(JsonArray.class)));
+              assertThat(json, a -> a.isInstanceOf(JsonArray.class));
               JsonArray results = (JsonArray) json;
               assertEquals(1, results.size());
               testData.checkLinkUrls(testData.urls(), results.getJsonObject(0));

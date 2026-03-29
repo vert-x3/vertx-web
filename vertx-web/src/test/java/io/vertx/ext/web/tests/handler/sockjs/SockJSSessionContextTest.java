@@ -22,7 +22,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.startsWith;
 
 /**
  * @author Thomas Segismont
@@ -65,7 +64,7 @@ public class SockJSSessionContextTest extends SockJSTestBase {
                     assertEquals(200, resp4.statusCode());
                     resp4.body().onComplete(onSuccess(buffer -> {
                       String body = buffer.toString();
-                      assertThat(body, startsWith("a"));
+                      assertThatString(body, a -> a.startsWith("a"));
                       JsonArray content = new JsonArray(body.substring(1));
                       assertEquals(1, content.size());
                       assertEquals(msg, content.getValue(0));
