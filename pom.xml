@@ -22,6 +22,7 @@
   <properties>
     <pac4j.version>1.6.0</pac4j.version>
     <mockito.version>5.20.0</mockito.version>
+    <assertj.version>3.27.7</assertj.version>
     <!-- When changing this version, make sure to update vertx-infinispan for dependency convergence -->
     <caffeine.version>3.2.1</caffeine.version>
     <testcontainers.version>1.21.4</testcontainers.version>
@@ -94,6 +95,12 @@
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
       <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

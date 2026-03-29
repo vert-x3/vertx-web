@@ -59,6 +59,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.hamcrest.CoreMatchers.*;
+import org.assertj.core.api.Assertions;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -1694,13 +1695,13 @@ public class WebClientTest extends WebClientTestBase {
     RequestOptions options = new RequestOptions().addHeader(headerKey, headerValue);
 
     HttpRequest<Buffer> request = webClient.request(HttpMethod.GET, options);
-    assertThat(request.headers().get(headerKey), equalTo(headerValue));
+    Assertions.assertThat(request.headers().get(headerKey)).isEqualTo(headerValue);
 
     request = webClient.request(HttpMethod.GET, SocketAddress.inetSocketAddress(8080, "localhost"), options);
-    assertThat(request.headers().get(headerKey), equalTo(headerValue));
+    Assertions.assertThat(request.headers().get(headerKey)).isEqualTo(headerValue);
 
     request = webClient.request(HttpMethod.GET, new RequestOptions());
-    assertThat(request.headers().get(headerKey), nullValue());
+    Assertions.assertThat(request.headers().get(headerKey)).isNull();
   }
 
   @Test
@@ -1710,14 +1711,14 @@ public class WebClientTest extends WebClientTestBase {
       .setURI("/test").setTimeout(500).setProxyOptions(proxyOptions).setFollowRedirects(true);
     HttpRequest<Buffer> request = webClient.request(HttpMethod.GET, options);
 
-    assertThat(request.host(), equalTo("another-host"));
-    assertThat(request.port(), equalTo(8080));
-    assertThat(request.ssl(), equalTo(true));
-    assertThat(request.uri(), equalTo("/test"));
-    assertThat(request.timeout(), equalTo(500l));
-    assertThat(request.followRedirects(), equalTo(true));
-    assertThat(request.proxy(), is(not(equalTo(proxyOptions))));
-    assertThat(request.proxy().getHost(), equalTo("proxy-host"));
+    Assertions.assertThat(request.host()).isEqualTo("another-host");
+    Assertions.assertThat(request.port()).isEqualTo(8080);
+    Assertions.assertThat(request.ssl()).isEqualTo(true);
+    Assertions.assertThat(request.uri()).isEqualTo("/test");
+    Assertions.assertThat(request.timeout()).isEqualTo(500l);
+    Assertions.assertThat(request.followRedirects()).isEqualTo(true);
+    Assertions.assertThat(request.proxy()).isNotEqualTo(proxyOptions);
+    Assertions.assertThat(request.proxy().getHost()).isEqualTo("proxy-host");
   }
 
   @Test

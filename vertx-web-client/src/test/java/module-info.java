@@ -15,6 +15,7 @@
  */
 open module io.vertx.web.client.tests {
   requires static org.hamcrest;
+  requires static org.assertj.core;
   requires io.netty.codec;
   requires io.netty.codec.http;
   requires io.vertx.auth.htdigest;
