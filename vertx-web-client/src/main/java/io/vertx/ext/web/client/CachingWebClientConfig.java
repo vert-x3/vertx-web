@@ -266,11 +266,6 @@ public class CachingWebClientConfig extends WebClientConfig {
   }
 
   @Override
-  public CachingWebClientConfig setForceSni(boolean forceSni) {
-    return (CachingWebClientConfig) super.setForceSni(forceSni);
-  }
-
-  @Override
   public CachingWebClientConfig setObservabilityConfig(ObservabilityConfig observabilityConfig) {
     return (CachingWebClientConfig) super.setObservabilityConfig(observabilityConfig);
   }
