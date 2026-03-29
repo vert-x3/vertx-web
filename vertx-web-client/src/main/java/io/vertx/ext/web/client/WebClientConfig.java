@@ -233,11 +233,6 @@ public class WebClientConfig extends HttpClientConfig {
   }
 
   @Override
-  public WebClientConfig setForceSni(boolean forceSni) {
-    return (WebClientConfig) super.setForceSni(forceSni);
-  }
-
-  @Override
   public WebClientConfig setObservabilityConfig(ObservabilityConfig observabilityConfig) {
     return (WebClientConfig) super.setObservabilityConfig(observabilityConfig);
   }
