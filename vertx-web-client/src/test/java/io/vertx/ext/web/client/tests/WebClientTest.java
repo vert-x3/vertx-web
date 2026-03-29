@@ -2299,6 +2299,7 @@ public class WebClientTest extends WebClientTestBase {
       return Future.succeededFuture(true);
     }
 
+    @Override public HttpClientInternal exceptionHandler(Handler<Throwable> handler) { return null; }
     @Override public Future<HttpClientConnection> connect(HttpConnectOptions options){return null;}
     @Override public VertxInternal vertx(){return null;}
     @Override public Function<HttpClientResponse, Future<RequestOptions>> redirectHandler(){return null;}
