@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClientSession;
+import org.junit.Assert;
 import org.junit.Test;
 
 import io.vertx.core.Future;
@@ -33,7 +34,7 @@ public class WebClientSessionTest extends WebClientTestBase {
         : failedFuture("Request contains Authorization header multiple times " + response.bodyAsString()));
 
     requestAndverifyResponse.get().compose(v -> requestAndverifyResponse.get()).onSuccess(resp -> complete())
-      .onFailure(t -> fail(t));
+      .onFailure(t -> Assert.fail(t.getMessage()));
     await(20, TimeUnit.SECONDS);
   }
 }

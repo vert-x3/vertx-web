@@ -12,6 +12,8 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.OAuth2WebClient;
 import io.vertx.ext.web.client.OAuth2WebClientOptions;
 import io.vertx.ext.web.client.WebClientSession;
+import io.vertx.test.core.TestUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -69,7 +71,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
         : failedFuture("Request contains Authorization header multiple times " + response.bodyAsString()));
 
     requestAndverifyResponse.get().compose(v -> requestAndverifyResponse.get()).onSuccess(resp -> complete())
-      .onFailure(this::fail);
+      .onFailure(err -> Assert.fail(err.getMessage()));
     await(20, TimeUnit.SECONDS);
   }
 
@@ -79,10 +81,10 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
 
     server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
-        assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
+        Assert.assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
         req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
       } else if (req.method() == HttpMethod.GET && "/protected/path".equals(req.path())) {
-        assertEquals("Bearer " + fixture.getString("access_token"), req.getHeader("Authorization"));
+        Assert.assertEquals("Bearer " + fixture.getString("access_token"), req.getHeader("Authorization"));
         req.response().end();
       } else {
         req.response().setStatusCode(400).end();
@@ -97,7 +99,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       latch.countDown();
     });
 
-    awaitLatch(latch);
+    TestUtils.awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -114,15 +116,15 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .get(8080, "localhost", "/protected/path")
       .send().onComplete(result -> {
         if (result.failed()) {
-          fail(result.cause());
+          Assert.fail(result.cause().getMessage());
         } else {
-          assertEquals(200, result.result().statusCode());
-          assertEquals(fixture.getString("access_token"), oauth2WebClient.getUser().principal().getString("access_token"));
+          Assert.assertEquals(200, result.result().statusCode());
+          Assert.assertEquals(fixture.getString("access_token"), oauth2WebClient.getUser().principal().getString("access_token"));
           latchClient.countDown();
         }
       });
 
-    awaitLatch(latchClient);
+    TestUtils.awaitLatch(latchClient);
   }
 
   @Test
@@ -131,10 +133,10 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
 
     server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
-        assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
+        Assert.assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
         req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
       } else if (req.method() == HttpMethod.GET && "/protected/path".equals(req.path())) {
-        assertEquals("Bearer " + fixture.getString("access_token"), req.getHeader("Authorization"));
+        Assert.assertEquals("Bearer " + fixture.getString("access_token"), req.getHeader("Authorization"));
         req.response().end();
       } else {
         req.response().setStatusCode(400).end();
@@ -149,7 +151,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       latch.countDown();
     });
 
-    awaitLatch(latch);
+    TestUtils.awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -166,14 +168,14 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .get(8080, "localhost", "/protected/path")
       .send().onComplete(result -> {
         if (result.failed()) {
-          fail(result.cause());
+          Assert.fail(result.cause().getMessage());
         } else {
-          assertEquals(200, result.result().statusCode());
+          Assert.assertEquals(200, result.result().statusCode());
           latchClient.countDown();
         }
       });
 
-    awaitLatch(latchClient);
+    TestUtils.awaitLatch(latchClient);
   }
 
   @Test
@@ -194,11 +196,11 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
         if (result.failed()) {
           latchClient.countDown();
         } else {
-          fail("Should require credentials");
+          Assert.fail("Should require credentials");
         }
       });
 
-    awaitLatch(latchClient);
+    TestUtils.awaitLatch(latchClient);
   }
 
   @Test
@@ -210,13 +212,13 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         if (counter.incrementAndGet() == 2) {
-          fail("Should only request a token 1 time");
+          Assert.fail("Should only request a token 1 time");
         } else {
-          assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
+          Assert.assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
           req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
         }
       } else if (req.method() == HttpMethod.GET && "/protected/path".equals(req.path())) {
-        assertEquals("Bearer " + fixture.getString("access_token"), req.getHeader("Authorization"));
+        Assert.assertEquals("Bearer " + fixture.getString("access_token"), req.getHeader("Authorization"));
         req.response().end();
       } else {
         req.response().setStatusCode(400).end();
@@ -231,7 +233,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       latch.countDown();
     });
 
-    awaitLatch(latch);
+    TestUtils.awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -250,14 +252,14 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .get(8080, "localhost", "/protected/path")
       .send().onComplete(result -> {
         if (result.failed()) {
-          fail(result.cause());
+          Assert.fail(result.cause().getMessage());
         } else {
-          assertEquals(200, result.result().statusCode());
+          Assert.assertEquals(200, result.result().statusCode());
           latchClient1.countDown();
         }
       });
 
-    awaitLatch(latchClient1);
+    TestUtils.awaitLatch(latchClient1);
     final CountDownLatch latchClient2 = new CountDownLatch(1);
 
     // again, but this time we should not get a token
@@ -265,14 +267,14 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .get(8080, "localhost", "/protected/path")
       .send().onComplete(result -> {
         if (result.failed()) {
-          fail(result.cause());
+          Assert.fail(result.cause().getMessage());
         } else {
-          assertEquals(200, result.result().statusCode());
+          Assert.assertEquals(200, result.result().statusCode());
           latchClient2.countDown();
         }
       });
 
-    awaitLatch(latchClient2);
+    TestUtils.awaitLatch(latchClient2);
   }
 
   @Test
@@ -284,13 +286,13 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         if (counter.incrementAndGet() == 3) {
-          fail("Should only request a token 2 times");
+          Assert.fail("Should only request a token 2 times");
         } else {
-          assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
+          Assert.assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
           req.response().putHeader("Content-Type", "application/json").end(fixtureExpires.copy().put("calls", counter).encode());
         }
       } else if (req.method() == HttpMethod.GET && "/protected/path".equals(req.path())) {
-        assertEquals("Bearer " + fixtureExpires.getString("access_token"), req.getHeader("Authorization"));
+        Assert.assertEquals("Bearer " + fixtureExpires.getString("access_token"), req.getHeader("Authorization"));
         req.response().end();
       } else {
         req.response().setStatusCode(400).end();
@@ -305,7 +307,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       latch.countDown();
     });
 
-    awaitLatch(latch);
+    TestUtils.awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -324,9 +326,9 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .get(8080, "localhost", "/protected/path")
       .send().onComplete(result -> {
         if (result.failed()) {
-          fail(result.cause());
+          Assert.fail(result.cause().getMessage());
         } else {
-          assertEquals(200, result.result().statusCode());
+          Assert.assertEquals(200, result.result().statusCode());
           latchClient1.countDown();
         }
       });
@@ -334,7 +336,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     // sleep so the user expires
     Thread.sleep(2000L);
 
-    awaitLatch(latchClient1);
+    TestUtils.awaitLatch(latchClient1);
     final CountDownLatch latchClient2 = new CountDownLatch(1);
 
     // again, but this time we should not get a token
@@ -342,14 +344,14 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .get(8080, "localhost", "/protected/path")
       .send().onComplete(result -> {
         if (result.failed()) {
-          fail(result.cause());
+          Assert.fail(result.cause().getMessage());
         } else {
-          assertEquals(200, result.result().statusCode());
+          Assert.assertEquals(200, result.result().statusCode());
           latchClient2.countDown();
         }
       });
 
-    awaitLatch(latchClient2);
+    TestUtils.awaitLatch(latchClient2);
   }
 
   @Test
@@ -361,9 +363,9 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         if (counter.incrementAndGet() == 4) {
-          fail("Should only request a token 3 times");
+          Assert.fail("Should only request a token 3 times");
         } else {
-          assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
+          Assert.assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
           if (counter.get() == 2) {
             // fake a bad refresh response
             req.response().setStatusCode(401).end();
@@ -372,7 +374,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
           }
         }
       } else if (req.method() == HttpMethod.GET && "/protected/path".equals(req.path())) {
-        assertEquals("Bearer " + fixtureExpires.getString("access_token"), req.getHeader("Authorization"));
+        Assert.assertEquals("Bearer " + fixtureExpires.getString("access_token"), req.getHeader("Authorization"));
         req.response().end();
       } else {
         req.response().setStatusCode(400).end();
@@ -387,7 +389,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       latch.countDown();
     });
 
-    awaitLatch(latch);
+    TestUtils.awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -406,9 +408,9 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .get(8080, "localhost", "/protected/path")
       .send().onComplete(result -> {
         if (result.failed()) {
-          fail(result.cause());
+          Assert.fail(result.cause().getMessage());
         } else {
-          assertEquals(200, result.result().statusCode());
+          Assert.assertEquals(200, result.result().statusCode());
           latchClient1.countDown();
         }
       });
@@ -416,7 +418,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     // sleep so the user expires
     Thread.sleep(2000L);
 
-    awaitLatch(latchClient1);
+    TestUtils.awaitLatch(latchClient1);
     final CountDownLatch latchClient2 = new CountDownLatch(1);
 
     // again, but this time we should not get a token
@@ -424,14 +426,14 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .get(8080, "localhost", "/protected/path")
       .send().onComplete(result -> {
         if (result.failed()) {
-          fail(result.cause());
+          Assert.fail(result.cause().getMessage());
         } else {
-          assertEquals(200, result.result().statusCode());
+          Assert.assertEquals(200, result.result().statusCode());
           latchClient2.countDown();
         }
       });
 
-    awaitLatch(latchClient2);
+    TestUtils.awaitLatch(latchClient2);
   }
 
   @Test
@@ -443,13 +445,13 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         if (counter.incrementAndGet() == 2) {
-          fail("Should only request a token 1 time");
+          Assert.fail("Should only request a token 1 time");
         } else {
-          assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
+          Assert.assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
           req.response().putHeader("Content-Type", "application/json").end(fixtureExpires.copy().put("calls", counter).encode());
         }
       } else if (req.method() == HttpMethod.GET && "/protected/path".equals(req.path())) {
-        assertEquals("Bearer " + fixtureExpires.getString("access_token"), req.getHeader("Authorization"));
+        Assert.assertEquals("Bearer " + fixtureExpires.getString("access_token"), req.getHeader("Authorization"));
         req.response().end();
       } else {
         req.response().setStatusCode(400).end();
@@ -464,7 +466,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       latch.countDown();
     });
 
-    awaitLatch(latch);
+    TestUtils.awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -483,9 +485,9 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .get(8080, "localhost", "/protected/path")
       .send().onComplete(result -> {
         if (result.failed()) {
-          fail(result.cause());
+          Assert.fail(result.cause().getMessage());
         } else {
-          assertEquals(200, result.result().statusCode());
+          Assert.assertEquals(200, result.result().statusCode());
           latchClient1.countDown();
         }
       });
@@ -493,7 +495,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     // sleep so the user expires
     Thread.sleep(2000L);
 
-    awaitLatch(latchClient1);
+    TestUtils.awaitLatch(latchClient1);
     final CountDownLatch latchClient2 = new CountDownLatch(1);
 
     // again, but this time we should not get a token
@@ -501,14 +503,14 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .get(8080, "localhost", "/protected/path")
       .send().onComplete(result -> {
         if (result.failed()) {
-          fail(result.cause());
+          Assert.fail(result.cause().getMessage());
         } else {
-          assertEquals(200, result.result().statusCode());
+          Assert.assertEquals(200, result.result().statusCode());
           latchClient2.countDown();
         }
       });
 
-    awaitLatch(latchClient2);
+    TestUtils.awaitLatch(latchClient2);
   }
 
   @Test
@@ -518,13 +520,13 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
 
     server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path()) && !retry.get()) {
-        assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
+        Assert.assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
         req.response().putHeader("Content-Type", "application/json").end(loggedOutFixture.encode());
       } else if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path()) && retry.get()) {
-        assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
+        Assert.assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
         req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
       } else if (req.method() == HttpMethod.GET && "/protected/path".equals(req.path()) && retry.get()) {
-        assertEquals("Bearer " + fixture.getString("access_token"), req.getHeader("Authorization"));
+        Assert.assertEquals("Bearer " + fixture.getString("access_token"), req.getHeader("Authorization"));
         req.response().end();
       } else {
         retry.set(true);
@@ -540,7 +542,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       latch.countDown();
     });
 
-    awaitLatch(latch);
+    TestUtils.awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -560,14 +562,14 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .get(8080, "localhost", "/protected/path")
       .send().onComplete(result -> {
         if (result.failed()) {
-          fail(result.cause());
+          Assert.fail(result.cause().getMessage());
         } else {
-          assertEquals(200, result.result().statusCode());
+          Assert.assertEquals(200, result.result().statusCode());
           latchClient.countDown();
         }
       });
 
-    awaitLatch(latchClient);
+    TestUtils.awaitLatch(latchClient);
   }
 
   @Test
@@ -577,10 +579,10 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
 
     server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path()) && !retry.get()) {
-        assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
+        Assert.assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
         req.response().putHeader("Content-Type", "application/json").end(loggedOutFixture.encode());
       } else if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path()) && retry.get()) {
-        assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
+        Assert.assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
         req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
       } else if (req.method() == HttpMethod.GET && "/protected/path".equals(req.path())) {
         retry.set(true);
@@ -596,7 +598,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       latch.countDown();
     });
 
-    awaitLatch(latch);
+    TestUtils.awaitLatch(latch);
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -616,14 +618,14 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .get(8080, "localhost", "/protected/path")
       .send().onComplete(result -> {
         if (result.failed()) {
-          fail(result.cause());
+          Assert.fail(result.cause().getMessage());
         } else {
           // this one will fail as we fail to refresh request after request
-          assertEquals(401, result.result().statusCode());
+          Assert.assertEquals(401, result.result().statusCode());
           latchClient.countDown();
         }
       });
 
-    awaitLatch(latchClient);
+    TestUtils.awaitLatch(latchClient);
   }
 }

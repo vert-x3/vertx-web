@@ -22,6 +22,8 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.tests.WebClientTestBase;
 import io.vertx.ext.web.client.tests.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.test.core.TestUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -37,9 +39,9 @@ public class WebClientDatabindTest extends WebClientTestBase {
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
       .as(BodyCodec.json(WineAndCheese.class))
-      .send().onComplete(onSuccess(resp -> {
-        assertEquals(200, resp.statusCode());
-        assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.body());
+      .send().onComplete(TestUtils.onSuccess(resp -> {
+        Assert.assertEquals(200, resp.statusCode());
+        Assert.assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.body());
         testComplete();
       }));
     await();
@@ -48,9 +50,9 @@ public class WebClientDatabindTest extends WebClientTestBase {
   @Test
   public void testResponseUnknownContentTypeBodyAsJsonMapped() throws Exception {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
-    testResponseBody(expected.encode(), onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
-      assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.bodyAsJson(WineAndCheese.class));
+    testResponseBody(expected.encode(), TestUtils.onSuccess(resp -> {
+      Assert.assertEquals(200, resp.statusCode());
+      Assert.assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.bodyAsJson(WineAndCheese.class));
       testComplete();
     }));
   }
@@ -59,8 +61,8 @@ public class WebClientDatabindTest extends WebClientTestBase {
   public void testSendJsonPojoBody() throws Exception {
     testSendBody(new WineAndCheese().setCheese("roquefort").setWine("Chateauneuf Du Pape"),
       (contentType, buff) -> {
-        assertEquals("application/json", contentType);
-        assertEquals(new JsonObject().put("wine", "Chateauneuf Du Pape").put("cheese", "roquefort"), buff.toJsonObject());
+        Assert.assertEquals("application/json", contentType);
+        Assert.assertEquals(new JsonObject().put("wine", "Chateauneuf Du Pape").put("cheese", "roquefort"), buff.toJsonObject());
       });
   }
 }

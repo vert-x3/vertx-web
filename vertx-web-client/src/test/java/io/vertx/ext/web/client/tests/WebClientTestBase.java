@@ -32,6 +32,7 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.http.HttpTestBase;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
@@ -51,6 +52,10 @@ public class WebClientTestBase extends HttpTestBase {
   public TemporaryFolder testFolder = new TemporaryFolder();
 
   protected WebClient webClient;
+
+  public WebClientTestBase() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Override
   protected VertxOptions getOptions() {
@@ -85,8 +90,8 @@ public class WebClientTestBase extends HttpTestBase {
     });
     startServer();
     HttpRequest<Buffer> builder = reqFactory.apply(webClient);
-    builder.send().onComplete(onSuccess(resp -> complete()));
-    builder.send().onComplete(onSuccess(resp -> complete()));
+    builder.send().onComplete(TestUtils.onSuccess(resp -> complete()));
+    builder.send().onComplete(TestUtils.onSuccess(resp -> complete()));
     await();
   }
 
@@ -97,8 +102,8 @@ public class WebClientTestBase extends HttpTestBase {
     Files.write(f.toPath(), expected.getBytes(StandardCharsets.UTF_8));
     waitFor(2);
     server.requestHandler(req -> req.bodyHandler(buff -> {
-      assertEquals(method, req.method());
-      assertEquals(Buffer.buffer(expected), buff);
+      Assert.assertEquals(method, req.method());
+      Assert.assertEquals(Buffer.buffer(expected), buff);
       complete();
       req.response().end();
     }));
@@ -119,14 +124,14 @@ public class WebClientTestBase extends HttpTestBase {
           builder = webClient.patch(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
           break;
         default:
-          fail("Invalid HTTP method");
+          Assert.fail("Invalid HTTP method");
       }
 
       if (!chunked) {
         builder = builder.putHeader("Content-Length", "" + expected.length());
       }
-      builder.sendStream(asyncFile).onComplete(onSuccess(resp -> {
-        assertEquals(200, resp.statusCode());
+      builder.sendStream(asyncFile).onComplete(TestUtils.onSuccess(resp -> {
+        Assert.assertEquals(200, resp.statusCode());
         complete();
       }));
     });
@@ -151,11 +156,11 @@ public class WebClientTestBase extends HttpTestBase {
     startServer();
     HttpRequest<Buffer> post = webClient.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     if (body instanceof Buffer) {
-      post.sendBuffer((Buffer) body).onComplete(onSuccess(resp -> complete()));
+      post.sendBuffer((Buffer) body).onComplete(TestUtils.onSuccess(resp -> complete()));
     } else if (body instanceof JsonObject) {
-      post.sendJsonObject((JsonObject) body).onComplete(onSuccess(resp -> complete()));
+      post.sendJsonObject((JsonObject) body).onComplete(TestUtils.onSuccess(resp -> complete()));
     } else {
-      post.sendJson(body).onComplete(onSuccess(resp -> complete()));
+      post.sendJson(body).onComplete(TestUtils.onSuccess(resp -> complete()));
     }
     await();
   }
