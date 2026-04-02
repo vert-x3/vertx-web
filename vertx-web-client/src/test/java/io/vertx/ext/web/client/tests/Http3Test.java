@@ -20,6 +20,10 @@ import java.util.List;
 @RunWith(LinuxOrOsx.class)
 public class Http3Test extends HttpTestBase {
 
+  public Http3Test() {
+    super(ReportMode.FORBIDDEN);
+  }
+
   @Test
   public void smokeTest() {
     HttpServer server = vertx.createHttpServer(

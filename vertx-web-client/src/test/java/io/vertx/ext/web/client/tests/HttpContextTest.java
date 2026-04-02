@@ -10,6 +10,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
 import io.vertx.test.http.HttpTestBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -17,6 +18,10 @@ import java.util.concurrent.atomic.AtomicReference;
 public class HttpContextTest extends HttpTestBase {
 
   private WebClientInternal client;
+
+  public HttpContextTest() {
+    super(ReportMode.LEGACY);
+  }
 
   @Override
   protected VertxOptions getOptions() {
@@ -51,7 +56,7 @@ public class HttpContextTest extends HttpTestBase {
           ctx.fail(cause);
           break;
         case FAILURE:
-          assertNotNull(ctx.clientRequest());
+          Assert.assertNotNull(ctx.clientRequest());
           ref.set(ctx);
           ctx.next();
           break;
@@ -65,9 +70,9 @@ public class HttpContextTest extends HttpTestBase {
       .send()
       .onFailure(err -> {
         HttpContext ctx = ref.get();
-        assertNotNull(ctx);
-        assertNull(ctx.clientRequest());
-        assertSame(cause, err);
+        Assert.assertNotNull(ctx);
+        Assert.assertNull(ctx.clientRequest());
+        Assert.assertSame(cause, err);
         testComplete();
       });
     await();

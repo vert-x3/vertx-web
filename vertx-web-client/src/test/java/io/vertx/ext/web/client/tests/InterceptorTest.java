@@ -20,7 +20,9 @@ import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
 import io.vertx.ext.web.codec.BodyCodec;
 
+import io.vertx.test.core.TestUtils;
 import io.vertx.test.http.HttpTestBase;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -42,6 +44,10 @@ import java.util.function.BiFunction;
 public class InterceptorTest extends HttpTestBase {
 
   private WebClientInternal client;
+
+  public InterceptorTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Override
   protected VertxOptions getOptions() {
@@ -81,7 +87,7 @@ public class InterceptorTest extends HttpTestBase {
     startServer();
     client.addInterceptor(this::handleMutateRequest);
     HttpRequest<Buffer> builder = client.get("/somepath").host("another-host").port(8081);
-    builder.send().onComplete(onSuccess(resp -> complete()));
+    builder.send().onComplete(TestUtils.onSuccess(resp -> complete()));
     await();
   }
 
@@ -99,14 +105,14 @@ public class InterceptorTest extends HttpTestBase {
     server.requestHandler(req -> req.response().end("foo!"));
     startServer();
     File f = Files.createTempFile("vertx", ".dat").toFile();
-    assertTrue(f.delete());
+    Assert.assertTrue(f.delete());
     AsyncFile foo = vertx.fileSystem().openBlocking(f.getAbsolutePath(), new OpenOptions().setSync(true).setTruncateExisting(true));
     client.addInterceptor(this::handleMutateCodec);
     HttpRequest<Void> builder = client.get("/somepath").as(BodyCodec.pipe(foo));
-    builder.send().onComplete(onSuccess(resp -> {
+    builder.send().onComplete(TestUtils.onSuccess(resp -> {
       foo.write(Buffer.buffer("bar!"));
-      foo.close().onComplete(onSuccess(v -> {
-        assertEquals("bar!", vertx.fileSystem().readFileBlocking(f.getAbsolutePath()).toString());
+      foo.close().onComplete(TestUtils.onSuccess(v -> {
+        Assert.assertEquals("bar!", vertx.fileSystem().readFileBlocking(f.getAbsolutePath()).toString());
         testComplete();
       }));
     }));
@@ -119,7 +125,7 @@ public class InterceptorTest extends HttpTestBase {
   private void mutateResponseHandler(HttpContext context) {
     if (context.phase() == ClientPhase.DISPATCH_RESPONSE) {
       HttpResponse<?> resp = context.response();
-      assertEquals(500, resp.statusCode());
+      Assert.assertEquals(500, resp.statusCode());
       context.response(new HttpResponseImpl<Object>() {
         @Override
         public int statusCode() {
@@ -136,8 +142,8 @@ public class InterceptorTest extends HttpTestBase {
     startServer();
     client.addInterceptor(this::mutateResponseHandler);
     HttpRequest<Buffer> builder = client.get("/somepath");
-    builder.send().onComplete(onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
+    builder.send().onComplete(TestUtils.onSuccess(resp -> {
+      Assert.assertEquals(200, resp.statusCode());
       complete();
     }));
     await();
@@ -157,8 +163,8 @@ public class InterceptorTest extends HttpTestBase {
       context.next();
     });
     HttpRequest<Buffer> builder = client.get("/somepath");
-    builder.send().onComplete(onSuccess(resp -> {
-      assertEquals(Arrays.asList(
+    builder.send().onComplete(TestUtils.onSuccess(resp -> {
+      Assert.assertEquals(Arrays.asList(
         "PREPARE_REQUEST_1", "PREPARE_REQUEST_2",
         "CREATE_REQUEST_1", "CREATE_REQUEST_2",
         "SEND_REQUEST_1", "SEND_REQUEST_2",
@@ -196,15 +202,15 @@ public class InterceptorTest extends HttpTestBase {
     });
 
     HttpRequest<Buffer> builder = client.get("/somepath");
-    builder.send().onComplete(onFailure(err -> {
-      assertEquals(Arrays.asList(
+    builder.send().onComplete(TestUtils.onFailure(err -> {
+      Assert.assertEquals(Arrays.asList(
         "PREPARE_REQUEST_1", "PREPARE_REQUEST_2", "PREPARE_REQUEST_3",
         "CREATE_REQUEST_1", "CREATE_REQUEST_2",
         "FAILURE_1", "FAILURE_2", "FAILURE_3"), events);
       complete();
     }));
 
-    awaitLatch(failLatch);
+    TestUtils.awaitLatch(failLatch);
     httpCtx[0].fail(new Exception("Something happens"));
     await();
   }
@@ -237,9 +243,9 @@ public class InterceptorTest extends HttpTestBase {
       context.next();
     });
     HttpRequest<Buffer> builder = client.get("/somepath");
-    builder.send().onComplete(onSuccess(resp -> {
+    builder.send().onComplete(TestUtils.onSuccess(resp -> {
       Thread contextThread = Thread.currentThread();
-      assertEquals(abc.apply(testThread, contextThread), phaseThreads);
+      Assert.assertEquals(abc.apply(testThread, contextThread), phaseThreads);
       complete();
     }));
   }
@@ -278,10 +284,10 @@ public class InterceptorTest extends HttpTestBase {
     AtomicInteger respCount = new AtomicInteger();
     client.addInterceptor(retryInterceptorHandler(reqCount, respCount, num));
     HttpRequest<Buffer> builder = client.get("/");
-    builder.send().onComplete(onSuccess(resp -> {
-      assertEquals(num + 1, reqCount.get());
-      assertEquals(num + 1, respCount.get());
-      assertEquals(503, resp.statusCode());
+    builder.send().onComplete(TestUtils.onSuccess(resp -> {
+      Assert.assertEquals(num + 1, reqCount.get());
+      Assert.assertEquals(num + 1, respCount.get());
+      Assert.assertEquals(503, resp.statusCode());
       complete();
     }));
     await();
@@ -297,12 +303,12 @@ public class InterceptorTest extends HttpTestBase {
 
   @Test
   public void testCacheInterceptor() throws Exception {
-    server.requestHandler(req -> fail());
+    server.requestHandler(req -> Assert.fail());
     startServer();
     client.addInterceptor(this::cacheInterceptorHandler);
     HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
-    builder.send().onComplete(onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
+    builder.send().onComplete(TestUtils.onSuccess(resp -> {
+      Assert.assertEquals(200, resp.statusCode());
       complete();
     }));
     await();
@@ -394,19 +400,19 @@ public class InterceptorTest extends HttpTestBase {
       phases.add(ctx.phase());
       switch (ctx.phase()) {
         case PREPARE_REQUEST:
-          assertEquals(0, ctx.redirects());
+          Assert.assertEquals(0, ctx.redirects());
           break;
         case SEND_REQUEST:
-          assertEquals(redirects.getAndIncrement(), ctx.redirects());
+          Assert.assertEquals(redirects.getAndIncrement(), ctx.redirects());
           requestUris.add(ctx.requestOptions().getURI());
           break;
       }
       ctx.next();
     });
     HttpRequest<Buffer> builder = client.get("/1").host("localhost").port(8080);
-    builder.send().onComplete(onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
-      assertEquals(Arrays.asList(
+    builder.send().onComplete(TestUtils.onSuccess(resp -> {
+      Assert.assertEquals(200, resp.statusCode());
+      Assert.assertEquals(Arrays.asList(
         ClientPhase.PREPARE_REQUEST,
         ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
@@ -415,7 +421,7 @@ public class InterceptorTest extends HttpTestBase {
         ClientPhase.SEND_REQUEST,
         ClientPhase.RECEIVE_RESPONSE,
         ClientPhase.DISPATCH_RESPONSE), phases);
-      assertEquals(Arrays.asList("/1", "/2"), requestUris);
+      Assert.assertEquals(Arrays.asList("/1", "/2"), requestUris);
       complete();
     }));
     await();
@@ -435,9 +441,9 @@ public class InterceptorTest extends HttpTestBase {
       ctx.next();
     });
     HttpRequest<Buffer> builder = client.get("/").host("localhost").port(8080);
-    builder.send().onComplete(onSuccess(resp -> {
-      assertEquals(302, resp.statusCode());
-      assertEquals(Arrays.asList(
+    builder.send().onComplete(TestUtils.onSuccess(resp -> {
+      Assert.assertEquals(302, resp.statusCode());
+      Assert.assertEquals(Arrays.asList(
         ClientPhase.PREPARE_REQUEST,
         ClientPhase.CREATE_REQUEST,
         ClientPhase.SEND_REQUEST,
@@ -492,7 +498,7 @@ public class InterceptorTest extends HttpTestBase {
         ClientPhase.RECEIVE_RESPONSE,
         ClientPhase.DISPATCH_RESPONSE
         ), phases);
-      assertEquals(Arrays.asList(
+      Assert.assertEquals(Arrays.asList(
         "/",
         "/0",
         "/00",
@@ -532,16 +538,16 @@ public class InterceptorTest extends HttpTestBase {
     });
     List<Long> list = Collections.synchronizedList(new ArrayList<>());
     client.addInterceptor(ctx -> {
-      assertTrue(first.getAndSet(false));
-      assertFalse(synchronous.get());
+      Assert.assertTrue(first.getAndSet(false));
+      Assert.assertFalse(synchronous.get());
       list.add(System.currentTimeMillis());
       ctx.next();
     });
     HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
-    builder.send().onComplete(onSuccess(resp -> {
+    builder.send().onComplete(TestUtils.onSuccess(resp -> {
       long prev = 0L;
       for (long val : list) {
-        assertTrue(val >= prev);
+        Assert.assertTrue(val >= prev);
         prev = val;
       }
       testComplete();
@@ -556,11 +562,11 @@ public class InterceptorTest extends HttpTestBase {
       throw failure;
     });
     client.addInterceptor(ctx -> {
-      fail("Should never be executed");
+      Assert.fail("Should never be executed");
     });
     HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
-    builder.send().onComplete(onFailure(err -> {
-      assertSame(failure, err);
+    builder.send().onComplete(TestUtils.onFailure(err -> {
+      Assert.assertSame(failure, err);
       testComplete();
     }));
     await();
@@ -572,14 +578,14 @@ public class InterceptorTest extends HttpTestBase {
     startServer();
     client.addInterceptor(ctx -> {
       if (ctx.phase() == ClientPhase.SEND_REQUEST) {
-        assertNotNull(ctx.clientRequest());
+        Assert.assertNotNull(ctx.clientRequest());
       } else {
-        assertNull(ctx.clientRequest());
+        Assert.assertNull(ctx.clientRequest());
       }
       ctx.next();
     });
     HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
-    builder.send().onComplete(onSuccess(resp -> {
+    builder.send().onComplete(TestUtils.onSuccess(resp -> {
       testComplete();
     }));
     await();

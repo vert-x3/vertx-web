@@ -6,7 +6,9 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.uritemplate.ExpandOptions;
+import io.vertx.test.core.TestUtils;
 import io.vertx.uritemplate.UriTemplate;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -28,9 +30,9 @@ public class UriTemplateTest extends WebClientTestBase {
           .setTemplateParam("name", "Julien")
           .setTemplateParam("currency", "\u20AC"),
       req -> {
-        assertEquals("name=Julien&currency=%E2%82%AC", req.query());
-        assertEquals("Julien", req.params().get("name"));
-        assertEquals(EURO_SYMBOL, req.params().get("currency"));
+        Assert.assertEquals("name=Julien&currency=%E2%82%AC", req.query());
+        Assert.assertEquals("Julien", req.params().get("name"));
+        Assert.assertEquals(EURO_SYMBOL, req.params().get("currency"));
       });
   }
 
@@ -43,10 +45,10 @@ public class UriTemplateTest extends WebClientTestBase {
           .setTemplateParam("currency", EURO_SYMBOL)
           .setQueryParam("city", "Marseille"),
       req -> {
-        assertEquals("name=Julien&currency=%E2%82%AC&city=Marseille", req.query());
-        assertEquals("Julien", req.params().get("name"));
-        assertEquals(EURO_SYMBOL, req.params().get("currency"));
-        assertEquals("Marseille", req.params().get("city"));
+        Assert.assertEquals("name=Julien&currency=%E2%82%AC&city=Marseille", req.query());
+        Assert.assertEquals("Julien", req.params().get("name"));
+        Assert.assertEquals(EURO_SYMBOL, req.params().get("currency"));
+        Assert.assertEquals("Marseille", req.params().get("city"));
       });
   }
 
@@ -61,10 +63,10 @@ public class UriTemplateTest extends WebClientTestBase {
           .setTemplateParam("currency", EURO_SYMBOL)
           .setQueryParam("city", "Marseille"),
       req -> {
-        assertEquals("name=Julien&currency=%E2%82%AC&city=Marseille", req.query());
-        assertEquals("Julien", req.params().get("name"));
-        assertEquals(EURO_SYMBOL, req.params().get("currency"));
-        assertEquals("Marseille", req.params().get("city"));
+        Assert.assertEquals("name=Julien&currency=%E2%82%AC&city=Marseille", req.query());
+        Assert.assertEquals("Julien", req.params().get("name"));
+        Assert.assertEquals(EURO_SYMBOL, req.params().get("currency"));
+        Assert.assertEquals("Marseille", req.params().get("city"));
       });
   }
 
@@ -78,15 +80,15 @@ public class UriTemplateTest extends WebClientTestBase {
         .setTemplateParam("action", "info")
         .setTemplateParam("query", query);
       // Missing variable is accepted
-      assertEquals("/info?username=&color=red&currency=%E2%82%AC", request.uri());
+      Assert.assertEquals("/info?username=&color=red&currency=%E2%82%AC", request.uri());
       request.setTemplateParam("username", "vietj");
-      assertEquals("/info?username=vietj&color=red&currency=%E2%82%AC", request.uri());
+      Assert.assertEquals("/info?username=vietj&color=red&currency=%E2%82%AC", request.uri());
       return request;
     }, req -> {
-      assertEquals("/info", req.path());
-      assertEquals("vietj", req.getParam("username"));
-      assertEquals("red", req.getParam("color"));
-      assertEquals(EURO_SYMBOL, req.getParam("currency"));
+      Assert.assertEquals("/info", req.path());
+      Assert.assertEquals("vietj", req.getParam("username"));
+      Assert.assertEquals("red", req.getParam("color"));
+      Assert.assertEquals(EURO_SYMBOL, req.getParam("currency"));
     });
   }
 
@@ -99,8 +101,8 @@ public class UriTemplateTest extends WebClientTestBase {
       .setTemplateExpandOptions(new ExpandOptions()
         .setAllowVariableMiss(false)));
     HttpRequest<Buffer> request = webClient.get(template);
-    request.send().onComplete(onFailure(err -> {
-      assertEquals(NoSuchElementException.class, err.getClass());
+    request.send().onComplete(TestUtils.onFailure(err -> {
+      Assert.assertEquals(NoSuchElementException.class, err.getClass());
       testComplete();
     }));
     await();
