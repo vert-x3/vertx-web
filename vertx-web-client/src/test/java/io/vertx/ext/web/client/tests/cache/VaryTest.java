@@ -3,10 +3,10 @@ package io.vertx.ext.web.client.tests.cache;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.web.client.impl.cache.Vary;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * As Netty is always decompressing the response and removing Content-Encoding header, we ignore this kind of variation.
@@ -30,8 +30,8 @@ public class VaryTest {
 
     RequestOptions requestMatches = new RequestOptions().addHeader(USER_AGENT, "Another Mobile User Agent");
     RequestOptions requestDoesNotMatch = buildEmptyRequestOptions(); // Desktop by default
-    assertTrue("User Agent Vary should match", instance.matchesRequest(requestMatches));
-    assertFalse("User Agent Vary should not match", instance.matchesRequest(requestDoesNotMatch));
+    assertTrue(instance.matchesRequest(requestMatches), "User Agent Vary should match");
+    assertFalse(instance.matchesRequest(requestDoesNotMatch), "User Agent Vary should not match");
   }
 
   @Test
@@ -46,9 +46,9 @@ public class VaryTest {
     RequestOptions requestMatches = new RequestOptions().addHeader(ACCEPT_ENCODING, "gzip");
     RequestOptions requestMatchesToo = new RequestOptions().addHeader(ACCEPT_ENCODING, "deflate");
     RequestOptions requestMatchesTooo = buildEmptyRequestOptions();
-    assertTrue("Encoding matches", instance.matchesRequest(requestMatches));
-    assertTrue("Encoding deflate does not match but it is ok", instance.matchesRequest(requestMatchesToo));
-    assertTrue("No encoding specified is also ok", instance.matchesRequest(requestMatchesTooo));
+    assertTrue(instance.matchesRequest(requestMatches), "Encoding matches");
+    assertTrue(instance.matchesRequest(requestMatchesToo), "Encoding deflate does not match but it is ok");
+    assertTrue(instance.matchesRequest(requestMatchesTooo), "No encoding specified is also ok");
   }
 
   @Test
@@ -63,9 +63,9 @@ public class VaryTest {
     RequestOptions requestMatches = new RequestOptions().addHeader("X-Vertx", "jordi");
     RequestOptions requestFails = new RequestOptions().addHeader("X-Vertx", "llach");
     RequestOptions requestFailsToo = buildEmptyRequestOptions();
-    assertTrue("Vary per custom header matches", instance.matchesRequest(requestMatches));
-    assertFalse("Vary per custom header does not match", instance.matchesRequest(requestFails));
-    assertFalse("Vary per custom header not present", instance.matchesRequest(requestFailsToo));
+    assertTrue(instance.matchesRequest(requestMatches), "Vary per custom header matches");
+    assertFalse(instance.matchesRequest(requestFails), "Vary per custom header does not match");
+    assertFalse(instance.matchesRequest(requestFailsToo), "Vary per custom header not present");
   }
 
   private RequestOptions buildEmptyRequestOptions() {

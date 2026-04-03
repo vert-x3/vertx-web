@@ -4,21 +4,19 @@ import static io.vertx.core.Future.failedFuture;
 import static io.vertx.core.Future.succeededFuture;
 import static io.vertx.core.http.HttpHeaders.AUTHORIZATION;
 
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClientSession;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 
-public class WebClientSessionTest extends WebClientTestBase {
+import java.util.function.Supplier;
+
+public class WebClientSessionTest extends WebClientJUnit5TestBase {
 
   @Test
-  public void testRequestHeaders() throws Exception {
+  public void testRequestHeaders() {
     WebClientSession session = WebClientSession.create(webClient).addHeader(AUTHORIZATION, "v3rtx");
     HttpRequest<Buffer> request = session.get(DEFAULT_TEST_URI);
 
@@ -33,8 +31,6 @@ public class WebClientSessionTest extends WebClientTestBase {
       .compose(response -> "1".equals(response.bodyAsString()) ? succeededFuture()
         : failedFuture("Request contains Authorization header multiple times " + response.bodyAsString()));
 
-    requestAndverifyResponse.get().compose(v -> requestAndverifyResponse.get()).onSuccess(resp -> complete())
-      .onFailure(t -> Assert.fail(t.getMessage()));
-    await(20, TimeUnit.SECONDS);
+    requestAndverifyResponse.get().compose(v -> requestAndverifyResponse.get()).await();
   }
 }
