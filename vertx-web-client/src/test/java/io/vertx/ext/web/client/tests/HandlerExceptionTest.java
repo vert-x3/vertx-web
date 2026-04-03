@@ -2,50 +2,49 @@ package io.vertx.ext.web.client.tests;
 
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.WebClient;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-@RunWith(VertxUnitRunner.class)
+@ExtendWith(VertxExtension.class)
 public class HandlerExceptionTest {
 
   private Vertx vertx;
 
 
-  @Before
-  public void setUp(TestContext tc) {
-    vertx = Vertx.vertx();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) {
+    this.vertx = vertx;
     vertx.createHttpServer()
       .requestHandler(req -> req.response().end("OK"))
-      .listen(8080).onComplete(tc.asyncAssertSuccess());
+      .listen(8080).onComplete(testContext.succeedingThenComplete());
   }
 
-  @After
-  public void tearDown(TestContext tc) {
-    vertx.close().onComplete(tc.asyncAssertSuccess());
-  }
-
-  @Test(timeout = 5000)
-  public void testThatCallbackErrorAreReported(TestContext tc) {
-    Async async = tc.async();
+  @Test
+  @Timeout(value = 5, unit = TimeUnit.SECONDS)
+  public void testThatCallbackErrorAreReported(VertxTestContext testContext) {
     vertx.exceptionHandler(t -> {
-      tc.assertEquals(t.getMessage(), "Expected exception");
-      async.complete();
+      assertEquals("Expected exception", t.getMessage());
+      testContext.completeNow();
     });
 
     WebClient client = WebClient.create(vertx);
     client.get(8080, "localhost", "")
       .send().onComplete(resp -> {
-        tc.assertTrue(resp.succeeded());
-        tc.assertTrue(Context.isOnEventLoopThread());
+        assertTrue(resp.succeeded());
+        assertTrue(Context.isOnEventLoopThread());
         throw new RuntimeException("Expected exception");
       });
   }

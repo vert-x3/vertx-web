@@ -4,31 +4,31 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.parsetools.JsonParser;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import io.vertx.junit5.ReportHandlerFailures;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Checks the behavior of the {@link io.vertx.ext.web.codec.impl.JsonStreamBodyCodec}.
  */
-@RunWith(VertxUnitRunner.class)
+@ExtendWith(VertxExtension.class)
+@ReportHandlerFailures
 public class JsonStreamTest {
 
-  private Vertx vertx;
   private WebClient client;
 
-  @Before
-  public void setup(TestContext tc) {
-    vertx = Vertx.vertx();
+  @BeforeEach
+  public void setup(Vertx vertx, VertxTestContext testContext) {
     client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(8080).setDefaultHost("localhost"));
 
     vertx.createHttpServer().requestHandler(req -> {
@@ -50,51 +50,43 @@ public class JsonStreamTest {
         req.response().write(separator);
       }
       req.response().end();
-    }).listen(8080).onComplete(tc.asyncAssertSuccess());
+    }).listen(8080).onComplete(testContext.succeedingThenComplete());
   }
-
-  @After
-  public void close(TestContext tc) {
-    vertx.close().onComplete(tc.asyncAssertSuccess());
-  }
-
 
   @Test
-  public void testSimpleStream(TestContext tc) {
+  public void testSimpleStream(VertxTestContext testContext) {
     AtomicInteger counter = new AtomicInteger();
-    Async async = tc.async();
     JsonParser parser = JsonParser.newParser().objectValueMode()
-      .exceptionHandler(tc::fail)
+      .exceptionHandler(testContext::failNow)
       .handler(event -> {
         JsonObject object = event.objectValue();
-        tc.assertEquals(counter.getAndIncrement(), object.getInteger("count"));
-        tc.assertEquals("some message", object.getString("data"));
+        assertEquals(counter.getAndIncrement(), object.getInteger("count"));
+        assertEquals("some message", object.getString("data"));
       })
-      .endHandler(x -> async.complete());
+      .endHandler(x -> testContext.completeNow());
 
     client.get("/?separator=nl&count=10").as(BodyCodec.jsonStream(parser)).send().onComplete(x -> {
       if (x.failed()) {
-        tc.fail(x.cause());
+        testContext.failNow(x.cause());
       }
     });
   }
 
   @Test
-  public void testSimpleStreamUsingBlankLine(TestContext tc) {
+  public void testSimpleStreamUsingBlankLine(VertxTestContext testContext) {
     AtomicInteger counter = new AtomicInteger();
-    Async async = tc.async();
     JsonParser parser = JsonParser.newParser().objectValueMode()
-      .exceptionHandler(tc::fail)
+      .exceptionHandler(testContext::failNow)
       .handler(event -> {
         JsonObject object = event.objectValue();
-        tc.assertEquals(counter.getAndIncrement(), object.getInteger("count"));
-        tc.assertEquals("some message", object.getString("data"));
+        assertEquals(counter.getAndIncrement(), object.getInteger("count"));
+        assertEquals("some message", object.getString("data"));
       })
-      .endHandler(x -> async.complete());
+      .endHandler(x -> testContext.completeNow());
 
     client.get("/?separator=bl&count=10").as(BodyCodec.jsonStream(parser)).send().onComplete(x -> {
       if (x.failed()) {
-        tc.fail(x.cause());
+        testContext.failNow(x.cause());
       }
     });
   }

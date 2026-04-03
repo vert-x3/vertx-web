@@ -3,31 +3,35 @@ package io.vertx.ext.web.client.tests;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.junit5.ReportHandlerFailures;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.SseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(VertxUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.*;
+
+@ExtendWith(VertxExtension.class)
+@ReportHandlerFailures
 public class SseClientTest {
 
   private Vertx vertx;
   private WebClient client;
   private HttpServer server;
 
-  @Before
-  public void setup(TestContext tc) {
-    vertx = Vertx.vertx();
+  @BeforeEach
+  public void setup(Vertx vertx, VertxTestContext testContext) {
+    this.vertx = vertx;
     client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(8080).setDefaultHost("localhost"));
 
     server = vertx.createHttpServer().requestHandler(req -> {
@@ -81,7 +85,7 @@ public class SseClientTest {
           for (int i = 0; i < count; i++) {
             String event = String.format("data: burst%d\n\n", i);
             req.response().write(event);
-          }   
+          }
           req.response().end();
           break;
         case "/slow":{
@@ -89,7 +93,7 @@ public class SseClientTest {
           count = Integer.parseInt(req.getParam("count"));
           vertx.setPeriodic(200, new Handler<Long>() {
             private int index = 0;
-            
+
             @Override
             public void handle(Long timerId) {
               if (index < count) {
@@ -112,113 +116,113 @@ public class SseClientTest {
       }
     });
 
-    server.listen(8080).onComplete(tc.asyncAssertSuccess());
+    server.listen(8080).onComplete(testContext.succeedingThenComplete());
   }
 
-  @Test(timeout = 10000)
-  public void testGetSseEvents(TestContext tc) throws Exception {
-    Async async = tc.async();
+  @Test
+  @Timeout(value = 10, unit = TimeUnit.SECONDS)
+  public void testGetSseEvents(VertxTestContext testContext) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
 
     client.get("/basic?count=5").as(BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
       stream.endHandler(v -> {
-        tc.assertEquals(5, events.size());
+        assertEquals(5, events.size());
         for (int i = 0; i < 5; i++) {
-          tc.assertEquals("event" + i, events.get(i).event());
-          tc.assertEquals("data" + i, events.get(i).data());
-          tc.assertEquals(String.valueOf(i), events.get(i).id());
+          assertEquals("event" + i, events.get(i).event());
+          assertEquals("data" + i, events.get(i).data());
+          assertEquals(String.valueOf(i), events.get(i).id());
         }
-        async.complete();
+        testContext.completeNow();
       });
-    })).send().onFailure(tc::fail);
+    })).send().onFailure(testContext::failNow);
   }
 
-  @Test(timeout = 10000)
-  public void testMultilineData(TestContext tc) throws Exception {
-    Async async = tc.async();
+  @Test
+  @Timeout(value = 10, unit = TimeUnit.SECONDS)
+  public void testMultilineData(VertxTestContext testContext) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
 
     client.get("/multiline-data").as(BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
       stream.endHandler(v -> {
-        tc.assertEquals(1, events.size());
+        assertEquals(1, events.size());
         // Per SSE spec, multi-line data should be joined by newlines
-        tc.assertEquals("line1\nline2\nline3", events.get(0).data());
-        async.complete();
+        assertEquals("line1\nline2\nline3", events.get(0).data());
+        testContext.completeNow();
       });
-    })).send().onFailure(tc::fail);
+    })).send().onFailure(testContext::failNow);
   }
 
-  @Test(timeout = 10000)
-  public void testComments(TestContext tc) throws Exception {
-    Async async = tc.async();
+  @Test
+  @Timeout(value = 10, unit = TimeUnit.SECONDS)
+  public void testComments(VertxTestContext testContext) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
 
     client.get("/comments").as(BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
       stream.endHandler(v -> {
-        tc.assertEquals(1, events.size());
-        tc.assertEquals("test data", events.get(0).data());
-        async.complete();
+        assertEquals(1, events.size());
+        assertEquals("test data", events.get(0).data());
+        testContext.completeNow();
       });
-    })).send().onFailure(tc::fail);
+    })).send().onFailure(testContext::failNow);
   }
 
-  @Test(timeout = 10000)
-  public void testRetryField(TestContext tc) throws Exception {
-    Async async = tc.async();
+  @Test
+  @Timeout(value = 10, unit = TimeUnit.SECONDS)
+  public void testRetryField(VertxTestContext testContext) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
 
     client.get("/retry").as(BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
       stream.endHandler(v -> {
-        tc.assertEquals(1, events.size());
-        tc.assertEquals("test", events.get(0).data());
-        tc.assertEquals(5000, events.get(0).retry());
-        async.complete();
+        assertEquals(1, events.size());
+        assertEquals("test", events.get(0).data());
+        assertEquals(5000, events.get(0).retry());
+        testContext.completeNow();
       });
-    })).send().onFailure(tc::fail);
+    })).send().onFailure(testContext::failNow);
   }
 
-  @Test(timeout = 10000)
-  public void testNoEventType(TestContext tc) throws Exception {
-    Async async = tc.async();
+  @Test
+  @Timeout(value = 10, unit = TimeUnit.SECONDS)
+  public void testNoEventType(VertxTestContext testContext) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
 
     client.get("/no-event-type").as(BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
       stream.endHandler(v -> {
-        tc.assertEquals(1, events.size());
-        tc.assertEquals("message without event type", events.get(0).data());
+        assertEquals(1, events.size());
+        assertEquals("message without event type", events.get(0).data());
         // Per SSE spec, the default event type is "message".
         // This implementation uses null. This test verifies the implementation's behavior.
-        tc.assertEquals("message", events.get(0).event());
-        async.complete();
+        assertEquals("message", events.get(0).event());
+        testContext.completeNow();
       });
-    })).send().onFailure(tc::fail);
+    })).send().onFailure(testContext::failNow);
   }
 
-  @Test(timeout = 10000)
-  public void testBurstEvents(TestContext tc) throws Exception {
-    Async async = tc.async();
+  @Test
+  @Timeout(value = 10, unit = TimeUnit.SECONDS)
+  public void testBurstEvents(VertxTestContext testContext) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
 
     client.get("/burst?count=100").as(BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
       stream.endHandler(v -> {
-        tc.assertEquals(100, events.size());
+        assertEquals(100, events.size());
         for (int i = 0; i < 100; i++) {
-          tc.assertEquals("burst" + i, events.get(i).data());
+          assertEquals("burst" + i, events.get(i).data());
         }
-        async.complete();
+        testContext.completeNow();
       });
-    })).send().onFailure(tc::fail);
+    })).send().onFailure(testContext::failNow);
   }
 
-  @Test(timeout = 10000)
-  public void testPauseResume(TestContext tc) throws Exception {
-    Async async = tc.async();
+  @Test
+  @Timeout(value = 10, unit = TimeUnit.SECONDS)
+  public void testPauseResume(VertxTestContext testContext) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
     final AtomicInteger pauseCount = new AtomicInteger(0);
 
@@ -234,16 +238,16 @@ public class SseClientTest {
         }
       });
       stream.endHandler(v -> {
-        tc.assertEquals(10, events.size());
-        tc.assertTrue(pauseCount.get() >= 2, "Stream should have been paused at least twice");
-        async.complete();
+        assertEquals(10, events.size());
+        assertTrue(pauseCount.get() >= 2, "Stream should have been paused at least twice");
+        testContext.completeNow();
       });
-    })).send().onFailure(tc::fail);
+    })).send().onFailure(testContext::failNow);
   }
 
-  @Test(timeout = 10000)
-  public void testFetch(TestContext tc) throws Exception {
-    Async async = tc.async();
+  @Test
+  @Timeout(value = 10, unit = TimeUnit.SECONDS)
+  public void testFetch(VertxTestContext testContext) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
     final AtomicInteger fetchCount = new AtomicInteger(0);
 
@@ -258,8 +262,8 @@ public class SseClientTest {
         } else {
           // After receiving 3 events, complete the test
           vertx.setTimer(500, id -> {
-            tc.assertEquals(3, events.size());
-            async.complete();
+            assertEquals(3, events.size());
+            testContext.completeNow();
           });
         }
       });
@@ -268,12 +272,12 @@ public class SseClientTest {
       });
       // Kick off by fetching the first event
       stream.fetch(1);
-    })).send().onFailure(tc::fail);
+    })).send().onFailure(testContext::failNow);
   }
 
-  @Test(timeout = 15000)
-  public void testBackpressure(TestContext tc) throws Exception {
-    Async async = tc.async();
+  @Test
+  @Timeout(value = 15, unit = TimeUnit.SECONDS)
+  public void testBackpressure(VertxTestContext testContext) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
     final List<Long> timestamps = new ArrayList<>();
 
@@ -288,18 +292,18 @@ public class SseClientTest {
         }
       });
       stream.endHandler(v -> {
-        tc.assertEquals(5, events.size());
+        assertEquals(5, events.size());
         // Verify events were received over time (not all at once)
         long totalTime = timestamps.get(timestamps.size() - 1) - timestamps.get(0);
-        tc.assertTrue(totalTime >= 750, "Events should be spread over time due to backpressure. Total time was " + totalTime);
-        async.complete();
+        assertTrue(totalTime >= 750, "Events should be spread over time due to backpressure. Total time was " + totalTime);
+        testContext.completeNow();
       });
-    })).send().onFailure(tc::fail);
+    })).send().onFailure(testContext::failNow);
   }
 
-  @Test(timeout = 10000)
-  public void testExceptionHandler(TestContext tc) throws Exception {
-    Async async = tc.async();
+  @Test
+  @Timeout(value = 10, unit = TimeUnit.SECONDS)
+  public void testExceptionHandler(VertxTestContext testContext) throws Exception {
     final List<Throwable> exceptions = new ArrayList<>();
 
     client.get("/invalid-retry").as(BodyCodec.sseStream(stream -> {
@@ -308,27 +312,14 @@ public class SseClientTest {
       });
       stream.exceptionHandler(exceptions::add);
       stream.endHandler(v -> {
-        tc.assertEquals(1, exceptions.size(), "Expected one exception");
-        tc.assertTrue(exceptions.get(0) instanceof RuntimeException, "Expected a RuntimeException");
-        tc.assertTrue(exceptions.get(0).getMessage().contains("Invalid \"retry\" value"));
-        tc.assertNotNull(exceptions.get(0).getCause(), "Expected a cause for the exception");
-        tc.assertTrue(exceptions.get(0).getCause() instanceof NumberFormatException, "Expected cause to be a NumberFormatException");
-        async.complete();
+        assertEquals(1, exceptions.size(), "Expected one exception");
+        assertTrue(exceptions.get(0) instanceof RuntimeException, "Expected a RuntimeException");
+        assertTrue(exceptions.get(0).getMessage().contains("Invalid \"retry\" value"));
+        assertNotNull(exceptions.get(0).getCause(), "Expected a cause for the exception");
+        assertTrue(exceptions.get(0).getCause() instanceof NumberFormatException, "Expected cause to be a NumberFormatException");
+        testContext.completeNow();
       });
-    })).send().onFailure(tc::fail);
-  }
-
-  @After
-  public void close(TestContext tc) {
-    if (server != null) {
-      server.close();
-    }
-    if (client != null) {
-      client.close();
-    }
-    if (vertx != null) {
-      vertx.close().onComplete(tc.asyncAssertSuccess());
-    }
+    })).send().onFailure(testContext::failNow);
   }
 
 }
