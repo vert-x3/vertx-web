@@ -21,8 +21,9 @@ open module io.vertx.web.client.tests {
   requires io.vertx.core.tests;
   requires io.vertx.auth.oauth2;
   requires io.vertx.uritemplate;
-  requires io.vertx.testing.unit;
+  requires io.vertx.testing.junit5;
   requires io.vertx.web.client;
   requires io.vertx.web.common;
   requires junit;
+  requires org.junit.jupiter.api;
 }

@@ -11,7 +11,6 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonArray;
-import io.vertx.ext.unit.junit.RepeatRule;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
@@ -23,7 +22,6 @@ import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.http.HttpTestBase;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -77,9 +75,6 @@ public class InterceptorTest extends HttpTestBase {
     }
     context.next();
   }
-
-  @Rule
-  public RepeatRule rule = new RepeatRule();
 
   @Test
   public void testMutateRequestInterceptor() throws Exception {
