@@ -78,9 +78,10 @@ public class WebClientTest extends WebClientJUnit5TestBase {
       }
     });
     startServer();
-    HttpRequest<Buffer> builder = reqFactory.apply(webClient);
-    builder.send().await();
-    builder.send().await();
+    reqFactory
+      .apply(webClient)
+      .send()
+      .await();
   }
 
   private void testRequestWithBody(HttpMethod method, boolean chunked) throws Exception {
@@ -112,7 +113,9 @@ public class WebClientTest extends WebClientJUnit5TestBase {
     if (!chunked) {
       builder = builder.putHeader("Content-Length", "" + expected.length());
     }
-    HttpResponse<Buffer> resp = builder.sendStream(asyncFile).await();
+    HttpResponse<Buffer> resp = builder
+      .sendStream(asyncFile)
+      .await();
     assertEquals(200, resp.statusCode());
   }
 
@@ -123,13 +126,15 @@ public class WebClientTest extends WebClientJUnit5TestBase {
     }));
     startServer();
     HttpRequest<Buffer> post = webClient.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    Future<HttpResponse<Buffer>> res;
     if (body instanceof Buffer) {
-      post.sendBuffer((Buffer) body).await();
+      res = post.sendBuffer((Buffer) body);
     } else if (body instanceof JsonObject) {
-      post.sendJsonObject((JsonObject) body).await();
+      res = post.sendJsonObject((JsonObject) body);
     } else {
-      post.sendJson(body).await();
+      res = post.sendJson(body);
     }
+    res.await();
   }
 
   @Test
