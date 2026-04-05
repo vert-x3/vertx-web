@@ -3,8 +3,7 @@ package io.vertx.ext.web.client.tests;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
-import io.vertx.junit5.ReportHandlerFailures;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -17,12 +16,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(VertxExtension.class)
-@ReportHandlerFailures
+@VertxTest
 public class SseClientTest {
 
   private Vertx vertx;

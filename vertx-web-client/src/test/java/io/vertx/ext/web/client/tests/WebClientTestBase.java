@@ -29,7 +29,6 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.impl.WebClientInternal;
 import io.vertx.junit5.*;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
@@ -39,9 +38,8 @@ import java.io.File;
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-@ExtendWith(VertxExtension.class)
-@ReportHandlerFailures
-public class WebClientJUnit5TestBase {
+@VertxTest
+public class WebClientTestBase {
 
   public static class VertxProv implements VertxProvider {
     @Override

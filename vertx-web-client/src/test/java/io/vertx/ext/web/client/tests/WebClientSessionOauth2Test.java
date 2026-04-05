@@ -24,7 +24,7 @@ import static io.vertx.core.Future.succeededFuture;
 import static io.vertx.core.http.HttpHeaders.AUTHORIZATION;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class WebClientSessionOauth2Test extends WebClientJUnit5TestBase {
+public class WebClientSessionOauth2Test extends WebClientTestBase {
 
   private static final JsonObject fixture = new JsonObject(
     "{" +

@@ -4,6 +4,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-@ExtendWith(VertxExtension.class)
+@VertxTest
 public class HandlerExceptionTest {
 
   private Vertx vertx;

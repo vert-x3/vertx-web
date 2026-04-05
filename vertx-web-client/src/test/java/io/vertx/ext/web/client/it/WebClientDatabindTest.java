@@ -20,7 +20,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.client.tests.WebClientJUnit5TestBase;
+import io.vertx.ext.web.client.tests.WebClientTestBase;
 import io.vertx.ext.web.client.tests.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class WebClientDatabindTest extends WebClientJUnit5TestBase {
+public class WebClientDatabindTest extends WebClientTestBase {
 
   @Test
   public void testResponseBodyAsJsonMapped() {

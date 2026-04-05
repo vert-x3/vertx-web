@@ -13,7 +13,7 @@ import io.vertx.core.buffer.Buffer;
 
 import java.util.function.Supplier;
 
-public class WebClientSessionTest extends WebClientJUnit5TestBase {
+public class WebClientSessionTest extends WebClientTestBase {
 
   @Test
   public void testRequestHeaders() {

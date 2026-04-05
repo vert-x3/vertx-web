@@ -10,10 +10,8 @@ import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.impl.ClientPhase;
 import io.vertx.ext.web.client.impl.HttpContext;
-import io.vertx.ext.web.client.impl.WebClientInternal;
 import io.vertx.ext.web.codec.BodyCodec;
 
 import org.assertj.core.api.Assertions;
@@ -35,7 +33,7 @@ import java.util.function.BiFunction;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class InterceptorTest extends WebClientJUnit5TestBase {
+public class InterceptorTest extends WebClientTestBase {
 
   private void handleMutateRequest(HttpContext<?> context) {
     if (context.phase() == ClientPhase.PREPARE_REQUEST) {

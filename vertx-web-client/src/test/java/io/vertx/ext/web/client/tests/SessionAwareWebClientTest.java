@@ -29,7 +29,7 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientSession;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.ReportHandlerFailures;
+import io.vertx.junit5.VertxTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +42,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.ext.web.client.impl.CookieStoreImpl;
 import io.vertx.ext.web.client.spi.CookieStore;
@@ -51,8 +50,7 @@ import io.vertx.ext.web.multipart.MultipartForm;
 /**
  * @author <a href="mailto:tommaso.nolli@gmail.com">Tommaso Nolli</a>
  */
-@ExtendWith(VertxExtension.class)
-@ReportHandlerFailures
+@VertxTest
 public class SessionAwareWebClientTest {
   private static final int PORT = 8080;
 

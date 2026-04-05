@@ -6,8 +6,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.ReportHandlerFailures;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.ext.web.client.*;
 import io.vertx.ext.web.client.impl.cache.CacheKey;
@@ -32,8 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */
-@ExtendWith(VertxExtension.class)
-@ReportHandlerFailures
+@VertxTest
 public class CachingWebClientTest {
 
   private static final int PORT = 8778;

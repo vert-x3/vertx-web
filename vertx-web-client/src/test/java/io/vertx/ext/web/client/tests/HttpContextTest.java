@@ -2,7 +2,6 @@ package io.vertx.ext.web.client.tests;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.client.HttpRequest;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
 import io.vertx.junit5.VertxTestContext;
@@ -13,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class HttpContextTest extends WebClientJUnit5TestBase {
+public class HttpContextTest extends WebClientTestBase {
 
   private WebClientInternal webClientInternal;
 

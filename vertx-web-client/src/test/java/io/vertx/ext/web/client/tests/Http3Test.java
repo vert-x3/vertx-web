@@ -10,14 +10,13 @@ import io.vertx.core.net.ServerSSLOptions;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientConfig;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import io.vertx.test.tls.Cert;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
-@ExtendWith(VertxExtension.class)
+@VertxTest
 public class Http3Test {
 
   @Test

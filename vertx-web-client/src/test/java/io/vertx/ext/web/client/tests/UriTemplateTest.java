@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class UriTemplateTest extends WebClientJUnit5TestBase {
+public class UriTemplateTest extends WebClientTestBase {
 
   private static final String EURO_SYMBOL = "\u20AC";
 

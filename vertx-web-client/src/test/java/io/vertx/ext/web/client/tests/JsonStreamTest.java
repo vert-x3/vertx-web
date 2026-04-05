@@ -7,12 +7,10 @@ import io.vertx.core.parsetools.JsonParser;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
-import io.vertx.junit5.ReportHandlerFailures;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,8 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Checks the behavior of the {@link io.vertx.ext.web.codec.impl.JsonStreamBodyCodec}.
  */
-@ExtendWith(VertxExtension.class)
-@ReportHandlerFailures
+@VertxTest
 public class JsonStreamTest {
 
   private WebClient client;
@@ -90,5 +87,4 @@ public class JsonStreamTest {
       }
     });
   }
-
 }

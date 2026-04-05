@@ -26,4 +26,6 @@ open module io.vertx.web.client.tests {
   requires io.vertx.web.common;
   requires junit;
   requires org.junit.jupiter.api;
+  requires org.junit.jupiter.params;
+    requires io.netty.common;
 }
