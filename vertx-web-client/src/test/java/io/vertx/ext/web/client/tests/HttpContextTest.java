@@ -1,51 +1,35 @@
 package io.vertx.ext.web.client.tests;
 
-import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.dns.AddressResolverOptions;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.client.HttpRequest;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
-import io.vertx.test.http.HttpTestBase;
-import org.junit.Test;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-public class HttpContextTest extends HttpTestBase {
+import static org.junit.jupiter.api.Assertions.*;
 
-  private WebClientInternal client;
+public class HttpContextTest extends WebClientTestBase {
 
-  @Override
-  protected VertxOptions getOptions() {
-    return super.getOptions().setAddressResolverOptions(new AddressResolverOptions().
-      setHostsValue(Buffer.buffer(
-        "127.0.0.1 somehost\n" +
-          "127.0.0.1 localhost")));
-  }
-
-  private void setUpClient() {
-    super.client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080).setDefaultHost("localhost"));
-    client = (WebClientInternal) WebClient.wrap(super.client);
-  }
+  private WebClientInternal webClientInternal;
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    setUpClient();
-    server.close();
-    server = vertx.createHttpServer(new HttpServerOptions().setPort(DEFAULT_HTTP_PORT).setHost(DEFAULT_HTTP_HOST));
+  @BeforeEach
+  public void setUp(io.vertx.core.Vertx vertx, VertxTestContext testContext) {
+    super.setUp(vertx, testContext);
+    webClientInternal = (WebClientInternal) webClient;
   }
 
   @Test
-  public void testFailReleaseResources() throws Exception {
+  public void testFailReleaseResources() {
     server.requestHandler(req -> req.response().end());
     startServer();
     Throwable cause = new Throwable();
-    AtomicReference<HttpContext> ref =  new AtomicReference<>();
-    client.addInterceptor(ctx -> {
+    AtomicReference<HttpContext> ref = new AtomicReference<>();
+    webClientInternal.addInterceptor(ctx -> {
       switch (ctx.phase()) {
         case SEND_REQUEST:
           ctx.fail(cause);
@@ -60,16 +44,15 @@ public class HttpContextTest extends HttpTestBase {
           break;
       }
     });
-    HttpRequest<Buffer> builder = client.get("/somepath");
-    builder
-      .send()
-      .onFailure(err -> {
-        HttpContext ctx = ref.get();
-        assertNotNull(ctx);
-        assertNull(ctx.clientRequest());
-        assertSame(cause, err);
-        testComplete();
-      });
-    await();
+    HttpRequest<Buffer> builder = webClientInternal.get("/somepath");
+    try {
+      builder.send().await();
+      fail("Should have failed");
+    } catch (Throwable err) {
+      HttpContext ctx = ref.get();
+      assertNotNull(ctx);
+      assertNull(ctx.clientRequest());
+      assertSame(cause, err);
+    }
   }
 }

@@ -3,6 +3,7 @@ package io.vertx.ext.web.client.tests;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
@@ -12,10 +13,8 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.OAuth2WebClient;
 import io.vertx.ext.web.client.OAuth2WebClientOptions;
 import io.vertx.ext.web.client.WebClientSession;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -23,6 +22,7 @@ import java.util.function.Supplier;
 import static io.vertx.core.Future.failedFuture;
 import static io.vertx.core.Future.succeededFuture;
 import static io.vertx.core.http.HttpHeaders.AUTHORIZATION;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class WebClientSessionOauth2Test extends WebClientTestBase {
 
@@ -53,7 +53,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
   private static final Oauth2Credentials oauthConfig = new Oauth2Credentials().setFlow(OAuth2FlowType.CLIENT);
 
   @Test
-  public void testRequestHeaders() throws Exception {
+  public void testRequestHeaders() {
     WebClientSession session = WebClientSession.create(webClient).addHeader(AUTHORIZATION, "v3rtx");
     HttpRequest<Buffer> request = session.get(DEFAULT_TEST_URI);
 
@@ -68,15 +68,11 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       .compose(response -> "1".equals(response.bodyAsString()) ? succeededFuture()
         : failedFuture("Request contains Authorization header multiple times " + response.bodyAsString()));
 
-    requestAndverifyResponse.get().compose(v -> requestAndverifyResponse.get()).onSuccess(resp -> complete())
-      .onFailure(this::fail);
-    await(20, TimeUnit.SECONDS);
+    requestAndverifyResponse.get().compose(v -> requestAndverifyResponse.get()).await();
   }
 
   @Test
-  public void testWithAuthentication() throws Exception {
-    final CountDownLatch latch = new CountDownLatch(1);
-
+  public void testWithAuthentication() {
     server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
@@ -89,15 +85,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       }
     });
 
-    server.listen(8080).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    awaitLatch(latch);
+    server.listen(8080).await();
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -107,28 +95,17 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     OAuth2WebClient oauth2WebClient =
       OAuth2WebClient.create(WebClientSession.create(webClient), oauth2);
 
-    final CountDownLatch latchClient = new CountDownLatch(1);
-
-    oauth2WebClient
+    HttpResponse<Buffer> result = oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
-      .send().onComplete(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          assertEquals(fixture.getString("access_token"), oauth2WebClient.getUser().principal().getString("access_token"));
-          latchClient.countDown();
-        }
-      });
+      .send().await();
 
-    awaitLatch(latchClient);
+    assertEquals(200, result.statusCode());
+    assertEquals(fixture.getString("access_token"), oauth2WebClient.getUser().principal().getString("access_token"));
   }
 
   @Test
-  public void testWithAuthenticationWithoutSession() throws Exception {
-    final CountDownLatch latch = new CountDownLatch(1);
-
+  public void testWithAuthenticationWithoutSession() {
     server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         assertEquals("Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=", req.getHeader("Authorization"));
@@ -141,15 +118,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       }
     });
 
-    server.listen(8080).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    awaitLatch(latch);
+    server.listen(8080).await();
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -159,25 +128,16 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     OAuth2WebClient oauth2WebClient =
       OAuth2WebClient.create(webClient, oauth2);
 
-    final CountDownLatch latchClient = new CountDownLatch(1);
-
-    oauth2WebClient
+    HttpResponse<Buffer> result = oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
-      .send().onComplete(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient.countDown();
-        }
-      });
+      .send().await();
 
-    awaitLatch(latchClient);
+    assertEquals(200, result.statusCode());
   }
 
   @Test
-  public void testWithoutAuthenticationWithoutSession() throws Exception {
+  public void testWithoutAuthenticationWithoutSession() {
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
       .setClientSecret("client-secret")
@@ -186,25 +146,17 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     OAuth2WebClient oauth2WebClient =
       OAuth2WebClient.create(webClient, oauth2);
 
-    final CountDownLatch latchClient = new CountDownLatch(1);
-
-    oauth2WebClient
-      .get(8080, "localhost", "/protected/path")
-      .send().onComplete(result -> {
-        if (result.failed()) {
-          latchClient.countDown();
-        } else {
-          fail("Should require credentials");
-        }
-      });
-
-    awaitLatch(latchClient);
+    try {
+      oauth2WebClient
+        .get(8080, "localhost", "/protected/path")
+        .send().await();
+      fail("Should require credentials");
+    } catch (Exception ignored) {
+    }
   }
 
   @Test
-  public void testWithAuthenticationWithoutSession2() throws Exception {
-    final CountDownLatch latch = new CountDownLatch(1);
-    // variation
+  public void testWithAuthenticationWithoutSession2() {
     final AtomicInteger counter = new AtomicInteger(0);
 
     server = vertx.createHttpServer().requestHandler(req -> {
@@ -223,15 +175,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       }
     });
 
-    server.listen(8080).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    awaitLatch(latch);
+    server.listen(8080).await();
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -241,44 +185,23 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     OAuth2WebClient oauth2WebClient =
       OAuth2WebClient.create(webClient, oauth2);
 
-    final CountDownLatch latchClient1 = new CountDownLatch(1);
-
     oauth2WebClient
       .withCredentials(oauthConfig);
 
-    oauth2WebClient
+    HttpResponse<Buffer> result1 = oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send().onComplete(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient1.countDown();
-        }
-      });
-
-    awaitLatch(latchClient1);
-    final CountDownLatch latchClient2 = new CountDownLatch(1);
+      .send().await();
+    assertEquals(200, result1.statusCode());
 
     // again, but this time we should not get a token
-    oauth2WebClient
+    HttpResponse<Buffer> result2 = oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send().onComplete(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient2.countDown();
-        }
-      });
-
-    awaitLatch(latchClient2);
+      .send().await();
+    assertEquals(200, result2.statusCode());
   }
 
   @Test
   public void testWithAuthenticationWithoutSessionExpired() throws Exception {
-    final CountDownLatch latch = new CountDownLatch(1);
-    // variation
     final AtomicInteger counter = new AtomicInteger(0);
 
     server = vertx.createHttpServer().requestHandler(req -> {
@@ -297,15 +220,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       }
     });
 
-    server.listen(8080).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    awaitLatch(latch);
+    server.listen(8080).await();
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -315,47 +230,26 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     OAuth2WebClient oauth2WebClient =
       OAuth2WebClient.create(webClient, oauth2);
 
-    final CountDownLatch latchClient1 = new CountDownLatch(1);
-
     oauth2WebClient
       .withCredentials(oauthConfig);
 
-    oauth2WebClient
+    HttpResponse<Buffer> result1 = oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send().onComplete(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient1.countDown();
-        }
-      });
+      .send().await();
+    assertEquals(200, result1.statusCode());
 
     // sleep so the user expires
     Thread.sleep(2000L);
 
-    awaitLatch(latchClient1);
-    final CountDownLatch latchClient2 = new CountDownLatch(1);
-
-    // again, but this time we should not get a token
-    oauth2WebClient
+    // again, but this time we should get a new token
+    HttpResponse<Buffer> result2 = oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send().onComplete(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient2.countDown();
-        }
-      });
-
-    awaitLatch(latchClient2);
+      .send().await();
+    assertEquals(200, result2.statusCode());
   }
 
   @Test
   public void testWithAuthenticationWithoutSessionExpiredFailsRefreshForceReauthentication() throws Exception {
-    final CountDownLatch latch = new CountDownLatch(1);
-    // variation
     final AtomicInteger counter = new AtomicInteger(0);
 
     server = vertx.createHttpServer().requestHandler(req -> {
@@ -379,15 +273,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       }
     });
 
-    server.listen(8080).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    awaitLatch(latch);
+    server.listen(8080).await();
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -397,47 +283,26 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     OAuth2WebClient oauth2WebClient =
       OAuth2WebClient.create(webClient, oauth2);
 
-    final CountDownLatch latchClient1 = new CountDownLatch(1);
-
     oauth2WebClient
       .withCredentials(oauthConfig);
 
-    oauth2WebClient
+    HttpResponse<Buffer> result1 = oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send().onComplete(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient1.countDown();
-        }
-      });
+      .send().await();
+    assertEquals(200, result1.statusCode());
 
     // sleep so the user expires
     Thread.sleep(2000L);
 
-    awaitLatch(latchClient1);
-    final CountDownLatch latchClient2 = new CountDownLatch(1);
-
-    // again, but this time we should not get a token
-    oauth2WebClient
+    // again
+    HttpResponse<Buffer> result2 = oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send().onComplete(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient2.countDown();
-        }
-      });
-
-    awaitLatch(latchClient2);
+      .send().await();
+    assertEquals(200, result2.statusCode());
   }
 
   @Test
   public void testWithAuthenticationWithoutSessionExpiredWithLeeway() throws Exception {
-    final CountDownLatch latch = new CountDownLatch(1);
-    // variation
     final AtomicInteger counter = new AtomicInteger(0);
 
     server = vertx.createHttpServer().requestHandler(req -> {
@@ -456,15 +321,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       }
     });
 
-    server.listen(8080).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    awaitLatch(latch);
+    server.listen(8080).await();
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -474,46 +331,26 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
     OAuth2WebClient oauth2WebClient =
       OAuth2WebClient.create(webClient, oauth2, new OAuth2WebClientOptions().setLeeway(5));
 
-    final CountDownLatch latchClient1 = new CountDownLatch(1);
-
     oauth2WebClient
       .withCredentials(oauthConfig);
 
-    oauth2WebClient
+    HttpResponse<Buffer> result1 = oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send().onComplete(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient1.countDown();
-        }
-      });
+      .send().await();
+    assertEquals(200, result1.statusCode());
 
     // sleep so the user expires
     Thread.sleep(2000L);
 
-    awaitLatch(latchClient1);
-    final CountDownLatch latchClient2 = new CountDownLatch(1);
-
-    // again, but this time we should not get a token
-    oauth2WebClient
+    // again, but this time we should not get a token (leeway covers it)
+    HttpResponse<Buffer> result2 = oauth2WebClient
       .get(8080, "localhost", "/protected/path")
-      .send().onComplete(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient2.countDown();
-        }
-      });
-
-    awaitLatch(latchClient2);
+      .send().await();
+    assertEquals(200, result2.statusCode());
   }
 
   @Test
-  public void tokenInvalidatedByProvider() throws Exception {
-    final CountDownLatch latch = new CountDownLatch(1);
+  public void tokenInvalidatedByProvider() {
     final AtomicBoolean retry = new AtomicBoolean();
 
     server = vertx.createHttpServer().requestHandler(req -> {
@@ -532,15 +369,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       }
     });
 
-    server.listen(8080).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    awaitLatch(latch);
+    server.listen(8080).await();
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -553,26 +382,16 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
         oauth2,
         new OAuth2WebClientOptions().setRenewTokenOnForbidden(true));
 
-    final CountDownLatch latchClient = new CountDownLatch(1);
-
-    oauth2WebClient
+    HttpResponse<Buffer> result = oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
-      .send().onComplete(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          assertEquals(200, result.result().statusCode());
-          latchClient.countDown();
-        }
-      });
+      .send().await();
 
-    awaitLatch(latchClient);
+    assertEquals(200, result.statusCode());
   }
 
   @Test
-  public void tokenInvalidatedByProviderAlways401() throws Exception {
-    final CountDownLatch latch = new CountDownLatch(1);
+  public void tokenInvalidatedByProviderAlways401() {
     final AtomicBoolean retry = new AtomicBoolean();
 
     server = vertx.createHttpServer().requestHandler(req -> {
@@ -588,15 +407,7 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       }
     });
 
-    server.listen(8080).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    awaitLatch(latch);
+    server.listen(8080).await();
 
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
@@ -609,21 +420,12 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
         oauth2,
         new OAuth2WebClientOptions().setRenewTokenOnForbidden(true));
 
-    final CountDownLatch latchClient = new CountDownLatch(1);
-
-    oauth2WebClient
+    HttpResponse<Buffer> result = oauth2WebClient
       .withCredentials(oauthConfig)
       .get(8080, "localhost", "/protected/path")
-      .send().onComplete(result -> {
-        if (result.failed()) {
-          fail(result.cause());
-        } else {
-          // this one will fail as we fail to refresh request after request
-          assertEquals(401, result.result().statusCode());
-          latchClient.countDown();
-        }
-      });
+      .send().await();
 
-    awaitLatch(latchClient);
+    // this one will fail as we fail to refresh request after request
+    assertEquals(401, result.statusCode());
   }
 }

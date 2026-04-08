@@ -16,147 +16,80 @@
 
 package io.vertx.ext.web.client.tests;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.dns.AddressResolverOptions;
-import io.vertx.core.file.AsyncFile;
-import io.vertx.core.file.OpenOptions;
+import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.HttpRequest;
-import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.WebClient;
-import io.vertx.test.core.TestUtils;
-import io.vertx.test.http.HttpTestBase;
-import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
+import io.vertx.ext.web.client.impl.WebClientInternal;
+import io.vertx.junit5.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
+ * JUnit 5 base class for web client tests, replacing the JUnit 4 WebClientTestBase.
+ *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class WebClientTestBase extends HttpTestBase {
+@VertxTest
+public class WebClientTestBase {
 
-  @Rule
-  public TemporaryFolder testFolder = new TemporaryFolder();
-
-  protected WebClient webClient;
-
-  @Override
-  protected VertxOptions getOptions() {
-    return super.getOptions().setAddressResolverOptions(new AddressResolverOptions().
-      setHostsValue(Buffer.buffer(
-        "127.0.0.1 somehost\n" +
-          "127.0.0.1 localhost")));
-  }
-
-  @Override
-  protected HttpClientOptions createBaseClientOptions() {
-    return super.createBaseClientOptions().setDefaultPort(8080).setDefaultHost("localhost");
-  }
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    webClient = WebClient.wrap(client);
-    server.close();
-    server = vertx.createHttpServer(createBaseServerOptions());
-  }
-
-  protected void testRequest(Function<WebClient, HttpRequest<Buffer>> reqFactory, Consumer<HttpServerRequest> reqChecker) throws Exception {
-    waitFor(4);
-    server.requestHandler(req -> {
-      try {
-        reqChecker.accept(req);
-        complete();
-      } finally {
-        req.response().end();
-      }
-    });
-    startServer();
-    HttpRequest<Buffer> builder = reqFactory.apply(webClient);
-    builder.send().onComplete(onSuccess(resp -> complete()));
-    builder.send().onComplete(onSuccess(resp -> complete()));
-    await();
-  }
-
-  protected void testRequestWithBody(HttpMethod method, boolean chunked) throws Exception {
-    String expected = TestUtils.randomAlphaString(1024 * 1024);
-    File f = File.createTempFile("vertx", ".data");
-    f.deleteOnExit();
-    Files.write(f.toPath(), expected.getBytes(StandardCharsets.UTF_8));
-    waitFor(2);
-    server.requestHandler(req -> req.bodyHandler(buff -> {
-      assertEquals(method, req.method());
-      assertEquals(Buffer.buffer(expected), buff);
-      complete();
-      req.response().end();
-    }));
-    startServer();
-    vertx.runOnContext(v -> {
-      AsyncFile asyncFile = vertx.fileSystem().openBlocking(f.getAbsolutePath(), new OpenOptions());
-
-      HttpRequest<Buffer> builder = null;
-
-      switch (method.name()) {
-        case "POST":
-          builder = webClient.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-          break;
-        case "PUT":
-          builder = webClient.put(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-          break;
-        case "PATCH":
-          builder = webClient.patch(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-          break;
-        default:
-          fail("Invalid HTTP method");
-      }
-
-      if (!chunked) {
-        builder = builder.putHeader("Content-Length", "" + expected.length());
-      }
-      builder.sendStream(asyncFile).onComplete(onSuccess(resp -> {
-        assertEquals(200, resp.statusCode());
-        complete();
-      }));
-    });
-    await();
-  }
-
-  protected void testResponseBody(String body, Handler<AsyncResult<HttpResponse<Buffer>>> checker) throws Exception {
-    server.requestHandler(req -> req.response().end(body));
-    startServer();
-    HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send().onComplete(checker);
-    await();
-  }
-
-  protected void testSendBody(Object body, BiConsumer<String, Buffer> checker) throws Exception {
-    waitFor(2);
-    server.requestHandler(req -> req.bodyHandler(buff -> {
-      checker.accept(req.getHeader("content-type"), buff);
-      complete();
-      req.response().end();
-    }));
-    startServer();
-    HttpRequest<Buffer> post = webClient.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    if (body instanceof Buffer) {
-      post.sendBuffer((Buffer) body).onComplete(onSuccess(resp -> complete()));
-    } else if (body instanceof JsonObject) {
-      post.sendJsonObject((JsonObject) body).onComplete(onSuccess(resp -> complete()));
-    } else {
-      post.sendJson(body).onComplete(onSuccess(resp -> complete()));
+  public static class VertxProv implements VertxProvider {
+    @Override
+    public Vertx get() {
+      return Vertx.vertx(new VertxOptions()
+        .setAddressResolverOptions(new AddressResolverOptions().
+        setHostsValue(Buffer.buffer(
+          "127.0.0.1 somehost\n" +
+            "127.0.0.1 localhost"))));
     }
-    await();
+  }
+
+  protected static final String DEFAULT_HTTP_HOST = "localhost";
+  protected static final int DEFAULT_HTTP_PORT = 8080;
+  protected static final String DEFAULT_HTTPS_HOST = "localhost";
+  protected static final int DEFAULT_HTTPS_PORT = 4043;
+  protected static final String DEFAULT_TEST_URI = "some-uri";
+
+  @TempDir
+  protected File testFolder;
+
+  protected Vertx vertx;
+  protected HttpServer server;
+  protected HttpClient client;
+  protected WebClientInternal webClient;
+  protected SocketAddress testAddress;
+
+  @BeforeEach
+  public void setUp(@ProvidedBy(VertxProv.class) Vertx vertx, VertxTestContext testContext) {
+    this.vertx = vertx;
+    server = vertx.createHttpServer(createBaseServerOptions());
+    client = vertx.createHttpClient(createBaseClientOptions());
+    webClient = (WebClientInternal) WebClient.wrap(client);
+    testAddress = SocketAddress.inetSocketAddress(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST);
+    testContext.completeNow();
+  }
+
+  protected HttpServerOptions createBaseServerOptions() {
+    return new HttpServerOptions().setPort(DEFAULT_HTTP_PORT).setHost(DEFAULT_HTTP_HOST);
+  }
+
+  protected HttpClientOptions createBaseClientOptions() {
+    return new HttpClientOptions().setDefaultPort(DEFAULT_HTTP_PORT).setDefaultHost(DEFAULT_HTTP_HOST);
+  }
+
+  protected void startServer() {
+    server.listen().await();
+  }
+
+  protected void startServer(HttpServer server) {
+    server.listen().await();
   }
 }

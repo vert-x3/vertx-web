@@ -1,11 +1,11 @@
 package io.vertx.ext.web.client.tests.cache;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.Duration;
 
 import io.vertx.ext.web.client.impl.cache.CacheControl;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.vertx.core.MultiMap;
 

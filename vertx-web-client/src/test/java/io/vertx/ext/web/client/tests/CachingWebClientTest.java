@@ -5,9 +5,9 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.VertxTest;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.ext.web.client.*;
 import io.vertx.ext.web.client.impl.cache.CacheKey;
 import io.vertx.ext.web.client.impl.cache.CachedHttpResponse;
@@ -22,15 +22,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */
-@RunWith(VertxUnitRunner.class)
+@VertxTest
 public class CachingWebClientTest {
 
   private static final int PORT = 8778;
@@ -52,9 +53,9 @@ public class CachingWebClientTest {
     return vertx.createHttpServer(opts);
   }
 
-  @Before
-  public void setUp() {
-    vertx = Vertx.vertx();
+  @BeforeEach
+  public void setUp(Vertx vertx) {
+    this.vertx = vertx;
     WebClient baseClient = buildBaseWebClient();
     defaultCacheStore = new TestCacheStore();
     defaultClient = CachingWebClient.create(baseClient, defaultCacheStore);
@@ -63,13 +64,8 @@ public class CachingWebClientTest {
     server = buildHttpServer();
   }
 
-  @After
-  public void tearDown(TestContext context) {
-    vertx.close().onComplete(context.asyncAssertSuccess());
-  }
-
-  private void startMockServer(TestContext context, Consumer<HttpServerRequest> reqHandler) {
-    Async async = context.async();
+  private void startMockServer(VertxTestContext testContext, Consumer<HttpServerRequest> reqHandler) {
+    Checkpoint started = testContext.checkpoint();
     server.requestHandler(req -> {
       try {
         reqHandler.accept(req);
@@ -78,145 +74,150 @@ public class CachingWebClientTest {
           req.response().end(UUID.randomUUID().toString());
       }
     });
-    server.listen().onComplete(context.asyncAssertSuccess(s -> async.complete()));
-    async.awaitSuccess(15000);
+    server.listen().onComplete(testContext.succeeding(s -> started.flag()));
+    started.await();
   }
 
-  private void startMockServer(TestContext context, String cacheControl) {
-    startMockServer(context, req -> {
+  private void startMockServer(VertxTestContext testContext, String cacheControl) {
+    startMockServer(testContext, req -> {
       req.response().headers().set("Cache-Control", cacheControl);
     });
   }
 
-  private String executeRequestBlocking(TestContext context, WebClient client, Consumer<HttpRequest<Buffer>> reqConsumer) {
-    Async waiter = context.async();
+  private String executeRequestBlocking(VertxTestContext testContext, WebClient client, Consumer<HttpRequest<Buffer>> reqConsumer) {
+    Checkpoint cp = testContext.checkpoint();
     AtomicReference<String> body = new AtomicReference<>();
     HttpRequest<Buffer> request = client.get("localhost", "/");
 
     reqConsumer.accept(request);
 
-    request.send().onComplete(context.asyncAssertSuccess(response -> {
+    request.send().onComplete(testContext.succeeding(response -> {
       body.set(response.bodyAsString());
-      waiter.complete();
+      cp.flag();
     }));
-    waiter.await();
+    cp.await();
 
-    context.assertNotNull(body.get());
+    assertNotNull(body.get());
 
     return body.get();
   }
 
-  private String executeGetBlocking(TestContext context, Consumer<HttpRequest<Buffer>> reqConsumer) {
-    return executeRequestBlocking(context, defaultClient, reqConsumer);
+  private String executeGetBlocking(VertxTestContext testContext, Consumer<HttpRequest<Buffer>> reqConsumer) {
+    return executeRequestBlocking(testContext, defaultClient, reqConsumer);
   }
 
-  private String executeGetBlocking(TestContext context) {
-    return executeRequestBlocking(context, defaultClient, req -> {});
+  private String executeGetBlocking(VertxTestContext testContext) {
+    return executeRequestBlocking(testContext, defaultClient, req -> {});
   }
 
-  private String executeGetBlocking(TestContext context, String uri) {
-    return executeGetBlocking(context, req -> req.uri(uri));
+  private String executeGetBlocking(VertxTestContext testContext, String uri) {
+    return executeGetBlocking(testContext, req -> req.uri(uri));
   }
 
-  private String executeGetBlocking(TestContext context, WebClient client) {
-    return executeRequestBlocking(context, client, req -> {});
+  private String executeGetBlocking(VertxTestContext testContext, WebClient client) {
+    return executeRequestBlocking(testContext, client, req -> {});
   }
 
-  private String executeGetBlocking(TestContext context, WebClient client, Consumer<HttpRequest<Buffer>> reqConsumer) {
-    return executeRequestBlocking(context, client, reqConsumer);
+  private String executeGetBlocking(VertxTestContext testContext, WebClient client, Consumer<HttpRequest<Buffer>> reqConsumer) {
+    return executeRequestBlocking(testContext, client, reqConsumer);
   }
 
-  private void assertCacheUse(TestContext context, HttpMethod method, WebClient client, boolean shouldCacheBeUsed) {
-    Async request1 = context.async();
-    Async request2 = context.async();
+  private void assertCacheUse(VertxTestContext testContext, HttpMethod method, WebClient client, boolean shouldCacheBeUsed) {
+    Checkpoint cp1 = testContext.checkpoint();
+    Checkpoint cp2 = testContext.checkpoint();
     List<HttpResponse<Buffer>> responses = new ArrayList<>(2);
 
-    client.request(method, "localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
+    client.request(method, "localhost", "/").send().onComplete(testContext.succeeding(resp -> {
       responses.add(resp);
-      request1.complete();
+      cp1.flag();
     }));
 
     // Wait for request 1 to finish first to make sure the cache stored a value if necessary
-    request1.await();
+    cp1.await();
 
-    client.request(method, "localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
+    client.request(method, "localhost", "/").send().onComplete(testContext.succeeding(resp -> {
       responses.add(resp);
-      request2.complete();
+      cp2.flag();
     }));
 
-    request2.await();
+    cp2.await();
 
-    context.assertTrue(responses.size() == 2);
+    assertTrue(responses.size() == 2);
 
     HttpResponse<Buffer> resp1 = responses.get(0);
     HttpResponse<Buffer> resp2 = responses.get(1);
 
     if (shouldCacheBeUsed) {
-      context.assertEquals(resp1.bodyAsString(), resp2.bodyAsString());
-      context.assertNotNull(resp1.headers().get(HttpHeaders.AGE));
-      context.assertNotNull(resp2.headers().get(HttpHeaders.AGE));
+      assertEquals(resp1.bodyAsString(), resp2.bodyAsString());
+      assertNotNull(resp1.headers().get(HttpHeaders.AGE));
+      assertNotNull(resp2.headers().get(HttpHeaders.AGE));
     } else {
-      context.assertNotEquals(resp1.bodyAsString(), resp2.bodyAsString());
-      context.assertNull(resp1.headers().get(HttpHeaders.AGE));
-      context.assertNull(resp2.headers().get(HttpHeaders.AGE));
+      assertNotEquals(resp1.bodyAsString(), resp2.bodyAsString());
+      assertNull(resp1.headers().get(HttpHeaders.AGE));
+      assertNull(resp2.headers().get(HttpHeaders.AGE));
     }
   }
 
-  private void assertCached(TestContext context, WebClient client) {
-    assertCacheUse(context, HttpMethod.GET, client, true);
+  private void assertCached(VertxTestContext testContext, WebClient client) {
+    assertCacheUse(testContext, HttpMethod.GET, client, true);
   }
 
-  private void assertCached(TestContext context) {
-    assertCached(context, defaultClient);
+  private void assertCached(VertxTestContext testContext) {
+    assertCached(testContext, defaultClient);
   }
 
-  private void assertNotCached(TestContext context, WebClient client) {
-    assertCacheUse(context, HttpMethod.GET, client, false);
+  private void assertNotCached(VertxTestContext testContext, WebClient client) {
+    assertCacheUse(testContext, HttpMethod.GET, client, false);
   }
 
-  private void assertNotCached(TestContext context) {
-    assertNotCached(context, defaultClient);
+  private void assertNotCached(VertxTestContext testContext) {
+    assertNotCached(testContext, defaultClient);
   }
 
   // Non-GET methods that we shouldn't cache
 
   @Test
-  public void testPOSTNotCached(TestContext context) {
-    startMockServer(context, "public, max-age=600");
-    assertCacheUse(context, HttpMethod.POST, defaultClient, false);
+  public void testPOSTNotCached(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public, max-age=600");
+    assertCacheUse(testContext, HttpMethod.POST, defaultClient, false);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPUTNotCached(TestContext context) {
-    startMockServer(context, "public, max-age=600");
-    assertCacheUse(context, HttpMethod.PUT, defaultClient, false);
+  public void testPUTNotCached(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public, max-age=600");
+    assertCacheUse(testContext, HttpMethod.PUT, defaultClient, false);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPATCHNotCached(TestContext context) {
-    startMockServer(context, "public, max-age=600");
-    assertCacheUse(context, HttpMethod.PATCH, defaultClient, false);
+  public void testPATCHNotCached(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public, max-age=600");
+    assertCacheUse(testContext, HttpMethod.PATCH, defaultClient, false);
+    testContext.completeNow();
   }
 
   @Test
-  public void testDELETENotCached(TestContext context) {
-    startMockServer(context, "public, max-age=600");
-    assertCacheUse(context, HttpMethod.DELETE, defaultClient, false);
+  public void testDELETENotCached(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public, max-age=600");
+    assertCacheUse(testContext, HttpMethod.DELETE, defaultClient, false);
+    testContext.completeNow();
   }
 
   // Cache-Control: no-store || no-cache
 
   @Test
-  public void testNoStore(TestContext context) {
-    startMockServer(context, "no-store");
-    assertNotCached(context);
+  public void testNoStore(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "no-store");
+    assertNotCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testNoCache(TestContext context) {
+  public void testNoCache(VertxTestContext testContext) throws Exception {
     final AtomicBoolean replyWith304 = new AtomicBoolean(false);
 
-    startMockServer(context, req -> {
+    startMockServer(testContext, req -> {
       req.response().headers().set(HttpHeaders.CACHE_CONTROL, "no-cache");
 
       if (replyWith304.get()) {
@@ -227,249 +228,269 @@ public class CachingWebClientTest {
       }
     });
 
-    String body1 = executeGetBlocking(context); // Initial request
-    String body2 = executeGetBlocking(context); // Another request, reply with new value
+    String body1 = executeGetBlocking(testContext); // Initial request
+    String body2 = executeGetBlocking(testContext); // Another request, reply with new value
     replyWith304.compareAndSet(false, true);
-    String body3 = executeGetBlocking(context); // Another request, server says cache is valid
+    String body3 = executeGetBlocking(testContext); // Another request, server says cache is valid
     replyWith304.compareAndSet(true, false);
-    String body4 = executeGetBlocking(context); // Another request, reply with new value
+    String body4 = executeGetBlocking(testContext); // Another request, reply with new value
 
-    context.assertNotEquals(body1, body2);
-    context.assertNotEquals(body1, body3);
-    context.assertNotEquals(body1, body4);
-    context.assertEquals(body2, body3);
-    context.assertNotEquals(body2, body4);
-    context.assertNotEquals(body3, body4);
+    assertNotEquals(body1, body2);
+    assertNotEquals(body1, body3);
+    assertNotEquals(body1, body4);
+    assertEquals(body2, body3);
+    assertNotEquals(body2, body4);
+    assertNotEquals(body3, body4);
+    testContext.completeNow();
   }
 
   // Cache-Control: public
 
   @Test
-  public void testPublicWithMaxAge(TestContext context) {
-    startMockServer(context, "public, max-age=600");
-    assertCached(context);
+  public void testPublicWithMaxAge(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public, max-age=600");
+    assertCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPublicWithMaxAgeMultiHeader(TestContext context) {
-    startMockServer(context, req -> {
+  public void testPublicWithMaxAgeMultiHeader(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, req -> {
       req.response().headers().add("Cache-Control", "public");
       req.response().headers().add("Cache-Control", "max-age=600");
     });
 
-    assertCached(context);
+    assertCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPublicWithoutMaxAge(TestContext context) {
-    startMockServer(context, "public");
-    assertCached(context);
+  public void testPublicWithoutMaxAge(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public");
+    assertCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPublicMaxAgeZero(TestContext context) {
-    startMockServer(context, "public,max-age=0");
-    assertNotCached(context);
+  public void testPublicMaxAgeZero(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public,max-age=0");
+    assertNotCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPublicSharedMaxAge(TestContext context) {
-    startMockServer(context, "public, s-maxage=600");
-    assertCached(context);
+  public void testPublicSharedMaxAge(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public, s-maxage=600");
+    assertCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPublicSharedMaxAgeZero(TestContext context) {
-    startMockServer(context, "public, s-maxage=0");
-    assertNotCached(context);
+  public void testPublicSharedMaxAgeZero(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public, s-maxage=0");
+    assertNotCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPublicWithExpiresNow(TestContext context) {
-    startMockServer(context, req -> {
+  public void testPublicWithExpiresNow(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, req -> {
       req.response().headers().set("Cache-Control", "public");
       req.response().headers().set("Expires", DateFormatter.format(new Date()));
     });
 
-    assertNotCached(context);
+    assertNotCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPublicWithExpiresPast(TestContext context) {
+  public void testPublicWithExpiresPast(VertxTestContext testContext) throws Exception {
     String expires = DateFormatter.format(new Date(
       System.currentTimeMillis() - Duration.ofMinutes(5).toMillis()
     ));
-    startMockServer(context, req -> {
+    startMockServer(testContext, req -> {
       req.response().headers().set("Cache-Control", "public");
       req.response().headers().set("Expires", expires);
     });
 
-    assertNotCached(context);
+    assertNotCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPublicWithExpiresFuture(TestContext context) {
+  public void testPublicWithExpiresFuture(VertxTestContext testContext) throws Exception {
     String expires = DateFormatter.format(new Date(
       System.currentTimeMillis() + Duration.ofMinutes(5).toMillis()
     ));
-    startMockServer(context, req -> {
+    startMockServer(testContext, req -> {
       req.response().headers().set("Cache-Control", "public");
       req.response().headers().set("Expires", expires);
     });
 
-    assertCached(context);
+    assertCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPublicWithMaxAgeFutureAndExpiresPast(TestContext context) {
+  public void testPublicWithMaxAgeFutureAndExpiresPast(VertxTestContext testContext) throws Exception {
     String expires = DateFormatter.format(new Date(
       System.currentTimeMillis() - Duration.ofMinutes(5).toMillis()
     ));
-    startMockServer(context, req -> {
+    startMockServer(testContext, req -> {
       req.response().headers().set("Cache-Control", "public, max-age=300");
       req.response().headers().set("Expires", expires);
     });
 
-    assertCached(context);
+    assertCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPublicWithMaxAgeFutureAndExpiresFuture(TestContext context) {
+  public void testPublicWithMaxAgeFutureAndExpiresFuture(VertxTestContext testContext) throws Exception {
     String expires = DateFormatter.format(new Date(
       System.currentTimeMillis() + Duration.ofMinutes(5).toMillis()
     ));
 
-    Async req1 = context.async();
-    Async req2 = context.async();
-    Async req3 = context.async();
-    Async waiter = context.async();
+    Checkpoint latch1 = testContext.checkpoint();
+    Checkpoint latch2 = testContext.checkpoint();
+    Checkpoint latch3 = testContext.checkpoint();
+    Checkpoint waiter = testContext.checkpoint();
     AtomicReference<String> body1 = new AtomicReference<>();
     AtomicReference<String> body2 = new AtomicReference<>();
     AtomicReference<String> body3 = new AtomicReference<>();
+    AtomicBoolean req1Completed = new AtomicBoolean(false);
 
-    startMockServer(context, req -> {
-      String maxAge = req1.isCompleted() ? "0" : "1";
+    startMockServer(testContext, req -> {
+      String maxAge = req1Completed.get() ? "0" : "1";
       req.response().headers().set("Cache-Control", "public, max-age=" + maxAge);
       req.response().headers().set("Expires", expires);
     });
 
-    defaultClient.get("localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
+    defaultClient.get("localhost", "/").send().onComplete(testContext.succeeding(resp -> {
       body1.set(resp.bodyAsString());
-      req1.complete();
+      req1Completed.set(true);
+      latch1.flag();
     }));
-    req1.await();
+    latch1.await();
 
-    defaultClient.get("localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
+    defaultClient.get("localhost", "/").send().onComplete(testContext.succeeding(resp -> {
       body2.set(resp.bodyAsString());
-      req2.complete();
+      latch2.flag();
     }));
-    req2.await();
+    latch2.await();
 
     // HTTP cache only has 1 second resolution, so this must be 1+ seconds past than the max-age
-    vertx.setTimer(2000, l -> waiter.complete());
+    vertx.setTimer(2000, l -> waiter.flag());
     waiter.await();
 
-    defaultClient.get("localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
+    defaultClient.get("localhost", "/").send().onComplete(testContext.succeeding(resp -> {
       body3.set(resp.bodyAsString());
-      req3.complete();
+      latch3.flag();
     }));
-    req3.await();
+    latch3.await();
 
-    context.assertNotNull(body1.get());
-    context.assertNotNull(body2.get());
-    context.assertNotNull(body3.get());
-    context.assertEquals(body1.get(), body2.get());
-    context.assertNotEquals(body1.get(), body3.get());
+    assertNotNull(body1.get());
+    assertNotNull(body2.get());
+    assertNotNull(body3.get());
+    assertEquals(body1.get(), body2.get());
+    assertNotEquals(body1.get(), body3.get());
+    testContext.completeNow();
   }
 
   @Test
-  public void testPublicWithMaxAgeZeroAndExpiresFuture(TestContext context) {
+  public void testPublicWithMaxAgeZeroAndExpiresFuture(VertxTestContext testContext) throws Exception {
     String expires = DateFormatter.format(new Date(
       System.currentTimeMillis() + Duration.ofMinutes(5).toMillis()
     ));
-    startMockServer(context, req -> {
+    startMockServer(testContext, req -> {
       req.response().headers().set("Cache-Control", "public, max-age=0");
       req.response().headers().set("Expires", expires);
     });
 
-    assertNotCached(context);
+    assertNotCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPublicWithMaxAgeZeroAndExpiresZero(TestContext context) {
+  public void testPublicWithMaxAgeZeroAndExpiresZero(VertxTestContext testContext) throws Exception {
     String expires = DateFormatter.format(new Date());
-    startMockServer(context, req -> {
+    startMockServer(testContext, req -> {
       req.response().headers().set("Cache-Control", "public, max-age=0");
       req.response().headers().set("Expires", expires);
     });
 
-    assertNotCached(context);
+    assertNotCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPublicAndPrivate(TestContext context) {
+  public void testPublicAndPrivate(VertxTestContext testContext) throws Exception {
     // This is a silly case because it is invalid, but it validates that we err on the side of not
     // caching responses.
-    startMockServer(context, "public, private, max-age=300");
-    assertNotCached(context);
+    startMockServer(testContext, "public, private, max-age=300");
+    assertNotCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testUpdateStaleResponse(TestContext context) {
-    Async waiter = context.async();
+  public void testUpdateStaleResponse(VertxTestContext testContext) throws Exception {
+    Checkpoint waiter = testContext.checkpoint();
 
-    startMockServer(context, "public, max-age=1");
+    startMockServer(testContext, "public, max-age=1");
 
-    String body1 = executeGetBlocking(context);
+    String body1 = executeGetBlocking(testContext);
 
-    vertx.setTimer(2000, l -> waiter.complete());
+    vertx.setTimer(2000, l -> waiter.flag());
     waiter.await();
 
-    String body2 = executeGetBlocking(context);
-    String body3 = executeGetBlocking(context);
+    String body2 = executeGetBlocking(testContext);
+    String body3 = executeGetBlocking(testContext);
 
-    context.assertNotEquals(body1, body2);
-    context.assertEquals(body2, body3);
+    assertNotEquals(body1, body2);
+    assertEquals(body2, body3);
+    testContext.completeNow();
   }
 
   @Test
-  public void testCacheHitWontAllocateRequest(TestContext context) {
+  public void testCacheHitWontAllocateRequest(VertxTestContext testContext) throws Exception {
 
-    Async listenLatch = context.async();
-    Async busyLatch = context.async(5);
+    Checkpoint listenLatch = testContext.checkpoint();
+    Checkpoint busyLatch = testContext.checkpoint(5);
     server.requestHandler(req -> {
       switch (req.path()) {
         case "/cached":
           req.response().putHeader(HttpHeaders.CACHE_CONTROL, "public, max-age=1").end(UUID.randomUUID().toString());
           break;
         case "/blocked":
-          busyLatch.countDown();
+          busyLatch.flag();
           break;
       }
     });
-    server.listen().onComplete(context.asyncAssertSuccess(s -> listenLatch.complete()));
-    listenLatch.awaitSuccess(15_000);
+    server.listen().onComplete(testContext.succeeding(s -> listenLatch.flag()));
+    listenLatch.await();
 
-    String expected = executeGetBlocking(context, "/cached");
+    String expected = executeGetBlocking(testContext, "/cached");
     for (int i = 0; i < PoolOptions.DEFAULT_MAX_POOL_SIZE; i++) {
       HttpRequest<Buffer> request = defaultClient.get("localhost", "/blocked");
       request.send();
     }
 
-    busyLatch.await(15_000);
-    context.assertEquals(executeGetBlocking(context, "/cached"), expected);
+    busyLatch.await();
+    assertEquals(executeGetBlocking(testContext, "/cached"), expected);
+    testContext.completeNow();
   }
 
   @Test
-  public void test304NotModifiedResponse(TestContext context) {
-    Async primer = context.async();
-    Async waiter = context.async();
+  public void test304NotModifiedResponse(VertxTestContext testContext) throws Exception {
+    AtomicBoolean primerDone = new AtomicBoolean();
+    Checkpoint primer = testContext.checkpoint();
+    Checkpoint waiter = testContext.checkpoint();
 
-    startMockServer(context, req -> {
+    startMockServer(testContext, req -> {
       HttpServerResponse resp = req.response();
       resp.headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=1");
-      if (primer.isCompleted()) {
-        context.assertEquals("etag_value", req.headers().get("if-none-match"));
+      if (primerDone.get()) {
+        assertEquals("etag_value", req.headers().get("if-none-match"));
         resp.setStatusCode(304);
         resp.end();
       } else {
@@ -477,437 +498,465 @@ public class CachingWebClientTest {
           .setStatusCode(200)
           .putHeader("etag", "etag_value")
           .end(UUID.randomUUID().toString())
-          .onComplete(v -> primer.complete());
+          .onComplete(v -> { primerDone.set(true); primer.flag(); });
       }
     });
 
-    String body1 = executeGetBlocking(context);
+    String body1 = executeGetBlocking(testContext);
     primer.await();
 
-    vertx.setTimer(2000L, l -> waiter.complete());
+    vertx.setTimer(2000L, l -> waiter.flag());
     waiter.await();
 
-    String body2 = executeGetBlocking(context);
+    String body2 = executeGetBlocking(testContext);
 
-    context.assertEquals(body1, body2);
+    assertEquals(body1, body2);
+    testContext.completeNow();
   }
 
   @Test
-  public void testStaleWhileRevalidate(TestContext context) throws Exception {
-    startMockServer(context, "public, max-age=1, stale-while-revalidate=2");
+  public void testStaleWhileRevalidate(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public, max-age=1, stale-while-revalidate=2");
 
-    String body1 = executeGetBlocking(context);
+    String body1 = executeGetBlocking(testContext);
 
     String key = defaultCacheStore.db.keySet().iterator().next();
-    context.assertEquals(defaultCacheStore.db.get(key).getBody().toString(), body1);
+    assertEquals(defaultCacheStore.db.get(key).getBody().toString(), body1);
 
     // Wait > max-age but < stale-while-revalidate
     Thread.sleep(2000);
 
-    String body2 = executeGetBlocking(context);
+    String body2 = executeGetBlocking(testContext);
 
     // Wait > max-age + stale-while-revalidate but account for already waited
     Thread.sleep(2000);
-    context.assertNotEquals(defaultCacheStore.db.get(key).getBody().toString(), body1);
+    assertNotEquals(defaultCacheStore.db.get(key).getBody().toString(), body1);
+    testContext.completeNow();
   }
 
   @Test
-  public void testStaleWhileRevalidateExpired(TestContext context) {
-    startMockServer(context, "public, max-age=1, stale-while-revalidate=1");
+  public void testStaleWhileRevalidateExpired(VertxTestContext testContext) throws Exception {
+    Checkpoint waiter1 = testContext.checkpoint();
+    Checkpoint waiter2 = testContext.checkpoint();
 
-    Async waiter1 = context.async();
-    Async waiter2 = context.async();
+    startMockServer(testContext, "public, max-age=1, stale-while-revalidate=1");
 
-    String body1 = executeGetBlocking(context);
+    String body1 = executeGetBlocking(testContext);
 
     // max-age 1 + stale-while-revalidate 1 + leeway 1 => 3s
-    vertx.setTimer(3000, l -> waiter1.complete());
+    vertx.setTimer(3000, l -> waiter1.flag());
     waiter1.await();
 
-    String body2 = executeGetBlocking(context);
+    String body2 = executeGetBlocking(testContext);
 
     // max-age 1 + stale-while-revalidate 1 + leeway 1 => 3s
-    vertx.setTimer(3000, l -> waiter2.complete());
+    vertx.setTimer(3000, l -> waiter2.flag());
     waiter2.await();
 
-    String body3 = executeGetBlocking(context);
+    String body3 = executeGetBlocking(testContext);
 
-    context.assertNotEquals(body1, body2);
-    context.assertNotEquals(body1, body3);
-    context.assertNotEquals(body2, body3);
+    assertNotEquals(body1, body2);
+    assertNotEquals(body1, body3);
+    assertNotEquals(body2, body3);
+    testContext.completeNow();
   }
 
   @Test
-  public void testStaleIfError(TestContext context) {
-    Async waiter = context.async();
+  public void testStaleIfError(VertxTestContext testContext) throws Exception {
+    AtomicBoolean waiterDone = new AtomicBoolean();
+    Checkpoint waiter = testContext.checkpoint();
 
-    startMockServer(context, req -> {
+    startMockServer(testContext, req -> {
       req.response().headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=1, stale-if-error=2");
-      if (waiter.isCompleted()) {
+      if (waiterDone.get()) {
         req.response().setStatusCode(503);
         req.response().end();
       }
     });
 
-    String body1 = executeGetBlocking(context);
-    vertx.setTimer(2000L, l -> waiter.complete());
+    String body1 = executeGetBlocking(testContext);
+    vertx.setTimer(2000L, l -> { waiterDone.set(true); waiter.flag(); });
     waiter.await();
-    String body2 = executeGetBlocking(context);
+    String body2 = executeGetBlocking(testContext);
 
-    context.assertEquals(body1, body2);
+    assertEquals(body1, body2);
+    testContext.completeNow();
   }
 
   @Test
-  public void testStaleIfErrorExpired(TestContext context) {
-    Async waiter1 = context.async();
-    Async waiter2 = context.async();
-    Async request = context.async();
+  public void testStaleIfErrorExpired(VertxTestContext testContext) throws Exception {
+    AtomicBoolean waiter1Done = new AtomicBoolean();
+    Checkpoint waiter1 = testContext.checkpoint();
+    Checkpoint waiter2 = testContext.checkpoint();
+    Checkpoint request = testContext.checkpoint();
     AtomicReference<HttpResponse<Buffer>> response = new AtomicReference<>();
 
-    startMockServer(context, req -> {
+    startMockServer(testContext, req -> {
       req.response().headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=1, stale-if-error=2");
-      if (waiter1.isCompleted()) {
+      if (waiter1Done.get()) {
         req.response().setStatusCode(503);
         req.response().end();
       }
     });
 
-    String body1 = executeGetBlocking(context);
-    vertx.setTimer(2000L, l -> waiter1.complete());
+    String body1 = executeGetBlocking(testContext);
+    vertx.setTimer(2000L, l -> { waiter1Done.set(true); waiter1.flag(); });
     waiter1.await();
 
-    String body2 = executeGetBlocking(context);
-    vertx.setTimer(3000L, l -> waiter2.complete());
+    String body2 = executeGetBlocking(testContext);
+    vertx.setTimer(3000L, l -> waiter2.flag());
     waiter2.await();
 
-    defaultClient.get("localhost", "/").send().onComplete(context.asyncAssertSuccess(resp -> {
+    defaultClient.get("localhost", "/").send().onComplete(testContext.succeeding(resp -> {
       response.set(resp);
-      request.complete();
+      request.flag();
     }));
     request.await();
 
-    context.assertEquals(body1, body2);
-    context.assertNull(response.get().bodyAsString());
-    context.assertEquals(response.get().statusCode(), 503);
+    assertEquals(body1, body2);
+    assertNull(response.get().bodyAsString());
+    assertEquals(response.get().statusCode(), 503);
+    testContext.completeNow();
   }
 
   @Test
-  public void testMatchingPaths(TestContext context) {
-    startMockServer(context, "public, max-age=300");
+  public void testMatchingPaths(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public, max-age=300");
 
-    String body1 = executeGetBlocking(context, "/path/to/resource");
-    String body2 = executeGetBlocking(context, "/path/to/resource");
+    String body1 = executeGetBlocking(testContext, "/path/to/resource");
+    String body2 = executeGetBlocking(testContext, "/path/to/resource");
 
-    context.assertEquals(body1, body2);
+    assertEquals(body1, body2);
+    testContext.completeNow();
   }
 
   @Test
-  public void testDifferentPaths(TestContext context) {
-    startMockServer(context, "public, max-age=300");
+  public void testDifferentPaths(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public, max-age=300");
 
-    String body1 = executeGetBlocking(context, "/path/to/resource");
-    String body2 = executeGetBlocking(context, "/other/path");
+    String body1 = executeGetBlocking(testContext, "/path/to/resource");
+    String body2 = executeGetBlocking(testContext, "/other/path");
 
-    context.assertNotEquals(body1, body2);
+    assertNotEquals(body1, body2);
+    testContext.completeNow();
   }
 
   @Test
-  public void testWithMatchingQueryParams(TestContext context) {
-    startMockServer(context, "public, max-age=300");
+  public void testWithMatchingQueryParams(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public, max-age=300");
 
-    String body1 = executeGetBlocking(context, req -> {
+    String body1 = executeGetBlocking(testContext, req -> {
       req.setQueryParam("q", "search");
     });
 
-    String body2 = executeGetBlocking(context, req -> {
+    String body2 = executeGetBlocking(testContext, req -> {
       req.setQueryParam("q", "search");
     });
 
-    context.assertEquals(body1, body2);
+    assertEquals(body1, body2);
+    testContext.completeNow();
   }
 
   @Test
-  public void testWithDifferentQueryParams(TestContext context) {
-    startMockServer(context, "public, max-age=300");
+  public void testWithDifferentQueryParams(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public, max-age=300");
 
-    String body1 = executeGetBlocking(context, req -> {
+    String body1 = executeGetBlocking(testContext, req -> {
       req.setQueryParam("q", "search");
     });
 
-    String body2 = executeGetBlocking(context, req -> {
+    String body2 = executeGetBlocking(testContext, req -> {
       req.setQueryParam("q", "other");
     });
 
-    context.assertNotEquals(body1, body2);
+    assertNotEquals(body1, body2);
+    testContext.completeNow();
   }
 
   @Test
-  public void testWithDifferentQueryParamOrdering(TestContext context) {
-    startMockServer(context, "public, max-age=300");
+  public void testWithDifferentQueryParamOrdering(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "public, max-age=300");
 
-    String body1 = executeGetBlocking(context, req -> {
+    String body1 = executeGetBlocking(testContext, req -> {
       req
         .setQueryParam("q", "search")
         .setQueryParam("param", "value");
     });
 
-    String body2 = executeGetBlocking(context, req -> {
+    String body2 = executeGetBlocking(testContext, req -> {
       req
         .setQueryParam("param", "value")
         .setQueryParam("q", "search");
     });
 
-    context.assertEquals(body1, body2);
+    assertEquals(body1, body2);
+    testContext.completeNow();
   }
 
   // Cache-Control: private with client NOT enabled private caching
 
   @Test
-  public void testPrivate(TestContext context) {
-    startMockServer(context, "private");
-    assertNotCached(context);
+  public void testPrivate(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "private");
+    assertNotCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPrivateMaxAge(TestContext context) {
-    startMockServer(context, "private, max-age=300");
-    assertNotCached(context);
+  public void testPrivateMaxAge(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "private, max-age=300");
+    assertNotCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPrivateMaxAgeZero(TestContext context) {
-    startMockServer(context, "private, max-age=0");
-    assertNotCached(context);
+  public void testPrivateMaxAgeZero(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "private, max-age=0");
+    assertNotCached(testContext);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPrivateExpires(TestContext context) {
+  public void testPrivateExpires(VertxTestContext testContext) throws Exception {
     String expires = DateFormatter.format(new Date(
       System.currentTimeMillis() + Duration.ofMinutes(5).toMillis()
     ));
-    startMockServer(context, req -> {
+    startMockServer(testContext, req -> {
       req.response().headers().add("Cache-Control", "private");
       req.response().headers().add("Expires", expires);
     });
 
-    assertNotCached(context);
+    assertNotCached(testContext);
+    testContext.completeNow();
   }
 
   // Cache-Control: private with client enabled private caching
 
   @Test
-  public void testPrivateEnabled(TestContext context) {
-    startMockServer(context, "private");
-    assertCached(context, sessionClient);
+  public void testPrivateEnabled(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "private");
+    assertCached(testContext, sessionClient);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPrivateEnabledMaxAge(TestContext context) {
-    startMockServer(context, "private, max-age=300");
-    assertCached(context, sessionClient);
+  public void testPrivateEnabledMaxAge(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "private, max-age=300");
+    assertCached(testContext, sessionClient);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPrivateEnabledMaxAgeZero(TestContext context) {
-    startMockServer(context, "private, max-age=0");
-    assertNotCached(context, sessionClient);
+  public void testPrivateEnabledMaxAgeZero(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "private, max-age=0");
+    assertNotCached(testContext, sessionClient);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPrivateSharedMaxAgeAndMaxAgeZero(TestContext context) {
-    startMockServer(context, "private, s-maxage=300, max-age=0");
-    assertNotCached(context, sessionClient);
+  public void testPrivateSharedMaxAgeAndMaxAgeZero(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, "private, s-maxage=300, max-age=0");
+    assertNotCached(testContext, sessionClient);
+    testContext.completeNow();
   }
 
   @Test
-  public void testPrivateSharedMaxAgeAndMaxAge(TestContext context) {
-    startMockServer(context, "private, s-maxage=300, max-age=1");
+  public void testPrivateSharedMaxAgeAndMaxAge(VertxTestContext testContext) throws Exception {
+    Checkpoint waiter = testContext.checkpoint();
 
-    Async waiter = context.async();
+    startMockServer(testContext, "private, s-maxage=300, max-age=1");
 
-    String body1 = executeGetBlocking(context, sessionClient);
-    String body2 = executeGetBlocking(context, sessionClient);
+    String body1 = executeGetBlocking(testContext, sessionClient);
+    String body2 = executeGetBlocking(testContext, sessionClient);
 
     // Wait for the max-age time to pass, but not long enough for s-maxage
     // HTTP cache only has 1 second resolution, so this must be 1+ seconds past than the max-age
-    vertx.setTimer(2000, l -> waiter.complete());
+    vertx.setTimer(2000, l -> waiter.flag());
     waiter.await();
 
-    String body3 = executeGetBlocking(context, sessionClient);
+    String body3 = executeGetBlocking(testContext, sessionClient);
 
-    context.assertEquals(body1, body2);
-    context.assertNotEquals(body2, body3);
+    assertEquals(body1, body2);
+    assertNotEquals(body2, body3);
+    testContext.completeNow();
   }
 
   // Cache-Control: public; Vary: User-Agent
 
   @Test
-  public void testPublicVaryMaxAgeZero(TestContext context) {
-    startMockServer(context, req -> {
+  public void testPublicVaryMaxAgeZero(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, req -> {
       req.response().headers().add("Cache-Control", "public, max-age=0");
       req.response().headers().add("Vary", "User-Agent");
     });
 
-    assertNotCached(context, varyClient);
+    assertNotCached(testContext, varyClient);
+    testContext.completeNow();
   }
 
   @Test
-  public void testVaryUserAgentTwoDesktops(TestContext context) {
-    startMockServer(context, req -> {
+  public void testVaryUserAgentTwoDesktops(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, req -> {
       req.response().headers().add("Cache-Control", "public, max-age=300");
       req.response().headers().add("Vary", "User-Agent");
     });
 
     // Chrome Desktop
-    String body1 = executeGetBlocking(context, varyClient, req -> {
+    String body1 = executeGetBlocking(testContext, varyClient, req -> {
       req.putHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36");
     });
 
     // Firefox Desktop
-    String body2 = executeGetBlocking(context, varyClient, req -> {
+    String body2 = executeGetBlocking(testContext, varyClient, req -> {
       req.putHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X x.y; rv:42.0) Gecko/20100101 Firefox/42.0");
     });
 
     // Desktop user agents are normalized so two desktop clients should hit the same cache
-    context.assertEquals(body1, body2);
+    assertEquals(body1, body2);
+    testContext.completeNow();
   }
 
   @Test
-  public void testVaryUserAgentDesktopVsMobile(TestContext context) {
-    startMockServer(context, req -> {
+  public void testVaryUserAgentDesktopVsMobile(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, req -> {
       req.response().headers().add("Cache-Control", "public, max-age=300");
       req.response().headers().add("Vary", "User-Agent");
     });
 
     // Chrome Desktop
-    String body1 = executeGetBlocking(context, varyClient, req -> {
+    String body1 = executeGetBlocking(testContext, varyClient, req -> {
       req.putHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36");
     });
 
     // iPhone Mobile
-    String body2 = executeGetBlocking(context, varyClient, req -> {
+    String body2 = executeGetBlocking(testContext, varyClient, req -> {
       req.putHeader("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Mobile/15E148 Safari/604.1");
     });
 
     // Desktop and Mobile may receive different content and should not share a cache
-    context.assertNotEquals(body1, body2);
+    assertNotEquals(body1, body2);
+    testContext.completeNow();
   }
 
   // Cache-Control: public; Vary: Content-Encoding
 
   @Test
-  public void testVaryEncodingTransformedToIdentityAlwaysSoWeIgnoreIt(TestContext context) {
-    startMockServer(context, req -> {
+  public void testVaryEncodingTransformedToIdentityAlwaysSoWeIgnoreIt(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, req -> {
       req.response().headers().add("Cache-Control", "public, max-age=300");
       req.response().headers().add("Content-Encoding", "gzip");
       req.response().headers().add("Vary", "Accept-Encoding");
     });
 
-    String body1 = executeGetBlocking(context, varyClient, req -> {
+    String body1 = executeGetBlocking(testContext, varyClient, req -> {
       req.putHeader("Accept-Encoding", "gzip,deflate");
     });
 
-    String body2 = executeGetBlocking(context, varyClient, req -> {
+    String body2 = executeGetBlocking(testContext, varyClient, req -> {
       req.putHeader("Accept-Encoding", "br");
     });
 
-    context.assertEquals(body1, body2);
+    assertEquals(body1, body2);
+    testContext.completeNow();
   }
 
   @Test
-  public void testVaryCustomHeader(TestContext context) {
-    startMockServer(context, req -> {
+  public void testVaryCustomHeader(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, req -> {
       req.response().headers().add("Cache-Control", "public, max-age=300");
       req.response().headers().add("Vary", "X-Custom-Header");
     });
 
-    String body1 = executeGetBlocking(context, varyClient, req -> {
+    String body1 = executeGetBlocking(testContext, varyClient, req -> {
       req.putHeader("X-Custom-Header", "0x00000000");
     });
 
-    String body2 = executeGetBlocking(context, varyClient, req -> {
+    String body2 = executeGetBlocking(testContext, varyClient, req -> {
       req.putHeader("X-Custom-Header", "0xDEADBEEF");
     });
 
-    String body3 = executeGetBlocking(context, varyClient, req -> {
+    String body3 = executeGetBlocking(testContext, varyClient, req -> {
       req.putHeader("X-Custom-Header", "0x00000000");
     });
 
-    context.assertNotEquals(body1, body2);
-    context.assertNotEquals(body2, body3);
-    context.assertEquals(body1, body3);
+    assertNotEquals(body1, body2);
+    assertNotEquals(body2, body3);
+    assertEquals(body1, body3);
+    testContext.completeNow();
   }
 
   @Test
-  public void testVaryUserAgentAndCustomHeader(TestContext context) {
-    startMockServer(context, req -> {
+  public void testVaryUserAgentAndCustomHeader(VertxTestContext testContext) throws Exception {
+    startMockServer(testContext, req -> {
       req.response().headers().add("Cache-Control", "public, max-age=300");
       req.response().headers().add("Vary", "User-Agent, X-Custom-Header");
     });
 
     // 1. Chrome desktop, custom header 0
-    String body1 = executeGetBlocking(context, varyClient, req -> {
+    String body1 = executeGetBlocking(testContext, varyClient, req -> {
       req
         .putHeader("X-Custom-Header", "0x00000000")
         .putHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36");
     });
 
     // 2. Chrome desktop, custom header deadbeef, should not be cached
-    String body2 = executeGetBlocking(context, varyClient, req -> {
+    String body2 = executeGetBlocking(testContext, varyClient, req -> {
       req
         .putHeader("X-Custom-Header", "0xDEADBEEF")
         .putHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36");
     });
 
     // 3. Chrome desktop, custom header 0, should be cached from req1
-    String body3 = executeGetBlocking(context, varyClient, req -> {
+    String body3 = executeGetBlocking(testContext, varyClient, req -> {
       req
         .putHeader("X-Custom-Header", "0x00000000")
         .putHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36");
     });
 
     // 4. iPhone mobile, custom header 0, should not be cached
-    String body4 = executeGetBlocking(context, varyClient, req -> {
+    String body4 = executeGetBlocking(testContext, varyClient, req -> {
       req
         .putHeader("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Mobile/15E148 Safari/604.1")
         .putHeader("X-Custom-Header", "0x00000000");
     });
 
-    context.assertNotEquals(body1, body2);
-    context.assertEquals(body1, body3);
-    context.assertNotEquals(body1, body4);
-    context.assertNotEquals(body2, body3);
-    context.assertNotEquals(body2, body4);
-    context.assertNotEquals(body3, body4);
+    assertNotEquals(body1, body2);
+    assertEquals(body1, body3);
+    assertNotEquals(body1, body4);
+    assertNotEquals(body2, body3);
+    assertNotEquals(body2, body4);
+    assertNotEquals(body3, body4);
+    testContext.completeNow();
   }
 
   @Test
-  public void testVaryWithStaleResponse(TestContext context) {
-    startMockServer(context, req -> {
+  public void testVaryWithStaleResponse(VertxTestContext testContext) throws Exception {
+    Checkpoint waiter = testContext.checkpoint();
+
+    startMockServer(testContext, req -> {
       req.response().headers().add("Cache-Control", "public, max-age=2");
       req.response().headers().add("Vary", "User-Agent");
     });
 
-    Async waiter = context.async();
-
-    String body1 = executeGetBlocking(context, varyClient, req -> {
+    String body1 = executeGetBlocking(testContext, varyClient, req -> {
       req.putHeader("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Mobile/15E148 Safari/604.1");
     });
 
-    String body2 = executeGetBlocking(context, varyClient, req -> {
+    String body2 = executeGetBlocking(testContext, varyClient, req -> {
       req.putHeader("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Mobile/15E148 Safari/604.1");
     });
 
-    vertx.setTimer(3000, l -> waiter.complete());
+    vertx.setTimer(3000, l -> waiter.flag());
     waiter.await();
 
-    String body3 = executeGetBlocking(context, varyClient, req -> {
+    String body3 = executeGetBlocking(testContext, varyClient, req -> {
       req.putHeader("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Mobile/15E148 Safari/604.1");
     });
 
-    context.assertEquals(body1, body2);
-    context.assertNotEquals(body1, body3);
-    context.assertNotEquals(body2, body3);
+    assertEquals(body1, body2);
+    assertNotEquals(body1, body3);
+    assertNotEquals(body2, body3);
+    testContext.completeNow();
   }
 
   static class TestCacheStore implements CacheStore {

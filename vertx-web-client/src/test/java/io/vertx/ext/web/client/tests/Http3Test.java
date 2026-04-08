@@ -1,5 +1,6 @@
 package io.vertx.ext.web.client.tests;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerConfig;
@@ -9,19 +10,17 @@ import io.vertx.core.net.ServerSSLOptions;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientConfig;
-import io.vertx.test.core.LinuxOrOsx;
-import io.vertx.test.http.HttpTestBase;
+import io.vertx.junit5.VertxTest;
 import io.vertx.test.tls.Cert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-@RunWith(LinuxOrOsx.class)
-public class Http3Test extends HttpTestBase {
+@VertxTest
+public class Http3Test {
 
   @Test
-  public void smokeTest() {
+  public void smokeTest(Vertx vertx) {
     HttpServer server = vertx.createHttpServer(
         new HttpServerConfig().setVersions(HttpVersion.HTTP_3),
         new ServerSSLOptions().setKeyCertOptions(Cert.SERVER_JKS.get()))

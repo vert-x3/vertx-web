@@ -19,10 +19,13 @@ package io.vertx.ext.web.client.it;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.tests.WebClientTestBase;
 import io.vertx.ext.web.client.tests.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -30,37 +33,38 @@ import org.junit.Test;
 public class WebClientDatabindTest extends WebClientTestBase {
 
   @Test
-  public void testResponseBodyAsJsonMapped() throws Exception {
+  public void testResponseBodyAsJsonMapped() {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
     server.requestHandler(req -> req.response().end(expected.encode()));
     startServer();
     HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get
+    HttpResponse<WineAndCheese> resp = get
       .as(BodyCodec.json(WineAndCheese.class))
-      .send().onComplete(onSuccess(resp -> {
-        assertEquals(200, resp.statusCode());
-        assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.body());
-        testComplete();
-      }));
-    await();
+      .send().await();
+    assertEquals(200, resp.statusCode());
+    assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.body());
   }
 
   @Test
-  public void testResponseUnknownContentTypeBodyAsJsonMapped() throws Exception {
+  public void testResponseUnknownContentTypeBodyAsJsonMapped() {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
-    testResponseBody(expected.encode(), onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
-      assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.bodyAsJson(WineAndCheese.class));
-      testComplete();
-    }));
+    server.requestHandler(req -> req.response().end(expected.encode()));
+    startServer();
+    HttpRequest<Buffer> get = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpResponse<Buffer> resp = get.send().await();
+    assertEquals(200, resp.statusCode());
+    assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.bodyAsJson(WineAndCheese.class));
   }
 
   @Test
-  public void testSendJsonPojoBody() throws Exception {
-    testSendBody(new WineAndCheese().setCheese("roquefort").setWine("Chateauneuf Du Pape"),
-      (contentType, buff) -> {
-        assertEquals("application/json", contentType);
-        assertEquals(new JsonObject().put("wine", "Chateauneuf Du Pape").put("cheese", "roquefort"), buff.toJsonObject());
-      });
+  public void testSendJsonPojoBody() {
+    server.requestHandler(req -> req.bodyHandler(buff -> {
+      assertEquals("application/json", req.getHeader("content-type"));
+      assertEquals(new JsonObject().put("wine", "Chateauneuf Du Pape").put("cheese", "roquefort"), buff.toJsonObject());
+      req.response().end();
+    }));
+    startServer();
+    HttpRequest<Buffer> post = webClient.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    post.sendJson(new WineAndCheese().setCheese("roquefort").setWine("Chateauneuf Du Pape")).await();
   }
 }
