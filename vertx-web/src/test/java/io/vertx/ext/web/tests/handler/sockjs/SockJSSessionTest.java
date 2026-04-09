@@ -17,9 +17,13 @@ package io.vertx.ext.web.tests.handler.sockjs;
 
 import io.netty.util.internal.PlatformDependent;
 import io.vertx.core.Context;
+import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.WebSocket;
+import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 
@@ -54,8 +58,8 @@ public class SockJSSessionTest extends SockJSTestBase {
       };
     };
     startServers();
-    client.request(HttpMethod.GET, "/test/400/8ne8e94a/eventsource").onComplete(onSuccess(req -> {
-      req.send().onComplete(onSuccess(resp -> {
+    client.request(HttpMethod.GET, "/test/400/8ne8e94a/eventsource").onComplete(TestUtils.onSuccess(req -> {
+      req.send().onComplete(TestUtils.onSuccess(resp -> {
         AtomicInteger count = new AtomicInteger();
         resp.handler(msg -> {
           if (count.incrementAndGet() == 400) {
@@ -85,8 +89,9 @@ public class SockJSSessionTest extends SockJSTestBase {
           while (!shallStop.getAsBoolean()) {
             LockSupport.parkNanos(50);
             try {
-              socket.write(random)
-                .onFailure(this::fail);
+              socket
+                .write(random)
+                .onFailure(err -> Assert.fail(err.getMessage()));
             } catch (IllegalStateException e) {
               // Websocket has been closed
             }
@@ -95,39 +100,35 @@ public class SockJSSessionTest extends SockJSTestBase {
       };
     };
     startServers();
-    wsClient.connect("/test/400/8ne8e94a/websocket")
-      .onFailure(this::fail)
-      .onSuccess(ws -> ws.handler(msg -> {
+    AtomicBoolean stopped = new AtomicBoolean();
+    wsClient
+      .connect("/test/400/8ne8e94a/websocket")
+      .onComplete(TestUtils.onSuccess(ws -> {
+      ws.handler(msg -> {
         clientReceived.addAndGet(msg.length());
         ws.writeTextMessage("\"hello\"")
           .compose(v -> ws.write(random))
-          .onFailure(this::fail)
-          .onSuccess(v -> {
-            if (shallStop.getAsBoolean()) {
+          .onComplete(TestUtils.onSuccess(v -> {
+            if (shallStop.getAsBoolean() && stopped.compareAndSet(false, true)) {
               ws.handler(null);
               complete();
             }
-          });
-      }));
-    try {
-      await();
-    } catch (Throwable e) {
-      System.out.println(clientReceived.get());
-      System.out.println(serverReceived.get());
-      throw e;
-    }
+          }));
+      });
+    }));
+    await();
   }
 
   @Test
   public void testCombineMultipleFramesIntoASingleMessage() throws Exception {
     socketHandler = () -> {
       return socket -> socket.handler(buf -> {
-        assertEquals("Hello World", buf.toString());
+        Assert.assertEquals("Hello World", buf.toString());
         testComplete();
       });
     };
     startServers();
-    wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(onSuccess(ws -> {
+    wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(TestUtils.onSuccess(ws -> {
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame("[\"Hello", false));
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(Buffer.buffer(" World\"]"), true));
       ws.close();
@@ -156,7 +157,7 @@ public class SockJSSessionTest extends SockJSTestBase {
       });
     };
     startServers();
-    wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(onSuccess(ws -> {
+    wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(TestUtils.onSuccess(ws -> {
       ws.frameHandler(wsf -> {
         switch (wsf.type()) {
           case TEXT:
@@ -166,7 +167,7 @@ public class SockJSSessionTest extends SockJSTestBase {
             }
             break;
           case CLOSE:
-            assertEquals(1, answerCount.get());
+            Assert.assertEquals(1, answerCount.get());
             testComplete();
             break;
         }

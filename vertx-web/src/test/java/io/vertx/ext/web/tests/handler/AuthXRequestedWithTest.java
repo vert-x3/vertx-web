@@ -23,16 +23,21 @@ import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class AuthXRequestedWithTest extends AuthHandlerTestBase {
+
+  public AuthXRequestedWithTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Test
   public void testNoWwwAuthenticateForAjaxCalls() throws Exception {
     String realm = BasicAuthHandler.DEFAULT_REALM;
     Handler<RoutingContext> handler = rc -> {
-      assertNotNull(rc.user());
-      assertEquals("tim", rc.user().principal().getString("username"));
+      Assert.assertNotNull(rc.user());
+      Assert.assertEquals("tim", rc.user().principal().getString("username"));
       rc.response().end("Welcome to the protected resource!");
     };
 
@@ -43,19 +48,19 @@ public class AuthXRequestedWithTest extends AuthHandlerTestBase {
 
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNotNull(wwwAuth);
-      assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
+      Assert.assertNotNull(wwwAuth);
+      Assert.assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
     }, 401, "Unauthorized", null);
 
     testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("X-Requested-With", "XMLHttpRequest"), resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNull(wwwAuth);
+      Assert.assertNull(wwwAuth);
     }, 401, "Unauthorized", null);
 
     // Now try again with credentials
     testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNull(wwwAuth);
+      Assert.assertNull(wwwAuth);
     }, 200, "OK", "Welcome to the protected resource!");
 
   }

@@ -12,9 +12,14 @@ import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.impl.SimpleAuthenticationHandlerImpl;
 import io.vertx.ext.web.sstore.LocalSessionStore;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ChainAuthMixHandlerTest extends WebTestBase {
+
+  public ChainAuthMixHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   private static final User USER = User.create(new JsonObject().put("id", "paulo"));
 
@@ -138,7 +143,7 @@ public class ChainAuthMixHandlerTest extends WebTestBase {
 
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
     router.route().handler(chain);
-    router.route().handler(ctx -> fail());
+    router.route().handler(ctx -> Assert.fail());
 
     testRequest(HttpMethod.GET, "/", 200, "OK", "Peekaboo");
   }

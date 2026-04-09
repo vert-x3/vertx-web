@@ -20,6 +20,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.TimeoutHandler;
 import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -28,6 +29,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class TimeoutHandlerTest extends WebTestBase {
+
+  public TimeoutHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Test
   public void testTimeout() throws Exception {
@@ -73,7 +78,7 @@ public class TimeoutHandlerTest extends WebTestBase {
     router.route().handler(TimeoutHandler.create(500));
     router.get("/a").handler(rc -> rc.reroute("/b"));
     router.get("/b").handler(RoutingContext::end);
-    router.errorHandler(TimeoutHandler.DEFAULT_ERRORCODE, rc -> fail());
+    router.errorHandler(TimeoutHandler.DEFAULT_ERRORCODE, rc -> Assert.fail());
     testRequest(HttpMethod.GET, "/a", 200, "OK");
     Thread.sleep(1000);
   }

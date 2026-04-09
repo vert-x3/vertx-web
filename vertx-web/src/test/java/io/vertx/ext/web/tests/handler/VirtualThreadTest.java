@@ -24,10 +24,15 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.internal.VertxInternal;
 import io.vertx.ext.web.Router;
 import io.vertx.test.core.VertxTestBase;
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 
 public class VirtualThreadTest extends VertxTestBase {
+
+  public VirtualThreadTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Test
   public void testBlockingHandler() {
@@ -48,8 +53,8 @@ public class VirtualThreadTest extends VertxTestBase {
         .request(HttpMethod.GET, 8080, "localhost", "/")
         .compose(req -> req.send().compose(HttpClientResponse::body))
         .await();
-      assertEquals("Hello", body.toString());
-      assertTrue(System.currentTimeMillis() - now >= 200);
+      Assert.assertEquals("Hello", body.toString());
+      Assert.assertTrue(System.currentTimeMillis() - now >= 200);
       testComplete();
     });
     await();

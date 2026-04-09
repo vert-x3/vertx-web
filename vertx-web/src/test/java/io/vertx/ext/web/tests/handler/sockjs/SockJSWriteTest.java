@@ -19,6 +19,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.WebSocketBase;
 import io.vertx.test.core.TestUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -31,13 +32,13 @@ public class SockJSWriteTest extends SockJSTestBase {
     waitFor(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(Buffer.buffer(expected)).onComplete(onSuccess(v -> {
+      socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
         complete();
       }));
     };
     startServers();
     vertx.runOnContext(v -> {
-      wsClient.connect("/test/websocket").onComplete(onSuccess(ws -> {
+      wsClient.connect("/test/websocket").onComplete(TestUtils.onSuccess(ws -> {
         ws.handler(buffer -> {
           if (buffer.toString().equals(expected)) {
             complete();
@@ -53,14 +54,14 @@ public class SockJSWriteTest extends SockJSTestBase {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.endHandler(v -> {
-        socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
+        socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
           testComplete();
         }));
       });
     };
     startServers();
     vertx.runOnContext(v -> {
-      wsClient.connect("/test/websocket").onComplete(onSuccess(WebSocketBase::close));
+      wsClient.connect("/test/websocket").onComplete(TestUtils.onSuccess(WebSocketBase::close));
     });
     await();
   }
@@ -70,13 +71,13 @@ public class SockJSWriteTest extends SockJSTestBase {
     waitFor(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(Buffer.buffer(expected)).onComplete(onSuccess(v -> {
+      socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
         complete();
       }));
     };
     startServers();
     vertx.runOnContext(v -> {
-      wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(onSuccess(ws -> {
+      wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(TestUtils.onSuccess(ws -> {
         ws.handler(buffer -> {
           if (buffer.toString().equals("a[\"" + expected + "\"]")) {
             complete();
@@ -92,14 +93,14 @@ public class SockJSWriteTest extends SockJSTestBase {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.endHandler(v -> {
-        socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
+        socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
           testComplete();
         }));
       });
     };
     startServers();
     vertx.runOnContext(v -> {
-      wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(onSuccess(WebSocketBase::close));
+      wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(TestUtils.onSuccess(WebSocketBase::close));
     });
     await();
   }
@@ -109,13 +110,13 @@ public class SockJSWriteTest extends SockJSTestBase {
     waitFor(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(Buffer.buffer(expected)).onComplete(onSuccess(v -> {
+      socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
         complete();
       }));
     };
     startServers();
     client.request(HttpMethod.GET, "/test/400/8ne8e94a/eventsource")
-      .onComplete(onSuccess(req -> req.send().onComplete(onSuccess(resp -> {
+      .onComplete(TestUtils.onSuccess(req -> req.send().onComplete(TestUtils.onSuccess(resp -> {
         resp.handler(buffer -> {
           if (buffer.toString().equals("data: a[\"" + expected + "\"]\r\n\r\n")) {
             complete();
@@ -130,14 +131,14 @@ public class SockJSWriteTest extends SockJSTestBase {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.endHandler(v -> {
-        socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
+        socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
           testComplete();
         }));
       });
     };
     startServers();
     client.request(HttpMethod.GET, "/test/400/8ne8e94a/eventsource")
-      .onComplete(onSuccess(req -> req.send().onComplete(onSuccess(resp -> {
+      .onComplete(TestUtils.onSuccess(req -> req.send().onComplete(TestUtils.onSuccess(resp -> {
         req.connection().close();
       }))));
     await();
@@ -148,14 +149,14 @@ public class SockJSWriteTest extends SockJSTestBase {
     waitFor(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(Buffer.buffer(expected)).onComplete(onSuccess(v -> {
+      socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
         complete();
       }));
     };
     startServers();
     client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr_streaming")
-      .onComplete(onSuccess(req -> req.send(Buffer.buffer()).onComplete(onSuccess(resp -> {
-        assertEquals(200, resp.statusCode());
+      .onComplete(TestUtils.onSuccess(req -> req.send(Buffer.buffer()).onComplete(TestUtils.onSuccess(resp -> {
+        Assert.assertEquals(200, resp.statusCode());
         resp.handler(buffer -> {
           if (buffer.toString().equals("a[\"" + expected + "\"]\n")) {
             complete();
@@ -170,14 +171,14 @@ public class SockJSWriteTest extends SockJSTestBase {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.endHandler(v -> {
-        socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
+        socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
           testComplete();
         }));
       });
     };
     startServers();
     client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr_streaming")
-      .onComplete(onSuccess(req -> req.send().onComplete(onSuccess(resp -> {
+      .onComplete(TestUtils.onSuccess(req -> req.send().onComplete(TestUtils.onSuccess(resp -> {
         req.connection().close();
       }))));
     await();
@@ -188,7 +189,7 @@ public class SockJSWriteTest extends SockJSTestBase {
     waitFor(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(Buffer.buffer(expected)).onComplete(onSuccess(v -> {
+      socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
         complete();
       }));
     };
@@ -196,8 +197,8 @@ public class SockJSWriteTest extends SockJSTestBase {
     Runnable[] task = new Runnable[1];
     task[0] = () ->
       client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr")
-        .onComplete(onSuccess(req -> req.send(Buffer.buffer()).onComplete(onSuccess(resp -> {
-          assertEquals(200, resp.statusCode());
+        .onComplete(TestUtils.onSuccess(req -> req.send(Buffer.buffer()).onComplete(TestUtils.onSuccess(resp -> {
+          Assert.assertEquals(200, resp.statusCode());
           resp.handler(buffer -> {
             if (buffer.toString().equals("a[\"" + expected + "\"]\n")) {
               complete();
@@ -216,11 +217,11 @@ public class SockJSWriteTest extends SockJSTestBase {
     waitFor(3);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
+      socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
         complete();
       }));
       socket.endHandler(v -> {
-        socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
+        socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
           complete();
         }));
       });
@@ -228,8 +229,8 @@ public class SockJSWriteTest extends SockJSTestBase {
     };
     startServers();
     client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr")
-      .onComplete(onSuccess(req -> req.send().onComplete(onSuccess(resp -> {
-        assertEquals(200, resp.statusCode());
+      .onComplete(TestUtils.onSuccess(req -> req.send().onComplete(TestUtils.onSuccess(resp -> {
+        Assert.assertEquals(200, resp.statusCode());
         complete();
       }))));
     await();
@@ -241,19 +242,19 @@ public class SockJSWriteTest extends SockJSTestBase {
     waitFor(3);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
+      socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
         complete();
       }));
       socket.endHandler(v -> {
-        socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
+        socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
           complete();
         }));
       });
     };
     startServers();
     client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr")
-      .onComplete(onSuccess(req -> req.send().onComplete(onSuccess(resp -> {
-        assertEquals(200, resp.statusCode());
+      .onComplete(TestUtils.onSuccess(req -> req.send().onComplete(TestUtils.onSuccess(resp -> {
+        Assert.assertEquals(200, resp.statusCode());
         complete();
       }))));
     await();

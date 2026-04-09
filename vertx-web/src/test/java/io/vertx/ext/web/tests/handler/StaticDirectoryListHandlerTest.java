@@ -19,13 +19,17 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Ignore;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class StaticDirectoryListHandlerTest extends WebTestBase {
+
+  public StaticDirectoryListHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   protected StaticHandler stat;
 
@@ -62,14 +66,14 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
   public void testGetDirectoryFuzzyAccepts() throws Exception {
     testRequest(HttpMethod.GET, "/",
       req -> req.putHeader("Accept", "application/json, text/plain; q=0.9"),
-      res -> assertEquals("application/json", res.getHeader("Content-Type")), 200, "OK", null);
+      res -> Assert.assertEquals("application/json", res.getHeader("Content-Type")), 200, "OK", null);
   }
 
   @Test
   public void testGetDirectoryFuzzyAccepts2() throws Exception {
     testRequest(HttpMethod.GET, "/",
       req -> req.putHeader("Accept", "application/json; q=0.8, text/plain; q=0.9"),
-      res -> assertEquals("text/plain", res.getHeader("Content-Type")), 200, "OK", null);
+      res -> Assert.assertEquals("text/plain", res.getHeader("Content-Type")), 200, "OK", null);
   }
 
   @Test

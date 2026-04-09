@@ -19,6 +19,8 @@ package io.vertx.ext.web.tests.handler.sockjs;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.test.core.TestUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -43,7 +45,7 @@ public class SockJSAsyncHandlerTest extends SockJSTestBase {
     waitFor(2);
     socketHandler = () -> socket -> {
       socket.handler(buf -> {
-        assertEquals("Hello World", buf.toString());
+        Assert.assertEquals("Hello World", buf.toString());
         complete();
       });
     };
@@ -52,12 +54,12 @@ public class SockJSAsyncHandlerTest extends SockJSTestBase {
 
     client
       .request(HttpMethod.POST, "/test/400/8ne8e94a/xhr")
-      .compose(req1 -> req1.send(Buffer.buffer()).onComplete(onSuccess(resp1 -> {
-      assertEquals(200, resp1.statusCode());
+      .compose(req1 -> req1.send(Buffer.buffer()).onComplete(TestUtils.onSuccess(resp1 -> {
+      Assert.assertEquals(200, resp1.statusCode());
         client
           .request(HttpMethod.POST, "/test/400/8ne8e94a/xhr_send")
-          .compose(req2 -> req2.send(Buffer.buffer("\"Hello World\""))).onComplete(onSuccess(resp2 -> {
-          assertEquals(204, resp2.statusCode());
+          .compose(req2 -> req2.send(Buffer.buffer("\"Hello World\""))).onComplete(TestUtils.onSuccess(resp2 -> {
+          Assert.assertEquals(204, resp2.statusCode());
           complete();
         }));
     })));

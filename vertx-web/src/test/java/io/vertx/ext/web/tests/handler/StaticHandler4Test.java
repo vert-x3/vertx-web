@@ -20,12 +20,17 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.FileSystemAccess;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class StaticHandler4Test extends WebTestBase {
+
+  public StaticHandler4Test() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   protected StaticHandler stat;
 
@@ -47,7 +52,7 @@ public class StaticHandler4Test extends WebTestBase {
 
     // without / should redirect first
     testRequest(HttpMethod.GET, "/index.html", null, res-> {
-      assertEquals("/index.html/", res.getHeader("Location"));
+      Assert.assertEquals("/index.html/", res.getHeader("Location"));
     }, 301, "Moved Permanently", null);
 
     testRequest(HttpMethod.GET, "/index.html/", 200, "OK", "<html><body>Nasty index page</body></html>");

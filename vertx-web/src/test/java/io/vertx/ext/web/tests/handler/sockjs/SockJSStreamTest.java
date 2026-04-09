@@ -21,6 +21,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
+import io.vertx.test.core.TestUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -48,13 +50,13 @@ public class SockJSStreamTest extends SockJSTestBase {
     socketHandler = () -> {
       return socket -> {
         Context context = Vertx.currentContext();
-        assertNotNull(context);
-        assertTrue(sessionContext.compareAndSet(null, context));
+        Assert.assertNotNull(context);
+        Assert.assertTrue(sessionContext.compareAndSet(null, context));
         socket.setWriteQueueMaxSize(5);
         socket.write("Hello");
-        assertTrue(socket.writeQueueFull());
+        Assert.assertTrue(socket.writeQueueFull());
         socket.drainHandler(v -> {
-          assertEquals(sessionContext.get(), Vertx.currentContext());
+          Assert.assertEquals(sessionContext.get(), Vertx.currentContext());
           socket.write("World");
         });
       };
@@ -70,10 +72,10 @@ public class SockJSStreamTest extends SockJSTestBase {
   private void fetchMessages(List<String> messages) {
     client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").compose(
       req -> req.send(Buffer.buffer()).compose(resp -> {
-        assertEquals(200, resp.statusCode());
+        Assert.assertEquals(200, resp.statusCode());
         return resp.body();
       })
-    ).onComplete(onSuccess(buffer -> {
+    ).onComplete(TestUtils.onSuccess(buffer -> {
       String body = buffer.toString();
       if (body.startsWith("a")) {
         JsonArray content = new JsonArray(body.substring(1));
@@ -82,7 +84,7 @@ public class SockJSStreamTest extends SockJSTestBase {
       if (messages.size() < 2) {
         fetchMessages(messages);
       } else {
-        assertEquals(Arrays.asList("Hello", "World"), messages);
+        Assert.assertEquals(Arrays.asList("Hello", "World"), messages);
         testComplete();
       }
     }));

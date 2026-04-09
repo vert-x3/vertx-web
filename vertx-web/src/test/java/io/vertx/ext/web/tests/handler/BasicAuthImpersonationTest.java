@@ -14,11 +14,17 @@ import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.SessionStore;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 public class BasicAuthImpersonationTest extends WebTestBase {
+
+  public BasicAuthImpersonationTest() {
+    super(ReportMode.FORBIDDEN);
+  }
+
   AuthenticationProvider authn;
   AuthorizationProvider authz;
 
@@ -85,7 +91,7 @@ public class BasicAuthImpersonationTest extends WebTestBase {
       .route("/protected/base")
       .handler(AuthorizationHandler.create(RoleBasedAuthorization.create("read")).addAuthorizationProvider(authz))
       .handler(rc -> {
-        assertNotNull(rc.user());
+        Assert.assertNotNull(rc.user());
         userRef.set(rc.user());
         rc.end("OK");
       });
@@ -96,18 +102,18 @@ public class BasicAuthImpersonationTest extends WebTestBase {
       .route("/protected/admin")
       .handler(AuthorizationHandler.create(RoleBasedAuthorization.create("write")).addAuthorizationProvider(authz))
       .handler(rc -> {
-        assertNotNull(rc.user());
+        Assert.assertNotNull(rc.user());
 
         // assert that the old and new users are not the same
         User oldUser = userRef.get();
-        assertNotNull(oldUser);
+        Assert.assertNotNull(oldUser);
         User newUser = rc.user();
-        assertFalse(oldUser.equals(newUser));
+        Assert.assertFalse(oldUser.equals(newUser));
 
         // also the old user should be in the session
         User prevUser = rc.session().get(USER_SWITCH_KEY);
-        assertNotNull(prevUser);
-        assertEquals(prevUser, oldUser);
+        Assert.assertNotNull(prevUser);
+        Assert.assertEquals(prevUser, oldUser);
 
         rc.response().end("Welcome to the 2nd protected resource!");
       });
@@ -132,10 +138,10 @@ public class BasicAuthImpersonationTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/protected/base", null, resp -> {
       // in this case we should get a WWW-Authenticate
       String redirectURL = resp.getHeader("WWW-Authenticate");
-      assertNotNull(redirectURL);
+      Assert.assertNotNull(redirectURL);
       // there's no session yet
       String setCookie = resp.headers().get("set-cookie");
-      assertNull(setCookie);
+      Assert.assertNull(setCookie);
     }, 401, "Unauthorized", null);
 
     // 3. fake the redirect from the IdP. This happens with a success authn validation, we need to pass the right state
@@ -152,7 +158,7 @@ public class BasicAuthImpersonationTest extends WebTestBase {
       }, resp -> {
         // session upgrade (secure against replay attacks)
         String setCookie = resp.headers().get("set-cookie");
-        assertNotNull(setCookie);
+        Assert.assertNotNull(setCookie);
 
         sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
       }, 200, "OK", null);
@@ -209,14 +215,14 @@ public class BasicAuthImpersonationTest extends WebTestBase {
         // in this case we should get a redirect, and the session id must change
         // session upgrade (secure against replay attacks)
         String setCookie = resp.headers().get("set-cookie");
-        assertNotNull(setCookie);
+        Assert.assertNotNull(setCookie);
         // the session must change
-        assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
+        Assert.assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
 
         sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
 
         String destination = resp.getHeader(HttpHeaders.LOCATION);
-        assertNotNull(destination);
+        Assert.assertNotNull(destination);
       }, 302, "Found", null);
 
     // verify that the switch isn't possible for non authn requests
@@ -242,10 +248,10 @@ public class BasicAuthImpersonationTest extends WebTestBase {
       }, resp -> {
         // in this case we should get a WWW-Authenticate
         String redirectURL = resp.getHeader("WWW-Authenticate");
-        assertNotNull(redirectURL);
+        Assert.assertNotNull(redirectURL);
         // there's no session yet
         String setCookie = resp.headers().get("set-cookie");
-        assertNull(setCookie);
+        Assert.assertNull(setCookie);
       }, 401, "Unauthorized", null);
 
     // user is authenticated, it now escalates the permissions by re-doing the auth flow to upgrade the user
@@ -262,7 +268,7 @@ public class BasicAuthImpersonationTest extends WebTestBase {
       }, resp -> {
         // session upgrade (secure against replay attacks)
         String setCookie = resp.headers().get("set-cookie");
-        assertNotNull(setCookie);
+        Assert.assertNotNull(setCookie);
 
         sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
       }, 200, "OK", null);
@@ -293,14 +299,14 @@ public class BasicAuthImpersonationTest extends WebTestBase {
         // in this case we should get a redirect, and the session id must change
         // session upgrade (secure against replay attacks)
         String setCookie = resp.headers().get("set-cookie");
-        assertNotNull(setCookie);
+        Assert.assertNotNull(setCookie);
         // the session must change
-        assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
+        Assert.assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
 
         sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
 
         String destination = resp.getHeader(HttpHeaders.LOCATION);
-        assertNotNull(destination);
+        Assert.assertNotNull(destination);
       }, 302, "Found", null);
 
     // final call to verify that the desired de-escalated user can get the final resource

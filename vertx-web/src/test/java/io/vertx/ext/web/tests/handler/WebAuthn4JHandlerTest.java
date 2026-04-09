@@ -38,6 +38,7 @@ import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.WebAuthn4JHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.test.core.TestUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -77,9 +78,6 @@ import com.webauthn4j.test.authenticator.webauthn.WebAuthnAuthenticatorAdaptor;
 import com.webauthn4j.test.client.ClientPlatform;
 import com.webauthn4j.util.Base64UrlUtil;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -89,6 +87,10 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class WebAuthn4JHandlerTest extends WebTestBase {
+
+	public WebAuthn4JHandlerTest() {
+		super(ReportMode.FORBIDDEN);
+	}
 
 	private final ObjectConverter objectConverter = new ObjectConverter();
 
@@ -199,8 +201,8 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 	public void testRegisterAndLogin() throws Exception {
 
 		Handler<RoutingContext> handler = rc -> {
-			assertNotNull(rc.user());
-			assertEquals(username, rc.user().subject());
+			Assert.assertNotNull(rc.user());
+			Assert.assertEquals(username, rc.user().subject());
 			rc.response().end("Welcome to the protected resource!");
 		};
 
@@ -418,10 +420,10 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 			Consumer<Buffer> responseBodyBufferAction) throws Exception {
 		RequestOptions requestOptions = new RequestOptions().setMethod(method).setPort(8080).setURI(path).setHost("localhost");
 		CountDownLatch latch = new CountDownLatch(1);
-		client.request(requestOptions).onComplete(onSuccess(req -> {
-			req.response().onComplete(onSuccess(resp -> {
-				assertEquals(statusCode, resp.statusCode());
-				assertEquals(statusMessage, resp.statusMessage());
+		client.request(requestOptions).onComplete(TestUtils.onSuccess(req -> {
+			req.response().onComplete(TestUtils.onSuccess(resp -> {
+				Assert.assertEquals(statusCode, resp.statusCode());
+				Assert.assertEquals(statusMessage, resp.statusMessage());
 				if (responseAction != null) {
 					responseAction.accept(resp);
 				}
@@ -439,6 +441,6 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 			}
 			req.end();
 		}));
-		awaitLatch(latch);
+		TestUtils.awaitLatch(latch);
 	}
 }

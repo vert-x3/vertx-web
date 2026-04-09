@@ -27,6 +27,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -37,6 +38,10 @@ import java.util.function.Consumer;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
+
+  public RedirectAuthHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   protected AtomicReference<String> sessionCookie = new AtomicReference<>();
   protected FormLoginHandler formLoginHandler;
@@ -57,9 +62,9 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
 
     doLogin(rc -> {
       Session sess = rc.session();
-      assertNotNull(sess);
-      assertEquals(sessionCookie.get().substring(18, 50), sess.id());
-      assertNotNull(rc.user());
+      Assert.assertNotNull(sess);
+      Assert.assertEquals(sessionCookie.get().substring(18, 50), sess.id());
+      Assert.assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
     // And request it again
@@ -74,8 +79,8 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     }, 200, "OK", "logged out");
     testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
       String location = resp.headers().get("location");
-      assertNotNull(location);
-      assertEquals("/loginpage", location);
+      Assert.assertNotNull(location);
+      Assert.assertEquals("/loginpage", location);
     }, 302, "Found", null);
   }
 
@@ -113,8 +118,8 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     router.route("/login").handler(formLoginHandler);
     testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), resp -> {
       String location = resp.headers().get("location");
-      assertNotNull(location);
-      assertEquals(loggedInDirectOKPage, location);
+      Assert.assertNotNull(location);
+      Assert.assertEquals(loggedInDirectOKPage, location);
     }, 302, "Found", null);
   }
 
@@ -171,8 +176,8 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     CountDownLatch latch = new CountDownLatch(1);
     router.errorHandler(500, ctx -> {
       Throwable cause = ctx.failure();
-      assertNotNull(cause);
-      assertEquals("BodyHandler is required to process POST requests", cause.getMessage());
+      Assert.assertNotNull(cause);
+      Assert.assertEquals("BodyHandler is required to process POST requests", cause.getMessage());
       latch.countDown();
     });
     // not a multi-part form
@@ -190,7 +195,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     router.route("/protected/*").handler(authHandler);
 
     router.route("/protected/somepage").handler(ctx -> {
-      assertEquals("1", ctx.request().getParam("param"));
+      Assert.assertEquals("1", ctx.request().getParam("param"));
       ctx.response().end("Welcome to the protected resource!");
     });
 
@@ -201,10 +206,10 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     // request protected resource, expect redirect to login
     testRequest(HttpMethod.GET, "/protected/somepage?param=1", null, resp -> {
       String location = resp.headers().get("location");
-      assertNotNull(location);
-      assertEquals("/loginpage", location);
+      Assert.assertNotNull(location);
+      Assert.assertEquals("/loginpage", location);
       String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
+      Assert.assertNotNull(setCookie);
       sessionCookie.set(setCookie);
     }, 302, "Found", null);
 
@@ -216,12 +221,12 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), resp -> {
       // session will be upgraded
       String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
+      Assert.assertNotNull(setCookie);
       sessionCookie.set(setCookie);
 
       String location = resp.headers().get("location");
-      assertNotNull(location);
-      assertEquals("/protected/somepage?param=1", location);
+      Assert.assertNotNull(location);
+      Assert.assertEquals("/protected/somepage?param=1", location);
     }, 302, "Found", null);
 
     // fetch the resource
@@ -243,9 +248,9 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
 
     doLoginFail(badUser, rc -> {
       Session sess = rc.session();
-      assertNotNull(sess);
-      assertEquals(sessionCookie.get().substring(18, 54), sess.id());
-      assertNotNull(rc.user());
+      Assert.assertNotNull(sess);
+      Assert.assertEquals(sessionCookie.get().substring(18, 54), sess.id());
+      Assert.assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
   }
@@ -255,11 +260,11 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), resp -> {
       // session will be upgraded
       String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
+      Assert.assertNotNull(setCookie);
       sessionCookie.set(setCookie);
       String location = resp.headers().get("location");
-      assertNotNull(location);
-      assertEquals("/protected/somepage", location);
+      Assert.assertNotNull(location);
+      Assert.assertEquals("/protected/somepage", location);
     }, 302, "Found", null);
     testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
     }, 200, "OK", "Welcome to the protected resource!");
@@ -280,10 +285,10 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     router.route("/login").handler(formLoginHandler);
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       String location = resp.headers().get("location");
-      assertNotNull(location);
-      assertEquals("/loginpage", location);
+      Assert.assertNotNull(location);
+      Assert.assertEquals("/loginpage", location);
       String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
+      Assert.assertNotNull(setCookie);
       sessionCookie.set(setCookie);
     }, 302, "Found", null);
     testRequest(HttpMethod.GET, "/loginpage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
@@ -312,8 +317,8 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     }, 401, "Unauthorized", null);
     testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
       String location = resp.headers().get("location");
-      assertNotNull(location);
-      assertEquals("/loginpage", location);
+      Assert.assertNotNull(location);
+      Assert.assertEquals("/loginpage", location);
     }, 302, "Found", null);
   }
 

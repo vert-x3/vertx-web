@@ -20,6 +20,7 @@ import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.*;
@@ -29,6 +30,10 @@ import java.util.*;
  */
 public class CookieHandlerTest extends WebTestBase {
 
+  public CookieHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -37,10 +42,10 @@ public class CookieHandlerTest extends WebTestBase {
   @Test
   public void testSimpleCookie() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(1, rc.request().cookieCount());
+      Assert.assertEquals(1, rc.request().cookieCount());
       Cookie cookie = rc.request().getCookie("foo");
-      assertNotNull(cookie);
-      assertEquals("bar", cookie.getValue());
+      Assert.assertNotNull(cookie);
+      Assert.assertEquals("bar", cookie.getValue());
       rc.response().end();
     });
     testRequestWithCookies(HttpMethod.GET, "/", "foo=bar", 200, "OK");
@@ -49,82 +54,82 @@ public class CookieHandlerTest extends WebTestBase {
   @Test
   public void testGetCookies() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(3, rc.request().cookieCount());
-      assertNotNull(rc.request().getCookie("foo"));
-      assertNotNull(rc.request().getCookie("wibble"));
-      assertNotNull(rc.request().getCookie("plop"));
+      Assert.assertEquals(3, rc.request().cookieCount());
+      Assert.assertNotNull(rc.request().getCookie("foo"));
+      Assert.assertNotNull(rc.request().getCookie("wibble"));
+      Assert.assertNotNull(rc.request().getCookie("plop"));
       Cookie removed = rc.response().removeCookie("foo");
       // removed cookies, need to be sent back with an expiration date
-      assertNotNull(rc.request().getCookie("foo"));
-      assertNotNull(rc.request().getCookie("wibble"));
-      assertNotNull(rc.request().getCookie("plop"));
+      Assert.assertNotNull(rc.request().getCookie("foo"));
+      Assert.assertNotNull(rc.request().getCookie("wibble"));
+      Assert.assertNotNull(rc.request().getCookie("plop"));
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", req -> req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop"), resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
       // the expired cookie must be sent back
-      assertEquals(1, cookies.size());
-      assertTrue(cookies.get(0).contains("Max-Age=0"));
-      assertTrue(cookies.get(0).contains("Expires="));
+      Assert.assertEquals(1, cookies.size());
+      Assert.assertTrue(cookies.get(0).contains("Max-Age=0"));
+      Assert.assertTrue(cookies.get(0).contains("Expires="));
     }, 200, "OK", null);
   }
 
   @Test
   public void testCookiesChangedInHandler() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(3, rc.request().cookieCount());
-      assertEquals("bar", rc.request().getCookie("foo").getValue());
-      assertEquals("blibble", rc.request().getCookie("wibble").getValue());
-      assertEquals("flop", rc.request().getCookie("plop").getValue());
+      Assert.assertEquals(3, rc.request().cookieCount());
+      Assert.assertEquals("bar", rc.request().getCookie("foo").getValue());
+      Assert.assertEquals("blibble", rc.request().getCookie("wibble").getValue());
+      Assert.assertEquals("flop", rc.request().getCookie("plop").getValue());
       rc.response().removeCookie("plop");
       // the expected number of elements should remain the same as we're sending an invalidate cookie back
-      assertEquals(3, rc.request().cookieCount());
+      Assert.assertEquals(3, rc.request().cookieCount());
       rc.next();
     });
     router.route().handler(rc -> {
-      assertEquals("bar", rc.request().getCookie("foo").getValue());
-      assertEquals("blibble", rc.request().getCookie("wibble").getValue());
-      assertNotNull(rc.request().getCookie("plop"));
+      Assert.assertEquals("bar", rc.request().getCookie("foo").getValue());
+      Assert.assertEquals("blibble", rc.request().getCookie("wibble").getValue());
+      Assert.assertNotNull(rc.request().getCookie("plop"));
       rc.response().addCookie(Cookie.cookie("fleeb", "floob"));
-      assertEquals(4, rc.request().cookieCount());
-      assertNull(rc.response().removeCookie("blarb"));
-      assertEquals(4, rc.request().cookieCount());
+      Assert.assertEquals(4, rc.request().cookieCount());
+      Assert.assertNull(rc.response().removeCookie("blarb"));
+      Assert.assertEquals(4, rc.request().cookieCount());
       Cookie foo = rc.request().getCookie("foo");
       foo.setValue("blah");
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", req -> req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop"), resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
-      assertEquals(3, cookies.size());
-      assertTrue(cookies.contains("foo=blah"));
-      assertTrue(cookies.contains("fleeb=floob"));
+      Assert.assertEquals(3, cookies.size());
+      Assert.assertTrue(cookies.contains("foo=blah"));
+      Assert.assertTrue(cookies.contains("fleeb=floob"));
       boolean found = false;
       for (String s : cookies) {
         if (s.startsWith("plop")) {
           found = true;
-          assertTrue(s.contains("Max-Age=0"));
-          assertTrue(s.contains("Expires="));
+          Assert.assertTrue(s.contains("Max-Age=0"));
+          Assert.assertTrue(s.contains("Expires="));
           break;
         }
       }
-      assertTrue(found);
+      Assert.assertTrue(found);
     }, 200, "OK", null);
   }
 
   @Test
   public void testCookieFields() throws Exception {
     Cookie cookie = Cookie.cookie("foo", "bar");
-    assertEquals("foo", cookie.getName());
-    assertEquals("bar", cookie.getValue());
-    assertEquals("foo=bar", cookie.encode());
-    assertNull(cookie.getPath());
+    Assert.assertEquals("foo", cookie.getName());
+    Assert.assertEquals("bar", cookie.getValue());
+    Assert.assertEquals("foo=bar", cookie.encode());
+    Assert.assertNull(cookie.getPath());
     cookie.setPath("/somepath");
-    assertEquals("/somepath", cookie.getPath());
-    assertEquals("foo=bar; Path=/somepath", cookie.encode());
-    assertNull(cookie.getDomain());
+    Assert.assertEquals("/somepath", cookie.getPath());
+    Assert.assertEquals("foo=bar; Path=/somepath", cookie.encode());
+    Assert.assertNull(cookie.getDomain());
     cookie.setDomain("foo.com");
-    assertEquals("foo.com", cookie.getDomain());
-    assertEquals("foo=bar; Path=/somepath; Domain=foo.com", cookie.encode());
+    Assert.assertEquals("foo.com", cookie.getDomain());
+    Assert.assertEquals("foo=bar; Path=/somepath; Domain=foo.com", cookie.encode());
     long maxAge = 30 * 60;
     cookie.setMaxAge(maxAge);
 
@@ -135,12 +140,12 @@ public class CookieHandlerTest extends WebTestBase {
     int endPos = encoded.indexOf(';', startPos);
     String expiresDate = encoded.substring(startPos + 8, endPos);
     Date d = new Date(Utils.parseRFC1123DateTime(expiresDate));
-    assertTrue(d.getTime() - now >= maxAge);
+    Assert.assertTrue(d.getTime() - now >= maxAge);
 
     cookie.setMaxAge(Long.MIN_VALUE);
     cookie.setSecure(true);
-    assertEquals("foo=bar; Path=/somepath; Domain=foo.com; Secure", cookie.encode());
+    Assert.assertEquals("foo=bar; Path=/somepath; Domain=foo.com; Secure", cookie.encode());
     cookie.setHttpOnly(true);
-    assertEquals("foo=bar; Path=/somepath; Domain=foo.com; Secure; HTTPOnly", cookie.encode());
+    Assert.assertEquals("foo=bar; Path=/somepath; Domain=foo.com; Secure; HTTPOnly", cookie.encode());
   }
 }

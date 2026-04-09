@@ -19,6 +19,7 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -26,6 +27,10 @@ import org.junit.Test;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class StaticHandler3Test extends WebTestBase {
+
+  public StaticHandler3Test() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   protected StaticHandler stat;
 
@@ -58,7 +63,7 @@ public class StaticHandler3Test extends WebTestBase {
   public void testGetDefaultIndexWithoutSlash() throws Exception {
     // without / should redirect first
     testRequest(HttpMethod.GET, "/somedir", null, res-> {
-      assertEquals("/somedir/", res.getHeader("Location"));
+      Assert.assertEquals("/somedir/", res.getHeader("Location"));
     }, 301, "Moved Permanently", null);
 
     testRequest(HttpMethod.GET, "/somedir/", 200, "OK", "<html><body>Subdirectory index page</body></html>");

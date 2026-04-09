@@ -39,6 +39,7 @@ import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.test.core.TestUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -58,6 +59,10 @@ import java.util.function.BiConsumer;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class SockJSHandlerTest extends WebTestBase {
+
+  public SockJSHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   private static final Logger log = LoggerFactory.getLogger(SockJSHandlerTest.class);
   private static final Buffer SOCKJS_CLOSE_REPLY = Buffer.buffer("c[3000,\"Go away!\"]");
@@ -81,11 +86,11 @@ public class SockJSHandlerTest extends WebTestBase {
   private void testGreeting(String uri) {
     client.request(HttpMethod.GET, uri).compose(req -> req.send()
       .compose(resp -> {
-        assertEquals(200, resp.statusCode());
-        assertEquals("text/plain; charset=UTF-8", resp.getHeader("content-type"));
+        Assert.assertEquals(200, resp.statusCode());
+        Assert.assertEquals("text/plain; charset=UTF-8", resp.getHeader("content-type"));
         return resp.body();
-      })).onComplete(onSuccess(buff -> {
-      assertEquals("Welcome to SockJS!\n", buff.toString());
+      })).onComplete(TestUtils.onSuccess(buff -> {
+      Assert.assertEquals("Welcome to SockJS!\n", buff.toString());
       complete();
     }));
   }
@@ -109,7 +114,7 @@ public class SockJSHandlerTest extends WebTestBase {
   @Test
   public void testSendWebsocketContinuationFrames() {
     // Use raw websocket transport
-    wsClient.connect("/echo/websocket").onComplete(onSuccess(ws -> {
+    wsClient.connect("/echo/websocket").onComplete(TestUtils.onSuccess(ws -> {
 
       int size = 65535;
 
@@ -161,7 +166,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
     await(5, TimeUnit.SECONDS);
 
-    assertEquals("Server did not combine continuation frames correctly", largeMessage, serverReceivedMessage.get());
+    Assert.assertEquals("Server did not combine continuation frames correctly", largeMessage, serverReceivedMessage.get());
   }
 
   @Test
@@ -190,8 +195,8 @@ public class SockJSHandlerTest extends WebTestBase {
     await(5, TimeUnit.SECONDS);
 
     int receivedReplyCount = receivedReplies.get();
-    assertEquals("Combined reply on client should equal message from server", largeReplyBuffer, totalReplyBuffer);
-    assertTrue("Should have received > 1 reply frame, actually received " + receivedReplyCount, receivedReplyCount > 1);
+    Assert.assertEquals("Combined reply on client should equal message from server", largeReplyBuffer, totalReplyBuffer);
+    Assert.assertTrue("Should have received > 1 reply frame, actually received " + receivedReplyCount, receivedReplyCount > 1);
   }
 
   @Test
@@ -209,7 +214,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
     await(5, TimeUnit.SECONDS);
 
-    assertEquals("Client reply should have matched request", message, receivedReply.get());
+    Assert.assertEquals("Client reply should have matched request", message, receivedReply.get());
   }
 
   @Test
@@ -224,10 +229,10 @@ public class SockJSHandlerTest extends WebTestBase {
 
     await(10, TimeUnit.SECONDS);
 
-    assertEquals("Client should have received 2 messages: the reply and the close.", 2, receivedMessages.size());
+    Assert.assertEquals("Client should have received 2 messages: the reply and the close.", 2, receivedMessages.size());
     Buffer expectedReply = Buffer.buffer("a" + messageToSend);
-    assertEquals("Client reply should have matched request", expectedReply, receivedMessages.get(0));
-    assertEquals("Final message should have been a close", SOCKJS_CLOSE_REPLY, receivedMessages.get(1));
+    Assert.assertEquals("Client reply should have matched request", expectedReply, receivedMessages.get(0));
+    Assert.assertEquals("Final message should have been a close", SOCKJS_CLOSE_REPLY, receivedMessages.get(1));
   }
 
   @Test
@@ -252,10 +257,10 @@ public class SockJSHandlerTest extends WebTestBase {
 
     await(10, TimeUnit.SECONDS);
 
-    assertEquals("Client should have received 2 messages: the reply and the close.", 2, receivedMessages.size());
+    Assert.assertEquals("Client should have received 2 messages: the reply and the close.", 2, receivedMessages.size());
     Buffer expectedReply = Buffer.buffer("a" + largeMessage.toString());
-    assertEquals("Client reply should have matched request", expectedReply, receivedMessages.get(0));
-    assertEquals("Final message should have been a close", SOCKJS_CLOSE_REPLY, receivedMessages.get(1));
+    Assert.assertEquals("Client reply should have matched request", expectedReply, receivedMessages.get(0));
+    Assert.assertEquals("Final message should have been a close", SOCKJS_CLOSE_REPLY, receivedMessages.get(1));
   }
 
   @Test
@@ -279,16 +284,16 @@ public class SockJSHandlerTest extends WebTestBase {
     await(5, TimeUnit.SECONDS);
 
     int receivedReplyCount = receivedMessages.size();
-    assertTrue("Should have received > 2 reply frame, actually received " + receivedReplyCount, receivedReplyCount > 2);
+    Assert.assertTrue("Should have received > 2 reply frame, actually received " + receivedReplyCount, receivedReplyCount > 2);
 
     Buffer expectedReplyBuffer = Buffer.buffer("a[\"").appendBuffer(largeReplyBuffer).appendBuffer(Buffer.buffer("\"]"));
     Buffer clientReplyBuffer = combineReplies(receivedMessages.subList(0, receivedMessages.size() - 1));
-    assertEquals(String.format("Combined reply on client (length %s) should equal message from server (%s)",
+    Assert.assertEquals(String.format("Combined reply on client (length %s) should equal message from server (%s)",
       clientReplyBuffer.length(), expectedReplyBuffer.length()),
       expectedReplyBuffer, clientReplyBuffer);
 
     Buffer finalMessage = receivedMessages.get(receivedMessages.size() - 1);
-    assertEquals("Final message should have been a close", SOCKJS_CLOSE_REPLY, finalMessage);
+    Assert.assertEquals("Final message should have been a close", SOCKJS_CLOSE_REPLY, finalMessage);
   }
 
   private Buffer combineReplies(List<Buffer> receivedMessages) {
@@ -312,7 +317,7 @@ public class SockJSHandlerTest extends WebTestBase {
     router.route(path + "*").subRouter(SockJSHandler.create(vertx)
       .socketHandler(sock -> {
         sock.handler(buffer -> serverBufferHandler.accept(sock, buffer));
-        sock.exceptionHandler(this::fail);
+        sock.exceptionHandler(err -> Assert.fail(err.getMessage()));
       }));
   }
 
@@ -325,7 +330,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
     AtomicReference<WebSocket> openedWebSocketReference = new AtomicReference<>();
     CountDownLatch openSocketCountDown = new CountDownLatch(1);
-    wsClient.connect(requestURI).onComplete(onSuccess(ws -> {
+    wsClient.connect(requestURI).onComplete(TestUtils.onSuccess(ws -> {
       openedWebSocketReference.set(ws);
       ws.handler(replyBuffer -> {
         log.debug("Client received " + replyBuffer);
@@ -337,7 +342,7 @@ public class SockJSHandlerTest extends WebTestBase {
         }
       });
       ws.endHandler(v -> testComplete());
-      ws.exceptionHandler(this::fail);
+      ws.exceptionHandler(err -> Assert.fail(err.getMessage()));
     }));
 
     openSocketCountDown.await(5, TimeUnit.SECONDS);
@@ -353,11 +358,11 @@ public class SockJSHandlerTest extends WebTestBase {
 
     AtomicReference<WebSocket> openedWebSocketReference = new AtomicReference<>();
     CountDownLatch openSocketCountDown = new CountDownLatch(1);
-    wsClient.connect(requestURI).onComplete(onSuccess(ws -> {
+    wsClient.connect(requestURI).onComplete(TestUtils.onSuccess(ws -> {
       openedWebSocketReference.set(ws);
       openSocketCountDown.countDown();
       ws.endHandler(v -> testComplete());
-      ws.exceptionHandler(this::fail);
+      ws.exceptionHandler(err -> Assert.fail(err.getMessage()));
     }));
 
     openSocketCountDown.await(5, TimeUnit.SECONDS);
@@ -365,8 +370,8 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   private void testNotFound(String uri) {
-    client.request(HttpMethod.GET, uri).onComplete(onSuccess(req -> req.send().onComplete(onSuccess(resp -> {
-      assertEquals(404, resp.statusCode());
+    client.request(HttpMethod.GET, uri).onComplete(TestUtils.onSuccess(req -> req.send().onComplete(TestUtils.onSuccess(resp -> {
+      Assert.assertEquals(404, resp.statusCode());
       complete();
     }))));
   }
@@ -388,15 +393,15 @@ public class SockJSHandlerTest extends WebTestBase {
         Session session = handler.newSession(sock.routingContext());
         User user = User.create(principal);
         handler.setUser(sock.routingContext(), user).onComplete((result) -> {
-          assertFalse(result.failed());
-          assertNotSame(session, oldSession);
-          assertEquals(session, sock.webSession());
+          Assert.assertFalse(result.failed());
+          Assert.assertNotSame(session, oldSession);
+          Assert.assertEquals(session, sock.webSession());
           ((RoutingContextInternal) sock.routingContext()).setSession(session);
-          assertEquals(sock.webSession(), sock.routingContext().session());
-          assertEquals(sock.webUser(), sock.routingContext().user());
-          assertEquals(sock.webUser(), user);
-          assertEquals(session, sock.webSession());
-          assertEquals(session, store.get(session.id()).result());
+          Assert.assertEquals(sock.webSession(), sock.routingContext().session());
+          Assert.assertEquals(sock.webUser(), sock.routingContext().user());
+          Assert.assertEquals(sock.webUser(), user);
+          Assert.assertEquals(session, sock.webSession());
+          Assert.assertEquals(session, store.get(session.id()).result());
           sessionID.complete(session.id());
           sessionUser.complete(sock.webUser());
         });
@@ -408,25 +413,25 @@ public class SockJSHandlerTest extends WebTestBase {
         try {
           session = store.get(sessionID.get()).result();
         } catch (InterruptedException | ExecutionException e) {
-          fail();
+          Assert.fail(e.getMessage());
         }
         ((RoutingContextInternal) sock.routingContext()).setSession(session);
         try {
-          assertEquals(sessionID.get(), store.get(sessionID.get()).result().id());
-          assertEquals(sessionUser.get(), sock.webUser());
+          Assert.assertEquals(sessionID.get(), store.get(sessionID.get()).result().id());
+          Assert.assertEquals(sessionUser.get(), sock.webUser());
         } catch (InterruptedException | ExecutionException e) {
-          fail();
+          Assert.fail(e.getMessage());
         }
         complete();
       }));
 
     wsClient.connect(new WebSocketConnectOptions()
       .setPort(8080)
-      .setURI("/webcontext/websocket")).onComplete(onSuccess(
+      .setURI("/webcontext/websocket")).onComplete(TestUtils.onSuccess(
         ws -> {
           wsClient.connect(new WebSocketConnectOptions()
               .setPort(8080)
-              .setURI("/webcontextuser/websocket")).onComplete(onSuccess(wsuser -> complete())
+              .setURI("/webcontextuser/websocket")).onComplete(TestUtils.onSuccess(wsuser -> complete())
           );
         }
       ));
@@ -441,8 +446,8 @@ public class SockJSHandlerTest extends WebTestBase {
       .socketHandler(sock -> {
         MultiMap headers = sock.headers();
         String cookieHeader = headers.get("cookie");
-        assertNotNull(cookieHeader);
-        assertEquals("JSESSIONID=wibble", cookieHeader);
+        Assert.assertNotNull(cookieHeader);
+        Assert.assertEquals("JSESSIONID=wibble", cookieHeader);
         complete();
       }));
     MultiMap headers = HttpHeaders.headers();
@@ -452,7 +457,7 @@ public class SockJSHandlerTest extends WebTestBase {
     wsClient.connect(new WebSocketConnectOptions()
       .setPort(8080)
       .setURI("/cookiesremoved/websocket")
-      .setHeaders(headers)).onComplete(onSuccess(ws -> {
+      .setHeaders(headers)).onComplete(TestUtils.onSuccess(ws -> {
         complete();
     }));
 
@@ -466,10 +471,10 @@ public class SockJSHandlerTest extends WebTestBase {
       .bridge(new SockJSBridgeOptions().setPingTimeout(1))
     );
 
-    wsClient.connect("/ws-timeout/websocket").onComplete(onSuccess(ws -> ws.frameHandler(frame -> {
+    wsClient.connect("/ws-timeout/websocket").onComplete(TestUtils.onSuccess(ws -> ws.frameHandler(frame -> {
       if (frame.isClose()) {
-        assertEquals(1001, frame.closeStatusCode());
-        assertEquals("Session expired", frame.closeReason());
+        Assert.assertEquals(1001, frame.closeStatusCode());
+        Assert.assertEquals("Session expired", frame.closeReason());
         testComplete();
       }
     })));
@@ -485,15 +490,15 @@ public class SockJSHandlerTest extends WebTestBase {
 
     vertx.eventBus().consumer("SockJSHandlerTest.testInvalidMessageCode", msg -> msg.reply(new JsonObject()));
 
-    wsClient.connect("/ws-timeout/websocket").onComplete(onSuccess(ws -> {
+    wsClient.connect("/ws-timeout/websocket").onComplete(TestUtils.onSuccess(ws -> {
       ws.writeFinalBinaryFrame(Buffer.buffer("durp!"));
 
       ws.frameHandler(frame -> {
         // we should get a normal frame with a error message
         if (!frame.isClose()) {
           JsonObject msg = new JsonObject(frame.binaryData());
-          assertEquals("err", msg.getString("type"));
-          assertEquals("invalid_json", msg.getString("body"));
+          Assert.assertEquals("err", msg.getString("type"));
+          Assert.assertEquals("invalid_json", msg.getString("body"));
           testComplete();
           ws.close();
         }

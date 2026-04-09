@@ -20,6 +20,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.tests.handler.SessionHandlerTestBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -35,7 +36,7 @@ public class LocalSessionHandlerTest extends SessionHandlerTestBase {
 
   @Test
   public void testRetryTimeout() throws Exception {
-    assertTrue(doTestSessionRetryTimeout() < 3000);
+    Assert.assertTrue(doTestSessionRetryTimeout() < 3000);
   }
 
   @Test
@@ -52,7 +53,7 @@ public class LocalSessionHandlerTest extends SessionHandlerTestBase {
       ctx.response().setStatusCode(500);
       sessionHandler.flush(ctx).onComplete(asyncResult -> {
         // store was skipped, so we signed with a success
-        assertTrue(asyncResult.succeeded());
+        Assert.assertTrue(asyncResult.succeeded());
         ctx.end();
       });
     });

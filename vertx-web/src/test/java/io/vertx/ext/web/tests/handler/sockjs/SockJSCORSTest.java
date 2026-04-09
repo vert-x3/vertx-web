@@ -5,9 +5,15 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.test.core.TestUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class SockJSCORSTest extends WebTestBase {
+
+  public SockJSCORSTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Test
   public void testSockJSInternalCORSHandling() {
@@ -19,10 +25,10 @@ public class SockJSCORSTest extends WebTestBase {
       .compose(req -> req
         .putHeader(HttpHeaders.ORIGIN, "http://example.com")
         .send())
-      .onComplete(onSuccess(resp -> {
-        assertEquals(200, resp.statusCode());
-        assertEquals("http://example.com", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
-        assertEquals("true", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
+      .onComplete(TestUtils.onSuccess(resp -> {
+        Assert.assertEquals(200, resp.statusCode());
+        Assert.assertEquals("http://example.com", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+        Assert.assertEquals("true", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
         complete();
     }));
     await();
@@ -39,10 +45,10 @@ public class SockJSCORSTest extends WebTestBase {
       .compose(req -> req
         .putHeader(HttpHeaders.ORIGIN, "http://example.com")
         .send())
-      .onComplete(onSuccess(resp -> {
-        assertEquals(200, resp.statusCode());
-        assertEquals("*", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
-        assertFalse(resp.headers().contains(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
+      .onComplete(TestUtils.onSuccess(resp -> {
+        Assert.assertEquals(200, resp.statusCode());
+        Assert.assertEquals("*", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+        Assert.assertFalse(resp.headers().contains(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
         //If the SockJS handles the CORS stuff, it would reply with allow credentials true and allow origin example.com
         complete();
       }));

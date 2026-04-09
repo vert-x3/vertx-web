@@ -22,8 +22,10 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.AbstractSession;
+import io.vertx.test.core.TestUtils;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Objects;
@@ -42,6 +44,14 @@ import static java.util.concurrent.TimeUnit.*;
  */
 public abstract class SessionHandlerTestBase extends WebTestBase {
 
+	public SessionHandlerTestBase() {
+		super(ReportMode.FORBIDDEN);
+	}
+
+	public SessionHandlerTestBase(ReportMode reportMode) {
+		super(reportMode);
+	}
+
 	protected SessionStore store;
 
 	@Test
@@ -51,7 +61,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		router.route().handler(rc -> rc.response().end());
 		testRequest(HttpMethod.GET, "/", null, resp -> {
 			String setCookie = resp.headers().get("set-cookie");
-			assertTrue(setCookie.startsWith(sessionCookieName + "="));
+			Assert.assertTrue(setCookie.startsWith(sessionCookieName + "="));
 		}, 200, "OK", null);
 	}
 
@@ -61,7 +71,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		router.route().handler(rc -> rc.response().end());
 		testRequest(HttpMethod.GET, "/", null, resp -> {
 			String setCookie = resp.headers().get("set-cookie");
-			assertTrue(setCookie.contains("Path=/path"));
+			Assert.assertTrue(setCookie.contains("Path=/path"));
 		}, 200, "OK", null);
 	}
 
@@ -73,7 +83,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		testRequest(HttpMethod.GET, "/", null, resp -> {
 			String setCookie = resp.headers().get("set-cookie");
 
-			assertTrue(setCookie.contains("; HTTPOnly"));
+			Assert.assertTrue(setCookie.contains("; HTTPOnly"));
 		}, 200, "OK", null);
 	}
 
@@ -85,7 +95,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		testRequest(HttpMethod.GET, "/", null, resp -> {
 			String setCookie = resp.headers().get("set-cookie");
 
-			assertTrue(setCookie.contains("; Secure"));
+			Assert.assertTrue(setCookie.contains("; Secure"));
 		}, 200, "OK", null);
 	}
 
@@ -97,8 +107,8 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		testRequest(HttpMethod.GET, "/", null, resp -> {
 			String setCookie = resp.headers().get("set-cookie");
 
-			assertTrue(setCookie.contains("; Secure"));
-			assertTrue(setCookie.contains("; HTTPOnly"));
+			Assert.assertTrue(setCookie.contains("; Secure"));
+			Assert.assertTrue(setCookie.contains("; HTTPOnly"));
 		}, 200, "OK", null);
 	}
 
@@ -108,20 +118,20 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		AtomicReference<String> rid = new AtomicReference<>();
 		router.route().handler(rc -> {
 			Session sess = rc.session();
-			assertNotNull(sess);
-			assertTrue(System.currentTimeMillis() - sess.lastAccessed() < 500);
-			assertNotNull(sess.id());
+			Assert.assertNotNull(sess);
+			Assert.assertTrue(System.currentTimeMillis() - sess.lastAccessed() < 500);
+			Assert.assertNotNull(sess.id());
 			rid.set(sess.value());
-			assertFalse(sess.isDestroyed());
-			assertEquals(SessionHandler.DEFAULT_SESSION_TIMEOUT, sess.timeout());
+			Assert.assertFalse(sess.isDestroyed());
+			Assert.assertEquals(SessionHandler.DEFAULT_SESSION_TIMEOUT, sess.timeout());
 			rc.response().end();
 		});
 		testRequest(HttpMethod.GET, "/", null, resp -> {
 			String setCookie = resp.headers().get("set-cookie");
-			assertTrue(setCookie.startsWith(SessionHandler.DEFAULT_SESSION_COOKIE_NAME + "="));
+			Assert.assertTrue(setCookie.startsWith(SessionHandler.DEFAULT_SESSION_COOKIE_NAME + "="));
 			int pos = setCookie.indexOf("; Path=" + SessionHandler.DEFAULT_SESSION_COOKIE_PATH);
 			String sessID = setCookie.substring(18, pos);
-			assertEquals(rid.get(), sessID);
+			Assert.assertEquals(rid.get(), sessID);
 		}, 200, "OK", null);
 	}
 
@@ -133,22 +143,22 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     AtomicInteger requestCount = new AtomicInteger();
     router.route().handler(rc -> {
       Session sess = rc.session();
-      assertNotNull(sess);
-      assertNotNull(sess.id());
+      Assert.assertNotNull(sess);
+      Assert.assertNotNull(sess.id());
       switch (requestCount.get()) {
         case 0:
           rid.set(sess.id());
           sess.put("foo", "bar");
           break;
         case 1:
-          assertEquals(rid.get(), sess.id());
-          assertEquals("bar", sess.get("foo"));
+          Assert.assertEquals(rid.get(), sess.id());
+          Assert.assertEquals("bar", sess.get("foo"));
           sess.put("eek", "wibble");
           break;
         case 2:
-          assertEquals(rid.get(), sess.id());
-          assertEquals("bar", sess.get("foo"));
-          assertEquals("wibble", sess.get("eek"));
+          Assert.assertEquals(rid.get(), sess.id());
+          Assert.assertEquals("bar", sess.get("foo"));
+          Assert.assertEquals("wibble", sess.get("eek"));
       }
       requestCount.incrementAndGet();
       sessionHandler.flush(rc).onFailure(rc::fail).onSuccess(v -> rc.response().end());
@@ -176,16 +186,16 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		AtomicInteger requestCount = new AtomicInteger();
 		router.route().handler(rc -> {
 			Session sess = rc.session();
-			assertNotNull(sess);
-			assertTrue(System.currentTimeMillis() - sess.lastAccessed() < 500);
-			assertNotNull(sess.id());
+			Assert.assertNotNull(sess);
+			Assert.assertTrue(System.currentTimeMillis() - sess.lastAccessed() < 500);
+			Assert.assertNotNull(sess.id());
 			switch (requestCount.get()) {
 			case 0:
 				sess.put("foo", "bar");
 				break;
 			case 1:
-				assertFalse(rid.get().equals(sess.id())); // New session
-				assertNull(sess.get("foo"));
+				Assert.assertFalse(rid.get().equals(sess.id())); // New session
+				Assert.assertNull(sess.get("foo"));
 				break;
 			}
 			rid.set(sess.id());
@@ -230,9 +240,9 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		AtomicInteger requestCount = new AtomicInteger();
 		router.route().handler(rc -> {
 			Session sess = rc.session();
-			assertNotNull(sess);
-			assertTrue(System.currentTimeMillis() - sess.lastAccessed() < 500);
-			assertNotNull(sess.id());
+			Assert.assertNotNull(sess);
+			Assert.assertTrue(System.currentTimeMillis() - sess.lastAccessed() < 500);
+			Assert.assertNotNull(sess.id());
 			switch (requestCount.get()) {
 			case 0:
 				rid.set(sess.id());
@@ -240,8 +250,8 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 				sess.destroy();
 				break;
 			case 1:
-				assertFalse(rid.get().equals(sess.id())); // New session
-				assertNull(sess.get("foo"));
+				Assert.assertFalse(rid.get().equals(sess.id())); // New session
+				Assert.assertNull(sess.get("foo"));
 				rid.set(sess.id());
 				sess.destroy();
 				break;
@@ -251,18 +261,18 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		});
 		testRequest(HttpMethod.GET, "/", null, resp -> {
 			String setCookie = resp.headers().get("set-cookie");
-			assertNull(setCookie);
+			Assert.assertNull(setCookie);
 			// the cookie got destroyed even before the end of the request, so no side
 			// effects are expected
 		}, 200, "OK", null);
 		testRequest(HttpMethod.GET, "/", null, null, 200, "OK", null);
 		Thread.sleep(500); // Needed because session.destroy is async
 		CountDownLatch latch1 = new CountDownLatch(1);
-		store.get(rid.get()).onComplete(onSuccess(res -> {
-			assertNull(res);
+		store.get(rid.get()).onComplete(TestUtils.onSuccess(res -> {
+			Assert.assertNull(res);
 			latch1.countDown();
 		}));
-		awaitLatch(latch1);
+		TestUtils.awaitLatch(latch1);
 	}
 
 	@Test
@@ -278,7 +288,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     int millis = 250;
     Thread.sleep(millis);
     testRequest(HttpMethod.GET, "/", 200, "OK");
-    assertTrue(rid.get().lastAccessed() - start >= millis);
+    Assert.assertTrue(rid.get().lastAccessed() - start >= millis);
   }
 
 	@Test
@@ -292,7 +302,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		});
 		testRequest(HttpMethod.GET, "/", 200, "OK");
 		// accessed() is called after request too
-		assertTrue(rid.get().lastAccessed() - System.currentTimeMillis() < 500);
+		Assert.assertTrue(rid.get().lastAccessed() - System.currentTimeMillis() < 500);
 	}
 
 	@Test
@@ -314,7 +324,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		// faking that there was some auth error
 		router.route().handler(rc -> rc.fail(401));
 
-		testRequest(HttpMethod.GET, "/", null, resp -> assertNull(resp.headers().get("set-cookie")), 401,
+		testRequest(HttpMethod.GET, "/", null, resp -> Assert.assertNull(resp.headers().get("set-cookie")), 401,
 				"Unauthorized", null);
 	}
 
@@ -333,11 +343,11 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 				rc.response().end();
 				break;
 			case 1:
-				assertEquals(id.get(), rc.session().id());
+				Assert.assertEquals(id.get(), rc.session().id());
 				rc.fail(500);
 				break;
 			case 2:
-				assertEquals(id.get(), rc.session().id());
+				Assert.assertEquals(id.get(), rc.session().id());
 				rc.response().end();
 				break;
 			}
@@ -346,16 +356,16 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		AtomicReference<String> sessionID = new AtomicReference<>();
 		// first call will get a session cookie
 		testRequest(HttpMethod.GET, "/", null, resp -> {
-			assertNotNull(resp.headers().get("set-cookie"));
+			Assert.assertNotNull(resp.headers().get("set-cookie"));
 			String setCookie = resp.headers().get("set-cookie");
 			sessionID.set(setCookie);
 		}, 200, "OK", null);
 		// ensure that on the second call, in case of error, the cookie is not present
 		testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", sessionID.get()),
-				resp -> assertNull(resp.headers().get("set-cookie")), 500, "Internal Server Error", null);
+				resp -> Assert.assertNull(resp.headers().get("set-cookie")), 500, "Internal Server Error", null);
 		// ensure that on the third call, the session is still valid
 		testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", sessionID.get()),
-				resp -> assertNull(resp.headers().get("set-cookie")), 200, "OK", null);
+				resp -> Assert.assertNull(resp.headers().get("set-cookie")), 200, "OK", null);
 	}
 
 	protected long doTestSessionRetryTimeout() throws Exception {
@@ -370,13 +380,13 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		});
 		router.get("/1").handler(rc -> {
 			rid.set(rc.session());
-			assertEquals("foo_value", rc.session().get("foo"));
+			Assert.assertEquals("foo_value", rc.session().get("foo"));
       rc.session().destroy();
       sessionHandler.flush(rc).onComplete(v -> rc.response().end(), rc::fail);
 		});
 		router.get("/2").handler(rc -> {
 			rid.set(rc.session());
-			assertEquals(null, rc.session().<String>get("foo"));
+			Assert.assertEquals(null, rc.session().<String>get("foo"));
 			rc.response().end();
 		});
 
@@ -391,7 +401,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		testRequest(HttpMethod.GET, "/1", req -> req.putHeader("cookie", sessionID.get()), resp -> {
 			responseReceived.countDown();
 		}, 200, "OK", null);
-		awaitLatch(responseReceived);
+		TestUtils.awaitLatch(responseReceived);
 		long now = System.nanoTime();
 		testRequest(HttpMethod.GET, "/2", req -> req.putHeader("cookie", sessionID.get()), 200, "OK", null);
 		return MILLISECONDS.convert(System.nanoTime() - now, NANOSECONDS);
@@ -409,7 +419,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     });
     router.get("/1").handler(rc -> {
       rid.set(rc.session());
-      assertEquals("foo_value", rc.session().get("foo"));
+      Assert.assertEquals("foo_value", rc.session().get("foo"));
       rc.session().destroy();
       rc.response().end();
     });
@@ -423,10 +433,10 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     CountDownLatch responseReceived = new CountDownLatch(1);
     testRequest(HttpMethod.GET, "/1", req -> req.putHeader("cookie", sessionID.get()), resp -> {
       // ensure that expired cookies still contain the the configured properties
-      assertTrue(resp.headers().get("set-cookie").contains("SameSite=Strict"));
+      Assert.assertTrue(resp.headers().get("set-cookie").contains("SameSite=Strict"));
       responseReceived.countDown();
     }, 200, "OK", null);
-    awaitLatch(responseReceived);
+    TestUtils.awaitLatch(responseReceived);
   }
 
 	@Test
@@ -443,25 +453,25 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		// call #1 fake auth security upgrade is done so session id must change
 		router.route("/1").handler(rc -> {
 			// previous id must match
-			assertEquals(sessionId.get(), rc.session().value());
+			Assert.assertEquals(sessionId.get(), rc.session().value());
 			rc.session().regenerateId();
 			rc.response().end();
 		});
 
 		testRequest(HttpMethod.GET, "/0", null, resp -> {
 			String setCookie = resp.headers().get("set-cookie");
-			assertNotNull(setCookie);
+			Assert.assertNotNull(setCookie);
 		}, 200, "OK", null);
 
 		CountDownLatch responseReceived = new CountDownLatch(1);
 		testRequest(HttpMethod.GET, "/1",
 				req -> req.putHeader("cookie", "vertx-web.session=" + sessionId.get() + "; Path=/"), resp -> {
 					String setCookie = resp.headers().get("set-cookie");
-					assertNotNull(setCookie);
-					assertFalse(("vertx-web.session=" + sessionId.get() + "; Path=/").equals(setCookie));
+					Assert.assertNotNull(setCookie);
+					Assert.assertFalse(("vertx-web.session=" + sessionId.get() + "; Path=/").equals(setCookie));
 					responseReceived.countDown();
 				}, 200, "OK", null);
-		awaitLatch(responseReceived);
+		TestUtils.awaitLatch(responseReceived);
 
     assertWaitUntil(() -> {
       CompletableFuture<Session> cf = new CompletableFuture<>();
@@ -490,13 +500,13 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
 		router.route("/1").handler(rc -> {
 			// previous id must match
-			assertFalse("abc".equals(rc.session().id()));
+			Assert.assertFalse("abc".equals(rc.session().id()));
 			rc.response().end();
 		});
 
 		testRequest(HttpMethod.GET, "/1", req -> req.putHeader("cookie", "vertx-web.session=abc; Path=/"), resp -> {
 			String setCookie = resp.headers().get("set-cookie");
-			assertNotNull(setCookie);
+			Assert.assertNotNull(setCookie);
 		}, 200, "OK", null);
 	}
 
@@ -504,58 +514,58 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 	public void testVersion() throws Exception {
 		AbstractSession session = (AbstractSession) store.createSession(10000);
 
-		assertEquals(0, session.version());
+		Assert.assertEquals(0, session.version());
 		session.put("k", "v");
 
 		store.put(session).onComplete(res -> {
 			if (res.failed()) {
-				fail("failed to store");
+				Assert.fail("failed to store");
 			}
 			store.get(session.value()).onComplete(res1 -> {
 				if (res1.failed()) {
-					fail("failed to store");
+					Assert.fail("failed to store");
 				}
 
 				AbstractSession session1 = (AbstractSession) res1.result();
 				// session was stored for the first time so it must have version 1
-				assertEquals(1, session1.version());
+				Assert.assertEquals(1, session1.version());
 				// confirm that the content is present
-				assertEquals("v", session1.get("k"));
+				Assert.assertEquals("v", session1.get("k"));
 
 				store.put(session1).onComplete(res2 -> {
 					if (res2.failed()) {
-						fail("failed to store");
+						Assert.fail("failed to store");
 					}
 					store.get(session1.value()).onComplete(res3 -> {
 						if (res3.failed()) {
-							fail("failed to store");
+							Assert.fail("failed to store");
 						}
 
 						AbstractSession session2 = (AbstractSession) res3.result();
 						// session was stored again but no changes were applied to the content
 						// therefore version should remain the same
-						assertEquals(1, session2.version());
+						Assert.assertEquals(1, session2.version());
 						// confirm the content is present
-						assertEquals("v", session2.get("k"));
+						Assert.assertEquals("v", session2.get("k"));
 
 						// update content
 						session2.put("k", "w");
 
 						store.put(session2).onComplete(res4 -> {
 							if (res4.failed()) {
-								fail("failed to store");
+								Assert.fail("failed to store");
 							}
 							store.get(session2.value()).onComplete(res5 -> {
 								if (res5.failed()) {
-									fail("failed to store");
+									Assert.fail("failed to store");
 								}
 
 								AbstractSession session3 = (AbstractSession) res5.result();
 								// session was stored again but changes were applied to the content
 								// therefore version should must increment
-								assertEquals(2, session3.version());
+								Assert.assertEquals(2, session3.version());
 								// confirm the content is present
-								assertEquals("w", session3.get("k"));
+								Assert.assertEquals("w", session3.get("k"));
 								testComplete();
 							});
 						});
@@ -574,7 +584,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     router.route().handler(rc -> rc.response().end());
     testRequest(HttpMethod.GET, "/", null, resp -> {
       String setCookie = resp.headers().get("set-cookie");
-      assertTrue(setCookie == null);
+      Assert.assertTrue(setCookie == null);
     }, 200, "OK", null);
   }
 
@@ -588,7 +598,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/", null, resp -> {
       String setCookie = resp.headers().get("set-cookie");
-      assertTrue(setCookie.startsWith(sessionCookieName + "="));
+      Assert.assertTrue(setCookie.startsWith(sessionCookieName + "="));
     }, 200, "OK", null);
   }
 
@@ -616,7 +626,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/login", null, resp -> {
       String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
+      Assert.assertNotNull(setCookie);
       sessionID.set(setCookie);
     }, 200, "OK", null);
 
@@ -626,7 +636,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     }, resp -> {
       String setCookie = resp.headers().get("set-cookie");
       // cookie doesn't change, no need to re-issue it again
-      assertNull(setCookie);
+      Assert.assertNull(setCookie);
     }, 200, "OK", null);
   }
 
@@ -648,15 +658,15 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     // Initiate a session and check it's signed
     testRequest(HttpMethod.GET, "/0", null, resp -> {
       String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
+      Assert.assertNotNull(setCookie);
       String cookieData = setCookie.substring(setCookie.indexOf("=") + 1, setCookie.indexOf(";"));
 
-      assertFalse(sessionId.get().isEmpty());
-      assertTrue(cookieData.contains(sessionId.get()));
+      Assert.assertFalse(sessionId.get().isEmpty());
+      Assert.assertTrue(cookieData.contains(sessionId.get()));
 
       String[] cookieParts = cookieData.split("\\.");
       // Cookie session has an id with a signature in, so check we added another one
-      assertEquals(sessionId.get().split("\\.").length + 1, cookieParts.length);
+      Assert.assertEquals(sessionId.get().split("\\.").length + 1, cookieParts.length);
 
       firstSessionId.set(sessionId.get());
       sessionHeader.set(setCookie);
@@ -668,8 +678,8 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     }, resp -> {
       String setCookie = resp.headers().get("set-cookie");
       // check not issued a new session
-      assertNull(setCookie);
-      assertEquals(firstSessionId.get(), sessionId.get());
+      Assert.assertNull(setCookie);
+      Assert.assertEquals(firstSessionId.get(), sessionId.get());
     }, 200, "OK", null);
 
     // Finally edit the cookie to show signature rejects it
@@ -678,7 +688,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     }, resp -> {
       // check new session created
       String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
+      Assert.assertNotNull(setCookie);
     }, 200, "OK", null);
   }
 }

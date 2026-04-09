@@ -17,6 +17,7 @@ import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,6 +26,10 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class MultiAuthorizationHandlerTest extends WebTestBase {
+
+  public MultiAuthorizationHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   JWTAuth authProvider;
 
@@ -47,8 +52,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
 
     router.route("/protected/page1").handler(rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      Assert.assertNotNull(rc.user());
+      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -70,8 +75,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(AuthorizationHandler.create(RoleBasedAuthorization.create("role1")));
 
     router.route("/protected/page1").handler(rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      Assert.assertNotNull(rc.user());
+      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -97,8 +102,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       );
 
     router.route("/protected/page1").handler(rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      Assert.assertNotNull(rc.user());
+      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -126,8 +131,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       );
 
     router.route("/protected/page1").handler(rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      Assert.assertNotNull(rc.user());
+      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -155,8 +160,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       );
 
     router.route("/protected/page1").handler(rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      Assert.assertNotNull(rc.user());
+      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -199,14 +204,14 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       .addAuthorizationProvider(createProvider("authzProvider1", RoleBasedAuthorization.create("role2"))));
 
     router.route("/protected1/page1").handler(rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      Assert.assertNotNull(rc.user());
+      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
     router.route("/protected/page1").handler(rc -> {
-      assertNotNull(rc.user());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      Assert.assertNotNull(rc.user());
+      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -218,7 +223,7 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
         "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
       res -> {
         String cookie = res.getHeader("Set-Cookie");
-        assertNotNull(cookie);
+        Assert.assertNotNull(cookie);
         session.set(cookie);
       },
       200, "OK", "Welcome");

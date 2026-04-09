@@ -33,6 +33,7 @@ import io.vertx.ext.web.impl.UserContextInternal;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -41,6 +42,14 @@ import java.io.IOException;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public abstract class AuthHandlerTestBase extends WebTestBase {
+
+  public AuthHandlerTestBase() {
+    super(ReportMode.FORBIDDEN);
+  }
+
+  public AuthHandlerTestBase(ReportMode reportMode) {
+    super(reportMode);
+  }
 
   @AfterClass
   public static void oneTimeTearDown() throws IOException {

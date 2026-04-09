@@ -21,7 +21,9 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.test.core.TestUtils;
 import io.vertx.test.core.VertxTestBase;
+import org.junit.Assert;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -53,7 +55,10 @@ public class WebTestBase extends VertxTestBase {
   protected Router router;
 
   public WebTestBase() {
-    super(ReportMode.STATELESS);
+  }
+
+  public WebTestBase(ReportMode reportMode) {
+    super(reportMode);
   }
 
   @Override
@@ -230,10 +235,10 @@ public class WebTestBase extends VertxTestBase {
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    client.request(requestOptions).onComplete(onSuccess(req -> {
-      req.response().onComplete(onSuccess(resp -> {
-        assertEquals(statusCode, resp.statusCode());
-        assertEquals(statusMessage, resp.statusMessage());
+    client.request(requestOptions).onComplete(TestUtils.onSuccess(req -> {
+      req.response().onComplete(TestUtils.onSuccess(resp -> {
+        Assert.assertEquals(statusCode, resp.statusCode());
+        Assert.assertEquals(statusMessage, resp.statusMessage());
         if (responseAction != null) {
           responseAction.accept(resp);
         }
@@ -244,7 +249,7 @@ public class WebTestBase extends VertxTestBase {
             if (normalizeLineEndings) {
               buff = normalizeLineEndingsFor(buff);
             }
-            assertEquals(responseBodyBuffer, buff);
+            Assert.assertEquals(responseBodyBuffer, buff);
             latch.countDown();
           });
         }
@@ -254,7 +259,7 @@ public class WebTestBase extends VertxTestBase {
       }
       req.end();
     }));
-    awaitLatch(latch);
+    TestUtils.awaitLatch(latch);
   }
 
   protected static Buffer normalizeLineEndingsFor(Buffer buff) {
@@ -273,9 +278,9 @@ public class WebTestBase extends VertxTestBase {
     HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:" + this.server.actualPort() + path).openConnection();
     connection.setRequestMethod(httpMethod);
 
-    assertEquals(statusCode, connection.getResponseCode());
+    Assert.assertEquals(statusCode, connection.getResponseCode());
     if (connection.getResponseCode() < 400) { // So dummy compare
-      assertEquals(statusMessage, connection.getResponseMessage());
+      Assert.assertEquals(statusMessage, connection.getResponseMessage());
 
       BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
       String inputLine;
@@ -286,9 +291,9 @@ public class WebTestBase extends VertxTestBase {
       }
       in.close();
 
-      assertEquals(responseBody, response.toString());
+      Assert.assertEquals(responseBody, response.toString());
     } else {
-      assertEquals(statusMessage, connection.getResponseMessage());
+      Assert.assertEquals(statusMessage, connection.getResponseMessage());
 
       BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
       String inputLine;
@@ -299,7 +304,7 @@ public class WebTestBase extends VertxTestBase {
       }
       in.close();
 
-      assertEquals(responseBody, response.toString());
+      Assert.assertEquals(responseBody, response.toString());
     }
 
   }

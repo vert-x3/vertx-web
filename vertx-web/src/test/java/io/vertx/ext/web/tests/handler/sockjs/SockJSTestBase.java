@@ -24,6 +24,7 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.sstore.LocalSessionStore;
+import io.vertx.test.core.TestUtils;
 import io.vertx.test.core.VertxTestBase;
 
 import java.util.concurrent.CountDownLatch;
@@ -34,6 +35,14 @@ import java.util.function.Supplier;
  * @author Ben Ripkens
  */
 abstract class SockJSTestBase extends VertxTestBase {
+
+  SockJSTestBase() {
+    super(ReportMode.FORBIDDEN);
+  }
+
+  SockJSTestBase(ReportMode reportMode) {
+    super(reportMode);
+  }
 
   int numServers = 1;
   HttpClient client;
@@ -77,7 +86,7 @@ abstract class SockJSTestBase extends VertxTestBase {
           .requestHandler(router)
           .listen();
       }
-    }, new DeploymentOptions().setInstances(numServers)).onComplete(onSuccess(id -> latch.countDown()));
-    awaitLatch(latch);
+    }, new DeploymentOptions().setInstances(numServers)).onComplete(TestUtils.onSuccess(id -> latch.countDown()));
+    TestUtils.awaitLatch(latch);
   }
 }

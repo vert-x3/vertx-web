@@ -22,6 +22,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.function.Consumer;
@@ -33,6 +34,10 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class SubRouterTest extends WebTestBase {
+
+  public SubRouterTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Test(expected = IllegalStateException.class)
   public void testInvalidMountPoint1() throws Exception {
@@ -55,7 +60,7 @@ public class SubRouterTest extends WebTestBase {
     router.route("/subpath/*").subRouter(subRouter);
 
     subRouter.route("/foo").handler(rc -> {
-      assertEquals("/subpath/", rc.mountPoint());
+      Assert.assertEquals("/subpath/", rc.mountPoint());
       rc.response().setStatusMessage(rc.request().path()).end();
     });
 
@@ -73,7 +78,7 @@ public class SubRouterTest extends WebTestBase {
     router.route("/subpath/*").subRouter(subRouter);
 
     subRouter.route("/foo").handler(rc -> {
-      assertEquals("/subpath/", rc.mountPoint());
+      Assert.assertEquals("/subpath/", rc.mountPoint());
       rc.response().setStatusMessage(rc.request().path()).end();
     });
 
@@ -91,15 +96,15 @@ public class SubRouterTest extends WebTestBase {
     router.route("/subpath*").subRouter(subRouter);
 
     subRouter.route("/foo").handler(rc -> {
-      assertEquals("/subpath", rc.mountPoint());
+      Assert.assertEquals("/subpath", rc.mountPoint());
       rc.response().setStatusMessage(rc.request().path()).end();
     });
     subRouter.route("/bar").handler(rc -> {
-      assertEquals("/subpath", rc.mountPoint());
+      Assert.assertEquals("/subpath", rc.mountPoint());
       rc.response().setStatusMessage(rc.request().path()).end();
     });
     subRouter.route("/wibble").handler(rc -> {
-      assertEquals("/subpath", rc.mountPoint());
+      Assert.assertEquals("/subpath", rc.mountPoint());
       rc.response().setStatusMessage(rc.request().path()).end();
     });
 
@@ -121,20 +126,20 @@ public class SubRouterTest extends WebTestBase {
     router.route("/subpath*").subRouter(subRouter);
 
     subRouter.route("/foo").handler(rc -> {
-      assertEquals("/subpath", rc.mountPoint());
+      Assert.assertEquals("/subpath", rc.mountPoint());
       rc.response().setStatusMessage(rc.request().path()).end();
     });
     subRouter.route("/bar").handler(rc -> {
-      assertEquals("/subpath", rc.mountPoint());
+      Assert.assertEquals("/subpath", rc.mountPoint());
       rc.response().setStatusMessage(rc.request().path()).end();
     });
     subRouter.route("/wibble").handler(rc -> {
-      assertEquals("/subpath", rc.mountPoint());
+      Assert.assertEquals("/subpath", rc.mountPoint());
       rc.response().setStatusMessage(rc.request().path()).end();
     });
 
     router.route("/otherpath2").handler(rc -> {
-      assertNull(rc.mountPoint());
+      Assert.assertNull(rc.mountPoint());
       rc.response().setStatusMessage(rc.request().path()).end();
     });
 
@@ -156,18 +161,18 @@ public class SubRouterTest extends WebTestBase {
     router.route("/subpath*").subRouter(subRouter);
 
     subRouter.route("/foo").handler(rc -> {
-      assertEquals("/subpath", rc.mountPoint());
+      Assert.assertEquals("/subpath", rc.mountPoint());
       rc.response().setChunked(true);
       rc.response().write("apples");
       rc.next();
     });
     subRouter.route("/foo").handler(rc -> {
-      assertEquals("/subpath", rc.mountPoint());
+      Assert.assertEquals("/subpath", rc.mountPoint());
       rc.response().write("oranges");
       rc.next();
     });
     subRouter.route("/foo").handler(rc -> {
-      assertEquals("/subpath", rc.mountPoint());
+      Assert.assertEquals("/subpath", rc.mountPoint());
       rc.response().write("bananas");
       rc.response().end();
     });
@@ -192,23 +197,23 @@ public class SubRouterTest extends WebTestBase {
     router.route("/foo*").subRouter(subRouter);
 
     subRouter.route("/bar").handler(rc -> {
-      assertEquals("/foo", rc.mountPoint());
+      Assert.assertEquals("/foo", rc.mountPoint());
       rc.response().write("apples");
       rc.next();
     });
     subRouter.route("/bar").handler(rc -> {
-      assertEquals("/foo", rc.mountPoint());
+      Assert.assertEquals("/foo", rc.mountPoint());
       rc.response().write("oranges");
       rc.next();
     });
     subRouter.route("/bar").handler(rc -> {
-      assertEquals("/foo", rc.mountPoint());
+      Assert.assertEquals("/foo", rc.mountPoint());
       rc.response().write("bananas");
       rc.next();
     });
 
     router.route("/foo/*").handler(rc -> {
-      assertNull(rc.mountPoint());
+      Assert.assertNull(rc.mountPoint());
       rc.response().write("pie");
       rc.response().end();
     });
@@ -228,7 +233,7 @@ public class SubRouterTest extends WebTestBase {
     subRouter1.route("/bar*").subRouter(subRouter2);
     subRouter2.route("/wibble*").subRouter(subRouter3);
     subRouter3.route("/eek").handler(rc -> {
-      assertEquals("/foo/bar/wibble", rc.mountPoint());
+      Assert.assertEquals("/foo/bar/wibble", rc.mountPoint());
       rc.response().setStatusMessage(rc.request().path()).end();
     });
 
@@ -273,16 +278,16 @@ public class SubRouterTest extends WebTestBase {
     });
     subRouter2.route("/wibble*").subRouter(subRouter3);
     subRouter3.route("/eek").handler(rc -> {
-      assertEquals("/foo/bar/wibble", rc.mountPoint());
+      Assert.assertEquals("/foo/bar/wibble", rc.mountPoint());
       rc.put("key3", "blah3");
       rc.next();
     });
 
     router.route("/foo/*").handler(rc -> {
-      assertEquals("blah0", rc.get("key0"));
-      assertEquals("blah1", rc.get("key1"));
-      assertEquals("blah2", rc.get("key2"));
-      assertEquals("blah3", rc.get("key3"));
+      Assert.assertEquals("blah0", rc.get("key0"));
+      Assert.assertEquals("blah1", rc.get("key1"));
+      Assert.assertEquals("blah2", rc.get("key2"));
+      Assert.assertEquals("blah3", rc.get("key3"));
       rc.response().setStatusMessage(rc.currentRoute().getPath()).end();
     });
 
@@ -313,8 +318,8 @@ public class SubRouterTest extends WebTestBase {
     });
 
     router.route("/subpath/*").failureHandler(rc -> {
-      assertEquals(500, rc.statusCode());
-      assertEquals("Balderdash!", rc.failure().getMessage());
+      Assert.assertEquals(500, rc.statusCode());
+      Assert.assertEquals("Balderdash!", rc.failure().getMessage());
       rc.response().setStatusCode(555).setStatusMessage("Badgers").end();
     });
 
@@ -332,8 +337,8 @@ public class SubRouterTest extends WebTestBase {
     });
 
     subRouter.route("/foo/*").failureHandler(rc -> {
-      assertEquals(500, rc.statusCode());
-      assertEquals("Balderdash!", rc.failure().getMessage());
+      Assert.assertEquals(500, rc.statusCode());
+      Assert.assertEquals("Balderdash!", rc.failure().getMessage());
       rc.response().setStatusCode(555).setStatusMessage("Badgers").end();
     });
 
@@ -349,8 +354,8 @@ public class SubRouterTest extends WebTestBase {
     subRouter.route("/foo/*").handler(rc -> rc.fail(557));
 
     router.route("/subpath/*").failureHandler(rc -> {
-      assertEquals(557, rc.statusCode());
-      assertNull(rc.failure());
+      Assert.assertEquals(557, rc.statusCode());
+      Assert.assertNull(rc.failure());
       rc.response().setStatusCode(rc.statusCode()).setStatusMessage("Chipmunks").end();
     });
 
@@ -366,8 +371,8 @@ public class SubRouterTest extends WebTestBase {
     subRouter.route("/foo/*").handler(rc -> rc.fail(557));
 
     router.route("/subpath/*").failureHandler(rc -> {
-      assertEquals(557, rc.statusCode());
-      assertNull(rc.failure());
+      Assert.assertEquals(557, rc.statusCode());
+      Assert.assertNull(rc.failure());
       rc.response().setStatusCode(rc.statusCode()).setStatusMessage("Chipmunks").end();
     });
 
@@ -461,9 +466,9 @@ public class SubRouterTest extends WebTestBase {
 
     subRouter.get("/files/:id/info").handler(ctx -> {
       // version is extracted from the root router
-      assertEquals("1", ctx.pathParam("version"));
+      Assert.assertEquals("1", ctx.pathParam("version"));
       // version is extracted from this router
-      assertEquals("2", ctx.pathParam("id"));
+      Assert.assertEquals("2", ctx.pathParam("id"));
       ctx.response().end();
     });
 
@@ -478,9 +483,9 @@ public class SubRouterTest extends WebTestBase {
 
     subRouter.get("/files/:id/info").handler(ctx -> {
       // version is extracted from the root router
-      assertEquals("1", ctx.pathParam("version"));
+      Assert.assertEquals("1", ctx.pathParam("version"));
       // version is extracted from this router
-      assertEquals("2", ctx.pathParam("id"));
+      Assert.assertEquals("2", ctx.pathParam("id"));
       ctx.response().end();
     });
 
@@ -496,9 +501,9 @@ public class SubRouterTest extends WebTestBase {
 
     subRouter.get("/files/:id/info").handler(ctx -> {
       // version is extracted from the root router
-      assertEquals("1", ctx.pathParam("version"));
+      Assert.assertEquals("1", ctx.pathParam("version"));
       // version is extracted from this router
-      assertEquals("2", ctx.pathParam("id"));
+      Assert.assertEquals("2", ctx.pathParam("id"));
       ctx.response().end();
     });
 
@@ -655,7 +660,7 @@ public class SubRouterTest extends WebTestBase {
 
     subRouter.get("/files").handler(ctx -> {
       // version is extracted from the root router
-      assertEquals("1", ctx.pathParam("version"));
+      Assert.assertEquals("1", ctx.pathParam("version"));
       ctx.response().end();
     });
 
@@ -679,9 +684,9 @@ public class SubRouterTest extends WebTestBase {
 
     subRouter.get("/files/:id").handler(ctx -> {
       // version is extracted from the root router
-      assertEquals("1", ctx.pathParam("version"));
+      Assert.assertEquals("1", ctx.pathParam("version"));
       // id is extracted from this router
-      assertEquals("2", ctx.pathParam("id"));
+      Assert.assertEquals("2", ctx.pathParam("id"));
       ctx.response().end();
     });
 
@@ -709,7 +714,7 @@ public class SubRouterTest extends WebTestBase {
     productRouter.route("/:id*").subRouter(instanceRouter);
     instanceRouter.get("/").handler(ctx -> {
       // id is extracted from the root router
-      assertEquals("123", ctx.pathParam("id"));
+      Assert.assertEquals("123", ctx.pathParam("id"));
       ctx.response().end();
     });
 
@@ -734,8 +739,8 @@ public class SubRouterTest extends WebTestBase {
     productRouter.route("/:id*").subRouter(instanceRouter);
     instanceRouter.get("/:foo").handler(ctx -> {
       // id is extracted from the root router
-      assertEquals("123", ctx.pathParam("id"));
-      assertEquals("bar", ctx.pathParam("foo"));
+      Assert.assertEquals("123", ctx.pathParam("id"));
+      Assert.assertEquals("bar", ctx.pathParam("foo"));
       ctx.response().end();
     });
 
@@ -798,7 +803,7 @@ public class SubRouterTest extends WebTestBase {
 
     // Test 415 response - Accept header should contain allowed content type from sub-router
     testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/xml", 415, "Unsupported Media Type",
-      res -> assertEquals("application/json", res.getHeader("Accept")));
+      res -> Assert.assertEquals("application/json", res.getHeader("Accept")));
   }
 
   @Test
@@ -820,9 +825,9 @@ public class SubRouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/xml", 415, "Unsupported Media Type",
       res -> {
         String acceptHeader = res.getHeader("Accept");
-        assertNotNull(acceptHeader);
-        assertTrue(acceptHeader.contains("application/json"));
-        assertTrue(acceptHeader.contains("text/html; charset=utf-8"));
+        Assert.assertNotNull(acceptHeader);
+        Assert.assertTrue(acceptHeader.contains("application/json"));
+        Assert.assertTrue(acceptHeader.contains("text/html; charset=utf-8"));
       });
   }
 
@@ -842,9 +847,9 @@ public class SubRouterTest extends WebTestBase {
     // Test 405 response - Allow header should contain allowed methods from sub-router
     testRequest(HttpMethod.GET, "/api/resource", null, res -> {
       String allowHeader = res.getHeader("Allow");
-      assertNotNull(allowHeader);
-      assertTrue(allowHeader.contains("POST"));
-      assertTrue(allowHeader.contains("PUT"));
+      Assert.assertNotNull(allowHeader);
+      Assert.assertTrue(allowHeader.contains("POST"));
+      Assert.assertTrue(allowHeader.contains("PUT"));
     }, 405, "Method Not Allowed", null);
   }
 }

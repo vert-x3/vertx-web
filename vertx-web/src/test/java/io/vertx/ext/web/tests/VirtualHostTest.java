@@ -26,6 +26,10 @@ import org.junit.Test;
  */
 public class VirtualHostTest extends WebTestBase {
 
+  public VirtualHostTest() {
+    super(ReportMode.FORBIDDEN);
+  }
+
   @Test
   public void testVHost() throws Exception {
     router.route().virtualHost("*.com").handler(ctx -> ctx.response().end());

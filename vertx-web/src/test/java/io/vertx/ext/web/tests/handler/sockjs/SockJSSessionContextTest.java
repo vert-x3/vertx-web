@@ -20,6 +20,9 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.test.core.TestUtils;
+import org.assertj.core.api.Assertions;
+import org.junit.Assert;
 import org.junit.Test;
 
 
@@ -42,7 +45,7 @@ public class SockJSSessionContextTest extends SockJSTestBase {
     socketHandler = () -> {
       return socket -> {
         socket.handler(buffer -> {
-          assertEquals(msg, buffer.toString());
+          Assert.assertEquals(msg, buffer.toString());
           socket.write(buffer);
         });
       };
@@ -50,24 +53,24 @@ public class SockJSSessionContextTest extends SockJSTestBase {
 
     startServers();
 
-    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").onComplete(onSuccess(req1 -> {
-      req1.send(Buffer.buffer()).onComplete(onSuccess(resp1 -> {
-        assertEquals(200, resp1.statusCode());
-        client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").onComplete(onSuccess(req2 -> {
-          req2.send(Buffer.buffer()).onComplete(onSuccess(resp2 -> {
-            assertEquals(200, resp2.statusCode());
-            client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr_send").onComplete(onSuccess(req3 -> {
-              req3.send(Buffer.buffer('"' + msg + '"')).onComplete(onSuccess(resp3 -> {
-                assertEquals(204, resp3.statusCode());
-                client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").onComplete(onSuccess(req4 -> {
-                  req4.send(Buffer.buffer()).onComplete(onSuccess(resp4 -> {
-                    assertEquals(200, resp4.statusCode());
-                    resp4.body().onComplete(onSuccess(buffer -> {
+    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").onComplete(TestUtils.onSuccess(req1 -> {
+      req1.send(Buffer.buffer()).onComplete(TestUtils.onSuccess(resp1 -> {
+        Assert.assertEquals(200, resp1.statusCode());
+        client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").onComplete(TestUtils.onSuccess(req2 -> {
+          req2.send(Buffer.buffer()).onComplete(TestUtils.onSuccess(resp2 -> {
+            Assert.assertEquals(200, resp2.statusCode());
+            client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr_send").onComplete(TestUtils.onSuccess(req3 -> {
+              req3.send(Buffer.buffer('"' + msg + '"')).onComplete(TestUtils.onSuccess(resp3 -> {
+                Assert.assertEquals(204, resp3.statusCode());
+                client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").onComplete(TestUtils.onSuccess(req4 -> {
+                  req4.send(Buffer.buffer()).onComplete(TestUtils.onSuccess(resp4 -> {
+                    Assert.assertEquals(200, resp4.statusCode());
+                    resp4.body().onComplete(TestUtils.onSuccess(buffer -> {
                       String body = buffer.toString();
-                      assertThatString(body, a -> a.startsWith("a"));
+                      Assertions.assertThat(body).startsWith("a");
                       JsonArray content = new JsonArray(body.substring(1));
-                      assertEquals(1, content.size());
-                      assertEquals(msg, content.getValue(0));
+                      Assert.assertEquals(1, content.size());
+                      Assert.assertEquals(msg, content.getValue(0));
                       complete();
                     }));
                   }));

@@ -32,6 +32,7 @@ import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.handler.SecurityAuditLoggerHandler;
 import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -42,6 +43,10 @@ import org.junit.Test;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class SecurityAuditLoggerHandlerTest extends WebTestBase {
+
+  public SecurityAuditLoggerHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   JWTAuth authProvider;
 
@@ -133,8 +138,8 @@ public class SecurityAuditLoggerHandlerTest extends WebTestBase {
       );
 
     router.route("/protected/page1").handler(rc -> {
-      assertNotNull(rc.userContext());
-      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      Assert.assertNotNull(rc.userContext());
+      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 

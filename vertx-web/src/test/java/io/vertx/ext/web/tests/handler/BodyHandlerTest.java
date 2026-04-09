@@ -31,6 +31,7 @@ import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.test.core.TestUtils;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -47,6 +48,10 @@ import java.util.function.Function;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class BodyHandlerTest extends WebTestBase {
+
+  public BodyHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Rule
   public TemporaryFolder tempUploads = new TemporaryFolder();
@@ -65,7 +70,7 @@ public class BodyHandlerTest extends WebTestBase {
   @Test
   public void testGETWithoutBody() throws Exception {
     router.route().handler(rc -> {
-      assertNull(rc.body().buffer());
+      Assert.assertNull(rc.body().buffer());
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", 200, "OK");
@@ -74,7 +79,7 @@ public class BodyHandlerTest extends WebTestBase {
   @Test
   public void testHEADWithoutBody() throws Exception {
     router.route().handler(rc -> {
-      assertNull(rc.body().buffer());
+      Assert.assertNull(rc.body().buffer());
       rc.response().end();
     });
     testRequest(HttpMethod.HEAD, "/", 200, "OK");
@@ -84,7 +89,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyBuffer() throws Exception {
     Buffer buff = TestUtils.randomBuffer(1000);
     router.route().handler(rc -> {
-      assertEquals(buff, rc.body().buffer());
+      Assert.assertEquals(buff, rc.body().buffer());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -97,7 +102,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyString() throws Exception {
     String str = "sausages";
     router.route().handler(rc -> {
-      assertEquals(str, rc.body().asString());
+      Assert.assertEquals(str, rc.body().asString());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -110,9 +115,9 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyStringWithEncoding() throws Exception {
     String str = "\u00FF";
     router.route().handler(rc -> {
-      assertEquals(1, rc.body().length());
+      Assert.assertEquals(1, rc.body().length());
       String decoded = rc.body().asString();
-      assertEquals(str, decoded);
+      Assert.assertEquals(str, decoded);
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -128,7 +133,7 @@ public class BodyHandlerTest extends WebTestBase {
     String str = TestUtils.randomUnicodeString(100);
     String enc = "UTF-16";
     router.route().handler(rc -> {
-      assertEquals(str, rc.body().asString(enc));
+      Assert.assertEquals(str, rc.body().asString(enc));
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -141,7 +146,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyJson() throws Exception {
     JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
     router.route().handler(rc -> {
-      assertEquals(json, rc.body().asJsonObject());
+      Assert.assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -154,7 +159,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyJsonWithNegativeContentLength() throws Exception {
     JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
     router.route().handler(rc -> {
-      assertEquals(json, rc.body().asJsonObject());
+      Assert.assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -168,7 +173,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyJsonWithEmptyContentLength() throws Exception {
     JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
     router.route().handler(rc -> {
-      assertEquals(json, rc.body().asJsonObject());
+      Assert.assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -182,7 +187,7 @@ public class BodyHandlerTest extends WebTestBase {
   public void testBodyJsonWithHugeContentLength() throws Exception {
     JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
     router.route().handler(rc -> {
-      assertEquals(json, rc.body().asJsonObject());
+      Assert.assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -197,7 +202,7 @@ public class BodyHandlerTest extends WebTestBase {
     router.clear();
     router.route().handler(BodyHandler.create().setBodyLimit(5000));
     Buffer buff = TestUtils.randomBuffer(10000);
-    router.route().handler(rc -> fail("Should not be called"));
+    router.route().handler(rc -> Assert.fail("Should not be called"));
     testRequest(HttpMethod.POST, "/", req -> {
       req.setChunked(true);
       req.write(buff);
@@ -209,7 +214,7 @@ public class BodyHandlerTest extends WebTestBase {
     router.clear();
     router.route().handler(BodyHandler.create().setBodyLimit(500));
     Buffer buff = TestUtils.randomBuffer(1000);
-    router.route().handler(rc -> fail("Should not be called"));
+    router.route().handler(rc -> Assert.fail("Should not be called"));
     testRequest(HttpMethod.POST, "/", req -> {
       req.setChunked(true);
       req.write(buff);
@@ -252,23 +257,23 @@ public class BodyHandlerTest extends WebTestBase {
     Buffer fileData = TestUtils.randomBuffer(size);
     router.route().handler(rc -> {
       List<FileUpload> fileUploads = rc.fileUploads();
-      assertNotNull(fileUploads);
-      assertEquals(1, fileUploads.size());
+      Assert.assertNotNull(fileUploads);
+      Assert.assertEquals(1, fileUploads.size());
       FileUpload upload = fileUploads.iterator().next();
-      assertEquals(name, upload.name());
-      assertEquals(fileName, upload.fileName());
-      assertEquals(contentType, upload.contentType());
-      assertEquals("binary", upload.contentTransferEncoding());
-      assertEquals(fileData.length(), upload.size());
+      Assert.assertEquals(name, upload.name());
+      Assert.assertEquals(fileName, upload.fileName());
+      Assert.assertEquals(contentType, upload.contentType());
+      Assert.assertEquals("binary", upload.contentTransferEncoding());
+      Assert.assertEquals(fileData.length(), upload.size());
       String uploadedFileName = upload.uploadedFileName();
-      assertTrue(uploadedFileName.startsWith(uploadsDir + File.separator));
+      Assert.assertTrue(uploadedFileName.startsWith(uploadsDir + File.separator));
       Buffer uploaded = vertx.fileSystem().readFileBlocking(uploadedFileName);
-      assertEquals(fileData, uploaded);
+      Assert.assertEquals(fileData, uploaded);
       // the data is upload as HTML form, so the body should be empty
       Buffer rawBody = rc.body().buffer();
-      assertNull(rawBody);
-      upload.delete().onComplete(onSuccess(v -> {
-        assertFalse(vertx.fileSystem().existsBlocking(uploadedFileName));
+      Assert.assertNull(rawBody);
+      upload.delete().onComplete(TestUtils.onSuccess(v -> {
+        Assert.assertFalse(vertx.fileSystem().existsBlocking(uploadedFileName));
         rc.response().end();
       }));
     });
@@ -281,7 +286,7 @@ public class BodyHandlerTest extends WebTestBase {
     router.route().handler(BodyHandler.create().setBodyLimit(20000));
 
     Buffer fileData = TestUtils.randomBuffer(50000);
-    router.route().handler(rc -> fail("Should not be called"));
+    router.route().handler(rc -> Assert.fail("Should not be called"));
     sendFileUploadRequest(fileData, 413, "Request Entity Too Large");
   }
 
@@ -291,7 +296,7 @@ public class BodyHandlerTest extends WebTestBase {
     router.route().handler(BodyHandler.create().setBodyLimit(20000));
 
     Buffer fileData = TestUtils.randomBuffer(50000);
-    router.route().handler(rc -> fail("Should not be called"));
+    router.route().handler(rc -> Assert.fail("Should not be called"));
     sendFileUploadRequest(fileData, 413, "Request Entity Too Large");
   }
 
@@ -329,7 +334,7 @@ public class BodyHandlerTest extends WebTestBase {
       .setBodyLimit(10000)
       .setUploadsDirectory(uploadsDirectory));
     router.route().handler(ctx -> {
-      fail();
+      Assert.fail();
       ctx.fail(500);
     });
 
@@ -346,8 +351,8 @@ public class BodyHandlerTest extends WebTestBase {
     router.route().handler(BodyHandler.create()
       .setUploadsDirectory(uploadsDirectory));
 
-    assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
-    client.request(HttpMethod.POST, "/").onComplete(onSuccess(req -> {
+    Assert.assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+    client.request(HttpMethod.POST, "/").onComplete(TestUtils.onSuccess(req -> {
       String name = "somename";
       String fileName = "somefile.dat";
       String contentType = "application/octet-stream";
@@ -367,11 +372,11 @@ public class BodyHandlerTest extends WebTestBase {
 
       //wait for upload beginning
       repeatWhile(100, i -> i < 100 && vertx.fileSystem().readDirBlocking(uploadsDirectory).size() == 0, () -> {
-        assertEquals(1, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+        Assert.assertEquals(1, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
         req.connection().close();
         //wait for upload being deleted
         repeatWhile(100, i -> i < 100 && vertx.fileSystem().readDirBlocking(uploadsDirectory).size() != 0, () -> {
-          assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+          Assert.assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
           testComplete();
         });
       });
@@ -462,9 +467,9 @@ public class BodyHandlerTest extends WebTestBase {
       .setHost("localhost")
       .setPort(8080)
       .setURI("/upload");
-    client.request(requestOptions).onComplete(onSuccess(req -> {
-      req.response().onComplete(onSuccess(resp -> {
-        assertEquals(503, resp.statusCode());
+    client.request(requestOptions).onComplete(TestUtils.onSuccess(req -> {
+      req.response().onComplete(TestUtils.onSuccess(resp -> {
+        Assert.assertEquals(503, resp.statusCode());
         testComplete();
       }));
       String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
@@ -496,11 +501,11 @@ public class BodyHandlerTest extends WebTestBase {
   public void testFormURLEncoded() throws Exception {
     router.route().handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
-      assertNotNull(attrs);
-      assertEquals(3, attrs.size());
-      assertEquals("junit-testUserAlias", attrs.get("origin"));
-      assertEquals("admin@foo.bar", attrs.get("login"));
-      assertEquals("admin", attrs.get("pass word"));
+      Assert.assertNotNull(attrs);
+      Assert.assertEquals(3, attrs.size());
+      Assert.assertEquals("junit-testUserAlias", attrs.get("origin"));
+      Assert.assertEquals("admin@foo.bar", attrs.get("login"));
+      Assert.assertEquals("admin", attrs.get("pass word"));
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -516,9 +521,9 @@ public class BodyHandlerTest extends WebTestBase {
   public void testFormContentTypeIgnoreCase() throws Exception {
     router.route().handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
-      assertNotNull(attrs);
-      assertEquals(1, attrs.size());
-      assertEquals("junit-testUserAlias", attrs.get("origin"));
+      Assert.assertNotNull(attrs);
+      Assert.assertEquals(1, attrs.size());
+      Assert.assertEquals("junit-testUserAlias", attrs.get("origin"));
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -557,7 +562,7 @@ public class BodyHandlerTest extends WebTestBase {
     int uploads = 1000;
 
     router.route().handler(rc -> {
-      assertEquals(uploads, rc.fileUploads().size());
+      Assert.assertEquals(uploads, rc.fileUploads().size());
       rc.response().end();
     });
 
@@ -588,21 +593,21 @@ public class BodyHandlerTest extends WebTestBase {
   private void testFormMultipartFormData(boolean mergeAttributes) throws Exception {
     router.route().handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
-      assertNotNull(attrs);
-      assertEquals(2, attrs.size());
-      assertEquals("Tim", attrs.get("attr1"));
-      assertEquals("Julien", attrs.get("attr2"));
+      Assert.assertNotNull(attrs);
+      Assert.assertEquals(2, attrs.size());
+      Assert.assertEquals("Tim", attrs.get("attr1"));
+      Assert.assertEquals("Julien", attrs.get("attr2"));
       MultiMap params = rc.request().params();
       if (mergeAttributes) {
-        assertNotNull(params);
-        assertEquals(3, params.size());
-        assertEquals("Tim", params.get("attr1"));
-        assertEquals("Julien", params.get("attr2"));
+        Assert.assertNotNull(params);
+        Assert.assertEquals(3, params.size());
+        Assert.assertEquals("Tim", params.get("attr1"));
+        Assert.assertEquals("Julien", params.get("attr2"));
       } else {
-        assertNotNull(params);
-        assertEquals(1, params.size());
+        Assert.assertNotNull(params);
+        Assert.assertEquals(1, params.size());
       }
-      assertEquals("foo", params.get("p1"));
+      Assert.assertEquals("foo", params.get("p1"));
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/?p1=foo", req -> {
@@ -630,8 +635,8 @@ public class BodyHandlerTest extends WebTestBase {
     router.route().handler(BodyHandler.create()
       .setUploadsDirectory(uploadsDirectory));
     router.route().handler(ctx -> {
-      assertNull(ctx.body().buffer());
-      assertEquals(1, ctx.fileUploads().size());
+      Assert.assertNull(ctx.body().buffer());
+      Assert.assertEquals(1, ctx.fileUploads().size());
       ctx.response().end();
     });
 
@@ -666,7 +671,7 @@ public class BodyHandlerTest extends WebTestBase {
     Buffer fileData = TestUtils.randomBuffer(50);
     router.route().handler(rc -> {
       rc.response().end();
-      assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
+      Assert.assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
     });
     sendFileUploadRequest(fileData, 200, "OK");
   }
@@ -686,24 +691,24 @@ public class BodyHandlerTest extends WebTestBase {
     router.clear();
     router.route().handler(BodyHandler.create(false).setMergeFormAttributes(mergeAttributes)).handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
-      assertNotNull(attrs);
-      assertEquals(2, attrs.size());
-      assertEquals("Tim", attrs.get("attr1"));
-      assertEquals("Tommaso", attrs.get("attr2"));
+      Assert.assertNotNull(attrs);
+      Assert.assertEquals(2, attrs.size());
+      Assert.assertEquals("Tim", attrs.get("attr1"));
+      Assert.assertEquals("Tommaso", attrs.get("attr2"));
       MultiMap params = rc.request().params();
-      assertEquals(0, rc.fileUploads().size());
+      Assert.assertEquals(0, rc.fileUploads().size());
       if (mergeAttributes) {
-        assertNotNull(params);
-        assertEquals(3, params.size());
-        assertEquals("Tim", params.get("attr1"));
-        assertEquals("Tommaso", params.get("attr2"));
-        assertEquals("foo", params.get("p1"));
+        Assert.assertNotNull(params);
+        Assert.assertEquals(3, params.size());
+        Assert.assertEquals("Tim", params.get("attr1"));
+        Assert.assertEquals("Tommaso", params.get("attr2"));
+        Assert.assertEquals("foo", params.get("p1"));
       } else {
-        assertNotNull(params);
-        assertEquals(1, params.size());
-        assertEquals("foo", params.get("p1"));
-        assertEquals("Tim", rc.request().getFormAttribute("attr1"));
-        assertEquals("Tommaso", rc.request().getFormAttribute("attr2"));
+        Assert.assertNotNull(params);
+        Assert.assertEquals(1, params.size());
+        Assert.assertEquals("foo", params.get("p1"));
+        Assert.assertEquals("Tim", rc.request().getFormAttribute("attr1"));
+        Assert.assertEquals("Tommaso", rc.request().getFormAttribute("attr2"));
       }
       rc.response().end();
     });
@@ -737,7 +742,7 @@ public class BodyHandlerTest extends WebTestBase {
 
     testFormURLEncoded();
 
-    assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
+    Assert.assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
   }
 
   @Test
@@ -758,7 +763,7 @@ public class BodyHandlerTest extends WebTestBase {
     Buffer fileData = TestUtils.randomBuffer(50);
     Route route = router.route().handler(rc -> {
       rc.response().end();
-      assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
+      Assert.assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
     });
     sendFileUploadRequest(fileData, 200, "OK");
 
@@ -766,7 +771,7 @@ public class BodyHandlerTest extends WebTestBase {
     bodyHandler.setHandleFileUploads(true);
     router.route().handler(rc -> {
       rc.response().end();
-      assertTrue("Upload directory must be created.", vertx.fileSystem().existsBlocking(dirName));
+      Assert.assertTrue("Upload directory must be created.", vertx.fileSystem().existsBlocking(dirName));
     });
     sendFileUploadRequest(fileData, 200, "OK");
   }
@@ -781,16 +786,16 @@ public class BodyHandlerTest extends WebTestBase {
     });
     router.route("/rerouted").handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
-      assertNotNull(attrs);
-      assertEquals(2, attrs.size());
-      assertEquals("Tim", attrs.get("attr1"));
-      assertEquals("Tommaso", attrs.get("attr2"));
+      Assert.assertNotNull(attrs);
+      Assert.assertEquals(2, attrs.size());
+      Assert.assertEquals("Tim", attrs.get("attr1"));
+      Assert.assertEquals("Tommaso", attrs.get("attr2"));
       MultiMap params = rc.request().params();
-      assertEquals(0, rc.fileUploads().size());
-      assertNotNull(params);
-      assertEquals(2, params.size());
-      assertEquals("Tim", params.get("attr1"));
-      assertEquals("Tommaso", params.get("attr2"));
+      Assert.assertEquals(0, rc.fileUploads().size());
+      Assert.assertNotNull(params);
+      Assert.assertEquals(2, params.size());
+      Assert.assertEquals("Tim", params.get("attr1"));
+      Assert.assertEquals("Tommaso", params.get("attr2"));
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/toBeRerouted", req -> {
@@ -840,7 +845,7 @@ public class BodyHandlerTest extends WebTestBase {
     router.clear();
     router.route().handler(BodyHandler.create());
     Buffer buffer = Buffer.buffer("a=b&=&c=d");
-    router.route().handler(rc -> fail("Should not be called"));
+    router.route().handler(rc -> Assert.fail("Should not be called"));
     testRequest(HttpMethod.POST, "/", req -> {
       req.setChunked(true);
       req.putHeader("content-type", "application/x-www-form-urlencoded");
@@ -911,22 +916,22 @@ public class BodyHandlerTest extends WebTestBase {
     Buffer fileData = TestUtils.randomBuffer(50);
     router.route().handler(rc -> {
       List<FileUpload> fileUploads = rc.fileUploads();
-      assertNotNull(fileUploads);
-      assertEquals(1, fileUploads.size());
+      Assert.assertNotNull(fileUploads);
+      Assert.assertEquals(1, fileUploads.size());
       FileUpload upload = fileUploads.iterator().next();
-      assertEquals(name, upload.name());
+      Assert.assertEquals(name, upload.name());
       // tests https://tools.ietf.org/html/rfc5987
-      assertEquals("\u00A3 and \u20AC " + fileName, upload.fileName());
-      assertEquals(contentType, upload.contentType());
-      assertEquals("binary", upload.contentTransferEncoding());
-      assertEquals(fileData.length(), upload.size());
+      Assert.assertEquals("\u00A3 and \u20AC " + fileName, upload.fileName());
+      Assert.assertEquals(contentType, upload.contentType());
+      Assert.assertEquals("binary", upload.contentTransferEncoding());
+      Assert.assertEquals(fileData.length(), upload.size());
       String uploadedFileName = upload.uploadedFileName();
-      assertTrue(uploadedFileName.startsWith(BodyHandler.DEFAULT_UPLOADS_DIRECTORY + File.separator));
+      Assert.assertTrue(uploadedFileName.startsWith(BodyHandler.DEFAULT_UPLOADS_DIRECTORY + File.separator));
       Buffer uploaded = vertx.fileSystem().readFileBlocking(uploadedFileName);
-      assertEquals(fileData, uploaded);
+      Assert.assertEquals(fileData, uploaded);
       // the data is upload as HTML form, so the body should be empty
       Buffer rawBody = rc.body().buffer();
-      assertNull(rawBody);
+      Assert.assertNull(rawBody);
       rc.response().end();
     });
 
@@ -955,11 +960,11 @@ public class BodyHandlerTest extends WebTestBase {
     router.clear();
     router.route().handler(BodyHandler.create());
     router.route().handler(rc -> {
-      fail("Should not get here");
+      Assert.fail("Should not get here");
     }).failureHandler(ctx -> {
-      assertNotNull(ctx.failure());
-      assertTrue(ctx.failure() instanceof IOException);
-      assertEquals("Size exceed allowed maximum capacity", ctx.failure().getMessage());
+      Assert.assertNotNull(ctx.failure());
+      Assert.assertTrue(ctx.failure() instanceof IOException);
+      Assert.assertEquals("Size exceed allowed maximum capacity", ctx.failure().getMessage());
       ctx.next();
     });
 
@@ -1012,7 +1017,7 @@ public class BodyHandlerTest extends WebTestBase {
       System.out.println(specData);
       FileUpload file = ctx.fileUploads().iterator().next();
       long uploadSize = file.size();
-      assertEquals(realSize, uploadSize);
+      Assert.assertEquals(realSize, uploadSize);
       ctx.end();
     });
 
@@ -1054,7 +1059,7 @@ public class BodyHandlerTest extends WebTestBase {
     router.clear();
     router.route().handler(BodyHandler.create());
     router.route().handler(ctx -> {
-      fail();
+      Assert.fail();
     });
 
     int len = 1025;

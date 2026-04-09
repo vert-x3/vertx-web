@@ -19,6 +19,7 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.CSPHandler;
 import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -26,12 +27,16 @@ import org.junit.Test;
  */
 public class CSPHandlerTest extends WebTestBase {
 
+  public CSPHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
+
   @Test
   public void testCSPDefault() throws Exception {
     router.route().handler(CSPHandler.create());
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", null, resp -> {
-      assertEquals("default-src 'self'", resp.getHeader("Content-Security-Policy"));
+      Assert.assertEquals("default-src 'self'", resp.getHeader("Content-Security-Policy"));
     }, 200, "OK", null);
   }
 
@@ -40,7 +45,7 @@ public class CSPHandlerTest extends WebTestBase {
     router.route().handler(CSPHandler.create().addDirective("default-src", "*.trusted.com"));
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", null, resp -> {
-      assertEquals("default-src 'self' *.trusted.com", resp.getHeader("Content-Security-Policy"));
+      Assert.assertEquals("default-src 'self' *.trusted.com", resp.getHeader("Content-Security-Policy"));
     }, 200, "OK", null);
   }
 
@@ -56,7 +61,7 @@ public class CSPHandlerTest extends WebTestBase {
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", null, resp -> {
       String h = resp.getHeader("Content-Security-Policy");
-      assertEquals("default-src 'self'; img-src *; media-src media1.com media2.com; script-src userscripts.example.com", h);
+      Assert.assertEquals("default-src 'self'; img-src *; media-src media1.com media2.com; script-src userscripts.example.com", h);
     }, 200, "OK", null);
   }
 
@@ -71,7 +76,7 @@ public class CSPHandlerTest extends WebTestBase {
     router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", null, resp -> {
       String h = resp.getHeader("Content-Security-Policy-Report-Only");
-      assertEquals("default-src 'self'; report-uri http://reportcollector.example.com/collector.cgi", h);
+      Assert.assertEquals("default-src 'self'; report-uri http://reportcollector.example.com/collector.cgi", h);
     }, 200, "OK", null);
   }
 

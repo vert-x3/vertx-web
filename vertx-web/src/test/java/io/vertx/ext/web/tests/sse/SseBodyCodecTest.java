@@ -6,6 +6,7 @@ import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.SseEvent;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.test.core.VertxTestBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -13,6 +14,10 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class SseBodyCodecTest extends VertxTestBase {
+
+  public SseBodyCodecTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Test
   public void testBasicEventParsing() {
@@ -27,19 +32,19 @@ public class SseBodyCodecTest extends VertxTestBase {
 
       Buffer data = Buffer.buffer("event: test\ndata: hello world\nid: 1\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(1, events.size());
 
         SseEvent event = events.get(0);
-        assertEquals("test", event.event());
-        assertEquals("hello world", event.data());
-        assertEquals("1", event.id());
-        assertEquals(0, event.retry());
+        Assert.assertEquals("test", event.event());
+        Assert.assertEquals("hello world", event.data());
+        Assert.assertEquals("1", event.id());
+        Assert.assertEquals(0, event.retry());
 
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -58,18 +63,18 @@ public class SseBodyCodecTest extends VertxTestBase {
 
       Buffer data = Buffer.buffer("event: first\ndata: data1\n\nevent: second\ndata: data2\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(2, events.size());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(2, events.size());
 
-        assertEquals("first", events.get(0).event());
-        assertEquals("data1", events.get(0).data());
-        assertEquals("second", events.get(1).event());
-        assertEquals("data2", events.get(1).data());
+        Assert.assertEquals("first", events.get(0).event());
+        Assert.assertEquals("data1", events.get(0).data());
+        Assert.assertEquals("second", events.get(1).event());
+        Assert.assertEquals("data2", events.get(1).data());
 
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -88,13 +93,13 @@ public class SseBodyCodecTest extends VertxTestBase {
 
       Buffer data = Buffer.buffer("retry: 5000\ndata: test\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals(5000, events.get(0).retry());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(1, events.size());
+        Assert.assertEquals(5000, events.get(0).retry());
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -104,7 +109,7 @@ public class SseBodyCodecTest extends VertxTestBase {
   public void testInvalidRetryField() {
     AtomicReference<Throwable> caught = new AtomicReference<>();
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
-      stream.handler(evt -> fail("Should not receive event"));
+      stream.handler(evt -> Assert.fail("Should not receive event"));
       stream.exceptionHandler(err -> {
         caught.set(err);
         testComplete();
@@ -116,12 +121,12 @@ public class SseBodyCodecTest extends VertxTestBase {
       Buffer data = Buffer.buffer("retry: invalid\ndata: test\n\n");
       stream.write(data);
     } catch (Exception e) {
-      fail(e);
+      Assert.fail(e.getMessage());
     }
 
     await();
-    assertNotNull(caught.get());
-    assertTrue(caught.get().getMessage().contains("Invalid \"retry\" value"));
+    Assert.assertNotNull(caught.get());
+    Assert.assertTrue(caught.get().getMessage().contains("Invalid \"retry\" value"));
   }
 
   @Test
@@ -137,13 +142,13 @@ public class SseBodyCodecTest extends VertxTestBase {
 
       Buffer data = Buffer.buffer(": this is a comment\ndata: actual data\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals("actual data", events.get(0).data());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(1, events.size());
+        Assert.assertEquals("actual data", events.get(0).data());
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -162,14 +167,14 @@ public class SseBodyCodecTest extends VertxTestBase {
 
       Buffer data = Buffer.buffer("data\nevent: test\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals("test", events.get(0).event());
-        assertEquals("", events.get(0).data());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(1, events.size());
+        Assert.assertEquals("test", events.get(0).event());
+        Assert.assertEquals("", events.get(0).data());
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -188,13 +193,13 @@ public class SseBodyCodecTest extends VertxTestBase {
 
       Buffer data = Buffer.buffer("data: value with space\nevent: test\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals("value with space", events.get(0).data());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(1, events.size());
+        Assert.assertEquals("value with space", events.get(0).data());
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -213,14 +218,14 @@ public class SseBodyCodecTest extends VertxTestBase {
 
       Buffer data = Buffer.buffer("data: line1\ndata: line2\ndata: line3\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(1, events.size());
         // Per SSE spec: multiple data fields should be concatenated with newlines
-        assertEquals("line1\nline2\nline3", events.get(0).data());
+        Assert.assertEquals("line1\nline2\nline3", events.get(0).data());
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -239,13 +244,13 @@ public class SseBodyCodecTest extends VertxTestBase {
 
       Buffer data = Buffer.buffer("unknown: value\ndata: test\ncustom: ignored\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals("test", events.get(0).data());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(1, events.size());
+        Assert.assertEquals("test", events.get(0).data());
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -270,12 +275,12 @@ public class SseBodyCodecTest extends VertxTestBase {
 
       Buffer data = Buffer.buffer("data: " + largeData);
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertTrue(stream.writeQueueFull());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertTrue(stream.writeQueueFull());
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -296,17 +301,17 @@ public class SseBodyCodecTest extends VertxTestBase {
 
       Buffer data = Buffer.buffer("data: test\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(1, events.size());
 
         stream.end().onComplete(endAr -> {
-          assertTrue(endAr.succeeded());
-          assertTrue(endCalled.get());
+          Assert.assertTrue(endAr.succeeded());
+          Assert.assertTrue(endCalled.get());
           testComplete();
         });
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -325,18 +330,18 @@ public class SseBodyCodecTest extends VertxTestBase {
 
       Buffer data = Buffer.buffer("data: incomplete");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(0, events.size()); // No complete event yet
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(0, events.size()); // No complete event yet
 
         stream.end().onComplete(endAr -> {
-          assertTrue(endAr.succeeded());
+          Assert.assertTrue(endAr.succeeded());
           // Incomplete data should not be dispatched
-          assertEquals(0, events.size());
+          Assert.assertEquals(0, events.size());
           testComplete();
         });
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -355,13 +360,13 @@ public class SseBodyCodecTest extends VertxTestBase {
 
       Buffer data = Buffer.buffer("data: test\r\r");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals("test", events.get(0).data());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(1, events.size());
+        Assert.assertEquals("test", events.get(0).data());
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -379,14 +384,14 @@ public class SseBodyCodecTest extends VertxTestBase {
       BodyStream<Void> stream = codec.stream();
 
       stream.setWriteQueueMaxSize(100);
-      assertFalse(stream.writeQueueFull());
+      Assert.assertFalse(stream.writeQueueFull());
 
       AtomicReference<Void> drainCalled = new AtomicReference<>();
       stream.drainHandler(v -> drainCalled.set(v));
 
       testComplete();
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -410,7 +415,7 @@ public class SseBodyCodecTest extends VertxTestBase {
       // This test just verifies it doesn't crash
       testComplete();
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -428,11 +433,11 @@ public class SseBodyCodecTest extends VertxTestBase {
       BodyStream<Void> stream = codec.stream();
 
       Future<Void> result = stream.result();
-      assertTrue(result.isComplete()); // Returns succeeded future immediately
-      assertTrue(result.succeeded());
+      Assert.assertTrue(result.isComplete()); // Returns succeeded future immediately
+      Assert.assertTrue(result.succeeded());
       testComplete();
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -452,13 +457,13 @@ public class SseBodyCodecTest extends VertxTestBase {
 
       Buffer data = Buffer.buffer("data: test1\n\ndata: test2\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
+        Assert.assertTrue(writeAr.succeeded());
         // Events should not be delivered while paused
-        assertEquals(0, events.size());
+        Assert.assertEquals(0, events.size());
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -479,14 +484,14 @@ public class SseBodyCodecTest extends VertxTestBase {
 
       Buffer data = Buffer.buffer("data: test1\n\ndata: test2\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
+        Assert.assertTrue(writeAr.succeeded());
         // Only one event should be delivered
-        assertEquals(1, events.size());
-        assertEquals("test1", events.get(0).data());
+        Assert.assertEquals(1, events.size());
+        Assert.assertEquals("test1", events.get(0).data());
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -508,14 +513,14 @@ public class SseBodyCodecTest extends VertxTestBase {
       // 2. Remove the final trailing newline before dispatching
       Buffer data = Buffer.buffer("data: first\ndata: second\ndata: third\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(1, events.size());
         // The trailing newline after "third" should be stripped
-        assertEquals("first\nsecond\nthird", events.get(0).data());
+        Assert.assertEquals("first\nsecond\nthird", events.get(0).data());
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -535,13 +540,13 @@ public class SseBodyCodecTest extends VertxTestBase {
       // Single data field - no trailing newline to strip
       Buffer data = Buffer.buffer("data: single line\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals("single line", events.get(0).data());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(1, events.size());
+        Assert.assertEquals("single line", events.get(0).data());
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -561,14 +566,14 @@ public class SseBodyCodecTest extends VertxTestBase {
       // Test with empty data fields (should still add newlines)
       Buffer data = Buffer.buffer("data: line1\ndata:\ndata: line3\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(1, events.size());
         // Empty data field still contributes a newline
-        assertEquals("line1\n\nline3", events.get(0).data());
+        Assert.assertEquals("line1\n\nline3", events.get(0).data());
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();
@@ -588,13 +593,13 @@ public class SseBodyCodecTest extends VertxTestBase {
       // SSE spec allows multiline data by using multiple data: fields
       Buffer data = Buffer.buffer("data: This is\ndata: a multiline\ndata: message\n\n");
       stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals("This is\na multiline\nmessage", events.get(0).data());
+        Assert.assertTrue(writeAr.succeeded());
+        Assert.assertEquals(1, events.size());
+        Assert.assertEquals("This is\na multiline\nmessage", events.get(0).data());
         testComplete();
       });
     } catch (Exception e) {
-      fail(e.getMessage());
+      Assert.fail(e.getMessage());
     }
 
     await();

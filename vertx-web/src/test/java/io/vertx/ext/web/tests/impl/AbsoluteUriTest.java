@@ -19,6 +19,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -56,6 +57,7 @@ public class AbsoluteUriTest extends WebTestBase {
   private final String expectedAbsoluteUri;
 
   public AbsoluteUriTest(String target, String authority, String query, String expectedAbsoluteUri) {
+    super(ReportMode.FORBIDDEN);
     this.target = target;
     this.authority = authority;
     this.query = query;
@@ -67,8 +69,8 @@ public class AbsoluteUriTest extends WebTestBase {
     String uri = target + (query != null ? "?" + query : "");
 
     router.route().handler(event -> {
-      assertEquals(expectedAbsoluteUri, event.request().absoluteURI());
-      assertEquals(uri, event.request().uri());
+      Assert.assertEquals(expectedAbsoluteUri, event.request().absoluteURI());
+      Assert.assertEquals(uri, event.request().uri());
       event.response().end();
     });
 

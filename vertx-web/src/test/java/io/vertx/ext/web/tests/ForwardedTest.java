@@ -21,6 +21,8 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.net.NetClient;
 import io.vertx.ext.web.Route;
+import io.vertx.test.core.TestUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -29,11 +31,15 @@ import static io.vertx.ext.web.AllowForwardHeaders.*;
 
 public class ForwardedTest extends WebTestBase {
 
+  public ForwardedTest() {
+    super(ReportMode.FORBIDDEN);
+  }
+
   @Test
   public void testXForwardSSL() throws Exception {
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().isSSL());
-      assertEquals(rc.request().scheme(), "https");
+      Assert.assertTrue(rc.request().isSSL());
+      Assert.assertEquals(rc.request().scheme(), "https");
       rc.end();
     });
 
@@ -44,8 +50,8 @@ public class ForwardedTest extends WebTestBase {
   public void testXForwardSSLVariation2() throws Exception {
     router.allowForward(FORWARD).route("/").handler(rc -> {
       // in this case the legacy headers are not considered and will not overwrite the value
-      assertFalse(rc.request().isSSL());
-      assertEquals(rc.request().scheme(), "http");
+      Assert.assertFalse(rc.request().isSSL());
+      Assert.assertEquals(rc.request().scheme(), "http");
       rc.end();
     });
 
@@ -56,8 +62,8 @@ public class ForwardedTest extends WebTestBase {
   public void testXForwardSSLVariation3() throws Exception {
     router.allowForward(X_FORWARD).route("/").handler(rc -> {
       // this is variation of the previous test but in this case it should assert true
-      assertTrue(rc.request().isSSL());
-      assertEquals(rc.request().scheme(), "https");
+      Assert.assertTrue(rc.request().isSSL());
+      Assert.assertEquals(rc.request().scheme(), "https");
       rc.end();
     });
 
@@ -70,8 +76,8 @@ public class ForwardedTest extends WebTestBase {
     int port = 4711;
 
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().remoteAddress().host().equals(host));
-      assertTrue(rc.request().remoteAddress().port() == port);
+      Assert.assertTrue(rc.request().remoteAddress().host().equals(host));
+      Assert.assertTrue(rc.request().remoteAddress().port() == port);
       rc.end();
     });
 
@@ -83,7 +89,7 @@ public class ForwardedTest extends WebTestBase {
     String host = "[2001:db8:cafe::17]";
 
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().remoteAddress().host().equals(host));
+      Assert.assertTrue(rc.request().remoteAddress().host().equals(host));
       rc.end();
     });
 
@@ -96,7 +102,7 @@ public class ForwardedTest extends WebTestBase {
     String host = "2001:db8:85a3:8d3:1319:8a2e:370:9c82";
 
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().remoteAddress().host().equals(host));
+      Assert.assertTrue(rc.request().remoteAddress().host().equals(host));
       rc.end();
     });
 
@@ -106,8 +112,8 @@ public class ForwardedTest extends WebTestBase {
   @Test
   public void testForwardedProto() throws Exception {
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().isSSL());
-      assertEquals(rc.request().scheme(), "https");
+      Assert.assertTrue(rc.request().isSSL());
+      Assert.assertEquals(rc.request().scheme(), "https");
       rc.end();
     });
 
@@ -118,9 +124,9 @@ public class ForwardedTest extends WebTestBase {
   public void testForwardedHostAlongWithXForwardSSL() throws Exception {
     String host = "vertx.io";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertEquals(rc.request().authority().toString(), host);
-      assertTrue(rc.request().isSSL());
-      assertEquals(rc.request().scheme(), "https");
+      Assert.assertEquals(rc.request().authority().toString(), host);
+      Assert.assertTrue(rc.request().isSSL());
+      Assert.assertEquals(rc.request().scheme(), "https");
       rc.end();
     });
 
@@ -131,9 +137,9 @@ public class ForwardedTest extends WebTestBase {
   public void testForwardedHostAlongWithXForwardSSLWithUppercase() throws Exception {
     String host = "vertx.io";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertEquals(rc.request().authority().toString(), host);
-      assertTrue(rc.request().isSSL());
-      assertEquals(rc.request().scheme(), "https");
+      Assert.assertEquals(rc.request().authority().toString(), host);
+      Assert.assertTrue(rc.request().isSSL());
+      Assert.assertEquals(rc.request().scheme(), "https");
       rc.end();
     });
 
@@ -143,8 +149,8 @@ public class ForwardedTest extends WebTestBase {
   @Test
   public void testMultipleForwarded() throws Exception {
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().isSSL());
-      assertEquals(rc.request().scheme(), "https");
+      Assert.assertTrue(rc.request().isSSL());
+      Assert.assertEquals(rc.request().scheme(), "https");
       rc.end();
     });
 
@@ -154,8 +160,8 @@ public class ForwardedTest extends WebTestBase {
   @Test
   public void testMultipleForwardedWithUppercase() throws Exception {
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().isSSL());
-      assertEquals(rc.request().scheme(), "https");
+      Assert.assertTrue(rc.request().isSSL());
+      Assert.assertEquals(rc.request().scheme(), "https");
       rc.end();
     });
 
@@ -165,8 +171,8 @@ public class ForwardedTest extends WebTestBase {
   @Test
   public void testForwardedProtoAlongWIthXForwardSSL() throws Exception {
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertFalse(rc.request().isSSL());
-      assertEquals(rc.request().scheme(), "http");
+      Assert.assertFalse(rc.request().isSSL());
+      Assert.assertEquals(rc.request().scheme(), "http");
       rc.end();
     });
 
@@ -177,7 +183,7 @@ public class ForwardedTest extends WebTestBase {
   public void testForwardedHost() throws Exception {
     String host = "vertx.io";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertEquals(rc.request().authority().toString(), host);
+      Assert.assertEquals(rc.request().authority().toString(), host);
       rc.end();
     });
 
@@ -188,7 +194,7 @@ public class ForwardedTest extends WebTestBase {
   public void testForwardedHostWithUppercase() throws Exception {
     String host = "vertx.io";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertEquals(rc.request().authority().host(), host);
+      Assert.assertEquals(rc.request().authority().host(), host);
       rc.end();
     });
 
@@ -199,7 +205,7 @@ public class ForwardedTest extends WebTestBase {
   public void testForwardedHostAndPort() throws Exception {
     String host = "vertx.io:1234";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertEquals(rc.request().authority().toString(), host);
+      Assert.assertEquals(rc.request().authority().toString(), host);
       rc.end();
     });
 
@@ -210,9 +216,9 @@ public class ForwardedTest extends WebTestBase {
   public void testForwardedHostAndPortAndProto() throws Exception {
     String host = "vertx.io:1234";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertEquals(rc.request().authority().toString(), host);
-      assertTrue(rc.request().isSSL());
-      assertEquals(rc.request().scheme(), "https");
+      Assert.assertEquals(rc.request().authority().toString(), host);
+      Assert.assertTrue(rc.request().isSSL());
+      Assert.assertEquals(rc.request().scheme(), "https");
       rc.end();
     });
 
@@ -223,9 +229,9 @@ public class ForwardedTest extends WebTestBase {
   public void testForwardedHostAndPortAndProtoWithUppercase() throws Exception {
     String host = "vertx.io:1234";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertEquals(rc.request().authority().toString(), host);
-      assertTrue(rc.request().isSSL());
-      assertEquals(rc.request().scheme(), "https");
+      Assert.assertEquals(rc.request().authority().toString(), host);
+      Assert.assertTrue(rc.request().isSSL());
+      Assert.assertEquals(rc.request().scheme(), "https");
       rc.end();
     });
 
@@ -235,8 +241,8 @@ public class ForwardedTest extends WebTestBase {
   @Test
   public void testXForwardedProto() throws Exception {
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().isSSL());
-      assertEquals(rc.request().scheme(), "https");
+      Assert.assertTrue(rc.request().isSSL());
+      Assert.assertEquals(rc.request().scheme(), "https");
       rc.end();
     });
 
@@ -246,8 +252,8 @@ public class ForwardedTest extends WebTestBase {
   @Test
   public void testXForwardedProtoAlongWIthXForwardSSL() throws Exception {
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertFalse(rc.request().isSSL());
-      assertEquals(rc.request().scheme(), "http");
+      Assert.assertFalse(rc.request().isSSL());
+      Assert.assertEquals(rc.request().scheme(), "http");
       rc.end();
     });
 
@@ -259,7 +265,7 @@ public class ForwardedTest extends WebTestBase {
   public void testXForwardedHost() throws Exception {
     String host = "vertx.io";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertEquals(rc.request().authority().toString(), host);
+      Assert.assertEquals(rc.request().authority().toString(), host);
       rc.end();
     });
 
@@ -270,7 +276,7 @@ public class ForwardedTest extends WebTestBase {
   public void testXForwardedHostAndPort() throws Exception {
     String host = "vertx.io:4321";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertEquals(rc.request().authority().toString(), host);
+      Assert.assertEquals(rc.request().authority().toString(), host);
       rc.end();
     });
 
@@ -281,7 +287,7 @@ public class ForwardedTest extends WebTestBase {
   public void testXForwardedHostRemovesCommonPort() throws Exception {
     String host = "vertx.io";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertEquals(rc.request().authority().toString(), host);
+      Assert.assertEquals(rc.request().authority().toString(), host);
       rc.end();
     });
 
@@ -292,7 +298,7 @@ public class ForwardedTest extends WebTestBase {
   public void testXForwardedHostMultiple() throws Exception {
     String host = "vertx.io";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertEquals(rc.request().authority().toString(), host);
+      Assert.assertEquals(rc.request().authority().toString(), host);
       rc.end();
     });
 
@@ -303,7 +309,7 @@ public class ForwardedTest extends WebTestBase {
   public void testXForwardedPort() throws Exception {
     String port = "1234";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().authority().toString().endsWith(":" + port));
+      Assert.assertTrue(rc.request().authority().toString().endsWith(":" + port));
       rc.end();
     });
 
@@ -315,7 +321,7 @@ public class ForwardedTest extends WebTestBase {
     String host = "vertx.io";
     String port = "1234";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().authority().toString().equals(host + ":" + port));
+      Assert.assertTrue(rc.request().authority().toString().equals(host + ":" + port));
       rc.end();
     });
 
@@ -327,7 +333,7 @@ public class ForwardedTest extends WebTestBase {
     String host = "vertx.io";
     String port = "1234";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().authority().toString().equals(host + ":" + port));
+      Assert.assertTrue(rc.request().authority().toString().equals(host + ":" + port));
       rc.end();
     });
 
@@ -337,7 +343,7 @@ public class ForwardedTest extends WebTestBase {
   @Test
   public void testIllegalPort() throws Exception {
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().authority().toString().endsWith(":8080"));
+      Assert.assertTrue(rc.request().authority().toString().endsWith(":8080"));
       rc.end();
     });
 
@@ -348,7 +354,7 @@ public class ForwardedTest extends WebTestBase {
   public void testXForwardedFor() throws Exception {
     String host = "1.2.3.4";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().remoteAddress().host().equals(host));
+      Assert.assertTrue(rc.request().remoteAddress().host().equals(host));
       rc.end();
     });
 
@@ -360,8 +366,8 @@ public class ForwardedTest extends WebTestBase {
     String host = "1.2.3.4";
     int port = 1111;
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().remoteAddress().host().equals(host));
-      assertTrue(rc.request().remoteAddress().port() == port);
+      Assert.assertTrue(rc.request().remoteAddress().host().equals(host));
+      Assert.assertTrue(rc.request().remoteAddress().port() == port);
       rc.end();
     });
 
@@ -372,7 +378,7 @@ public class ForwardedTest extends WebTestBase {
   public void testForwardedFor() throws Exception {
     String host = "1.2.3.4";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().remoteAddress().host().equals(host));
+      Assert.assertTrue(rc.request().remoteAddress().host().equals(host));
       rc.end();
     });
 
@@ -383,7 +389,7 @@ public class ForwardedTest extends WebTestBase {
   public void testForwardedForWithUpperCase() throws Exception {
     String host = "1.2.3.4";
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().remoteAddress().host().equals(host));
+      Assert.assertTrue(rc.request().remoteAddress().host().equals(host));
       rc.end();
     });
 
@@ -396,8 +402,8 @@ public class ForwardedTest extends WebTestBase {
     int port = 4711;
 
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().remoteAddress().host().equals(host));
-      assertTrue(rc.request().remoteAddress().port() == port);
+      Assert.assertTrue(rc.request().remoteAddress().host().equals(host));
+      Assert.assertTrue(rc.request().remoteAddress().port() == port);
       rc.end();
     });
 
@@ -432,13 +438,13 @@ public class ForwardedTest extends WebTestBase {
   private void testMissingHostHeader(Route route) throws Exception {
 
     route.handler(rc -> {
-      assertNull(rc.request().authority());
+      Assert.assertNull(rc.request().authority());
       rc.end();
     });
 
     NetClient tcpClient = vertx.createNetClient();
     try {
-      tcpClient.connect(8080, "localhost").onComplete(onSuccess(so -> {
+      tcpClient.connect(8080, "localhost").onComplete(TestUtils.onSuccess(so -> {
         so.write("GET / HTTP/1.1\r\n\r\n");
         so.handler(buff -> {
           testComplete();
@@ -453,10 +459,10 @@ public class ForwardedTest extends WebTestBase {
   @Test
   public void testNoForwarded() throws Exception {
     router.allowForward(ALL).route("/").handler(rc -> {
-      assertTrue(rc.request().remoteAddress().host().equals("127.0.0.1"));
-      assertTrue(rc.request().authority().toString().equals("localhost:8080"));
-      assertTrue(rc.request().scheme().equals("http"));
-      assertFalse(rc.request().isSSL());
+      Assert.assertTrue(rc.request().remoteAddress().host().equals("127.0.0.1"));
+      Assert.assertTrue(rc.request().authority().toString().equals("localhost:8080"));
+      Assert.assertTrue(rc.request().scheme().equals("http"));
+      Assert.assertFalse(rc.request().isSSL());
       rc.end();
     });
 
@@ -466,8 +472,8 @@ public class ForwardedTest extends WebTestBase {
   @Test
   public void testForwardedDisabled() throws Exception {
     router.allowForward(NONE).route("/").handler(rc -> {
-      assertFalse(rc.request().isSSL());
-      assertEquals(rc.request().scheme(), "http");
+      Assert.assertFalse(rc.request().isSSL());
+      Assert.assertEquals(rc.request().scheme(), "http");
       rc.end();
     });
 
@@ -492,21 +498,21 @@ public class ForwardedTest extends WebTestBase {
       HttpServerRequest request = rc.request();
       if (request.canUpgradeToWebSocket()) {
         request
-          .toWebSocket().onComplete(onSuccess(socket -> {
-            assertTrue(socket.authority().toString().equals(host));
-            assertTrue(socket.isSsl());
-            assertTrue(socket.remoteAddress().host().equals(address));
+          .toWebSocket().onComplete(TestUtils.onSuccess(socket -> {
+            Assert.assertTrue(socket.authority().toString().equals(host));
+            Assert.assertTrue(socket.isSsl());
+            Assert.assertTrue(socket.remoteAddress().host().equals(address));
             latch.countDown();
           }));
       } else {
-        fail("Expected websocket connection");
+        Assert.fail("Expected websocket connection");
       }
     });
 
-    wsClient.connect(new WebSocketConnectOptions().setURI("/ws").addHeader("Forwarded", "host=" + host + ";proto=https" + ";for=" + address)).onComplete(onSuccess(e -> {
+    wsClient.connect(new WebSocketConnectOptions().setURI("/ws").addHeader("Forwarded", "host=" + host + ";proto=https" + ";for=" + address)).onComplete(TestUtils.onSuccess(e -> {
       latch.countDown();
     }));
-    awaitLatch(latch);
+    TestUtils.awaitLatch(latch);
   }
 
   @Test
@@ -519,22 +525,22 @@ public class ForwardedTest extends WebTestBase {
       if (request.canUpgradeToWebSocket()) {
         request
           .toWebSocket()
-          .onComplete(onSuccess(socket -> {
-            assertTrue(socket.authority().toString().equals(host));
-            assertTrue(socket.isSsl());
-            assertTrue(socket.remoteAddress().host().equals(address));
+          .onComplete(TestUtils.onSuccess(socket -> {
+            Assert.assertTrue(socket.authority().toString().equals(host));
+            Assert.assertTrue(socket.isSsl());
+            Assert.assertTrue(socket.remoteAddress().host().equals(address));
             latch.countDown();
           }));
       } else {
-        fail("Expected websocket connection");
+        Assert.fail("Expected websocket connection");
       }
     });
 
     wsClient.connect(new WebSocketConnectOptions().setURI("/ws").addHeader("Forwarded", "Host=" + host + ";Proto=https" + ";For=" + address))
-      .onComplete(onSuccess(e -> {
+      .onComplete(TestUtils.onSuccess(e -> {
         latch.countDown();
       }));
-    awaitLatch(latch);
+    TestUtils.awaitLatch(latch);
   }
 
 }

@@ -27,8 +27,10 @@ import io.vertx.ext.web.tests.handler.EventbusBridgeTest.BridgeClient;
 import io.vertx.ext.web.tests.handler.EventbusBridgeTest.Transport;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.test.core.TestUtils;
 import io.vertx.test.core.VertxTestBase;
 import io.vertx.test.fakecluster.FakeClusterManager;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -59,6 +61,7 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
   protected SockJSHandler sockJS;
 
   public SlowClusterEventbusBridgeTest(Transport transport) {
+    super(ReportMode.FORBIDDEN);
     this.transport = transport;
   }
 
@@ -71,8 +74,8 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
     router = Router.router(node1);
     server = node1.createHttpServer();
     CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router).listen(0).onComplete(onSuccess(res -> latch.countDown()));
-    awaitLatch(latch);
+    server.requestHandler(router).listen(0).onComplete(TestUtils.onSuccess(res -> latch.countDown()));
+    TestUtils.awaitLatch(latch);
     wsClient = node1.createWebSocketClient(new WebSocketClientOptions().setDefaultPort(server.actualPort()));
     sockJS = SockJSHandler.create(node1);
   }
@@ -102,15 +105,15 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.REGISTER) {
-          assertTrue(step.compareAndSet(0, 1));
-          assertNotNull(be.socket());
+          Assert.assertTrue(step.compareAndSet(0, 1));
+          Assert.assertNotNull(be.socket());
           JsonObject raw = be.getRawMessage();
-          assertEquals(addr, raw.getString("address"));
+          Assert.assertEquals(addr, raw.getString("address"));
         } else if (be.type() == BridgeEventType.REGISTERED) {
-          assertTrue(step.compareAndSet(1, 2));
-          assertNotNull(be.socket());
+          Assert.assertTrue(step.compareAndSet(1, 2));
+          Assert.assertNotNull(be.socket());
           JsonObject raw = be.getRawMessage();
-          assertEquals(addr, raw.getString("address"));
+          Assert.assertEquals(addr, raw.getString("address"));
 
           // The bridgeClient should be able to receive this message
           node2.eventBus().send(addr, payload);
@@ -121,10 +124,10 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
     BridgeClient bridgeClient = new BridgeClient(wsClient, transport);
 
     bridgeClient.handler((address, received) -> {
-      assertTrue(step.compareAndSet(2, 3));
-      assertEquals(addr, address);
-      assertEquals(payload, received.getString("body"));
-      bridgeClient.close().onComplete(onSuccess(v -> complete()));
+      Assert.assertTrue(step.compareAndSet(2, 3));
+      Assert.assertEquals(addr, address);
+      Assert.assertEquals(payload, received.getString("body"));
+      bridgeClient.close().onComplete(TestUtils.onSuccess(v -> complete()));
     });
 
     waitFor(2);
@@ -132,7 +135,7 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
     bridgeClient
       .connect(websocketURI)
       .compose(v -> bridgeClient.register(addr))
-      .onComplete(onSuccess(v -> complete()));
+      .onComplete(TestUtils.onSuccess(v -> complete()));
 
     await();
   }
@@ -154,12 +157,12 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
       .connect(websocketURI)
       .compose(v -> bridgeClient.register(addr))
       .compose(v -> bridgeClient.unregister(addr))
-      .onComplete(onSuccess(v -> {
+      .onComplete(TestUtils.onSuccess(v -> {
         Promise<List<RegistrationInfo>> promise = Promise.promise();
         node1.setTimer(1500, l -> {
           node1.clusterManager().getRegistrations(addr, promise);
-          promise.future().onComplete(onSuccess(registrationInfos -> {
-            assertTrue(registrationInfos == null || registrationInfos.isEmpty());
+          promise.future().onComplete(TestUtils.onSuccess(registrationInfos -> {
+            Assert.assertTrue(registrationInfos == null || registrationInfos.isEmpty());
             testComplete();
           }));
         });

@@ -18,6 +18,7 @@ package io.vertx.ext.web.tests.handler.sockjs;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -50,17 +51,17 @@ public class SockJSEventBusTest extends SockJSTestBase {
     };
     startServers();
     vertx.runOnContext(v -> {
-      wsClient.connect("/test/websocket").onComplete(onSuccess(ws -> {
+      wsClient.connect("/test/websocket").onComplete(TestUtils.onSuccess(ws -> {
         ws.frameHandler(frame -> {
           if (frame.isClose()) {
             //
           } else {
             if (text) {
-              assertTrue(frame.isText());
-              assertEquals(expected, frame.textData());
+              Assert.assertTrue(frame.isText());
+              Assert.assertEquals(expected, frame.textData());
             } else {
-              assertTrue(frame.isBinary());
-              assertEquals(Buffer.buffer(expected), frame.binaryData());
+              Assert.assertTrue(frame.isBinary());
+              Assert.assertEquals(Buffer.buffer(expected), frame.binaryData());
             }
             ws.end();
           }

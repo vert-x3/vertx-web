@@ -29,6 +29,10 @@ import org.junit.Test;
 
 public class ABACHandlerTest extends WebTestBase {
 
+  public ABACHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
+
   @Test
   public void testABAC() throws Exception {
 

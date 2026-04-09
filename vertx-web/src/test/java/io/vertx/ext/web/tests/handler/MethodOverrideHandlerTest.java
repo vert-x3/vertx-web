@@ -18,6 +18,7 @@ package io.vertx.ext.web.tests.handler;
 
 import io.vertx.ext.web.handler.MethodOverrideHandler;
 import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import io.vertx.core.http.HttpMethod;
 
@@ -26,12 +27,16 @@ import io.vertx.core.http.HttpMethod;
  */
 public class MethodOverrideHandlerTest extends WebTestBase {
 
+  public MethodOverrideHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
+
   private MethodOverrideHandler handlerWithSafeDowngrading = MethodOverrideHandler.create();
   private MethodOverrideHandler handlerWithoutSafeDowngrading = MethodOverrideHandler.create(false);
 
   @Test
   public void testFoo() {
-    assertTrue("It is true", true);
+    Assert.assertTrue("It is true", true);
   }
 
   @Test
@@ -68,7 +73,7 @@ public class MethodOverrideHandlerTest extends WebTestBase {
     MethodOverrideHandler overridingHandler = (safe) ? handlerWithSafeDowngrading : handlerWithoutSafeDowngrading;
     router.route().handler(overridingHandler);
     router.route().handler(rc -> {
-      assertEquals(expectedMethod.name(), rc.request().method().name());
+      Assert.assertEquals(expectedMethod.name(), rc.request().method().name());
       rc.response().end();
     });
     testRequestWithMethodOverride(overridedMethod, overridingMethod);

@@ -27,11 +27,16 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
+import org.junit.Assert;
 import org.junit.Test;
 
 import static org.mockito.Mockito.*;
 
 public class CustomAuthHandlerTest extends AuthHandlerTestBase {
+
+  public CustomAuthHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Override
   protected AuthenticationHandler createAuthHandler(AuthenticationProvider authProvider) {
@@ -64,7 +69,7 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
   public void testCredentialsValidationErrorPropagation() throws Exception {
 
     Handler<RoutingContext> handler = rc -> {
-      fail("should not get here");
+      Assert.fail("should not get here");
       rc.response().end("Welcome to the protected resource!");
     };
 
@@ -73,8 +78,8 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
     doAnswer(invocation -> Future.failedFuture(rootCause)).when(authProvider).authenticate(any(Credentials.class));
 
     router.route("/protected/*").handler(newAuthHandler(authProvider, exception -> {
-      assertTrue(exception instanceof IllegalArgumentException);
-      assertEquals(rootCause, exception);
+      Assert.assertTrue(exception instanceof IllegalArgumentException);
+      Assert.assertEquals(rootCause, exception);
     }));
 
     router.route("/protected/somepage").handler(handler);
@@ -87,7 +92,7 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
   public void testHttpStatusExceptionFailurePropagation() throws Exception {
 
     Handler<RoutingContext> handler = rc -> {
-      fail("should not get here");
+      Assert.fail("should not get here");
       rc.response().end("Welcome to the protected resource!");
     };
 
@@ -96,8 +101,8 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
     doAnswer(invocation -> Future.failedFuture(rootCause)).when(authProvider).authenticate(any(Credentials.class));
 
     router.route("/protected/*").handler(newAuthHandler(authProvider, exception -> {
-      assertTrue(exception instanceof HttpException);
-      assertEquals(rootCause, exception);
+      Assert.assertTrue(exception instanceof HttpException);
+      Assert.assertEquals(rootCause, exception);
     }));
 
     router.route("/protected/somepage").handler(handler);
@@ -119,7 +124,7 @@ public class CustomAuthHandlerTest extends AuthHandlerTestBase {
       .handler(SimpleAuthenticationHandler.create().authenticate(ctx -> Future.succeededFuture()))
       .handler(ctx -> {
         // validation
-        assertNull(ctx.user());
+        Assert.assertNull(ctx.user());
         ctx.next();
       })
       .handler(ctx -> ctx.response().end("Welcome to the protected resource!"));

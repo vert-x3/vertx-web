@@ -33,6 +33,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Map;
@@ -44,6 +45,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class BasicAuthHandlerTest extends AuthHandlerTestBase {
+
+  public BasicAuthHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Test
   public void testLoginDefaultRealm() throws Exception {
@@ -58,8 +63,8 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
   private void doLogin(String realm) throws Exception {
 
     Handler<RoutingContext> handler = rc -> {
-      assertNotNull(rc.user());
-      assertEquals("tim", rc.user().principal().getString("username"));
+      Assert.assertNotNull(rc.user());
+      Assert.assertEquals("tim", rc.user().principal().getString("username"));
       rc.response().end("Welcome to the protected resource!");
     };
 
@@ -70,14 +75,14 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNotNull(wwwAuth);
-      assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
+      Assert.assertNotNull(wwwAuth);
+      Assert.assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
     }, 401, "Unauthorized", null);
 
     // Now try again with credentials
     testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNull(wwwAuth);
+      Assert.assertNull(wwwAuth);
     }, 200, "OK", "Welcome to the protected resource!");
 
   }
@@ -96,13 +101,13 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     Handler<RoutingContext> handler = rc -> {
       int c = count.incrementAndGet();
-      assertNotNull(rc.session());
+      Assert.assertNotNull(rc.session());
       String sessID = sessionID.get();
       if (sessID != null) {
-        assertEquals(sessID, rc.session().id());
+        Assert.assertEquals(sessID, rc.session().id());
       }
-      assertNotNull(rc.user());
-      assertEquals("tim", rc.user().principal().getString("username"));
+      Assert.assertNotNull(rc.user());
+      Assert.assertEquals("tim", rc.user().principal().getString("username"));
       if (c == 7) {
         rc.userContext().clear();
       }
@@ -115,20 +120,20 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNotNull(wwwAuth);
-      assertEquals("Basic realm=\"" + BasicAuthHandler.DEFAULT_REALM + "\"", wwwAuth);
+      Assert.assertNotNull(wwwAuth);
+      Assert.assertEquals("Basic realm=\"" + BasicAuthHandler.DEFAULT_REALM + "\"", wwwAuth);
       String setCookie = resp.headers().get("set-cookie");
       // auth failed you should not get a session cookie!!!
-      assertNull(setCookie);
+      Assert.assertNull(setCookie);
     }, 401, "Unauthorized", null);
 
     // Now try again with credentials
     testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNull(wwwAuth);
+      Assert.assertNull(wwwAuth);
       // auth is success, we should get a cookie!!!
       String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
+      Assert.assertNotNull(setCookie);
       sessionCookie.set(setCookie);
     }, 200, "OK", "Welcome to the protected resource!");
 
@@ -136,7 +141,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     for (int i = 0; i < 5; i++) {
       testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
         String wwwAuth = resp.headers().get("WWW-Authenticate");
-        assertNull(wwwAuth);
+        Assert.assertNull(wwwAuth);
       }, 200, "OK", "Welcome to the protected resource!");
     }
 
@@ -144,14 +149,14 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNotNull(wwwAuth);
-      assertEquals("Basic realm=\"" + BasicAuthHandler.DEFAULT_REALM + "\"", wwwAuth);
+      Assert.assertNotNull(wwwAuth);
+      Assert.assertEquals("Basic realm=\"" + BasicAuthHandler.DEFAULT_REALM + "\"", wwwAuth);
     }, 401, "Unauthorized", null);
 
     // And login again
     testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNull(wwwAuth);
+      Assert.assertNull(wwwAuth);
     }, 200, "OK", "Welcome to the protected resource!");
 
 
@@ -163,7 +168,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     String realm = "vertx-web";
 
     Handler<RoutingContext> handler = rc -> {
-      fail("should not get here");
+      Assert.fail("should not get here");
       rc.response().end("Welcome to the protected resource!");
     };
 
@@ -174,15 +179,15 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNotNull(wwwAuth);
-      assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
+      Assert.assertNotNull(wwwAuth);
+      Assert.assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
     }, 401, "Unauthorized", null);
 
     // Now try again with bad credentials
     testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOn5hdXdhZ2Vz"), resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNotNull(wwwAuth);
-      assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
+      Assert.assertNotNull(wwwAuth);
+      Assert.assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
 
     }, 401, "Unauthorized", null);
 
@@ -194,7 +199,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     String realm = "vertx-web";
 
     Handler<RoutingContext> handler = rc -> {
-      fail("should not get here");
+      Assert.fail("should not get here");
       rc.response().end("Welcome to the protected resource!");
     };
 
@@ -205,8 +210,8 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNotNull(wwwAuth);
-      assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
+      Assert.assertNotNull(wwwAuth);
+      Assert.assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
     }, 401, "Unauthorized", null);
 
     // Now try again with bad credentials
@@ -306,7 +311,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
   public void testSecurityBypass() throws Exception {
 
     Handler<RoutingContext> handler = rc -> {
-      fail("should not get here");
+      Assert.fail("should not get here");
       rc.response().end("Welcome to the protected resource!");
     };
 

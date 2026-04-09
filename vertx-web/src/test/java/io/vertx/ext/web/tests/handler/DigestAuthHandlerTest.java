@@ -23,6 +23,7 @@ import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.DigestAuthHandler;
 import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -34,6 +35,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 public class DigestAuthHandlerTest extends WebTestBase {
+
+  public DigestAuthHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   private static final MessageDigest MD5;
   private static final String DEFAULT_NONCE_MAP_NAME = "htdigest.nonces";
@@ -68,14 +73,14 @@ public class DigestAuthHandlerTest extends WebTestBase {
       testRequest(HttpMethod.GET, "/dir/index.html", null, null, 401, "Unauthorized", null);
     }
     int finalNoncesSize = vertx.sharedData().getLocalMap(DEFAULT_NONCE_MAP_NAME).size();
-    assertEquals(initialNoncesSize + 1, finalNoncesSize);
+    Assert.assertEquals(initialNoncesSize + 1, finalNoncesSize);
   }
 
   private void doLogin(String realm) throws Exception {
     router.clear();
     Handler<RoutingContext> handler = rc -> {
-      assertNotNull(rc.user());
-      assertEquals("Mufasa", rc.user().principal().getString("username"));
+      Assert.assertNotNull(rc.user());
+      Assert.assertEquals("Mufasa", rc.user().principal().getString("username"));
       rc.response().end("Welcome to the protected resource!");
     };
 
@@ -89,8 +94,8 @@ public class DigestAuthHandlerTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/dir/index.html", null, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNotNull(wwwAuth);
-      assertTrue(wwwAuth.startsWith("Digest realm=\"" + realm + "\", qop=\"auth\", nonce=\""));
+      Assert.assertNotNull(wwwAuth);
+      Assert.assertTrue(wwwAuth.startsWith("Digest realm=\"" + realm + "\", qop=\"auth\", nonce=\""));
       // extract nonce + opaque from the response
       int pos = wwwAuth.indexOf("nonce=\"") + 7;
       nonce.set(wwwAuth.substring(pos, endOfVariable(wwwAuth, pos, '\"')));
@@ -106,7 +111,7 @@ public class DigestAuthHandlerTest extends WebTestBase {
       req.putHeader("Authorization", "Digest username=\"Mufasa\", realm=\"testrealm@host.com\", nonce=\"" + nonce.get() + "\", uri=\"/dir/index.html\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", response=\"" + response + "\", opaque=\"" + opaque.get() + "\"");
     }, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNull(wwwAuth);
+      Assert.assertNull(wwwAuth);
     }, 200, "OK", "Welcome to the protected resource!");
   }
 

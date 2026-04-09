@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Test;
 
 
@@ -33,6 +34,10 @@ public class RoutingContextDatabindTest extends WebTestBase {
     if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
       vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY);
     }
+  }
+
+  public RoutingContextDatabindTest() {
+    super(ReportMode.FORBIDDEN);
   }
 
   @Override
@@ -68,10 +73,11 @@ public class RoutingContextDatabindTest extends WebTestBase {
       p.setX(10);
       p.setY(20);
       ctx.json(p);
-    }).failureHandler(ctx -> {ctx.failure().printStackTrace(); });
+    }).failureHandler(ctx -> {
+    });
 
     testRequest(HttpMethod.GET, "/", null, res -> {
-      assertEquals("application/json", res.getHeader("Content-Type"));
+      Assert.assertEquals("application/json", res.getHeader("Content-Type"));
     }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "{\"x\":10,\"y\":20}");
   }
 }

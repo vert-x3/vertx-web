@@ -14,6 +14,7 @@ import io.vertx.ext.web.handler.OtpAuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Map;
@@ -21,6 +22,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class OtpHandlerTest  extends WebTestBase {
+
+  public OtpHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   static class DummyDatabase {
 
@@ -166,17 +171,17 @@ public class OtpHandlerTest  extends WebTestBase {
       req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="),
       res -> {
         res.body()
-          .onFailure(this::fail)
+          .onFailure(err -> Assert.fail(err.getMessage()))
           .onSuccess(body -> {
             try {
               JsonObject json = new JsonObject(body);
-              assertEquals("Vert.x Demo", json.getString("issuer"));
-              assertNotNull(json.getString("url"));
-              assertTrue(json.getString("url").startsWith("otpauth://hotp/Vert.x+Demo:tim?secret="));
-              assertTrue(json.getString("url").endsWith("&counter=0"));
+              Assert.assertEquals("Vert.x Demo", json.getString("issuer"));
+              Assert.assertNotNull(json.getString("url"));
+              Assert.assertTrue(json.getString("url").startsWith("otpauth://hotp/Vert.x+Demo:tim?secret="));
+              Assert.assertTrue(json.getString("url").endsWith("&counter=0"));
               testComplete();
             } catch (Exception e) {
-              fail(e);
+              Assert.fail(e.getMessage());
             }
           });
       },

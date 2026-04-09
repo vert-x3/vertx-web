@@ -19,6 +19,7 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -27,6 +28,10 @@ import org.junit.Test;
 public class StaticHandler2Test extends WebTestBase {
 
   protected StaticHandler stat;
+
+  public StaticHandler2Test() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Override
   public void setUp() throws Exception {
@@ -39,7 +44,7 @@ public class StaticHandler2Test extends WebTestBase {
   public void testGetDefaultIndex() throws Exception {
     // without slash... forwards to slash
     testRequest(HttpMethod.GET, "/static/swaggerui", null, res-> {
-      assertEquals("/static/swaggerui/", res.getHeader("Location"));
+      Assert.assertEquals("/static/swaggerui/", res.getHeader("Location"));
     }, 301, "Moved Permanently", null);
 
     testRequest(HttpMethod.GET, "/static/swaggerui/", 200, "OK", "<html><body>Fake swagger UI</body></html>\n");

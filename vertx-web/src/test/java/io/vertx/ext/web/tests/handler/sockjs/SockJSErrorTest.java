@@ -1,25 +1,21 @@
 package io.vertx.ext.web.tests.handler.sockjs;
 
 import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.WebSocketClient;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.bridge.PermittedOptions;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.handler.sockjs.BridgeEvent;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.test.core.TestUtils;
 import io.vertx.test.core.VertxTestBase;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -27,8 +23,12 @@ import java.util.concurrent.CountDownLatch;
  * @author Szymon Glombiowski
  */
 
-@RunWith(VertxUnitRunner.class)
 public class SockJSErrorTest extends VertxTestBase {
+
+  public SockJSErrorTest() {
+    super(ReportMode.FORBIDDEN);
+  }
+
   public static final String EVENTBUS_ADDRESS = "addr1";
   public static final String EVENTBUS_REGISTER_MESSAGE = "{\"type\":\"register\",\"address\":\"" + EVENTBUS_ADDRESS + "\",\"headers\":{\"Accept\":\"application/json\"}}";
   public static final String EVENTBUS_UNREGISTER_MESSAGE = "{\"type\":\"unregister\",\"address\":\"" + EVENTBUS_ADDRESS + "\",\"headers\":{\"Accept\":\"application/json\"}}";
@@ -38,16 +38,15 @@ public class SockJSErrorTest extends VertxTestBase {
   public static final int PORT = 8080;
   public static final String LOCALHOST = "localhost";
   private static int counter = 0;
-  Vertx vertx;
   HttpServer server;
   private CountDownLatch countDownLatch;
 
-  @Before
-  public void before(TestContext context) {
-    countDownLatch = new CountDownLatch(1);
-    vertx = Vertx.vertx();
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
 
-    vertx.exceptionHandler(context.exceptionHandler());
+    countDownLatch = new CountDownLatch(1);
+
     server = vertx.createHttpServer();
 
     Router router = Router.router(vertx);
@@ -58,7 +57,7 @@ public class SockJSErrorTest extends VertxTestBase {
     router.route(WSS_PATH + "*").subRouter(sockJSRouter);
 
     server.requestHandler(router);
-    server.listen(PORT).onComplete(context.asyncAssertSuccess());
+    server.listen(PORT).await();
 
     vertx.setPeriodic(100, id -> {
       log.info("server sending number: " + ++counter);
@@ -66,16 +65,11 @@ public class SockJSErrorTest extends VertxTestBase {
     });
   }
 
-  @After
-  public void after(TestContext context) {
-    vertx.close().onComplete(context.asyncAssertSuccess());
-  }
-
   @Test
-  public void testEventBusBridgeLeakingConsumers(TestContext context) throws InterruptedException {
+  public void testEventBusBridgeLeakingConsumers() throws InterruptedException {
     // initial connection - double registration and unregistration
     WebSocketClient client = vertx.createWebSocketClient();
-    client.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
+    client.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(TestUtils.onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // those actions will cause leak - a consumer still registered
@@ -94,7 +88,7 @@ public class SockJSErrorTest extends VertxTestBase {
 
     final int[] counter = {-1};
     WebSocketClient client2 = vertx.createWebSocketClient();
-    client2.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
+    client2.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(TestUtils.onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // this client will only receive every other message
       ws.handler(buff -> {
@@ -109,7 +103,7 @@ public class SockJSErrorTest extends VertxTestBase {
           ++counter[0];
         }
         // new number in message should be always be increased by 1
-        assertEquals("Message was lost, next id not matching.", counter[0], number);
+        Assert.assertEquals("Message was lost, next id not matching.", counter[0], number);
 
         if (number % 20 == 0) {
           testComplete();
@@ -122,10 +116,10 @@ public class SockJSErrorTest extends VertxTestBase {
   }
 
   @Test
-  public void testEventBusBridgeLeakingConsumersClean(TestContext context) throws InterruptedException {
+  public void testEventBusBridgeLeakingConsumersClean() throws InterruptedException {
     // initial connection - single registration and unregistration
     WebSocketClient client = vertx.createWebSocketClient();
-    client.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
+    client.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(TestUtils.onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // those actions will cause leak - a consumer still registered
       ws.handler(buff -> {
@@ -141,7 +135,7 @@ public class SockJSErrorTest extends VertxTestBase {
 
     final int[] counter = {-1};
     WebSocketClient client2 = vertx.createWebSocketClient();
-    client2.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
+    client2.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(TestUtils.onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // this client will only receive every other message
       ws.handler(buff -> {
@@ -156,7 +150,7 @@ public class SockJSErrorTest extends VertxTestBase {
           ++counter[0];
         }
         // new number in message should be always be increased by 1
-        assertEquals("Message was lost, next id not matching.", counter[0], number);
+        Assert.assertEquals("Message was lost, next id not matching.", counter[0], number);
 
         if (number % 20 == 0) {
           testComplete();

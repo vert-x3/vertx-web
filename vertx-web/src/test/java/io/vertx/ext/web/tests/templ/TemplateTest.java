@@ -25,6 +25,8 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.test.core.TestUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -34,6 +36,10 @@ import java.util.Map;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class TemplateTest extends WebTestBase {
+
+  public TemplateTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Test
   public void testTemplateHandler() throws Exception {
@@ -78,7 +84,7 @@ public class TemplateTest extends WebTestBase {
     router.route().handler(TemplateHandler.create(engine, "somedir", "text/html"));
     router.errorHandler(500, ctx -> {
       Throwable t = ctx.failure();
-      assertEquals("eek", t.getMessage());
+      Assert.assertEquals("eek", t.getMessage());
       testComplete();
     });
     testRequest(HttpMethod.GET, "/foo.html", 500, "Internal Server Error");
@@ -141,10 +147,10 @@ public class TemplateTest extends WebTestBase {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
-      engine.render(context.data(), "somedir/test-template.html").onComplete(onSuccess(res -> {
+      engine.render(context.data(), "somedir/test-template.html").onComplete(TestUtils.onSuccess(res -> {
         String rendered = res.toString();
         final String actual = normalizeLineEndingsFor(res).toString();
-        assertEquals(expected, actual);
+        Assert.assertEquals(expected, actual);
         context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
         context.response().end(rendered);
         testComplete();

@@ -25,6 +25,8 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.handler.ResponseTimeHandler;
 import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.test.core.TestUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Random;
@@ -36,6 +38,10 @@ import static io.vertx.core.http.HttpHeaders.CONTENT_TYPE;
  * @author Thomas Segismont
  */
 public class ResponseContentTypeHandlerTest extends WebTestBase {
+
+  public ResponseContentTypeHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   private Route testRoute;
 
@@ -55,8 +61,8 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       .compose(req -> req
         .putHeader(HttpHeaders.ACCEPT, "application/json")
         .send())
-      .onComplete(onSuccess(resp -> {
-        assertNull(contentType(resp));
+      .onComplete(TestUtils.onSuccess(resp -> {
+        Assert.assertNull(contentType(resp));
         testComplete();
       }));
     await();
@@ -69,8 +75,8 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       .compose(req -> req
         .putHeader(HttpHeaders.ACCEPT, "application/json")
         .send())
-      .onComplete(onSuccess(resp -> {
-        assertEquals("text/plain", contentType(resp));
+      .onComplete(TestUtils.onSuccess(resp -> {
+        Assert.assertEquals("text/plain", contentType(resp));
         testComplete();
       }));
     await();
@@ -84,12 +90,12 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       .compose(req -> req
         .putHeader(HttpHeaders.ACCEPT, "application/json")
         .send().compose(resp -> {
-          assertEquals("application/json", contentType(resp));
-          assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
+          Assert.assertEquals("application/json", contentType(resp));
+          Assert.assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
           return resp.body();
         })
-      ).onComplete(onSuccess(buf -> {
-      assertEquals(buffer, buf);
+      ).onComplete(TestUtils.onSuccess(buf -> {
+      Assert.assertEquals(buffer, buf);
       testComplete();
     }));
     await();
@@ -103,11 +109,11 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       .compose(req -> req
         .putHeader(HttpHeaders.ACCEPT, "application/json")
         .send().compose(resp -> {
-          assertNull(contentLength(resp));
+          Assert.assertNull(contentLength(resp));
           return resp.body();
         })
-      ).onComplete(onSuccess(buf -> {
-      assertEquals(buffer, buf);
+      ).onComplete(TestUtils.onSuccess(buf -> {
+      Assert.assertEquals(buffer, buf);
       testComplete();
     }));
     await();
@@ -120,9 +126,9 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       .compose(req -> req
         .putHeader(HttpHeaders.ACCEPT, "application/json")
         .send()
-      ).onComplete(onSuccess(resp -> {
-      assertNull(contentType(resp));
-      assertEquals(Integer.valueOf(0), contentLength(resp));
+      ).onComplete(TestUtils.onSuccess(resp -> {
+      Assert.assertNull(contentType(resp));
+      Assert.assertEquals(Integer.valueOf(0), contentLength(resp));
       testComplete();
     }));
     await();
@@ -142,12 +148,12 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       .compose(req -> req
         .putHeader(HttpHeaders.ACCEPT, "application/json")
         .send().compose(resp -> {
-          assertNull(contentType(resp));
-          assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
+          Assert.assertNull(contentType(resp));
+          Assert.assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
           return resp.body();
         })
-      ).onComplete(onSuccess(buf -> {
-      assertEquals(buffer, buf);
+      ).onComplete(TestUtils.onSuccess(buf -> {
+      Assert.assertEquals(buffer, buf);
       testComplete();
     }));
     await();
@@ -162,8 +168,8 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       .compose(req -> req
         .putHeader(HttpHeaders.ACCEPT, "*/*")
         .send())
-      .onComplete(onSuccess(resp -> {
-        assertEquals("application/json", contentType(resp));
+      .onComplete(TestUtils.onSuccess(resp -> {
+        Assert.assertEquals("application/json", contentType(resp));
         testComplete();
       }));
     await();

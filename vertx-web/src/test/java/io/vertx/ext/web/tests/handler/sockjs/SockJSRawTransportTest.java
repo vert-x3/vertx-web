@@ -19,6 +19,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.test.core.TestUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -51,13 +52,13 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         .setHost("localhost")
         .setPort(8080)
         .setURI("/test/websocket")
-        .setAllowOriginHeader(false)).onComplete(onSuccess(ws -> {
+        .setAllowOriginHeader(false)).onComplete(TestUtils.onSuccess(ws -> {
         ws.frameHandler(frame -> {
           if (frame.isClose()) {
             //
           } else {
-            assertTrue(frame.isText());
-            assertEquals(expected, frame.textData());
+            Assert.assertTrue(frame.isText());
+            Assert.assertEquals(expected, frame.textData());
             ws.end();
           }
         });
@@ -80,9 +81,9 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         .setHost("localhost")
         .setPort(8080)
         .setURI("/test/websocket")
-        .setAllowOriginHeader(false)).onComplete(onFailure(err -> {
-        assertNotNull(err);
-        assertEquals("WebSocket upgrade failure: 403", err.getMessage());
+        .setAllowOriginHeader(false)).onComplete(TestUtils.onFailure(err -> {
+        Assert.assertNotNull(err);
+        Assert.assertEquals("WebSocket upgrade failure: 403", err.getMessage());
         testComplete();
       }));
     await();
@@ -98,13 +99,13 @@ public class SockJSRawTransportTest extends SockJSTestBase {
       });
     };
     startServers(new SockJSHandlerOptions().setOrigin("http://localhost:8080"));
-    wsClient.connect("/test/websocket").onComplete(onSuccess(ws -> {
+    wsClient.connect("/test/websocket").onComplete(TestUtils.onSuccess(ws -> {
       ws.frameHandler(frame -> {
         if (frame.isClose()) {
           //
         } else {
-          assertTrue(frame.isText());
-          assertEquals(expected, frame.textData());
+          Assert.assertTrue(frame.isText());
+          Assert.assertEquals(expected, frame.textData());
           ws.end();
         }
       });
@@ -122,9 +123,9 @@ public class SockJSRawTransportTest extends SockJSTestBase {
       });
     };
     startServers(new SockJSHandlerOptions().setOrigin("https://www.google.com"));
-    wsClient.connect("/test/websocket").onComplete(onFailure(err -> {
-      assertNotNull(err);
-      assertEquals("WebSocket upgrade failure: 403", err.getMessage());
+    wsClient.connect("/test/websocket").onComplete(TestUtils.onFailure(err -> {
+      Assert.assertNotNull(err);
+      Assert.assertEquals("WebSocket upgrade failure: 403", err.getMessage());
       testComplete();
     }));
     await();
@@ -143,17 +144,17 @@ public class SockJSRawTransportTest extends SockJSTestBase {
       });
     };
     startServers(new SockJSHandlerOptions());
-    wsClient.connect("/test/websocket").onComplete(onSuccess(ws -> {
+    wsClient.connect("/test/websocket").onComplete(TestUtils.onSuccess(ws -> {
       ws.frameHandler(frame -> {
         if (frame.isClose()) {
           //
         } else {
           if (text) {
-            assertTrue(frame.isText());
-            assertEquals(expected, frame.textData());
+            Assert.assertTrue(frame.isText());
+            Assert.assertEquals(expected, frame.textData());
           } else {
-            assertTrue(frame.isBinary());
-            assertEquals(Buffer.buffer(expected), frame.binaryData());
+            Assert.assertTrue(frame.isBinary());
+            Assert.assertEquals(Buffer.buffer(expected), frame.binaryData());
           }
           ws.end();
         }

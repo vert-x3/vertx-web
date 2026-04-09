@@ -30,6 +30,7 @@ import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.SessionStore;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -45,6 +46,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Paulo Lopes
  */
 public class OAuth2AuthHandlerTest extends WebTestBase {
+
+  public OAuth2AuthHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   private static final JsonObject fixture = new JsonObject(
     "{" +
@@ -103,7 +108,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      Assert.assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -111,7 +116,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       // in this case we should get a redirect
       redirectURL = resp.getHeader("Location");
-      assertNotNull(redirectURL);
+      Assert.assertNotNull(redirectURL);
     }, 302, "Found", null);
 
     // fake the redirect
@@ -165,7 +170,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      Assert.assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -173,7 +178,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       // in this case we should get a redirect
       redirectURL = resp.getHeader("Location");
-      assertNotNull(redirectURL);
+      Assert.assertNotNull(redirectURL);
     }, 302, "Found", null);
 
     // fake the redirect
@@ -227,7 +232,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      Assert.assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -235,7 +240,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       // in this case we should get a redirect
       redirectURL = resp.getHeader("Location");
-      assertNotNull(redirectURL);
+      Assert.assertNotNull(redirectURL);
     }, 302, "Found", null);
 
     // fake the redirect
@@ -288,7 +293,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      Assert.assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -296,7 +301,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       // in this case we should get a redirect
       redirectURL = resp.getHeader("Location");
-      assertNotNull(redirectURL);
+      Assert.assertNotNull(redirectURL);
     }, 302, "Found", null);
 
     // fake the redirect
@@ -350,7 +355,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      Assert.assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -358,7 +363,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       // in this case we should get a redirect
       redirectURL = resp.getHeader("Location");
-      assertNotNull(redirectURL);
+      Assert.assertNotNull(redirectURL);
     }, 302, "Found", null);
 
     // fake the redirect
@@ -415,7 +420,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      Assert.assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -464,7 +469,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
                 matches++;
               }
             }
-            assertEquals(3, matches);
+            Assert.assertEquals(3, matches);
             req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
           });
       } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
@@ -497,7 +502,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      Assert.assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -507,18 +512,18 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       // in this case we should get a redirect
       redirectURL = resp.getHeader("Location");
-      assertNotNull(redirectURL);
+      Assert.assertNotNull(redirectURL);
       QueryStringDecoder decoder = new QueryStringDecoder(redirectURL);
       Map<String, List<String>> params = decoder.parameters();
-      assertNotNull(params.get("code_challenge"));
-      assertNotNull(params.get("code_challenge_method"));
-      assertNotNull(params.get("state"));
+      Assert.assertNotNull(params.get("code_challenge"));
+      Assert.assertNotNull(params.get("code_challenge_method"));
+      Assert.assertNotNull(params.get("state"));
       // save the params
       String codeChallenge = params.get("code_challenge").get(0);
       String codeChallengeMethod = params.get("code_challenge_method").get(0);
       String nonce = params.get("state").get(0);
-      assertTrue(codeChallenge.length() >= 43 && codeChallenge.length() <= 128);
-      assertEquals("S256", codeChallengeMethod);
+      Assert.assertTrue(codeChallenge.length() >= 43 && codeChallenge.length() <= 128);
+      Assert.assertEquals("S256", codeChallengeMethod);
 
       // save state
       verifier.set(codeChallenge);
@@ -584,7 +589,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      Assert.assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -592,7 +597,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       // in this case we should get a redirect
       redirectURL = resp.getHeader("Location");
-      assertNotNull(redirectURL);
+      Assert.assertNotNull(redirectURL);
     }, 302, "Found", null);
 
     // fake the redirect (Given that the setup is fixed by the OrderListener), this will succeed
@@ -611,7 +616,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route().handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      Assert.assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -619,7 +624,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       // in this case we should get a redirect
       redirectURL = resp.getHeader("Location");
-      assertNotNull(redirectURL);
+      Assert.assertNotNull(redirectURL);
     }, 302, "Found", null);
 
     // fake the redirect
@@ -644,9 +649,9 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         req.setExpectMultipart(true).bodyHandler(buffer -> {
           final String queryString = buffer.toString();
-          assertTrue(queryString.contains("username=paulo"));
-          assertTrue(queryString.contains("password=bananas"));
-          assertTrue(queryString.contains("grant_type=password"));
+          Assert.assertTrue(queryString.contains("username=paulo"));
+          Assert.assertTrue(queryString.contains("password=bananas"));
+          Assert.assertTrue(queryString.contains("grant_type=password"));
 
           req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
         });
@@ -673,7 +678,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      Assert.assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -698,7 +703,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      Assert.assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -732,7 +737,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
           )
       );
 
-    assertNotNull(oauth);
+    Assert.assertNotNull(oauth);
 
 /*
     JWT jwt = new JWT().addJWK(
@@ -865,7 +870,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     subRouter.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     subRouter.route("/protected/somepage").handler(rc -> {
-      assertNotNull(rc.user());
+      Assert.assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -873,7 +878,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/secret/protected/somepage", null, resp -> {
       // in this case we should get a redirect
       redirectURL = resp.getHeader("Location");
-      assertNotNull(redirectURL);
+      Assert.assertNotNull(redirectURL);
     }, 302, "Found", null);
 
     // fake the redirect
@@ -893,8 +898,8 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2.setupCallback(router.route("/callback")));
     router.route("/protected/userinfo").handler(oauth2);
 
-    assertEquals("/callback", router.getRoutes().get(0).getPath());
-    assertEquals("/protected/", router.getRoutes().get(1).getPath());
-    assertEquals("/protected/userinfo", router.getRoutes().get(2).getPath());
+    Assert.assertEquals("/callback", router.getRoutes().get(0).getPath());
+    Assert.assertEquals("/protected/", router.getRoutes().get(1).getPath());
+    Assert.assertEquals("/protected/userinfo", router.getRoutes().get(2).getPath());
   }
 }

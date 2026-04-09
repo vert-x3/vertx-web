@@ -20,12 +20,17 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.FaviconHandler;
 import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class FaviconHandlerTest extends WebTestBase {
+
+  public FaviconHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Test
   public void testFaviconClasspath() throws Exception {
@@ -56,9 +61,9 @@ public class FaviconHandlerTest extends WebTestBase {
     router.route().handler(rc -> rc.response().end());
     Buffer icon = vertx.fileSystem().readFileBlocking("favicon.ico");
     testRequestBuffer(HttpMethod.GET, "/favicon.ico", null, resp -> {
-      assertEquals("image/x-icon", resp.headers().get("content-type"));
-      assertEquals(icon.length(), Integer.valueOf(resp.headers().get("content-length")).intValue());
-      assertEquals("public, max-age=" + maxAgeSeconds, resp.headers().get("cache-control"));
+      Assert.assertEquals("image/x-icon", resp.headers().get("content-type"));
+      Assert.assertEquals(icon.length(), Integer.valueOf(resp.headers().get("content-length")).intValue());
+      Assert.assertEquals("public, max-age=" + maxAgeSeconds, resp.headers().get("cache-control"));
     }, 200, "OK", icon);
   }
 

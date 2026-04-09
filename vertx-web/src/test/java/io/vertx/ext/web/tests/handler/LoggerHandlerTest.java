@@ -32,10 +32,8 @@ import java.util.concurrent.CountDownLatch;
  */
 public class LoggerHandlerTest extends WebTestBase {
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-
+  public LoggerHandlerTest() {
+    super(ReportMode.FORBIDDEN);
   }
 
   @Test

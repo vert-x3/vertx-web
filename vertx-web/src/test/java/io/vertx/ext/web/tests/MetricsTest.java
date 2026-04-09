@@ -22,6 +22,10 @@ import static org.junit.Assert.assertEquals;
 
 public class MetricsTest extends WebTestBase {
 
+  public MetricsTest() {
+    super(ReportMode.FORBIDDEN);
+  }
+
   final FakeHttpServerMetrics fakeHttpServerMetrics = new FakeHttpServerMetrics();
 
   @Override

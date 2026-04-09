@@ -23,6 +23,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.ErrorHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import static io.vertx.ext.web.common.WebEnvironment.SYSTEM_PROPERTY_NAME;
@@ -31,6 +32,10 @@ import static io.vertx.ext.web.common.WebEnvironment.SYSTEM_PROPERTY_NAME;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class ErrorHandlerTest extends WebTestBase {
+
+  public ErrorHandlerTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   @Override
   public void setUp() throws Exception {
@@ -212,7 +217,7 @@ public class ErrorHandlerTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
       String page = buff.toString();
-      assertEquals("<html><body>An unexpected error occurred.404.Not Found</body></html>", page);
+      Assert.assertEquals("<html><body>An unexpected error occurred.404.Not Found</body></html>", page);
       testComplete();
     }), statusCode, statusMessage, null);
     await();
@@ -229,33 +234,33 @@ public class ErrorHandlerTest extends WebTestBase {
 
   private void checkHtmlResponse(Buffer buff, HttpClientResponse resp, int statusCode, String statusMessage,
                                  Exception e, boolean displayExceptionDetails) {
-    assertEquals("text/html", resp.headers().get(HttpHeaders.CONTENT_TYPE));
+    Assert.assertEquals("text/html", resp.headers().get(HttpHeaders.CONTENT_TYPE));
     String page = buff.toString();
-    assertTrue(page.startsWith("<html>"));
-    assertTrue(page.contains(String.valueOf(statusCode)));
-    assertTrue(page.contains(statusMessage));
-    assertTrue(page.contains("An unexpected error occurred"));
+    Assert.assertTrue(page.startsWith("<html>"));
+    Assert.assertTrue(page.contains(String.valueOf(statusCode)));
+    Assert.assertTrue(page.contains(statusMessage));
+    Assert.assertTrue(page.contains("An unexpected error occurred"));
     if (e != null) {
       if (displayExceptionDetails) {
         // in this case the status message is replaced by the exception message
-        assertTrue(page.contains(e.getMessage()));
-        assertTrue(page.contains(e.getStackTrace()[0].toString()));
+        Assert.assertTrue(page.contains(e.getMessage()));
+        Assert.assertTrue(page.contains(e.getStackTrace()[0].toString()));
       } else {
-        assertFalse(page.contains(e.getStackTrace()[0].toString()));
+        Assert.assertFalse(page.contains(e.getStackTrace()[0].toString()));
       }
     }
   }
 
   private void checkJsonResponse(Buffer buff, HttpClientResponse resp, int statusCode, String statusMessage) {
-    assertEquals("application/json", resp.headers().get(HttpHeaders.CONTENT_TYPE));
+    Assert.assertEquals("application/json", resp.headers().get(HttpHeaders.CONTENT_TYPE));
     String page = buff.toString();
-    assertEquals("{\"error\":{\"code\":" + statusCode +",\"message\":\"" + statusMessage + "\"}}", page);
+    Assert.assertEquals("{\"error\":{\"code\":" + statusCode +",\"message\":\"" + statusMessage + "\"}}", page);
   }
 
   private void checkTextResponse(Buffer buff, HttpClientResponse resp, int statusCode, String statusMessage) {
-    assertEquals("text/plain", resp.headers().get(HttpHeaders.CONTENT_TYPE));
+    Assert.assertEquals("text/plain", resp.headers().get(HttpHeaders.CONTENT_TYPE));
     String page = buff.toString();
-    assertEquals("Error " + statusCode + ": " + statusMessage, page);
+    Assert.assertEquals("Error " + statusCode + ": " + statusMessage, page);
   }
 
 }

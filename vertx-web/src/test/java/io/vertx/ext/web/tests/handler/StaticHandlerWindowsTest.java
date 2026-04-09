@@ -23,6 +23,10 @@ import org.junit.Test;
 
 public class StaticHandlerWindowsTest extends WebTestBase {
 
+  public StaticHandlerWindowsTest() {
+    super(ReportMode.FORBIDDEN);
+  }
+
   @Test
   public void testEscapeToClasspathFromWildcard() throws Exception {
     router.clear();

@@ -18,6 +18,7 @@ package io.vertx.ext.web.it;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -26,10 +27,14 @@ import org.junit.Test;
  */
 public class RouterExtendedParamTest extends WebTestBase {
 
+  public RouterExtendedParamTest() {
+    super(ReportMode.FORBIDDEN);
+  }
+
   @Test
   public void testRouteDashVariable() throws Exception {
     router.route("/foo/:my-id").handler(rc -> {
-      assertEquals("123", rc.pathParam("my-id"));
+      Assert.assertEquals("123", rc.pathParam("my-id"));
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/foo/123", 200, "OK");
@@ -39,8 +44,8 @@ public class RouterExtendedParamTest extends WebTestBase {
   public void testRouteDashVariableNOK() throws Exception {
     router.route("/flights/:from-:to").handler(rc -> {
       // from isn't set as the alphabet now includes -
-      assertNull(rc.pathParam("from"));
-      assertNotNull(rc.pathParam("from-"));
+      Assert.assertNull(rc.pathParam("from"));
+      Assert.assertNotNull(rc.pathParam("from-"));
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/flights/LAX-SFO", 200, "OK");

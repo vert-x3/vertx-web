@@ -6,9 +6,14 @@ import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ChainAuthHandlerAndTest extends WebTestBase {
+
+  public ChainAuthHandlerAndTest() {
+    super(ReportMode.FORBIDDEN);
+  }
 
   private AuthenticationProvider authProvider;
   protected ChainAuthHandler chain;
@@ -65,6 +70,6 @@ public class ChainAuthHandlerAndTest extends WebTestBase {
     router.route().handler(chain);
     router.route().handler(ctx -> ctx.response().end());
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="), resp -> assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWW-Authenticate")),401, "Unauthorized", "Unauthorized");
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="), resp -> Assert.assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWW-Authenticate")),401, "Unauthorized", "Unauthorized");
   }
 }
