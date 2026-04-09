@@ -18,6 +18,8 @@ package io.vertx.ext.web.impl;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.internal.ContextInternal;
+import io.vertx.core.internal.http.HttpServerRequestInternal;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.core.internal.net.RFC3986;
@@ -1338,16 +1340,33 @@ final class RouteState {
     return context.currentRouteNextFailureHandlerIndex() < getFailureHandlersLength();
   }
 
+  /**
+   * This replace ContextInternal#dispatch in order to avoid breaking changes with the handler failure rerouting,
+   * we still want to report the error to the context for proper unit testing.
+   */
+  private void dispatch(RoutingContextImplBase context, Handler<RoutingContext> handler) {
+    try {
+      handler.handle(context);
+    } catch (AssertionError t) {
+      // Report to Vert.x context for JUnit integration
+      ContextInternal ctx = ((HttpServerRequestInternal) context.request()).context();
+      try {
+        ctx.reportException(t);
+      } catch (Throwable ignore) {
+      }
+      // Rethrow as it is expected
+      throw t;
+    }
+  }
+
   void handleContext(RoutingContextImplBase context) {
-    contextHandlers
-      .get(context.currentRouteNextHandlerIndex() - 1)
-      .handle(context);
+    Handler<RoutingContext> handler = contextHandlers.get(context.currentRouteNextHandlerIndex() - 1);
+    dispatch(context, handler);
   }
 
   void handleFailure(RoutingContextImplBase context) {
-    failureHandlers
-      .get(context.currentRouteNextFailureHandlerIndex() - 1)
-      .handle(context);
+    Handler<RoutingContext> handler = failureHandlers.get(context.currentRouteNextFailureHandlerIndex() - 1);
+    dispatch(context, handler);
   }
 
   public String getName() {

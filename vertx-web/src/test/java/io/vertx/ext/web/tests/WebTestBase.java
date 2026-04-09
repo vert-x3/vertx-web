@@ -36,6 +36,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -51,6 +52,10 @@ public class WebTestBase extends VertxTestBase {
   protected WebSocketClient wsClient;
   protected Router router;
 
+  public WebTestBase() {
+    super(ReportMode.STATELESS);
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -58,9 +63,10 @@ public class WebTestBase extends VertxTestBase {
     server = vertx.createHttpServer(getHttpServerOptions().setMaxFormFields(2048));
     client = vertx.createHttpClient(getHttpClientOptions());
     wsClient = vertx.createWebSocketClient(getWebSocketClientOptions());
-    CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router).listen().onComplete(onSuccess(res -> latch.countDown()));
-    awaitLatch(latch);
+    server
+      .requestHandler(router)
+      .listen()
+      .await(20, TimeUnit.SECONDS);
   }
 
   protected HttpServerOptions getHttpServerOptions() {
@@ -78,20 +84,14 @@ public class WebTestBase extends VertxTestBase {
   @Override
   public void tearDown() throws Exception {
     if (client != null) {
-      CountDownLatch latch = new CountDownLatch(1);
-      client.close().onComplete((asyncResult) -> {
-        assertTrue(asyncResult.succeeded());
-        latch.countDown();
-      });
-      awaitLatch(latch);
+      client
+        .close()
+        .await(20, TimeUnit.SECONDS);
     }
     if (server != null) {
-      CountDownLatch latch = new CountDownLatch(1);
-      server.close().onComplete((asyncResult) -> {
-        assertTrue(asyncResult.succeeded());
-        latch.countDown();
-      });
-      awaitLatch(latch);
+      server
+        .close()
+        .await(20, TimeUnit.SECONDS);
     }
     super.tearDown();
   }
