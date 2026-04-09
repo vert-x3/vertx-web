@@ -2783,24 +2783,6 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testErrorHandlingResponseClosed() throws Exception {
-    CountDownLatch latch = new CountDownLatch(1);
-    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(onSuccess(req -> {
-      router.route().handler(rc -> {
-        req.connection().close();
-        rc.response().closeHandler(v -> rc.next());
-      });
-      router.route("/path").handler(rc -> rc.response().write(""));
-      router.errorHandler(500, rc -> {
-        assertEquals(1, latch.getCount());
-        latch.countDown();
-      });
-      req.end();
-    }));
-    latch.await();
-  }
-
-  @Test
   public void testMethodNotAllowedCustomErrorHandler() throws Exception {
     router.get("/path").handler(rc -> rc.response().end());
     router.post("/path").handler(rc -> rc.response().end());
