@@ -17,6 +17,7 @@
 package io.vertx.ext.web.tests;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
@@ -231,46 +232,39 @@ public class WebTestBase2 {
   protected void testRequestBuffer(HttpClient client, RequestOptions requestOptions, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer, boolean normalizeLineEndings) {
-    CountDownLatch latch = new CountDownLatch(1);
-    client.request(requestOptions).onComplete(ar -> {
-      if (ar.failed()) {
-        throw new RuntimeException(ar.cause());
-      }
-      HttpClientRequest req = ar.result();
-      req.response().onComplete(ar2 -> {
-        if (ar2.failed()) {
-          throw new RuntimeException(ar2.cause());
+    Future<Buffer> bodyFuture = client.request(requestOptions)
+      .compose(request  -> {
+
+        if (requestAction != null) {
+          requestAction.accept(request);
         }
-        HttpClientResponse resp = ar2.result();
-        assertEquals(statusCode, resp.statusCode());
-        assertEquals(statusMessage, resp.statusMessage());
+
+        request.end();
+
+        Future<HttpClientResponse> responseFuture = request.response()
+          .expecting(HttpResponseExpectation.status(statusCode))
+          .expecting(response -> response.statusMessage().equals(statusMessage));
+
         if (responseAction != null) {
-          responseAction.accept(resp);
-        }
-        if (responseBodyBuffer == null) {
-          latch.countDown();
-        } else {
-          resp.bodyHandler(buff -> {
-            if (normalizeLineEndings) {
-              buff = normalizeLineEndingsFor(buff);
-            }
-            assertEquals(responseBodyBuffer, buff);
-            latch.countDown();
+          responseFuture = responseFuture
+            .andThen(ar -> {
+              if (ar.succeeded()) {
+                responseAction.accept(ar.result());
+              }
           });
         }
+
+        return responseFuture.compose(HttpClientResponse::body);
+
       });
-      if (requestAction != null) {
-        requestAction.accept(req);
+
+    Buffer body = bodyFuture.await();
+
+    if (responseBodyBuffer != null) {
+      if (normalizeLineEndings) {
+        body = normalizeLineEndingsFor(body);
       }
-      req.end();
-    });
-    try {
-      if (!latch.await(20, java.util.concurrent.TimeUnit.SECONDS)) {
-        throw new RuntimeException("Timed out waiting for response");
-      }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(e);
+      assertEquals(responseBodyBuffer, body);
     }
   }
 
