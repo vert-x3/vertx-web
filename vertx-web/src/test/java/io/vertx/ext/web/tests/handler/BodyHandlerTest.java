@@ -18,6 +18,7 @@ package io.vertx.ext.web.tests.handler;
 
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -28,13 +29,14 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.PlatformHandler;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,52 +46,53 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class BodyHandlerTest extends WebTestBase {
+public class BodyHandlerTest extends WebTestBase2 {
 
-  public BodyHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+  private static final String name = "somename";
 
-  @Rule
-  public TemporaryFolder tempUploads = new TemporaryFolder();
+  @TempDir
+  File tempUploads;
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) {
+    super.setUp(vertx, testContext);
     router.route().handler(BodyHandler.create());
   }
 
-  @AfterClass
+  @AfterAll
   public static void oneTimeTearDown() throws Exception {
     cleanupFileUploadDir();
   }
 
   @Test
-  public void testGETWithoutBody() throws Exception {
+  public void testGETWithoutBody() {
     router.route().handler(rc -> {
-      Assert.assertNull(rc.body().buffer());
+      assertNull(rc.body().buffer());
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", 200, "OK");
   }
 
   @Test
-  public void testHEADWithoutBody() throws Exception {
+  public void testHEADWithoutBody() {
     router.route().handler(rc -> {
-      Assert.assertNull(rc.body().buffer());
+      assertNull(rc.body().buffer());
       rc.response().end();
     });
     testRequest(HttpMethod.HEAD, "/", 200, "OK");
   }
 
   @Test
-  public void testBodyBuffer() throws Exception {
+  public void testBodyBuffer() {
     Buffer buff = TestUtils.randomBuffer(1000);
     router.route().handler(rc -> {
-      Assert.assertEquals(buff, rc.body().buffer());
+      assertEquals(buff, rc.body().buffer());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -99,10 +102,10 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testBodyString() throws Exception {
+  public void testBodyString() {
     String str = "sausages";
     router.route().handler(rc -> {
-      Assert.assertEquals(str, rc.body().asString());
+      assertEquals(str, rc.body().asString());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -112,12 +115,12 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testBodyStringWithEncoding() throws Exception {
+  public void testBodyStringWithEncoding() {
     String str = "\u00FF";
     router.route().handler(rc -> {
-      Assert.assertEquals(1, rc.body().length());
+      assertEquals(1, rc.body().length());
       String decoded = rc.body().asString();
-      Assert.assertEquals(str, decoded);
+      assertEquals(str, decoded);
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -129,11 +132,11 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testBodyStringEncoding() throws Exception {
+  public void testBodyStringEncoding() {
     String str = TestUtils.randomUnicodeString(100);
     String enc = "UTF-16";
     router.route().handler(rc -> {
-      Assert.assertEquals(str, rc.body().asString(enc));
+      assertEquals(str, rc.body().asString(enc));
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -143,10 +146,10 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testBodyJson() throws Exception {
+  public void testBodyJson() {
     JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
     router.route().handler(rc -> {
-      Assert.assertEquals(json, rc.body().asJsonObject());
+      assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -156,10 +159,10 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testBodyJsonWithNegativeContentLength() throws Exception {
+  public void testBodyJsonWithNegativeContentLength() {
     JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
     router.route().handler(rc -> {
-      Assert.assertEquals(json, rc.body().asJsonObject());
+      assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -170,10 +173,10 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testBodyJsonWithEmptyContentLength() throws Exception {
+  public void testBodyJsonWithEmptyContentLength() {
     JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
     router.route().handler(rc -> {
-      Assert.assertEquals(json, rc.body().asJsonObject());
+      assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -184,10 +187,10 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testBodyJsonWithHugeContentLength() throws Exception {
+  public void testBodyJsonWithHugeContentLength() {
     JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
     router.route().handler(rc -> {
-      Assert.assertEquals(json, rc.body().asJsonObject());
+      assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -198,11 +201,11 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testBodyTooBig() throws Exception {
+  public void testBodyTooBig() {
     router.clear();
     router.route().handler(BodyHandler.create().setBodyLimit(5000));
     Buffer buff = TestUtils.randomBuffer(10000);
-    router.route().handler(rc -> Assert.fail("Should not be called"));
+    router.route().handler(rc -> fail("Should not be called"));
     testRequest(HttpMethod.POST, "/", req -> {
       req.setChunked(true);
       req.write(buff);
@@ -210,11 +213,11 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testBodyTooBig2() throws Exception {
+  public void testBodyTooBig2() {
     router.clear();
     router.route().handler(BodyHandler.create().setBodyLimit(500));
     Buffer buff = TestUtils.randomBuffer(1000);
-    router.route().handler(rc -> Assert.fail("Should not be called"));
+    router.route().handler(rc -> fail("Should not be called"));
     testRequest(HttpMethod.POST, "/", req -> {
       req.setChunked(true);
       req.write(buff);
@@ -222,58 +225,59 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testFileUploadSmallUpload() throws Exception {
+  public void testFileUploadSmallUpload() {
     testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, 50);
   }
 
   @Test
   // This size (7990) has caused issues in the past so testing it
-  public void testFileUpload7990Upload() throws Exception {
+  public void testFileUpload7990Upload() {
     testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, 7990);
   }
 
   @Test
-  public void testFileUploadLargeUpload() throws Exception {
+  public void testFileUploadLargeUpload() {
     testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, 20000);
   }
 
   @Test
-  public void testFileUploadDefaultUploadsDir() throws Exception {
+  public void testFileUploadDefaultUploadsDir() {
     testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, 5000);
   }
 
   @Test
-  public void testFileUploadOtherUploadsDir() throws Exception {
+  public void testFileUploadOtherUploadsDir() {
+    File dir = new File(tempUploads, "other");
+    dir.mkdirs();
     router.clear();
-    File dir = tempUploads.newFolder();
     router.route().handler(BodyHandler.create().setUploadsDirectory(dir.getPath()));
     testFileUpload(dir.getPath(), 5000);
   }
 
-  private void testFileUpload(String uploadsDir, int size) throws Exception {
+  private void testFileUpload(String uploadsDir, int size) {
     String name = "somename";
     String fileName = "somefile.dat";
     String contentType = "application/octet-stream";
     Buffer fileData = TestUtils.randomBuffer(size);
     router.route().handler(rc -> {
       List<FileUpload> fileUploads = rc.fileUploads();
-      Assert.assertNotNull(fileUploads);
-      Assert.assertEquals(1, fileUploads.size());
+      assertNotNull(fileUploads);
+      assertEquals(1, fileUploads.size());
       FileUpload upload = fileUploads.iterator().next();
-      Assert.assertEquals(name, upload.name());
-      Assert.assertEquals(fileName, upload.fileName());
-      Assert.assertEquals(contentType, upload.contentType());
-      Assert.assertEquals("binary", upload.contentTransferEncoding());
-      Assert.assertEquals(fileData.length(), upload.size());
+      assertEquals(name, upload.name());
+      assertEquals(fileName, upload.fileName());
+      assertEquals(contentType, upload.contentType());
+      assertEquals("binary", upload.contentTransferEncoding());
+      assertEquals(fileData.length(), upload.size());
       String uploadedFileName = upload.uploadedFileName();
-      Assert.assertTrue(uploadedFileName.startsWith(uploadsDir + File.separator));
+      assertTrue(uploadedFileName.startsWith(uploadsDir + File.separator));
       Buffer uploaded = vertx.fileSystem().readFileBlocking(uploadedFileName);
-      Assert.assertEquals(fileData, uploaded);
+      assertEquals(fileData, uploaded);
       // the data is upload as HTML form, so the body should be empty
       Buffer rawBody = rc.body().buffer();
-      Assert.assertNull(rawBody);
+      assertNull(rawBody);
       upload.delete().onComplete(TestUtils.onSuccess(v -> {
-        Assert.assertFalse(vertx.fileSystem().existsBlocking(uploadedFileName));
+        assertFalse(vertx.fileSystem().existsBlocking(uploadedFileName));
         rc.response().end();
       }));
     });
@@ -281,44 +285,44 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testFileUploadTooBig() throws Exception {
+  public void testFileUploadTooBig() {
     router.clear();
     router.route().handler(BodyHandler.create().setBodyLimit(20000));
 
     Buffer fileData = TestUtils.randomBuffer(50000);
-    router.route().handler(rc -> Assert.fail("Should not be called"));
+    router.route().handler(rc -> fail("Should not be called"));
     sendFileUploadRequest(fileData, 413, "Request Entity Too Large");
   }
 
   @Test
-  public void testFileUploadTooBig2() throws Exception {
+  public void testFileUploadTooBig2() {
     router.clear();
     router.route().handler(BodyHandler.create().setBodyLimit(20000));
 
     Buffer fileData = TestUtils.randomBuffer(50000);
-    router.route().handler(rc -> Assert.fail("Should not be called"));
+    router.route().handler(rc -> fail("Should not be called"));
     sendFileUploadRequest(fileData, 413, "Request Entity Too Large");
   }
 
   @Test
-  public void testFileUploadNoFileRemovalOnEnd() throws Exception {
+  public void testFileUploadNoFileRemovalOnEnd() {
     testFileUploadFileRemoval(rc -> rc.response().end(), false, 200, "OK");
   }
 
   @Test
-  public void testFileUploadFileRemovalOnEnd() throws Exception {
+  public void testFileUploadFileRemovalOnEnd() {
     testFileUploadFileRemoval(rc -> rc.response().end(), true, 200, "OK");
   }
 
   @Test
-  public void testFileUploadFileRemovalOnError() throws Exception {
+  public void testFileUploadFileRemovalOnError() {
     testFileUploadFileRemoval(rc -> {
       throw new IllegalStateException();
     }, true, 500, "Internal Server Error");
   }
 
   @Test
-  public void testFileUploadFileRemovalIfAlreadyRemoved() throws Exception {
+  public void testFileUploadFileRemovalIfAlreadyRemoved() {
     testFileUploadFileRemoval(rc -> {
       vertx.fileSystem().deleteBlocking(rc.fileUploads().iterator().next().uploadedFileName());
       rc.response().end();
@@ -326,15 +330,16 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testFileDeleteOnLargeUpload() throws Exception {
-    String uploadsDirectory = tempUploads.newFolder().getPath();
+  public void testFileDeleteOnLargeUpload() {
+    String uploadsDirectory = new File(tempUploads, "largeDel").getPath();
+    new File(uploadsDirectory).mkdirs();
     router.clear();
     router.route().handler(BodyHandler.create()
       .setDeleteUploadedFilesOnEnd(true)
       .setBodyLimit(10000)
       .setUploadsDirectory(uploadsDirectory));
     router.route().handler(ctx -> {
-      Assert.fail();
+      fail();
       ctx.fail(500);
     });
 
@@ -344,14 +349,15 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testFileUploadFileRemovalOnClientClosesConnection() throws Exception {
+  public void testFileUploadFileRemovalOnClientClosesConnection(VertxTestContext testContext) {
 
-    String uploadsDirectory = tempUploads.newFolder().getPath();
+    String uploadsDirectory = new File(tempUploads, "clientClose").getPath();
+    new File(uploadsDirectory).mkdirs();
     router.clear();
     router.route().handler(BodyHandler.create()
       .setUploadsDirectory(uploadsDirectory));
 
-    Assert.assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+    assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
     client.request(HttpMethod.POST, "/").onComplete(TestUtils.onSuccess(req -> {
       String name = "somename";
       String fileName = "somefile.dat";
@@ -372,17 +378,15 @@ public class BodyHandlerTest extends WebTestBase {
 
       //wait for upload beginning
       repeatWhile(100, i -> i < 100 && vertx.fileSystem().readDirBlocking(uploadsDirectory).size() == 0, () -> {
-        Assert.assertEquals(1, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+        assertEquals(1, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
         req.connection().close();
         //wait for upload being deleted
         repeatWhile(100, i -> i < 100 && vertx.fileSystem().readDirBlocking(uploadsDirectory).size() != 0, () -> {
-          Assert.assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
-          testComplete();
+          assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+          testContext.completeNow();
         });
       });
     }));
-
-    await();
   }
 
   private <T> void repeatWhile(long time, Function<Integer, Boolean> f, Runnable done) {
@@ -400,8 +404,9 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   private void testFileUploadFileRemoval(Handler<RoutingContext> requestHandler, boolean deletedUploadedFilesOnEnd,
-                                         int statusCode, String statusMessage) throws Exception {
-    String uploadsDirectory = tempUploads.newFolder().getPath();
+                                         int statusCode, String statusMessage) {
+    String uploadsDirectory = new File(tempUploads, "removal" + System.nanoTime()).getPath();
+    new File(uploadsDirectory).mkdirs();
     router.clear();
     router.route().handler(BodyHandler.create()
       .setDeleteUploadedFilesOnEnd(deletedUploadedFilesOnEnd)
@@ -415,7 +420,7 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   private void sendFileUploadRequest(Buffer fileData,
-                                     int statusCode, String statusMessage) throws Exception {
+                                     int statusCode, String statusMessage) {
     String name = "somename";
     String fileName = "somefile.dat";
     String contentType = "application/octet-stream";
@@ -440,8 +445,9 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testRoutingContextFailedBeforeFileIsFullyUploaded() throws Exception {
-    String uploadsDirectory = tempUploads.newFolder().getPath();
+  public void testRoutingContextFailedBeforeFileIsFullyUploaded(VertxTestContext testContext) {
+    String uploadsDirectory = new File(tempUploads, "failUpload").getPath();
+    new File(uploadsDirectory).mkdirs();
     router.clear();
     AtomicBoolean stop = new AtomicBoolean();
 
@@ -467,10 +473,11 @@ public class BodyHandlerTest extends WebTestBase {
       .setHost("localhost")
       .setPort(8080)
       .setURI("/upload");
+    Checkpoint responseLatch = testContext.checkpoint();
     client.request(requestOptions).onComplete(TestUtils.onSuccess(req -> {
       req.response().onComplete(TestUtils.onSuccess(resp -> {
-        Assert.assertEquals(503, resp.statusCode());
-        testComplete();
+        assertEquals(503, resp.statusCode());
+        responseLatch.flag();
       }));
       String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
       Buffer buffer = TestUtils.randomBuffer(2048);
@@ -492,20 +499,21 @@ public class BodyHandlerTest extends WebTestBase {
         }
       });
     }));
-    await();
 
-    assertWaitUntil(() -> 0 == vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+    responseLatch.await();
+
+    assertWaitUntil(() -> vertx.fileSystem().readDirBlocking(uploadsDirectory).isEmpty());
   }
 
   @Test
-  public void testFormURLEncoded() throws Exception {
+  public void testFormURLEncoded() {
     router.route().handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
-      Assert.assertNotNull(attrs);
-      Assert.assertEquals(3, attrs.size());
-      Assert.assertEquals("junit-testUserAlias", attrs.get("origin"));
-      Assert.assertEquals("admin@foo.bar", attrs.get("login"));
-      Assert.assertEquals("admin", attrs.get("pass word"));
+      assertNotNull(attrs);
+      assertEquals(3, attrs.size());
+      assertEquals("junit-testUserAlias", attrs.get("origin"));
+      assertEquals("admin@foo.bar", attrs.get("login"));
+      assertEquals("admin", attrs.get("pass word"));
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -518,12 +526,12 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testFormContentTypeIgnoreCase() throws Exception {
+  public void testFormContentTypeIgnoreCase() {
     router.route().handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
-      Assert.assertNotNull(attrs);
-      Assert.assertEquals(1, attrs.size());
-      Assert.assertEquals("junit-testUserAlias", attrs.get("origin"));
+      assertNotNull(attrs);
+      assertEquals(1, attrs.size());
+      assertEquals("junit-testUserAlias", attrs.get("origin"));
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -536,33 +544,33 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testFormMultipartFormDataMergeAttributesDefault() throws Exception {
+  public void testFormMultipartFormDataMergeAttributesDefault() {
     testFormMultipartFormData(true);
   }
 
   @Test
-  public void testFormMultipartFormDataMergeAttributes() throws Exception {
+  public void testFormMultipartFormDataMergeAttributes() {
     router.clear();
     router.route().handler(BodyHandler.create().setMergeFormAttributes(true));
     testFormMultipartFormData(true);
   }
 
   @Test
-  public void testFormMultipartFormDataNoMergeAttributes() throws Exception {
+  public void testFormMultipartFormDataNoMergeAttributes() {
     router.clear();
     router.route().handler(BodyHandler.create().setMergeFormAttributes(false));
     testFormMultipartFormData(false);
   }
 
   @Test
-  public void testMultiFileUpload() throws Exception {
+  public void testMultiFileUpload() {
     router.clear();
     router.route().handler(BodyHandler.create().setBodyLimit(-1));
 
     int uploads = 1000;
 
     router.route().handler(rc -> {
-      Assert.assertEquals(uploads, rc.fileUploads().size());
+      assertEquals(uploads, rc.fileUploads().size());
       rc.response().end();
     });
 
@@ -590,24 +598,24 @@ public class BodyHandlerTest extends WebTestBase {
     }, 200, "OK", null);
   }
 
-  private void testFormMultipartFormData(boolean mergeAttributes) throws Exception {
+  private void testFormMultipartFormData(boolean mergeAttributes) {
     router.route().handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
-      Assert.assertNotNull(attrs);
-      Assert.assertEquals(2, attrs.size());
-      Assert.assertEquals("Tim", attrs.get("attr1"));
-      Assert.assertEquals("Julien", attrs.get("attr2"));
+      assertNotNull(attrs);
+      assertEquals(2, attrs.size());
+      assertEquals("Tim", attrs.get("attr1"));
+      assertEquals("Julien", attrs.get("attr2"));
       MultiMap params = rc.request().params();
       if (mergeAttributes) {
-        Assert.assertNotNull(params);
-        Assert.assertEquals(3, params.size());
-        Assert.assertEquals("Tim", params.get("attr1"));
-        Assert.assertEquals("Julien", params.get("attr2"));
+        assertNotNull(params);
+        assertEquals(3, params.size());
+        assertEquals("Tim", params.get("attr1"));
+        assertEquals("Julien", params.get("attr2"));
       } else {
-        Assert.assertNotNull(params);
-        Assert.assertEquals(1, params.size());
+        assertNotNull(params);
+        assertEquals(1, params.size());
       }
-      Assert.assertEquals("foo", params.get("p1"));
+      assertEquals("foo", params.get("p1"));
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/?p1=foo", req -> {
@@ -627,16 +635,17 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testMixedUploadAndForm() throws Exception {
+  public void testMixedUploadAndForm() {
 
-    String uploadsDirectory = tempUploads.newFolder().getPath();
+    String uploadsDirectory = new File(tempUploads, "mixed").getPath();
+    new File(uploadsDirectory).mkdirs();
 
     router.clear();
     router.route().handler(BodyHandler.create()
       .setUploadsDirectory(uploadsDirectory));
     router.route().handler(ctx -> {
-      Assert.assertNull(ctx.body().buffer());
-      Assert.assertEquals(1, ctx.fileUploads().size());
+      assertNull(ctx.body().buffer());
+      assertEquals(1, ctx.fileUploads().size());
       ctx.response().end();
     });
 
@@ -663,7 +672,7 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testNoUploadDirMultiPartFormData() throws Exception {
+  public void testNoUploadDirMultiPartFormData() {
     String dirName = getNotCreatedTemporaryFolderName();
     router.clear();
     router.route().handler(BodyHandler.create(false).setUploadsDirectory(dirName));
@@ -671,44 +680,44 @@ public class BodyHandlerTest extends WebTestBase {
     Buffer fileData = TestUtils.randomBuffer(50);
     router.route().handler(rc -> {
       rc.response().end();
-      Assert.assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
+      assertFalse(vertx.fileSystem().existsBlocking(dirName), "Upload directory must not be created.");
     });
     sendFileUploadRequest(fileData, 200, "OK");
   }
 
   @Test
-  public void testFormMultipartFormDataWithAllowedFilesUploadFalse1() throws Exception {
+  public void testFormMultipartFormDataWithAllowedFilesUploadFalse1() {
     testFormMultipartFormDataWithAllowedFilesUploadFalse(true);
   }
 
   @Test
-  public void testFormMultipartFormDataWithAllowedFilesUploadFalse2() throws Exception {
+  public void testFormMultipartFormDataWithAllowedFilesUploadFalse2() {
     testFormMultipartFormDataWithAllowedFilesUploadFalse(false);
   }
 
-  private void testFormMultipartFormDataWithAllowedFilesUploadFalse(boolean mergeAttributes) throws Exception {
+  private void testFormMultipartFormDataWithAllowedFilesUploadFalse(boolean mergeAttributes) {
     String fileName = "test.bin";
     router.clear();
     router.route().handler(BodyHandler.create(false).setMergeFormAttributes(mergeAttributes)).handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
-      Assert.assertNotNull(attrs);
-      Assert.assertEquals(2, attrs.size());
-      Assert.assertEquals("Tim", attrs.get("attr1"));
-      Assert.assertEquals("Tommaso", attrs.get("attr2"));
+      assertNotNull(attrs);
+      assertEquals(2, attrs.size());
+      assertEquals("Tim", attrs.get("attr1"));
+      assertEquals("Tommaso", attrs.get("attr2"));
       MultiMap params = rc.request().params();
-      Assert.assertEquals(0, rc.fileUploads().size());
+      assertEquals(0, rc.fileUploads().size());
       if (mergeAttributes) {
-        Assert.assertNotNull(params);
-        Assert.assertEquals(3, params.size());
-        Assert.assertEquals("Tim", params.get("attr1"));
-        Assert.assertEquals("Tommaso", params.get("attr2"));
-        Assert.assertEquals("foo", params.get("p1"));
+        assertNotNull(params);
+        assertEquals(3, params.size());
+        assertEquals("Tim", params.get("attr1"));
+        assertEquals("Tommaso", params.get("attr2"));
+        assertEquals("foo", params.get("p1"));
       } else {
-        Assert.assertNotNull(params);
-        Assert.assertEquals(1, params.size());
-        Assert.assertEquals("foo", params.get("p1"));
-        Assert.assertEquals("Tim", rc.request().getFormAttribute("attr1"));
-        Assert.assertEquals("Tommaso", rc.request().getFormAttribute("attr2"));
+        assertNotNull(params);
+        assertEquals(1, params.size());
+        assertEquals("foo", params.get("p1"));
+        assertEquals("Tim", rc.request().getFormAttribute("attr1"));
+        assertEquals("Tommaso", rc.request().getFormAttribute("attr2"));
       }
       rc.response().end();
     });
@@ -735,25 +744,25 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testNoUploadDirFormURLEncoded() throws Exception {
+  public void testNoUploadDirFormURLEncoded() {
     String dirName = getNotCreatedTemporaryFolderName();
     router.clear();
     router.route().handler(BodyHandler.create(false).setUploadsDirectory(dirName));
 
     testFormURLEncoded();
 
-    Assert.assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
+    assertFalse(vertx.fileSystem().existsBlocking(dirName), "Upload directory must not be created.");
   }
 
   @Test
-  public void testBodyHandlerCreateTrueWorks() throws Exception {
+  public void testBodyHandlerCreateTrueWorks() {
     router.clear();
     router.route().handler(BodyHandler.create(true));
     testFormURLEncoded();
   }
 
   @Test
-  public void testSetHandleFileUploads() throws Exception {
+  public void testSetHandleFileUploads() {
     String dirName = getNotCreatedTemporaryFolderName();
     router.clear();
 
@@ -763,7 +772,7 @@ public class BodyHandlerTest extends WebTestBase {
     Buffer fileData = TestUtils.randomBuffer(50);
     Route route = router.route().handler(rc -> {
       rc.response().end();
-      Assert.assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
+      assertFalse(vertx.fileSystem().existsBlocking(dirName), "Upload directory must not be created.");
     });
     sendFileUploadRequest(fileData, 200, "OK");
 
@@ -771,13 +780,13 @@ public class BodyHandlerTest extends WebTestBase {
     bodyHandler.setHandleFileUploads(true);
     router.route().handler(rc -> {
       rc.response().end();
-      Assert.assertTrue("Upload directory must be created.", vertx.fileSystem().existsBlocking(dirName));
+      assertTrue(vertx.fileSystem().existsBlocking(dirName), "Upload directory must be created.");
     });
     sendFileUploadRequest(fileData, 200, "OK");
   }
 
   @Test
-  public void testRerouteWithHandleFileUploadsFalse() throws Exception {
+  public void testRerouteWithHandleFileUploadsFalse() {
     String fileName = "test.bin";
     router.clear();
     router.route().handler(BodyHandler.create(false).setMergeFormAttributes(true));
@@ -786,16 +795,16 @@ public class BodyHandlerTest extends WebTestBase {
     });
     router.route("/rerouted").handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
-      Assert.assertNotNull(attrs);
-      Assert.assertEquals(2, attrs.size());
-      Assert.assertEquals("Tim", attrs.get("attr1"));
-      Assert.assertEquals("Tommaso", attrs.get("attr2"));
+      assertNotNull(attrs);
+      assertEquals(2, attrs.size());
+      assertEquals("Tim", attrs.get("attr1"));
+      assertEquals("Tommaso", attrs.get("attr2"));
       MultiMap params = rc.request().params();
-      Assert.assertEquals(0, rc.fileUploads().size());
-      Assert.assertNotNull(params);
-      Assert.assertEquals(2, params.size());
-      Assert.assertEquals("Tim", params.get("attr1"));
-      Assert.assertEquals("Tommaso", params.get("attr2"));
+      assertEquals(0, rc.fileUploads().size());
+      assertNotNull(params);
+      assertEquals(2, params.size());
+      assertEquals("Tim", params.get("attr1"));
+      assertEquals("Tommaso", params.get("attr2"));
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/toBeRerouted", req -> {
@@ -821,7 +830,7 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testBodyLimitWithHandleFileUploadsFalse() throws Exception {
+  public void testBodyLimitWithHandleFileUploadsFalse() {
     router.clear();
 
     BodyHandler bodyHandler = BodyHandler.create(false).setBodyLimit(2048);
@@ -834,18 +843,17 @@ public class BodyHandlerTest extends WebTestBase {
     sendFileUploadRequest(fileData, 413, "Request Entity Too Large");
   }
 
-  private String getNotCreatedTemporaryFolderName() throws IOException {
-    File dir = tempUploads.newFolder();
-    dir.delete();
+  private String getNotCreatedTemporaryFolderName() {
+    File dir = new File(tempUploads, "notCreated" + System.nanoTime());
     return dir.getPath();
   }
 
   @Test
-  public void testFomWithoutParamNameRequestForm() throws Exception {
+  public void testFomWithoutParamNameRequestForm() {
     router.clear();
     router.route().handler(BodyHandler.create());
     Buffer buffer = Buffer.buffer("a=b&=&c=d");
-    router.route().handler(rc -> Assert.fail("Should not be called"));
+    router.route().handler(rc -> fail("Should not be called"));
     testRequest(HttpMethod.POST, "/", req -> {
       req.setChunked(true);
       req.putHeader("content-type", "application/x-www-form-urlencoded");
@@ -854,7 +862,7 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testFomWithoutParamRequestForm() throws Exception {
+  public void testFomWithoutParamRequestForm() {
     router.clear();
     router.route().handler(BodyHandler.create());
     Buffer buffer = Buffer.buffer("a=b&&c=d");
@@ -867,7 +875,7 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testJsonLimit() throws Exception {
+  public void testJsonLimit() {
     router.clear();
     router.route().handler(BodyHandler.create());
     Buffer buffer = Buffer.buffer("000000000000000000000000000000000000000000000000");
@@ -888,7 +896,7 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testJsonLimitOK() throws Exception {
+  public void testJsonLimitOK() {
     router.clear();
     router.route().handler(BodyHandler.create());
     Buffer buffer = Buffer.buffer("{\"k\":1111}");
@@ -909,29 +917,29 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testFileUploadUTF8() throws Exception {
+  public void testFileUploadUTF8() {
     String name = "somename";
     String fileName = "somefile.dat";
     String contentType = "application/octet-stream";
     Buffer fileData = TestUtils.randomBuffer(50);
     router.route().handler(rc -> {
       List<FileUpload> fileUploads = rc.fileUploads();
-      Assert.assertNotNull(fileUploads);
-      Assert.assertEquals(1, fileUploads.size());
+      assertNotNull(fileUploads);
+      assertEquals(1, fileUploads.size());
       FileUpload upload = fileUploads.iterator().next();
-      Assert.assertEquals(name, upload.name());
+      assertEquals(name, upload.name());
       // tests https://tools.ietf.org/html/rfc5987
-      Assert.assertEquals("\u00A3 and \u20AC " + fileName, upload.fileName());
-      Assert.assertEquals(contentType, upload.contentType());
-      Assert.assertEquals("binary", upload.contentTransferEncoding());
-      Assert.assertEquals(fileData.length(), upload.size());
+      assertEquals("\u00A3 and \u20AC " + fileName, upload.fileName());
+      assertEquals(contentType, upload.contentType());
+      assertEquals("binary", upload.contentTransferEncoding());
+      assertEquals(fileData.length(), upload.size());
       String uploadedFileName = upload.uploadedFileName();
-      Assert.assertTrue(uploadedFileName.startsWith(BodyHandler.DEFAULT_UPLOADS_DIRECTORY + File.separator));
+      assertTrue(uploadedFileName.startsWith(BodyHandler.DEFAULT_UPLOADS_DIRECTORY + File.separator));
       Buffer uploaded = vertx.fileSystem().readFileBlocking(uploadedFileName);
-      Assert.assertEquals(fileData, uploaded);
+      assertEquals(fileData, uploaded);
       // the data is upload as HTML form, so the body should be empty
       Buffer rawBody = rc.body().buffer();
-      Assert.assertNull(rawBody);
+      assertNull(rawBody);
       rc.response().end();
     });
 
@@ -956,15 +964,15 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testFormMultipartFormDataLarge() throws Exception {
+  public void testFormMultipartFormDataLarge() {
     router.clear();
     router.route().handler(BodyHandler.create());
     router.route().handler(rc -> {
-      Assert.fail("Should not get here");
+      fail("Should not get here");
     }).failureHandler(ctx -> {
-      Assert.assertNotNull(ctx.failure());
-      Assert.assertTrue(ctx.failure() instanceof IOException);
-      Assert.assertEquals("Size exceed allowed maximum capacity", ctx.failure().getMessage());
+      assertNotNull(ctx.failure());
+      assertTrue(ctx.failure() instanceof IOException);
+      assertEquals("Size exceed allowed maximum capacity", ctx.failure().getMessage());
       ctx.next();
     });
 
@@ -991,7 +999,7 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testLogExceptions() throws Exception {
+  public void testLogExceptions() {
     router.clear();
     router.route().handler(BodyHandler.create());
 
@@ -1003,8 +1011,9 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testFileUploadSize() throws Exception {
-    String uploadsDirectory = tempUploads.newFolder().getPath();
+  public void testFileUploadSize() {
+    String uploadsDirectory = new File(tempUploads, "uploadSize").getPath();
+    new File(uploadsDirectory).mkdirs();
     router.clear();
     router.route().handler(BodyHandler.create()
       .setDeleteUploadedFilesOnEnd(true)
@@ -1017,7 +1026,7 @@ public class BodyHandlerTest extends WebTestBase {
       System.out.println(specData);
       FileUpload file = ctx.fileUploads().iterator().next();
       long uploadSize = file.size();
-      Assert.assertEquals(realSize, uploadSize);
+      assertEquals(realSize, uploadSize);
       ctx.end();
     });
 
@@ -1055,11 +1064,11 @@ public class BodyHandlerTest extends WebTestBase {
 
 
   @Test
-  public void testMaxFormFieldsLimit() throws Exception {
+  public void testMaxFormFieldsLimit() {
     router.clear();
     router.route().handler(BodyHandler.create());
     router.route().handler(ctx -> {
-      Assert.fail();
+      fail();
     });
 
     int len = 1025;

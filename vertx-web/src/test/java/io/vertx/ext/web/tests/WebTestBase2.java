@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @VertxTest
 public class WebTestBase2 {
@@ -312,6 +313,28 @@ public class WebTestBase2 {
 
       assertEquals(responseBody, response.toString());
     }
+  }
+
+  // Todo : move that to TestUtils
+  protected static void assertWaitUntil(java.util.function.BooleanSupplier supplier) {
+    assertWaitUntil(supplier, 10_000);
+  }
+
+  // Todo : move that to TestUtils
+  protected static void assertWaitUntil(java.util.function.BooleanSupplier supplier, long timeout) {
+    long start = System.currentTimeMillis();
+    do {
+      if (supplier.getAsBoolean()) {
+        return;
+      }
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(e);
+      }
+    } while (System.currentTimeMillis() - start < timeout);
+    fail("Timed out");
   }
 
   /**
