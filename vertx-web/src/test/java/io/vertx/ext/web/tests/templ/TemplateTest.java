@@ -24,39 +24,37 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.TemplateHandler;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class TemplateTest extends WebTestBase {
-
-  public TemplateTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class TemplateTest extends WebTestBase2 {
 
   @Test
-  public void testTemplateHandler() throws Exception {
+  public void testTemplateHandler() {
     testRelativeToRoutePath(null);
   }
 
   @Test
-  public void testTemplateHandler2() throws Exception {
+  public void testTemplateHandler2() {
     testRelativeToRoutePath("/");
   }
 
   @Test
-  public void testRelativeToRoutePath() throws Exception {
+  public void testRelativeToRoutePathWithPrefix() {
     testRelativeToRoutePath("/pathprefix/");
   }
 
-  private void testRelativeToRoutePath(String pathPrefix) throws Exception {
+  private void testRelativeToRoutePath(String pathPrefix) {
     TemplateEngine engine = new TestEngine(false);
     router.route().handler(context -> {
       context.put("foo", "badger");
@@ -79,20 +77,19 @@ public class TemplateTest extends WebTestBase {
   }
 
   @Test
-  public void testTemplateEngineFail() throws Exception {
+  public void testTemplateEngineFail(VertxTestContext testContext) {
     TemplateEngine engine = new TestEngine(true);
     router.route().handler(TemplateHandler.create(engine, "somedir", "text/html"));
     router.errorHandler(500, ctx -> {
       Throwable t = ctx.failure();
-      Assert.assertEquals("eek", t.getMessage());
-      testComplete();
+      assertEquals("eek", t.getMessage());
+      testContext.completeNow();
     });
     testRequest(HttpMethod.GET, "/foo.html", 500, "Internal Server Error");
-    await();
   }
 
   @Test
-  public void testTemplateEngineWithPathVariables() throws Exception {
+  public void testTemplateEngineWithPathVariables() {
     TemplateEngine engine = new TestEngine(false);
     router.route().handler(context -> {
       context.put("foo", "badger");
@@ -111,7 +108,7 @@ public class TemplateTest extends WebTestBase {
   }
 
   @Test
-  public void testRenderDirectly() throws Exception {
+  public void testRenderDirectly() {
     TemplateEngine engine = new TestEngine(false);
     router.route().handler(context -> {
       context.put("foo", "badger");
@@ -135,7 +132,7 @@ public class TemplateTest extends WebTestBase {
   }
 
   @Test
-  public void testRenderToBuffer() throws Exception {
+  public void testRenderToBuffer() {
     TemplateEngine engine = new TestEngine(false);
     String expected =
       "<html>\n" +
@@ -147,18 +144,17 @@ public class TemplateTest extends WebTestBase {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
-      engine.render(context.data(), "somedir/test-template.html").onComplete(TestUtils.onSuccess(res -> {
-        String rendered = res.toString();
-        final String actual = normalizeLineEndingsFor(res).toString();
-        Assert.assertEquals(expected, actual);
-        context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
-        context.response().end(rendered);
-        testComplete();
-      }));
+      engine.render(context.data(), "somedir/test-template.html")
+        .onComplete(TestUtils.onSuccess(res -> {
+          String rendered = res.toString();
+          final String actual = normalizeLineEndingsFor(res).toString();
+          assertEquals(expected, actual);
+          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
+          context.response().end(rendered);
+        }));
     });
 
     testRequestBuffer(HttpMethod.GET, "/", null, null, 200, "OK", Buffer.buffer(expected), true);
-    await();
   }
 
   // Just for testing - not for actual use
@@ -193,7 +189,7 @@ public class TemplateTest extends WebTestBase {
   }
 
   @Test
-  public void testSubRouterBeforeTemplateHandler() throws Exception {
+  public void testSubRouterBeforeTemplateHandler() {
 
     String top =
       "<html lang=\"en\">\n" +
