@@ -1,49 +1,36 @@
 package io.vertx.ext.web.tests;
 
 import io.vertx.core.*;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerResponse;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.core.http.*;
 import io.vertx.ext.web.Router;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import io.vertx.junit5.VertxTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.net.HttpURLConnection;
+import java.util.concurrent.TimeUnit;
 
-@RunWith(VertxUnitRunner.class)
+@VertxTest
 public class RoutingContextNullCurrentRouteTest {
 
   static final int PORT = 9091;
   private Vertx vertx;
 
-  @Before
-  public void before(TestContext context) {
-    vertx = Vertx.vertx();
-    Async async = context.async();
-    vertx.deployVerticle(TestVerticle.class.getName()).onComplete(context.asyncAssertSuccess(event -> async.complete()));
+  @BeforeEach
+  public void before(Vertx v) throws Exception {
+    vertx = v;
+    vertx.deployVerticle(TestVerticle.class.getName())
+      .await(20, TimeUnit.SECONDS);
   }
 
   @Test
-  public void test(TestContext testContext) {
-    HttpClient client =
-      vertx.createHttpClient(new HttpClientOptions()
-        .setConnectTimeout(10000));
+  public void test() {
+    HttpClient client = vertx.createHttpClient(new HttpClientOptions().setConnectTimeout(10000));
     client.request(HttpMethod.GET, PORT, "127.0.0.1", "/test")
-      .compose(HttpClientRequest::send).onComplete(testContext.asyncAssertSuccess(resp -> {
-        testContext.assertEquals(HttpURLConnection.HTTP_NO_CONTENT, resp.statusCode());
-      }));
-  }
-
-  @After
-  public void after(TestContext context) {
-    vertx.close().onComplete(context.asyncAssertSuccess());
+      .compose(request -> request
+        .send()
+        .expecting(HttpResponseExpectation.status(HttpURLConnection.HTTP_NO_CONTENT))
+      ).await();
   }
 
   public static class TestVerticle extends VerticleBase {

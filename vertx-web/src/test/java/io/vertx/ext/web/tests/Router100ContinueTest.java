@@ -1,63 +1,56 @@
 package io.vertx.ext.web.tests;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.RunTestOnContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import io.vertx.junit5.VertxTest;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-@RunWith(VertxUnitRunner.class)
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@VertxTest
 public class Router100ContinueTest {
 
-  @Rule
-  public final RunTestOnContext rule = new RunTestOnContext();
-
-  final Router router = Router.router(rule.vertx());
-
+  Vertx vertx;
+  Router router;
   HttpServer server;
   HttpClient client;
 
-  @Before
-  public void setup(TestContext should) {
-    final Async setup = should.async();
-    rule.vertx()
+  @BeforeEach
+  public void setup(Vertx vertx) throws Exception {
+    this.vertx = vertx;
+    this.router = Router.router(vertx);
+    server = vertx
       .createHttpServer()
-      .requestHandler(router)
-      .listen(0)
-      .onSuccess(server -> {
-        this.server = server;
-        this.client = rule.vertx()
-          .createHttpClient(new HttpClientOptions().setDefaultPort(server.actualPort()).setDefaultHost("localhost"));
-        setup.complete();
-      })
-      .onFailure(should::fail);
+      .requestHandler(router);
+    server.listen(0).await(20, TimeUnit.SECONDS);
+    client = vertx
+      .createHttpClient(new HttpClientOptions().setDefaultPort(server.actualPort()).setDefaultHost("localhost"));
   }
 
   @Test
-  public void testContinue(TestContext should) {
-    final Async test = should.async();
+  public void testContinue(VertxTestContext testContext) {
     router.route()
       .handler(BodyHandler.create())
       .handler(ctx -> {
-        should.assertEquals("DATA", ctx.body().asString());
+        assertEquals("DATA", ctx.body().asString());
         ctx.end();
       });
 
     client.request(HttpMethod.POST, "/")
-      .onFailure(should::fail)
+      .onFailure(testContext::failNow)
       .onSuccess(req -> {
         req
           .response()
-          .onFailure(should::fail)
+          .onFailure(testContext::failNow)
           .onSuccess(res -> {
-            should.assertEquals(200, res.statusCode());
-            test.complete();
+            assertEquals(200, res.statusCode());
+            testContext.completeNow();
           });
 
         req
@@ -66,31 +59,30 @@ public class Router100ContinueTest {
           .continueHandler(v ->
             req
               .end("DATA")
-              .onFailure(should::fail))
+              .onFailure(testContext::failNow))
           .sendHead()
-          .onFailure(should::fail);
+          .onFailure(testContext::failNow);
       });
   }
 
   @Test
-  public void testBadExpectation(TestContext should) {
-    final Async test = should.async();
+  public void testBadExpectation(VertxTestContext testContext) {
     router.route()
       .handler(BodyHandler.create())
       .handler(ctx -> {
-        should.assertEquals("DATA", ctx.body().asString());
+        assertEquals("DATA", ctx.body().asString());
         ctx.end();
       });
 
     client.request(HttpMethod.POST, "/")
-      .onFailure(should::fail)
+      .onFailure(testContext::failNow)
       .onSuccess(req -> {
         req
           .response()
-          .onFailure(should::fail)
+          .onFailure(testContext::failNow)
           .onSuccess(res -> {
-            should.assertEquals(417, res.statusCode());
-            test.complete();
+            assertEquals(417, res.statusCode());
+            testContext.completeNow();
           });
 
         req
@@ -99,32 +91,31 @@ public class Router100ContinueTest {
           .continueHandler(v ->
             req
               .end("DATA")
-              .onFailure(should::fail))
+              .onFailure(testContext::failNow))
           .sendHead()
-          .onFailure(should::fail);
+          .onFailure(testContext::failNow);
       });
   }
 
   @Test
-  public void testExpectButTooLarge(TestContext should) {
-    final Async test = should.async();
+  public void testExpectButTooLarge(VertxTestContext testContext) {
     router.route()
       .handler(BodyHandler.create().setBodyLimit(1))
       .handler(ctx -> {
-        should.assertEquals("DATA", ctx.body().asString());
+        assertEquals("DATA", ctx.body().asString());
         ctx.end();
       });
 
     client.request(HttpMethod.POST, "/")
-      .onFailure(should::fail)
+      .onFailure(testContext::failNow)
       .onSuccess(req -> {
         req
           .response()
-          .onFailure(should::fail)
+          .onFailure(testContext::failNow)
           .onSuccess(res -> {
             // entity too large
-            should.assertEquals(413, res.statusCode());
-            test.complete();
+            assertEquals(413, res.statusCode());
+            testContext.completeNow();
           });
 
         req
@@ -133,9 +124,9 @@ public class Router100ContinueTest {
           .continueHandler(v ->
             req
               .end("DATA")
-              .onFailure(should::fail))
+              .onFailure(testContext::failNow))
           .sendHead()
-          .onFailure(should::fail);
+          .onFailure(testContext::failNow);
       });
   }
 }

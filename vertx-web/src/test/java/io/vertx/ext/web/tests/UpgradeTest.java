@@ -1,56 +1,57 @@
 package io.vertx.ext.web.tests;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.RunTestOnContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
+import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.VertxTest;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-@RunWith(VertxUnitRunner.class)
+import java.util.concurrent.TimeUnit;
+
+@VertxTest
 public class UpgradeTest {
 
-  @Rule
-  public final RunTestOnContext rule = new RunTestOnContext();
-
-  final Router router = Router.router(rule.vertx());
-
+  Vertx vertx;
+  final Router router;
   HttpServer server;
   HttpClient client;
   WebSocketClient wsClient;
 
-  @Before
-  public void setup(TestContext should) {
-    final Async setup = should.async();
-    rule.vertx()
+  public UpgradeTest(Vertx vertx) {
+    this.vertx = vertx;
+    this.router = Router.router(vertx);
+  }
+
+  @BeforeEach
+  public void setup() throws Exception {
+    server = vertx
       .createHttpServer()
-      .requestHandler(router)
-      .listen(0)
-      .onSuccess(server -> {
-        this.server = server;
-        this.client = rule.vertx()
-          .createHttpClient(new HttpClientOptions().setDefaultPort(server.actualPort()).setDefaultHost("localhost"));
-        this.wsClient = rule.vertx().createWebSocketClient(new WebSocketClientOptions().setDefaultPort(server.actualPort()).setDefaultHost("localhost"));
-        setup.complete();
-      })
-      .onFailure(should::fail);
+      .requestHandler(router);
+    server.listen(0).await(20, TimeUnit.SECONDS);
+    client = vertx.createHttpClient(
+      new HttpClientOptions()
+        .setDefaultPort(server.actualPort())
+        .setDefaultHost("localhost"));
+    wsClient = vertx.createWebSocketClient(
+      new WebSocketClientOptions()
+        .setDefaultPort(server.actualPort())
+        .setDefaultHost("localhost"));
   }
 
   @Test
-  public void testUpgradeWithAsyncInBetween(TestContext should) {
-    final Async test = should.async();
+  public void testUpgradeWithAsyncInBetween(VertxTestContext testContext) {
+    Checkpoint done = testContext.checkpoint();
     router.route()
       .handler((PlatformHandler) ctx -> {
         ctx.request().pause();
         // delay 5ms to ensure we don't run sequentially
-        rule.vertx().setTimer(5L, v -> {
+        vertx.setTimer(5L, v -> {
           ctx.request().resume();
           ctx.next();
         });
@@ -58,7 +59,7 @@ public class UpgradeTest {
       .handler((PlatformHandler) ctx -> {
         ctx.request().pause();
         // delay 5ms to ensure we don't run sequentially
-        rule.vertx().setTimer(5L, v -> {
+        vertx.setTimer(5L, v -> {
           ctx.request().resume();
           ctx.next();
         });
@@ -75,23 +76,23 @@ public class UpgradeTest {
       });
 
     wsClient.connect("/")
-      .onFailure(should::fail)
+      .onFailure(testContext::failNow)
       .onSuccess(webSocket -> {
         webSocket.frameHandler(System.out::println);
-        webSocket.closeHandler(ok -> test.complete());
+        webSocket.closeHandler(ok -> done.flag());
       });
   }
 
   @Test
-  public void testUpgradeWithLongAwait(TestContext should) {
-    final Async test = should.async();
+  public void testUpgradeWithLongAwait(VertxTestContext testContext) {
+    Checkpoint done = testContext.checkpoint();
     router.route()
       .handler((PlatformHandler) ctx -> {
         ctx.request().pause();
 
         ctx.response().removeCookie("session", false);
         // delay 5ms to ensure we don't run sequentially
-        rule.vertx().setTimer(500L, v -> {
+        vertx.setTimer(500L, v -> {
           ctx.request().resume();
           ctx.next();
         });
@@ -112,10 +113,10 @@ public class UpgradeTest {
       .addHeader("cookie", "session=" + TestUtils.randomAlphaString(32));
 
     wsClient.connect(options)
-      .onFailure(should::fail)
+      .onFailure(testContext::failNow)
       .onSuccess(webSocket -> {
         webSocket.frameHandler(System.out::println);
-        webSocket.closeHandler(ok -> test.complete());
+        webSocket.closeHandler(ok -> done.flag());
       });
   }
 }

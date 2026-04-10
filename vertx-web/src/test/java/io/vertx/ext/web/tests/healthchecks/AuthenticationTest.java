@@ -1,23 +1,19 @@
 package io.vertx.ext.web.tests.healthchecks;
 
 import io.vertx.core.Future;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
-import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.healthchecks.HealthCheckHandler;
-import org.junit.Test;
-
-import java.util.function.Function;
+import org.junit.jupiter.api.Test;
 
 import static io.vertx.core.http.HttpHeaders.APPLICATION_X_WWW_FORM_URLENCODED;
 import static io.vertx.core.http.HttpHeaders.CONTENT_TYPE;
-import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AuthenticationTest extends HealthCheckTestBase {
 
@@ -41,122 +37,108 @@ public class AuthenticationTest extends HealthCheckTestBase {
     };
   }
 
-  @Test
-  public void testAuthenticationFailed(TestContext tc) {
-    httpClient.request(GET, "/health").compose(HttpClientRequest::send).onComplete(tc.asyncAssertSuccess(response -> {
-      tc.assertEquals(403, response.statusCode());
-    }));
+  private int request(RequestOptions options) {
+    return httpClient
+      .request(options)
+      .compose(request -> request
+        .send()
+        .compose(response -> response
+          .end()
+          .map(response.statusCode())))
+      .await();
   }
 
   @Test
-  public void testAuthenticationSuccessUsingHeader(TestContext tc) {
-    httpClient.request(GET, "/health").compose(request -> {
-      return request
-        .putHeader("X-Username", "admin")
-        .putHeader("X-Password", "admin")
-        .send();
-    }).onComplete(tc.asyncAssertSuccess(response -> {
-      tc.assertEquals(204, response.statusCode());
-    }));
+  public void testAuthenticationFailed() {
+    assertEquals(403, request(new RequestOptions().setURI("/health")));
   }
 
   @Test
-  public void testAuthenticationFailedUsingHeader(TestContext tc) {
-    httpClient.request(GET, "/health").compose(request -> {
-      return request
-        .putHeader("X-Username", "admin")
-        .putHeader("X-Password", "wrong password")
-        .send();
-    }).onComplete(tc.asyncAssertSuccess(response -> {
-      tc.assertEquals(403, response.statusCode());
-    }));
+  public void testAuthenticationSuccessUsingHeader() {
+    assertEquals(204, request(new RequestOptions().setURI("/health")
+      .putHeader("X-Username", "admin")
+      .putHeader("X-Password", "admin")));
   }
 
   @Test
-  public void testAuthenticationSuccessfulUsingParam(TestContext tc) {
-    String requestURI = String.format("/health?X-Username=%s&X-Password=%s", "admin", "admin");
-    httpClient.request(GET, requestURI).compose(HttpClientRequest::send).onComplete(tc.asyncAssertSuccess(response -> {
-      tc.assertEquals(204, response.statusCode());
-    }));
+  public void testAuthenticationFailedUsingHeader() {
+    assertEquals(403, request(new RequestOptions().setURI("/health")
+      .putHeader("X-Username", "admin")
+      .putHeader("X-Password", "wrong password")));
   }
 
   @Test
-  public void testAuthenticationFailedUsingParam(TestContext tc) {
-    String requestURI = String.format("/health?X-Password=%s", "admin");
-    httpClient.request(GET, requestURI).compose(HttpClientRequest::send).onComplete(tc.asyncAssertSuccess(response -> {
-      tc.assertEquals(403, response.statusCode());
-    }));
+  public void testAuthenticationSuccessfulUsingParam() {
+    assertEquals(204, request(new RequestOptions().setURI("/health?X-Username=admin&X-Password=admin")));
   }
 
   @Test
-  public void testAuthenticationSuccessfulUsingForm(TestContext tc) {
-    httpClient.request(POST, "/post-health").compose(request -> {
-      return request
-        .putHeader(CONTENT_TYPE, APPLICATION_X_WWW_FORM_URLENCODED)
-        .send(String.format("X-Username=%s&X-Password=%s", "admin", "admin"));
-    }).onComplete(tc.asyncAssertSuccess(response -> {
-      tc.assertEquals(204, response.statusCode());
-    }));
+  public void testAuthenticationFailedUsingParam() {
+    assertEquals(403, request(new RequestOptions().setURI("/health?X-Password=admin")));
   }
 
   @Test
-  public void testAuthenticationFailedUsingForm(TestContext tc) {
-    httpClient.request(POST, "/post-health").compose(request -> {
-      return request
-        .putHeader(CONTENT_TYPE, APPLICATION_X_WWW_FORM_URLENCODED)
-        .send(String.format("X-Username=%s&X-Password=%s", "admin", "not-my-password"));
-    }).onComplete(tc.asyncAssertSuccess(response -> {
-      tc.assertEquals(403, response.statusCode());
-    }));
+  public void testAuthenticationSuccessfulUsingForm() {
+    assertEquals(204, requestWithBody(
+      new RequestOptions().setMethod(POST).setURI("/post-health").putHeader(CONTENT_TYPE, APPLICATION_X_WWW_FORM_URLENCODED),
+      "X-Username=admin&X-Password=admin"));
   }
 
   @Test
-  public void testAuthenticationSuccessfulUsingBody(TestContext tc) {
-    httpClient.request(POST, "/post-health").compose(request -> {
-      return request
-        .putHeader(CONTENT_TYPE, "application/json")
-        .send("{\"X-Username\":\"admin\", \"X-Password\":\"admin\"}");
-    }).onComplete(tc.asyncAssertSuccess(response -> {
-      tc.assertEquals(204, response.statusCode());
-    }));
+  public void testAuthenticationFailedUsingForm() {
+    assertEquals(403, requestWithBody(
+      new RequestOptions().setMethod(POST).setURI("/post-health").putHeader(CONTENT_TYPE, APPLICATION_X_WWW_FORM_URLENCODED),
+      "X-Username=admin&X-Password=not-my-password"));
   }
 
   @Test
-  public void testAuthenticationFailedUsingBody(TestContext tc) {
-    httpClient.request(POST, "/post-health").compose(request -> {
-      return request
-        .putHeader(CONTENT_TYPE, "application/json")
-        .send("{\"X-Username\":\"admin\", \"X-Password\":\"not my password\"}");
-    }).onComplete(tc.asyncAssertSuccess(response -> {
-      tc.assertEquals(403, response.statusCode());
-    }));
+  public void testAuthenticationSuccessfulUsingBody() {
+    assertEquals(204, requestWithBody(
+      new RequestOptions().setMethod(POST).setURI("/post-health").putHeader(CONTENT_TYPE, "application/json"),
+      "{\"X-Username\":\"admin\", \"X-Password\":\"admin\"}"));
   }
 
   @Test
-  public void testAuthenticationFailedUsingBodyBecauseOfMissingContentType(TestContext tc) {
-    httpClient.request(POST, "/post-health").compose(request -> {
-      return request.send("{\"X-Username\":\"admin\", \"X-Password\":\"admin\"}");
-    }).onComplete(tc.asyncAssertSuccess(response -> {
-      tc.assertEquals(403, response.statusCode());
-    }));
+  public void testAuthenticationFailedUsingBody() {
+    assertEquals(403, requestWithBody(
+      new RequestOptions().setMethod(POST).setURI("/post-health").putHeader(CONTENT_TYPE, "application/json"),
+      "{\"X-Username\":\"admin\", \"X-Password\":\"not my password\"}"));
   }
 
   @Test
-  public void testAuthenticationFailedUsingBodyBecauseOfMissingBody(TestContext tc) {
-    testAuthenticationFailedUsingBody(tc, HttpClientRequest::send);
+  public void testAuthenticationFailedUsingBodyBecauseOfMissingContentType() {
+    assertEquals(403, requestWithBody(
+      new RequestOptions().setMethod(POST).setURI("/post-health"),
+      "{\"X-Username\":\"admin\", \"X-Password\":\"admin\"}"));
   }
 
   @Test
-  public void testAuthenticationFailedUsingBodyBecauseOfInvalidBody(TestContext tc) {
-    testAuthenticationFailedUsingBody(tc, req -> req.send("not-json"));
+  public void testAuthenticationFailedUsingBodyBecauseOfMissingBody() {
+    assertEquals(403, requestWithBody(
+      new RequestOptions().setMethod(POST).setURI("/post-health").putHeader(CONTENT_TYPE, "application/json"),
+      null));
   }
 
-  private void testAuthenticationFailedUsingBody(TestContext tc, Function<HttpClientRequest, Future<HttpClientResponse>> sender) {
-    httpClient.request(POST, "/post-health").compose(request -> {
-      request.putHeader(CONTENT_TYPE, "application/json");
-      return sender.apply(request);
-    }).onComplete(tc.asyncAssertSuccess(response -> {
-      tc.assertEquals(403, response.statusCode());
-    }));
+  @Test
+  public void testAuthenticationFailedUsingBodyBecauseOfInvalidBody() {
+    assertEquals(403, requestWithBody(
+      new RequestOptions().setMethod(POST).setURI("/post-health").putHeader(CONTENT_TYPE, "application/json"),
+      "not-json"));
+  }
+
+  private int requestWithBody(RequestOptions options, String body) {
+    return httpClient
+      .request(options)
+      .compose(request -> {
+        if (body != null) {
+          return request.send(body);
+        } else {
+          return request.send();
+        }
+      })
+      .compose(response -> response
+        .end()
+        .map(response.statusCode()))
+      .await();
   }
 }
