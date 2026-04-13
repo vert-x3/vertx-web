@@ -16,6 +16,7 @@
 open module io.vertx.web.sstore.cookie.tests {
   requires io.vertx.core;
   requires io.vertx.web;
+  requires io.vertx.web.client;
   requires io.vertx.web.sstore.cookie;
   requires io.vertx.web.tests;
   requires junit;

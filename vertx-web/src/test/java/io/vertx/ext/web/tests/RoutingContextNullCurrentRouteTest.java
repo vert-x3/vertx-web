@@ -3,6 +3,7 @@ package io.vertx.ext.web.tests;
 import io.vertx.core.*;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,11 +27,11 @@ public class RoutingContextNullCurrentRouteTest {
   @Test
   public void test() {
     HttpClient client = vertx.createHttpClient(new HttpClientOptions().setConnectTimeout(10000));
-    client.request(HttpMethod.GET, PORT, "127.0.0.1", "/test")
-      .compose(request -> request
-        .send()
-        .expecting(HttpResponseExpectation.status(HttpURLConnection.HTTP_NO_CONTENT))
-      ).await();
+    WebClient webClient = WebClient.wrap(client);
+    webClient.get(PORT, "127.0.0.1", "/test")
+      .send()
+      .expecting(HttpResponseExpectation.status(HttpURLConnection.HTTP_NO_CONTENT))
+      .await();
   }
 
   public static class TestVerticle extends VerticleBase {

@@ -19,15 +19,14 @@ package io.vertx.ext.web.tests.handler.sockjs;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.core.json.JsonArray;
-import io.vertx.test.core.TestUtils;
+import io.vertx.ext.web.client.HttpResponse;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -64,29 +63,18 @@ public class SockJSStreamTest extends SockJSTestBase {
 
     startServers();
 
-    List<String> messages = Collections.synchronizedList(new ArrayList<>());
-    fetchMessages(messages);
-    await();
-  }
-
-  private void fetchMessages(List<String> messages) {
-    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").compose(
-      req -> req.send(Buffer.buffer()).compose(resp -> {
-        Assert.assertEquals(200, resp.statusCode());
-        return resp.body();
-      })
-    ).onComplete(TestUtils.onSuccess(buffer -> {
-      String body = buffer.toString();
+    List<String> messages = new ArrayList<>();
+    while (messages.size() < 2) {
+      HttpResponse<Buffer> resp = webClient.post("/test/400/8ne8e94a/xhr")
+        .sendBuffer(Buffer.buffer())
+        .expecting(HttpResponseExpectation.SC_OK)
+        .await();
+      String body = resp.bodyAsString();
       if (body.startsWith("a")) {
         JsonArray content = new JsonArray(body.substring(1));
         messages.addAll(content.stream().map(Object::toString).collect(toList()));
       }
-      if (messages.size() < 2) {
-        fetchMessages(messages);
-      } else {
-        Assert.assertEquals(Arrays.asList("Hello", "World"), messages);
-        testComplete();
-      }
-    }));
+    }
+    Assert.assertEquals(Arrays.asList("Hello", "World"), messages);
   }
 }

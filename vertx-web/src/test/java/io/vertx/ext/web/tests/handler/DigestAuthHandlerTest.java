@@ -18,9 +18,11 @@ package io.vertx.ext.web.tests.handler;
 
 import io.netty.util.internal.StringUtil;
 import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.DigestAuthHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import org.junit.Assert;
@@ -70,7 +72,7 @@ public class DigestAuthHandlerTest extends WebTestBase {
      */
     int numRequests = 5;
     for (int i = 0; i < numRequests; ++i) {
-      testRequest(HttpMethod.GET, "/dir/index.html", null, null, 401, "Unauthorized", null);
+      testRequest(HttpMethod.GET, "/dir/index.html", 401, "Unauthorized", null);
     }
     int finalNoncesSize = vertx.sharedData().getLocalMap(DEFAULT_NONCE_MAP_NAME).size();
     Assert.assertEquals(initialNoncesSize + 1, finalNoncesSize);
@@ -92,27 +94,24 @@ public class DigestAuthHandlerTest extends WebTestBase {
     final AtomicReference<String> nonce = new AtomicReference<>();
     final AtomicReference<String> opaque = new AtomicReference<>();
 
-    testRequest(HttpMethod.GET, "/dir/index.html", null, resp -> {
-      String wwwAuth = resp.headers().get("WWW-Authenticate");
-      Assert.assertNotNull(wwwAuth);
-      Assert.assertTrue(wwwAuth.startsWith("Digest realm=\"" + realm + "\", qop=\"auth\", nonce=\""));
-      // extract nonce + opaque from the response
-      int pos = wwwAuth.indexOf("nonce=\"") + 7;
-      nonce.set(wwwAuth.substring(pos, endOfVariable(wwwAuth, pos, '\"')));
-      pos = wwwAuth.indexOf("opaque=\"") + 8;
-      opaque.set(wwwAuth.substring(pos, endOfVariable(wwwAuth, pos, '\"')));
-    }, 401, "Unauthorized", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/dir/index.html").send(), 401, "Unauthorized");
+    String wwwAuth = resp.headers().get("WWW-Authenticate");
+    Assert.assertNotNull(wwwAuth);
+    Assert.assertTrue(wwwAuth.startsWith("Digest realm=\"" + realm + "\", qop=\"auth\", nonce=\""));
+    // extract nonce + opaque from the response
+    int pos = wwwAuth.indexOf("nonce=\"") + 7;
+    nonce.set(wwwAuth.substring(pos, endOfVariable(wwwAuth, pos, '\"')));
+    pos = wwwAuth.indexOf("opaque=\"") + 8;
+    opaque.set(wwwAuth.substring(pos, endOfVariable(wwwAuth, pos, '\"')));
 
     // Now try again with credentials
-    testRequest(HttpMethod.GET, "/dir/index.html", req -> {
-      // rebuild the response value
-      String response = md5("939e7578ed9e3c518a452acee763bce9:" + nonce.get() + ":00000001:0a4f113b:auth:39aff3a2bab6126f332b942af96d3366");
-      // create the browser header
-      req.putHeader("Authorization", "Digest username=\"Mufasa\", realm=\"testrealm@host.com\", nonce=\"" + nonce.get() + "\", uri=\"/dir/index.html\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", response=\"" + response + "\", opaque=\"" + opaque.get() + "\"");
-    }, resp -> {
-      String wwwAuth = resp.headers().get("WWW-Authenticate");
-      Assert.assertNull(wwwAuth);
-    }, 200, "OK", "Welcome to the protected resource!");
+    // rebuild the response value
+    String response = md5("939e7578ed9e3c518a452acee763bce9:" + nonce.get() + ":00000001:0a4f113b:auth:39aff3a2bab6126f332b942af96d3366");
+    resp = testRequest(webClient.get("/dir/index.html")
+      .putHeader("Authorization", "Digest username=\"Mufasa\", realm=\"testrealm@host.com\", nonce=\"" + nonce.get() + "\", uri=\"/dir/index.html\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", response=\"" + response + "\", opaque=\"" + opaque.get() + "\"")
+      .send(), 200, "OK", "Welcome to the protected resource!");
+    wwwAuth = resp.headers().get("WWW-Authenticate");
+    Assert.assertNull(wwwAuth);
   }
 
   private static int endOfVariable(String header, int pos, char delim) {

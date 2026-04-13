@@ -1,8 +1,10 @@
 package io.vertx.ext.web.tests.handler;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
@@ -47,13 +49,13 @@ public class ChainAuthHandlerAndTest extends WebTestBase {
   public void testWithAuthorization() throws Exception {
     // there is an authorization header, so it should be handled properly
     // however it will not be accepted as first we required a jwt and that is enough to fail
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="),401, "Unauthorized", "Unauthorized");
+    testRequest(webClient.get("/").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="),401, "Unauthorized", "Unauthorized");
   }
 
   @Test
   public void testWithBadAuthorization() throws Exception {
     // there is an authorization header, but the token is invalid it should be processed by the basic auth
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="),401, "Unauthorized", "Unauthorized");
+    testRequest(webClient.get("/").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="),401, "Unauthorized", "Unauthorized");
   }
 
   @Test
@@ -70,6 +72,7 @@ public class ChainAuthHandlerAndTest extends WebTestBase {
     router.route().handler(chain);
     router.route().handler(ctx -> ctx.response().end());
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="), resp -> Assert.assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWW-Authenticate")),401, "Unauthorized", "Unauthorized");
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX==").send(), 401, "Unauthorized", "Unauthorized");
+    Assert.assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWW-Authenticate"));
   }
 }

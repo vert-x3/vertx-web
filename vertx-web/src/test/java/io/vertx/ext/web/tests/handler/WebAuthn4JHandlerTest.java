@@ -24,6 +24,7 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.json.JsonObject;
@@ -210,11 +211,9 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 		router.route("/welcome").handler(rc -> rc.response().end("Welcome"));
 		router.route("/protected/somepage").handler(handler);
 
-		testRequest(HttpMethod.GET, "/welcome", null, resp -> {
-		}, 200, "OK", "Welcome");
+		testRequest(webClient.get("/welcome").send(), 200, "OK", "Welcome");
 
-		testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
-		}, 401, "Unauthorized", null);
+		testRequest(webClient.get("/protected/somepage").send(), 401, "Unauthorized");
 
 		WebAuthnAuthenticatorAdaptor webAuthnAuthenticatorAdaptor = new WebAuthnAuthenticatorAdaptor(EmulatorUtil.PACKED_AUTHENTICATOR);
 		ClientPlatform clientPlatform = new ClientPlatform(origin, webAuthnAuthenticatorAdaptor);
@@ -222,13 +221,13 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 		String session1Cookie = testRegistration(clientPlatform);
 
 		// Now try again with credentials
-		testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader(HttpHeaders.COOKIE, session1Cookie), 200, "OK", "Welcome to the protected resource!");
+		testRequest(webClient.get("/protected/somepage").putHeader(HttpHeaders.COOKIE.toString(), session1Cookie), 200, "OK", "Welcome to the protected resource!");
 
 		// Let's drop this session and try logging in
 		String session2Cookie = testAuthentication(clientPlatform);
 
 		// Now try again with credentials
-		testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader(HttpHeaders.COOKIE, session2Cookie), 200, "OK", "Welcome to the protected resource!");
+		testRequest(webClient.get("/protected/somepage").putHeader(HttpHeaders.COOKIE.toString(), session2Cookie), 200, "OK", "Welcome to the protected resource!");
 	}
 
 	private String testRegistration(ClientPlatform clientPlatform) throws Exception {
@@ -258,13 +257,11 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 						.put("attestationObject", Base64UrlUtil.encodeToString(registrationRequest.getAttestationObject()))
 						.put("clientDataJSON", Base64UrlUtil.encodeToString(registrationRequest.getClientDataJSON())));
 
-		testRequest(HttpMethod.POST, "/webauthn/callback", req -> {
-			req.putHeader(HttpHeaders.COOKIE, obtainedCookie[0]);
-			req.send(request.encode());
-		}, resp -> {
-			String cookie = resp.getHeader(HttpHeaders.SET_COOKIE);
-			obtainedCookie[0] = extractVertxSessionCookie(cookie);
-		}, 204, "No Content", null);
+		HttpResponse<Buffer> resp = testRequest(webClient.post("/webauthn/callback")
+			.putHeader(HttpHeaders.COOKIE.toString(), obtainedCookie[0])
+			.sendBuffer(Buffer.buffer(request.encode())), 204, "No Content");
+		String cookie = resp.getHeader(HttpHeaders.SET_COOKIE.toString());
+		obtainedCookie[0] = extractVertxSessionCookie(cookie);
 
 		testStorage.find(username, null)
 		.onSuccess(authenticators -> {
@@ -365,13 +362,11 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 						.put("authenticatorData", Base64UrlUtil.encodeToString(authenticationRequest.getAuthenticatorData()))
 						.put("clientDataJSON", Base64UrlUtil.encodeToString(authenticationRequest.getClientDataJSON())));
 
-		testRequest(HttpMethod.POST, "/webauthn/callback", req -> {
-			req.putHeader(HttpHeaders.COOKIE, obtainedCookie[0]);
-			req.send(request.encode());
-		}, resp -> {
-			String cookie = resp.getHeader(HttpHeaders.SET_COOKIE);
-			obtainedCookie[0] = extractVertxSessionCookie(cookie);
-		}, 204, "No Content", null);
+		HttpResponse<Buffer> resp = testRequest(webClient.post("/webauthn/callback")
+			.putHeader(HttpHeaders.COOKIE.toString(), obtainedCookie[0])
+			.sendBuffer(Buffer.buffer(request.encode())), 204, "No Content");
+		String cookie = resp.getHeader(HttpHeaders.SET_COOKIE.toString());
+		obtainedCookie[0] = extractVertxSessionCookie(cookie);
 
 		testStorage.find(username, null)
 		.onSuccess(authenticators -> {

@@ -18,6 +18,7 @@ package io.vertx.ext.web.it.sstore;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.ext.web.Router;
@@ -162,12 +163,11 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     });
 
     AtomicReference<String> rSetCookie = new AtomicReference<>();
-    testRequestBuffer(client, HttpMethod.GET, 8081, "/", null, resp -> {
-      String setCookie = resp.headers().get("set-cookie");
-      rSetCookie.set(setCookie);
-    }, 200, "OK", null);
-    testRequestBuffer(client, HttpMethod.GET, 8082, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
-    testRequestBuffer(client, HttpMethod.GET, 8083, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get(8081, "localhost", "/").send(), 200, "OK");
+    String setCookie = resp.headers().get("set-cookie");
+    rSetCookie.set(setCookie);
+    testRequest(webClient.get(8082, "localhost", "/").putHeader("cookie", rSetCookie.get()).send(), 200, "OK");
+    testRequest(webClient.get(8083, "localhost", "/").putHeader("cookie", rSetCookie.get()).send(), 200, "OK");
   }
 
   @Test

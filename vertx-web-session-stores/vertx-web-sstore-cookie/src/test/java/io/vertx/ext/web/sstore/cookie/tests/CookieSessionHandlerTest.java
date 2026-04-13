@@ -18,8 +18,10 @@ package io.vertx.ext.web.sstore.cookie.tests;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -79,26 +81,18 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
 
     JsonObject myuser = new JsonObject().put("username", "myuser").put("password", System.currentTimeMillis());
     AtomicReference<String> cookie = new AtomicReference<>();
-    testRequest(HttpMethod.POST, "/authenticate",
-      req -> req.putHeader("content-type", "application/json").send(myuser.toString()),
-      resp -> {
-        String setCookie = resp.headers().get("set-cookie");
-        cookie.set(setCookie.substring(0, setCookie.indexOf(";")));
-        resp.body().compose(body -> {
-          assertEquals("Authenticated", body.toString());
-          return Future.succeededFuture();
-        }).onFailure(this::fail);
-      }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.post("/authenticate")
+      .putHeader("content-type", "application/json")
+      .sendBuffer(Buffer.buffer(myuser.toString())), 200, "OK");
+    String setCookie = resp.headers().get("set-cookie");
+    cookie.set(setCookie.substring(0, setCookie.indexOf(";")));
+    assertEquals("Authenticated", resp.bodyAsString());
     assertNotNull(cookie.get());
 
-    testRequest(HttpMethod.GET, "/private/whoami", req -> {
-      req.putHeader("cookie", cookie.get());
-    }, resp -> {
-      resp.body().compose(body -> {
-        assertEquals(myuser, body.toJsonObject());
-        return Future.succeededFuture();
-      }).onFailure(this::fail);
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp2 = testRequest(webClient.get("/private/whoami")
+      .putHeader("cookie", cookie.get())
+      .send(), 200, "OK");
+    assertEquals(myuser, resp2.bodyAsJsonObject());
   }
 
   @Test
@@ -163,16 +157,16 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
       rc.response().end();
     });
 
-    testRequest(HttpMethod.GET, "/0", null, resp -> {
-      String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/0").send(), 200, "OK");
+    String setCookie = resp.headers().get("set-cookie");
+    assertNotNull(setCookie);
 
-    testRequest(HttpMethod.GET, "/1", req -> req.putHeader("cookie", "vertx-web.session=" + session.get() + "; Path=/"), resp -> {
-      String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
-      assertFalse(("vertx-web.session=" + session.get() + "; Path=/").equals(setCookie));
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp2 = testRequest(webClient.get("/1")
+      .putHeader("cookie", "vertx-web.session=" + session.get() + "; Path=/")
+      .send(), 200, "OK");
+    String setCookie2 = resp2.headers().get("set-cookie");
+    assertNotNull(setCookie2);
+    assertFalse(("vertx-web.session=" + session.get() + "; Path=/").equals(setCookie2));
   }
 
   @Test
@@ -235,12 +229,11 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
 			assertEquals(SessionHandler.DEFAULT_SESSION_TIMEOUT, sess.timeout());
 			rc.response().end();
 		});
-		testRequest(HttpMethod.GET, "/", null, resp -> {
-			String setCookie = resp.headers().get("set-cookie");
-			assertTrue(setCookie.startsWith(SessionHandler.DEFAULT_SESSION_COOKIE_NAME + "="));
-			int pos = setCookie.indexOf("; Path=" + SessionHandler.DEFAULT_SESSION_COOKIE_PATH);
-			rsession.set(setCookie.substring(18, pos));
-		}, 200, "OK", null);
+		HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+		String setCookie = resp.headers().get("set-cookie");
+		assertTrue(setCookie.startsWith(SessionHandler.DEFAULT_SESSION_COOKIE_NAME + "="));
+		int pos = setCookie.indexOf("; Path=" + SessionHandler.DEFAULT_SESSION_COOKIE_PATH);
+		rsession.set(setCookie.substring(18, pos));
 
 
       store

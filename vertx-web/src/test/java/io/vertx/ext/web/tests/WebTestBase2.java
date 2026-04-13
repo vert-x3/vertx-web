@@ -22,28 +22,25 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
+import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.CountDownLatch;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @VertxTest
@@ -56,6 +53,7 @@ public class WebTestBase2 {
   protected HttpServer server;
   protected HttpClient client;
   protected WebSocketClient wsClient;
+  protected WebClient webClient;
   protected Router router;
 
   @BeforeEach
@@ -64,6 +62,7 @@ public class WebTestBase2 {
     router = Router.router(vertx);
     server = vertx.createHttpServer(getHttpServerOptions().setMaxFormFields(2048));
     client = vertx.createHttpClient(getHttpClientOptions());
+    webClient = WebClient.wrap(client);
     wsClient = vertx.createWebSocketClient(getWebSocketClientOptions());
     server
       .requestHandler(router)
@@ -100,173 +99,55 @@ public class WebTestBase2 {
     }
   }
 
-  protected void testRequest(RequestOptions requestOptions, HttpResponseStatus statusCode) {
-    testRequest(requestOptions, null, statusCode.code(), statusCode.reasonPhrase(), null);
-  }
-
   protected void testRequest(HttpMethod method, String path, HttpResponseStatus statusCode) {
-    testRequest(method, path, null, statusCode.code(), statusCode.reasonPhrase(), null);
-  }
-
-  protected void testRequest(RequestOptions requestOptions, int statusCode, String statusMessage) {
-    testRequest(requestOptions, null, statusCode, statusMessage, null);
+    testRequest(webClient.request(method, path), statusCode.code(), statusCode.reasonPhrase());
   }
 
   protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage) {
-    testRequest(method, path, null, statusCode, statusMessage, null);
-  }
-
-  protected void testRequest(RequestOptions requestOptions, int statusCode, String statusMessage,
-                             String responseBody) {
-    testRequest(requestOptions, null, statusCode, statusMessage, responseBody);
+    testRequest(webClient.request(method, path), statusCode, statusMessage);
   }
 
   protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage,
                              String responseBody) {
-    testRequest(method, path, null, statusCode, statusMessage, responseBody);
+    testRequest(webClient.request(method, path), statusCode, statusMessage, responseBody);
   }
 
-  protected void testRequest(RequestOptions requestOptions, int statusCode, String statusMessage,
-                             Buffer responseBody) {
-    testRequestBuffer(requestOptions, null, null, statusCode, statusMessage, responseBody);
-  }
-
-  protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage,
-                             Buffer responseBody) {
-    testRequestBuffer(method, path, null, null, statusCode, statusMessage, responseBody);
-  }
-
-  protected void testRequestWithContentType(RequestOptions requestOptions, String contentType, int statusCode, String statusMessage) {
-    testRequest(requestOptions, req -> req.putHeader("content-type", contentType), statusCode, statusMessage, null);
-  }
-
-  protected void testRequestWithContentType(HttpMethod method, String path, String contentType, int statusCode, String statusMessage) {
-    testRequest(method, path, req -> req.putHeader("content-type", contentType), statusCode, statusMessage, null);
-  }
-
-  protected void testRequestWithContentType(HttpMethod method, String path, String contentType, int statusCode, String statusMessage, Consumer<HttpClientResponse> responseAction) {
-    testRequest(method, path, req -> req.putHeader("content-type", contentType), responseAction, statusCode, statusMessage, null);
-  }
-
-  protected void testRequestWithAccepts(RequestOptions requestOptions, String accepts, int statusCode, String statusMessage) {
-    testRequest(requestOptions, req -> req.putHeader("accept", accepts), statusCode, statusMessage, null);
+  protected HttpResponse<Buffer> testRequestWithContentType(HttpMethod method, String path, String contentType, int statusCode, String statusMessage) throws Exception {
+    return testRequest(webClient.request(method, path).putHeader("content-type", contentType), statusCode, statusMessage);
   }
 
   protected void testRequestWithAccepts(HttpMethod method, String path, String accepts, int statusCode, String statusMessage) {
-    testRequest(method, path, req -> req.putHeader("accept", accepts), statusCode, statusMessage, null);
-  }
-
-  protected void testRequestWithCookies(RequestOptions requestOptions, String cookieHeader, int statusCode, String statusMessage) {
-    testRequest(requestOptions, req -> req.putHeader("cookie", cookieHeader), statusCode, statusMessage, null);
+    testRequest(webClient.request(method, path).putHeader("accept", accepts), statusCode, statusMessage);
   }
 
   protected void testRequestWithCookies(HttpMethod method, String path, String cookieHeader, int statusCode, String statusMessage) {
-    testRequest(method, path, req -> req.putHeader("cookie", cookieHeader), statusCode, statusMessage, null);
+    testRequest(webClient.request(method, path).putHeader("cookie", cookieHeader), statusCode, statusMessage);
   }
 
-  protected void testRequest(RequestOptions requestOptions, Consumer<HttpClientRequest> requestAction,
-                             int statusCode, String statusMessage,
-                             String responseBody) {
-    testRequest(requestOptions, requestAction, null, statusCode, statusMessage, responseBody);
+  protected void testRequest(RequestOptions requestOptions, int statusCode, String statusMessage, String responseBody) {
+    testRequest(webClient.request(requestOptions), statusCode, statusMessage, responseBody);
   }
 
-  protected void testRequest(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction,
-                             int statusCode, String statusMessage,
-                             String responseBody) {
-    testRequest(method, path, requestAction, null, statusCode, statusMessage, responseBody);
+  protected HttpResponse<Buffer> testRequest(HttpRequest<Buffer> request, int statusCode, String statusMessage) {
+    return testRequest(request, statusCode, statusMessage, null);
   }
 
-  protected void testRequest(RequestOptions requestOptions, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
-                             int statusCode, String statusMessage,
-                             String responseBody) {
-    testRequestBuffer(requestOptions, requestAction, responseAction, statusCode, statusMessage, responseBody != null ? Buffer.buffer(responseBody) : null, true);
+  protected HttpResponse<Buffer> testRequest(HttpRequest<Buffer> request, int statusCode, String statusMessage, String responseBody) {
+    return testRequest(request.send(), statusCode, statusMessage, responseBody);
   }
 
-  protected void testRequest(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
-                             int statusCode, String statusMessage,
-                             String responseBody) {
-    testRequestBuffer(method, path, requestAction, responseAction, statusCode, statusMessage, responseBody != null ? Buffer.buffer(responseBody) : null, true);
+  protected HttpResponse<Buffer> testRequest(Future<HttpResponse<Buffer>> request, int statusCode, String statusMessage) {
+    return testRequest(request, statusCode, statusMessage, null);
   }
 
-  protected void testRequestBuffer(RequestOptions requestOptions, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
-                                   int statusCode, String statusMessage,
-                                   Buffer responseBodyBuffer) {
-    testRequestBuffer(requestOptions, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, false);
-  }
-
-  protected void testRequestBuffer(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
-                                   int statusCode, String statusMessage,
-                                   Buffer responseBodyBuffer) {
-    testRequestBuffer(method, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, false);
-  }
-
-  protected void testRequestBuffer(RequestOptions requestOptions, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
-                                   int statusCode, String statusMessage,
-                                   Buffer responseBodyBuffer, boolean normalizeLineEndings) {
-    testRequestBuffer(client, requestOptions, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, normalizeLineEndings);
-  }
-
-  protected void testRequestBuffer(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
-                                   int statusCode, String statusMessage,
-                                   Buffer responseBodyBuffer, boolean normalizeLineEndings) {
-    testRequestBuffer(client, method, 8080, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, normalizeLineEndings);
-  }
-
-  protected void testRequestBuffer(HttpClient client, RequestOptions requestOptions, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
-                                   int statusCode, String statusMessage,
-                                   Buffer responseBodyBuffer) {
-    testRequestBuffer(client, requestOptions, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, false);
-  }
-
-  protected void testRequestBuffer(HttpClient client, HttpMethod method, int port, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
-                                   int statusCode, String statusMessage,
-                                   Buffer responseBodyBuffer) {
-    testRequestBuffer(client, method, port, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, false);
-  }
-
-  protected void testRequestBuffer(HttpClient client, HttpMethod method, int port, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
-                                   int statusCode, String statusMessage,
-                                   Buffer responseBodyBuffer, boolean normalizeLineEndings) {
-    testRequestBuffer(client, new RequestOptions().setMethod(method).setPort(port).setURI(path).setHost("localhost"), requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, normalizeLineEndings);
-  }
-
-  protected void testRequestBuffer(HttpClient client, RequestOptions requestOptions, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
-                                   int statusCode, String statusMessage,
-                                   Buffer responseBodyBuffer, boolean normalizeLineEndings) {
-    Future<Buffer> bodyFuture = client.request(requestOptions)
-      .compose(request  -> {
-
-        if (requestAction != null) {
-          requestAction.accept(request);
-        }
-
-        request.end();
-
-        Future<HttpClientResponse> responseFuture = request.response()
-          .expecting(HttpResponseExpectation.status(statusCode))
-          .expecting(response -> response.statusMessage().equals(statusMessage));
-
-        if (responseAction != null) {
-          responseFuture = responseFuture
-            .andThen(ar -> {
-              if (ar.succeeded()) {
-                responseAction.accept(ar.result());
-              }
-          });
-        }
-
-        return responseFuture.compose(HttpClientResponse::body);
-
-      });
-
-    Buffer body = bodyFuture.await();
-
-    if (responseBodyBuffer != null) {
-      if (normalizeLineEndings) {
-        body = normalizeLineEndingsFor(body);
-      }
-      assertEquals(responseBodyBuffer, body);
+  protected HttpResponse<Buffer> testRequest(Future<HttpResponse<Buffer>> request, int statusCode, String statusMessage, String responseBody) {
+    HttpResponse<Buffer> response = request.await();
+    Assert.assertEquals(statusCode, response.statusCode());
+    Assert.assertEquals(statusMessage, response.statusMessage());
+    if (responseBody != null) {
+      Assert.assertEquals(Buffer.buffer(responseBody), response.body());
     }
+    return response;
   }
 
   protected static Buffer normalizeLineEndingsFor(Buffer buff) {
@@ -279,40 +160,6 @@ public class WebTestBase2 {
       }
     }
     return normalized;
-  }
-
-  protected void testSyncRequest(String httpMethod, String path, int statusCode, String statusMessage, String responseBody) throws IOException {
-    HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:" + this.server.actualPort() + path).openConnection();
-    connection.setRequestMethod(httpMethod);
-
-    assertEquals(statusCode, connection.getResponseCode());
-    if (connection.getResponseCode() < 400) {
-      assertEquals(statusMessage, connection.getResponseMessage());
-
-      BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-      String inputLine;
-      StringBuilder response = new StringBuilder();
-
-      while ((inputLine = in.readLine()) != null) {
-        response.append(inputLine);
-      }
-      in.close();
-
-      assertEquals(responseBody, response.toString());
-    } else {
-      assertEquals(statusMessage, connection.getResponseMessage());
-
-      BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
-      String inputLine;
-      StringBuilder response = new StringBuilder();
-
-      while ((inputLine = in.readLine()) != null) {
-        response.append(inputLine);
-      }
-      in.close();
-
-      assertEquals(responseBody, response.toString());
-    }
   }
 
   // Todo : move that to TestUtils

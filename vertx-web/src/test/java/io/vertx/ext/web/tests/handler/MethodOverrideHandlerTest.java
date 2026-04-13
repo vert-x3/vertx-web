@@ -80,6 +80,6 @@ public class MethodOverrideHandlerTest extends WebTestBase {
   }
 
   private void testRequestWithMethodOverride(HttpMethod overridedMethod, HttpMethod overridingMethod) throws Exception {
-    testRequest(overridedMethod, "/", req -> req.putHeader("x-http-method-override", overridingMethod.toString()), 200, "OK", null);
+    testRequest(webClient.request(overridedMethod, "/").putHeader("x-http-method-override", overridingMethod.toString()), 200, "OK");
   }
 }

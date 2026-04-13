@@ -20,6 +20,7 @@ import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.common.template.TemplateEngine;
@@ -154,7 +155,10 @@ public class TemplateTest extends WebTestBase2 {
         }));
     });
 
-    testRequestBuffer(HttpMethod.GET, "/", null, null, 200, "OK", Buffer.buffer(expected), true);
+    HttpResponse<Buffer> resp = webClient.get("/").send().await();
+    assertEquals(200, resp.statusCode());
+    assertEquals("OK", resp.statusMessage());
+    assertEquals(Buffer.buffer(expected), normalizeLineEndingsFor(resp.body()));
   }
 
   // Just for testing - not for actual use
@@ -212,8 +216,12 @@ public class TemplateTest extends WebTestBase2 {
     router.getWithRegex(".+\\.ftl")
       .handler(TemplateHandler.create(new TestEngine(false)));
 
-    testRequestBuffer(HttpMethod.GET, "/sub/index.ftl", null, null, 200, "OK", Buffer.buffer(sub), true);
-    testRequestBuffer(HttpMethod.GET, "/index.ftl", null, null, 200, "OK", Buffer.buffer(top), true);
+    HttpResponse<Buffer> resp1 = webClient.get("/sub/index.ftl").send().await();
+    assertEquals(200, resp1.statusCode());
+    assertEquals(Buffer.buffer(sub), normalizeLineEndingsFor(resp1.body()));
+    HttpResponse<Buffer> resp2 = webClient.get("/index.ftl").send().await();
+    assertEquals(200, resp2.statusCode());
+    assertEquals(Buffer.buffer(top), normalizeLineEndingsFor(resp2.body()));
   }
 
 }

@@ -19,6 +19,7 @@ package io.vertx.ext.web.tests.handler.sockjs;
 import io.vertx.core.*;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
@@ -46,6 +47,7 @@ abstract class SockJSTestBase extends VertxTestBase {
 
   int numServers = 1;
   HttpClient client;
+  WebClient webClient;
   WebSocketClient wsClient;
   Consumer<Router> preSockJSHandlerSetup;
   Supplier<Handler<SockJSSocket>> socketHandler;
@@ -54,6 +56,7 @@ abstract class SockJSTestBase extends VertxTestBase {
   public void setUp() throws Exception {
     super.setUp();
     client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080).setKeepAlive(false));
+    webClient = WebClient.wrap(client);
     wsClient = vertx.createWebSocketClient(new WebSocketClientOptions().setDefaultPort(8080));
   }
 

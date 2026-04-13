@@ -97,14 +97,14 @@ public class ChainAuthMixHandlerTest extends WebTestBase {
       .put("sub", "Paulo")
       .put("iss", "me");
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + me.generateToken(payloadA)), 200, "OK", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + me.generateToken(payloadA)), 200, "OK");
 
     // Payload with right issuer
     final JsonObject payloadB = new JsonObject()
       .put("sub", "Paulo")
       .put("iss", "you");
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + you.generateToken(payloadB)), 200, "OK", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + you.generateToken(payloadB)), 200, "OK");
   }
 
   @Test

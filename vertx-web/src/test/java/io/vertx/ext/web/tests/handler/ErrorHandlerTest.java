@@ -17,9 +17,8 @@
 package io.vertx.ext.web.tests.handler;
 
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.ErrorHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 
@@ -51,11 +50,8 @@ public class ErrorHandlerTest extends WebTestBase {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
       rc.fail(statusCode);
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
-      checkHtmlResponse(buff, resp, statusCode, statusMessage);
-      testComplete();
-    }), statusCode, statusMessage, null);
-    await();
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), statusCode, statusMessage);
+    checkHtmlResponse(resp.body(), resp, statusCode, statusMessage);
   }
 
   @Test
@@ -66,11 +62,8 @@ public class ErrorHandlerTest extends WebTestBase {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
       rc.fail(statusCode);
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
-      checkJsonResponse(buff, resp, statusCode, statusMessage);
-      testComplete();
-    }), statusCode, statusMessage, null);
-    await();
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), statusCode, statusMessage);
+    checkJsonResponse(resp.body(), resp, statusCode, statusMessage);
   }
 
   @Test
@@ -81,11 +74,8 @@ public class ErrorHandlerTest extends WebTestBase {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain");
       rc.fail(statusCode);
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
-      checkTextResponse(buff, resp, statusCode, statusMessage);
-      testComplete();
-    }), statusCode, statusMessage, null);
-    await();
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), statusCode, statusMessage);
+    checkTextResponse(resp.body(), resp, statusCode, statusMessage);
   }
 
   @Test
@@ -93,11 +83,8 @@ public class ErrorHandlerTest extends WebTestBase {
     int statusCode = 404;
     String statusMessage = "Not Found";
     router.route().handler(rc -> rc.fail(statusCode));
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("accept", "text/html"), resp -> resp.bodyHandler(buff -> {
-      checkHtmlResponse(buff, resp, statusCode, statusMessage);
-      testComplete();
-    }), statusCode, statusMessage, null);
-    await();
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("accept", "text/html").send(), statusCode, statusMessage);
+    checkHtmlResponse(resp.body(), resp, statusCode, statusMessage);
   }
 
   @Test
@@ -105,11 +92,8 @@ public class ErrorHandlerTest extends WebTestBase {
     int statusCode = 404;
     String statusMessage = "Not Found";
     router.route().handler(rc -> rc.fail(statusCode));
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("accept", "application/json"), resp -> resp.bodyHandler(buff -> {
-      checkJsonResponse(buff, resp, statusCode, statusMessage);
-      testComplete();
-    }), statusCode, statusMessage, null);
-    await();
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("accept", "application/json").send(), statusCode, statusMessage);
+    checkJsonResponse(resp.body(), resp, statusCode, statusMessage);
   }
 
   @Test
@@ -117,11 +101,8 @@ public class ErrorHandlerTest extends WebTestBase {
     int statusCode = 404;
     String statusMessage = "Not Found";
     router.route().handler(rc -> rc.fail(statusCode));
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("accept", "text/plain"), resp -> resp.bodyHandler(buff -> {
-      checkTextResponse(buff, resp, statusCode, statusMessage);
-      testComplete();
-    }), statusCode, statusMessage, null);
-    await();
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("accept", "text/plain").send(), statusCode, statusMessage);
+    checkTextResponse(resp.body(), resp, statusCode, statusMessage);
   }
 
   @Test
@@ -129,11 +110,8 @@ public class ErrorHandlerTest extends WebTestBase {
     int statusCode = 404;
     String statusMessage = "Not Found";
     router.route().handler(rc -> rc.fail(statusCode));
-    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
-      checkTextResponse(buff, resp, statusCode, statusMessage);
-      testComplete();
-    }), statusCode, statusMessage, null);
-    await();
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), statusCode, statusMessage);
+    checkTextResponse(resp.body(), resp, statusCode, statusMessage);
   }
 
   @Test
@@ -154,11 +132,8 @@ public class ErrorHandlerTest extends WebTestBase {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
       rc.fail(e);
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
-      checkHtmlResponse(buff, resp, statusCode, errorMessage, e);
-      testComplete();
-    }), statusCode, "Internal Server Error", null);
-    await();
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), statusCode, "Internal Server Error");
+    checkHtmlResponse(resp.body(), resp, statusCode, errorMessage, e);
   }
 
 
@@ -178,11 +153,8 @@ public class ErrorHandlerTest extends WebTestBase {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
       rc.fail(statusCode);
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
-      checkHtmlResponse(buff, resp, statusCode, statusMessage);
-      testComplete();
-    }), statusCode, statusMessage, null);
-    await();
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), statusCode, statusMessage);
+    checkHtmlResponse(resp.body(), resp, statusCode, statusMessage);
   }
 
   @Test
@@ -196,11 +168,8 @@ public class ErrorHandlerTest extends WebTestBase {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
       rc.fail(e);
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
-      checkHtmlResponse(buff, resp, statusCode, "Internal Server Error", e, false);
-      testComplete();
-    }), statusCode, "Internal Server Error", null);
-    await();
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), statusCode, "Internal Server Error");
+    checkHtmlResponse(resp.body(), resp, statusCode, "Internal Server Error", e, false);
   }
 
 
@@ -215,24 +184,21 @@ public class ErrorHandlerTest extends WebTestBase {
       rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
       rc.fail(statusCode);
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
-      String page = buff.toString();
-      Assert.assertEquals("<html><body>An unexpected error occurred.404.Not Found</body></html>", page);
-      testComplete();
-    }), statusCode, statusMessage, null);
-    await();
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), statusCode, statusMessage);
+    String page = resp.body().toString();
+    Assert.assertEquals("<html><body>An unexpected error occurred.404.Not Found</body></html>", page);
   }
 
 
-  private void checkHtmlResponse(Buffer buff, HttpClientResponse resp, int statusCode, String statusMessage) {
+  private void checkHtmlResponse(Buffer buff, HttpResponse<Buffer> resp, int statusCode, String statusMessage) {
     checkHtmlResponse(buff, resp, statusCode, statusMessage, null);
   }
 
-  private void checkHtmlResponse(Buffer buff, HttpClientResponse resp, int statusCode, String statusMessage, Exception e) {
+  private void checkHtmlResponse(Buffer buff, HttpResponse<Buffer> resp, int statusCode, String statusMessage, Exception e) {
     checkHtmlResponse(buff, resp, statusCode, statusMessage, e, true);
   }
 
-  private void checkHtmlResponse(Buffer buff, HttpClientResponse resp, int statusCode, String statusMessage,
+  private void checkHtmlResponse(Buffer buff, HttpResponse<Buffer> resp, int statusCode, String statusMessage,
                                  Exception e, boolean displayExceptionDetails) {
     Assert.assertEquals("text/html", resp.headers().get(HttpHeaders.CONTENT_TYPE));
     String page = buff.toString();
@@ -251,13 +217,13 @@ public class ErrorHandlerTest extends WebTestBase {
     }
   }
 
-  private void checkJsonResponse(Buffer buff, HttpClientResponse resp, int statusCode, String statusMessage) {
+  private void checkJsonResponse(Buffer buff, HttpResponse<Buffer> resp, int statusCode, String statusMessage) {
     Assert.assertEquals("application/json", resp.headers().get(HttpHeaders.CONTENT_TYPE));
     String page = buff.toString();
     Assert.assertEquals("{\"error\":{\"code\":" + statusCode +",\"message\":\"" + statusMessage + "\"}}", page);
   }
 
-  private void checkTextResponse(Buffer buff, HttpClientResponse resp, int statusCode, String statusMessage) {
+  private void checkTextResponse(Buffer buff, HttpResponse<Buffer> resp, int statusCode, String statusMessage) {
     Assert.assertEquals("text/plain", resp.headers().get(HttpHeaders.CONTENT_TYPE));
     String page = buff.toString();
     Assert.assertEquals("Error " + statusCode + ": " + statusMessage, page);

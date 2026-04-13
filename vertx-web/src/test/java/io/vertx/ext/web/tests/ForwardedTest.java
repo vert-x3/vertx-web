@@ -16,11 +16,12 @@
 
 package io.vertx.ext.web.tests;
 
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.net.NetClient;
 import io.vertx.ext.web.Route;
+import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.test.core.TestUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -482,11 +483,11 @@ public class ForwardedTest extends WebTestBase {
 
 
   private void testRequest(String... headers) throws Exception {
-    testRequest(HttpMethod.GET, "/", req -> {
-      int i = 0;
-      while (i < headers.length)
-        req.putHeader(headers[i++], headers[i++]);
-    }, 200, "OK", null);
+    HttpRequest<Buffer> req = webClient.get("/");
+    int i = 0;
+    while (i < headers.length)
+      req.putHeader(headers[i++], headers[i++]);
+    testRequest(req, 200, "OK");
   }
 
   @Test

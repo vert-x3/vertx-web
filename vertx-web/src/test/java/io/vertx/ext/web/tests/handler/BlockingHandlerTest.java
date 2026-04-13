@@ -17,15 +17,15 @@
 package io.vertx.ext.web.tests.handler;
 
 import io.vertx.core.Context;
+import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.ext.web.tests.WebTestBase;
-import io.vertx.test.core.TestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author <a href="mailto:stephane.bastian.dev@gmail.com">Stéphane Bastian</a>
@@ -152,18 +152,15 @@ public class BlockingHandlerTest extends WebTestBase {
       rc.response().end();
     }, false);
 
-    CountDownLatch latch = new CountDownLatch(numExecBlocking);
+    List<Future<Void>> futures = new ArrayList<>();
     for (int i = 0; i < numExecBlocking; i++) {
-      client.request(HttpMethod.GET, "/").onComplete(TestUtils.onSuccess(req -> {
-        req.send().onComplete(TestUtils.onSuccess(resp -> {
-          Assert.assertEquals(200, resp.statusCode());
-          Assert.assertEquals("OK", resp.statusMessage());
-          latch.countDown();
-        }));
-      }));
+      futures.add(webClient.get("/").send()
+        .expecting(HttpResponseExpectation.SC_OK)
+        .mapEmpty());
     }
-
-    TestUtils.awaitLatch(latch);
+    for (Future<Void> future : futures) {
+      future.await();
+    }
 
     long now = System.currentTimeMillis();
     // we sleep for 5 seconds and we expect to be done within 2 + 1 seconds

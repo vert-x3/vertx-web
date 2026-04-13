@@ -17,10 +17,11 @@
 package io.vertx.ext.web.tests.handler;
 
 import io.vertx.core.Handler;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import org.junit.Assert;
@@ -46,22 +47,19 @@ public class AuthXRequestedWithTest extends AuthHandlerTestBase {
 
     router.route("/protected/somepage").handler(handler);
 
-    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
-      String wwwAuth = resp.headers().get("WWW-Authenticate");
-      Assert.assertNotNull(wwwAuth);
-      Assert.assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
-    }, 401, "Unauthorized", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").send(), 401, "Unauthorized");
+    String wwwAuth = resp.headers().get("WWW-Authenticate");
+    Assert.assertNotNull(wwwAuth);
+    Assert.assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
 
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("X-Requested-With", "XMLHttpRequest"), resp -> {
-      String wwwAuth = resp.headers().get("WWW-Authenticate");
-      Assert.assertNull(wwwAuth);
-    }, 401, "Unauthorized", null);
+    resp = testRequest(webClient.get("/protected/somepage").putHeader("X-Requested-With", "XMLHttpRequest").send(), 401, "Unauthorized");
+    wwwAuth = resp.headers().get("WWW-Authenticate");
+    Assert.assertNull(wwwAuth);
 
     // Now try again with credentials
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), resp -> {
-      String wwwAuth = resp.headers().get("WWW-Authenticate");
-      Assert.assertNull(wwwAuth);
-    }, 200, "OK", "Welcome to the protected resource!");
+    resp = testRequest(webClient.get("/protected/somepage").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==").send(), 200, "OK", "Welcome to the protected resource!");
+    wwwAuth = resp.headers().get("WWW-Authenticate");
+    Assert.assertNull(wwwAuth);
 
   }
 

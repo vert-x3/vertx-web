@@ -18,18 +18,15 @@ package io.vertx.ext.web.tests.handler.sockjs;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.*;
 import io.vertx.core.internal.buffer.BufferInternal;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.WebSocket;
-import io.vertx.core.http.WebSocketConnectOptions;
-import io.vertx.core.http.WebSocketFrame;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
@@ -77,28 +74,21 @@ public class SockJSHandlerTest extends WebTestBase {
 
   @Test
   public void testGreeting() {
-    waitFor(2);
     testGreeting("/echo/");
     testGreeting("/echo");
-    await();
   }
 
   private void testGreeting(String uri) {
-    client.request(HttpMethod.GET, uri).compose(req -> req.send()
-      .compose(resp -> {
-        Assert.assertEquals(200, resp.statusCode());
-        Assert.assertEquals("text/plain; charset=UTF-8", resp.getHeader("content-type"));
-        return resp.body();
-      })).onComplete(TestUtils.onSuccess(buff -> {
-      Assert.assertEquals("Welcome to SockJS!\n", buff.toString());
-      complete();
-    }));
+    HttpResponse<Buffer> resp = webClient.get(uri)
+      .send()
+      .expecting(io.vertx.core.http.HttpResponseExpectation.SC_OK)
+      .expecting(io.vertx.core.http.HttpResponseExpectation.contentType("text/plain"))
+      .await();
+    Assert.assertEquals("Welcome to SockJS!\n", resp.bodyAsString());
   }
 
   @Test
   public void testNotFound() {
-    waitFor(7);
-
     testNotFound("/echo/a");
     testNotFound("/echo/a.html");
     testNotFound("/echo/a/a");
@@ -106,8 +96,6 @@ public class SockJSHandlerTest extends WebTestBase {
     testNotFound("/echo/a/");
     testNotFound("/echo//");
     testNotFound("/echo///");
-
-    await();
   }
 
   // https://github.com/vert-x3/vertx-web/issues/77
@@ -370,10 +358,10 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   private void testNotFound(String uri) {
-    client.request(HttpMethod.GET, uri).onComplete(TestUtils.onSuccess(req -> req.send().onComplete(TestUtils.onSuccess(resp -> {
-      Assert.assertEquals(404, resp.statusCode());
-      complete();
-    }))));
+    webClient.get(uri)
+      .send()
+      .expecting(HttpResponseExpectation.status(404))
+      .await();
   }
 
   @Test

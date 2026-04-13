@@ -7,6 +7,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
@@ -52,13 +53,13 @@ public class ChainAuthHandlerTest extends WebTestBase {
   @Test
   public void testWithAuthorization() throws Exception {
     // there is an authorization header, so it should be handled properly
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="),200, "OK", "");
+    testRequest(webClient.get("/").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="),200, "OK");
   }
 
   @Test
   public void testWithBadAuthorization() throws Exception {
     // there is an authorization header, but the token is invalid it should be processed by the last handler (redirect)
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="),302, "Found", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="),302, "Found");
   }
 
   @Test
@@ -75,7 +76,8 @@ public class ChainAuthHandlerTest extends WebTestBase {
     router.route().handler(chain);
     router.route().handler(ctx -> ctx.response().end());
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="), resp -> Assert.assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWW-Authenticate")),401, "Unauthorized", "Unauthorized");
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX==").send(), 401, "Unauthorized", "Unauthorized");
+    Assert.assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWW-Authenticate"));
   }
 
   @Test
@@ -91,14 +93,13 @@ public class ChainAuthHandlerTest extends WebTestBase {
     router.route().handler(chain);
     router.route().handler(ctx -> ctx.response().end());
 
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      Assert.assertNotNull(resp.getHeader("WWW-Authenticate"));
-      List<String> headers = resp.headers().getAll("WWW-Authenticate");
-      Assert.assertNotNull(headers);
-      Assert.assertEquals(2, headers.size());
-      Assert.assertTrue(headers.get(0).startsWith("Basic realm=\"vertx-web\""));
-      Assert.assertTrue(headers.get(1).startsWith("Digest realm=\"testrealm@host.com\""));
-    },401, "Unauthorized", "Unauthorized");
+    HttpResponse<Buffer> resp2 = testRequest(webClient.get("/").send(), 401, "Unauthorized", "Unauthorized");
+    Assert.assertNotNull(resp2.getHeader("WWW-Authenticate"));
+    List<String> headers = resp2.headers().getAll("WWW-Authenticate");
+    Assert.assertNotNull(headers);
+    Assert.assertEquals(2, headers.size());
+    Assert.assertTrue(headers.get(0).startsWith("Basic realm=\"vertx-web\""));
+    Assert.assertTrue(headers.get(1).startsWith("Digest realm=\"testrealm@host.com\""));
   }
 
   @Test
@@ -115,27 +116,25 @@ public class ChainAuthHandlerTest extends WebTestBase {
       .handler(BodyHandler.create())
       .handler(chain);
 
-    testRequest(HttpMethod.POST, "/login", req -> {
-      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-      Buffer buffer = Buffer.buffer();
-      String str =
-        "--" + boundary + "\r\n" +
-        "Content-Disposition: form-data; name=\"" + FormLoginHandler.DEFAULT_USERNAME_PARAM + "\"\r\n\r\ntim\r\n" +
-        "--" + boundary + "\r\n" +
-        "Content-Disposition: form-data; name=\"" + FormLoginHandler.DEFAULT_PASSWORD_PARAM + "\"\r\n\r\ndelicious:sausages\r\n" +
-        "--" + boundary + "--\r\n";
-      buffer.appendString(str);
-      req.putHeader("content-length", String.valueOf(buffer.length()));
-      req.putHeader("content-type", "multipart/form-data; boundary=" + boundary);
-      req.write(buffer);
-    }, resp -> {
-      MultiMap headers = resp.headers();
-      // session will be upgraded
-      String setCookie = headers.get("set-cookie");
-      Assert.assertNotNull(setCookie);
-      // client will be redirected
-      Assert.assertTrue(headers.contains(HttpHeaders.LOCATION, "/welcome", false));
-    }, 302, "Found", null);
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    Buffer buffer = Buffer.buffer();
+    String str =
+      "--" + boundary + "\r\n" +
+      "Content-Disposition: form-data; name=\"" + FormLoginHandler.DEFAULT_USERNAME_PARAM + "\"\r\n\r\ntim\r\n" +
+      "--" + boundary + "\r\n" +
+      "Content-Disposition: form-data; name=\"" + FormLoginHandler.DEFAULT_PASSWORD_PARAM + "\"\r\n\r\ndelicious:sausages\r\n" +
+      "--" + boundary + "--\r\n";
+    buffer.appendString(str);
+    HttpResponse<Buffer> resp = testRequest(webClient.post("/login")
+      .putHeader("content-type", "multipart/form-data; boundary=" + boundary)
+      .followRedirects(false)
+      .sendBuffer(buffer), 302, "Found");
+    MultiMap respHeaders = resp.headers();
+    // session will be upgraded
+    String setCookie = respHeaders.get("set-cookie");
+    Assert.assertNotNull(setCookie);
+    // client will be redirected
+    Assert.assertTrue(respHeaders.contains(HttpHeaders.LOCATION, "/welcome", false));
   }
 
 }

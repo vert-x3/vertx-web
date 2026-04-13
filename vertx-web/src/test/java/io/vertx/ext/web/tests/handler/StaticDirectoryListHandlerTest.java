@@ -16,7 +16,8 @@
 
 package io.vertx.ext.web.tests.handler;
 
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import org.junit.Assert;
@@ -42,7 +43,7 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
 
   @Test
   public void testGetSubSubDirectory() throws Exception {
-    testRequest(HttpMethod.GET, "/a/b/", req -> req.putHeader("Accept", "text/html"), null, 200, "OK", "<html>\n" +
+    testRequest(webClient.get("/a/b/").putHeader("Accept", "text/html").send(), 200, "OK", "<html>\n" +
         "<body>\n" +
         "<h1>Custom Index of /a/b/</h1>\n" +
         "<a href=\"/a/\">..</a>\n" +
@@ -53,7 +54,7 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
 
   @Test
   public void testGetDirectory() throws Exception {
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Accept", "text/html"), null, 200, "OK", "<html>\n" +
+    testRequest(webClient.get("/").putHeader("Accept", "text/html").send(), 200, "OK", "<html>\n" +
         "<body>\n" +
         "<h1>Custom Index of /</h1>\n" +
         "<a href=\"/\">..</a>\n" +
@@ -64,16 +65,14 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
 
   @Test
   public void testGetDirectoryFuzzyAccepts() throws Exception {
-    testRequest(HttpMethod.GET, "/",
-      req -> req.putHeader("Accept", "application/json, text/plain; q=0.9"),
-      res -> Assert.assertEquals("application/json", res.getHeader("Content-Type")), 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("Accept", "application/json, text/plain; q=0.9").send(), 200, "OK");
+    Assert.assertEquals("application/json", resp.getHeader("Content-Type"));
   }
 
   @Test
   public void testGetDirectoryFuzzyAccepts2() throws Exception {
-    testRequest(HttpMethod.GET, "/",
-      req -> req.putHeader("Accept", "application/json; q=0.8, text/plain; q=0.9"),
-      res -> Assert.assertEquals("text/plain", res.getHeader("Content-Type")), 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("Accept", "application/json; q=0.8, text/plain; q=0.9").send(), 200, "OK");
+    Assert.assertEquals("text/plain", resp.getHeader("Content-Type"));
   }
 
   @Test
@@ -81,7 +80,7 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
     router.clear();
     router.route("/c/*").handler(stat);
 
-    testRequest(HttpMethod.GET, "/c/a/b/", req -> req.putHeader("Accept", "text/html"), null, 200, "OK", "<html>\n" +
+    testRequest(webClient.get("/c/a/b/").putHeader("Accept", "text/html").send(), 200, "OK", "<html>\n" +
         "<body>\n" +
         "<h1>Custom Index of /c/a/b/</h1>\n" +
         "<a href=\"/c/a/\">..</a>\n" +
@@ -97,6 +96,6 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
 
     // even though the prefix is matched only the prefix is ignored from the file system match
     // webroot/annot/a/b will not be found
-    testRequest(HttpMethod.GET, "/cannot/a/b/", req -> req.putHeader("Accept", "text/html"), null, 404, "Not Found", null);
+    testRequest(webClient.get("/cannot/a/b/").putHeader("Accept", "text/html").send(), 404, "Not Found");
   }
 }

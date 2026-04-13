@@ -15,8 +15,6 @@
  */
 package io.vertx.ext.web.tests;
 
-import io.vertx.core.http.RequestOptions;
-import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import org.junit.jupiter.api.Test;
@@ -32,9 +30,7 @@ public class VirtualHostTest extends WebTestBase2 {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("www.mysite.com")
-      .setPort(80), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/").putHeader("Host", "www.mysite.com").send(), 200, "OK");
   }
 
   @Test
@@ -43,9 +39,7 @@ public class VirtualHostTest extends WebTestBase2 {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("www.mysite.com:8080")
-      .setPort(80), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/").putHeader("Host", "www.mysite.com:8080").send(), 200, "OK");
   }
 
   @Test
@@ -54,9 +48,7 @@ public class VirtualHostTest extends WebTestBase2 {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("[::]")
-      .setPort(80), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/").putHeader("Host", "[::]").send(), 200, "OK");
   }
 
   @Test
@@ -65,9 +57,7 @@ public class VirtualHostTest extends WebTestBase2 {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("[::]:8080")
-      .setPort(80), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/").putHeader("Host", "[::]:8080").send(), 200, "OK");
   }
 
   @Test
@@ -76,9 +66,7 @@ public class VirtualHostTest extends WebTestBase2 {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("[::1]")
-      .setPort(80), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/").putHeader("Host", "[::1]").send(), 200, "OK");
   }
 
   @Test
@@ -87,9 +75,7 @@ public class VirtualHostTest extends WebTestBase2 {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("[::1]:8080")
-      .setPort(80), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/").putHeader("Host", "[::1]:8080").send(), 200, "OK");
   }
 
   @Test
@@ -98,9 +84,7 @@ public class VirtualHostTest extends WebTestBase2 {
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("www.mysite.net")
-      .setPort(80), req -> {}, 500, "Internal Server Error", null);
+    testRequest(webClient.get(8080, "localhost", "/").putHeader("Host", "www.mysite.net").send(), 500, "Internal Server Error");
   }
 
   @Test
@@ -110,20 +94,12 @@ public class VirtualHostTest extends WebTestBase2 {
     a.get("/somepath").handler(RoutingContext::end);
 
     router.route("/*").virtualHost("*.com").subRouter(a);
-    testRequest(new RequestOptions()
-      .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("www.mysite.com")
-      .setPort(80)
-      .setURI("/somepath"), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/somepath").putHeader("Host", "www.mysite.com").send(), 200, "OK");
 
     // Or
 
     router.route().virtualHost("*.com").subRouter(a);
-    testRequest(new RequestOptions()
-      .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("www.mysite.com")
-      .setPort(80)
-      .setURI("/somepath"), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/somepath").putHeader("Host", "www.mysite.com").send(), 200, "OK");
   }
 
 }

@@ -35,6 +35,7 @@ open module io.vertx.web.tests {
   requires io.vertx.testing.junit5;
   requires io.vertx.eventbusbridge;
   requires io.vertx.web;
+  requires io.vertx.web.client;
   requires io.vertx.web.common;
   requires junit;
   requires static testcontainers;

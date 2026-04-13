@@ -18,6 +18,7 @@ package io.vertx.ext.web.tests.handler;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.FaviconHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import org.junit.Assert;
@@ -60,11 +61,11 @@ public class FaviconHandlerTest extends WebTestBase {
     router.route().handler(favicon);
     router.route().handler(rc -> rc.response().end());
     Buffer icon = vertx.fileSystem().readFileBlocking("favicon.ico");
-    testRequestBuffer(HttpMethod.GET, "/favicon.ico", null, resp -> {
-      Assert.assertEquals("image/x-icon", resp.headers().get("content-type"));
-      Assert.assertEquals(icon.length(), Integer.valueOf(resp.headers().get("content-length")).intValue());
-      Assert.assertEquals("public, max-age=" + maxAgeSeconds, resp.headers().get("cache-control"));
-    }, 200, "OK", icon);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/favicon.ico").send(), 200, "OK");
+    Assert.assertEquals("image/x-icon", resp.headers().get("content-type"));
+    Assert.assertEquals(icon.length(), Integer.valueOf(resp.headers().get("content-length")).intValue());
+    Assert.assertEquals("public, max-age=" + maxAgeSeconds, resp.headers().get("cache-control"));
+    Assert.assertEquals(icon, resp.body());
   }
 
   @Test
@@ -72,8 +73,7 @@ public class FaviconHandlerTest extends WebTestBase {
     String path = "does/not/exist";
     router.route().handler(FaviconHandler.create(vertx, path));
     router.route().handler(rc -> rc.response().end());
-    testRequestBuffer(HttpMethod.GET, "/favicon.ico", null, resp -> {
-    }, 404, "Not Found", Buffer.buffer());
+    testRequest(webClient.get("/favicon.ico").send(), 404, "Not Found");
   }
 
   @Test

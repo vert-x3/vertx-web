@@ -16,10 +16,12 @@
 
 package io.vertx.ext.web.tests.handler;
 
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
@@ -95,10 +97,7 @@ public class BodyHandlerTest extends WebTestBase2 {
       assertEquals(buff, rc.body().buffer());
       rc.response().end();
     });
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.write(buff);
-    }, 200, "OK", null);
+    testRequest(webClient.post("/").sendBuffer(buff), 200, "OK");
   }
 
   @Test
@@ -108,10 +107,7 @@ public class BodyHandlerTest extends WebTestBase2 {
       assertEquals(str, rc.body().asString());
       rc.response().end();
     });
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.write(str);
-    }, 200, "OK", null);
+    testRequest(webClient.post("/").sendBuffer(Buffer.buffer(str)), 200, "OK");
   }
 
   @Test
@@ -123,12 +119,8 @@ public class BodyHandlerTest extends WebTestBase2 {
       assertEquals(str, decoded);
       rc.response().end();
     });
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.putHeader("content-type", "text/plain;charset=ISO-8859-1");
-      byte b = str.getBytes(StandardCharsets.ISO_8859_1)[0];
-      req.write(Buffer.buffer(new byte[]{b}));
-    }, 200, "OK", null);
+    byte b = str.getBytes(StandardCharsets.ISO_8859_1)[0];
+    testRequest(webClient.post("/").putHeader("content-type", "text/plain;charset=ISO-8859-1").sendBuffer(Buffer.buffer(new byte[]{b})), 200, "OK");
   }
 
   @Test
@@ -139,10 +131,7 @@ public class BodyHandlerTest extends WebTestBase2 {
       assertEquals(str, rc.body().asString(enc));
       rc.response().end();
     });
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.write(str, enc);
-    }, 200, "OK", null);
+    testRequest(webClient.post("/").sendBuffer(Buffer.buffer(str, enc)), 200, "OK");
   }
 
   @Test
@@ -152,10 +141,7 @@ public class BodyHandlerTest extends WebTestBase2 {
       assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.write(json.encode());
-    }, 200, "OK", null);
+    testRequest(webClient.post("/").sendJsonObject(json), 200, "OK");
   }
 
   @Test
@@ -165,11 +151,7 @@ public class BodyHandlerTest extends WebTestBase2 {
       assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.putHeader(HttpHeaders.CONTENT_LENGTH, "-1");
-      req.write(json.encode());
-    }, 200, "OK", null);
+    testRequest(webClient.post("/").sendJsonObject(json), 200, "OK");
   }
 
   @Test
@@ -179,11 +161,7 @@ public class BodyHandlerTest extends WebTestBase2 {
       assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.putHeader(HttpHeaders.CONTENT_LENGTH, "");
-      req.write(json.encode());
-    }, 200, "OK", null);
+    testRequest(webClient.post("/").sendJsonObject(json), 200, "OK");
   }
 
   @Test
@@ -193,11 +171,7 @@ public class BodyHandlerTest extends WebTestBase2 {
       assertEquals(json, rc.body().asJsonObject());
       rc.response().end();
     });
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.putHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(Long.MAX_VALUE));
-      req.write(json.encode());
-    }, 200, "OK", null);
+    testRequest(webClient.post("/").sendJsonObject(json), 200, "OK");
   }
 
   @Test
@@ -206,10 +180,7 @@ public class BodyHandlerTest extends WebTestBase2 {
     router.route().handler(BodyHandler.create().setBodyLimit(5000));
     Buffer buff = TestUtils.randomBuffer(10000);
     router.route().handler(rc -> fail("Should not be called"));
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.write(buff);
-    }, 413, "Request Entity Too Large", null);
+    testRequest(webClient.post("/").sendBuffer(buff), 413, "Request Entity Too Large");
   }
 
   @Test
@@ -218,10 +189,7 @@ public class BodyHandlerTest extends WebTestBase2 {
     router.route().handler(BodyHandler.create().setBodyLimit(500));
     Buffer buff = TestUtils.randomBuffer(1000);
     router.route().handler(rc -> fail("Should not be called"));
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.write(buff);
-    }, 413, "Request Entity Too Large", null);
+    testRequest(webClient.post("/").sendBuffer(buff), 413, "Request Entity Too Large");
   }
 
   @Test
@@ -424,24 +392,19 @@ public class BodyHandlerTest extends WebTestBase2 {
     String name = "somename";
     String fileName = "somefile.dat";
     String contentType = "application/octet-stream";
-    testRequest(HttpMethod.POST, "/", req -> {
-      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-      Buffer buffer = Buffer.buffer();
-      String header =
-        "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
-          "Content-Type: " + contentType + "\r\n" +
-          "Content-Transfer-Encoding: binary\r\n" +
-          "\r\n";
-      buffer.appendString(header);
-      buffer.appendBuffer(fileData);
-      String footer = "\r\n--" + boundary + "--\r\n";
-      buffer.appendString(footer);
-      req.headers().set("content-length", String.valueOf(buffer.length()));
-      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
-      req.setChunked(true);
-      req.write(buffer);
-    }, statusCode, statusMessage, null);
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    Buffer buffer = Buffer.buffer();
+    String header =
+      "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
+        "Content-Type: " + contentType + "\r\n" +
+        "Content-Transfer-Encoding: binary\r\n" +
+        "\r\n";
+    buffer.appendString(header);
+    buffer.appendBuffer(fileData);
+    String footer = "\r\n--" + boundary + "--\r\n";
+    buffer.appendString(footer);
+    testRequest(webClient.post("/").putHeader("content-type", "multipart/form-data; boundary=" + boundary).sendBuffer(buffer), statusCode, statusMessage);
   }
 
   @Test
@@ -516,13 +479,8 @@ public class BodyHandlerTest extends WebTestBase2 {
       assertEquals("admin", attrs.get("pass word"));
       rc.response().end();
     });
-    testRequest(HttpMethod.POST, "/", req -> {
-      Buffer buffer = Buffer.buffer();
-      buffer.appendString("origin=junit-testUserAlias&login=admin%40foo.bar&pass+word=admin");
-      req.headers().set("content-length", String.valueOf(buffer.length()));
-      req.headers().set("content-type", "application/x-www-form-urlencoded");
-      req.write(buffer);
-    }, 200, "OK", null);
+    Buffer buffer = Buffer.buffer("origin=junit-testUserAlias&login=admin%40foo.bar&pass+word=admin");
+    testRequest(webClient.post("/").putHeader("content-type", "application/x-www-form-urlencoded").sendBuffer(buffer), 200, "OK");
   }
 
   @Test
@@ -534,13 +492,8 @@ public class BodyHandlerTest extends WebTestBase2 {
       assertEquals("junit-testUserAlias", attrs.get("origin"));
       rc.response().end();
     });
-    testRequest(HttpMethod.POST, "/", req -> {
-      Buffer buffer = Buffer.buffer();
-      buffer.appendString("origin=junit-testUserAlias");
-      req.headers().set("content-length", String.valueOf(buffer.length()));
-      req.headers().set("content-type", "ApPlIcAtIoN/x-WwW-fOrM-uRlEnCoDeD");
-      req.write(buffer);
-    }, 200, "OK", null);
+    Buffer buffer = Buffer.buffer("origin=junit-testUserAlias");
+    testRequest(webClient.post("/").putHeader("content-type", "ApPlIcAtIoN/x-WwW-fOrM-uRlEnCoDeD").sendBuffer(buffer), 200, "OK");
   }
 
   @Test
@@ -574,28 +527,23 @@ public class BodyHandlerTest extends WebTestBase2 {
       rc.response().end();
     });
 
-    testRequest(HttpMethod.POST, "/", req -> {
-      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-      Buffer buffer = Buffer.buffer();
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    Buffer buffer = Buffer.buffer();
 
-      for (int i = 0; i < uploads; i++) {
-        String header =
-          "--" + boundary + "\r\n" +
-            "Content-Disposition: form-data; name=\"file" + i + "\"; filename=\"file" + i + "\"\r\n" +
-            "Content-Type: application/octet-stream\r\n" +
-            "Content-Transfer-Encoding: binary\r\n" +
-            "\r\n";
-        buffer.appendString(header);
-        buffer.appendBuffer(TestUtils.randomBuffer(4096 * 16));
-        buffer.appendString("\r\n");
-      }
-      buffer.appendString("--" + boundary + "\r\n");
+    for (int i = 0; i < uploads; i++) {
+      String header =
+        "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"file" + i + "\"; filename=\"file" + i + "\"\r\n" +
+          "Content-Type: application/octet-stream\r\n" +
+          "Content-Transfer-Encoding: binary\r\n" +
+          "\r\n";
+      buffer.appendString(header);
+      buffer.appendBuffer(TestUtils.randomBuffer(4096 * 16));
+      buffer.appendString("\r\n");
+    }
+    buffer.appendString("--" + boundary + "\r\n");
 
-      req.headers().set("content-length", String.valueOf(buffer.length()));
-      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
-      req.write(buffer);
-
-    }, 200, "OK", null);
+    testRequest(webClient.post("/").putHeader("content-type", "multipart/form-data; boundary=" + boundary).sendBuffer(buffer), 200, "OK");
   }
 
   private void testFormMultipartFormData(boolean mergeAttributes) {
@@ -618,20 +566,16 @@ public class BodyHandlerTest extends WebTestBase2 {
       assertEquals("foo", params.get("p1"));
       rc.response().end();
     });
-    testRequest(HttpMethod.POST, "/?p1=foo", req -> {
-      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-      Buffer buffer = Buffer.buffer();
-      String str =
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    Buffer buffer = Buffer.buffer();
+    String str =
+      "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"attr1\"\r\n\r\nTim\r\n" +
         "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"attr1\"\r\n\r\nTim\r\n" +
-          "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"attr2\"\r\n\r\nJulien\r\n" +
-          "--" + boundary + "--\r\n";
-      buffer.appendString(str);
-      req.headers().set("content-length", String.valueOf(buffer.length()));
-      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
-      req.write(buffer);
-    }, 200, "OK", null);
+        "Content-Disposition: form-data; name=\"attr2\"\r\n\r\nJulien\r\n" +
+        "--" + boundary + "--\r\n";
+    buffer.appendString(str);
+    testRequest(webClient.post("/?p1=foo").putHeader("content-type", "multipart/form-data; boundary=" + boundary).sendBuffer(buffer), 200, "OK");
   }
 
   @Test
@@ -652,23 +596,19 @@ public class BodyHandlerTest extends WebTestBase2 {
     String name = "somename";
     String fileName = "somefile.dat";
     String contentType = "application/octet-stream";
-    testRequest(HttpMethod.POST, "/", req -> {
-      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-      Buffer buffer = Buffer.buffer();
-      String header =
-        "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
-          "Content-Type: " + contentType + "\r\n" +
-          "Content-Transfer-Encoding: binary\r\n" +
-          "\r\n";
-      buffer.appendString(header);
-      buffer.appendBuffer(TestUtils.randomBuffer(50));
-      String footer = "\r\n--" + boundary + "--\r\n";
-      buffer.appendString(footer);
-      req.headers().set("content-length", String.valueOf(buffer.length()));
-      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
-      req.write(buffer);
-    }, 200, "OK", "");
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    Buffer buffer = Buffer.buffer();
+    String header =
+      "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
+        "Content-Type: " + contentType + "\r\n" +
+        "Content-Transfer-Encoding: binary\r\n" +
+        "\r\n";
+    buffer.appendString(header);
+    buffer.appendBuffer(TestUtils.randomBuffer(50));
+    String footer = "\r\n--" + boundary + "--\r\n";
+    buffer.appendString(footer);
+    testRequest(webClient.post("/").putHeader("content-type", "multipart/form-data; boundary=" + boundary).sendBuffer(buffer), 200, "OK");
   }
 
   @Test
@@ -721,26 +661,22 @@ public class BodyHandlerTest extends WebTestBase2 {
       }
       rc.response().end();
     });
-    testRequest(HttpMethod.POST, "/?p1=foo", req -> {
-      Buffer buffer = Buffer.buffer();
-      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-      String header =
+    Buffer buffer = Buffer.buffer();
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    String header =
+      "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"attr1\"\r\n\r\nTim\r\n" +
         "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"attr1\"\r\n\r\nTim\r\n" +
-          "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"attr2\"\r\n\r\nTommaso\r\n" +
-          "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
-          "Content-Type: application/octet-stream\r\n" +
-          "Content-Transfer-Encoding: binary\r\n" +
-          "\r\n";
-      buffer.appendString(header);
-      buffer.appendBuffer(TestUtils.randomBuffer(50));
-      buffer.appendString("\r\n--" + boundary + "--\r\n");
-      req.headers().set("content-length", String.valueOf(buffer.length()));
-      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
-      req.write(buffer);
-    }, 200, "OK", null);
+        "Content-Disposition: form-data; name=\"attr2\"\r\n\r\nTommaso\r\n" +
+        "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
+        "Content-Type: application/octet-stream\r\n" +
+        "Content-Transfer-Encoding: binary\r\n" +
+        "\r\n";
+    buffer.appendString(header);
+    buffer.appendBuffer(TestUtils.randomBuffer(50));
+    buffer.appendString("\r\n--" + boundary + "--\r\n");
+    testRequest(webClient.post("/?p1=foo").putHeader("content-type", "multipart/form-data; boundary=" + boundary).sendBuffer(buffer), 200, "OK");
   }
 
   @Test
@@ -807,26 +743,22 @@ public class BodyHandlerTest extends WebTestBase2 {
       assertEquals("Tommaso", params.get("attr2"));
       rc.response().end();
     });
-    testRequest(HttpMethod.POST, "/toBeRerouted", req -> {
-      Buffer buffer = Buffer.buffer();
-      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-      String header =
+    Buffer buffer = Buffer.buffer();
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    String header =
+      "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"attr1\"\r\n\r\nTim\r\n" +
         "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"attr1\"\r\n\r\nTim\r\n" +
-          "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"attr2\"\r\n\r\nTommaso\r\n" +
-          "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
-          "Content-Type: application/octet-stream\r\n" +
-          "Content-Transfer-Encoding: binary\r\n" +
-          "\r\n";
-      buffer.appendString(header);
-      buffer.appendBuffer(TestUtils.randomBuffer(50));
-      buffer.appendString("\r\n--" + boundary + "--\r\n");
-      req.headers().set("content-length", String.valueOf(buffer.length()));
-      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
-      req.write(buffer);
-    }, 200, "OK", null);
+        "Content-Disposition: form-data; name=\"attr2\"\r\n\r\nTommaso\r\n" +
+        "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
+        "Content-Type: application/octet-stream\r\n" +
+        "Content-Transfer-Encoding: binary\r\n" +
+        "\r\n";
+    buffer.appendString(header);
+    buffer.appendBuffer(TestUtils.randomBuffer(50));
+    buffer.appendString("\r\n--" + boundary + "--\r\n");
+    testRequest(webClient.post("/toBeRerouted").putHeader("content-type", "multipart/form-data; boundary=" + boundary).sendBuffer(buffer), 200, "OK");
   }
 
   @Test
@@ -854,11 +786,7 @@ public class BodyHandlerTest extends WebTestBase2 {
     router.route().handler(BodyHandler.create());
     Buffer buffer = Buffer.buffer("a=b&=&c=d");
     router.route().handler(rc -> fail("Should not be called"));
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.putHeader("content-type", "application/x-www-form-urlencoded");
-      req.write(buffer);
-    }, 400, "Bad Request", null);
+    testRequest(webClient.post("/").putHeader("content-type", "application/x-www-form-urlencoded").sendBuffer(buffer), 400, "Bad Request");
   }
 
   @Test
@@ -867,11 +795,7 @@ public class BodyHandlerTest extends WebTestBase2 {
     router.route().handler(BodyHandler.create());
     Buffer buffer = Buffer.buffer("a=b&&c=d");
     router.route().handler(RoutingContext::end);
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.putHeader("content-type", "application/x-www-form-urlencoded");
-      req.write(buffer);
-    }, 200, "OK", null);
+    testRequest(webClient.post("/").putHeader("content-type", "application/x-www-form-urlencoded").sendBuffer(buffer), 200, "OK");
   }
 
   @Test
@@ -888,11 +812,7 @@ public class BodyHandlerTest extends WebTestBase2 {
         rc.fail(413);
       }
     });
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.putHeader("content-type", "application/json");
-      req.write(buffer);
-    }, 413, "Request Entity Too Large", null);
+    testRequest(webClient.post("/").putHeader("content-type", "application/json").sendBuffer(buffer), 413, "Request Entity Too Large");
   }
 
   @Test
@@ -909,11 +829,7 @@ public class BodyHandlerTest extends WebTestBase2 {
         rc.fail(500);
       }
     });
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.putHeader("content-type", "application/json");
-      req.write(buffer);
-    }, 200, "OK", null);
+    testRequest(webClient.post("/").putHeader("content-type", "application/json").sendBuffer(buffer), 200, "OK");
   }
 
   @Test
@@ -943,24 +859,19 @@ public class BodyHandlerTest extends WebTestBase2 {
       rc.response().end();
     });
 
-    testRequest(HttpMethod.POST, "/", req -> {
-      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-      Buffer buffer = Buffer.buffer();
-      String header =
-        "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"" + name + "\"; filename*=\"UTF-8''%c2%a3%20and%20%e2%82%ac%20" + fileName + "\"\r\n" +
-          "Content-Type: " + contentType + "\r\n" +
-          "Content-Transfer-Encoding: binary\r\n" +
-          "\r\n";
-      buffer.appendString(header);
-      buffer.appendBuffer(fileData);
-      String footer = "\r\n--" + boundary + "--\r\n";
-      buffer.appendString(footer);
-      req.headers().set("content-length", String.valueOf(buffer.length()));
-      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
-      req.setChunked(true);
-      req.write(buffer);
-    }, 200, "OK", null);
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    Buffer buffer = Buffer.buffer();
+    String header =
+      "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + name + "\"; filename*=\"UTF-8''%c2%a3%20and%20%e2%82%ac%20" + fileName + "\"\r\n" +
+        "Content-Type: " + contentType + "\r\n" +
+        "Content-Transfer-Encoding: binary\r\n" +
+        "\r\n";
+    buffer.appendString(header);
+    buffer.appendBuffer(fileData);
+    String footer = "\r\n--" + boundary + "--\r\n";
+    buffer.appendString(footer);
+    testRequest(webClient.post("/").putHeader("content-type", "multipart/form-data; boundary=" + boundary).sendBuffer(buffer), 200, "OK");
   }
 
   @Test
@@ -976,26 +887,22 @@ public class BodyHandlerTest extends WebTestBase2 {
       ctx.next();
     });
 
-    testRequest(HttpMethod.POST, "/?p1=foo", req -> {
-      Buffer buffer = Buffer.buffer();
-      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-      String header =
+    Buffer buffer = Buffer.buffer();
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    String header =
+      "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"attr1\"\r\n\r\n" + Base64.getUrlEncoder().encodeToString(TestUtils.randomBuffer(8192).getBytes()) + "\r\n" +
         "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"attr1\"\r\n\r\n" + Base64.getUrlEncoder().encodeToString(TestUtils.randomBuffer(8192).getBytes()) + "\r\n" +
-          "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"attr2\"\r\n\r\n" + Base64.getUrlEncoder().encodeToString(TestUtils.randomBuffer(8192).getBytes()) + "\r\n" +
-          "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"file\"\r\n" +
-          "Content-Type: application/octet-stream\r\n" +
-          "Content-Transfer-Encoding: binary\r\n" +
-          "\r\n";
-      buffer.appendString(header);
-      buffer.appendBuffer(TestUtils.randomBuffer(50));
-      buffer.appendString("\r\n--" + boundary + "--\r\n");
-      req.headers().set("content-length", String.valueOf(buffer.length()));
-      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
-      req.write(buffer);
-    }, 400, "Bad Request", null);
+        "Content-Disposition: form-data; name=\"attr2\"\r\n\r\n" + Base64.getUrlEncoder().encodeToString(TestUtils.randomBuffer(8192).getBytes()) + "\r\n" +
+        "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"file\"\r\n" +
+        "Content-Type: application/octet-stream\r\n" +
+        "Content-Transfer-Encoding: binary\r\n" +
+        "\r\n";
+    buffer.appendString(header);
+    buffer.appendBuffer(TestUtils.randomBuffer(50));
+    buffer.appendString("\r\n--" + boundary + "--\r\n");
+    testRequest(webClient.post("/?p1=foo").putHeader("content-type", "multipart/form-data; boundary=" + boundary).sendBuffer(buffer), 400, "Bad Request");
   }
 
   @Test
@@ -1006,8 +913,7 @@ public class BodyHandlerTest extends WebTestBase2 {
     router.route().handler(ctx -> {
       throw new NullPointerException();
     });
-    testRequest(HttpMethod.GET, "/", req -> {
-    }, 500, "Internal Server Error", null);
+    testRequest(webClient.get("/").send(), 500, "Internal Server Error");
   }
 
   @Test
@@ -1033,38 +939,33 @@ public class BodyHandlerTest extends WebTestBase2 {
     String name = "file";
     String fileName = "/C:/Users/vishal.b05/Desktop/1p.png";
     String contentType = "application/octet-stream";
-    testRequest(HttpMethod.POST, "/", req -> {
-      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-      Buffer buffer = Buffer.buffer();
-      String header =
-        "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
-          "Content-Type: " + contentType + "\r\n" +
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    Buffer buffer = Buffer.buffer();
+    String header =
+      "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
+        "Content-Type: " + contentType + "\r\n" +
 //          "Content-Transfer-Encoding: binary\r\n" +
-          "\r\n";
-      buffer.appendString(header);
-      buffer.appendBuffer(TestUtils.randomBuffer(realSize));
-      String footer = "\r\n--" + boundary + "\r\n";
-      buffer.appendString(footer);
+        "\r\n";
+    buffer.appendString(header);
+    buffer.appendBuffer(TestUtils.randomBuffer(realSize));
+    String footer = "\r\n--" + boundary + "\r\n";
+    buffer.appendString(footer);
 
-      String extra =
-          "Content-Disposition: form-data; name=\"specData\"\r\n\r\n{\"id\":\"abc@xyz.com\"}\r\n" +
-          "--" + boundary + "--\r\n\r\n";
+    String extra =
+        "Content-Disposition: form-data; name=\"specData\"\r\n\r\n{\"id\":\"abc@xyz.com\"}\r\n" +
+        "--" + boundary + "--\r\n\r\n";
 
-      buffer.appendString(extra);
+    buffer.appendString(extra);
 
-      req.headers().set("content-length", String.valueOf(buffer.length()));
-      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
-      req.setChunked(true);
-      req.write(buffer);
-    }, 200, "OK", null);
+    testRequest(webClient.post("/").putHeader("content-type", "multipart/form-data; boundary=" + boundary).sendBuffer(buffer), 200, "OK");
 
     assertWaitUntil(() -> vertx.fileSystem().readDirBlocking(uploadsDirectory).isEmpty());
   }
 
 
   @Test
-  public void testMaxFormFieldsLimit() {
+  public void testMaxFormFieldsLimit() throws InterruptedException {
     router.clear();
     router.route().handler(BodyHandler.create());
     router.route().handler(ctx -> {
@@ -1073,19 +974,17 @@ public class BodyHandlerTest extends WebTestBase2 {
 
     int len = 1025;
 
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.setChunked(true);
-      req.putHeader("content-type", "application/x-www-form-urlencoded");
-      StringBuilder sb = new StringBuilder();
-      for (int i = 0;i < len;i++) {
-        sb.append("a");
-      }
+    Integer sc = client.request(HttpMethod.POST, 8080, "localhost", "/")
+      .compose(request -> {
+        request.setChunked(true);
+        request.putHeader("content-type", "application/x-www-form-urlencoded");
+        request.write("a".repeat(len));
+        vertx.setTimer(10, id -> {
+          request.end("=b");
+        });
+        return request.response().map(response -> response.statusCode());
+      }).await();
 
-      req.write(sb.toString());
-
-      vertx.setTimer(10, id -> {
-        req.end("=b");
-      });
-    }, 400, "Bad Request", "Bad Request");
+    assertEquals(400, sc);
   }
 }

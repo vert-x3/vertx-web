@@ -16,7 +16,11 @@
 package io.vertx.ext.web.tests.impl;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Future;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.ext.web.tests.WebTestBase;
 import org.junit.Assert;
@@ -74,10 +78,15 @@ public class AbsoluteUriTest extends WebTestBase {
       event.response().end();
     });
 
-    testRequest(HttpMethod.GET, uri, request -> {
-      if (authority != null) {
-        request.authority(HostAndPort.parseAuthority(authority, 80));
-      }
-    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+    client.request(HttpMethod.GET, 8080, "localhost", uri)
+      .compose(request -> {
+        if (authority != null) {
+          request.authority(HostAndPort.parseAuthority(authority, 80));
+        }
+        return request
+          .send()
+          .expecting(HttpResponseExpectation.SC_OK)
+          .compose(HttpClientResponse::body);
+      }).await();
   }
 }

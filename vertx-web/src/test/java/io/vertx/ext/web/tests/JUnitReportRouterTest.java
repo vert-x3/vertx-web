@@ -2,6 +2,7 @@ package io.vertx.ext.web.tests;
 
 import io.vertx.core.http.*;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.client.WebClient;
 import io.vertx.test.core.VertxTestBase;
 import org.junit.Assert;
 import org.junit.Test;
@@ -68,12 +69,8 @@ public class JUnitReportRouterTest {
         new HttpClientConfig()
           .setDefaultHost("localhost")
           .setDefaultPort(server.actualPort()));
-      SC = client.request(HttpMethod.GET, "/").compose(request -> request
-          .send()
-          .compose(response -> response
-            .end()
-            .map(response.statusCode()))
-      ).await();
+      WebClient webClient = WebClient.wrap(client);
+      SC = webClient.get("/").send().await().statusCode();
       await();
     }
   }
@@ -113,12 +110,8 @@ public class JUnitReportRouterTest {
         new HttpClientConfig()
           .setDefaultHost("localhost")
           .setDefaultPort(server.actualPort()));
-      SC = client.request(HttpMethod.GET, "/").compose(request -> request
-        .send()
-        .compose(response -> response
-          .end()
-          .map(response.statusCode()))
-      ).await();
+      WebClient webClient = WebClient.wrap(client);
+      SC = webClient.get("/").send().await().statusCode();
       await();
     }
   }

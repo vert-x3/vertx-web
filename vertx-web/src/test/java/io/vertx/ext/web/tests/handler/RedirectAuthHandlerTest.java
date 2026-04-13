@@ -16,14 +16,16 @@
 
 package io.vertx.ext.web.tests.handler;
 
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
@@ -32,7 +34,6 @@ import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -68,20 +69,17 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
       rc.response().end("Welcome to the protected resource!");
     });
     // And request it again
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
-    }, 200, "OK", "Welcome to the protected resource!");
+    testRequest(webClient.get("/protected/somepage").putHeader("cookie", sessionCookie.get()).send(), 200, "OK", "Welcome to the protected resource!");
     // Now logout
     router.route("/logout").handler(rc -> {
       rc.userContext().clear();
       rc.response().end("logged out");
     });
-    testRequest(HttpMethod.GET, "/logout", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
-    }, 200, "OK", "logged out");
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
-      String location = resp.headers().get("location");
-      Assert.assertNotNull(location);
-      Assert.assertEquals("/loginpage", location);
-    }, 302, "Found", null);
+    testRequest(webClient.get("/logout").putHeader("cookie", sessionCookie.get()).send(), 200, "OK", "logged out");
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").putHeader("cookie", sessionCookie.get()).followRedirects(false).send(), 302, "Found");
+    String location = resp.headers().get("location");
+    Assert.assertNotNull(location);
+    Assert.assertEquals("/loginpage", location);
   }
 
   @Test
@@ -102,8 +100,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     router.route().handler(LoggerHandler.create());
     router.route().handler(BodyHandler.create());
     router.route("/login").handler(formLoginHandler);
-    testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), resp -> {
-    }, 200, "OK", "<html><body><h1>Login successful</h1></body></html>");
+    testRequest(sendLoginRequest(), 200, "OK", "<html><body><h1>Login successful</h1></body></html>");
   }
 
   @Test
@@ -116,31 +113,28 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     router.route().handler(LoggerHandler.create());
     router.route().handler(BodyHandler.create());
     router.route("/login").handler(formLoginHandler);
-    testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), resp -> {
-      String location = resp.headers().get("location");
-      Assert.assertNotNull(location);
-      Assert.assertEquals(loggedInDirectOKPage, location);
-    }, 302, "Found", null);
+    HttpResponse<Buffer> resp = testRequest(sendLoginRequest(), 302, "Found");
+    String location = resp.headers().get("location");
+    Assert.assertNotNull(location);
+    Assert.assertEquals(loggedInDirectOKPage, location);
   }
 
-  private Consumer<HttpClientRequest> sendLoginRequestConsumer() {
-    return req -> {
-      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-      Buffer buffer = Buffer.buffer();
-      String str =
+  private Future<HttpResponse<Buffer>> sendLoginRequest() {
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    Buffer buffer = Buffer.buffer();
+    String str =
+      "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + usernameParam + "\"\r\n\r\ntim\r\n" +
         "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"" + usernameParam + "\"\r\n\r\ntim\r\n" +
-          "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"" + passwordParam + "\"\r\n\r\ndelicious:sausages\r\n" +
-          "--" + boundary + "--\r\n";
-      buffer.appendString(str);
-      req.putHeader("content-length", String.valueOf(buffer.length()));
-      req.putHeader("content-type", "multipart/form-data; boundary=" + boundary);
-      if (sessionCookie.get() != null) {
-        req.putHeader("cookie", sessionCookie.get());
-      }
-      req.write(buffer);
-    };
+        "Content-Disposition: form-data; name=\"" + passwordParam + "\"\r\n\r\ndelicious:sausages\r\n" +
+        "--" + boundary + "--\r\n";
+    buffer.appendString(str);
+    HttpRequest<Buffer> req = webClient.post("/login")
+      .putHeader("content-type", "multipart/form-data; boundary=" + boundary);
+    if (sessionCookie.get() != null) {
+      req.putHeader("cookie", sessionCookie.get());
+    }
+    return req.followRedirects(false).sendBuffer(buffer);
   }
 
   @Test
@@ -164,7 +158,16 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     testRequest(HttpMethod.GET, "/login", 405, "Method Not Allowed");
     // missing username in the form
     loginHandler.setUsernameParam("username-not-in-form");
-    testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), 400, "Bad Request", null);
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    Buffer buffer = Buffer.buffer(
+      "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + usernameParam + "\"\r\n\r\ntim\r\n" +
+        "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + passwordParam + "\"\r\n\r\ndelicious:sausages\r\n" +
+        "--" + boundary + "--\r\n");
+    testRequest(webClient.post("/login")
+      .putHeader("content-type", "multipart/form-data; boundary=" + boundary)
+      .sendBuffer(buffer), 400, "Bad Request");
   }
 
   @Test
@@ -204,34 +207,30 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     router.route("/login").handler(FormLoginHandler.create(authProvider));
 
     // request protected resource, expect redirect to login
-    testRequest(HttpMethod.GET, "/protected/somepage?param=1", null, resp -> {
-      String location = resp.headers().get("location");
-      Assert.assertNotNull(location);
-      Assert.assertEquals("/loginpage", location);
-      String setCookie = resp.headers().get("set-cookie");
-      Assert.assertNotNull(setCookie);
-      sessionCookie.set(setCookie);
-    }, 302, "Found", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage?param=1").followRedirects(false).send(), 302, "Found");
+    String location = resp.headers().get("location");
+    Assert.assertNotNull(location);
+    Assert.assertEquals("/loginpage", location);
+    String setCookie = resp.headers().get("set-cookie");
+    Assert.assertNotNull(setCookie);
+    sessionCookie.set(setCookie);
 
     // get login
-    testRequest(HttpMethod.GET, "/loginpage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
-    }, 200, "OK", createloginHTML());
+    testRequest(webClient.get("/loginpage").putHeader("cookie", sessionCookie.get()).send(), 200, "OK", createloginHTML());
 
     // do post with credentials
-    testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), resp -> {
-      // session will be upgraded
-      String setCookie = resp.headers().get("set-cookie");
-      Assert.assertNotNull(setCookie);
-      sessionCookie.set(setCookie);
+    HttpResponse<Buffer> resp2 = testRequest(sendLoginRequest(), 302, "Found");
+    // session will be upgraded
+    String setCookie2 = resp2.headers().get("set-cookie");
+    Assert.assertNotNull(setCookie2);
+    sessionCookie.set(setCookie2);
 
-      String location = resp.headers().get("location");
-      Assert.assertNotNull(location);
-      Assert.assertEquals("/protected/somepage?param=1", location);
-    }, 302, "Found", null);
+    String location2 = resp2.headers().get("location");
+    Assert.assertNotNull(location2);
+    Assert.assertEquals("/protected/somepage?param=1", location2);
 
     // fetch the resource
-    testRequest(HttpMethod.GET, "/protected/somepage?param=1", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
-    }, 200, "OK", "Welcome to the protected resource!");
+    testRequest(webClient.get("/protected/somepage?param=1").putHeader("cookie", sessionCookie.get()).send(), 200, "OK", "Welcome to the protected resource!");
   }
 
   @Override
@@ -257,17 +256,15 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
 
   private void doLogin(Handler<RoutingContext> handler) throws Exception {
     doLoginCommon(handler);
-    testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), resp -> {
-      // session will be upgraded
-      String setCookie = resp.headers().get("set-cookie");
-      Assert.assertNotNull(setCookie);
-      sessionCookie.set(setCookie);
-      String location = resp.headers().get("location");
-      Assert.assertNotNull(location);
-      Assert.assertEquals("/protected/somepage", location);
-    }, 302, "Found", null);
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
-    }, 200, "OK", "Welcome to the protected resource!");
+    HttpResponse<Buffer> resp2 = testRequest(sendLoginRequest(), 302, "Found");
+    // session will be upgraded
+    String setCookie2 = resp2.headers().get("set-cookie");
+    Assert.assertNotNull(setCookie2);
+    sessionCookie.set(setCookie2);
+    String location2 = resp2.headers().get("location");
+    Assert.assertNotNull(location2);
+    Assert.assertEquals("/protected/somepage", location2);
+    testRequest(webClient.get("/protected/somepage").putHeader("cookie", sessionCookie.get()).send(), 200, "OK", "Welcome to the protected resource!");
   }
 
   private void doLoginCommon(Handler<RoutingContext> handler) throws Exception {
@@ -283,43 +280,37 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
       formLoginHandler = FormLoginHandler.create(authProvider);
     }
     router.route("/login").handler(formLoginHandler);
-    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
-      String location = resp.headers().get("location");
-      Assert.assertNotNull(location);
-      Assert.assertEquals("/loginpage", location);
-      String setCookie = resp.headers().get("set-cookie");
-      Assert.assertNotNull(setCookie);
-      sessionCookie.set(setCookie);
-    }, 302, "Found", null);
-    testRequest(HttpMethod.GET, "/loginpage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
-    }, 200, "OK", loginHTML);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").followRedirects(false).send(), 302, "Found");
+    String location = resp.headers().get("location");
+    Assert.assertNotNull(location);
+    Assert.assertEquals("/loginpage", location);
+    String setCookie = resp.headers().get("set-cookie");
+    Assert.assertNotNull(setCookie);
+    sessionCookie.set(setCookie);
+    testRequest(webClient.get("/loginpage").putHeader("cookie", sessionCookie.get()).send(), 200, "OK", loginHTML);
   }
 
   private void doLoginFail(boolean badUser, Handler<RoutingContext> handler) throws Exception {
     doLoginCommon(handler);
-    testRequest(HttpMethod.POST, "/login", req -> {
-      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-      Buffer buffer = Buffer.buffer();
-      String username = badUser ? "jim" : "tim";
-      String password = badUser ? "delicious:sausages" : "fishfingers";
-      String str =
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    Buffer buffer = Buffer.buffer();
+    String username = badUser ? "jim" : "tim";
+    String password = badUser ? "delicious:sausages" : "fishfingers";
+    String str =
+      "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"username\"\r\n\r\n" + username + "\r\n" +
         "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"username\"\r\n\r\n" + username + "\r\n" +
-          "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"password\"\r\n\r\n" + password + "\r\n" +
-          "--" + boundary + "--\r\n";
-      buffer.appendString(str);
-      req.putHeader("content-length", String.valueOf(buffer.length()));
-      req.putHeader("content-type", "multipart/form-data; boundary=" + boundary);
-      req.putHeader("cookie", sessionCookie.get());
-      req.write(buffer);
-    }, resp -> {
-    }, 401, "Unauthorized", null);
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
-      String location = resp.headers().get("location");
-      Assert.assertNotNull(location);
-      Assert.assertEquals("/loginpage", location);
-    }, 302, "Found", null);
+        "Content-Disposition: form-data; name=\"password\"\r\n\r\n" + password + "\r\n" +
+        "--" + boundary + "--\r\n";
+    buffer.appendString(str);
+    testRequest(webClient.post("/login")
+      .putHeader("content-type", "multipart/form-data; boundary=" + boundary)
+      .putHeader("cookie", sessionCookie.get())
+      .sendBuffer(buffer), 401, "Unauthorized");
+    HttpResponse<Buffer> resp3 = testRequest(webClient.get("/protected/somepage").putHeader("cookie", sessionCookie.get()).followRedirects(false).send(), 302, "Found");
+    String location3 = resp3.headers().get("location");
+    Assert.assertNotNull(location3);
+    Assert.assertEquals("/loginpage", location3);
   }
 
   protected String createloginHTML() {

@@ -18,7 +18,9 @@ package io.vertx.ext.web.it;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.AfterClass;
@@ -76,8 +78,7 @@ public class RoutingContextDatabindTest extends WebTestBase {
     }).failureHandler(ctx -> {
     });
 
-    testRequest(HttpMethod.GET, "/", null, res -> {
-      Assert.assertEquals("application/json", res.getHeader("Content-Type"));
-    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "{\"x\":10,\"y\":20}");
+    HttpResponse<Buffer> res = testRequest(webClient.get("/").send(), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "{\"x\":10,\"y\":20}");
+    Assert.assertEquals("application/json", res.getHeader("Content-Type"));
   }
 }

@@ -1,11 +1,12 @@
 package io.vertx.ext.web.tests.handler.sockjs;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpResponseExpectation;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.test.core.TestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -21,17 +22,13 @@ public class SockJSCORSTest extends WebTestBase {
       .route()
       .handler(BodyHandler.create());
     SockJSProtocolTest.installTestApplications(router, vertx);
-    client.request(HttpMethod.GET, "/echo/info?t=21321")
-      .compose(req -> req
-        .putHeader(HttpHeaders.ORIGIN, "http://example.com")
-        .send())
-      .onComplete(TestUtils.onSuccess(resp -> {
-        Assert.assertEquals(200, resp.statusCode());
-        Assert.assertEquals("http://example.com", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
-        Assert.assertEquals("true", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
-        complete();
-    }));
-    await();
+    HttpResponse<Buffer> resp = webClient.get("/echo/info?t=21321")
+      .putHeader(HttpHeaders.ORIGIN.toString(), "http://example.com")
+      .send()
+      .expecting(HttpResponseExpectation.SC_OK)
+      .await();
+    Assert.assertEquals("http://example.com", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN.toString()));
+    Assert.assertEquals("true", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS.toString()));
   }
 
   @Test
@@ -41,18 +38,14 @@ public class SockJSCORSTest extends WebTestBase {
       .handler(CorsHandler.create().addOriginWithRegex(".*").allowCredentials(false))
       .handler(BodyHandler.create());
     SockJSProtocolTest.installTestApplications(router, vertx);
-    client.request(HttpMethod.GET, "/echo/info?t=21321")
-      .compose(req -> req
-        .putHeader(HttpHeaders.ORIGIN, "http://example.com")
-        .send())
-      .onComplete(TestUtils.onSuccess(resp -> {
-        Assert.assertEquals(200, resp.statusCode());
-        Assert.assertEquals("*", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
-        Assert.assertFalse(resp.headers().contains(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
-        //If the SockJS handles the CORS stuff, it would reply with allow credentials true and allow origin example.com
-        complete();
-      }));
-    await();
+    //If the SockJS handles the CORS stuff, it would reply with allow credentials true and allow origin example.com
+    HttpResponse<Buffer> resp = webClient.get("/echo/info?t=21321")
+      .putHeader(HttpHeaders.ORIGIN.toString(), "http://example.com")
+      .send()
+      .expecting(HttpResponseExpectation.SC_OK)
+      .await();
+    Assert.assertEquals("*", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN.toString()));
+    Assert.assertFalse(resp.headers().contains(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS.toString()));
   }
 
   @Test(expected = IllegalStateException.class)

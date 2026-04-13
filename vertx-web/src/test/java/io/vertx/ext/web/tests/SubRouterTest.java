@@ -19,9 +19,11 @@ package io.vertx.ext.web.tests;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.client.HttpResponse;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -802,8 +804,8 @@ public class SubRouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.POST, "/api/resource", "application/json", 200, "OK");
 
     // Test 415 response - Accept header should contain allowed content type from sub-router
-    testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/xml", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("application/json", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/xml", 415, "Unsupported Media Type");
+    Assert.assertEquals("application/json", res.getHeader("Accept"));
   }
 
   @Test
@@ -822,13 +824,11 @@ public class SubRouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/html; charset=utf-8", 200, "OK");
 
     // Test 415 response - Accept header should contain both allowed content types from sub-router
-    testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/xml", 415, "Unsupported Media Type",
-      res -> {
-        String acceptHeader = res.getHeader("Accept");
-        Assert.assertNotNull(acceptHeader);
-        Assert.assertTrue(acceptHeader.contains("application/json"));
-        Assert.assertTrue(acceptHeader.contains("text/html; charset=utf-8"));
-      });
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/xml", 415, "Unsupported Media Type");
+    String acceptHeader = res.getHeader("Accept");
+    Assert.assertNotNull(acceptHeader);
+    Assert.assertTrue(acceptHeader.contains("application/json"));
+    Assert.assertTrue(acceptHeader.contains("text/html; charset=utf-8"));
   }
 
   @Test
@@ -845,11 +845,10 @@ public class SubRouterTest extends WebTestBase {
     testRequest(HttpMethod.PUT, "/api/resource", 200, "OK");
 
     // Test 405 response - Allow header should contain allowed methods from sub-router
-    testRequest(HttpMethod.GET, "/api/resource", null, res -> {
-      String allowHeader = res.getHeader("Allow");
-      Assert.assertNotNull(allowHeader);
-      Assert.assertTrue(allowHeader.contains("POST"));
-      Assert.assertTrue(allowHeader.contains("PUT"));
-    }, 405, "Method Not Allowed", null);
+    HttpResponse<Buffer> res = testRequest(webClient.get("/api/resource").send(), 405, "Method Not Allowed");
+    String allowHeader = res.getHeader("Allow");
+    Assert.assertNotNull(allowHeader);
+    Assert.assertTrue(allowHeader.contains("POST"));
+    Assert.assertTrue(allowHeader.contains("PUT"));
   }
 }

@@ -16,8 +16,10 @@
 
 package io.vertx.ext.web.tests.handler;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
@@ -59,11 +61,10 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
         .putHeader("X-Session-Id", "(" + rc.session().value() + ")")
         .end();
     });
-		testRequest(HttpMethod.GET, "/", null, resp -> {
-			String sessionId = resp.headers().get("X-Session-Id");
-			Assert.assertTrue(sessionId.startsWith("("));
-      Assert.assertTrue(sessionId.endsWith(")"));
-		}, 200, "OK", null);
+		HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+		String sessionId = resp.headers().get("X-Session-Id");
+		Assert.assertTrue(sessionId.startsWith("("));
+		Assert.assertTrue(sessionId.endsWith(")"));
 	}
 
 	@Test

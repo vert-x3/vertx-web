@@ -1,8 +1,10 @@
 package io.vertx.ext.web.tests.handler;
 
 import io.vertx.core.Future;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.auth.KeyStoreOptions;
 import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.User;
@@ -58,9 +60,9 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     });
 
     // login with correct credentials
-    testRequest(HttpMethod.GET, "/protected/page1",
-      req -> req.putHeader("Authorization",
-        "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
+    testRequest(webClient.get("/protected/page1")
+        .putHeader("Authorization",
+          "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
       200, "OK", "Welcome");
   }
 
@@ -81,9 +83,9 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     });
 
     // login with correct credentials
-    testRequest(HttpMethod.GET, "/protected/page1",
-      req -> req.putHeader("Authorization",
-        "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
+    testRequest(webClient.get("/protected/page1")
+        .putHeader("Authorization",
+          "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
       403, "Forbidden", "Forbidden");
   }
 
@@ -108,9 +110,9 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     });
 
     // login with correct credentials
-    testRequest(HttpMethod.GET, "/protected/page1",
-      req -> req.putHeader("Authorization",
-        "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
+    testRequest(webClient.get("/protected/page1")
+        .putHeader("Authorization",
+          "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
       200, "OK", "Welcome");
   }
 
@@ -137,9 +139,9 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     });
 
     // login with correct credentials
-    testRequest(HttpMethod.GET, "/protected/page1",
-      req -> req.putHeader("Authorization",
-        "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
+    testRequest(webClient.get("/protected/page1")
+        .putHeader("Authorization",
+          "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
       200, "OK", "Welcome");
   }
 
@@ -166,9 +168,9 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     });
 
     // login with correct credentials
-    testRequest(HttpMethod.GET, "/protected/page1",
-      req -> req.putHeader("Authorization",
-        "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
+    testRequest(webClient.get("/protected/page1")
+        .putHeader("Authorization",
+          "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
       403, "Forbidden", "Forbidden");
   }
 
@@ -218,21 +220,20 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     AtomicReference<String> session = new AtomicReference<>();
 
     // login with correct credentials
-    testRequest(HttpMethod.GET, "/protected1/page1",
-      req -> req.putHeader("Authorization",
-        "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
-      res -> {
-        String cookie = res.getHeader("Set-Cookie");
-        Assert.assertNotNull(cookie);
-        session.set(cookie);
-      },
+    HttpResponse<Buffer> res = testRequest(webClient.get("/protected1/page1")
+        .putHeader("Authorization",
+          "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions()))
+        .send(),
       200, "OK", "Welcome");
+    String cookie = res.getHeader("Set-Cookie");
+    Assert.assertNotNull(cookie);
+    session.set(cookie);
 
     // 2nd try it hangs?
-    testRequest(HttpMethod.GET, "/protected/page1",
-      req -> req.putHeader("Authorization",
+    testRequest(webClient.get("/protected/page1")
+        .putHeader("Authorization",
           "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions()))
-        .putHeader("Cookie", session.get().subSequence(0, session.get().indexOf(';'))),
+        .putHeader("Cookie", session.get().substring(0, session.get().indexOf(';'))),
       403, "Forbidden", "Forbidden");
   }
 }

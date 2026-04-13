@@ -16,7 +16,9 @@
 
 package io.vertx.ext.web.tests.handler;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import org.junit.Assert;
@@ -43,9 +45,8 @@ public class StaticHandler2Test extends WebTestBase {
   @Test
   public void testGetDefaultIndex() throws Exception {
     // without slash... forwards to slash
-    testRequest(HttpMethod.GET, "/static/swaggerui", null, res-> {
-      Assert.assertEquals("/static/swaggerui/", res.getHeader("Location"));
-    }, 301, "Moved Permanently", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/static/swaggerui").followRedirects(false).send(), 301, "Moved Permanently");
+    Assert.assertEquals("/static/swaggerui/", resp.getHeader("Location"));
 
     testRequest(HttpMethod.GET, "/static/swaggerui/", 200, "OK", "<html><body>Fake swagger UI</body></html>\n");
 

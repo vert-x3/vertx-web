@@ -66,11 +66,10 @@ public class JWTAuthHandlerTest extends WebTestBase {
 
     router.route("/protected/somepage").handler(handler);
 
-    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
-    }, 401, "Unauthorized", null);
+    testRequest(webClient.get("/protected/somepage").send(), 401, "Unauthorized");
 
     // Now try again with credentials
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())), 200, "OK", "Welcome to the protected resource!");
+    testRequest(webClient.get("/protected/somepage").putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())), 200, "OK", "Welcome to the protected resource!");
 
   }
 
@@ -86,14 +85,14 @@ public class JWTAuthHandlerTest extends WebTestBase {
 
     router.route("/protected/somepage").handler(handler);
 
-    testRequest(HttpMethod.GET, "/protected/somepage", null, 401, "Unauthorized", null);
+    testRequest(HttpMethod.GET, "/protected/somepage", 401, "Unauthorized", null);
 
     // Now try again with bad token
     final String token = authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions());
 
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Bearer x" + token), 401, "Unauthorized", null);
+    testRequest(webClient.get("/protected/somepage").putHeader("Authorization", "Bearer x" + token), 401, "Unauthorized");
 
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic " + token), 401, "Unauthorized", null);
+    testRequest(webClient.get("/protected/somepage").putHeader("Authorization", "Basic " + token), 401, "Unauthorized");
 
   }
 
@@ -110,14 +109,14 @@ public class JWTAuthHandlerTest extends WebTestBase {
       .put("sub", "Paulo")
       .put("scope", String.join(" ", Arrays.asList("a", "b")));
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 200, "OK", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 200, "OK");
 
     // Payload as Array
     final JsonObject payloadB = new JsonObject()
       .put("sub", "Paulo")
       .put("scope", new JsonArray().add("a").add("b"));
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 200, "OK", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 200, "OK");
   }
 
   @Test
@@ -133,14 +132,14 @@ public class JWTAuthHandlerTest extends WebTestBase {
       .put("sub", "Paulo")
       .put("scope", String.join(" ", Arrays.asList("a", "b")));
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 403, "Forbidden", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 403, "Forbidden");
 
     // Payload as Array
     final JsonObject payloadB = new JsonObject()
       .put("sub", "Paulo")
       .put("scope", new JsonArray().add("a").add("b"));
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 403, "Forbidden", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 403, "Forbidden");
   }
 
   @Test
@@ -157,14 +156,14 @@ public class JWTAuthHandlerTest extends WebTestBase {
       .put("sub", "Paulo")
       .put("scope", String.join(" ", Arrays.asList("a", "b")));
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 403, "Forbidden", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 403, "Forbidden");
 
     // Payload with right delimiter
     final JsonObject payloadB = new JsonObject()
       .put("sub", "Paulo")
       .put("scope", String.join(",", Arrays.asList("a", "b")));
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 200, "OK", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 200, "OK");
   }
 
   @Test
@@ -180,14 +179,14 @@ public class JWTAuthHandlerTest extends WebTestBase {
       .put("sub", "Paulo")
       .put("scope", String.join(" ", Arrays.asList("a", "b")));
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 200, "OK", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 200, "OK");
 
     // Payload as Array
     final JsonObject payloadB = new JsonObject()
       .put("sub", "Paulo")
       .put("scope", new JsonArray().add("a").add("b"));
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 200, "OK", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 200, "OK");
   }
 
   @Test
@@ -203,13 +202,13 @@ public class JWTAuthHandlerTest extends WebTestBase {
       .put("sub", "Paulo")
       .put("scope", "a");
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 200, "OK", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadA)), 200, "OK");
 
     // Payload as Array
     final JsonObject payloadB = new JsonObject()
       .put("sub", "Paulo")
       .put("scope", new JsonArray().add("a"));
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 200, "OK", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + authProvider.generateToken(payloadB)), 200, "OK");
   }
 }

@@ -214,7 +214,7 @@ public class SockJSWriteTest extends SockJSTestBase {
   @Test
   public void testXHRPollingClose() throws Exception {
     // Take 5 seconds which is the hearbeat timeout
-    waitFor(3);
+    waitFor(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
@@ -228,18 +228,17 @@ public class SockJSWriteTest extends SockJSTestBase {
       socket.close();
     };
     startServers();
-    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr")
-      .onComplete(TestUtils.onSuccess(req -> req.send().onComplete(TestUtils.onSuccess(resp -> {
-        Assert.assertEquals(200, resp.statusCode());
-        complete();
-      }))));
+    webClient.post("/test/400/8ne8e94a/xhr")
+      .send()
+      .expecting(io.vertx.core.http.HttpResponseExpectation.SC_OK)
+      .await();
     await();
   }
 
   @Test
   public void testXHRPollingShutdown() throws Exception {
     // Take 5 seconds which is the hearbeat timeout
-    waitFor(3);
+    waitFor(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
@@ -252,11 +251,10 @@ public class SockJSWriteTest extends SockJSTestBase {
       });
     };
     startServers();
-    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr")
-      .onComplete(TestUtils.onSuccess(req -> req.send().onComplete(TestUtils.onSuccess(resp -> {
-        Assert.assertEquals(200, resp.statusCode());
-        complete();
-      }))));
+    webClient.post("/test/400/8ne8e94a/xhr")
+      .send()
+      .expecting(io.vertx.core.http.HttpResponseExpectation.SC_OK)
+      .await();
     await();
   }
 }

@@ -17,6 +17,7 @@
 package io.vertx.ext.web.tests;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
@@ -38,11 +39,10 @@ import io.vertx.test.core.TestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.Socket;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -92,7 +92,9 @@ public class RouterTest extends WebTestBase {
       .respond(rc -> vertx.fileSystem().readFile(rc.queryParams().get("file")));
 
     Buffer expected = vertx.fileSystem().readFileBlocking(".htdigest");
-    testRequestBuffer(HttpMethod.GET, "/?file=.htdigest", null, res -> Assert.assertEquals(res.getHeader("Content-Type"), "application/octet-stream"), 200, "OK", expected);
+    HttpResponse<Buffer> res = testRequest(webClient.get("/?file=.htdigest").send(), 200, "OK");
+    Assert.assertEquals("application/octet-stream", res.getHeader("Content-Type"));
+    Assert.assertEquals(expected, res.body());
   }
 
   @Test
@@ -103,7 +105,8 @@ public class RouterTest extends WebTestBase {
           .putHeader("Content-Type", "octet/binary")
           .end(Buffer.buffer("durp")));
 
-    testRequest(HttpMethod.GET, "/", null, res -> Assert.assertEquals("octet/binary", res.getHeader("Content-Type")), 200, "OK", "durp");
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK", "durp");
+    Assert.assertEquals("octet/binary", resp.getHeader("Content-Type"));
   }
 
   @Test
@@ -115,7 +118,8 @@ public class RouterTest extends WebTestBase {
           .setChunked(true)
           .write("XYZ"));
 
-    testRequest(HttpMethod.GET, "/", null, res -> Assert.assertEquals("octet/binary", res.getHeader("Content-Type")), 200, "OK", "XYZ");
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK", "XYZ");
+    Assert.assertEquals("octet/binary", resp.getHeader("Content-Type"));
   }
 
   @Test
@@ -126,14 +130,8 @@ public class RouterTest extends WebTestBase {
       .handler(ResponseContentTypeHandler.create())
       .respond(rc -> succeededFuture(new JsonObject().put("hello", "world")));
 
-    testRequest(
-      HttpMethod.GET,
-      "/hello",
-      null,
-      res -> Assert.assertEquals("application/json", res.getHeader("Content-Type")),
-      200,
-      "OK",
-      "{\"hello\":\"world\"}");
+    HttpResponse<Buffer> res = testRequest(webClient.get("/hello").send(), 200, "OK", "{\"hello\":\"world\"}");
+    Assert.assertEquals("application/json", res.getHeader("Content-Type"));
   }
 
   @Test
@@ -1046,10 +1044,10 @@ public class RouterTest extends WebTestBase {
   public void testConsumes() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html", res.getHeader("Accept"));
   }
 
   @Test
@@ -1059,18 +1057,18 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;itWorks", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html; boo", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html; boo", res.getHeader("Accept"));
   }
 
   @Test
   public void testConsumesWithParameter() throws Exception {
     router.route().consumes("text/html;boo=ya").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html; boo=ya", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html; boo=ya", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html; boo=ya", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html; boo=ya", res.getHeader("Accept"));
   }
 
   @Test
@@ -1078,29 +1076,29 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html;boo=\"yeah,right\"").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\";itWorks=4real", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept"));
     // this might look wrong but since there is only 1 entry per content-type, the comma has no semantic meaning
     // therefore it is ignored
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept")));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept"));
   }
 
   @Test
   public void testConsumesWithQuotedParameterWithQuotes() throws Exception {
     router.route().consumes("text/html;boo=\"yeah\\\"right\"").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah\\\"right\"", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept"));
   }
 
   @Test
@@ -1116,14 +1114,14 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html").consumes("application/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html, application/json", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html, application/json", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html, application/json", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html, application/json", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html, application/json", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html, application/json", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html, application/json", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html, application/json", res.getHeader("Accept"));
   }
 
   @Test
@@ -1133,12 +1131,12 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;works", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;works", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=done;it=works", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;yes=no;right", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html; works, text/html; boo", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;boo", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html; works, text/html; boo", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;works=aright", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/html; works, text/html; boo", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;yes=no;right", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html; works, text/html; boo", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;boo", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html; works, text/html; boo", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;works=aright", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/html; works, text/html; boo", res.getHeader("Accept"));
   }
 
   @Test
@@ -1148,8 +1146,8 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("*/json", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    Assert.assertEquals("*/json", res.getHeader("Accept"));
   }
 
   @Test
@@ -1157,8 +1155,8 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/*").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("text/*", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 415, "Unsupported Media Type");
+    Assert.assertEquals("text/*", res.getHeader("Accept"));
   }
 
   @Test
@@ -1166,8 +1164,8 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("*/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/html", 415, "Unsupported Media Type",
-      res -> Assert.assertEquals("*/json", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "application/html", 415, "Unsupported Media Type");
+    Assert.assertEquals("*/json", res.getHeader("Accept"));
   }
 
   @Test
@@ -1524,12 +1522,11 @@ public class RouterTest extends WebTestBase {
       rc.addHeadersEndHandler(v -> rc.response().putHeader("header3", "foo"));
       rc.response().end();
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      MultiMap headers = resp.headers();
-      Assert.assertTrue(headers.contains("header1"));
-      Assert.assertTrue(headers.contains("header2"));
-      Assert.assertTrue(headers.contains("header3"));
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+    MultiMap headers = resp.headers();
+    Assert.assertTrue(headers.contains("header1"));
+    Assert.assertTrue(headers.contains("header2"));
+    Assert.assertTrue(headers.contains("header3"));
   }
 
   @Test
@@ -1596,10 +1593,9 @@ public class RouterTest extends WebTestBase {
       });
     });
 
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      MultiMap headers = resp.headers();
-      Assert.assertTrue(headers.contains("header1"));
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+    MultiMap headers = resp.headers();
+    Assert.assertTrue(headers.contains("header1"));
   }
 
   // Test that adding bodyEndhandlers doesn't overwrite other ones
@@ -2128,12 +2124,11 @@ public class RouterTest extends WebTestBase {
       context.response().end();
     });
 
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      MultiMap headers = resp.headers();
-      Assert.assertTrue(headers.contains("X-Here-1"));
-      Assert.assertTrue(headers.contains("X-Here-2"));
-      Assert.assertTrue(headers.contains("X-Here-3"));
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+    MultiMap headers = resp.headers();
+    Assert.assertTrue(headers.contains("X-Here-1"));
+    Assert.assertTrue(headers.contains("X-Here-2"));
+    Assert.assertTrue(headers.contains("X-Here-3"));
   }
 
   @Test
@@ -2145,8 +2140,8 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
 
-    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "en-gb;q=0.8, en;q=0.7, da_DK;q=0.9"), 200, "OK", null);
-    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "en-gb;q=0.8, en;q=0.7, da-DK;q=0.9"), 200, "OK", null);
+    testRequest(webClient.get("/foo").putHeader("Accept-Language", "en-gb;q=0.8, en;q=0.7, da_DK;q=0.9"), 200, "OK");
+    testRequest(webClient.get("/foo").putHeader("Accept-Language", "en-gb;q=0.8, en;q=0.7, da-DK;q=0.9"), 200, "OK");
   }
 
   @Test
@@ -2157,7 +2152,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
 
-    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "da, en-gb;q=0.8, en;q=0.7"), 200, "OK", null);
+    testRequest(webClient.get("/foo").putHeader("Accept-Language", "da, en-gb;q=0.8, en;q=0.7"), 200, "OK");
   }
 
   @Test
@@ -2169,7 +2164,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
 
-    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "en-gb"), 200, "OK", null);
+    testRequest(webClient.get("/foo").putHeader("Accept-Language", "en-gb"), 200, "OK");
   }
 
   @Test
@@ -2180,7 +2175,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
 
-    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "pt;q=0.9, en-gb;q=0.9"), 200, "OK", null);
+    testRequest(webClient.get("/foo").putHeader("Accept-Language", "pt;q=0.9, en-gb;q=0.9"), 200, "OK");
   }
 
   @Test
@@ -2254,11 +2249,10 @@ public class RouterTest extends WebTestBase {
       context.response().end();
     });
 
-    testRequest(HttpMethod.GET, "/abc/test", null, resp -> {
-      MultiMap headers = resp.headers();
-      Assert.assertTrue(headers.contains("X-Here-1"));
-      Assert.assertTrue(headers.contains("X-Here-2"));
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/abc/test").send(), 200, "OK");
+    MultiMap headers = resp.headers();
+    Assert.assertTrue(headers.contains("X-Here-1"));
+    Assert.assertTrue(headers.contains("X-Here-2"));
   }
 
   @Test
@@ -2382,6 +2376,40 @@ public class RouterTest extends WebTestBase {
       }));
     }
     TestUtils.awaitLatch(latch);
+  }
+
+  private void testSyncRequest(String httpMethod, String path, int statusCode, String statusMessage, String responseBody) throws IOException {
+    HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:" + this.server.actualPort() + path).openConnection();
+    connection.setRequestMethod(httpMethod);
+
+    Assert.assertEquals(statusCode, connection.getResponseCode());
+    if (connection.getResponseCode() < 400) { // So dummy compare
+      Assert.assertEquals(statusMessage, connection.getResponseMessage());
+
+      BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+      String inputLine;
+      StringBuilder response = new StringBuilder();
+
+      while ((inputLine = in.readLine()) != null) {
+        response.append(inputLine);
+      }
+      in.close();
+
+      Assert.assertEquals(responseBody, response.toString());
+    } else {
+      Assert.assertEquals(statusMessage, connection.getResponseMessage());
+
+      BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+      String inputLine;
+      StringBuilder response = new StringBuilder();
+
+      while ((inputLine = in.readLine()) != null) {
+        response.append(inputLine);
+      }
+      in.close();
+
+      Assert.assertEquals(responseBody, response.toString());
+    }
   }
 
   /*
@@ -2824,11 +2852,10 @@ public class RouterTest extends WebTestBase {
     router.get("/path").handler(rc -> rc.response().end());
     router.post("/path").handler(rc -> rc.response().end());
     router.put("/hello").handler(rc -> rc.response().end());
-    testRequest(HttpMethod.PUT, "/path", null, res -> {
-      Assert.assertEquals(2, res.getHeader("allow").split(",").length);
-      Assert.assertTrue(res.getHeader("allow").contains("GET"));
-      Assert.assertTrue(res.getHeader("allow").contains("POST"));
-    }, HttpResponseStatus.METHOD_NOT_ALLOWED.code(), HttpResponseStatus.METHOD_NOT_ALLOWED.reasonPhrase(), null);
+    HttpResponse<Buffer> resp = testRequest(webClient.request(HttpMethod.PUT, "/path").send(), HttpResponseStatus.METHOD_NOT_ALLOWED.code(), HttpResponseStatus.METHOD_NOT_ALLOWED.reasonPhrase());
+    Assert.assertEquals(2, resp.getHeader("allow").split(",").length);
+    Assert.assertTrue(resp.getHeader("allow").contains("GET"));
+    Assert.assertTrue(resp.getHeader("allow").contains("POST"));
   }
 
   @Test
@@ -2856,8 +2883,7 @@ public class RouterTest extends WebTestBase {
     testRequest(new RequestOptions()
       .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
       .setPort(80)
-      .setHost("www.mysite.com"), req -> {
-    }, 200, "OK", null);
+      .setHost("www.mysite.com"), 200, "OK", null);
   }
 
   @Test
@@ -2869,8 +2895,7 @@ public class RouterTest extends WebTestBase {
     testRequest(new RequestOptions()
       .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
       .setPort(80)
-      .setHost("www.mysite.net"), req -> {
-    }, 500, "Internal Server Error", null);
+      .setHost("www.mysite.net"), 500, "Internal Server Error", null);
   }
 
   @Test
@@ -3031,13 +3056,9 @@ public class RouterTest extends WebTestBase {
       }
     });
 
-    testRequest(HttpMethod.GET, "/check/e-tag", req -> {
-      req.putHeader("IF-NONE-MATCH", "\"1234\",");
-    }, 304, "Not Modified", "");
+    testRequest(webClient.get("/check/e-tag").putHeader("IF-NONE-MATCH", "\"1234\","), 304, "Not Modified");
 
-    testRequest(HttpMethod.GET, "/check/e-tag", req -> {
-      req.putHeader("IF-NONE-MATCH", "\"1234\"");
-    }, 304, "Not Modified", "");
+    testRequest(webClient.get("/check/e-tag").putHeader("IF-NONE-MATCH", "\"1234\""), 304, "Not Modified");
   }
 
   @Test
@@ -3139,12 +3160,9 @@ public class RouterTest extends WebTestBase {
       .handler(ctx -> ctx.response().setStatusCode(200).end(ctx.body().asString()));
 
     testRequest(
-      HttpMethod.GET,
-      "/fail",
-      req -> {
-        req.putHeader("Content-Type", "application/x-www-form-urlencoded");
-        req.end("{\"confidence\":\"56%\",\"info\":\"a&b\"}");
-      },
+      webClient.get("/fail")
+        .putHeader("Content-Type", "application/x-www-form-urlencoded")
+        .sendBuffer(Buffer.buffer("{\"confidence\":\"56%\",\"info\":\"a&b\"}")),
       400, "Bad Request", "returned in first error handler");
   }
 
