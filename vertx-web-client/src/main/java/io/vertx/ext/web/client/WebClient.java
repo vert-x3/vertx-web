@@ -287,11 +287,20 @@ public interface WebClient {
   HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, UriTemplate requestURI);
 
   /**
+   * Create an HTTP request to send to the server from the specified request {@code options}.
+   * @param options  the request options
+   * @return  an HTTP client request object
+   */
+  HttpRequest<Buffer> request(RequestOptions options);
+
+  /**
    * Create an HTTP request to send to the server at the specified host and port.
    * @param method  the HTTP method
    * @param options  the request options
    * @return  an HTTP client request object
+   * @deprecated instead use {@link #request(RequestOptions)}
    */
+  @Deprecated
   default HttpRequest<Buffer> request(HttpMethod method, RequestOptions options) {
     return request(method, null, options);
   }
@@ -303,7 +312,9 @@ public interface WebClient {
    * The request host header will still be created from the {@code options} parameter.
    * <p>
    * Use {@link SocketAddress#domainSocketAddress(String)} to connect to a unix domain socket server.
+   * @deprecated instead use {@link #request(RequestOptions)}
    */
+  @Deprecated
   HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, RequestOptions options);
 
   /**
