@@ -19,19 +19,15 @@ import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Paulo Lopes
  */
-public class VirtualHostTest extends WebTestBase {
-
-  public VirtualHostTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class VirtualHostTest extends WebTestBase2 {
 
   @Test
-  public void testVHost() throws Exception {
+  public void testVHost() {
     router.route().virtualHost("*.com").handler(ctx -> ctx.response().end());
 
     router.route().handler(ctx -> ctx.fail(500));
@@ -42,7 +38,7 @@ public class VirtualHostTest extends WebTestBase {
   }
 
   @Test
-  public void testVHostPort() throws Exception {
+  public void testVHostPort() {
     router.route().virtualHost("*.com").handler(ctx -> ctx.response().end());
 
     router.route().handler(ctx -> ctx.fail(500));
@@ -53,7 +49,7 @@ public class VirtualHostTest extends WebTestBase {
   }
 
   @Test
-  public void testVHostIPv6Any() throws Exception {
+  public void testVHostIPv6Any() {
     router.route().virtualHost("::").handler(ctx -> ctx.response().end());
 
     router.route().handler(ctx -> ctx.fail(500));
@@ -64,7 +60,7 @@ public class VirtualHostTest extends WebTestBase {
   }
 
   @Test
-  public void testVHostIPv6AnyPort() throws Exception {
+  public void testVHostIPv6AnyPort() {
     router.route().virtualHost("::").handler(ctx -> ctx.response().end());
 
     router.route().handler(ctx -> ctx.fail(500));
@@ -75,7 +71,7 @@ public class VirtualHostTest extends WebTestBase {
   }
 
   @Test
-  public void testVHostIPv6Home() throws Exception {
+  public void testVHostIPv6Home() {
     router.route().virtualHost("::1").handler(ctx -> ctx.response().end());
 
     router.route().handler(ctx -> ctx.fail(500));
@@ -86,7 +82,7 @@ public class VirtualHostTest extends WebTestBase {
   }
 
   @Test
-  public void testVHostIPv6HomePort() throws Exception {
+  public void testVHostIPv6HomePort() {
     router.route().virtualHost("::1").handler(ctx -> ctx.response().end());
 
     router.route().handler(ctx -> ctx.fail(500));
@@ -97,7 +93,7 @@ public class VirtualHostTest extends WebTestBase {
   }
 
   @Test
-  public void testVHostShouldFail() throws Exception {
+  public void testVHostShouldFail() {
     router.route().virtualHost("*.com").handler(ctx -> ctx.response().end());
 
     router.route().handler(ctx -> ctx.fail(500));
@@ -108,7 +104,7 @@ public class VirtualHostTest extends WebTestBase {
   }
 
   @Test
-  public void testVHostSubRouter() throws Exception {
+  public void testVHostSubRouter() {
 
     Router a = Router.router(vertx);
     a.get("/somepath").handler(RoutingContext::end);
