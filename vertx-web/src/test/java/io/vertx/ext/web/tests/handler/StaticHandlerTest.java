@@ -17,10 +17,7 @@
 package io.vertx.ext.web.tests.handler;
 
 import io.netty.util.internal.PlatformDependent;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Future;
-import io.vertx.core.VerticleBase;
+import io.vertx.core.*;
 import io.vertx.core.http.*;
 import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.json.JsonArray;
@@ -1033,15 +1030,23 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testWriteResponseWhenAlreadyClosed() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
     router.clear();
     router
       .route()
       .handler(rc -> {
         rc.next();
         rc.response().end("OtherResponse");
+        Context ctx = Vertx.currentContext();
+        ctx.exceptionHandler(expected -> {
+          // Thrown by static handler when trying to send the file and the response has already
+          // been sent
+          latch.countDown();
+        });
       })
       .handler(stat);
     testRequest(HttpMethod.GET, "/index.html", 200, "OK", "OtherResponse");
+    TestUtils.awaitLatch(latch);
   }
 
   @Test
