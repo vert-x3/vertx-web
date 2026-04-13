@@ -81,6 +81,16 @@ public class WebClientBase<C extends WebClientBase<C>> implements WebClientInter
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, SocketAddress serverAddress, RequestOptions requestOptions) {
+    requestOptions = new RequestOptions(requestOptions);
+    requestOptions.setMethod(method);
+    if (serverAddress != null) {
+      requestOptions.setServer(serverAddress);
+    }
+    return request(requestOptions);
+  }
+
+  @Override
+  public HttpRequest<Buffer> request(RequestOptions requestOptions) {
     Integer port = requestOptions.getPort();
     if (port == null) {
       port = options.getDefaultPort();
@@ -89,7 +99,8 @@ public class WebClientBase<C extends WebClientBase<C>> implements WebClientInter
     if (host == null) {
       host = options.getDefaultHost();
     }
-    Address address = serverAddress != null ? serverAddress : requestOptions.getServer();
+    Address address = requestOptions.getServer();
+    HttpMethod method = requestOptions.getMethod();
     HttpRequestImpl<Buffer> request = new HttpRequestImpl<>(this, method, address, options.isSsl(), port, host,
       requestOptions.getURI(), BodyCodecImpl.BUFFER, options.isFollowRedirects(), buildProxyOptions(options), buildHeaders(options));
     request.ssl(requestOptions.isSsl());
