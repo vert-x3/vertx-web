@@ -38,6 +38,10 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class CookieSessionHandlerTest extends SessionHandlerTestBase {
 
+  public CookieSessionHandlerTest() {
+    super(ReportMode.STATELESS);
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();

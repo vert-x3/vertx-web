@@ -8,4 +8,5 @@ open module io.vertx.web.sstore.redis.tests {
   requires testcontainers;
   requires io.vertx.web.sstore.caffeine;
   requires io.vertx.web.tests;
+  requires io.vertx.core.tests;
 }

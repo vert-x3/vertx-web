@@ -31,7 +31,7 @@ open module io.vertx.web.tests {
   requires static io.vertx.auth.otp;
   requires static io.vertx.healthcheck;
   requires io.vertx.core.tests;
-  requires org.junit.jupiter.api;
+  requires transitive org.junit.jupiter.api;
   requires io.vertx.testing.junit5;
   requires io.vertx.eventbusbridge;
   requires io.vertx.web;

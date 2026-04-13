@@ -11,6 +11,10 @@ import org.junit.Test;
  */
 public class CaffeineSessionHandlerTest extends SessionHandlerTestBase {
 
+  public CaffeineSessionHandlerTest() {
+    super(ReportMode.STATELESS);
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();

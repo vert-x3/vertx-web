@@ -22,4 +22,5 @@ open module io.vertx.web.sstore.cookie.tests {
   requires io.vertx.testing.unit;
   requires io.vertx.auth.common;
   requires io.netty.codec.http;
+  requires io.vertx.core.tests;
 }

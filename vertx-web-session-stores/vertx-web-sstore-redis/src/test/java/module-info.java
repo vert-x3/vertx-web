@@ -7,6 +7,7 @@ open module io.vertx.web.sstore.redis.tests {
   requires io.vertx.web.sstore.redis;
   requires junit;
   requires testcontainers;
+  requires io.vertx.core.tests;
 
 
 }
