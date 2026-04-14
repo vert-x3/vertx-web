@@ -24,7 +24,7 @@ import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.DigestAuthHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class DigestAuthHandlerTest extends WebTestBase2 {
+public class DigestAuthHandlerTest extends WebTestBase {
 
   private static final MessageDigest MD5;
   private static final String DEFAULT_NONCE_MAP_NAME = "htdigest.nonces";

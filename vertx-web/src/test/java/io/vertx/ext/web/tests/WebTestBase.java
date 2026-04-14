@@ -44,7 +44,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @VertxTest
-public abstract class WebTestBase2 {
+public abstract class WebTestBase {
 
   protected static Set<HttpMethod> METHODS = new HashSet<>(Arrays.asList(HttpMethod.DELETE, HttpMethod.GET,
     HttpMethod.HEAD, HttpMethod.PATCH, HttpMethod.OPTIONS, HttpMethod.TRACE, HttpMethod.POST, HttpMethod.PUT));

@@ -19,7 +19,7 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.TimeoutHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class TimeoutHandlerTest extends WebTestBase2 {
+public class TimeoutHandlerTest extends WebTestBase {
 
   @Test
   public void testTimeout() {

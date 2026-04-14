@@ -19,7 +19,7 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.LoggerFormat;
 import io.vertx.ext.web.handler.LoggerHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class LoggerHandlerTest extends WebTestBase2 {
+public class LoggerHandlerTest extends WebTestBase {
 
   @Test
   public void testLogger1() throws Exception {

@@ -20,7 +20,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ import java.io.IOException;
 /**
  * @author Paulo Lopes
  */
-public class RerouteTest extends WebTestBase2 {
+public class RerouteTest extends WebTestBase {
 
   @AfterAll
   public static void oneTimeTearDown() throws IOException {

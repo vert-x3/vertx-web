@@ -30,7 +30,7 @@ import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.SessionStore;
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.junit5.VertxTestContext;
@@ -48,7 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * @author Paulo Lopes
  */
-public class OAuth2AuthHandlerTest extends WebTestBase2 {
+public class OAuth2AuthHandlerTest extends WebTestBase {
 
   private static final JsonObject fixture = new JsonObject(
     "{" +

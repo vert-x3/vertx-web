@@ -23,7 +23,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class CORSHandlerTest extends WebTestBase2 {
+public class CORSHandlerTest extends WebTestBase {
 
   @Test
   public void testNullAllowedOrigin() {

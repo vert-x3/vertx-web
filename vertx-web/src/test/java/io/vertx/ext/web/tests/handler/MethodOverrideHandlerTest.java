@@ -17,7 +17,7 @@
 package io.vertx.ext.web.tests.handler;
 
 import io.vertx.ext.web.handler.MethodOverrideHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import io.vertx.core.http.HttpMethod;
@@ -25,7 +25,7 @@ import io.vertx.core.http.HttpMethod;
 /**
  * @author <a href="mailto:victorqrsilva@gmail.com">Victor Quezado</a>
  */
-public class MethodOverrideHandlerTest extends WebTestBase2 {
+public class MethodOverrideHandlerTest extends WebTestBase {
 
   private MethodOverrideHandler handlerWithSafeDowngrading = MethodOverrideHandler.create();
   private MethodOverrideHandler handlerWithoutSafeDowngrading = MethodOverrideHandler.create(false);

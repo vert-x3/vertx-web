@@ -19,14 +19,14 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.ResponseTimeHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class ResponseTimeTest extends WebTestBase2 {
+public class ResponseTimeTest extends WebTestBase {
 
   @Test
   public void testRequestTime1() throws Exception {

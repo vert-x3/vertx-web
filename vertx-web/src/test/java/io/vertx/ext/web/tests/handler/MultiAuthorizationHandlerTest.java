@@ -2,7 +2,6 @@ package io.vertx.ext.web.tests.handler;
 
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.auth.KeyStoreOptions;
@@ -17,7 +16,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +26,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class MultiAuthorizationHandlerTest extends WebTestBase2 {
+public class MultiAuthorizationHandlerTest extends WebTestBase {
 
   JWTAuth authProvider;
 

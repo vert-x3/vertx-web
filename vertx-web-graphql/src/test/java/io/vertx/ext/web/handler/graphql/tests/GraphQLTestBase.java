@@ -26,8 +26,7 @@ import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import org.junit.jupiter.api.BeforeEach;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
-import org.junit.jupiter.api.BeforeEach;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
@@ -36,7 +35,7 @@ import static java.util.stream.Collectors.toList;
 /**
  * @author Thomas Segismont
  */
-public class GraphQLTestBase extends WebTestBase2 {
+public class GraphQLTestBase extends WebTestBase {
 
   protected TestData testData = new TestData();
   protected GraphQLHandler graphQLHandler;

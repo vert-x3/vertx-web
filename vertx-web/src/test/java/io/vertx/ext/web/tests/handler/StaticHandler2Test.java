@@ -20,7 +20,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxTestContext;
@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class StaticHandler2Test extends WebTestBase2 {
+public class StaticHandler2Test extends WebTestBase {
 
   protected StaticHandler stat;
 

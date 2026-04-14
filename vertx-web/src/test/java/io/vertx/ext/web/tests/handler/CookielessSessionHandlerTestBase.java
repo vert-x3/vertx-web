@@ -21,7 +21,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,7 +38,7 @@ import java.util.function.Function;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class CookielessSessionHandlerTestBase extends WebTestBase2 {
+public class CookielessSessionHandlerTestBase extends WebTestBase {
 
 	private SessionStore store;
 

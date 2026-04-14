@@ -21,7 +21,7 @@ import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.impl.Utils;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxTestContext;
@@ -33,7 +33,7 @@ import java.util.*;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class CookieHandlerTest extends WebTestBase2 {
+public class CookieHandlerTest extends WebTestBase {
 
   @Override
   @BeforeEach

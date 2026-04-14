@@ -18,7 +18,7 @@ package io.vertx.ext.web.tests.handler;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.MultiTenantHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class MultiTenantHandlerTest extends WebTestBase2 {
+public class MultiTenantHandlerTest extends WebTestBase {
 
   @Test
   public void testHeader() throws Exception {

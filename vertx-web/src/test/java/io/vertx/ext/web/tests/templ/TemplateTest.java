@@ -25,7 +25,7 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.TemplateHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class TemplateTest extends WebTestBase2 {
+public class TemplateTest extends WebTestBase {
 
   @Test
   public void testTemplateHandler() {

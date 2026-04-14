@@ -4,13 +4,13 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
-public class SockJSCORSTest extends WebTestBase2 {
+public class SockJSCORSTest extends WebTestBase {
 
   @Test
   public void testSockJSInternalCORSHandling() {

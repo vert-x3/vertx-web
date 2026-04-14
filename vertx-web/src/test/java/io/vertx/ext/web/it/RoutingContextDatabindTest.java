@@ -19,9 +19,8 @@ package io.vertx.ext.web.it;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,7 +29,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 
-public class RoutingContextDatabindTest extends WebTestBase2 {
+public class RoutingContextDatabindTest extends WebTestBase {
 
   @AfterAll
   public static void oneTimeTearDown() {

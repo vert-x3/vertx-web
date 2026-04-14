@@ -7,7 +7,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.Collections;
 
 
-public class RoutingContextImplTest extends WebTestBase2 {
+public class RoutingContextImplTest extends WebTestBase {
 
   @AfterAll
   public static void oneTimeTearDown() throws IOException {

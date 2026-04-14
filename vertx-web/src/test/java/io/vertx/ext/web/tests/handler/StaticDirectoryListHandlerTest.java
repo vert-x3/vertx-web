@@ -19,7 +19,7 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxTestContext;
@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class StaticDirectoryListHandlerTest extends WebTestBase2 {
+public class StaticDirectoryListHandlerTest extends WebTestBase {
 
   protected StaticHandler stat;
 

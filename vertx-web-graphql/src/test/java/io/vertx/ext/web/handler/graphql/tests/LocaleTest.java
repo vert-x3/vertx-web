@@ -26,7 +26,7 @@ import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +36,7 @@ import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static io.vertx.core.http.HttpMethod.GET;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class LocaleTest extends WebTestBase2 {
+public class LocaleTest extends WebTestBase {
 
   private static final String LOCALE = "el-CY";
 

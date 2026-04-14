@@ -17,7 +17,7 @@
 package io.vertx.ext.web.it;
 
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author Paulo Lopes
  */
-public class RouterExtendedParamTest extends WebTestBase2 {
+public class RouterExtendedParamTest extends WebTestBase {
 
   @Test
   public void testRouteDashVariable() throws Exception {

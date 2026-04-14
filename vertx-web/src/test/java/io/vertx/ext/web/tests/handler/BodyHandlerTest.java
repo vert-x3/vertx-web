@@ -16,12 +16,10 @@
 
 package io.vertx.ext.web.tests.handler;
 
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
@@ -31,7 +29,7 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.PlatformHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
@@ -53,7 +51,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class BodyHandlerTest extends WebTestBase2 {
+public class BodyHandlerTest extends WebTestBase {
 
   private static final String name = "somename";
 

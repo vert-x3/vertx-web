@@ -35,7 +35,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class SubRouterTest extends WebTestBase2 {
+public class SubRouterTest extends WebTestBase {
 
   @Test
   public void testInvalidMountPoint1() {

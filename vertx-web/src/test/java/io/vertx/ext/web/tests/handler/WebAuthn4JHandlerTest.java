@@ -39,7 +39,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.WebAuthn4JHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.test.core.TestUtils;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -87,7 +87,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class WebAuthn4JHandlerTest extends WebTestBase2 {
+public class WebAuthn4JHandlerTest extends WebTestBase {
 
 	private final ObjectConverter objectConverter = new ObjectConverter();
 

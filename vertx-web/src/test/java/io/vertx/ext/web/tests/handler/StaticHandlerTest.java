@@ -33,7 +33,7 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.FileSystemAccess;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.impl.Utils;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.test.core.TestUtils;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Assumptions;
@@ -58,13 +58,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 
 import static io.vertx.core.http.HttpHeaders.ACCEPT_ENCODING;
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class StaticHandlerTest extends WebTestBase2 {
+public class StaticHandlerTest extends WebTestBase {
 
   private static final Path webRootSrc;
 

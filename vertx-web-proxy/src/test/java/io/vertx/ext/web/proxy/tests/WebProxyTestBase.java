@@ -6,7 +6,7 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 /**
  * @author <a href="mailto:emad.albloushi@gmail.com">Emad Alblueshi</a>
  */
-public class WebProxyTestBase extends WebTestBase2 {
+public class WebProxyTestBase extends WebTestBase {
 
   protected HttpServer backendServer;
   protected HttpClient proxyClient;

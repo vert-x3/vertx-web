@@ -31,7 +31,7 @@ import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.SessionStore;
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.core.Vertx;
@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * @author Paulo Lopes
  */
-public class OAuth2ImpersonationTest extends WebTestBase2 {
+public class OAuth2ImpersonationTest extends WebTestBase {
 
   private static final String USER_SWITCH_KEY = "__vertx.user-switch-ref";
 

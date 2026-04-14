@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Paulo Lopes
  */
-public class VirtualHostTest extends WebTestBase2 {
+public class VirtualHostTest extends WebTestBase {
 
   @Test
   public void testVHost() {

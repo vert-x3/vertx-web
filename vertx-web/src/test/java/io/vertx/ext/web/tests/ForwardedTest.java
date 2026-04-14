@@ -29,9 +29,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import static io.vertx.ext.web.AllowForwardHeaders.*;
-import static org.junit.jupiter.api.Assertions.*;
 
-public class ForwardedTest extends WebTestBase2 {
+public class ForwardedTest extends WebTestBase {
 
   @Test
   public void testXForwardSSL() {

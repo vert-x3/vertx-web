@@ -31,7 +31,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.handler.SecurityAuditLoggerHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxTestContext;
@@ -44,7 +44,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class SecurityAuditLoggerHandlerTest extends WebTestBase2 {
+public class SecurityAuditLoggerHandlerTest extends WebTestBase {
 
   JWTAuth authProvider;
 

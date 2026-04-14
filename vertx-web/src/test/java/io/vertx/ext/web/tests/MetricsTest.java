@@ -6,7 +6,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerConfig;
 import io.vertx.core.metrics.MetricsOptions;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.core.spi.VertxMetricsFactory;
 import io.vertx.core.spi.metrics.HttpServerMetrics;
 import io.vertx.core.spi.metrics.VertxMetrics;
 import io.vertx.core.spi.observability.HttpRequest;
@@ -25,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class MetricsTest extends WebTestBase2 {
+public class MetricsTest extends WebTestBase {
 
   static final FakeHttpServerMetrics fakeHttpServerMetrics = new FakeHttpServerMetrics();
 

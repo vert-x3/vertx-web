@@ -20,14 +20,14 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.FaviconHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class FaviconHandlerTest extends WebTestBase2 {
+public class FaviconHandlerTest extends WebTestBase {
 
   @Test
   public void testFaviconClasspath() throws Exception {

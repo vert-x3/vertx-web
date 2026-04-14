@@ -13,7 +13,7 @@ import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.SessionStore;
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.core.Vertx;
@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-public class BasicAuthImpersonationTest extends WebTestBase2 {
+public class BasicAuthImpersonationTest extends WebTestBase {
 
   AuthenticationProvider authn;
   AuthorizationProvider authz;

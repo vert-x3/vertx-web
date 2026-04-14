@@ -4,7 +4,6 @@ import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.otp.Authenticator;
@@ -14,7 +13,7 @@ import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.OtpAuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.core.Vertx;
@@ -26,7 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class OtpHandlerTest  extends WebTestBase2 {
+public class OtpHandlerTest  extends WebTestBase {
 
   static class DummyDatabase {
 

@@ -27,10 +27,9 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CSRFHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
-import io.vertx.test.core.TestUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.*;
@@ -48,7 +47,7 @@ import static java.util.stream.Collectors.joining;
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class CSRFHandlerTest extends WebTestBase2 {
+public class CSRFHandlerTest extends WebTestBase {
 
   @AfterAll
   public static void oneTimeTearDown() throws IOException {

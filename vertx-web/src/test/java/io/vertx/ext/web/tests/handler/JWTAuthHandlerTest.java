@@ -26,7 +26,7 @@ import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.JWTAuthHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ import java.util.Arrays;
 /**
  * @author Paulo Lopes
  */
-public class JWTAuthHandlerTest extends WebTestBase2 {
+public class JWTAuthHandlerTest extends WebTestBase {
 
   JWTAuth authProvider;
 

@@ -9,7 +9,7 @@ import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.core.Vertx;
@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-public class ChainAuthHandlerTest extends WebTestBase2 {
+public class ChainAuthHandlerTest extends WebTestBase {
 
   private AuthenticationProvider authProvider;
   protected ChainAuthHandler chain;

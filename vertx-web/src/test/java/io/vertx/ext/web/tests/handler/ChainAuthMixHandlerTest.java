@@ -9,13 +9,13 @@ import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.impl.SimpleAuthenticationHandlerImpl;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
-public class ChainAuthMixHandlerTest extends WebTestBase2 {
+public class ChainAuthMixHandlerTest extends WebTestBase {
 
   private static final User USER = User.create(new JsonObject().put("id", "paulo"));
 

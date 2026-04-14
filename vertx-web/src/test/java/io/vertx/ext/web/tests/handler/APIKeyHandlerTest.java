@@ -23,7 +23,7 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.web.handler.APIKeyHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Paulo Lopes
  */
-public class APIKeyHandlerTest extends WebTestBase2 {
+public class APIKeyHandlerTest extends WebTestBase {
 
   AuthenticationProvider authProvider;
 

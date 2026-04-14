@@ -31,7 +31,7 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
@@ -57,7 +57,7 @@ import java.util.function.BiConsumer;
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class SockJSHandlerTest extends WebTestBase2 {
+public class SockJSHandlerTest extends WebTestBase {
 
   private static final Logger log = LoggerFactory.getLogger(SockJSHandlerTest.class);
   private static final Buffer SOCKJS_CLOSE_REPLY = Buffer.buffer("c[3000,\"Go away!\"]");

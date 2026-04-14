@@ -24,7 +24,7 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.handler.ResponseTimeHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxTestContext;
@@ -39,7 +39,7 @@ import static io.vertx.core.http.HttpHeaders.CONTENT_TYPE;
 /**
  * @author Thomas Segismont
  */
-public class ResponseContentTypeHandlerTest extends WebTestBase2 {
+public class ResponseContentTypeHandlerTest extends WebTestBase {
 
   private Route testRoute;
 

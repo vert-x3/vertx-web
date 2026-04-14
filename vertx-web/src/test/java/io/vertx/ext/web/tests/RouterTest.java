@@ -62,7 +62,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class RouterTest extends WebTestBase2 {
+public class RouterTest extends WebTestBase {
 
   @Test
   public void testSimpleRoute() throws Exception {

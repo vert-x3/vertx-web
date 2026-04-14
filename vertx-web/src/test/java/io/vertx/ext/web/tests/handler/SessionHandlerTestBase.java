@@ -23,10 +23,9 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.AbstractSession;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.AsyncTestBase;
-import io.vertx.test.core.TestUtils;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.jupiter.api.Test;
@@ -46,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public abstract class SessionHandlerTestBase extends WebTestBase2 {
+public abstract class SessionHandlerTestBase extends WebTestBase {
 
 	protected SessionStore store;
 

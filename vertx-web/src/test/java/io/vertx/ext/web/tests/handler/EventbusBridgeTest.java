@@ -37,7 +37,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.impl.JsonCodec;
@@ -58,7 +58,7 @@ import java.util.function.BiConsumer;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public abstract class EventbusBridgeTest extends WebTestBase2 {
+public abstract class EventbusBridgeTest extends WebTestBase {
 
   protected SockJSHandler sockJS;
   protected SockJSBridgeOptions defaultOptions = new SockJSBridgeOptions();

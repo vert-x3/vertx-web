@@ -20,7 +20,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.ErrorHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.core.Vertx;
@@ -33,7 +33,7 @@ import static io.vertx.ext.web.common.WebEnvironment.SYSTEM_PROPERTY_NAME;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class ErrorHandlerTest extends WebTestBase2 {
+public class ErrorHandlerTest extends WebTestBase {
 
   @Override
   @BeforeEach

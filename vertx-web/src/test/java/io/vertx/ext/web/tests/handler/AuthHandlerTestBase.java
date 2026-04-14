@@ -28,12 +28,11 @@ import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.impl.UserContextInternal;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.jupiter.api.AfterAll;
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -41,7 +40,7 @@ import java.io.IOException;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public abstract class AuthHandlerTestBase extends WebTestBase2 {
+public abstract class AuthHandlerTestBase extends WebTestBase {
 
   @AfterAll
   public static void oneTimeTearDown() throws IOException {

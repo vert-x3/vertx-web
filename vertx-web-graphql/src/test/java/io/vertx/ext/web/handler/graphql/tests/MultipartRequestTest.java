@@ -29,7 +29,7 @@ import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 import io.vertx.ext.web.handler.graphql.UploadScalar;
-import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +47,7 @@ class Result {
   }
 }
 
-public class MultipartRequestTest extends WebTestBase2 {
+public class MultipartRequestTest extends WebTestBase {
   @Override
   @BeforeEach
   public void setUp(io.vertx.core.Vertx vertx, io.vertx.junit5.VertxTestContext testContext) throws Exception {
