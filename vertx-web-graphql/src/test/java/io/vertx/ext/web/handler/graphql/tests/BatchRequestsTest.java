@@ -24,6 +24,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -37,12 +39,12 @@ public class BatchRequestsTest extends GraphQLTestBase {
   }
 
   @Test
-  public void testEmptyBatch() {
+  public void testEmptyBatch() throws Exception {
     HttpClientResponse response = client
       .request(HttpMethod.POST, 8080, "localhost", "/graphql")
       .compose(request -> request
         .send(new JsonArray().toBuffer()))
-      .await();
+      .await(20, TimeUnit.SECONDS);
     assertEquals(200, response.statusCode());
     Buffer buffer = response.body().await();
     Object json = buffer.toJsonValue();
@@ -52,12 +54,12 @@ public class BatchRequestsTest extends GraphQLTestBase {
   }
 
   @Test
-  public void testSimpleBatch() {
+  public void testSimpleBatch() throws Exception {
     JsonObject query = new JsonObject()
       .put("query", "query { allLinks { url } }");
     HttpClientResponse response = client.request(HttpMethod.POST, 8080, "localhost", "/graphql")
       .compose(request -> request.send(new JsonArray().add(query).toBuffer()))
-      .await();
+      .await(20, TimeUnit.SECONDS);
     assertEquals(200, response.statusCode());
     Buffer buffer = response.body().await();
     Object json = buffer.toJsonValue();
@@ -68,12 +70,12 @@ public class BatchRequestsTest extends GraphQLTestBase {
   }
 
   @Test
-  public void testMissingQuery() {
+  public void testMissingQuery() throws Exception {
     JsonObject query = new JsonObject()
       .put("foo", "bar");
     HttpClientResponse response = client.request(HttpMethod.POST, 8080, "localhost", "/graphql")
       .compose(request -> request.send(new JsonArray().add(query).toBuffer()))
-      .await();
+      .await(20, TimeUnit.SECONDS);
     assertEquals(400, response.statusCode());
   }
 }
